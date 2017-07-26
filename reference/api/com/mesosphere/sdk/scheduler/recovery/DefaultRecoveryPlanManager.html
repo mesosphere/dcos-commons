@@ -148,7 +148,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
+<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#configStore">configStore</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
@@ -180,7 +180,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#planLock">planLock</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#stateStore">stateStore</a></span></code>&nbsp;</td>
 </tr>
 </table>
@@ -198,14 +198,14 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">DefaultRecoveryPlanManager</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                          <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">DefaultRecoveryPlanManager</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                          <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor">FailureMonitor</a>&nbsp;failureMonitor)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">DefaultRecoveryPlanManager</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                          <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">DefaultRecoveryPlanManager</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                          <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor">FailureMonitor</a>&nbsp;failureMonitor,
                           java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a>&gt;&nbsp;overrideRecoveryManagers)</code>&nbsp;</td>
@@ -340,7 +340,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <ul class="blockList">
 <li class="blockList">
 <h4>configStore</h4>
-<pre>protected final&nbsp;<a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt; configStore</pre>
+<pre>protected final&nbsp;<a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt; configStore</pre>
 </li>
 </ul>
 <a name="plan">
@@ -358,7 +358,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <ul class="blockList">
 <li class="blockList">
 <h4>stateStore</h4>
-<pre>protected final&nbsp;<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a> stateStore</pre>
+<pre>protected final&nbsp;<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a> stateStore</pre>
 </li>
 </ul>
 <a name="failureMonitor">
@@ -396,26 +396,26 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">
+<a name="DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>DefaultRecoveryPlanManager</h4>
-<pre>public&nbsp;DefaultRecoveryPlanManager(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                  <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+<pre>public&nbsp;DefaultRecoveryPlanManager(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                  <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                                   <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
                                   <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor">FailureMonitor</a>&nbsp;failureMonitor)</pre>
 </li>
 </ul>
-<a name="DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">
+<a name="DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultRecoveryPlanManager</h4>
-<pre>public&nbsp;DefaultRecoveryPlanManager(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                  <a href="../../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+<pre>public&nbsp;DefaultRecoveryPlanManager(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                  <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                                   <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
                                   <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor">FailureMonitor</a>&nbsp;failureMonitor,
                                   java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a>&gt;&nbsp;overrideRecoveryManagers)</pre>

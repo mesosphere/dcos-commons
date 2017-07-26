@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6,"i14":6,"i15":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":9,"i14":9,"i15":9,"i16":10,"i17":10,"i18":10,"i19":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -73,14 +73,14 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -91,33 +91,94 @@ var activeTableTab = "activeTableTab";
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.mesosphere.sdk.state</div>
-<h2 title="Interface StateStore" class="title">Interface StateStore</h2>
+<h2 title="Class StateStore" class="title">Class StateStore</h2>
 </div>
 <div class="contentContainer">
+<ul class="inheritance">
+<li>java.lang.Object</li>
+<li>
+<ul class="inheritance">
+<li>com.mesosphere.sdk.state.StateStore</li>
+</ul>
+</li>
+</ul>
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl>
-<dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dd>
-</dl>
 <hr>
 <br>
-<pre>public interface <span class="typeNameLabel">StateStore</span></pre>
-<div class="block">A <code>StateStore</code> stores the state of the frameworks, including tasks' TaskInfo and TaskStatus objects. Each
- distinct Task is expected to have a unique Task Name, determined by the framework developer.
+<pre>public class <span class="typeNameLabel">StateStore</span>
+extends java.lang.Object</pre>
+<div class="block">A <code>StateStore</code> stores the state of a service, including tasks' TaskInfo and TaskStatus objects. Each
+ distinct Task is expected to have a unique Task Name, determined by the service developer.
  <p>
  TaskInfo objects should be persisted when a Task is launched or when reserved resources associated with a potential
  future Task launch should be recorded.
  <p>
  TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation and when Tasks
- change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.</div>
+ change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
+
+ <p>The structure used in the underlying persister is as follows:
+ <br>rootPath/
+ <br>&nbsp;-> FrameworkID
+ <br>&nbsp;-> Tasks/
+ <br>&nbsp;&nbsp;-> [TaskName-0]/
+ <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
+ <br>&nbsp;&nbsp;-> [TaskName-1]/
+ <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ <br>&nbsp;&nbsp;-> [TaskName-2]/
+ <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
+ <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
+ <br>&nbsp;&nbsp;-> ...</div>
 </li>
 </ul>
 </div>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#persister">persister</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!--   -->
+</a>
+<h3>Constructor Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#StateStore-com.mesosphere.sdk.storage.Persister-">StateStore</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
+</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -125,7 +186,7 @@ var activeTableTab = "activeTableTab";
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -173,19 +234,19 @@ var activeTableTab = "activeTableTab";
 </td>
 </tr>
 <tr id="i7" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;TaskStatus&gt;</code></td>
+<td class="colFirst"><code>java.util.Optional&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatus-java.lang.String-">fetchStatus</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;TaskStatus&gt;</code></td>
+<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--">fetchStatuses</a></span>()</code>
 <div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
 <tr id="i9" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;TaskInfo&gt;</code></td>
+<td class="colFirst"><code>java.util.Optional&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTask-java.lang.String-">fetchTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.</div>
 </td>
@@ -197,37 +258,62 @@ var activeTableTab = "activeTableTab";
 </td>
 </tr>
 <tr id="i11" class="rowColor">
-<td class="colFirst"><code>java.util.Collection&lt;TaskInfo&gt;</code></td>
+<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--">fetchTasks</a></span>()</code>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
 <tr id="i12" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getPersister--">getPersister</a></span>()</code>
+<div class="block">Returns the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object for direct access.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>protected static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskInfoPath-java.lang.String-">getTaskInfoPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+</tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>protected static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskPath-java.lang.String-">getTaskPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+</tr>
+<tr id="i15" class="rowColor">
+<td class="colFirst"><code>protected static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+</tr>
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId</a></span>(Protos.FrameworkID&nbsp;fwkId)</code>
 <div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty</a></span>(java.lang.String&nbsp;key,
              byte[]&nbsp;value)</code>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-TaskStatus-">storeStatus</a></span>(TaskStatus&nbsp;status)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-Protos.TaskStatus-">storeStatus</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks</a></span>(java.util.Collection&lt;TaskInfo&gt;&nbsp;tasks)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks</a></span>(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</code>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!--   -->
+</a>
+<h3>Methods inherited from class&nbsp;java.lang.Object</h3>
+<code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
+</ul>
 </li>
 </ul>
 </li>
@@ -236,6 +322,58 @@ var activeTableTab = "activeTableTab";
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a name="LOCK_PATH_NAME">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>LOCK_PATH_NAME</h4>
+<pre>public static final&nbsp;java.lang.String LOCK_PATH_NAME</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.state.StateStore.LOCK_PATH_NAME">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="persister">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>persister</h4>
+<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a> persister</pre>
+</li>
+</ul>
+</li>
+</ul>
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!--   -->
+</a>
+<h3>Constructor Detail</h3>
+<a name="StateStore-com.mesosphere.sdk.storage.Persister-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>StateStore</h4>
+<pre>public&nbsp;StateStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>persister</code> - The persister which holds the state data</dd>
+</dl>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ============ METHOD DETAIL ========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.detail">
@@ -248,8 +386,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>storeFrameworkId</h4>
-<pre>void&nbsp;storeFrameworkId(Protos.FrameworkID&nbsp;fwkId)
-               throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;storeFrameworkId(Protos.FrameworkID&nbsp;fwkId)
+                      throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -265,8 +403,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>clearFrameworkId</h4>
-<pre>void&nbsp;clearFrameworkId()
-               throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;clearFrameworkId()
+                      throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -280,8 +418,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchFrameworkId</h4>
-<pre>java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;fetchFrameworkId()
-                                                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;fetchFrameworkId()
+                                                        throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -297,9 +435,9 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>storeTasks</h4>
-<pre>void&nbsp;storeTasks(java.util.Collection&lt;TaskInfo&gt;&nbsp;tasks)
-         throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-TaskStatus-"><code>storeStatus(TaskStatus)</code></a> for any given task id, and it must behave as an atomic transaction: On success,
+<pre>public&nbsp;void&nbsp;storeTasks(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)
+                throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before <code>#storeStatus(TaskStatus)</code> for any given task id, and it must behave as an atomic transaction: On success,
  everything is written, while on failure nothing is written.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -309,14 +447,14 @@ var activeTableTab = "activeTableTab";
 </dl>
 </li>
 </ul>
-<a name="storeStatus-TaskStatus-">
+<a name="storeStatus-Protos.TaskStatus-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>storeStatus</h4>
-<pre>void&nbsp;storeStatus(TaskStatus&nbsp;status)
-          throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;storeStatus(Protos.TaskStatus&nbsp;status)
+                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores the TaskStatus of a particular Task. The <code>TaskInfo</code> for this exact task MUST have already been
  written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by <a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-"><code>CommonIdUtils.toTaskId(String)</code></a>.</div>
 <dl>
@@ -324,7 +462,10 @@ var activeTableTab = "activeTableTab";
 <dd><code>status</code> - The status to be stored, which meets the above requirements</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
-                             TaskInfo wasn't stored first</dd>
+                             TaskInfo wasn't stored first
+
+ TODO(nickbp): this function should accept the TaskInfo name instead of fetching it internally.
+               in all but one case, the caller already has the name.</dd>
 </dl>
 </li>
 </ul>
@@ -334,8 +475,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>clearTask</h4>
-<pre>void&nbsp;clearTask(java.lang.String&nbsp;taskName)
-        throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;clearTask(java.lang.String&nbsp;taskName)
+               throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -351,8 +492,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTaskNames</h4>
-<pre>java.util.Collection&lt;java.lang.String&gt;&nbsp;fetchTaskNames()
-                                               throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;fetchTaskNames()
+                                                      throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches all the Task names listed in the underlying storage. Note that these should always have a TaskInfo, but
  may lack TaskStatus.</div>
 <dl>
@@ -369,8 +510,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTasks</h4>
-<pre>java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasks()
-                                   throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchTasks()
+                                                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found. This
  list should be a superset of the list returned by <a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--"><code>fetchStatuses()</code></a>.</div>
 <dl>
@@ -387,8 +528,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTask</h4>
-<pre>java.util.Optional&lt;TaskInfo&gt;&nbsp;fetchTask(java.lang.String&nbsp;taskName)
-                                throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Optional&lt;Protos.TaskInfo&gt;&nbsp;fetchTask(java.lang.String&nbsp;taskName)
+                                              throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -407,8 +548,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchStatuses</h4>
-<pre>java.util.Collection&lt;TaskStatus&gt;&nbsp;fetchStatuses()
-                                        throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Collection&lt;Protos.TaskStatus&gt;&nbsp;fetchStatuses()
+                                                      throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found. Note that this
  list may have fewer entries than <a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--"><code>fetchTasks()</code></a> if some tasks are lacking statuses.</div>
 <dl>
@@ -425,8 +566,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchStatus</h4>
-<pre>java.util.Optional&lt;TaskStatus&gt;&nbsp;fetchStatus(java.lang.String&nbsp;taskName)
-                                    throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Optional&lt;Protos.TaskStatus&gt;&nbsp;fetchStatus(java.lang.String&nbsp;taskName)
+                                                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.
  A given task may sometimes have <code>TaskInfo</code> while lacking <code>TaskStatus</code>.</div>
 <dl>
@@ -446,9 +587,9 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>storeProperty</h4>
-<pre>void&nbsp;storeProperty(java.lang.String&nbsp;key,
-                   byte[]&nbsp;value)
-            throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;storeProperty(java.lang.String&nbsp;key,
+                          byte[]&nbsp;value)
+                   throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores an arbitrary key/value pair.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -457,8 +598,8 @@ var activeTableTab = "activeTableTab";
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if the key or value fail validation, or if storing the data otherwise fails</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateKey-java.lang.String-"><code>StateStoreUtils.validateKey(String)</code></a>, 
-<a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateValue-byte:A-"><code>StateStoreUtils.validateValue(byte[])</code></a></dd>
+<dd><code>StateStoreUtils#validateKey(String)</code>, 
+<code>StateStoreUtils#validateValue(byte[])</code></dd>
 </dl>
 </li>
 </ul>
@@ -468,8 +609,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchProperty</h4>
-<pre>byte[]&nbsp;fetchProperty(java.lang.String&nbsp;key)
-              throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;byte[]&nbsp;fetchProperty(java.lang.String&nbsp;key)
+                     throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches the value byte array, stored against the Property <code>key</code>, or throws an error if no matching <code>key</code> is found.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -477,7 +618,7 @@ var activeTableTab = "activeTableTab";
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if no data was found for the requested key, or if fetching the data otherwise fails</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateKey-java.lang.String-"><code>StateStoreUtils.validateKey(String)</code></a></dd>
+<dd><code>StateStoreUtils#validateKey(String)</code></dd>
 </dl>
 </li>
 </ul>
@@ -487,8 +628,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchPropertyKeys</h4>
-<pre>java.util.Collection&lt;java.lang.String&gt;&nbsp;fetchPropertyKeys()
-                                                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;fetchPropertyKeys()
+                                                         throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches the list of Property keys, or an empty list if none are found.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -502,8 +643,8 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>clearProperty</h4>
-<pre>void&nbsp;clearProperty(java.lang.String&nbsp;key)
-            throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;clearProperty(java.lang.String&nbsp;key)
+                   throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Clears a given property from the StateStore, or does nothing if no such property exists.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -516,16 +657,56 @@ var activeTableTab = "activeTableTab";
 <a name="clearAllData--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>clearAllData</h4>
-<pre>void&nbsp;clearAllData()
-           throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;clearAllData()
+                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Clears the root service node, leaving just the root node behind.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
 </dl>
+</li>
+</ul>
+<a name="getPersister--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPersister</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;getPersister()</pre>
+<div class="block">Returns the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object for direct access.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+</dl>
+</li>
+</ul>
+<a name="getTaskInfoPath-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskInfoPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskInfoPath(java.lang.String&nbsp;taskName)</pre>
+</li>
+</ul>
+<a name="getTaskStatusPath-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskStatusPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskStatusPath(java.lang.String&nbsp;taskName)</pre>
+</li>
+</ul>
+<a name="getTaskPath-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getTaskPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskPath(java.lang.String&nbsp;taskName)</pre>
 </li>
 </ul>
 </li>
@@ -581,14 +762,14 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>

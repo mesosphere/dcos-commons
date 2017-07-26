@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,7 +109,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">StateStoreUtils</span>
 extends java.lang.Object</pre>
-<div class="block">Utilities for implementations and users of <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Utilities for implementations and users of <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </li>
 </ul>
 </div>
@@ -130,26 +130,26 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static byte[]</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchPropertyOrEmptyArray-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchPropertyOrEmptyArray</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchPropertyOrEmptyArray-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchPropertyOrEmptyArray</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          java.lang.String&nbsp;key)</code>
 <div class="block">Returns the requested property, or an empty array if the property is not present.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.util.Collection&lt;TaskInfo&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksFromPod-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchTasksFromPod</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksFromPod-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchTasksFromPod</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                  java.lang.String&nbsp;pod)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;TaskInfo&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">fetchTasksNeedingRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                         <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">fetchTasksNeedingRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                         <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-">getLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-">getLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Gets the last completed update type.</div>
 </td>
 </tr>
@@ -159,13 +159,13 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.Collection&lt;Protos.Resource&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getResources-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getResources</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getResources-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getResources</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
             <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
             <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>static TaskInfo</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskInfo-com.mesosphere.sdk.state.StateStore-TaskStatus-">getTaskInfo</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskInfo-com.mesosphere.sdk.state.StateStore-TaskStatus-">getTaskInfo</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
            TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
  TaskInfo.</div>
@@ -173,7 +173,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;TaskStatus&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskStatusFromProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">getTaskStatusFromProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskStatusFromProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">getTaskStatusFromProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
  task name.</div>
@@ -181,56 +181,42 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isSuppressed-com.mesosphere.sdk.state.StateStore-">isSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isSuppressed-com.mesosphere.sdk.state.StateStore-">isSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isUninstalling-com.mesosphere.sdk.state.StateStore-">isUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isUninstalling-com.mesosphere.sdk.state.StateStore-">isUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">setLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">setLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                           <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;updateResultDeploymentType)</code>
 <div class="block">Sets the last completed update type.</div>
 </td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              boolean&nbsp;isSuppressed)</code>
-<div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
+<div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </td>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setUninstalling-com.mesosphere.sdk.state.StateStore-">setUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setUninstalling-com.mesosphere.sdk.state.StateStore-">setUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
 </td>
 </tr>
 <tr id="i13" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">storeTaskStatusAsProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">storeTaskStatusAsProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          java.lang.String&nbsp;taskName,
                          TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Stores a TaskStatus as a Property in the provided state store.</div>
-</td>
-</tr>
-<tr id="i14" class="altColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateKey-java.lang.String-">validateKey</a></span>(java.lang.String&nbsp;key)</code>
-<div class="block">Shared implementation for validating property key limits, for use by all StateStore
- implementations.</div>
-</td>
-</tr>
-<tr id="i15" class="rowColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#validateValue-byte:A-">validateValue</a></span>(byte[]&nbsp;value)</code>
-<div class="block">Shared implementation for validating property value limits, for use by all StateStore
- implementations.</div>
 </td>
 </tr>
 </table>
@@ -261,19 +247,19 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchPropertyOrEmptyArray</h4>
-<pre>public static&nbsp;byte[]&nbsp;fetchPropertyOrEmptyArray(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;byte[]&nbsp;fetchPropertyOrEmptyArray(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                java.lang.String&nbsp;key)</pre>
 <div class="block">Returns the requested property, or an empty array if the property is not present.</div>
 </li>
 </ul>
-<a name="fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">
+<a name="fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTasksNeedingRecovery</h4>
-<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                                                       <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)
+<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                                                       <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)
                                                                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a>,
                                                                        <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
@@ -292,31 +278,12 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTasksFromPod</h4>
-<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasksFromPod(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasksFromPod(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                                java.lang.String&nbsp;pod)
                                                         throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="validateKey-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>validateKey</h4>
-<pre>public static&nbsp;void&nbsp;validateKey(java.lang.String&nbsp;key)
-                        throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Shared implementation for validating property key limits, for use by all StateStore
- implementations.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-"><code>StateStore.storeProperty(String, byte[])</code></a>, 
-<a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchProperty-java.lang.String-"><code>StateStore.fetchProperty(String)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -326,7 +293,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskInfo</h4>
-<pre>public static&nbsp;TaskInfo&nbsp;getTaskInfo(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;TaskInfo&nbsp;getTaskInfo(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                    TaskStatus&nbsp;taskStatus)
                             throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
@@ -337,24 +304,6 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if no corresponding TaskInfo is found.</dd>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if multiple corresponding TaskInfo's are found.</dd>
-</dl>
-</li>
-</ul>
-<a name="validateValue-byte:A-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>validateValue</h4>
-<pre>public static&nbsp;void&nbsp;validateValue(byte[]&nbsp;value)
-                          throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Shared implementation for validating property value limits, for use by all StateStore
- implementations.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-"><code>StateStore.storeProperty(String, byte[])</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -373,7 +322,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getResources</h4>
-<pre>public static&nbsp;java.util.Collection&lt;Protos.Resource&gt;&nbsp;getResources(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;java.util.Collection&lt;Protos.Resource&gt;&nbsp;getResources(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                                  <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
                                                                  <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec)</pre>
 </li>
@@ -384,9 +333,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>isSuppressed</h4>
-<pre>public static&nbsp;boolean&nbsp;isSuppressed(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)
+<pre>public static&nbsp;boolean&nbsp;isSuppressed(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)
                             throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
@@ -399,9 +348,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>setSuppressed</h4>
-<pre>public static&nbsp;void&nbsp;setSuppressed(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;void&nbsp;setSuppressed(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                  boolean&nbsp;isSuppressed)</pre>
-<div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
+<div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </li>
 </ul>
 <a name="isUninstalling-com.mesosphere.sdk.state.StateStore-">
@@ -410,9 +359,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>isUninstalling</h4>
-<pre>public static&nbsp;boolean&nbsp;isUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)
+<pre>public static&nbsp;boolean&nbsp;isUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)
                               throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
@@ -425,8 +374,8 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>setUninstalling</h4>
-<pre>public static&nbsp;void&nbsp;setUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
+<pre>public static&nbsp;void&nbsp;setUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
 </li>
 </ul>
 <a name="storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">
@@ -435,7 +384,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>storeTaskStatusAsProperty</h4>
-<pre>public static&nbsp;void&nbsp;storeTaskStatusAsProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;void&nbsp;storeTaskStatusAsProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                              java.lang.String&nbsp;taskName,
                                              TaskStatus&nbsp;taskStatus)
                                       throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
@@ -452,7 +401,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskStatusFromProperty</h4>
-<pre>public static&nbsp;java.util.Optional&lt;TaskStatus&gt;&nbsp;getTaskStatusFromProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;java.util.Optional&lt;TaskStatus&gt;&nbsp;getTaskStatusFromProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                                        java.lang.String&nbsp;taskName)</pre>
 <div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
  task name.</div>
@@ -464,7 +413,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>setLastCompletedUpdateType</h4>
-<pre>public static&nbsp;void&nbsp;setLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public static&nbsp;void&nbsp;setLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                               <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;updateResultDeploymentType)</pre>
 <div class="block">Sets the last completed update type.</div>
 </li>
@@ -475,7 +424,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getLastCompletedUpdateType</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;getLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;getLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Gets the last completed update type.</div>
 </li>
 </ul>

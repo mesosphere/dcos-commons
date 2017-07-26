@@ -79,21 +79,26 @@
 <ul>
 <li type="circle">java.lang.Object
 <ul>
-<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultConfigStore</span></a>&lt;T&gt; (implements com.mesosphere.sdk.config.<a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;T&gt;)</li>
+<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">ConfigStore</span></a>&lt;T&gt; (implements com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>)</li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">DefaultObservable</span></a> (implements com.mesosphere.sdk.scheduler.<a href="../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a>)
 <ul>
 <li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/SchedulerState.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">SchedulerState</span></a></li>
 </ul>
 </li>
-<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultSchemaVersionStore</span></a> (implements com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state">SchemaVersionStore</a>)</li>
-<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultStateStore</span></a> (implements com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a>)</li>
 <li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/JsonSerializer.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">JsonSerializer</span></a> (implements com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/Serializer.html" title="interface in com.mesosphere.sdk.state">Serializer</a>)</li>
 <li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">PersistentLaunchRecorder</span></a> (implements com.mesosphere.sdk.offer.<a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a>)</li>
+<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">SchemaVersionStore</span></a></li>
+<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStore</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStoreUtils</span></a></li>
 <li type="circle">java.lang.Throwable (implements java.io.Serializable)
 <ul>
 <li type="circle">java.lang.Exception
 <ul>
+<li type="circle">java.io.IOException
+<ul>
+<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">ConfigStoreException</span></a></li>
+</ul>
+</li>
 <li type="circle">java.lang.RuntimeException
 <ul>
 <li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStoreException</span></a></li>
@@ -108,9 +113,8 @@
 </ul>
 <h2 title="Interface Hierarchy">Interface Hierarchy</h2>
 <ul>
-<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">SchemaVersionStore</span></a></li>
+<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">ConfigTargetStore</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/Serializer.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">Serializer</span></a></li>
-<li type="circle">com.mesosphere.sdk.state.<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">StateStore</span></a></li>
 </ul>
 </div>
 <!-- ======= START OF BOTTOM NAVBAR ====== -->

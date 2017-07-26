@@ -47,11 +47,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/state/JsonSerializer.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/config/ConfigTargetStore.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/state/ConfigTargetStore.html" target="_top">Frames</a></li>
 <li><a href="ConfigTargetStore.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.config</div>
+<div class="subTitle">com.mesosphere.sdk.state</div>
 <h2 title="Interface ConfigTargetStore" class="title">Interface ConfigTargetStore</h2>
 </div>
 <div class="contentContainer">
@@ -98,21 +98,17 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <dl>
-<dt>All Known Subinterfaces:</dt>
-<dd><a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a>&lt;T&gt;</dd>
-</dl>
-<dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dd>
 </dl>
 <hr>
 <br>
 <pre>public interface <span class="typeNameLabel">ConfigTargetStore</span></pre>
-<div class="block">This interface defines the subset of <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> operations which are applicable to
+<div class="block">This interface defines the subset of <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> operations which are applicable to
  setting and retrieving the <code>UUID</code> of the current target configuration.
 
- This interface is broken out from <a href="../../../../com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> to allow users to ignore the the generic
- typing of the config objects themselves.</div>
+ This interface is broken out from <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> to allow users to ignore the the generic
+ typing of the config objects themselves when they don't need to access those objects.</div>
 </li>
 </ul>
 </div>
@@ -133,14 +129,14 @@ var activeTableTab = "activeTableTab";
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigTargetStore.html#getTargetConfig--">getTargetConfig</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--">getTargetConfig</a></span>()</code>
 <div class="block">Returns the current ID of the active target configuration, or throws an exception if none is
  set.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></span>(java.util.UUID&nbsp;id)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></span>(java.util.UUID&nbsp;id)</code>
 <div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
 </td>
 </tr>
@@ -166,13 +162,13 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <h4>setTargetConfig</h4>
 <pre>void&nbsp;setTargetConfig(java.util.UUID&nbsp;id)
-              throws <a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></pre>
+              throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
 <div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></code> - if writing the ID fails</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if writing the ID fails</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/config/ConfigTargetStore.html#getTargetConfig--"><code>getTargetConfig()</code></a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--"><code>getTargetConfig()</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -183,14 +179,14 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <h4>getTargetConfig</h4>
 <pre>java.util.UUID&nbsp;getTargetConfig()
-                        throws <a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></pre>
+                        throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
 <div class="block">Returns the current ID of the active target configuration, or throws an exception if none is
  set.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></code> - if reading or deserializing the ID fails, or no value is set</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if reading or deserializing the ID fails, or no value is set</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/config/ConfigTargetStore.html#setTargetConfig-java.util.UUID-"><code>setTargetConfig(UUID)</code></a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-"><code>setTargetConfig(UUID)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -221,11 +217,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/state/JsonSerializer.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/config/ConfigTargetStore.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/state/ConfigTargetStore.html" target="_top">Frames</a></li>
 <li><a href="ConfigTargetStore.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">

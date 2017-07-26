@@ -86,7 +86,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#AbstractScheduler-com.mesosphere.sdk.state.StateStore-">AbstractScheduler(StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
 <dd>
-<div class="block">Creates a new AbstractScheduler given a <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Creates a new AbstractScheduler given a <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">AbstractStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
@@ -210,7 +210,7 @@
 <dd>
 <div class="block">A read-only API for accessing file artifacts (e.g.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.config.ConfigStore-">ArtifactResource(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api">ArtifactResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.state.ConfigStore-">ArtifactResource(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api">ArtifactResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#assetConflicts-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">assetConflicts(PodInstanceRequirement, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
 <dd>
@@ -506,16 +506,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.CheckValidationException.html#CheckValidationException-java.lang.String-">CheckValidationException(String)</a></span> - Constructor for exception com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.CheckValidationException.html" title="class in com.mesosphere.sdk.executor">CheckHandler.CheckValidationException</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStore.html#clear-java.util.UUID-">clear(UUID)</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#clear-java.util.UUID-">clear(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>
 <div class="block">Deletes the configuration with the provided UUID, or does nothing if no matching
  configuration is found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#clear-java.util.UUID-">clear(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#clearAllData--">clearAllData()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearAllData--">clearAllData()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearAllData--">clearAllData()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Clears the root service node, leaving just the root node behind.</div>
 </dd>
@@ -525,9 +521,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#clearFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">clearFailed(PodInstance, StateStore)</a></span> - Static method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery">FailureUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#clearFrameworkId--">clearFrameworkId()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearFrameworkId--">clearFrameworkId()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearFrameworkId--">clearFrameworkId()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.</div>
 </dd>
@@ -539,9 +533,7 @@
 <dd>
 <div class="block">Clears a previously set disk persistence ID, or does nothing if the disk persistence ID is already unset.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#clearProperty-java.lang.String-">clearProperty(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearProperty-java.lang.String-">clearProperty(String)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearProperty-java.lang.String-">clearProperty(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Clears a given property from the StateStore, or does nothing if no such property exists.</div>
 </dd>
@@ -553,9 +545,7 @@
 <dd>
 <div class="block">Clears a previously set resource ID, or does nothing if the resource ID is already unset.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#clearTask-java.lang.String-">clearTask(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearTask-java.lang.String-">clearTask(String)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#clearTask-java.lang.String-">clearTask(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.</div>
 </dd>
@@ -565,7 +555,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#close--">close()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#close--">close()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#close--">close()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/MemPersister.html#close--">close()</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/MemPersister.html" title="class in com.mesosphere.sdk.storage">MemPersister</a></dt>
 <dd>&nbsp;</dd>
@@ -678,35 +668,38 @@
 <dd>
 <div class="block">A read-only API for accessing active and inactive configurations from persistent storage.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#ConfigResource-com.mesosphere.sdk.config.ConfigStore-">ConfigResource(ConfigStore&lt;T&gt;)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#ConfigResource-com.mesosphere.sdk.state.ConfigStore-">ConfigResource(ConfigStore&lt;T&gt;)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">ConfigStore</span></a>&lt;<a href="com/mesosphere/sdk/config/ConfigStore.html" title="type parameter in ConfigStore">T</a> extends <a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>&gt; - Interface in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
-<dd>
-<div class="block">This interface should be implemented in order to store and fetch Configurations
- presented to Schedulers.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#configStore">configStore</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#configStore">configStore</a></span> - Variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">ConfigStoreException</span></a> - Exception in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
+<dt><a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">ConfigStore</span></a>&lt;<a href="com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a> extends <a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>&gt; - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
+<dd>
+<div class="block">An implementation of <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">ConfigStore(ConfigurationFactory&lt;T&gt;, Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
+<dd>
+<div class="block">Creates a new <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">ConfigStoreException</span></a> - Exception in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
 <div class="block">Exception that indicates that there was an issue with storing values
  in the config store.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.PersisterException-">ConfigStoreException(PersisterException)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.PersisterException-">ConfigStoreException(PersisterException)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.PersisterException-java.lang.String-">ConfigStoreException(PersisterException, String)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.PersisterException-java.lang.String-">ConfigStoreException(PersisterException, String)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.Throwable-">ConfigStoreException(StorageError.Reason, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.Throwable-">ConfigStoreException(StorageError.Reason, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-">ConfigStoreException(StorageError.Reason, String)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-">ConfigStoreException(StorageError.Reason, String)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-java.lang.Throwable-">ConfigStoreException(StorageError.Reason, String, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#ConfigStoreException-com.mesosphere.sdk.storage.StorageError.Reason-java.lang.String-java.lang.Throwable-">ConfigStoreException(StorageError.Reason, String, Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/config/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">ConfigTargetStore</span></a> - Interface in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
+<dt><a href="com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">ConfigTargetStore</span></a> - Interface in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">This interface defines the subset of <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> operations which are applicable to
+<div class="block">This interface defines the subset of <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> operations which are applicable to
  setting and retrieving the <code>UUID</code> of the current target configuration.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><span class="typeNameLink">Configuration</span></a> - Interface in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
@@ -973,19 +966,11 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html#DefaultConfigFileSpec-java.lang.String-java.lang.String-java.lang.String-">DefaultConfigFileSpec(String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultConfigStore</span></a>&lt;<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="type parameter in DefaultConfigStore">T</a> extends <a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>&gt; - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
-<dd>
-<div class="block">An implementation of <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#DefaultConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">DefaultConfigStore(ConfigurationFactory&lt;T&gt;, Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>
-<div class="block">Creates a new <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
-</dd>
 <dt><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">DefaultConfigurationUpdater</span></a> - Class in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
 <dd>
 <div class="block">Handles the validation and update of a new configuration against a prior configuration, if any.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html#DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-">DefaultConfigurationUpdater(StateStore, ConfigStore&lt;ServiceSpec&gt;, ConfigurationComparator&lt;ServiceSpec&gt;, Collection&lt;ConfigValidator&lt;ServiceSpec&gt;&gt;)</a></span> - Constructor for class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config">DefaultConfigurationUpdater</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html#DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-">DefaultConfigurationUpdater(StateStore, ConfigStore&lt;ServiceSpec&gt;, ConfigurationComparator&lt;ServiceSpec&gt;, Collection&lt;ConfigValidator&lt;ServiceSpec&gt;&gt;)</a></span> - Constructor for class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config">DefaultConfigurationUpdater</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators--">defaultConfigValidators()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
@@ -1081,7 +1066,7 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/PlanGenerator.html" title="interface in com.mesosphere.sdk.specification"><code>PlanGenerator</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html#DefaultPlanGenerator-com.mesosphere.sdk.config.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">DefaultPlanGenerator(ConfigTargetStore, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification">DefaultPlanGenerator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html#DefaultPlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">DefaultPlanGenerator(ConfigTargetStore, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification">DefaultPlanGenerator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html#DefaultPlanGenerator-com.mesosphere.sdk.scheduler.plan.StepFactory-">DefaultPlanGenerator(StepFactory)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification">DefaultPlanGenerator</a></dt>
 <dd>&nbsp;</dd>
@@ -1133,9 +1118,9 @@
 <dd>
 <div class="block"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a> enables monitoring and management of recovery plan.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor, List&lt;RecoveryPlanOverrider&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.List-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, LaunchConstrainer, FailureMonitor, List&lt;RecoveryPlanOverrider&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">DefaultRecoveryStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
 <dd>
@@ -1151,7 +1136,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html#DefaultResourceCleaner-com.mesosphere.sdk.state.StateStore-">DefaultResourceCleaner(StateStore)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html" title="class in com.mesosphere.sdk.offer">DefaultResourceCleaner</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><code>DefaultResourceCleaner</code></a> which retrieves expected resource
- information from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+ information from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSet</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -1178,22 +1163,13 @@
 <div class="block">This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
  when possible.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-java.util.Map-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, Map&lt;String, EndpointProducer&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Map-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, Map&lt;String, EndpointProducer&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">DefaultScheduler.Builder</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
-</dd>
-<dt><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultSchemaVersionStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
-<dd>
-<div class="block">An implementation of <a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><code>SchemaVersionStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#DefaultSchemaVersionStore-com.mesosphere.sdk.storage.Persister-">DefaultSchemaVersionStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></dt>
-<dd>
-<div class="block">Creates a new version store against the provided Framework Name, as would be provided to
- <a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultConfigStore</code></a> or <a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><code>DefaultStateStore</code></a>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultSecretSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -1243,25 +1219,17 @@
 <dd>
 <div class="block">Generates a <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> from a given YAML definition in the form of a <a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a>.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">DefaultStateStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
-<dd>
-<div class="block">An implementation of <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> which relies on the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#DefaultStateStore-com.mesosphere.sdk.storage.Persister-">DefaultStateStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>
-<div class="block">Creates a new <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
-</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">DefaultStepFactory</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
 <div class="block">This class is a default implementation of the <a href="com/mesosphere/sdk/scheduler/plan/StepFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>StepFactory</code></a> interface.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html#DefaultStepFactory-com.mesosphere.sdk.config.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">DefaultStepFactory(ConfigTargetStore, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultStepFactory</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html#DefaultStepFactory-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">DefaultStepFactory(ConfigTargetStore, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultStepFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">DefaultTaskFailureListener</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
 <dd>
 <div class="block">This class provides a default implementation of the TaskFailureListener interface.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html#DefaultTaskFailureListener-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">DefaultTaskFailureListener(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultTaskFailureListener</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html#DefaultTaskFailureListener-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">DefaultTaskFailureListener(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultTaskFailureListener.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultTaskFailureListener</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/DefaultTaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">DefaultTaskKiller</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
@@ -1464,7 +1432,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointsResource.html#EndpointsResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">EndpointsResource(StateStore, String)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api">EndpointsResource</a></dt>
 <dd>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>,
+<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>,
  using the provided <code>serviceName</code> for endpoint paths.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointUtils</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
@@ -1747,34 +1715,24 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#FailureUtils--">FailureUtils()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery">FailureUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStore.html#fetch-java.util.UUID-">fetch(UUID)</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#fetch-java.util.UUID-">fetch(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>
 <div class="block">Retrieves and deserializes the <a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> assigned to the provided UUID, or throws
  an exception if no config with the provided UUID was found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#fetch-java.util.UUID-">fetch(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#fetch--">fetch()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#fetch--">fetch()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#fetch--">fetch()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
 <dd>
 <div class="block">Retrieves the current schema version.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchFrameworkId--">fetchFrameworkId()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchFrameworkId--">fetchFrameworkId()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchFrameworkId--">fetchFrameworkId()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchProperty-java.lang.String-">fetchProperty(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchProperty-java.lang.String-">fetchProperty(String)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchProperty-java.lang.String-">fetchProperty(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches the value byte array, stored against the Property <code>key</code>, or throws an error if no matching <code>key</code> is found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchPropertyKeys--">fetchPropertyKeys()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchPropertyKeys--">fetchPropertyKeys()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchPropertyKeys--">fetchPropertyKeys()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches the list of Property keys, or an empty list if none are found.</div>
 </dd>
@@ -1782,39 +1740,29 @@
 <dd>
 <div class="block">Returns the requested property, or an empty array if the property is not present.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchStatus-java.lang.String-">fetchStatus(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchStatus-java.lang.String-">fetchStatus(String)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchStatus-java.lang.String-">fetchStatus(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchStatuses--">fetchStatuses()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchStatuses--">fetchStatuses()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchStatuses--">fetchStatuses()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchTask-java.lang.String-">fetchTask(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchTask-java.lang.String-">fetchTask(String)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchTask-java.lang.String-">fetchTask(String)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchTaskNames--">fetchTaskNames()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchTaskNames--">fetchTaskNames()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchTaskNames--">fetchTaskNames()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches all the Task names listed in the underlying storage.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#fetchTasks--">fetchTasks()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchTasks--">fetchTasks()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchTasks--">fetchTasks()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksFromPod-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchTasksFromPod(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">fetchTasksNeedingRecovery(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">fetchTasksNeedingRecovery(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
 </dd>
@@ -1863,7 +1811,7 @@
 <dd>
 <div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#fixLastDeploymentType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">fixLastDeploymentType(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#fixLastDeploymentType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">fixLastDeploymentType(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Detects whether or not the previous deployment's type was set or not and if not, sets it.</div>
 </dd>
@@ -2131,7 +2079,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getConfigStore--">getConfigStore()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
-<div class="block">Returns the <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.config.ConfigStore-"><code>DefaultScheduler.Builder.setConfigStore(ConfigStore)</code></a>, or a reasonable default
+<div class="block">Returns the <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>DefaultScheduler.Builder.setConfigStore(ConfigStore)</code></a>, or a reasonable default
  created via <code>DefaultScheduler#createConfigStore(ServiceSpec, Collection)</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getConfiguration-java.lang.String-">getConfiguration(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
@@ -2513,8 +2461,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#getMessage--">getMessage()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#getMessage--">getMessage()</a></span> - Method in exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html#getMessage--">getMessage()</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></dt>
 <dd>
 <div class="block">Returns the provided error message for this error.</div>
@@ -2528,6 +2474,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.html#getMessage--">getMessage()</a></span> - Method in exception com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags.FlagException</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getMessage--">getMessage()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#getMessage--">getMessage()</a></span> - Method in exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#getMessage--">getMessage()</a></span> - Method in exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
 <dd>&nbsp;</dd>
@@ -2686,7 +2634,7 @@
 <div class="block">Examines the <code>Offer</code> to determine which volume <code>Resource</code>s have resource ID's and therefore
  should be destroyed.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getPersister--">getPersister()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getPersister--">getPersister()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Returns the underlying <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object for direct access.</div>
 </dd>
@@ -2732,7 +2680,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getPlanManagers--">getPlanManagers()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getPlans-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">getPlans(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getPlans-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">getPlans(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Gets or generate plans against the given service spec.</div>
 </dd>
@@ -2752,7 +2700,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getPodInstance--">getPodInstance()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodInstance-com.mesosphere.sdk.config.ConfigStore-TaskInfo-">getPodInstance(ConfigStore&lt;ServiceSpec&gt;, TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodInstance-com.mesosphere.sdk.state.ConfigStore-TaskInfo-">getPodInstance(ConfigStore&lt;ServiceSpec&gt;, TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getPodInstance--">getPodInstance()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>
@@ -2766,7 +2714,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-java.util.Collection-">getPodRequirements(ConfigStore&lt;ServiceSpec&gt;, Collection&lt;TaskInfo&gt;, Collection&lt;TaskInfo&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-java.util.Collection-">getPodRequirements(ConfigStore&lt;ServiceSpec&gt;, Collection&lt;TaskInfo&gt;, Collection&lt;TaskInfo&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPods--">getPods()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
@@ -2897,13 +2845,13 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTask.html#getReadinessCheck--">getReadinessCheck()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTask.html" title="class in com.mesosphere.sdk.specification.yaml">RawTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStoreException.html#getReason--">getReason()</a></span> - Method in exception com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></dt>
-<dd>
-<div class="block">Returns the machine-parseable reason for this exception.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getReason--">getReason()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></dt>
 <dd>
 <div class="block">Returns the reason that this response is passing or failing.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStoreException.html#getReason--">getReason()</a></span> - Method in exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></dt>
+<dd>
+<div class="block">Returns the machine-parseable reason for this exception.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreException.html#getReason--">getReason()</a></span> - Method in exception com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></dt>
 <dd>
@@ -3092,7 +3040,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--">getStateStore()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
-<div class="block">Returns the <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>DefaultScheduler.Builder.setStateStore(StateStore)</code></a>, or a reasonable default
+<div class="block">Returns the <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>DefaultScheduler.Builder.setStateStore(StateStore)</code></a>, or a reasonable default
  created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchedulerState.html#getStateStore--">getStateStore()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchedulerState.html" title="class in com.mesosphere.sdk.state">SchedulerState</a></dt>
@@ -3144,16 +3092,17 @@
 <div class="block">Produces the content of the current target configuration, or returns an error if reading that
  data failed.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigTargetStore.html#getTargetConfig--">getTargetConfig()</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.config">ConfigTargetStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#getTargetConfig--">getTargetConfig()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--">getTargetConfig()</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a></dt>
 <dd>
 <div class="block">Returns the current ID of the active target configuration, or throws an exception if none is
  set.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#getTargetConfig--">getTargetConfig()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getTargetConfiguration--">getTargetConfiguration()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelReader</a></dt>
 <dd>
-<div class="block">Returns the ID referencing a configuration in a <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a> associated with the task.</div>
+<div class="block">Returns the ID referencing a configuration in a <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> associated with the
+ task.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getTargetId--">getTargetId()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
 <dd>
@@ -3177,7 +3126,7 @@
 <div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
  TaskInfo.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskInfoPath-java.lang.String-">getTaskInfoPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getTaskInfoPath-java.lang.String-">getTaskInfoPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskName--">getTaskName()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
@@ -3189,7 +3138,7 @@
 <dd>
 <div class="block">Returns all the task names for a pod, after filtering based on the passed in list of tasks to launch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskPath-java.lang.String-">getTaskPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getTaskPath-java.lang.String-">getTaskPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskResourceBuilders--">getTaskResourceBuilders()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
@@ -3206,7 +3155,7 @@
 <div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
  task name.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--">getTasksToLaunch()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>
@@ -3828,7 +3777,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#isStateCacheEnabled--">isStateCacheEnabled()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#isSupported-int-int-int-">isSupported(int, int, int)</a></span> - Static method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#isSupported-int-int-int-">isSupported(int, int, int)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
 <dd>
 <div class="block">Convenience method for checking whether the current schema version falls within a supported
  range.</div>
@@ -3839,7 +3788,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#isSuppressed-com.mesosphere.sdk.state.StateStore-">isSuppressed(StateStore)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
-<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#isTerminal-TaskStatus-">isTerminal(TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
@@ -3857,7 +3806,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#isUninstalling-com.mesosphere.sdk.state.StateStore-">isUninstalling(StateStore)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
-<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html#isValid-Protos.Value-ConstraintValidatorContext-">isValid(Protos.Value, ConstraintValidatorContext)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValueValidator</a></dt>
 <dd>&nbsp;</dd>
@@ -4013,12 +3962,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#launchTask-ExecutorDriver-Protos.TaskInfo-">launchTask(ExecutorDriver, Protos.TaskInfo)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStore.html#list--">list()</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#list--">list()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>
 <div class="block">Returns a list of all stored configuration UUIDs, or an empty list if none are found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#list--">list()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#listPlans--">listPlans()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
 <dd>
 <div class="block">Returns list of all configured plans.</div>
@@ -4032,7 +3979,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span> - Static variable in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span> - Static variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#LOCK_PATH_NAME">LOCK_PATH_NAME</a></span> - Static variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html#LOCK_UNAVAILABLE">LOCK_UNAVAILABLE</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></dt>
 <dd>&nbsp;</dd>
@@ -4564,7 +4511,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html#PersistentLaunchRecorder-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.ServiceSpec-">PersistentLaunchRecorder(StateStore, ServiceSpec)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#persister">persister</a></span> - Variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#persister">persister</a></span> - Variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><span class="typeNameLink">Persister</span></a> - Interface in <a href="com/mesosphere/sdk/storage/package-summary.html">com.mesosphere.sdk.storage</a></dt>
 <dd>
@@ -4730,7 +4677,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.scheduler.TaskKiller-com.mesosphere.sdk.state.StateStore-">PodResource(TaskKiller, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
-<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#pods-java.util.List-">pods(List&lt;PodSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
@@ -5410,10 +5357,15 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#SchedulerUtils--">SchedulerUtils()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">SchemaVersionStore</span></a> - Interface in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
+<dt><a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">SchemaVersionStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">Used by StateStore and ConfigStore implementations to retrieve and validate the Schema Version
- against whatever version is supported by those respective stores.</div>
+<div class="block">Used by StateStore and ConfigStore implementations to retrieve and validate the Schema Version against whatever
+ version is supported by those respective stores.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#SchemaVersionStore-com.mesosphere.sdk.storage.Persister-">SchemaVersionStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
+<dd>
+<div class="block">Creates a new version store against the provided Framework Name, as would be provided to
+ <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> or <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#secretPath-java.lang.String-">secretPath(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
 <dd>
@@ -5505,9 +5457,9 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#setCanLaunch-boolean-">setCanLaunch(boolean)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.config.ConfigStore-">setConfigStore(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-">setConfigStore(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
-<div class="block">Specifies a custom <a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config"><code>ConfigStore</code></a>.</div>
+<div class="block">Specifies a custom <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setCredentials-java.lang.String-java.lang.String-">setCredentials(String, String)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></dt>
 <dd>
@@ -5659,7 +5611,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-">setStateStore(StateStore)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
-<div class="block">Specifies a custom <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
+<div class="block">Specifies a custom <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
  <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code> will be used.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#setStatus-com.mesosphere.sdk.scheduler.plan.Status-">setStatus(Status)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
@@ -5670,14 +5622,14 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed(StateStore, boolean)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
-<div class="block">Sets a 'suppressed' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
+<div class="block">Sets a 'suppressed' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig(UUID)</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.config">ConfigTargetStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#setTargetConfig-java.util.UUID-">setTargetConfig(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig(UUID)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a></dt>
 <dd>
 <div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#setTargetConfig-java.util.UUID-">setTargetConfig(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setTargetConfiguration-java.util.UUID-">setTargetConfiguration(UUID)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Sets a <code>Label</code> indicating the target configuration.</div>
@@ -5692,7 +5644,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setUninstalling-com.mesosphere.sdk.state.StateStore-">setUninstalling(StateStore)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
-<div class="block">Sets an 'uninstall' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
+<div class="block">Sets an 'uninstall' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#setValue-Value-">setValue(Value)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>
@@ -5764,9 +5716,13 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#stateStore">stateStore</a></span> - Variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">StateStore</span></a> - Interface in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
+<dt><a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">A <code>StateStore</code> stores the state of the frameworks, including tasks' TaskInfo and TaskStatus objects.</div>
+<div class="block">A <code>StateStore</code> stores the state of a service, including tasks' TaskInfo and TaskStatus objects.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#StateStore-com.mesosphere.sdk.storage.Persister-">StateStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
+<dd>
+<div class="block">Creates a new <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStoreException</span></a> - Exception in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
@@ -5784,7 +5740,7 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStoreUtils</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">Utilities for implementations and users of <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Utilities for implementations and users of <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Status</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
@@ -5830,47 +5786,35 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/storage/StorageError.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">StorageError</span></a> - Class in <a href="com/mesosphere/sdk/storage/package-summary.html">com.mesosphere.sdk.storage</a></dt>
 <dd>
-<div class="block">Container for types related to <a href="com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config"><code>ConfigStoreException</code></a>s and
+<div class="block">Container for types related to <a href="com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state"><code>ConfigStoreException</code></a>s and
  <a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state"><code>StateStoreException</code></a>s.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/storage/StorageError.Reason.html" title="enum in com.mesosphere.sdk.storage"><span class="typeNameLink">StorageError.Reason</span></a> - Enum in <a href="com/mesosphere/sdk/storage/package-summary.html">com.mesosphere.sdk.storage</a></dt>
 <dd>
 <div class="block">Machine-parseable indicator of the cause for a storage-related exception.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigStore.html#store-T-">store(T)</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigStore.html" title="interface in com.mesosphere.sdk.config">ConfigStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#store-T-">store(T)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>
 <div class="block">Serializes the provided <a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> using its <a href="com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>
  function, writes it to storage, and returns the UUID which it was stored against.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultConfigStore.html#store-T-">store(T)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultConfigStore.html" title="class in com.mesosphere.sdk.state">DefaultConfigStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html#store-int-">store(int)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultSchemaVersionStore.html" title="class in com.mesosphere.sdk.state">DefaultSchemaVersionStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#store-int-">store(int)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="interface in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#store-int-">store(int)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
 <dd>
 <div class="block">Updates the schema version to the provided value.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId(Protos.FrameworkID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId(Protos.FrameworkID)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId(Protos.FrameworkID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty(String, byte[])</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty(String, byte[])</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty(String, byte[])</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#storeStatus-Protos.TaskStatus-">storeStatus(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeStatus-TaskStatus-">storeStatus(TaskStatus)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeStatus-Protos.TaskStatus-">storeStatus(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/DefaultStateStore.html#storeTasks-java.util.Collection-">storeTasks(Collection&lt;Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/DefaultStateStore.html" title="class in com.mesosphere.sdk.state">DefaultStateStore</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks(Collection&lt;TaskInfo&gt;)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks(Collection&lt;Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
 </dd>
@@ -6156,7 +6100,7 @@
 <dd>
 <div class="block">Implements a <a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><code>FailureMonitor</code></a> with a time-based policy.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html#TimedFailureMonitor-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">TimedFailureMonitor(Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.monitor.<a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor">TimedFailureMonitor</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html#TimedFailureMonitor-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">TimedFailureMonitor(Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.monitor.<a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor">TimedFailureMonitor</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><code>FailureMonitor</code></a> that waits for at least a specified duration before deciding that the task
  has failed.</div>
@@ -6458,10 +6402,10 @@
 <dd>
 <div class="block">This scheduler uninstalls the framework and releases all of its resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-">UninstallScheduler(int, Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">UninstallScheduler(int, Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>
 <div class="block">Creates a new UninstallScheduler based on the provided API port and initialization timeout,
- and a <a href="com/mesosphere/sdk/state/StateStore.html" title="interface in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+ and a <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
 <dd>
@@ -6559,7 +6503,7 @@
 <dd>
 <div class="block">The name used for the update plan.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#updateConfig-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigStore-java.util.Collection-">updateConfig(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, Collection&lt;ConfigValidator&lt;ServiceSpec&gt;&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#updateConfig-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-">updateConfig(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, Collection&lt;ConfigValidator&lt;ServiceSpec&gt;&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Updates the configuration target to reflect the provided <code>serviceSpec</code> using the provided
  <code>configValidators</code>, or stays with the previous configuration if there were validation errors.</div>
@@ -6649,16 +6593,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html#validate-T-">validate(T)</a></span> - Static method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation">ValidationUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#validateKey-java.lang.String-">validateKey(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>
-<div class="block">Shared implementation for validating property key limits, for use by all StateStore
- implementations.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#validateValue-byte:A-">validateValue(byte[])</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>
-<div class="block">Shared implementation for validating property value limits, for use by all StateStore
- implementations.</div>
-</dd>
 <dt><a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">ValidationUtils</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
 <dd>
 <div class="block">Various utilities for spec validation.</div>

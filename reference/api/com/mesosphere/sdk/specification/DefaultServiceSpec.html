@@ -534,7 +534,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <li class="blockList">
 <h4>getConfigurationFactory</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)
-                                                                 throws <a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></pre>
+                                                                 throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
 <div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
  <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s, which has been confirmed to successfully and
  consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
@@ -542,7 +542,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>serviceSpec</code> - specification to test for successful serialization/deserialization</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></code> - if testing the provided specification fails</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if testing the provided specification fails</dd>
 </dl>
 </li>
 </ul>
@@ -554,7 +554,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <h4>getConfigurationFactory</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                                                                         java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;additionalSubtypesToRegister)
-                                                                 throws <a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></pre>
+                                                                 throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
 <div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
  <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s, which has been confirmed to successfully and
  consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
@@ -565,7 +565,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
                                      Jackson for deserialization. any custom placement rule implementations
                                      must be provided</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/config/ConfigStoreException.html" title="class in com.mesosphere.sdk.config">ConfigStoreException</a></code> - if testing the provided specification fails</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if testing the provided specification fails</dd>
 </dl>
 </li>
 </ul>
