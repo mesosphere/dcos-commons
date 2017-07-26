@@ -4,7 +4,6 @@ import sdk_test_upgrade
 from tests.config import *
 
 
-@pytest.mark.skip(reason="https://jira.mesosphere.com/browse/INFINITY-1933")
 @pytest.mark.upgrade
 @pytest.mark.sanity
 def test_upgrade_downgrade():
