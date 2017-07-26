@@ -5,6 +5,7 @@ import sdk_plan
 import sdk_utils
 import sdk_marathon
 
+
 from tests.config import (
     PACKAGE_NAME
 )
@@ -49,6 +50,7 @@ def test_sidecar():
 @pytest.mark.sanity
 def test_sidecar_parameterized():
     run_plan('sidecar-parameterized', {'PLAN_PARAMETER': 'parameterized'})
+
 
 @pytest.mark.sanity
 def test_toxic_sidecar_doesnt_trigger_recovery():
