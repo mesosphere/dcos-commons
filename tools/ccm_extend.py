@@ -29,8 +29,11 @@ while give_up_time > time.time():
     for cluster in all_clusters:
         if cluster['name'] == cluster_name:
             cluster_id = cluster['id']
-            print("Found cluster id!")
             break
+
+    if cluster_id is not None:
+        print("Found cluster id!")
+        break
 
     print("Cluster id not found. Sleeping for 60 seconds...")
     time.sleep(60)
