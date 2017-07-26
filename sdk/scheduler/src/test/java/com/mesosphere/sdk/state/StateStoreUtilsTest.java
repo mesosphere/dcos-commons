@@ -69,6 +69,29 @@ public class StateStoreUtilsTest {
     }
 
     @Test(expected = StateStoreException.class)
+    public void nullValueIsInvalid() {
+        StateStoreUtils.validateValue(null);
+    }
+
+    @Test(expected = StateStoreException.class)
+    public void veryLargeValueIsInvalid() {
+        byte[] largeArray = new byte[1024 * 1024 + 1];
+        StateStoreUtils.validateValue(largeArray);
+    }
+
+    @Test
+    public void largeValueIsValid() {
+        byte[] largeArray = new byte[1024 * 1024];
+        StateStoreUtils.validateValue(largeArray);
+    }
+
+    @Test
+    public void emptyValueIsValid() {
+        byte[] largeArray = new byte[0];
+        StateStoreUtils.validateValue(largeArray);
+    }
+
+    @Test(expected = StateStoreException.class)
     public void emptyStringIsIsInvalidKey() {
         StateStoreUtils.validateKey("");
     }
