@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -32,6 +33,7 @@ import java.util.*;
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfigurationUpdater.class);
+    private static final String USER = "root";
 
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
@@ -93,6 +95,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
+        targetConfig = fixLastServiceSpec(targetConfig);
+
         // Check for any validation errors (including against the prior config, if one is available)
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
         // validators to always have a say in whether a given configuration is valid, regardless of
@@ -143,6 +147,35 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
     }
+
+    /**
+     * Detects whether the previous {@link ServiceSpec} set the user. If it didn't, we set it to "root"
+     * as Mesos treats a non-set user as "root".
+     *
+     * @param targetConfig The previous service spec from the config
+     */
+    private Optional<ServiceSpec> fixLastServiceSpec(Optional<ServiceSpec> targetConfig) {
+        if (!targetConfig.isPresent()) {
+            return Optional.empty();
+        }
+        DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(targetConfig.get());
+
+        if (targetConfig.get().getUser() == null) {
+            serviceSpecWithUser.user(USER);
+        }
+
+        List<PodSpec> podsWithUser = new ArrayList<>();
+        for (PodSpec podSpec : targetConfig.get().getPods()) {
+            podsWithUser.add(
+                    podSpec.getUser() != null && podSpec.getUser().isPresent() ? podSpec :
+                            DefaultPodSpec.newBuilder(podSpec).user(USER).build()
+            );
+        }
+        serviceSpecWithUser.pods(podsWithUser);
+
+        return Optional.of(serviceSpecWithUser.build());
+    }
+
 
     /**
      * Searches for any task configurations which are already identical to the target configuration
