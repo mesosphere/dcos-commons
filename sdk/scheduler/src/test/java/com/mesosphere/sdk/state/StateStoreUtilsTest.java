@@ -2,6 +2,7 @@ package com.mesosphere.sdk.state;
 
 import com.google.common.collect.ImmutableList;
 import com.mesosphere.sdk.config.ConfigStore;
+import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
@@ -190,16 +191,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-node");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-node", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -222,16 +214,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-node");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-node", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -256,16 +239,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-not-present");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-not-present", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -288,16 +262,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-not-present");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-not-present", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -315,16 +280,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-format");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -348,16 +304,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-format");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -384,16 +331,7 @@ public class StateStoreUtilsTest {
         final StateStore stateStore = new DefaultStateStore(persister);
 
         // Create task info
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder("name-0-format");
-
-        // create default labels:
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setTargetConfiguration(configStore.getTargetConfig())
-                .setType("name")
-                .setIndex(0)
-                .toProto());
-
-        TaskInfo taskInfo = taskInfoBuilder.build();
+        TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -412,6 +350,26 @@ public class StateStoreUtilsTest {
     }
 
 
+    private static TaskInfo.Builder newTaskInfoBuilder(final String taskName,
+                                                       final ConfigStore<ServiceSpec> configStore)
+            throws ConfigStoreException {
+        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder(taskName);
+
+        // POD type
+        final UUID targetConfig = configStore.getTargetConfig();
+        final int podIndex = 0;
+        final String podType = configStore.fetch(targetConfig).getPods().get(podIndex).getType();
+
+        // create default labels:
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
+                .setTargetConfiguration(targetConfig)
+                .setType(podType)
+                .setIndex(podIndex)
+                .toProto());
+
+        return taskInfoBuilder;
+    }
+
     private static TaskInfo.Builder newTaskInfoBuilder() {
         return newTaskInfoBuilder("test-task");
     }
@@ -427,7 +385,7 @@ public class StateStoreUtilsTest {
                 .setName(taskName)
                 .setTaskId(taskID)
                 .setSlaveId(SlaveID.newBuilder()
-                        .setValue("ignored")// proto field required
+                        .setValue("proto-field-required")
                 );
     }
 
