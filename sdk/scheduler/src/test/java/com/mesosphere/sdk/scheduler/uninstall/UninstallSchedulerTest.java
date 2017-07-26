@@ -1,10 +1,9 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.*;
@@ -73,7 +72,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        stateStore = new DefaultStateStore(new MemPersister());
+        stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Collections.singletonList(TASK_A));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
@@ -103,7 +102,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testInitialPlanTaskResourceOverlap() throws Exception {
         // Add TASK_B, which overlaps with TASK_A.
-        stateStore = new DefaultStateStore(new MemPersister());
+        stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Arrays.asList(TASK_A, TASK_B));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
