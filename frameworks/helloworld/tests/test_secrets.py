@@ -1,4 +1,5 @@
 import pytest
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
 
 import sdk_cmd
 import sdk_install
