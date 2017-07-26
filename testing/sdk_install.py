@@ -20,8 +20,8 @@ def install(
         service_name=None,
         additional_options={},
         package_version=None,
-        check_suppression=True,
-        timeout_seconds=15 * 60):
+        timeout_seconds=15 * 60,
+        wait_scheduler_idle=True):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -40,14 +40,9 @@ def install(
         timeout_sec=timeout_seconds,
         expected_running_tasks=running_task_count)
 
-    # 2. Ensure the framework is suppressed.
-    #
-    # This is only configurable in order to support installs from
-    # Universe during the upgrade_downgrade tests, because currently
-    # the suppression endpoint isn't supported by all frameworks in
-    # Universe.  It can be removed once all frameworks rely on
-    # dcos-commons >= 0.13.
-    if check_suppression:
+    # 2. Wait for the scheduler to be idle (as implied by the suppressed bit)
+    # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
+    if wait_scheduler_idle:
         sdk_utils.out("Waiting for framework to be suppressed...")
         shakedown.wait_for(
             lambda: sdk_api.is_suppressed(service_name), noisy=True, timeout_seconds=5 * 60)
