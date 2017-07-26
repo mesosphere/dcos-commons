@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.collections.CollectionUtils;
@@ -11,6 +12,7 @@ import java.util.LinkedHashMap;
 /**
  * Raw YAML pod.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RawPod implements RawContainerInfoProvider {
 
     private final String placement;
@@ -54,7 +56,6 @@ public class RawPod implements RawContainerInfoProvider {
         this.volumes = volumes == null ? new WriteOnceLinkedHashMap<>() : volumes;
         this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.secrets = secrets == null ? new WriteOnceLinkedHashMap<>() : secrets;
-
     }
 
     public String getPlacement() {
