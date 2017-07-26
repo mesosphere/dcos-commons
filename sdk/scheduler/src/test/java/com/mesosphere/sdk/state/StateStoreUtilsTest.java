@@ -3,6 +3,7 @@ package com.mesosphere.sdk.state;
 import com.google.common.collect.ImmutableList;
 import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigStoreException;
+import com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
@@ -75,13 +76,13 @@ public class StateStoreUtilsTest {
 
     @Test(expected = StateStoreException.class)
     public void veryLargeValueIsInvalid() {
-        byte[] largeArray = new byte[1024 * 1024 + 1];
+        byte[] largeArray = new byte[StateStoreUtils.MAX_VALUE_LENGTH_BYTES + 1];
         StateStoreUtils.validateValue(largeArray);
     }
 
     @Test
     public void largeValueIsValid() {
-        byte[] largeArray = new byte[1024 * 1024];
+        byte[] largeArray = new byte[StateStoreUtils.MAX_VALUE_LENGTH_BYTES];
         StateStoreUtils.validateValue(largeArray);
     }
 
@@ -125,6 +126,13 @@ public class StateStoreUtilsTest {
     public void emptyStateStoreRaisesErrorOnTaskInfo() {
         StateStoreUtils.getTaskInfo(stateStore, null);
     }
+
+
+    @Test
+    public void emptyStateStoreHasNoLastDeploymentType() {
+        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(DeploymentType.NONE));
+    }
+
 
     @Test
     public void stateStoreWithSingleStateReturnsTaskInfo() {
