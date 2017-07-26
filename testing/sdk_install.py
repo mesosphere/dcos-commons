@@ -9,8 +9,6 @@ import shakedown
 import time
 
 import sdk_api
-import sdk_plan
-import sdk_tasks
 import sdk_utils
 
 

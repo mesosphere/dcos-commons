@@ -5,8 +5,6 @@ import sdk_install
 import sdk_utils
 import sdk_networks
 
-import shakedown
-
 
 from tests.config import (
     PACKAGE_NAME,

@@ -30,16 +30,7 @@ def test_upgrade(
     test_version = _get_pkg_version(test_package_name)
     sdk_utils.out('Found test version: {}'.format(test_version))
 
-    repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
-    sdk_utils.out("Repositories: " + str(repositories))
-    universe_url = "fail"
-    for repo in repositories:
-        if repo['name'] == 'Universe':
-            universe_url = repo['uri']
-            break
-
-    assert "fail" != universe_url
-    sdk_utils.out("Universe URL: " + universe_url)
+    universe_url = _get_universe_url()
 
     # Move the Universe repo to the top of the repo list
     shakedown.remove_package_repo('Universe')
@@ -78,9 +69,17 @@ def test_downgrade(
     if service_name is None:
         service_name = test_package_name
 
+    test_version = _get_pkg_version(test_package_name)
+    sdk_utils.out('Found test version: {}'.format(test_version))
+
+    universe_url = _get_universe_url()
+
     # Move the Universe repo to the top of the repo list
     shakedown.remove_package_repo('Universe')
     _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
+
+    universe_version = _get_pkg_version(universe_package_name)
+    sdk_utils.out('Found Universe version: {}'.format(universe_version))
 
     sdk_utils.out('Downgrading to Universe version')
     _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, additional_options)
@@ -111,8 +110,8 @@ def test_upgrade_downgrade(
         service_name=None,
         additional_options={},
         reinstall_test_version=True):
-    upgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options)
-    downgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options, reinstall_test_version)
+    test_upgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options)
+    test_downgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options, reinstall_test_version)
 
 
 # In the soak cluster, we assume that the Universe version of the framework is already installed.
@@ -129,6 +128,15 @@ def soak_upgrade_downgrade(universe_package_name, test_package_name, service_nam
     print('Downgrading to Universe version')
     # Default Universe is at --index=0
     _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, install_options)
+
+
+def _get_universe_url():
+    repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
+    for repo in repositories:
+        if repo['name'] == 'Universe':
+            sdk_utils.out("Found Universe URL: {}".format(repo['uri']))
+            return repo['uri']
+    assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
 
 
 def _upgrade_or_downgrade(package_name, service_name, running_task_count, additional_options, package_version=None):
@@ -149,7 +157,7 @@ def _upgrade_or_downgrade(package_name, service_name, running_task_count, additi
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
-        sdk_cmd.run_cli('package describe {}'.format(package_name))).group(1)
+        cmd.run_cli('package describe {}'.format(package_name))).group(1)
 
 
 # Default repo is the one at index=0.

@@ -1,14 +1,9 @@
 import pytest
-import shakedown
-import time
-import json
 import os
 
 import sdk_cmd
-import sdk_install
 import sdk_plan
 import sdk_tasks
-import sdk_marathon
 import sdk_upgrade
 from tests.config import (
     PACKAGE_NAME,

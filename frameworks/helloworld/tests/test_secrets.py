@@ -1,7 +1,4 @@
 import pytest
-import shakedown
-import time
-import json
 
 import sdk_cmd
 import sdk_install

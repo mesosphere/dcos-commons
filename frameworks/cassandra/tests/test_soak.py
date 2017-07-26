@@ -7,12 +7,10 @@ import pytest
 import shakedown
 
 from tests.config import *
-import sdk_api
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
 import sdk_upgrade
-import sdk_utils
 
 
 @pytest.mark.soak_backup

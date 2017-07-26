@@ -1,15 +1,11 @@
-import json
+import os
 import pytest
-import shakedown
 import tempfile
 import uuid
 
 from tests.config import *
-import sdk_cmd as cmd
-import sdk_hosts
 import sdk_install
 import sdk_jobs
-import sdk_plan
 import sdk_utils
 
 WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)

@@ -1,7 +1,6 @@
 import pytest
 
 import sdk_install
-import sdk_plan
 import sdk_utils
 
 from tests.config import (

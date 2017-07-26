@@ -1,4 +1,3 @@
-import pytest
 import json
 
 import shakedown
@@ -10,10 +9,7 @@ from tests.config import (
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_PARTITION_COUNT,
-    DEFAULT_REPLICATION_FACTOR,
     DEFAULT_BROKER_COUNT,
-    DEFAULT_PLAN_NAME,
-    DEFAULT_PHASE_NAME,
     DEFAULT_POD_TYPE,
     DEFAULT_TASK_NAME
 )

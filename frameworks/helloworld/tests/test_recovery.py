@@ -69,9 +69,9 @@ def test_pod_restart():
 def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world-0')
 
-    # get current agent id:
-    stdout = sdk_cmd.run_cli('hello-world pod info world-0')
-    old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
+    # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
+    #stdout = sdk_cmd.run_cli('hello-world pod info world-0')
+    #old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
     jsonobj = json.loads(sdk_cmd.run_cli('hello-world pod replace world-0'))
     assert len(jsonobj) == 2
@@ -82,10 +82,9 @@ def test_pod_replace():
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_ids)
     check_running()
 
-    # check agent moved:
-    stdout = sdk_cmd.run_cli('hello-world pod info world-0')
-    new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
-    # TODO: enable assert if/when agent is guaranteed to change (may randomly move back to old agent)
+    # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
+    #stdout = sdk_cmd.run_cli('hello-world pod info world-0')
+    #new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # assert old_agent != new_agent
 
 

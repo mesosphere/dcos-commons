@@ -1,6 +1,4 @@
-import os
 import pytest
-import time
 
 from xml.etree import ElementTree
 # Do not use import *; it makes it harder to determine the origin of config
@@ -12,6 +10,7 @@ import sdk_install
 import sdk_networks
 import sdk_utils
 import sdk_plan
+import sdk_tasks
 
 import shakedown
 

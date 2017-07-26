@@ -1,5 +1,4 @@
 import pytest
-import time
 import xml.etree.ElementTree as etree
 
 import shakedown
