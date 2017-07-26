@@ -126,7 +126,7 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns whether the task has a readiness check label
+     * Returns whether the task has a readiness check label.
      */
     public boolean hasReadinessCheckLabel() {
         // null is false
