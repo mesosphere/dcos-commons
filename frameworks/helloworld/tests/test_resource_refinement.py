@@ -1,6 +1,6 @@
 import pytest
 
-import sdk_install as install
+import sdk_install
 import sdk_utils
 import shakedown
 from tests.config import (
@@ -12,12 +12,12 @@ from tests.config import (
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
-        install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
