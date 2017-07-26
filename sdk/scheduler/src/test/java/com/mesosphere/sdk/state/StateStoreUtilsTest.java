@@ -76,13 +76,13 @@ public class StateStoreUtilsTest {
 
     @Test(expected = StateStoreException.class)
     public void veryLargeValueIsInvalid() {
-        byte[] largeArray = new byte[StateStoreUtils.MAX_VALUE_LENGTH_BYTES + 1];
+        byte[] largeArray = new byte[StateStoreUtils.getMaxValueLengthBytes() + 1];
         StateStoreUtils.validateValue(largeArray);
     }
 
     @Test
     public void largeValueIsValid() {
-        byte[] largeArray = new byte[StateStoreUtils.MAX_VALUE_LENGTH_BYTES];
+        byte[] largeArray = new byte[StateStoreUtils.getMaxValueLengthBytes()];
         StateStoreUtils.validateValue(largeArray);
     }
 

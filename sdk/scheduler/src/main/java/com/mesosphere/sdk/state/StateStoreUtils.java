@@ -39,7 +39,7 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
-    protected static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
+    private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
         // do not instantiate
@@ -47,6 +47,10 @@ public class StateStoreUtils {
 
 
     // Utilities for StateStore users:
+
+    public static int getMaxValueLengthBytes() {
+        return MAX_VALUE_LENGTH_BYTES;
+    }
 
 
     /**
