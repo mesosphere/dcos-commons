@@ -9,6 +9,7 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -33,7 +34,6 @@ import java.util.*;
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfigurationUpdater.class);
-    private static final String USER = "root";
 
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
@@ -95,7 +95,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
-        targetConfig = fixLastServiceSpec(targetConfig);
+        targetConfig = fixServiceSpecUser(targetConfig);
 
         // Check for any validation errors (including against the prior config, if one is available)
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
@@ -154,21 +154,21 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
      *
      * @param targetConfig The previous service spec from the config
      */
-    private Optional<ServiceSpec> fixLastServiceSpec(Optional<ServiceSpec> targetConfig) {
+    private Optional<ServiceSpec> fixServiceSpecUser(Optional<ServiceSpec> targetConfig) {
         if (!targetConfig.isPresent()) {
             return Optional.empty();
         }
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(targetConfig.get());
 
         if (targetConfig.get().getUser() == null) {
-            serviceSpecWithUser.user(USER);
+            serviceSpecWithUser.user(SchedulerUtils.DEFAULT_SCHEDULER_USER);
         }
 
         List<PodSpec> podsWithUser = new ArrayList<>();
         for (PodSpec podSpec : targetConfig.get().getPods()) {
             podsWithUser.add(
                     podSpec.getUser() != null && podSpec.getUser().isPresent() ? podSpec :
-                            DefaultPodSpec.newBuilder(podSpec).user(USER).build()
+                            DefaultPodSpec.newBuilder(podSpec).user(SchedulerUtils.DEFAULT_SCHEDULER_USER).build()
             );
         }
         serviceSpecWithUser.pods(podsWithUser);

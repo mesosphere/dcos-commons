@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.config;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -19,7 +20,6 @@ public class ConfigurationUpdaterTest {
     private static final UUID TARGET_ID = UUID.randomUUID();
     private static final UUID NEW_ID = UUID.randomUUID();
     private static final UUID UNKNOWN_ID = UUID.randomUUID();
-    private static final String USER = "root";
 
     private static final String SERVICE_NAME = "test-service";
     private static final int TASK_A_COUNT = 1;
@@ -87,6 +87,7 @@ public class ConfigurationUpdaterTest {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
+                .user(SchedulerUtils.DEFAULT_SCHEDULER_USER)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA, podB))
@@ -96,8 +97,9 @@ public class ConfigurationUpdaterTest {
     private static final ServiceSpec ORIGINAL_SERVICE_SPECIFICATION = getServiceSpec(podA, podB);
     private static final ServiceSpec UPDATED_SERVICE_SPECIFICATION = getServiceSpec(updatedPodA, podB);
     private static final ServiceSpec BAD_UPDATED_SERVICE_SPECIFICATION = getServiceSpec(podA, badPodB);
-    private static ServiceSpec ORIGINAL_SERVICE_SPECIFICATION_WITH_USER =
-            DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION).user(USER).build();
+    private static final ServiceSpec ORIGINAL_SERVICE_SPECIFICATION_WITH_USER =
+            DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
+                    .user(SchedulerUtils.DEFAULT_SCHEDULER_USER).build();
 
     @Mock private StateStore mockStateStore;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
@@ -217,9 +219,8 @@ public class ConfigurationUpdaterTest {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
                 mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        // set user at service level
-        DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION).user(USER);
-        // unset user at pod level
+        DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
+                .user(SchedulerUtils.DEFAULT_SCHEDULER_USER);
         List<PodSpec> podsWithoutUsers = new ArrayList<>();
         for (PodSpec podSpec : ORIGINAL_SERVICE_SPECIFICATION.getPods()) {
             podsWithoutUsers.add(
@@ -243,9 +244,8 @@ public class ConfigurationUpdaterTest {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
                 mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
-        // set user at service level
-        DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION).user(USER);
-        // unset user at pod level
+        DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
+                .user(SchedulerUtils.DEFAULT_SCHEDULER_USER);
         List<PodSpec> podsWithoutUsers = new ArrayList<>();
         for (PodSpec podSpec : ORIGINAL_SERVICE_SPECIFICATION.getPods()) {
             podsWithoutUsers.add(
@@ -261,16 +261,16 @@ public class ConfigurationUpdaterTest {
         List<PodSpec> podsWithUsers = new ArrayList<>();
         for (PodSpec podSpec : ORIGINAL_SERVICE_SPECIFICATION_WITH_USER.getPods()) {
             podsWithUsers.add(
-                DefaultPodSpec.newBuilder(podSpec).user(USER).build()
+                DefaultPodSpec.newBuilder(podSpec).user(SchedulerUtils.DEFAULT_SCHEDULER_USER).build()
             );
         }
-        ORIGINAL_SERVICE_SPECIFICATION_WITH_USER = DefaultServiceSpec
+        ServiceSpec SERVICE_SPECIFICATION_WITH_USER = DefaultServiceSpec
                 .newBuilder(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER)
                 .pods(podsWithUsers)
                 .build();
 
         ConfigurationUpdater.UpdateResult result =
-                configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
+                configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_USER);
         Assert.assertEquals(TARGET_ID, result.getTargetId());
         Assert.assertEquals(0, result.getErrors().size());
     }
