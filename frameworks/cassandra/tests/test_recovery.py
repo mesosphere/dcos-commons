@@ -7,7 +7,6 @@ import shakedown
 from tests.config import *
 import sdk_cmd as cmd
 import sdk_install
-import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
@@ -50,7 +49,6 @@ def test_node_replace_replaces_node():
 @pytest.mark.skip(reason="CASSANDRA-637")
 def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
-    pod_host = get_pod_host(pod_to_replace)
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))

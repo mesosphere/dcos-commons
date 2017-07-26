@@ -1,6 +1,5 @@
 import pytest
 import json
-import traceback
 
 import shakedown
 import sdk_cmd

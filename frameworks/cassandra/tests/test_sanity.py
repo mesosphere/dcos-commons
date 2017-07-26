@@ -2,7 +2,6 @@ import json
 import pytest
 import shakedown
 import tempfile
-import uuid
 
 from tests.config import *
 import sdk_cmd as cmd

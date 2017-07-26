@@ -2,7 +2,7 @@ import pytest
 
 import sdk_install
 import sdk_utils
-import shakedown
+
 from tests.config import (
     check_running,
     DEFAULT_TASK_COUNT,

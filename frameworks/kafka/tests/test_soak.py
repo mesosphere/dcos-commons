@@ -4,8 +4,7 @@ import sdk_upgrade
 
 from tests.config import (
     PACKAGE_NAME,
-    DEFAULT_BROKER_COUNT,
-    SERVICE_NAME
+    DEFAULT_BROKER_COUNT
 )
 
 

@@ -1,10 +1,8 @@
-import os
 import pytest
 import shakedown
 
 import sdk_install as install
 import sdk_tasks
-import sdk_plan
 import sdk_networks
 import sdk_utils
 
