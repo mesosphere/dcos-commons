@@ -23,7 +23,9 @@ pods:
         cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
-          SLEEP_DURATION: 1000
+          # Note, this is very high so that the test test_sidecar.test_toxic_sidecar_doesnt_trigger_recovery
+          # will always have an empty recovery plan.
+          SLEEP_DURATION: 10000
       once:
         goal: FINISHED
         cmd: "echo 'I run only once' >> hello-container-path/output"

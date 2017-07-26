@@ -41,6 +41,14 @@ def destroy_app(app_name):
     shakedown.delete_app_wait(app_name)
 
 
+def restart_app(app_name):
+    sdk_utils.out("Restarting {}...".format(app_name))
+    response = sdk_cmd.request('post', api_url('apps/{}/restart'.format(app_name)))
+    sdk_utils.out(response)
+    assert response.ok
+    sdk_utils.out("Restarted {}.".format(app_name))
+
+
 def api_url(basename):
     return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
 

@@ -54,6 +54,10 @@ def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=15 * 60):
     return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
 
 
+def wait_for_starting_plan(service_name, plan_name, timeout_seconds=15 * 60):
+    return wait_for_plan_status(service_name, plan_name, 'STARTING', timeout_seconds)
+
+
 def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):
     def fn():
         plan = get_plan(service_name, plan_name)

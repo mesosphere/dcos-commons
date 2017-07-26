@@ -3,6 +3,7 @@ import pytest
 import sdk_install as install
 import sdk_plan
 import sdk_utils
+import sdk_marathon
 
 from tests.config import (
     PACKAGE_NAME
@@ -55,10 +56,24 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     # 2. Restart the scheduler.
     # 3. Verify that its recovery plan is empty, as a failed FINISHED task should
     # never trigger recovery
-    run_plan('sidecar-toxic')
+    recovery_plan = sdk_plan.get_plan(PACKAGE_NAME, 'recovery')
+    assert(len(recovery_plan['phases']) == 0)
+    sdk_utils.out(recovery_plan)
+    run_plan('sidecar-toxic', wait_for_completion=False)
+    # Wait for the bad sidecar plan to be starting.
+    sdk_plan.wait_for_starting_plan(PACKAGE_NAME, 'sidecar-toxic')
+
+    # Restart the scheduler and wait for it to come up.
+    sdk_marathon.restart_app(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+
+    # Now, verify that its recovery plan is empty.
+    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'recovery')
+    recovery_plan = sdk_plan.get_plan(PACKAGE_NAME, 'recovery')
+    assert(len(recovery_plan['phases']) == 0)
 
 
-def run_plan(plan_name, params=None):
+def run_plan(plan_name, wait_for_completion=True, params=None):
     sdk_plan.start_plan(PACKAGE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(PACKAGE_NAME, plan_name)
@@ -67,4 +82,5 @@ def run_plan(plan_name, params=None):
     assert(started_plan['phases'][0]['name'] == plan_name + '-deploy')
     assert(len(started_plan['phases'][0]['steps']) == 2)
 
-    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, plan_name)
+    if wait_for_completion:
+        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, plan_name)
