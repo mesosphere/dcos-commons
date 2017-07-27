@@ -21,9 +21,14 @@ def test_upgrade(
         test_package_name,
         running_task_count,
         service_name=None,
-        additional_options={}):
+        additional_options={},
+        test_version_options=None):
+    # allow a service name which is different from the package name (common with e.g. folders):
     if service_name is None:
         service_name = test_package_name
+    # allow providing different options dicts to the universe version vs the test version:
+    if test_version_options is None:
+        test_version_options = additional_options
 
     install.uninstall(service_name, package_name=test_package_name)
 
@@ -32,27 +37,29 @@ def test_upgrade(
 
     universe_url = _get_universe_url()
 
-    # Move the Universe repo to the top of the repo list
-    shakedown.remove_package_repo('Universe')
-    _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
+    universe_version = ""
+    try:
+        # Move the Universe repo to the top of the repo list
+        shakedown.remove_package_repo('Universe')
+        _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
 
-    universe_version = _get_pkg_version(universe_package_name)
-    sdk_utils.out('Found Universe version: {}'.format(universe_version))
+        universe_version = _get_pkg_version(universe_package_name)
 
-    sdk_utils.out('Installing Universe version')
-    # Keep the service name the same throughout the test
-    install.install(
-        universe_package_name,
-        running_task_count,
-        service_name=service_name,
-        additional_options=additional_options)
+        sdk_utils.out('Installing Universe version: {}={}'.format(universe_package_name, universe_version))
+        # Keep the service name the same throughout the test
+        install.install(
+            universe_package_name,
+            running_task_count,
+            service_name=service_name,
+            additional_options=additional_options)
+    finally:
+        if universe_version:
+            # Return the Universe repo back to the bottom of the repo list
+            shakedown.remove_package_repo('Universe')
+            _add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
-    # Move the Universe repo to the bottom of the repo list
-    shakedown.remove_package_repo('Universe')
-    _add_last_repo('Universe', universe_url, universe_version, test_package_name)
-
-    sdk_utils.out('Upgrading to test version')
-    _upgrade_or_downgrade(test_package_name, service_name, running_task_count, additional_options)
+    sdk_utils.out('Upgrading to test version: {}={}'.format(test_package_name, test_version))
+    _upgrade_or_downgrade(test_package_name, service_name, running_task_count, test_version_options)
 
 
 # Downgrades an installed test version back to a universe version
@@ -65,34 +72,43 @@ def test_downgrade(
         running_task_count,
         service_name=None,
         additional_options={},
+        test_version_options=None,
         reinstall_test_version=True):
+    # allow a service name which is different from the package name (common with e.g. folders):
     if service_name is None:
         service_name = test_package_name
+    # allow providing different options dicts to the universe version vs the test version:
+    if test_version_options is None:
+        test_version_options = additional_options
 
     test_version = _get_pkg_version(test_package_name)
     sdk_utils.out('Found test version: {}'.format(test_version))
 
     universe_url = _get_universe_url()
 
-    # Move the Universe repo to the top of the repo list
-    shakedown.remove_package_repo('Universe')
-    _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
+    universe_version = ""
+    try:
+        # Move the Universe repo to the top of the repo list
+        shakedown.remove_package_repo('Universe')
+        _add_repo('Universe', universe_url, test_version, 0, universe_package_name)
 
-    universe_version = _get_pkg_version(universe_package_name)
-    sdk_utils.out('Found Universe version: {}'.format(universe_version))
+        universe_version = _get_pkg_version(universe_package_name)
 
-    sdk_utils.out('Downgrading to Universe version')
-    _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, additional_options)
+        sdk_utils.out('Downgrading to Universe version: {}={}'.format(universe_package_name, universe_version))
+        _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, additional_options)
 
-    # Move the Universe repo to the bottom of the repo list
-    shakedown.remove_package_repo('Universe')
-    _add_last_repo('Universe', universe_url, universe_version, test_package_name)
+    finally:
+        if universe_version:
+            # Return the Universe repo back to the bottom of the repo list
+            shakedown.remove_package_repo('Universe')
+            _add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
     if reinstall_test_version:
-        sdk_utils.out('Re-upgrading to test version before exiting')
-        _upgrade_or_downgrade(test_package_name, service_name, running_task_count, additional_options)
+        sdk_utils.out('Re-upgrading to test version before exiting: {}={}'.format(test_package_name, test_version))
+        _upgrade_or_downgrade(test_package_name, service_name, running_task_count, test_version_options)
     else:
-        sdk_utils.out('Skipping reinstall of test version, uninstalling universe version')
+        sdk_utils.out('Skipping reinstall of test version {}={}, uninstalling universe version {}={}'.format(
+            test_package_name, test_version, universe_package_name, universe_version))
         install.uninstall(service_name, package_name=universe_package_name)
 
 
@@ -109,9 +125,23 @@ def test_upgrade_downgrade(
         running_task_count,
         service_name=None,
         additional_options={},
+        test_version_options=None,
         reinstall_test_version=True):
-    test_upgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options)
-    test_downgrade(universe_package_name, test_package_name, running_task_count, service_name, additional_options, reinstall_test_version)
+    test_upgrade(
+        universe_package_name,
+        test_package_name,
+        running_task_count,
+        service_name,
+        additional_options,
+        test_version_options)
+    test_downgrade(
+        universe_package_name,
+        test_package_name,
+        running_task_count,
+        service_name,
+        additional_options,
+        test_version_options,
+        reinstall_test_version)
 
 
 # In the soak cluster, we assume that the Universe version of the framework is already installed.

@@ -6,6 +6,7 @@ import sdk_cmd
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
+import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
