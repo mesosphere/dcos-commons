@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.inject.Inject;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -56,6 +57,8 @@ public class OfferEvaluator {
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
+        logger.info("Pod: {}, taskInfos for evaluation.");
+        thisPodTasks.values().forEach(info -> logger.info(TextFormat.shortDebugString(info)));
 
         boolean anyTaskIsRunning = thisPodTasks.values().stream()
                 .map(taskInfo -> taskInfo.getName())
@@ -74,6 +77,10 @@ public class OfferEvaluator {
             }
 
             executorInfo = Optional.of(execInfoBuilder.build());
+        }
+
+        if (executorInfo.isPresent()) {
+            logger.info("Pod: {}, executorInfo for evaluation: {}", TextFormat.shortDebugString(executorInfo.get()));
         }
 
         for (int i = 0; i < offers.size(); ++i) {
