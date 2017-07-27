@@ -78,6 +78,7 @@ def test_backup_and_restore_to_azure():
         FOLDERED_NODE_ADDRESS)
 
 
+@pytest.mark.gabriel
 @pytest.mark.aws
 @no_strict
 @pytest.mark.sanity
