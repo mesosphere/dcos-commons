@@ -23,9 +23,9 @@ NUM_WORLD = 3
 if "FRAMEWORK_NAME" in os.environ:
     FRAMEWORK_NAME = os.environ["FRAMEWORK_NAME"]
 if "NUM_HELLO" in os.environ:
-    NUM_HELLO = os.environ["NUM_HELLO"]
+    NUM_HELLO = int(os.environ["NUM_HELLO"])
 if "NUM_WORLD" in os.environ:
-    NUM_WORLD = os.environ["NUM_WORLD"]
+    NUM_WORLD = int(os.environ["NUM_WORLD"])
 
 
 @pytest.mark.soak_upgrade
