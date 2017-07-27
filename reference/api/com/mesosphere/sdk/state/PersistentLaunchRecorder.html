@@ -157,7 +157,7 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html"
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>(package private) void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html#updateResources-Protos.TaskInfo-">updateResources</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html#updateTaskResourcesWithinResourceSet-Protos.TaskInfo-">updateTaskResourcesWithinResourceSet</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares
  their resource-set is launched.</div>
 </td>
@@ -218,14 +218,14 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html"
 </dl>
 </li>
 </ul>
-<a name="updateResources-Protos.TaskInfo-">
+<a name="updateTaskResourcesWithinResourceSet-Protos.TaskInfo-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>updateResources</h4>
-<pre>void&nbsp;updateResources(Protos.TaskInfo&nbsp;taskInfo)
-              throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<h4>updateTaskResourcesWithinResourceSet</h4>
+<pre>void&nbsp;updateTaskResourcesWithinResourceSet(Protos.TaskInfo&nbsp;taskInfo)
+                                   throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares
  their resource-set is launched.</div>
 <dl>
