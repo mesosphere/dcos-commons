@@ -3,6 +3,8 @@ import sdk_install as install
 import sdk_test_upgrade
 import sdk_utils as utils
 
+import shakedown
+
 from tests.test_utils import (
     PACKAGE_NAME,
     DEFAULT_BROKER_COUNT,
@@ -24,6 +26,7 @@ def configure_package(configure_universe):
 @pytest.mark.upgrade
 @pytest.mark.sanity
 @pytest.mark.smoke
+@utils.dcos_1_9_or_higher
 def test_upgrade_downgrade():
     options = {
         "service": {
