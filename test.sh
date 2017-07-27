@@ -59,6 +59,15 @@ fi
 
 if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
     CREDENTIALS_FILE="$HOME/.aws/credentials"
+
+    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
+    if [ $( echo "$PROFILES" | wc -l ) != "1" ]; then
+        echo "Only single profile credentials files are supported"
+        echo "Found:"
+        echo "$PROFILES"
+        exit 1
+    fi
+
     if  [ -f "$CREDENTIALS_FILE" ]; then
         echo "Checking $CREDENTIALS_FILE"
         SED_ARGS='s/^.*=\s*//g'
@@ -69,7 +78,9 @@ if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
         echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
         exit 1
     fi
+
 fi
+
 
 # If AZURE variables are given, change default -m and prepare args for docker
 if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
