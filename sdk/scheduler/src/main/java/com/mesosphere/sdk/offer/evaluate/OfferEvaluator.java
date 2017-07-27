@@ -60,19 +60,18 @@ public class OfferEvaluator {
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
-        boolean anyTaskIsRunning = thisPodTasks.values().stream()
+        boolean noTasksRunning = thisPodTasks.values().stream()
                 .map(taskInfo -> taskInfo.getName())
                 .map(taskName -> stateStore.fetchStatus(taskName))
                 .filter(Optional::isPresent)
                 .map(taskStatus -> taskStatus.get())
-                .filter(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING))
-                .count() > 0;
+                .noneMatch(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING));
 
         Optional<Protos.ExecutorInfo> executorInfo = Optional.empty();
         if (!thisPodTasks.isEmpty()) {
             Protos.ExecutorInfo.Builder execInfoBuilder =
                     thisPodTasks.values().stream().findFirst().get().getExecutor().toBuilder();
-            if (!anyTaskIsRunning) {
+            if (noTasksRunning) {
                 execInfoBuilder.setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
             }
 
