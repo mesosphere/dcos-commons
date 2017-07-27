@@ -6,7 +6,7 @@ from shakedown.dcos.spinner import TimeoutExpired
 import shakedown
 
 import sdk_hosts
-import sdk_install as install
+import sdk_install
 import sdk_plan
 import sdk_utils
 import sdk_networks
@@ -24,15 +24,15 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
         options = { "service": { "spec_file": "examples/overlay.yml" } }
 
-        install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 # test suite constants

@@ -5,7 +5,6 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    user: {{SERVICE_USER}}
     placement: {{HELLO_PLACEMENT}}
     tasks:
       server:

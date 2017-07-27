@@ -9,9 +9,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.json.JSONArray;

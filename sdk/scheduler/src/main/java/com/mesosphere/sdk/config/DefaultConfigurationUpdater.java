@@ -12,6 +12,8 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;

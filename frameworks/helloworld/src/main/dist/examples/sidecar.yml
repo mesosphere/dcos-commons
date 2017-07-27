@@ -5,7 +5,6 @@ scheduler:
 pods:
   hello:
     count: 2
-    user: {{SERVICE_USER}}
     volume:
       path: "hello-container-path"
       type: ROOT

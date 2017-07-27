@@ -44,7 +44,7 @@ def test_node_replace_replaces_node():
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # start replace and wait for it to finish
-    cmd.run_cli('cassandra pods replace {}'.format(pod_to_replace))
+    cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
 
@@ -56,7 +56,7 @@ def test_node_replace_replaces_seed_node():
     pod_host = get_pod_host(pod_to_replace)
 
     # start replace and wait for it to finish
-    cmd.run_cli('cassandra pods replace {}'.format(pod_to_replace))
+    cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME)
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
@@ -93,7 +93,7 @@ def test_shutdown_host_test():
     sdk_utils.out('sleeping 100s after shutting down agent')
     time.sleep(100)
 
-    cmd.run_cli('cassandra pods replace {}'.format(pod_name))
+    cmd.run_cli('cassandra pod replace {}'.format(pod_name))
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, pod_name, task_ids)
 
     # double check that all tasks are running
@@ -105,12 +105,12 @@ def test_shutdown_host_test():
 
 
 def get_pod_agent(pod_name):
-    stdout = cmd.run_cli('cassandra pods info {}'.format(pod_name), print_output=False)
+    stdout = cmd.run_cli('cassandra pod info {}'.format(pod_name), print_output=False)
     return json.loads(stdout)[0]['info']['slaveId']['value']
 
 
 def get_pod_host(pod_name):
-    stdout = cmd.run_cli('cassandra pods info {}'.format(pod_name), print_output=False)
+    stdout = cmd.run_cli('cassandra pod info {}'.format(pod_name), print_output=False)
     labels = json.loads(stdout)[0]['info']['labels']['labels']
     for i in range(0, len(labels)):
         if labels[i]['key'] == 'offer_hostname':

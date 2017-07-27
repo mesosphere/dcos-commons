@@ -2,6 +2,8 @@ package com.mesosphere.sdk.config;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.*;

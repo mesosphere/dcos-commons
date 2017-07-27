@@ -5,7 +5,6 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    user: {{SERVICE_USER}}
     uris:
       - "https://github.com/mesosphere/dcos-commons/blob/master/README.md"
       - "https://github.com/mesosphere/dcos-commons/blob/master/docs/generate.sh"
@@ -27,7 +26,6 @@ pods:
 
   world:
     count: {{WORLD_COUNT}}
-    user: {{SERVICE_USER}}
     resource-sets:
       world-resource:
         cpus: {{WORLD_CPUS}}

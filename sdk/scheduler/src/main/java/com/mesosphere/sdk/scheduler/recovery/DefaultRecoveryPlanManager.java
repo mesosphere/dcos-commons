@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.ChainedObserver;
@@ -11,6 +10,7 @@ import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;

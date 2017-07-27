@@ -28,7 +28,7 @@ The scheduler is the  entity that can launch tasks on DC/OS.  The role of Marath
 
 If we consider Mesos to be DC/OS’ kernel, then Marathon is its init system. It launches and keeps up the software that should be running on the operating system.
 
-Marathon is itself a Mesos framework. Some of the tasks it launches are the schedulers written with the SDK described here. Use an application or pod definition to tell. Application and pods definitions are declarative JSON representations of a task or tasks that Marathon should run.To learn more, consult the [Marathon documentation](https://mesosphere.github.io/marathon/).
+Marathon is itself a Mesos framework. Some of the tasks it launches are the schedulers written with the SDK described here. Application and pod definitions are declarative JSON representations of a task or tasks that Marathon should run. To learn more, consult the [Marathon documentation](https://mesosphere.github.io/marathon/).
 
 ## Universe
 
@@ -1512,7 +1512,6 @@ DefaultServiceSpec.newBuilder()
     .name(FRAMEWORK_NAME)
     .role(ROLE)
     .principal(PRINCIPAL)
-    .apiPort(8080)
     .zookeeperConnection("foo.bar.com")
     .pods(Arrays.asList(pods))
     .build();

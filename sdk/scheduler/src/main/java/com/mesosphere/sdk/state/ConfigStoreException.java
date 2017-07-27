@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.config;
+package com.mesosphere.sdk.state;
 
 import java.io.IOException;
 

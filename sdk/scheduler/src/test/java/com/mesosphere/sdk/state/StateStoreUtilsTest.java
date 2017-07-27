@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.collect.ImmutableList;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
@@ -41,7 +39,7 @@ public class StateStoreUtilsTest {
     @Before
     public void beforeEach() throws Exception {
         this.persister = new MemPersister();
-        this.stateStore = new DefaultStateStore(this.persister);
+        this.stateStore = new StateStore(this.persister);
     }
 
     @Test
@@ -67,59 +65,6 @@ public class StateStoreUtilsTest {
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "DEFINED");
 
         assertThat(result, is("VALUE".getBytes()));
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void nullValueIsInvalid() {
-        StateStoreUtils.validateValue(null);
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void veryLargeValueIsInvalid() {
-        byte[] largeArray = new byte[StateStoreUtils.MAX_VALUE_LENGTH_BYTES + 1];
-        StateStoreUtils.validateValue(largeArray);
-    }
-
-    @Test
-    public void largeValueIsValid() {
-        byte[] largeArray = new byte[StateStoreUtils.MAX_VALUE_LENGTH_BYTES];
-        StateStoreUtils.validateValue(largeArray);
-    }
-
-    @Test
-    public void emptyValueIsValid() {
-        byte[] largeArray = new byte[0];
-        StateStoreUtils.validateValue(largeArray);
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void emptyStringIsIsInvalidKey() {
-        StateStoreUtils.validateKey("");
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void nullIsIsInvalidKey() {
-        StateStoreUtils.validateKey(null);
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void blankStringIsInvaldiKey() {
-        StateStoreUtils.validateKey("    ");
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void stringWithLeadingSlashIsInvalidKey() {
-        StateStoreUtils.validateKey("/key");
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void stringWithTrailingSlashIsInvalidKey() {
-        StateStoreUtils.validateKey("key/");
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void stringWithEmbeddedSlashIsInvalidKey() {
-        StateStoreUtils.validateKey("key/value");
     }
 
     @Test(expected = StateStoreException.class)
@@ -383,7 +328,7 @@ public class StateStoreUtilsTest {
         ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
                 .build();
 
-        ConfigStore<ServiceSpec> configStore = new DefaultConfigStore(
+        ConfigStore<ServiceSpec> configStore = new ConfigStore(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         // At startup, the the service spec must be stored, and the target config must be set to the
         // stored spec.

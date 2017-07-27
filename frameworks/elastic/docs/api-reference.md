@@ -49,38 +49,38 @@ $ curl -X PUT <dcos_surl>/service/elastic/v1/plans/deploy/continue
 
 # Nodes API
 
-The pods API provides endpoints for retrieving information about nodes, restarting them, and replacing them.
+The pod API provides endpoints for retrieving information about nodes, restarting them, and replacing them.
 
 ## List Nodes
 
-A list of available node ids can be retrieved by sending a GET request to `/v1/pods`:
+A list of available node ids can be retrieved by sending a GET request to `/v1/pod`:
 
 CLI Example
 ```
-$ dcos elastic pods list
+$ dcos elastic pod list
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pods
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod
 ```
 
 ## Node Info
 
-You can retrieve node information by sending a GET request to `/v1/pods/<node-id>/info`:
+You can retrieve node information by sending a GET request to `/v1/pod/<node-id>/info`:
 
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pods/<node-id>/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<node-id>/info
 ```
 
 CLI Example
 ```
-$ dcos elastic pods info journalnode-0
+$ dcos elastic pod info journalnode-0
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pods/journalnode-0/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/journalnode-0/info
 
 ```
 
@@ -90,12 +90,12 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-$ dcos elastic pods replace <node-id>
+$ dcos elastic pod replace <node-id>
 ```
 
 HTTP Example
 ```
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pods/<node-id>/replace
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -106,12 +106,12 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-$ dcos elastic pods restart <node-id>
+$ dcos elastic pod restart <node-id>
 ```
 
 HTTP Example
 ```bash
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pods/<node-id>/restart
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.

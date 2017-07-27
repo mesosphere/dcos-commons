@@ -3,7 +3,7 @@ import shakedown
 import time
 import json
 
-import sdk_cmd as cmd
+import sdk_cmd
 import sdk_install
 import sdk_plan
 import sdk_tasks
@@ -59,7 +59,7 @@ options_dcos_space_test = {
 def configure_package(configure_universe):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
-        cmd.run_cli("package install --cli dcos-enterprise-cli")
+        sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
         delete_secrets_all("{}/".format(PACKAGE_NAME))
         delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
         delete_secrets_all()
@@ -100,8 +100,8 @@ def test_secrets_basic():
     world_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "word-0")
 
     # ensure that secrets work after replace
-    cmd.run_cli('hello-world pods replace hello-0')
-    cmd.run_cli('hello-world pods replace world-0')
+    sdk_cmd.run_cli('hello-world pod replace hello-0')
+    sdk_cmd.run_cli('hello-world pod replace world-0')
 
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_0)
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_tasks_0)
@@ -194,9 +194,9 @@ def test_secrets_update():
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
-    cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, PACKAGE_NAME))
-    cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, PACKAGE_NAME))
-    cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, PACKAGE_NAME))
+    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, PACKAGE_NAME))
+    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, PACKAGE_NAME))
+    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, PACKAGE_NAME))
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
@@ -204,8 +204,8 @@ def test_secrets_update():
     world_tasks_old = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
-    cmd.run_cli('hello-world pods restart hello-0')
-    cmd.run_cli('hello-world pods restart world-0')
+    sdk_cmd.run_cli('hello-world pod restart hello-0')
+    sdk_cmd.run_cli('hello-world pod restart world-0')
 
     # wait pod restart to complete
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_old)
@@ -256,7 +256,7 @@ def test_secrets_config_update():
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content, one from each pod type
-    # get tasks ids - only first pods
+    # get tasks ids - only first pod
     hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
@@ -345,39 +345,39 @@ def test_secrets_dcos_space():
 
 
 def create_secrets(path_prefix="", secret_content_arg=secret_content_default):
-    cmd.run_cli("security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix))
-    cmd.run_cli("security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix))
-    cmd.run_cli("security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix))
+    sdk_cmd.run_cli("security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix))
+    sdk_cmd.run_cli("security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix))
+    sdk_cmd.run_cli("security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix))
 
 
 def delete_secrets(path_prefix=""):
-    cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
+    sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
+    sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
+    sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
 
 
 def delete_secrets_all(path_prefix=""):
     # if there is any secret left, delete
     # use in teardown_module
     try:
-        cmd.run_cli("security secrets get {}secret1".format(path_prefix))
-        cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
+        sdk_cmd.run_cli("security secrets get {}secret1".format(path_prefix))
+        sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
     except:
         pass
     try:
-        cmd.run_cli("security secrets get {}secret2".format(path_prefix))
-        cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
+        sdk_cmd.run_cli("security secrets get {}secret2".format(path_prefix))
+        sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
     except:
         pass
     try:
-        cmd.run_cli("security secrets get {}secret3".format(path_prefix))
-        cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
+        sdk_cmd.run_cli("security secrets get {}secret3".format(path_prefix))
+        sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
     except:
         pass
 
 
 def task_exec(task_name, command):
-    lines = cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
+    lines = sdk_cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
     print(lines)
     for i in lines:
         # ignore text starting with:

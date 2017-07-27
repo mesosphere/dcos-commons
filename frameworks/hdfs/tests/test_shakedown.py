@@ -178,8 +178,8 @@ def test_permanent_and_transient_namenode_failures_0_1():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace name-0'.format(FOLDERED_SERVICE_NAME))
-    cmd.run_cli('hdfs --name={} pods restart name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod replace name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod restart name-1'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
@@ -196,8 +196,8 @@ def test_permanent_and_transient_namenode_failures_1_0():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace name-1'.format(FOLDERED_SERVICE_NAME))
-    cmd.run_cli('hdfs --name={} pods restart name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod replace name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod restart name-0'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
@@ -310,7 +310,7 @@ def replace_name_node(index):
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
+    cmd.run_cli('hdfs --name={} pod replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, name_node_name, name_id)

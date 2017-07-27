@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
-public class PodsResourceTest {
+public class PodResourceTest {
 
     // build from hand to avoid default type/index settings:
     private static final TaskInfo NO_POD_TASK = Protos.TaskInfo.newBuilder()
@@ -111,12 +111,12 @@ public class PodsResourceTest {
     @Mock private TaskKiller mockTaskKiller;
     @Mock private StateStore mockStateStore;
 
-    private PodsResource resource;
+    private PodResource resource;
 
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new PodsResource(mockTaskKiller, mockStateStore);
+        resource = new PodResource(mockTaskKiller, mockStateStore);
     }
 
     @Test

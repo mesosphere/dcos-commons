@@ -2,7 +2,7 @@ import dcos
 import pytest
 import shakedown
 
-import sdk_install as install
+import sdk_install
 import sdk_plan
 
 from tests.config import (
@@ -13,18 +13,18 @@ from tests.config import (
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
         options = {
             "service": {
                 "spec_file": "examples/discovery.yml"
             }
         }
 
-        install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 
@@ -32,7 +32,7 @@ def configure_package(configure_universe):
 def test_task_dns_prefix_points_to_all_tasks():
     pod_info = dcos.http.get(
         shakedown.dcos_service_url(PACKAGE_NAME) +
-        "/v1/pods/{}/info".format("hello-0")).json()
+        "/v1/pod/{}/info".format("hello-0")).json()
 
     # Assert that DiscoveryInfo is correctly set on tasks.
     assert(all(p["info"]["discovery"]["name"] == "hello-0" for p in pod_info))

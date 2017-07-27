@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.config;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
+import com.mesosphere.sdk.state.ConfigStoreException;
 
 import java.util.Collection;
 import java.util.UUID;

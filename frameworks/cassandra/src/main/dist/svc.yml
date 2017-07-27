@@ -21,7 +21,6 @@ pods:
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
-    user: {{SERVICE_USER}}
     resource-sets:
       server-resources:
         cpus: {{CASSANDRA_CPUS}}
@@ -68,9 +67,6 @@ pods:
           metrics:
             template: {{CONFIG_TEMPLATE_PATH}}/metrics-reporter-config.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
-          rack:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra-rackdc.properties
-            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
           s3:
             template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
             dest: s3config.json
