@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.is; 
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
@@ -83,7 +83,7 @@ public class StateStoreUtilsTest {
     @Test
     public void testStateStoreWithSingleStateReturnsTaskInfo() {
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("test-task").build();
+        TaskInfo taskInfo = newTaskInfo("test-task");
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -97,8 +97,8 @@ public class StateStoreUtilsTest {
     @Test(expected = StateStoreException.class)
     public void testStateStoreWithDuplicateIdsRaisesErrorOnStatus() {
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("task_1").build();
-        TaskInfo secondTask = newTaskInfoBuilder("task_2", taskInfo.getTaskId()).build();
+        TaskInfo taskInfo = newTaskInfo("task_1");
+        TaskInfo secondTask = newTaskInfo("task_2", taskInfo.getTaskId());
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo, secondTask));
@@ -114,7 +114,7 @@ public class StateStoreUtilsTest {
         final String taskName = "test-task";
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder(taskName).build();
+        TaskInfo taskInfo = newTaskInfo(taskName);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -135,7 +135,7 @@ public class StateStoreUtilsTest {
     @Test
     public void testTaskWithNoStatusDoesNotNeedRecovery() throws TaskException {
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder().build();
+        TaskInfo taskInfo = newTaskInfo();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -150,7 +150,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-node", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -167,7 +167,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-node", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -186,7 +186,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-not-present", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-not-present", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -203,7 +203,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-not-present", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-not-present", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -218,7 +218,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -237,7 +237,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -255,7 +255,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        TaskInfo taskInfo = newTaskInfoBuilder("name-0-format", configStore).build();
+        TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -269,10 +269,10 @@ public class StateStoreUtilsTest {
     }
 
 
-    private static TaskInfo.Builder newTaskInfoBuilder(final String taskName,
-                                                       final ConfigStore<ServiceSpec> configStore)
+    private static TaskInfo newTaskInfo(final String taskName,
+                                        final ConfigStore<ServiceSpec> configStore)
             throws ConfigStoreException {
-        TaskInfo.Builder taskInfoBuilder = newTaskInfoBuilder(taskName);
+        TaskInfo.Builder taskInfoBuilder = newTaskInfo(taskName).toBuilder();
 
         // POD type
         final UUID targetConfig = configStore.getTargetConfig();
@@ -286,26 +286,26 @@ public class StateStoreUtilsTest {
                 .setIndex(podIndex)
                 .toProto());
 
-        return taskInfoBuilder;
+        return taskInfoBuilder.build();
     }
 
-    private static TaskInfo.Builder newTaskInfoBuilder() {
-        return newTaskInfoBuilder("test-task");
+    private static TaskInfo newTaskInfo() {
+        return newTaskInfo("test-task");
     }
 
-    private static TaskInfo.Builder newTaskInfoBuilder(final String taskName) {
+    private static TaskInfo newTaskInfo(final String taskName) {
         final TaskID taskID = CommonIdUtils.toTaskId(taskName);
 
-        return newTaskInfoBuilder(taskName, taskID);
+        return newTaskInfo(taskName, taskID);
     }
 
-    private static TaskInfo.Builder newTaskInfoBuilder(final String taskName, final TaskID taskID) {
+    private static TaskInfo newTaskInfo(final String taskName, final TaskID taskID) {
         return TaskInfo.newBuilder()
                 .setName(taskName)
                 .setTaskId(taskID)
                 .setSlaveId(SlaveID.newBuilder()
                         .setValue("proto-field-required")
-                );
+                ).build();
     }
 
 
@@ -329,7 +329,7 @@ public class StateStoreUtilsTest {
         ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
                 .build();
 
-        ConfigStore<ServiceSpec> configStore = new ConfigStore(
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         // At startup, the the service spec must be stored, and the target config must be set to the
         // stored spec.
