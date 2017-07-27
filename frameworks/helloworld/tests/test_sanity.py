@@ -284,6 +284,11 @@ def test_lock():
 
     shakedown.wait_for(lambda: fn())
 
+    # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
+    labels = app["labels"]
+    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": labels, "instances": 1})
+    shakedown.deployment_wait()
+
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
