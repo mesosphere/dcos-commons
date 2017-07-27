@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.TaskException;
@@ -151,7 +152,8 @@ public class StateStoreUtils {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
     }
 
-    private static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
+    @VisibleForTesting
+    protected static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
         byte[] bytes = fetchPropertyOrEmptyArray(stateStore, propertyName);
         if (bytes.length == 0) {
             return false;

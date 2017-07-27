@@ -75,15 +75,47 @@ public class StateStoreUtilsTest {
 
 
     @Test
-    public void testEmptyStateStoreHasNoLastDeploymentType() {
+    public void testEmptyStateStoreHasNoLastCompletedUpdateType() {
         assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(DeploymentType.NONE));
+    }
+
+
+    @Test
+    public void testLastCompletedUpdateTypeGetsSet() {
+        StateStoreUtils.setLastCompletedUpdateType(stateStore, DeploymentType.DEPLOY);
+        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(DeploymentType.DEPLOY));
+    }
+
+
+    @Test
+    public void testEmptyStateStoreHasNoTaskStatusAsProperty() {
+        assertThat(StateStoreUtils.getTaskStatusFromProperty(stateStore, "test-task").isPresent(), is(false));
+    }
+
+
+    @Test
+    public void testMismatchInTaskNameReturnsNoTaskStatusAsProperty() {
+        final TaskInfo taskInfo = newTaskInfo("test-task");
+        final TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
+        StateStoreUtils.storeTaskStatusAsProperty(stateStore, "test-task", taskStatus);
+        assertThat(StateStoreUtils.getTaskStatusFromProperty(stateStore, "not-test-task").isPresent(), is(false));
+    }
+
+
+    @Test
+    public void testTaskStatusAsPropertyIsSetAndReturned() {
+        final TaskInfo taskInfo = newTaskInfo("test-task");
+        final TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
+        StateStoreUtils.storeTaskStatusAsProperty(stateStore, "test-task", taskStatus);
+
+        assertThat(StateStoreUtils.getTaskStatusFromProperty(stateStore, "test-task").get(), is(taskStatus));
     }
 
 
     @Test
     public void testStateStoreWithSingleStateReturnsTaskInfo() {
         // Create task info
-        TaskInfo taskInfo = newTaskInfo("test-task");
+        TaskInfo taskInfo = newTaskInfo();
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
@@ -266,6 +298,63 @@ public class StateStoreUtilsTest {
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
+    }
+
+
+    @Test
+    public void testEmptyStateStoreIsNotSuppressed() {
+        assertThat(StateStoreUtils.isSuppressed(stateStore), is(false));
+    }
+
+    @Test
+    public void testToggleSuppressed() {
+        StateStoreUtils.setSuppressed(stateStore, true);
+        assertThat(StateStoreUtils.isSuppressed(stateStore), is(true));
+
+        StateStoreUtils.setSuppressed(stateStore, false);
+        assertThat(StateStoreUtils.isSuppressed(stateStore), is(false));
+    }
+
+    @Test
+    public void testEmptyStateStoreIsNotUninstalling() {
+        assertThat(StateStoreUtils.isUninstalling(stateStore), is(false));
+    }
+
+    @Test
+    public void testSetUninstalling() {
+        StateStoreUtils.setUninstalling(stateStore);
+        assertThat(StateStoreUtils.isUninstalling(stateStore), is(true));
+    }
+
+
+    @Test
+    public void testEmptyStateStoreValueIsFalse() {
+        final String key = "empty_value";
+        stateStore.storeProperty(key, new byte[0]);
+        assertThat(StateStoreUtils.fetchBooleanProperty(stateStore, key), is(false));
+    }
+
+    @Test
+    public void testFalseIsFalse() {
+        final String key = "false";
+        stateStore.storeProperty(key, key.getBytes(StandardCharsets.UTF_8));
+        assertThat(StateStoreUtils.fetchBooleanProperty(stateStore, key), is(false));
+    }
+
+
+    @Test
+    public void testTrueIsTrue() {
+        final String key = "true";
+        stateStore.storeProperty(key, key.getBytes(StandardCharsets.UTF_8));
+        assertThat(StateStoreUtils.fetchBooleanProperty(stateStore, key), is(true));
+    }
+
+
+    @Test(expected = StateStoreException.class)
+    public void testInvalidBooleanRaisesError() {
+        final String key = "invalid_value";
+        stateStore.storeProperty(key, "horses".getBytes(StandardCharsets.UTF_8));
+        StateStoreUtils.fetchBooleanProperty(stateStore, key);
     }
 
 
