@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 
 /**
- * This class provides a default implementation of the TaskFailureListener interface.
+ * This class provides a default implementation of the {@link TaskFailureListener} interface.
  */
 public class DefaultTaskFailureListener implements TaskFailureListener {
     private final Logger logger = LoggerFactory.getLogger(getClass());

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -491,10 +492,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
         Assert.assertEquals(TestConstants.ROLE, reservationInfo.getRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
-
-        Protos.Label label = reservationInfo.getLabels().getLabels(0);
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, label.getKey());
-        Assert.assertEquals(36, label.getValue().length());
+        Assert.assertEquals(36, AuxLabelAccess.getResourceId(reservationInfo).get().length());
     }
 
     private void validateScalarResourceLegacy(Protos.Resource resource) {
@@ -505,10 +503,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
 
         Protos.Resource.ReservationInfo reservationInfo = resource.getReservation();
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
+        Assert.assertFalse(reservationInfo.hasRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
-
-        Protos.Label label = reservationInfo.getLabels().getLabels(0);
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, label.getKey());
+        Assert.assertEquals(36, AuxLabelAccess.getResourceId(reservationInfo).get().length());
     }
 
     private void validateDisk(Protos.Resource resource) {
@@ -525,13 +522,5 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Protos.Volume volume = diskInfo.getVolume();
         Assert.assertEquals(TestConstants.CONTAINER_PATH, volume.getContainerPath());
         Assert.assertEquals(Protos.Volume.Mode.RW, volume.getMode());
-    }
-
-    private void validateRole(Protos.Resource resource) {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
-            Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
-        } else {
-            Assert.assertEquals(TestConstants.ROLE, resource.getRole());
-        }
     }
 }

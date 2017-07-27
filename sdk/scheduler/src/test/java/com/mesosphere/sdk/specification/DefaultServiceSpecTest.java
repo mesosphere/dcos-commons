@@ -437,8 +437,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals(DcosConstants.DEFAULT_OVERLAY_NETWORK, Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
-                .getName());
+        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
     }
 
     @Test(expected = IllegalArgumentException.class)
