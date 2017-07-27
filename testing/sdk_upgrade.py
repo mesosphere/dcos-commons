@@ -30,7 +30,10 @@ def test_upgrade(
     if test_version_options is None:
         test_version_options = additional_options
 
-    install.uninstall(service_name, package_name=test_package_name)
+    # make sure BOTH are uninstalled...
+    install.uninstall(service_name, package_name=universe_package_name)
+    if universe_package_name is not test_package_name:
+        install.uninstall(service_name, package_name=test_package_name)
 
     test_version = _get_pkg_version(test_package_name)
     sdk_utils.out('Found test version: {}'.format(test_version))

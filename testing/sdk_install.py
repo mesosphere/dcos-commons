@@ -9,6 +9,7 @@ import shakedown
 import time
 
 import sdk_api
+import sdk_plan
 import sdk_utils
 
 
@@ -25,8 +26,8 @@ def install(
     start = time.time()
     merged_options = get_package_options(additional_options)
 
-    sdk_utils.out('Installing {} with options={} version={}'.format(
-        package_name, merged_options, package_version))
+    sdk_utils.out('Installing {}/{} with options={} version={}'.format(
+        package_name, service_name, merged_options, package_version))
 
     # 1. Install package, wait for tasks, wait for marathon deployment
     shakedown.install_package(
@@ -38,14 +39,21 @@ def install(
         timeout_sec=timeout_seconds,
         expected_running_tasks=running_task_count)
 
-    # 2. Wait for the scheduler to be idle (as implied by the suppressed bit)
+    # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
     if wait_scheduler_idle:
-        sdk_utils.out("Waiting for framework to be suppressed...")
+        # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
+        # total task count via FINISHED tasks, without actually completing deployment
+        sdk_utils.out("Waiting for {}/{} to finish deployment plan...".format(package_name, service_name))
+        sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+
+        # given the above wait for plan completion, here we just wait up to 5 minutes
+        sdk_utils.out("Waiting for {}/{} to be suppressed...".format(package_name, service_name))
         shakedown.wait_for(
             lambda: sdk_api.is_suppressed(service_name), noisy=True, timeout_seconds=5 * 60)
 
-    sdk_utils.out('Install done after {}'.format(shakedown.pretty_duration(time.time() - start)))
+    sdk_utils.out('Installed {}/{} after {}'.format(
+        package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
 def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):
