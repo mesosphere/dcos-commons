@@ -44,14 +44,14 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void emptyStateStoreReturnsEmptyArray() {
+    public void testEmptyStateStoreReturnsEmptyArray() {
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "UNDEFINED");
 
         assertThat(result.length, is(0));
     }
 
     @Test
-    public void unmatchedKeyReturnsEmptyArray() {
+    public void testUnmatchedKeyReturnsEmptyArray() {
         stateStore.storeProperty("DEFINED", "VALUE".getBytes(StandardCharsets.UTF_8));
 
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "UNDEFINED");
@@ -60,7 +60,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void matchedKeyReturnsValue() {
+    public void testMatchedKeyReturnsValue() {
         stateStore.storeProperty("DEFINED", "VALUE".getBytes(StandardCharsets.UTF_8));
 
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "DEFINED");
@@ -69,19 +69,19 @@ public class StateStoreUtilsTest {
     }
 
     @Test(expected = StateStoreException.class)
-    public void emptyStateStoreRaisesErrorOnTaskInfo() {
+    public void testEmptyStateStoreRaisesErrorOnTaskInfo() {
         StateStoreUtils.getTaskInfo(stateStore, null);
     }
 
 
     @Test
-    public void emptyStateStoreHasNoLastDeploymentType() {
+    public void testEmptyStateStoreHasNoLastDeploymentType() {
         assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(DeploymentType.NONE));
     }
 
 
     @Test
-    public void stateStoreWithSingleStateReturnsTaskInfo() {
+    public void testStateStoreWithSingleStateReturnsTaskInfo() {
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("test-task").build();
 
@@ -95,7 +95,7 @@ public class StateStoreUtilsTest {
 
 
     @Test(expected = StateStoreException.class)
-    public void stateStoreWithDuplicateIdsRaisesErrorOnStatus() {
+    public void testStateStoreWithDuplicateIdsRaisesErrorOnStatus() {
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder("task_1").build();
         TaskInfo secondTask = newTaskInfoBuilder("task_2", taskInfo.getTaskId()).build();
@@ -110,7 +110,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test(expected = StateStoreException.class)
-    public void stateStoreWithMismatchedIdRaisesErrorOnStatus() {
+    public void testStateStoreWithMismatchedIdRaisesErrorOnStatus() {
         final String taskName = "test-task";
 
         // Create task info
@@ -127,13 +127,13 @@ public class StateStoreUtilsTest {
 
 
     @Test
-    public void emptyStateStoreHasNoTasksNeedingRecovery() throws TaskException {
+    public void testEmptyStateStoreHasNoTasksNeedingRecovery() throws TaskException {
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, null), is(empty()));
     }
 
 
     @Test
-    public void taskWithNoStatusDoesNotNeedRecovery() throws TaskException {
+    public void testTaskWithNoStatusDoesNotNeedRecovery() throws TaskException {
         // Create task info
         TaskInfo taskInfo = newTaskInfoBuilder().build();
 
@@ -145,7 +145,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void runningTaskDoesNotNeedRecoveryIfRunning() throws Exception {
+    public void testRunningTaskDoesNotNeedRecoveryIfRunning() throws Exception {
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
@@ -162,7 +162,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void runningTaskNeedsRecoveryIfFailed() throws Exception {
+    public void testRunningTaskNeedsRecoveryIfFailed() throws Exception {
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
@@ -181,7 +181,7 @@ public class StateStoreUtilsTest {
 
 
     @Test(expected = TaskException.class)
-    public void nonPresentTaskRaisesError() throws Exception {
+    public void testNonPresentTaskRaisesError() throws Exception {
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
@@ -198,7 +198,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void taskInfoWithNoStatusRequiresNoRecovery() throws Exception {
+    public void testTaskInfoWithNoStatusRequiresNoRecovery() throws Exception {
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
@@ -213,7 +213,7 @@ public class StateStoreUtilsTest {
 
 
     @Test
-    public void finishedTaskDoesNotNeedRecoveryIfFailed() throws Exception {
+    public void testFinishedTaskDoesNotNeedRecoveryIfFailed() throws Exception {
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
@@ -231,7 +231,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void finishedTaskDoesNotNeedRecoveryIfFinished() throws Exception {
+    public void testFinishedTaskDoesNotNeedRecoveryIfFinished() throws Exception {
 
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
@@ -250,7 +250,7 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void finishedTaskDoesNotNeedRecoveryIfRunning() throws Exception {
+    public void testFinishedTaskDoesNotNeedRecoveryIfRunning() throws Exception {
 
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
