@@ -21,12 +21,19 @@ def configure_package(configure_universe):
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
 
-        sdk_upgrade.test_upgrade(
-            "beta-{}".format(PACKAGE_NAME),
+        # TODO: fails due to released beta-hdfs not supporting foldered names.
+        # After the next beta-hdfs release (with folder support), delete test_upgrade.py and uncomment this.
+        #sdk_upgrade.test_upgrade(
+        #    "beta-{}".format(PACKAGE_NAME),
+        #    PACKAGE_NAME,
+        #    DEFAULT_TASK_COUNT,
+        #    service_name=FOLDERED_SERVICE_NAME,
+        #    additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+        sdk_install.install(
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
 
         yield # let the test session execute
     finally:
