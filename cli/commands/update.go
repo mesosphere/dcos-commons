@@ -169,6 +169,7 @@ func (cmd *updateHandler) UpdateConfiguration(a *kingpin.Application, e *kingpin
 	return nil
 }
 
+
 // HandleUpdateSection adds the update subcommand to the passed in kingpin.Application.
 func HandleUpdateSection(app *kingpin.Application) {
 	cmd := &updateHandler{}
@@ -196,4 +197,6 @@ func HandleUpdateSection(app *kingpin.Application) {
 
 	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&planCmd.RawJSON)
+	// ensure plan name is passed
+	status.Flag("plan", "Name of the plan to launch").Default("deploy").Hidden().StringVar(&planCmd.PlanName)
 }

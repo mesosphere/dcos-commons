@@ -55,9 +55,9 @@ func (cmd *planHandler) getPlanName() string {
 	if len(cmd.PlanName) > 0 {
 		return cmd.PlanName
 	}
-    // there is no (and should not be) a case where the plan name is requested here where it is not needed.
-    client.PrintMessageAndExit("Must specify a plan name")
-    return ""
+	// there is no (and should not be) a case where the plan name is requested here where it is not needed.
+	client.PrintMessageAndExit("Must specify a plan name")
+	return ""
 }
 
 type plansResponse struct {
