@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
@@ -51,7 +52,7 @@ public class StateStoreUtilsTest {
 
     @Test
     public void unmatchedKeyReturnsEmptyArray() {
-        stateStore.storeProperty("DEFINED", "VALUE".getBytes());
+        stateStore.storeProperty("DEFINED", "VALUE".getBytes(StandardCharsets.UTF_8));
 
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "UNDEFINED");
 
@@ -60,11 +61,11 @@ public class StateStoreUtilsTest {
 
     @Test
     public void matchedKeyReturnsValue() {
-        stateStore.storeProperty("DEFINED", "VALUE".getBytes());
+        stateStore.storeProperty("DEFINED", "VALUE".getBytes(StandardCharsets.UTF_8));
 
         byte[] result = StateStoreUtils.fetchPropertyOrEmptyArray(stateStore, "DEFINED");
 
-        assertThat(result, is("VALUE".getBytes()));
+        assertThat(result, is("VALUE".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test(expected = StateStoreException.class)
