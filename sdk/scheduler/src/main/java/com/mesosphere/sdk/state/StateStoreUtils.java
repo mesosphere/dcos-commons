@@ -2,11 +2,8 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -20,12 +17,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Utilities for implementations and users of {@link StateStore}.
@@ -95,26 +90,6 @@ public class StateStoreUtils {
         return results;
     }
 
-    public static Collection<TaskInfo> fetchTasksFromPod(StateStore stateStore, String pod) throws StateStoreException {
-        Collection<TaskInfo> allInfos = stateStore.fetchTasks();
-
-        List<TaskInfo> results = new ArrayList<>();
-        for (TaskInfo info : allInfos) {
-            String taskPod;
-            try {
-                taskPod = new TaskLabelReader(info).getType();
-            } catch (TaskException e) {
-                continue;
-            }
-
-            if (pod.equals(taskPod)) {
-                results.add(info);
-            }
-        }
-
-        return results;
-    }
-
     /**
      * Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
      * TaskInfo.
@@ -146,62 +121,6 @@ public class StateStoreUtils {
         }
 
         return taskInfoOptional.get();
-    }
-
-    public static Collection<Protos.Resource> getReservedResources(Collection<Protos.Resource> resources) {
-        Collection<Protos.Resource> reservedResources = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
-            MesosResource mesosResource = new MesosResource(resource);
-            if (mesosResource.getResourceId().isPresent()) {
-                reservedResources.add(resource);
-            }
-        }
-
-        return reservedResources;
-    }
-
-    public static Collection<Protos.Resource> getResources(
-            StateStore stateStore,
-            PodInstance podInstance,
-            TaskSpec taskSpec) {
-        String resourceSetName = taskSpec.getResourceSet().getId();
-
-        Collection<String> tasksWithResourceSet = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec1 -> resourceSetName.equals(taskSpec1.getResourceSet().getId()))
-                .map(taskSpec1 -> TaskSpec.getInstanceName(podInstance, taskSpec1))
-                .distinct()
-                .collect(Collectors.toList());
-
-        LOGGER.info("Tasks with resource set: {}, {}", resourceSetName, tasksWithResourceSet);
-
-        Collection<TaskInfo> taskInfosForPod = stateStore.fetchTasks().stream()
-                .filter(taskInfo -> {
-                    try {
-                        return TaskUtils.isSamePodInstance(taskInfo, podInstance);
-                    } catch (TaskException e) {
-                        return false;
-                    }
-                })
-                .collect(Collectors.toList());
-
-        LOGGER.info("Tasks for pod: {}",
-                taskInfosForPod.stream()
-                        .map(TaskInfo::getName)
-                        .collect(Collectors.toList()));
-
-        Optional<TaskInfo> taskInfoOptional = taskInfosForPod.stream()
-                .filter(taskInfo -> tasksWithResourceSet.contains(taskInfo.getName()))
-                .findFirst();
-
-        if (taskInfoOptional.isPresent()) {
-            LOGGER.info("Found Task with resource set: {}, {}",
-                    resourceSetName,
-                    TextFormat.shortDebugString(taskInfoOptional.get()));
-            return taskInfoOptional.get().getResourcesList();
-        } else {
-            LOGGER.error("Failed to find a Task with resource set: {}", resourceSetName);
-            return Collections.emptyList();
-        }
     }
 
     /**
