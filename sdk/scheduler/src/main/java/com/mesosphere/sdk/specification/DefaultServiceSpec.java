@@ -263,7 +263,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 OrRule.class,
                 PassthroughRule.class,
                 PortSpec.class,
-                PortsSpec.class,
                 RegexMatcher.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,

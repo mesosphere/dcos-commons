@@ -28,7 +28,6 @@ public interface ResourceSpec {
     @JsonProperty("principal")
     String getPrincipal();
 
-    default Optional<String> getEnvKey() {
-        return Optional.of(getName());
-    }
+    @JsonProperty("env-key")
+    Optional<String> getEnvKey();
 }

@@ -127,7 +127,8 @@ public class PodInfoBuilder {
      * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
      * it on task relaunch.
      */
-    public Optional<Long> lookupPriorTaskPortValue(String taskSpecName, String portName, String portEnvName) {
+    public Optional<Long> lookupPriorTaskPortValue(
+            String taskSpecName, String portName, Optional<String> portEnvNameOptional) {
         Map<String, Long> taskPorts = lastTaskPorts.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
         if (taskPorts != null) {
             Long lastPort = taskPorts.get(portName);
@@ -141,6 +142,9 @@ public class PodInfoBuilder {
         // TODO(nickbp): Remove this fallback after October 2017
         Map<String, String> env = lastTaskEnvs.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
         if (env != null) {
+            // When the PortSpec lacks an explicit env name, fall back to trying the legacy "PORT_<PORT_NAME>" default
+            final String portEnvName = portEnvNameOptional.orElse(
+                    EnvConstants.PORT_NAME_TASKENV_PREFIX + EnvUtils.toEnvName(portName));
             try {
                 return Optional.ofNullable(Long.parseLong(env.get(portEnvName)));
             } catch (NumberFormatException e) {

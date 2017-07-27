@@ -14,7 +14,6 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * This class represents a single port, with associated environment name.
@@ -23,7 +22,6 @@ public class PortSpec extends DefaultResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String portName;
-    private final String envKey;
     @NotNull
     private final DiscoveryInfo.Visibility visibility;
     private final Collection<String> networkNames;
@@ -40,7 +38,6 @@ public class PortSpec extends DefaultResourceSpec {
             @JsonProperty("network-names") Collection<String> networkNames) {
         super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal, envKey);
         this.portName = portName;
-        this.envKey = envKey;
         if (visibility == null) {
             // TODO(nickbp): Remove this compatibility fallback after October 2017
             // Older SDK versions only have a visibility setting for VIPs, not ports. Default to visible.
@@ -69,12 +66,6 @@ public class PortSpec extends DefaultResourceSpec {
     @JsonProperty("port-name")
     public String getPortName() {
         return portName;
-    }
-
-    @JsonProperty("env-key")
-    @Override
-    public Optional<String> getEnvKey() {
-        return Optional.ofNullable(envKey);
     }
 
     @JsonProperty("visibility")
