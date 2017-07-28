@@ -289,5 +289,5 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
-    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": original_labels, "instances": 1})
+    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": original_labels, "instances": 1}, force=True)
     shakedown.deployment_wait()
