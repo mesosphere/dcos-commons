@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.config;
+package com.mesosphere.sdk.state;
 
 import java.util.UUID;
 
@@ -7,7 +7,7 @@ import java.util.UUID;
  * setting and retrieving the {@link UUID} of the current target configuration.
  *
  * This interface is broken out from {@link ConfigStore} to allow users to ignore the the generic
- * typing of the config objects themselves.
+ * typing of the config objects themselves when they don't need to access those objects.
  */
 public interface ConfigTargetStore {
 

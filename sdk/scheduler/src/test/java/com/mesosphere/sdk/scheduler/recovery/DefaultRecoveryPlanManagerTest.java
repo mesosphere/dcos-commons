@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -14,8 +13,7 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstr
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -96,12 +94,12 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
         Persister persister = new MemPersister();
-        stateStore = new DefaultStateStore(persister);
+        stateStore = new StateStore(persister);
 
         File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
         serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(recoverySpecFile).build(), flags).build();
 
-        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+        configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
         configStore.setTargetConfig(configTarget);
         taskInfo = TaskInfo.newBuilder(taskInfo)

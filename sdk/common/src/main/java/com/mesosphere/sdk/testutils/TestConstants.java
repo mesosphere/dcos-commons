@@ -88,11 +88,4 @@ public class TestConstants {
                     .setTaskId(TASK_ID)
                     .setState(Protos.TaskState.TASK_RUNNING)
                     .build();
-
-    public static Protos.Labels getRequiredTaskLabels(int podIndex) {
-        Protos.Labels.Builder builder = Protos.Labels.newBuilder();
-        builder.addLabelsBuilder().setKey("task_type").setValue(TASK_TYPE);
-        builder.addLabelsBuilder().setKey("index").setValue(String.valueOf(podIndex));
-        return builder.build();
-    }
 }

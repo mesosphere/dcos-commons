@@ -2,6 +2,7 @@ package com.mesosphere.sdk.api;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -11,6 +12,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -18,7 +20,6 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
-import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
@@ -226,26 +227,20 @@ public class EndpointsResource {
         }
 
         // Search for any VIPs to list the port against:
-        boolean foundAnyVips = false;
-        for (Label label : taskInfoPort.getLabels().getLabelsList()) {
-            Optional<EndpointUtils.VipInfo> vipInfo = EndpointUtils.parseVipLabel(taskName, label);
-            if (!vipInfo.isPresent()) {
-                // Label doesn't appear to be for a VIP
-                continue;
-            }
+        Collection<EndpointUtils.VipInfo> vips = AuxLabelAccess.getVIPsFromLabels(taskName, taskInfoPort);
 
+        for (EndpointUtils.VipInfo vip : vips) {
             // VIP found. file host:port against the PORT name.
-            foundAnyVips = true;
             addPortAndVipToEndpoints(
                     endpointsByName,
                     taskInfoPort.getName(),
                     autoipHostPort,
                     ipHostPort,
-                    EndpointUtils.toVipEndpoint(serviceName, vipInfo.get()));
+                    EndpointUtils.toVipEndpoint(serviceName, vip));
         }
 
         // If no VIPs were found, list the port against the port name:
-        if (!foundAnyVips && !Strings.isEmpty(taskInfoPort.getName())) {
+        if (vips.isEmpty() && !Strings.isEmpty(taskInfoPort.getName())) {
             addPortToEndpoints(endpointsByName, taskInfoPort.getName(), autoipHostPort, ipHostPort);
         }
     }

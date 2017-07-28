@@ -80,6 +80,16 @@ public class SchedulerFlags {
     private static final String MARATHON_API_PORT_ENV = "PORT_API";
 
     /**
+     * Name of the scheduler in Marathon, e.g. "/path/to/myservice".
+     */
+    private static final String MARATHON_APP_ID_ENV = "MARATHON_APP_ID";
+
+    /**
+     * DC/OS Space to be used by this service, overriding the marathon app id.
+     */
+    private static final String DCOS_SPACE_ENV = "DCOS_SPACE";
+
+    /**
      * If this environment variable is present in the scheduler environment, the master is using
      * some form of sidechannel auth. When this environment variable is present, we should always
      * provide a {@link Credential} with (only) the principal set.
@@ -135,6 +145,20 @@ public class SchedulerFlags {
 
     public String getJavaHome() {
         return flagStore.getRequired(JAVA_HOME_ENV);
+    }
+
+    public String getDcosSpaceLabelValue() {
+        String value = flagStore.getOptional(DCOS_SPACE_ENV, null);
+        if (value != null) {
+            return value;
+        }
+
+        value = flagStore.getOptional(MARATHON_APP_ID_ENV, null);
+        if (value != null) {
+            return value;
+        }
+
+        return "/"; // No Authorization for this framework
     }
 
     public boolean isStateCacheEnabled() {

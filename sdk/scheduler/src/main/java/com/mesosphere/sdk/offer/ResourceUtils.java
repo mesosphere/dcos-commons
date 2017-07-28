@@ -4,6 +4,8 @@ import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -97,18 +99,11 @@ public class ResourceUtils {
         if (!reservationInfo.isPresent()) {
             return Optional.empty();
         }
-
-        for (Label label : reservationInfo.get().getLabels().getLabelsList()) {
-            if (label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                return Optional.of(label.getValue());
-            }
-        }
-
-        return Optional.empty();
+        return AuxLabelAccess.getResourceId(reservationInfo.get());
     }
 
     public static boolean hasResourceId(Resource resource) {
-        return ResourceUtils.getResourceId(resource).isPresent();
+        return getResourceId(resource).isPresent();
     }
 
     public static Optional<String> getPersistenceId(Resource resource) {

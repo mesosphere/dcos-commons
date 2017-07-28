@@ -2,7 +2,6 @@ package com.mesosphere.sdk.api;
 
 import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
-import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
@@ -152,11 +151,7 @@ public class StateResource {
     }
 
     private static PersisterCache getPersisterCache(StateStore stateStore) {
-        if (!(stateStore instanceof DefaultStateStore)) {
-            return null;
-        }
-        DefaultStateStore defaultStateStore = (DefaultStateStore) stateStore;
-        Persister persister = defaultStateStore.getPersister();
+        Persister persister = stateStore.getPersister();
         if (!(persister instanceof PersisterCache)) {
             return null;
         }

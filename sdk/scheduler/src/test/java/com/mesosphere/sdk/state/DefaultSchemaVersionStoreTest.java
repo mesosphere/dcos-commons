@@ -33,9 +33,9 @@ public class DefaultSchemaVersionStoreTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         persister = new MemPersister();
-        store = new DefaultSchemaVersionStore(persister);
-        store2 = new DefaultSchemaVersionStore(persister);
-        storeWithMock = new DefaultSchemaVersionStore(mockPersister);
+        store = new SchemaVersionStore(persister);
+        store2 = new SchemaVersionStore(persister);
+        storeWithMock = new SchemaVersionStore(mockPersister);
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.TaskException;
 import org.apache.mesos.Protos.*;
 
@@ -68,7 +67,8 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns the ID referencing a configuration in a {@link ConfigStore} associated with the task.
+     * Returns the ID referencing a configuration in a {@link com.mesosphere.sdk.state.ConfigStore} associated with the
+     * task.
      *
      * @return the ID of the target configuration for the provided {@link TaskInfo}
      * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with
