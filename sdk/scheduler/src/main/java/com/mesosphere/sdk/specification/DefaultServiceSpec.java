@@ -42,6 +42,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     private String name;
     private String role;
     private String principal;
+    @NotNull(message = "Service user cannot be empty")
     private String user;
 
     private String webUrl;
@@ -75,7 +76,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = user;
+        this.user = StringUtils.isEmpty(user) ? DcosConstants.DEFAULT_SERVICE_USER : user;
         ValidationUtils.validate(this);
     }
 
