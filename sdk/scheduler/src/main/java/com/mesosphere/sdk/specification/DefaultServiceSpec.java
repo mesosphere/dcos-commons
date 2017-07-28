@@ -76,7 +76,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = StringUtils.isEmpty(user) ? DcosConstants.DEFAULT_SERVICE_USER : user;
+        this.user = StringUtils.isBlank(user) ? DcosConstants.DEFAULT_SERVICE_USER : user;
         ValidationUtils.validate(this);
     }
 
