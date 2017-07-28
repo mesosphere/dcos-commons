@@ -1,4 +1,5 @@
 {
+    "replace": false,
     "appId": "hello-world",
     "packageVersion" : "stub-universe"
 }
