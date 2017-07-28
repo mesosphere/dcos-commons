@@ -49,7 +49,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     @Valid
     @NotNull
-    @Size(min = 1, message = "Atleast one pod should be configured.")
+    @Size(min = 1, message = "At least one pod must be configured.")
     @UniquePodType(message = "Pod types must be unique")
     private List<PodSpec> pods;
 
