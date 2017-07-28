@@ -79,6 +79,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         ValidationUtils.validate(this);
     }
 
+    @VisibleForTesting
     static String getUser(String user, List<PodSpec> podSpecs) {
         if (!StringUtils.isBlank(user)) {
             return user;
