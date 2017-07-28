@@ -75,8 +75,20 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = user;
+        this.user = getUser(user, pods);
         ValidationUtils.validate(this);
+    }
+
+    static String getUser(String user, List<PodSpec> podSpecs) {
+        if (!StringUtils.isBlank(user)) {
+            return user;
+        }
+
+        if (podSpecs.get(0).getUser().isPresent()) {
+            return podSpecs.get(0).getUser().get();
+        } else {
+            return DcosConstants.DEFAULT_SERVICE_USER;
+        }
     }
 
     private DefaultServiceSpec(Builder builder) {
