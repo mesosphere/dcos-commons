@@ -85,8 +85,12 @@ public class DefaultServiceSpec implements ServiceSpec {
             return user;
         }
 
-        if (podSpecs.get(0).getUser().isPresent()) {
-            return podSpecs.get(0).getUser().get();
+        Optional<PodSpec> podSpecOptional = podSpecs.stream()
+                .filter(podSpec -> podSpec.getUser() != null && podSpec.getUser().isPresent())
+                .findFirst();
+
+        if (podSpecOptional.isPresent()) {
+            return podSpecOptional.get().getUser().get();
         } else {
             return DcosConstants.DEFAULT_SERVICE_USER;
         }
