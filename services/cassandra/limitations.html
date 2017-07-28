@@ -312,6 +312,31 @@
 <h1>Cassandra: Limitations</h1>
 <div id="content">
 <ul>
+  <li>Data Center Name</li>
+</ul>
+
+<p>Data Center Name:</p>
+
+<p>The name of the data center cannot be changed after Cassandra installation. <code class="highlighter-rouge">service.data_center</code> and <code class="highlighter-rouge">service.rack</code> options are not allowed to be modified once Cassandra is installed.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>"service": {
+……
+      data_center": {
+          "description": "The name of the data center this cluster is running in",
+          "type": "string",
+          "default": "datacenter1"
+        },
+        "rack": {
+          "description": "The name of the rack this cluster is running on",
+          "type": "string",
+          "default": "rack1"
+        },
+……
+}
+</code></pre>
+</div>
+
+<ul>
   <li>Seed Node Replace</li>
 </ul>
 
