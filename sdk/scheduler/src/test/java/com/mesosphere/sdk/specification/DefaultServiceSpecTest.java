@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Iterables;
-
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.mesos.Protos;
@@ -21,8 +19,7 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -440,8 +437,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals(DcosConstants.DEFAULT_OVERLAY_NETWORK, Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
-                .getName());
+        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -610,9 +606,8 @@ public class DefaultServiceSpecTest {
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
-                .setStateStore(new DefaultStateStore(persister))
-                .setConfigStore(
-                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+                .setStateStore(new StateStore(persister))
+                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .build();
     }
 }

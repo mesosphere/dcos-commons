@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -17,7 +15,7 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link DefaultConfigStore}.
+ * Tests for {@link ConfigStore}.
  */
 public class DefaultConfigStoreTest {
     private Persister persister;
@@ -27,7 +25,7 @@ public class DefaultConfigStoreTest {
     @Before
     public void beforeEach() throws Exception {
         persister = new MemPersister();
-        store = new DefaultConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister);
+        store = new ConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister);
 
         // Check that schema version was created in the correct location:
         assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));

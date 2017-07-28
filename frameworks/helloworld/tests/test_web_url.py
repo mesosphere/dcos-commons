@@ -1,6 +1,6 @@
 import pytest
 
-import sdk_install as install
+import sdk_install
 import sdk_plan
 import sdk_utils
 
@@ -12,7 +12,7 @@ from tests.config import (
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
         options = {
             "service": {
                 "spec_file": "examples/web-url.yml"
@@ -20,11 +20,11 @@ def configure_package(configure_universe):
         }
 
         # this config produces 1 hello's + 0 world's:
-        install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

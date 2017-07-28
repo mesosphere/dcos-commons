@@ -323,21 +323,21 @@ You can reference the secret as a file if your service needs to read secrets fro
 For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
 ```yaml
-name: secret-app/instance1
+name: secret-svc/instance1
 pods:
   pod-with-secret:
     count: {{COUNT}}
     # add secret file to pod's sandbox
     secrets:
       secret_name1:
-        secret: secret-app/Secret_Path1
+        secret: secret-svc/Secret_Path1
         env-key: Secret_Environment_Key
         file: data/somePath/Secret_FilePath1
       secret_name2:
-        secret: secret-app/instance1/Secret_Path2
+        secret: secret-svc/instance1/Secret_Path2
         file: data/somePath/Secret_FilePath2
       secret_name3:
-        secret: secret-app/Secret_Path3
+        secret: secret-svc/Secret_Path3
         env-key: Secret_Environment_Key2
     tasks:
       ....
@@ -353,21 +353,24 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with an ID under `/secret-app/`. Applications with IDs `/secret-app/app1` and `/secret-app/instance2/app2` all have access to this secret, because they are under `/secret-app/`.
+For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
  
-On the other hand, the secret with path `secret-app/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-app` because it is not _under_ this secret's namespace, which is `/secret-app/insance1/`. `secret-app/instance1/Secret_Path2` can be accessed by any service with ID under `/secret-app/instance1/`, for example `/secret-app/instance1/app3` or `/secret-app/instance1/someDir/app4`.
+On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
 
-| Secret                               | Service                             | Can service access secret? |
+| Secret                               | Service ID                          | Can service access secret? |
 |--------------------------------------|-------------------------------------|----------------------------|
-| `secret-app/Secret_Path1`            | `/user/app1`                        | No                         |
-| `secret-app/Secret_Path1`            | `/secret-app/app1`                  | Yes                        |
-| `secret-app/Secret_Path1`            | `/secret-app/instance2/app2`        | Yes                        |
-| `secret-app/Secret_Path1`            | `/secret-app/a/b/c/app3`            | Yes                        |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/app1`                  | No                         |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/instance2/app3`        | No                         |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/instance1/app3`        | Yes                        |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/instance1/someDir/app3`| Yes                        |
+| `secret-svc/Secret_Path1`            | `/user`                             | No                         |
+| `secret-svc/Secret_Path1`            | `/user/dev1`                        | No                         |
+| `secret-svc/Secret_Path1`            | `/secret-svc`                       | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/dev1`                  | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/instance2/dev2`        | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/a/b/c/dev3`            | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/dev1`                  | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance2/dev3`        | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1`             | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/dev3`        | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/someDir/dev3`| Yes                        |
 
   
 

@@ -18,7 +18,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 /**
- * Tests to validate the operation of the {@link DefaultStateStore}.
+ * Tests to validate the operation of the {@link StateStore}.
  */
 public class DefaultStateStoreTest {
     private static final Protos.FrameworkID FRAMEWORK_ID =
@@ -40,7 +40,7 @@ public class DefaultStateStoreTest {
     @Before
     public void beforeEach() throws Exception {
         persister = new MemPersister();
-        store = new DefaultStateStore(persister);
+        store = new StateStore(persister);
 
         // Check that schema version was created in the correct location:
         assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
@@ -497,7 +497,7 @@ public class DefaultStateStoreTest {
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_INFO, store.fetchTasks().stream().findAny().get());
 
-        store = new DefaultStateStore(persister);
+        store = new StateStore(persister);
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
@@ -523,7 +523,7 @@ public class DefaultStateStoreTest {
         assertNotEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());
         assertEquals(TestConstants.TASK_ID, store.fetchStatuses().stream().findAny().get().getTaskId());
 
-        store = new DefaultStateStore(persister);
+        store = new StateStore(persister);
         assertEquals(1, store.fetchStatuses().size());
         assertEquals(1, store.fetchTasks().size());
         assertEquals(TestConstants.TASK_ID, store.fetchTasks().stream().findAny().get().getTaskId());

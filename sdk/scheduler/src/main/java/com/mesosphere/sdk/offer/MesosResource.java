@@ -13,11 +13,6 @@ import java.util.Optional;
  * {@link Resource} as a {@link Label}.
  **/
 public class MesosResource {
-    public static final String RESOURCE_ID_KEY = "resource_id";
-    public static final String DYNAMIC_PORT_KEY = "dynamic_port";
-    public static final String VIP_LABEL_NAME_KEY = "vip_key";
-    public static final String VIP_LABEL_VALUE_KEY = "vip_value";
-
     private final Resource resource;
 
     public MesosResource(Resource resource) {

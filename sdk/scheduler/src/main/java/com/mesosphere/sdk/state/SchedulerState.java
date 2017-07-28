@@ -53,4 +53,3 @@ public class SchedulerState extends DefaultObservable {
         return stateStore;
     }
 }
-

@@ -5,8 +5,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.*;
@@ -48,13 +46,6 @@ import java.util.stream.Collectors;
  * new Tasks where applicable.
  */
 public class DefaultScheduler extends AbstractScheduler implements Observer {
-
-    /**
-     * Time to wait for the executor thread to terminate. Only used by unit tests.
-     *
-     * Default: 10 seconds
-     */
-    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -152,7 +143,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          */
         public StateStore getStateStore() {
             if (!stateStoreOptional.isPresent()) {
-                setStateStore(new DefaultStateStore(persister));
+                setStateStore(new StateStore(persister));
             }
             return stateStoreOptional.get();
         }
@@ -458,7 +449,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     static ConfigStore<ServiceSpec> createConfigStore(
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
                     throws ConfigStoreException {
-        return new DefaultConfigStore<>(
+        return new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
                 persister);
     }
