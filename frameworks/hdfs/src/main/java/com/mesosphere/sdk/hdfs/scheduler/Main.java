@@ -39,6 +39,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
+
             new DefaultService(getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
         } else {
             LOGGER.error("Missing file argument");

@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.storage.Persister;
@@ -30,12 +28,12 @@ import java.util.UUID;
  * @param <T> The {@code Configuration} object to be serialized and deserialized in the
  *            implementation of this interface
  */
-public class DefaultConfigStore<T extends Configuration> implements ConfigStore<T> {
+public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultConfigStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigStore.class);
 
     /**
-     * @see DefaultSchemaVersionStore#CURRENT_SCHEMA_VERSION
+     * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION
      */
     private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
     private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
@@ -49,12 +47,12 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
     /**
      * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data.
      */
-    public DefaultConfigStore(ConfigurationFactory<T> factory, Persister persister) {
+    public ConfigStore(ConfigurationFactory<T> factory, Persister persister) {
         this.factory = factory;
         this.persister = persister;
 
         // Check version up-front:
-        int currentVersion = new DefaultSchemaVersionStore(persister).fetch();
+        int currentVersion = new SchemaVersionStore(persister).fetch();
         if (!SchemaVersionStore.isSupported(
                 currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
             throw new IllegalStateException(String.format(
@@ -64,7 +62,12 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         }
     }
 
-    @Override
+    /**
+     * Serializes the provided {@link Configuration} using its {@link Configuration#getBytes()}
+     * function, writes it to storage, and returns the UUID which it was stored against.
+     *
+     * @throws ConfigStoreException if serialization or writing fails
+     */
     public UUID store(T config) throws ConfigStoreException {
         UUID id = UUID.randomUUID();
         String path = getConfigPath(id);
@@ -79,7 +82,15 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         return id;
     }
 
-    @Override
+    /**
+     * Retrieves and deserializes the {@link Configuration} assigned to the provided UUID, or throws
+     * an exception if no config with the provided UUID was found.
+     *
+     * @param id The UUID of the configuration to be fetched
+     * @return The deserialized configuration
+     * @throws ConfigStoreException if retrieval or deserialization fails, or if the requested
+     *                              config is missing
+     */
     public T fetch(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         byte[] data;
@@ -97,7 +108,13 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         return factory.parse(data);
     }
 
-    @Override
+    /**
+     * Deletes the configuration with the provided UUID, or does nothing if no matching
+     * configuration is found.
+     *
+     * @param id The UUID of the configuration to be deleted
+     * @throws ConfigStoreException if the configuration is found but deletion fails
+     */
     public void clear(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
@@ -114,7 +131,11 @@ public class DefaultConfigStore<T extends Configuration> implements ConfigStore<
         }
     }
 
-    @Override
+    /**
+     * Returns a list of all stored configuration UUIDs, or an empty list if none are found.
+     *
+     * @throws ConfigStoreException if list retrieval fails
+     */
     public Collection<UUID> list() throws ConfigStoreException {
         try {
             Collection<UUID> ids = new ArrayList<>();

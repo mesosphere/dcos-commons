@@ -1,17 +1,12 @@
 package com.mesosphere.sdk.offer.taskdata;
 
+import com.mesosphere.sdk.offer.TaskException;
+import org.apache.mesos.Protos.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Label;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
-
-import com.mesosphere.sdk.offer.TaskException;
 
 /**
  * Provides read access to task labels which are (only) read by the Scheduler.
@@ -72,7 +67,8 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns the ID referencing a configuration in a {@link ConfigStore} associated with the task.
+     * Returns the ID referencing a configuration in a {@link com.mesosphere.sdk.state.ConfigStore} associated with the
+     * task.
      *
      * @return the ID of the target configuration for the provided {@link TaskInfo}
      * @throws TaskException when a TaskInfo is provided which does not contain a {@link Label} with
@@ -94,9 +90,12 @@ public class TaskLabelReader {
      */
     public boolean isReadinessCheckSucceeded(TaskStatus taskStatus) {
         Optional<String> readinessCheckOptional = reader.getOptional(LabelConstants.READINESS_CHECK_LABEL);
-        if (!readinessCheckOptional.isPresent()) {
+        if (!readinessCheckOptional.isPresent() && !taskStatus.hasCheckStatus()) {
             // check not applicable: PASS
             return true;
+        } else if (taskStatus.hasCheckStatus()) {
+            return taskStatus.getCheckStatus().getCommand().hasExitCode() &&
+                    taskStatus.getCheckStatus().getCommand().getExitCode() == 0;
         }
 
         // Special case: the 'readiness check passed' bit is set in TaskStatus (by the executor),
@@ -124,5 +123,13 @@ public class TaskLabelReader {
     public boolean isPermanentlyFailed() {
         // null is false
         return Boolean.valueOf(reader.getOptional(LabelConstants.PERMANENTLY_FAILED_LABEL).orElse(null));
+    }
+
+    /**
+     * Returns whether the task has a readiness check label.
+     */
+    public boolean hasReadinessCheckLabel() {
+        // null is false
+        return reader.getOptional(LabelConstants.READINESS_CHECK_LABEL).isPresent();
     }
 }

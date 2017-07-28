@@ -37,6 +37,29 @@ public class UserCannotChangeTest {
     }
 
     @Test
+    public void testSameServiceUser() {
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+
+        ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockOldPodSpec))
+                .user(USER_A)
+                .build();
+
+        ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockNewPodSpec))
+                .user(USER_A)
+                .build();
+
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+    }
+
+    @Test
     public void testSameUser() {
         when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
 
@@ -58,6 +81,29 @@ public class UserCannotChangeTest {
     }
 
     @Test
+    public void testDifferentServiceUser() {
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+
+        ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockOldPodSpec))
+                .user(USER_A)
+                .build();
+
+        ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockNewPodSpec))
+                .user(USER_B)
+                .build();
+
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+    }
+
+    @Test
     public void testDifferentUser() {
         when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_B));
 
@@ -76,6 +122,28 @@ public class UserCannotChangeTest {
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+    }
+
+    @Test
+    public void testOldServiceUserUnset() {
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+
+        ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockOldPodSpec))
+                .build();
+
+        ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockNewPodSpec))
+                .user(USER_A)
+                .build();
+
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test

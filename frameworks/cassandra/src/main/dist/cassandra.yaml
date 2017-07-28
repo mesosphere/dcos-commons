@@ -1,6 +1,6 @@
 cluster_name: {{CASSANDRA_CLUSTER_NAME}}
-rpc_address: {{LIBPROCESS_IP}}
-listen_address: {{LIBPROCESS_IP}}
+rpc_address: {{MESOS_CONTAINER_IP}}
+listen_address: {{MESOS_CONTAINER_IP}}
 hints_directory: {{MESOS_SANDBOX}}/container-path/hints
 data_file_directories:
   - {{MESOS_SANDBOX}}/container-path/data
@@ -97,7 +97,7 @@ incremental_backups: false
 snapshot_before_compaction: false
 auto_snapshot: {{CASSANDRA_AUTO_SNAPSHOT}}
 cross_node_timeout: false
-endpoint_snitch: GossipingPropertyFileSnitch
+endpoint_snitch: SimpleSnitch
 roles_update_interval_in_ms: {{CASSANDRA_ROLES_UPDATE_INTERVAL_IN_MS}}
 permissions_update_interval_in_ms: {{CASSANDRA_PERMISSIONS_UPDATE_INTERVAL_IN_MS}}
 key_cache_keys_to_save: {{CASSANDRA_KEY_CACHE_KEYS_TO_SAVE}}

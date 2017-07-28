@@ -1,6 +1,7 @@
 name: {{SERVICE_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   node:
     count: {{NODES}}
@@ -11,11 +12,15 @@ pods:
         labels: {{CNI_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     image: {{CASSANDRA_DOCKER_IMAGE}}
+    volume:
+      path: container-path
+      type: {{CASSANDRA_DISK_TYPE}}
+      size: {{CASSANDRA_DISK_MB}}
     uris:
+      - {{CASSANDRA_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
-    user: {{SERVICE_USER}}
     resource-sets:
       server-resources:
         cpus: {{CASSANDRA_CPUS}}
@@ -34,10 +39,6 @@ pods:
               port: 9042
           rpc:
             port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
-        volume:
-          path: container-path
-          type: {{CASSANDRA_DISK_TYPE}}
-          size: {{CASSANDRA_DISK_MB}}
       sidecar-resources:
         cpus: 1
         memory: 1024
@@ -48,6 +49,7 @@ pods:
         cmd: >
                 ./bootstrap
 
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -65,24 +67,23 @@ pods:
           metrics:
             template: {{CONFIG_TEMPLATE_PATH}}/metrics-reporter-config.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
-          rack:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra-rackdc.properties
-            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
           s3:
             template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
             dest: s3config.json
         readiness-check:
-          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status | grep -q "UN  $TASK_IP"
+          cmd: >
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60
       repair:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       cleanup:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       backup-schema:
         goal: FINISHED
@@ -93,6 +94,7 @@ pods:
       snapshot:
         goal: FINISHED
         cmd: >
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
 
                 for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
@@ -119,6 +121,7 @@ pods:
       cleanup-snapshot:
         goal: FINISHED
         cmd: >
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
@@ -145,6 +148,7 @@ pods:
       restore-snapshot:
         goal: FINISHED
         cmd: >
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -f apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml -d ${LOCAL_SEEDS} -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;

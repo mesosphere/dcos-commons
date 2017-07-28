@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -100,6 +101,19 @@ public class SchedulerUtils {
         }
         // Fallback: Use the default host:port
         return DEFAULT_ZK_HOST_PORT;
+    }
+
+    /**
+     * Returns the configured user to use for running the scheduler.
+     */
+    public static String getUser(RawServiceSpec rawServiceSpec) {
+        // If the svc.yml explicitly provided a service user, use that
+        if (rawServiceSpec.getScheduler() != null && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getUser())) {
+            return rawServiceSpec.getScheduler().getUser();
+        }
+
+        // Fallback: Use the default scheduler user
+        return DcosConstants.DEFAULT_SERVICE_USER;
     }
 
     /**

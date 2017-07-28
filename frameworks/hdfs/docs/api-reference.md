@@ -283,20 +283,20 @@ The contents of the responses represent valid hdfs-site.xml and core-site.xml th
 
 # Nodes API
 
-The pods API provides endpoints for retrieving information about nodes, restarting them, and replacing them.
+The pod API provides endpoints for retrieving information about nodes, restarting them, and replacing them.
 
 ## List Nodes
 
-A list of available node ids can be retrieved by sending a GET request to `/v1/pods`:
+A list of available node ids can be retrieved by sending a GET request to `/v1/pod`:
 
 CLI Example
 ```
-dcos beta-hdfs pods list
+dcos beta-hdfs pod list
 ```
 
 HTTP Example
 ```
-curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods
+curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod
 [
     "data-0",
     "data-1",
@@ -313,20 +313,20 @@ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods
 
 ## Node Info
 
-You can retrieve node information by sending a GET request to `/v1/pods/<node-id>/info`:
+You can retrieve node information by sending a GET request to `/v1/pod/<node-id>/info`:
 
 ```
-curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/info
+curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/info
 ```
 
 CLI Example
 ```
-dcos beta-hdfs pods info journal-0
+dcos beta-hdfs pod info journal-0
 ```
 
 HTTP Example
 ```
-curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/journal-0/info
+curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -726,12 +726,12 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-dcos beta-hdfs pods replace <node-id>
+dcos beta-hdfs pod replace <node-id>
 ```
 
 HTTP Example
 ```
-curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/replace
+curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -742,12 +742,12 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-dcos beta-hdfs pods restart <node-id>
+dcos beta-hdfs pod restart <node-id>
 ```
 
 HTTP Example
 ```bash
-curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pods/<node-id>/restart
+curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.

@@ -66,41 +66,6 @@ def check_properties(xml, expect):
     assert expect == found
 
 
-@pytest.mark.data_integrity
-@pytest.mark.sanity
-def test_integrity_on_data_node_failure():
-    """
-    Verifies proper data replication among data nodes.
-    """
-    # An HDFS write will only successfully return when the data replication has taken place
-    write_some_data('data-0-node', TEST_FILE_1_NAME)
-
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'data-0-node'))
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'data-1-node'))
-
-    read_some_data('data-2-node', TEST_FILE_1_NAME)
-
-    check_healthy()
-
-
-@pytest.mark.data_integrity
-@pytest.mark.sanity
-def test_integrity_on_name_node_failure():
-    """
-    The first name node (name-0-node) is the active name node by default when HDFS gets installed.
-    This test checks that it is possible to write and read data after the active name node fails
-    so as to verify a failover sustains expected functionality.
-    """
-    sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'name-0-node'))
-    wait_for_failover_to_complete("name-1-node")
-
-    write_some_data('data-0-node', TEST_FILE_2_NAME)
-
-    read_some_data('data-2-node', TEST_FILE_2_NAME)
-
-    check_healthy()
-
-
 @pytest.mark.recovery
 def test_kill_journal_node():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal-0')
@@ -213,8 +178,8 @@ def test_permanent_and_transient_namenode_failures_0_1():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace name-0'.format(FOLDERED_SERVICE_NAME))
-    cmd.run_cli('hdfs --name={} pods restart name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod replace name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod restart name-1'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
@@ -231,8 +196,8 @@ def test_permanent_and_transient_namenode_failures_1_0():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace name-1'.format(FOLDERED_SERVICE_NAME))
-    cmd.run_cli('hdfs --name={} pods restart name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod replace name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod restart name-0'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
@@ -272,7 +237,7 @@ def test_bump_data_nodes():
 @pytest.mark.sanity
 def test_modify_app_config():
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    #old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
 
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
@@ -292,8 +257,8 @@ def test_modify_app_config():
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
 
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
-    assert(old_recovery_plan == new_recovery_plan)
+    #new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    #assert(old_recovery_plan == new_recovery_plan)
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
@@ -345,87 +310,12 @@ def replace_name_node(index):
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
+    cmd.run_cli('hdfs --name={} pod replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, name_node_name, name_id)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
-
-
-def write_some_data(data_node_name, file_name):
-    def write_data_to_hdfs():
-        write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(TEST_CONTENT_SMALL, file_name)
-        rc, _ = run_hdfs_command(data_node_name, write_command)
-        # rc being True is effectively it being 0...
-        return rc
-    shakedown.wait_for(lambda: write_data_to_hdfs(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
-
-
-def read_some_data(data_node_name, file_name):
-    def read_data_from_hdfs():
-        read_command = "./bin/hdfs dfs -cat /{}".format(file_name)
-        rc, output = run_hdfs_command(data_node_name, read_command)
-        return rc and output.rstrip() == TEST_CONTENT_SMALL
-    shakedown.wait_for(lambda: read_data_from_hdfs(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
-
-
-def run_hdfs_command(task_name, command):
-    """
-    Go into the Data Node hdfs directory, set JAVA_HOME, and execute the command.
-    """
-    host = sdk_hosts.system_host(FOLDERED_SERVICE_NAME, task_name)
-    java_home = find_java_home(host)
-
-    # Find hdfs home directory by looking up the Data Node process.
-    # Hdfs directory is found in an arg to the java command.
-    hdfs_dir_cmd = """ps -ef | grep hdfs | grep DataNode \
-        | awk 'BEGIN {RS=" "}; /-Dhadoop.home.dir/' | sed s/-Dhadoop.home.dir=//"""
-    full_command = """cd $({}) &&
-        export JAVA_HOME={} &&
-        {}""".format(hdfs_dir_cmd, java_home, command)
-
-    rc, output = shakedown.run_command_on_agent(host, full_command)
-    return rc, output
-
-
-def find_java_home(host):
-    """
-    Find java home by looking up the Data Node process.
-    Java home is found in the process command.
-    """
-    java_home_cmd = """ps -ef | grep hdfs | grep DataNode | grep -v grep \
-        | awk '{print $8}' | sed s:/bin/java::"""
-    rc, output = shakedown.run_command_on_agent(host, java_home_cmd)
-    assert rc
-    java_home = output.rstrip()
-    sdk_utils.out("java_home: {}".format(java_home))
-    return java_home
-
-
-def wait_for_failover_to_complete(namenode):
-    """
-    Inspects the name node logs to make sure ZK signals a complete failover.
-    The given namenode is the one to become active after the failover is complete.
-    """
-    def failover_detection():
-        host = sdk_hosts.system_host(FOLDERED_SERVICE_NAME, namenode)
-        mesos_sandbox_cmd = "ps -ef | grep hdfs | grep NameNode | grep -v grep | awk '{print $8}' | sed s:/jre.*//bin/java::"
-        rc, output = shakedown.run_command_on_agent(host, mesos_sandbox_cmd)
-        if not rc:
-            return rc
-        mesos_sandbox = output.strip()
-
-        cmd = """cd {} &&
-                export FAILOVER=$(grep 'ha.ZKFailoverController: Successfully transitioned NameNode at {}.*to active state$' stderr | wc -l) &&
-                [[ $FAILOVER -ge 1 ]]""".format(mesos_sandbox, namenode).replace("\n","")
-
-        rc, output = shakedown.run_command_on_agent(host, cmd)
-        if rc:
-            sdk_utils.out("Failover to {} successfully completed".format(namenode))
-        return rc
-
-    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
 
 
 def check_healthy(count=DEFAULT_TASK_COUNT):

@@ -52,14 +52,14 @@ Let's say we have the following deployment of our nodes
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos beta-cassandra pods replace node-1`
+1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos beta-cassandra pod replace node-1`
 1. Wait for `node-1` to be up and healthy before continuing with any other replacement operations.
 
 # Restarting a Node
 
 This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.
 
-1. Run `dcos beta-cassandra pods restart node-<NUM>`, e.g. `node-2`.
+1. Run `dcos beta-cassandra pod restart node-<NUM>`, e.g. `node-2`.
 
 # Replacing a Node
 
@@ -67,11 +67,11 @@ This operation will move a node to a new system and will discard the persistent 
 
 **Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.
 
-1. Run `dcos beta-cassandra pods replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
+1. Run `dcos beta-cassandra pod replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
 
 For example, let's say `node-2`'s host system has died and `node-2` needs to be moved.
 ```
-dcos beta-cassandra pods replace node-2
+dcos beta-cassandra pod replace node-2
 ```
 
 # Configuring Multi-data-center Deployments

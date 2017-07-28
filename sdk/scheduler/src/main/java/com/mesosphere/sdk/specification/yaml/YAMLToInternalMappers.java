@@ -17,8 +17,6 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +31,6 @@ import java.util.stream.IntStream;
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
-    private static final Logger LOGGER = LoggerFactory.getLogger(YAMLToInternalMappers.class);
 
     /**
      * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
@@ -62,13 +59,15 @@ public class YAMLToInternalMappers {
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
         String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
+        String user = SchedulerUtils.getUser(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
                 .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
-                .webUrl(rawServiceSpec.getWebUrl());
+                .webUrl(rawServiceSpec.getWebUrl())
+                .user(user);
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
@@ -81,7 +80,8 @@ public class YAMLToInternalMappers {
                     taskEnvRouter.getConfig(entry.getKey()),
                     role,
                     principal,
-                    schedulerFlags.getExecutorURI()));
+                    schedulerFlags.getExecutorURI(),
+                    user));
 
         }
         builder.pods(pods);
@@ -176,11 +176,12 @@ public class YAMLToInternalMappers {
             Map<String, String> additionalEnv,
             String role,
             String principal,
-            String executorUri) throws Exception {
+            String executorUri,
+            String user) throws Exception {
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
                 .count(rawPod.getCount())
                 .type(podName)
-                .user(rawPod.getUser())
+                .user(user)
                 .preReservedRole(rawPod.getPreReservedRole());
 
         // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
@@ -210,10 +211,7 @@ public class YAMLToInternalMappers {
                 networks.addAll(rawNetworks.entrySet().stream()
                         .map(rawNetworkEntry -> {
                             String networkName = rawNetworkEntry.getKey();
-                            if (!DcosConstants.isSupportedNetwork(networkName)) {
-                                LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
-                                        "may experience unexpected behavior", networkName));
-                            }
+                            DcosConstants.warnIfUnsupportedNetwork(networkName);
                             networkNames.add(networkName);
                             RawNetwork rawNetwork = rawNetworks.get(networkName);
                             return convertNetwork(networkName, rawNetwork, collatePorts(rawPod));

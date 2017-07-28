@@ -2,8 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
@@ -15,8 +13,8 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -48,6 +46,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
 import static org.awaitility.Awaitility.to;
@@ -171,13 +170,15 @@ public class DefaultSchedulerTest {
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("badhost-shouldbeignored:2181")
                 .pods(Arrays.asList(pods))
+                .user(TestConstants.SERVICE_USER)
                 .build();
     }
 
     private static Capabilities getCapabilities(Boolean enableGpu) throws Exception {
-        Capabilities capabilities = mock(Capabilities.class);
-        when(capabilities.supportsGpuResource()).thenReturn(enableGpu);
-        return capabilities;
+        Capabilities capabilities = new Capabilities(OfferRequirementTestUtils.getTestCluster("1.10-dev"));
+        Capabilities mockCapabilities = spy(capabilities);
+        when(mockCapabilities.supportsGpuResource()).thenReturn(enableGpu);
+        return mockCapabilities;
     }
 
     private static Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
@@ -194,8 +195,8 @@ public class DefaultSchedulerTest {
 
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
-        stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
-        configStore = new DefaultConfigStore<>(
+        stateStore = new StateStore(new PersisterCache(new MemPersister()));
+        configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
@@ -432,7 +433,7 @@ public class DefaultSchedulerTest {
                 case 1:
                     // One LAUNCH operation
                     if (operationSet.iterator().next().getType()
-                            == Protos.Offer.Operation.Type.LAUNCH) {
+                            == Protos.Offer.Operation.Type.LAUNCH_GROUP) {
                         recovery = true;
                     }
                     break;
@@ -444,8 +445,8 @@ public class DefaultSchedulerTest {
                     }
                     unreserve = true;
                     break;
-                case 5:
-                    // Three RESERVE, One CREATE and One LAUNCH operation
+                case 8:
+                    // Three RESERVE, One CREATE, three RESERVE (for executor) and One LAUNCH operation
                     int reserveOp = 0;
                     int createOp = 0;
                     int launchOp = 0;
@@ -457,15 +458,16 @@ public class DefaultSchedulerTest {
                             case CREATE:
                                 ++createOp;
                                 break;
-                            case LAUNCH:
+                            case LAUNCH_GROUP:
                                 ++launchOp;
                                 break;
                             default:
-                                Assert.assertTrue("Expected RESERVE, CREATE, or LAUNCH, got " + operation.getType(),
+                                Assert.assertTrue(
+                                        "Expected RESERVE, CREATE, or LAUNCH_GROUP, got " + operation.getType(),
                                         false);
                         }
                     }
-                    if (reserveOp == 3 && createOp == 1 && launchOp == 1) {
+                    if (reserveOp == 6 && createOp == 1 && launchOp == 1) {
                         launch = true;
                     }
                     break;
@@ -521,12 +523,12 @@ public class DefaultSchedulerTest {
         stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
 
-        List<Protos.Resource> expectedResources = getExpectedResources(operations);
+        List<Protos.Resource> expectedResources = new ArrayList<>(getExpectedResources(operations));
         Protos.Resource neededAdditionalResource = ResourceTestUtils.getUnreservedCpu(UPDATED_TASK_A_CPU - TASK_A_CPU);
         expectedResources.add(neededAdditionalResource);
 
         // Start update Step
-        Protos.Offer insufficientOffer = OfferTestUtils.getOffer(neededAdditionalResource);
+        Protos.Offer insufficientOffer = OfferTestUtils.getCompleteOffer(neededAdditionalResource);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, timeout(1000).times(1)).killTask(launchedTaskId);
         verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(insufficientOffer.getId());
@@ -537,7 +539,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
         Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
-        Protos.Offer expectedOffer = OfferTestUtils.getOffer(expectedResources);
+        Protos.Offer expectedOffer = OfferTestUtils.getCompleteOffer(expectedResources);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(expectedOffer));
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
                 collectionThat(contains(expectedOffer.getId())),
@@ -578,9 +580,11 @@ public class DefaultSchedulerTest {
 
     private List<Protos.Resource> getExpectedResources(Collection<Protos.Offer.Operation> operations) {
         for (Protos.Offer.Operation operation : operations) {
-            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                return operation.getLaunch().getTaskInfosList().stream()
-                        .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
+            if (operation.getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
+                return Stream.concat(
+                                operation.getLaunchGroup().getTaskGroup().getTasksList().stream()
+                                    .flatMap(taskInfo -> taskInfo.getResourcesList().stream()),
+                                operation.getLaunchGroup().getExecutor().getResourcesList().stream())
                         .collect(Collectors.toList());
             }
         }
@@ -749,8 +753,8 @@ public class DefaultSchedulerTest {
 
     private Protos.TaskID getTaskId(Collection<Protos.Offer.Operation> operations) {
         for (Protos.Offer.Operation operation : operations) {
-            if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                return operation.getLaunch().getTaskInfosList().get(0).getTaskId();
+            if (operation.getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
+                return operation.getLaunchGroup().getTaskGroup().getTasks(0).getTaskId();
             }
         }
 
@@ -795,9 +799,9 @@ public class DefaultSchedulerTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addAllResources(
                         Arrays.asList(
-                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM),
-                                ResourceTestUtils.getUnreservedDisk(TASK_A_DISK)))
+                                ResourceTestUtils.getUnreservedCpu(TASK_A_CPU + 0.1),
+                                ResourceTestUtils.getUnreservedMem(TASK_A_MEM + 32),
+                                ResourceTestUtils.getUnreservedDisk(TASK_A_DISK + 256)))
                 .build();
     }
 
@@ -811,9 +815,9 @@ public class DefaultSchedulerTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addAllResources(
                         Arrays.asList(
-                                ResourceTestUtils.getUnreservedCpu(TASK_B_CPU),
-                                ResourceTestUtils.getUnreservedMem(TASK_B_MEM),
-                                ResourceTestUtils.getUnreservedDisk(TASK_B_DISK)))
+                                ResourceTestUtils.getUnreservedCpu(TASK_B_CPU + 0.1),
+                                ResourceTestUtils.getUnreservedMem(TASK_B_MEM + 32),
+                                ResourceTestUtils.getUnreservedDisk(TASK_B_DISK + 256)))
                 .build();
     }
 
@@ -848,10 +852,10 @@ public class DefaultSchedulerTest {
 
         // Verify 2 Reserve and 1 Launch Operations were executed
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
-        Assert.assertEquals(5, operations.size());
-        Assert.assertEquals(3, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
+        Assert.assertEquals(8, operations.size());
+        Assert.assertEquals(6, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
-        Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.LAUNCH, operations));
+        Assert.assertEquals(1, countOperationType(Offer.Operation.Type.LAUNCH_GROUP, operations));
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isStarting(), equalTo(true));
 
         // Sent TASK_RUNNING status

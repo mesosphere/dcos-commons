@@ -1,12 +1,14 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{TASKCFG_ALL_TASK_USER}}
 pods:
   journal:
     count: 3
-    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_BIN_URI}}
+      - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -17,7 +19,10 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -72,9 +77,10 @@ pods:
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
   name:
     count: 2
-    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_BIN_URI}}
+      - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -86,15 +92,15 @@ pods:
       name-resources:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
+        volume:
+          path: name-data
+          size: {{NAME_DISK}}
+          type: {{NAME_DISK_TYPE}}
         ports:
           name-rpc:
             port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
           name-http:
             port: {{TASKCFG_ALL_NAME_NODE_HTTP_PORT}}
-        volume:
-          path: name-data
-          size: {{NAME_DISK}}
-          type: {{NAME_DISK_TYPE}}
       zkfc-resources:
         cpus: {{ZKFC_CPUS}}
         memory: {{ZKFC_MEM}}
@@ -104,10 +110,13 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
-          cmd: ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
+          cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState name-$POD_INSTANCE_INDEX-node
           interval: 5
           delay: 0
           timeout: 60
@@ -135,7 +144,10 @@ pods:
           NAMENODE: true
       format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -158,7 +170,10 @@ pods:
           NAMENODE: true
       bootstrap:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -181,7 +196,10 @@ pods:
           NAMENODE: true
       zkfc:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -204,7 +222,10 @@ pods:
           ZKFC: true
       zkfc-format:
         goal: FINISHED
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -227,9 +248,10 @@ pods:
           ZKFC: true
   data:
     count: {{DATA_COUNT}}
-    user: {{TASKCFG_ALL_TASK_USER}}
     uris:
       - {{HDFS_URI}}
+      - {{HDFS_BIN_URI}}
+      - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -240,7 +262,10 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
@@ -279,7 +304,7 @@ pods:
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         # TODO: LIBPROCESS_IP gets overriden to 0.0.0.0 in overlay networking so this readiness-check needs to be fixed
         readiness-check:
-          cmd: export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
+          cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" && [[ $MATCH -ge 1 ]]
           interval: 10
           delay: 120
           timeout: 60

@@ -46,6 +46,7 @@
     "CASSANDRA_DISK_TYPE": "{{nodes.disk_type}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_SIZE_MB": "{{nodes.heap.size}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
+    "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
     "CASSANDRA_HEAP_GC": "{{nodes.heap.gc}}",
     "PLACEMENT_CONSTRAINT": "{{nodes.placement_constraint}}",
     {{#service.virtual_networks}}
@@ -141,8 +142,8 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "CASSANDRA_DOCKER_IMAGE": "{{resource.assets.container.docker.cassandra}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
-    "TASKCFG_ALL_CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
-    "TASKCFG_ALL_CASSANDRA_LOCATION_RACK": "{{service.rack}}",
+    "CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
+    "CASSANDRA_LOCATION_RACK": "{{service.rack}}",
     "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
     "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
   },

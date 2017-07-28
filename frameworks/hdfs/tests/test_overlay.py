@@ -7,16 +7,13 @@ from xml.etree import ElementTree
 # items
 from tests.config import *
 
+import sdk_hosts
 import sdk_install
 import sdk_networks
 import sdk_utils
 import sdk_plan
 
 import shakedown
-
-overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-    reason="overlay tests currently broken in strict")
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -39,7 +36,6 @@ def pre_test_setup():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     hdfs_tasks = shakedown.shakedown.get_service_task_ids(PACKAGE_NAME)
@@ -51,7 +47,6 @@ def test_tasks_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
     observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
@@ -66,16 +61,60 @@ def test_endpoints_on_overlay():
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_write_and_read_data_on_overlay():
-    # use mesos DNS here because we want the host IP to run the command
-    shakedown.wait_for(
-        lambda: write_data_to_hdfs("data-0-node.hdfs.mesos", TEST_FILE_1_NAME),
-        timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+    write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
+    read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
+    check_healthy()
 
-    shakedown.wait_for(
-        lambda: read_data_from_hdfs("data-2-node.hdfs.mesos", TEST_FILE_1_NAME),
-        timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+
+@pytest.mark.data_integrity
+@pytest.mark.sanity
+def test_integrity_on_data_node_failure():
+    """
+    Verifies proper data replication among data nodes.
+    """
+    # An HDFS write will only successfully return when the data replication has taken place
+    write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
+
+    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(PACKAGE_NAME, 'data-0-node'))
+    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(PACKAGE_NAME, 'data-1-node'))
+
+    read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
 
     check_healthy()
+
+
+@pytest.mark.data_integrity
+@pytest.mark.sanity
+def test_integrity_on_name_node_failure():
+    """
+    The first name node (name-0-node) is the active name node by default when HDFS gets installed.
+    This test checks that it is possible to write and read data after the active name node fails
+    so as to verify a failover sustains expected functionality.
+    """
+    active_name_node = get_active_name_node(PACKAGE_NAME)
+    sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(PACKAGE_NAME, active_name_node))
+
+    predicted_active_name_node = "name-1-node"
+    if active_name_node == "name-1-node":
+        predicted_active_name_node = "name-0-node"
+
+    wait_for_failover_to_complete(predicted_active_name_node)
+
+    write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_2_NAME)
+    read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_2_NAME)
+
+    check_healthy()
+
+
+def wait_for_failover_to_complete(namenode):
+    """
+    Inspects the name node logs to make sure ZK signals a complete failover.
+    The given namenode is the one to become active after the failover is complete.
+    """
+    def failover_detection():
+        status = get_name_node_status(PACKAGE_NAME, namenode)
+        return status == "active"
+
+    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)

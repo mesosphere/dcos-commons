@@ -223,11 +223,11 @@ There are two types of recovery, permanent and temporary. The difference is main
     - Recovery involves relaunching the task on the same machine as before.
     - Recovery occurs automatically.
     - Any data in the task's persistent volumes survives the outage.
-    - May be manually triggered by a `pods restart` command.
+    - May be manually triggered by a `pod restart` command.
 - __Permanent__ recovery:
     - Permanent recovery can be requested when the host machine fails permanently or when the host machine is scheduled for downtime.
     - Recovery involves discarding any persistent volumes that the pod once had on the host machine.
-    - Recovery only occurs in response to a manual `pods replace` command (or operators may build their own tooling to invoke the replace command).
+    - Recovery only occurs in response to a manual `pod replace` command (or operators may build their own tooling to invoke the replace command).
 
 Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the pod being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
 
@@ -280,7 +280,7 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Overlay networks
 
-The SDK allows `pods` to join the `dcos` overlay network You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
 
 ```yaml
 pods:
@@ -302,7 +302,7 @@ When a pod is on the `dcos` overlay network:
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
-Specifying that pod join the `dcos` overlay network has the following indirect effects:
+Specifying that pods join the `dcos` overlay network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
@@ -313,24 +313,31 @@ Enterprise DC/OS provides a secrets store to enable access to sensitive data suc
 
 **Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-The SDK allows secrets to be exposed to pods as a file and/or as an evironment variable. The content of a secret is copied and made available within the pod. For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
+The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod. 
+
+You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
+* Kerberos keytabs or other credential files.
+* SSL certificates.
+* Configuration files with sensitive data.
+
+For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
 
 ```yaml
-name: secret-app/instance1
+name: secret-svc/instance1
 pods:
   pod-with-secret:
     count: {{COUNT}}
-    # add secret values to pod's sandbox
+    # add secret file to pod's sandbox
     secrets:
       secret_name1:
-        secret: secret-app/Secret_Path1
+        secret: secret-svc/Secret_Path1
         env-key: Secret_Environment_Key
         file: data/somePath/Secret_FilePath1
       secret_name2:
-        secret: secret-app/instance1/Secret_Path2
+        secret: secret-svc/instance1/Secret_Path2
         file: data/somePath/Secret_FilePath2
       secret_name3:
-        secret: secret-app/Secret_Path3
+        secret: secret-svc/Secret_Path3
         env-key: Secret_Environment_Key2
     tasks:
       ....
@@ -344,9 +351,57 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 ### Authorization for Secrets
 
-The path of a secret defines which application IDs can have access to it. You can think of secret paths as namespaces. _Only_ applications that are under the same namespace can read the content of the secret.
+The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with the ID `secret-app` or an ID under it. Applications with IDs `secret-app/instance1` and `secret-app/instance2/type1` all have access to this Secret. On the other hand, `secret-app/instance1/Secret_Path2` can not be accessed by an application with ID `secret-app` because it is not _under_ the namespace.
+For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
+ 
+On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
+
+
+| Secret                               | Service ID                          | Can service access secret? |
+|--------------------------------------|-------------------------------------|----------------------------|
+| `secret-svc/Secret_Path1`            | `/user`                             | No                         |
+| `secret-svc/Secret_Path1`            | `/user/dev1`                        | No                         |
+| `secret-svc/Secret_Path1`            | `/secret-svc`                       | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/dev1`                  | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/instance2/dev2`        | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/a/b/c/dev3`            | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/dev1`                  | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance2/dev3`        | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1`             | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/dev3`        | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/someDir/dev3`| Yes                        |
+
+  
+
+### Absolute and Relative File Paths for Secrets
+
+ If `file` is a relative path, the secret file is placed under the sandbox. Absolute paths, with leading slash character, are only allowed if the related pod definition contains an `image-name`.  **Note:** The`user` running the tasks must have permission to create the given absolute file path. 
+ 
+Below is a valid secret definition with a Docker `image-name`. The `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
+  
+```yaml
+name: secret-app/instance2
+pods:
+  pod-with-image:
+    count: {{COUNT}}
+    container:
+      image-name: ubuntu:14.04
+    user: root
+    secrets:
+      # absolute path
+      secret_name4:
+        secret: secret-app/Secret_Path1
+        env-key: Secret_Environment_Key
+        file: /etc/keys/keyset1/Secret_FilePath1
+      # relative path in Sandbox
+      secret_name5:
+        secret: secret-app/instance1/Secret_Path2
+        file: data/keys/keyset2/Secret_FilePath2
+    tasks:
+      ....
+```
+
 
 ## Placement Constraints
 
@@ -357,13 +412,13 @@ A common task is to specify a list of whitelisted systems to deploy to. To achie
 hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 ```
 
-You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pods replace`](#replace-a-pod)) without requiring that system.
+You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
 
 ### Updating placement constraints
 
 Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
 - Update the placement constraint definition at the Scheduler.
-- For each pod, _one at a time_, perform a `pods replace` for any pods that need to be moved to reflect the change.
+- For each pod, _one at a time_, perform a `pod replace` for any pods that need to be moved to reflect the change.
 
 For example, let's say we have the following deployment of our imaginary `data` nodes, with manual IPs defined for placing the nodes in the cluster:
 
@@ -744,7 +799,7 @@ Restarting a pod can be done either via the CLI or via the underlying Scheduler 
 Via the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse pods list
+$ dcos beta-dse --name=dse pod list
 [
   "dse-0",
   "dse-1",
@@ -752,7 +807,7 @@ $ dcos beta-dse --name=dse pods list
   "opscenter-0",
   "studio-0"
 ]
-$ dcos beta-dse --name=dse pods restart dse-1
+$ dcos beta-dse --name=dse pod restart dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -765,7 +820,7 @@ $ dcos beta-dse --name=dse pods restart dse-1
 Via the HTTP API directly:
 
 ```bash
-$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pods
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod
 [
   "dse-0",
   "dse-1",
@@ -773,7 +828,7 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
   "opscenter-0",
   "studio-0"
 ]
-$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pods/dse-1/restart
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod/dse-1/restart
 {
   "pod": "dse-1",
   "tasks": [
@@ -794,7 +849,7 @@ Pod replacement is not currently done automatically by the SDK, as making the co
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
 ```bash
-$ dcos beta-dse --name=dse pods replace dse-1
+$ dcos beta-dse --name=dse pod replace dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -805,7 +860,7 @@ $ dcos beta-dse --name=dse pods replace dse-1
 ```
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pods/dse-1/replace
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pod/dse-1/replace
 {
   "pod": "dse-1",
   "tasks": [
@@ -1048,7 +1103,7 @@ These endpoints may also be conveniently accessed using the SDK CLI after instal
 For example, let's get a list of pods using the CLI, and then via the HTTP API:
 
 ```bash
-$ dcos beta-dse --name=dse pods list
+$ dcos beta-dse --name=dse pod list
 [
   "dse-0",
   "dse-1",
@@ -1056,7 +1111,7 @@ $ dcos beta-dse --name=dse pods list
   "opscenter-0",
   "studio-0"
 ]
-$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pods
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod
 [
   "dse-0",
   "dse-1",
@@ -1069,9 +1124,9 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
 The `-v` (or `--verbose`) argument allows you to view and diagnose the underlying requests made by the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse -v pods list
+$ dcos beta-dse --name=dse -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI command: dcos config show core.dcos_url
-2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pods
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.dcos_acs_token
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.ssl_verify
 [
@@ -1204,7 +1259,7 @@ Long story short, you forgot to run `janitor.py` the last time you ran the servi
 
 ## Stuck deployments
 
-You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it's failing to come back, and, for whatever reason, we don't have the time or the inclination to `pods replace` it and wait for it to come back.
+You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it's failing to come back, and, for whatever reason, we don't have the time or the inclination to `pod replace` it and wait for it to come back.
 
 In this case, we can use `plan` commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:
 
@@ -1300,7 +1355,7 @@ This example shows how steps in the deployment Plan (or any other Plan) can be m
 
 ## Deleting a task in ZooKeeper to forcibly wipe that task
 
-If the scheduler is still failing after `pods replace <name>` to clear a task, a last resort is to use [Exhibitor](#ZooKeeperexhibitor) to delete the offending task from the Scheduler's ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
+If the scheduler is still failing after `pod replace <name>` to clear a task, a last resort is to use [Exhibitor](#ZooKeeperexhibitor) to delete the offending task from the Scheduler's ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
 - Automatically redeploy the task on a new agent.
 
@@ -1309,7 +1364,7 @@ If the scheduler is still failing after `pods replace <name>` to clear a task, a
 ## OOMed task
 
 Your tasks can be killed from an OOM if you didn't give them sufficient resources. This will manifest as sudden `Killed` messages in [Task logs](#task-logs), sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:
-- Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pods status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
+- Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pod status <podname>)` to see TaskStatus updates from mesos for a given failed pod.
 - Check [Agent logs](#mesos-agent-logs) directly for mention of the Mesos Agent killing a task due to excess memory usage.
 
 After you've been able to confirm that the problem is indeed an OOM, you can solve it by either [updating the service configuration](#updating-service-configuration) to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).

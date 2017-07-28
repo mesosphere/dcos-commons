@@ -7,24 +7,25 @@ import (
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
-type podsHandler struct {
+type podHandler struct {
 	PodName string
 }
 
-func (cmd *podsHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+func (cmd *podHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServiceGet("v1/pods")
+	body, err := client.HTTPServiceGet("v1/pod")
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *podsHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+
+func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
-	endpointPath := "v1/pods/status"
+	endpointPath := "v1/pod/status"
 	if len(cmd.PodName) > 0 {
-		endpointPath = fmt.Sprintf("v1/pods/%s/status", cmd.PodName)
+		endpointPath = fmt.Sprintf("v1/pod/%s/status", cmd.PodName)
 	}
 	body, err := client.HTTPServiceGet(endpointPath)
 	if err != nil {
@@ -33,18 +34,20 @@ func (cmd *podsHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseEle
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *podsHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+
+func (cmd *podHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/pods/%s/info", cmd.PodName))
+	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/pod/%s/info", cmd.PodName))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
 	client.PrintJSONBytes(body)
 	return nil
 }
-func (cmd *podsHandler) handleRestart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+
+func (cmd *podHandler) handleRestart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/restart", cmd.PodName))
+	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pod/%s/restart", cmd.PodName))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
@@ -52,9 +55,10 @@ func (cmd *podsHandler) handleRestart(a *kingpin.Application, e *kingpin.ParseEl
 
 	return nil
 }
-func (cmd *podsHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+
+func (cmd *podHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pods/%s/replace", cmd.PodName))
+	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pod/%s/replace", cmd.PodName))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
@@ -62,23 +66,23 @@ func (cmd *podsHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseEl
 	return nil
 }
 
-// HandlePodsSection adds pods subcommands to the passed in kingpin.Application.
-func HandlePodsSection(app *kingpin.Application) {
+// HandlePodSection adds pod subcommands to the passed in kingpin.Application.
+func HandlePodSection(app *kingpin.Application) {
 	// pod[s] [status [name], info <name>, restart <name>, replace <name>]
-	cmd := &podsHandler{}
-	pods := app.Command("pods", "View Pod/Task state").Alias("pod")
+	cmd := &podHandler{}
+	pod := app.Command("pod", "View Pod/Task state")
 
-	pods.Command("list", "Display the list of known pod instances").Action(cmd.handleList)
+	pod.Command("list", "Display the list of known pod instances").Action(cmd.handleList)
 
-	status := pods.Command("status", "Display the status for tasks in one pod or all pods").Action(cmd.handleStatus)
+	status := pod.Command("status", "Display the status for tasks in one pod or all pods").Action(cmd.handleStatus)
 	status.Arg("pod", "Name of a specific pod instance to display").StringVar(&cmd.PodName)
 
-	info := pods.Command("info", "Display the full state information for tasks in a pod").Action(cmd.handleInfo)
+	info := pod.Command("info", "Display the full state information for tasks in a pod").Action(cmd.handleInfo)
 	info.Arg("pod", "Name of the pod instance to display").Required().StringVar(&cmd.PodName)
 
-	restart := pods.Command("restart", "Restarts a given pod without moving it to a new agent").Action(cmd.handleRestart)
+	restart := pod.Command("restart", "Restarts a given pod without moving it to a new agent").Action(cmd.handleRestart)
 	restart.Arg("pod", "Name of the pod instance to restart").Required().StringVar(&cmd.PodName)
 
-	replace := pods.Command("replace", "Destroys a given pod and moves it to a new agent").Action(cmd.handleReplace)
+	replace := pod.Command("replace", "Destroys a given pod and moves it to a new agent").Action(cmd.handleReplace)
 	replace.Arg("pod", "Name of the pod instance to replace").Required().StringVar(&cmd.PodName)
 }

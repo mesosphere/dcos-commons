@@ -1,12 +1,14 @@
 name: {{FRAMEWORK_NAME}}
+scheduler:
+  user: {{SERVICE_USER}}
 pods:
   hello-overlay-vip:
     count: 1
-    user: {{SERVICE_USER}}
     uris:
       # this python script starts a basic HTTP server, it responds on a specific port with a given message
       # USAGE: python3 http_py3responder.py <port> <message>
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
+      - {{BOOTSTRAP_URI}}
     # join the 'dcos' overlay network
     networks:
       dcos:
@@ -25,13 +27,13 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the overlay network with a VIP!"
+        cmd: "./bootstrap && python3 http_py3responder.py 4044 hello from the overlay network with a VIP!"
         resource-set: hello-resource
   hello-overlay:
     count: 1
-    user: {{SERVICE_USER}}
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
+      - {{BOOTSTRAP_URI}}
     networks:
       dcos:
         labels:
@@ -48,13 +50,13 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py $PORT_OVERLAY_DYNPORT hello from the overlay network!"
+        cmd: "./bootstrap && python3 http_py3responder.py $PORT_OVERLAY_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
   hello-host-vip:
     count: 1
-    user: {{SERVICE_USER}}
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
+      - {{BOOTSTRAP_URI}}
     image: ubuntu:14.04
     resource-sets:
       hello-resource:
@@ -69,13 +71,13 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the host network with a VIP!"
+        cmd: "./bootstrap && python3 http_py3responder.py 4044 hello from the host network with a VIP!"
         resource-set: hello-resource
   hello-host:
     count: 1
-    user: {{SERVICE_USER}}
     uris:
       - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
+      - {{BOOTSTRAP_URI}}
     image: ubuntu:14.04
     resource-sets:
       hello-resource:
@@ -87,11 +89,12 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py 4044 hello from the host network!"
+        cmd: "./bootstrap && python3 http_py3responder.py 4044 hello from the host network!"
         resource-set: hello-resource
   getter:
     count: {{HELLO_COUNT}}
-    user: {{SERVICE_USER}}
+    uris:
+      - {{BOOTSTRAP_URI}}
     networks:
       dcos:
     tasks:
@@ -99,28 +102,28 @@ pods:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output && sleep $SLEEP_DURATION"
+        cmd: "./bootstrap && curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
       get-overlay-vip:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
+        cmd: "./bootstrap && curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
       get-host-vip:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
+        cmd: "./bootstrap && curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
       get-host:
         goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
+        cmd: "./bootstrap && curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
 

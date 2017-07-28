@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.recovery.monitor;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
