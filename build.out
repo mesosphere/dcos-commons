@@ -1,0 +1,213 @@
+[STATUS] build:sdk pending: SDK build running
+:clean
+:cassandra:clean
+:common:clean
+:elastic:clean
+:executor:clean
+:hdfs:clean
+:helloworld:clean
+:kafka:clean
+:scheduler:clean
+:template:clean
+:testing:clean
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:common:compileJava
+:common:processResources
+:common:classes
+:common:jar
+:executor:compileJava
+:executor:processResources UP-TO-DATE
+:executor:classes
+:executor:jar
+:scheduler:compileJava/Users/mbdcos/21/dcos-commons/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultService.java:196: warning: [deprecation] setRole(String) in Builder has been deprecated
+            fwkInfoBuilder.setRole(roles.get(0));
+                          ^
+1 warning
+
+:scheduler:processResources UP-TO-DATE
+:scheduler:classes
+:scheduler:jar
+:cassandra:compileJava
+:cassandra:processResources
+:cassandra:classes
+:cassandra:jar
+:elastic:compileJava
+:elastic:processResources
+:elastic:classes
+:elastic:jar
+:hdfs:compileJava
+:hdfs:processResources
+:hdfs:classes
+:hdfs:jar
+:helloworld:compileJava
+:helloworld:processResources
+:helloworld:classes
+:helloworld:jar
+:kafka:compileJava
+:kafka:processResources
+:kafka:classes
+:kafka:jar
+:template:compileJava
+:template:processResources
+:template:classes
+:template:jar
+:testing:compileJava
+:testing:processResources UP-TO-DATE
+:testing:classes
+:testing:jar
+
+BUILD SUCCESSFUL
+
+Total time: 10.146 secs
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:checkstyleMain UP-TO-DATE
+:findbugsMain UP-TO-DATE
+:compileTestJava UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:findbugsTest UP-TO-DATE
+:pmdMain UP-TO-DATE
+:pmdTest UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:common:compileJava UP-TO-DATE
+:common:processResources UP-TO-DATE
+:common:classes UP-TO-DATE
+:common:jar UP-TO-DATE
+:executor:compileJava UP-TO-DATE
+:executor:processResources UP-TO-DATE
+:executor:classes UP-TO-DATE
+:executor:jar UP-TO-DATE
+:scheduler:compileJava UP-TO-DATE
+:scheduler:processResources UP-TO-DATE
+:scheduler:classes UP-TO-DATE
+:scheduler:jar UP-TO-DATE
+:cassandra:compileJava UP-TO-DATE
+:cassandra:processResources UP-TO-DATE
+:cassandra:classes UP-TO-DATE
+:cassandra:checkstyleMain
+:cassandra:findbugsMain
+:testing:compileJava UP-TO-DATE
+:testing:processResources UP-TO-DATE
+:testing:classes UP-TO-DATE
+:testing:jar UP-TO-DATE
+:cassandra:compileTestJava
+:cassandra:processTestResources
+:cassandra:testClasses
+:cassandra:findbugsTest
+:cassandra:pmdMain
+:cassandra:pmdTest
+:cassandra:testobjc[80588]: Class JavaLaunchHelper is implemented in both /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/bin/java and /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/jre/lib/libinstrument.dylib. One of the two will be used. Which one is undefined.
+
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraRecoveryPlanOverriderTest > replaceNonSeed PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraRecoveryPlanOverriderTest > ovverrideNoOp PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraRecoveryPlanOverriderTest > replaceSeed PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testUpgradeServiceSpecPositive PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testUpgradeResourceSet PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testSetTargetId PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testNeedsUpgradePositive PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testNeedsUpgradeNegative PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testUpgradePodSpec PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.CassandraUpgradeTest > testUpgradeTaskInfo PASSED
+
+com.mesosphere.sdk.cassandra.scheduler.ServiceSpecTest > testYaml PASSED
+:cassandra:check
+:common:checkstyleMain[ant:checkstyle] /Users/mbdcos/21/dcos-commons/sdk/common/src/main/java/com/mesosphere/sdk/offer/taskdata/LabelConstants.java:53: warning: First sentence should end with a period.
+
+:common:findbugsMain
+:common:compileTestJava
+:common:processTestResources
+:common:testClasses
+:common:findbugsTest
+:common:pmdMain
+:common:pmdTest
+:common:testobjc[80604]: Class JavaLaunchHelper is implemented in both /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/bin/java and /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/jre/lib/libinstrument.dylib. One of the two will be used. Which one is undefined.
+
+
+com.mesosphere.sdk.offer.CommonIdUtilsTest > testInvalidToTaskName PASSED
+
+com.mesosphere.sdk.offer.CommonIdUtilsTest > testToExecutorId PASSED
+
+com.mesosphere.sdk.offer.CommonIdUtilsTest > testValidToTaskName PASSED
+:common:check
+:common:jacocoTestReport
+:elastic:compileJava UP-TO-DATE
+:elastic:processResources UP-TO-DATE
+:elastic:classes UP-TO-DATE
+:elastic:checkstyleMain
+:elastic:findbugsMain
+:elastic:compileTestJava
+:elastic:processTestResources UP-TO-DATE
+:elastic:testClasses
+:elastic:findbugsTest
+:elastic:pmdMain
+:elastic:pmdTest
+:elastic:testobjc[80612]: Class JavaLaunchHelper is implemented in both /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/bin/java and /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/jre/lib/libinstrument.dylib. One of the two will be used. Which one is undefined.
+
+
+com.mesosphere.sdk.elastic.scheduler.ElasticServiceTest > testYaml PASSED
+:elastic:check
+:executor:checkstyleMain
+:executor:findbugsMain
+:executor:compileTestJava
+:executor:processTestResources
+:executor:testClasses
+:executor:findbugsTest
+:executor:pmdMain
+:executor:pmdTest
+:executor:testobjc[80617]: Class JavaLaunchHelper is implemented in both /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/bin/java and /Library/Java/JavaVirtualMachines/jdk1.8.0_101.jdk/Contents/Home/jre/lib/libinstrument.dylib. One of the two will be used. Which one is undefined.
+
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testFailHasHealthCheckValidation PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testSingleException PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testThriceException PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testThriceFailure PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testFailNoShellHealthCheckValidation PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testSingleFailure PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testFailNoCommandHealthCheckValidation PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testFailHttpHealthCheckValidation PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testReadinessSuccess PASSED
+
+com.mesosphere.sdk.executor.CheckHandlerTest > testSuccess PASSED
+
+com.mesosphere.sdk.executor.CheckMonitorTest > testStopHealthCheckMonitorForFailedHealthCheck PASSED
+
+com.mesosphere.sdk.executor.CustomExecutorTest > testSimpleKill PASSED
+
+com.mesosphere.sdk.executor.CustomExecutorTest > testRegisterAndReRegister PASSED
+
+com.mesosphere.sdk.executor.CustomExecutorTest > testSimpleShutdown PASSED
+
+com.mesosphere.sdk.executor.CustomExecutorTest > testSimple PASSED
+
+com.mesosphere.sdk.executor.ProcessTaskTest > testFailingTask PASSED
+:executor:check
+:executor:jacocoTestReport
+:hdfs:compileJava UP-TO-DATE
+:hdfs:processResources UP-TO-DATE
+:hdfs:classes UP-TO-DATE
+:hdfs:checkstyleMain
+:hdfs:findbugsMain
