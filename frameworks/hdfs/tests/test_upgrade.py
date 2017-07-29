@@ -19,7 +19,8 @@ def configure_package(configure_universe):
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=PACKAGE_NAME,
-            additional_options={"service": {"name": PACKAGE_NAME, "user": "root" }})
+            additional_options={"service": {"name": PACKAGE_NAME} },
+            test_version_options={"service": {"name": PACKAGE_NAME, "user": "root"} })
 
         yield # let the test session execute
     finally:
