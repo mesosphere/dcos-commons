@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,7 +18,6 @@ import static org.mockito.Mockito.when;
 
 public class UserCannotChangeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new UserCannotChange();
-    private static final String USER_A = TestConstants.SERVICE_USER + "-A";
     private static final String POD_TYPE = TestConstants.POD_TYPE;
     private static final String USER_B = TestConstants.SERVICE_USER + "-B";
 
@@ -27,7 +29,7 @@ public class UserCannotChangeTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
 
         when(mockOldPodSpec.getType()).thenReturn(POD_TYPE + "-1");
         when(mockOldPodSpec2.getType()).thenReturn(POD_TYPE + "-2");
@@ -38,14 +40,14 @@ public class UserCannotChangeTest {
 
     @Test
     public void testSameServiceUser() {
-        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
 
         ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
                 .name("svc")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .user(USER_A)
+                .user(DcosConstants.DEFAULT_SERVICE_USER)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -53,7 +55,7 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .user(USER_A)
+                .user(DcosConstants.DEFAULT_SERVICE_USER)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -61,7 +63,7 @@ public class UserCannotChangeTest {
 
     @Test
     public void testSameUser() {
-        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
 
         ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
                 .name("svc")
@@ -82,14 +84,14 @@ public class UserCannotChangeTest {
 
     @Test
     public void testDifferentServiceUser() {
-        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
 
         ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
                 .name("svc")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockOldPodSpec))
-                .user(USER_A)
+                .user(DcosConstants.DEFAULT_SERVICE_USER)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -126,7 +128,7 @@ public class UserCannotChangeTest {
 
     @Test
     public void testOldServiceUserUnset() {
-        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
 
         ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
                 .name("svc")
@@ -140,7 +142,7 @@ public class UserCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockNewPodSpec))
-                .user(USER_A)
+                .user(DcosConstants.DEFAULT_SERVICE_USER)
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -213,8 +215,8 @@ public class UserCannotChangeTest {
 
     @Test
     public void testMultiplePodsAllSettingDifferentUsers() {
-        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A + "-1"));
-        when(mockOldPodSpec2.getUser()).thenReturn(Optional.of(USER_A + "-2"));
+        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER + "-1"));
+        when(mockOldPodSpec2.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER + "-2"));
 
         when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_B + "-1"));
         when(mockNewPodSpec2.getUser()).thenReturn(Optional.of(USER_B + "-2"));
@@ -238,8 +240,8 @@ public class UserCannotChangeTest {
 
     @Test
     public void testMultiplePodsOldSettingOneUserNewSettingMultipleUsers() {
-        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A + "-1"));
-        when(mockOldPodSpec2.getUser()).thenReturn(Optional.of(USER_A + "-1"));
+        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER + "-1"));
+        when(mockOldPodSpec2.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER + "-1"));
 
         when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_B + "-1"));
         when(mockNewPodSpec2.getUser()).thenReturn(Optional.of(USER_B + "-2"));
@@ -263,8 +265,8 @@ public class UserCannotChangeTest {
 
     @Test
     public void testMultiplePodsOldSettingMultipleUserNewSettingOneUser() {
-        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A + "-1"));
-        when(mockOldPodSpec2.getUser()).thenReturn(Optional.of(USER_A + "-2"));
+        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER + "-1"));
+        when(mockOldPodSpec2.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER + "-2"));
 
         when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_B + "-1"));
         when(mockNewPodSpec2.getUser()).thenReturn(Optional.of(USER_B + "-1"));
@@ -363,9 +365,9 @@ public class UserCannotChangeTest {
 
     @Test
     public void testMoreNewPodsThanOldPods() {
-        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockOldPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
 
-        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(USER_A));
+        when(mockNewPodSpec.getUser()).thenReturn(Optional.of(DcosConstants.DEFAULT_SERVICE_USER));
         when(mockNewPodSpec2.getUser()).thenReturn(Optional.of(USER_B));
 
         ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()

@@ -594,6 +594,55 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
     }
 
+    @Test
+    public void neverNullUser() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getType()).thenReturn("type");
+        ServiceSpec serviceSpec = new DefaultServiceSpec(
+                "name",
+                "role",
+                "principal",
+                "web-url",
+                "zookeeper",
+                Arrays.asList(podSpec),
+                null,
+                null); // Setting user to null
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, serviceSpec.getUser());
+    }
+
+    @Test
+    public void neverEmptyUser() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getType()).thenReturn("type");
+        ServiceSpec serviceSpec = new DefaultServiceSpec(
+                "name",
+                "role",
+                "principal",
+                "web-url",
+                "zookeeper",
+                Arrays.asList(podSpec),
+                null,
+                ""); // Setting user to empty
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, serviceSpec.getUser());
+    }
+
+    @Test
+    public void setUser() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getType()).thenReturn("type");
+        String user = "test-user";
+        ServiceSpec serviceSpec = new DefaultServiceSpec(
+                "name",
+                "role",
+                "principal",
+                "web-url",
+                "zookeeper",
+                Arrays.asList(podSpec),
+                null,
+                user); // Setting user to something
+        Assert.assertEquals(user, serviceSpec.getUser());
+    }
+
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
