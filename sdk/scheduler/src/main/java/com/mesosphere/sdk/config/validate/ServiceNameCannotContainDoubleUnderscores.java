@@ -13,7 +13,9 @@ public class ServiceNameCannotContainDoubleUnderscores implements ConfigValidato
     @Override
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
         if (newConfig.getName().contains("__")) {
-            return Arrays.asList(ConfigValidationError.valueError("ServiceName", newConfig.getName(),
+            return Arrays.asList(ConfigValidationError.valueError(
+                    "ServiceName",
+                    newConfig.getName(),
                     String.format("Service name may not contain double underscores: %s", newConfig.getName())));
         }
         return Collections.emptyList();
