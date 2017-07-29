@@ -4,19 +4,38 @@ import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.api.ResponseUtils.*;
+import static com.mesosphere.sdk.api.ResponseUtils.alreadyReportedResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.elementNotFoundResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
+import static com.mesosphere.sdk.api.ResponseUtils.plainResponse;
 
 /**
  * API for management of Plan(s).
@@ -55,9 +74,16 @@ public class PlansResource extends PrettyJsonResource {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
             Plan plan = planManagerOptional.get().getPlan();
+
+            Response.Status response = Response.Status.EXPECTATION_FAILED;
+            if (plan.isComplete()) {
+                response = Response.Status.OK;
+            } else if (plan.isInProgress()) {
+                response = Response.Status.ACCEPTED;
+            }
             return jsonResponseBean(
                     PlanInfo.forPlan(plan),
-                    plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
+                    response);
         } else {
             return elementNotFoundResponse();
         }
@@ -128,14 +154,14 @@ public class PlansResource extends PrettyJsonResource {
 
             boolean allInProgress = phases.stream()
                     .filter(phz -> phz.isInProgress())
-                    .count()  == phases.size();
-            
+                    .count() == phases.size();
+
             boolean allComplete = phases.stream()
-                .filter(phz -> phz.isComplete()).count() == phases.size();
+                    .filter(phz -> phz.isComplete()).count() == phases.size();
 
             if (allInProgress || allComplete) {
                 return alreadyReportedResponse();
-            } 
+            }
 
             phases.forEach(ParentElement::proceed);
         } else {
@@ -160,17 +186,17 @@ public class PlansResource extends PrettyJsonResource {
         }
 
         if (phase != null) {
-            List<Phase> phases = getPhases(planManagerOptional.get(), phase);   
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
                 return elementNotFoundResponse();
             }
 
             boolean allInterrupted = phases.stream()
-                .filter(phz -> phz.isInterrupted()).count() == phases.size();
-            
+                    .filter(phz -> phz.isInterrupted()).count() == phases.size();
+
             boolean allComplete = phases.stream()
-                .filter(phz -> phz.isComplete()).count() == phases.size();
-            
+                    .filter(phz -> phz.isComplete()).count() == phases.size();
+
             if (allInterrupted || allComplete) {
                 return alreadyReportedResponse();
             }
