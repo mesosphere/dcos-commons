@@ -27,18 +27,20 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
     protected boolean useCustomExecutor;
+    protected UUID targetConfig;
 
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         stateStore = new StateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags, true);
+        targetConfig = UUID.randomUUID();
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, true);
         useCustomExecutor = true;
     }
 
     protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags, false);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, false);
         useCustomExecutor = false;
     }
 
