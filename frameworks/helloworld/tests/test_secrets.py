@@ -55,7 +55,7 @@ options_dcos_space_test = {
 }
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(autouse=True)
 def configure_package(configure_universe):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
@@ -64,7 +64,7 @@ def configure_package(configure_universe):
         delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
         delete_secrets_all()
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(PACKAGE_NAME)
         delete_secrets_all("{}/".format(PACKAGE_NAME))
