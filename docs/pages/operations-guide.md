@@ -524,7 +524,7 @@ Once we know the configuration is good, it should be added to our source control
 
 Above, we described how a configuration update (including updating the version of the service) is handled. Now we will quickly show the steps to perform such an update.
 
-Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in ][Reconfiguration](#Reconfiguration).
+Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in [Reconfiguration](#Reconfiguration).
 
 ### Enterprise DC/OS 1.10
 
