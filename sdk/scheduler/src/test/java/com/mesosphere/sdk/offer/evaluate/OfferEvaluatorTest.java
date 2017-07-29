@@ -4,6 +4,7 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -709,6 +710,84 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         } finally {
             context.reset();
         }
+    }
+
+    /**
+     * If recovery is NOT taking place, the target configuration defined in the ConfigStore
+     * which is used to construct the OfferEvaluator should be used.
+     */
+    @Test
+    public void testGetTargetconfigRecoveryTypeNone() {
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        .recoveryType(RecoveryType.NONE)
+                        .build();
+
+        Assert.assertEquals(
+                targetConfig,
+                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(TestConstants.TASK_INFO)));
+    }
+
+    /**
+     * If recovery is taking place but no Tasks have ever been launched in this pod (logical impossibility),
+     * the target configuration defined in the ConfigStore which is used to construct the OfferEvaluator should be used.
+     */
+    @Test
+    public void testGetTargetconfigRecoveryEmptyTaskCollection() {
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
+
+        Assert.assertEquals(
+                targetConfig,
+                evaluator.getTargetConfig(podInstanceRequirement, Collections.emptyList()));
+    }
+
+    /**
+     * If recovery is taking place but a Task has somehow failed to have its target config set, the
+     * ConfigStore / OfferEvaluator's target config should be used.
+     */
+    @Test
+    public void testGetTargetconfigRecoveryTypeAnyMissingLabel() {
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
+
+        Assert.assertEquals(
+                targetConfig,
+                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(TestConstants.TASK_INFO)));
+    }
+
+    /**
+     * If recovery is taking place and a target config is properly set on the task, its target config should
+     * be used, not the ConfigStore / OfferEvaluator's target config.
+     */
+    @Test
+    public void testGetTargetconfigRecoveryTypeAny() {
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
+
+        UUID taskConfig = UUID.randomUUID();
+        TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
+                new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setTargetConfiguration(taskConfig)
+                        .toProto())
+                .build();
+
+        Assert.assertNotEquals(
+                targetConfig,
+                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(taskInfo)));
+        Assert.assertEquals(
+                taskConfig,
+                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(taskInfo)));
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.google.common.base.Joiner;
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
+import com.mesosphere.sdk.config.validate.TaskEnvCannotChange;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultService;
@@ -31,11 +32,18 @@ public class Main {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
-        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
-                .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
-                .build();
-
-        DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(serviceSpec, schedulerFlags)
+        DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                        .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
+                        .build(),
+                schedulerFlags)
+                // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
+                // we need to allow the case where they may have previously been unset:
+                .setCustomConfigValidators(Arrays.asList(
+                        new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_DATA_CENTER",
+                                TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET),
+                        new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_RACK",
+                                TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)
                 .setCustomResources(getResources(localSeeds))
                 .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
