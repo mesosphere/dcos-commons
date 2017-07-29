@@ -237,7 +237,7 @@ def test_bump_data_nodes():
 @pytest.mark.sanity
 def test_modify_app_config():
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    #old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
 
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
@@ -257,8 +257,8 @@ def test_modify_app_config():
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
 
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    #new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
-    #assert(old_recovery_plan == new_recovery_plan)
+    new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    assert(old_recovery_plan == new_recovery_plan)
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
