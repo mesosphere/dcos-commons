@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -163,6 +163,11 @@ extends java.lang.Object</pre>
                      java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks,
                      java.util.Optional&lt;Protos.ExecutorInfo&gt;&nbsp;executorInfo)</code>&nbsp;</td>
 </tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>(package private) java.util.UUID</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getTargetConfig-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">getTargetConfig</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</code>&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -226,13 +231,23 @@ extends java.lang.Object</pre>
 <a name="getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-java.util.Optional-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getEvaluationPipeline</h4>
 <pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>&gt;&nbsp;getEvaluationPipeline(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
                                                                   java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allTasks,
                                                                   java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks,
                                                                   java.util.Optional&lt;Protos.ExecutorInfo&gt;&nbsp;executorInfo)</pre>
+</li>
+</ul>
+<a name="getTargetConfig-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getTargetConfig</h4>
+<pre>java.util.UUID&nbsp;getTargetConfig(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+                               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</pre>
 </li>
 </ul>
 </li>
