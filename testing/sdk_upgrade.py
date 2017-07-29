@@ -180,9 +180,8 @@ def _upgrade_or_downgrade(package_name, service_name, running_task_count, additi
         running_task_count,
         service_name=service_name,
         additional_options=additional_options,
-        package_version=package_version)
-    sdk_utils.out('Waiting for upgrade / downgrade deployment to complete')
-    plan.wait_for_completed_deployment(service_name)
+        package_version=package_version,
+        timeout_seconds=25 * 60)
     sdk_utils.out('Checking that all tasks have restarted')
     tasks.check_tasks_updated(service_name, '', task_ids)
 
