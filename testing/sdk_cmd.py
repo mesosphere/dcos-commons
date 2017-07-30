@@ -3,6 +3,7 @@
 import dcos.http
 import sdk_utils
 import shakedown
+from retrying import retry
 
 
 def request(method, url, retry=True, log_args=True, **kwargs):
@@ -22,6 +23,7 @@ def request(method, url, retry=True, log_args=True, **kwargs):
         return fn()
 
 
+@retry(stop_max_attempt_number=5, stop_max_delay=60)
 def run_cli(cmd, print_output=True):
     (stdout, stderr, ret) = shakedown.run_dcos_command(cmd, print_output=print_output)
     if ret != 0:
