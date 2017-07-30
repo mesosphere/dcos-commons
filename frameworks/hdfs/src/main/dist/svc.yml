@@ -60,7 +60,7 @@ pods:
         # The absence of journal-data/hdfs indicates HDFS is about to be deployed for the first time.
         # We test readiness as one of two conditions:
         # 1. We hit the JMX endpoint as it includes a field called "RpcDetailedActivityForPort8485". 
-        # The "JournalNumOps" field inside of it is indicative of Journal Node operations being 
+        # The "GetEditLogManifestNumOps" field inside of it is indicative of Journal Node operations being 
         # performed in coherence with the other HDFS components since the field is monitoring RPC traffic,
         # hence signaling that the Journal Node is ready. Or
         # 2. The existence of journal-data/hdfs/current/committed-txid is used during an update plan 
@@ -73,11 +73,11 @@ pods:
               exit 0
             else
               curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
-              export JOURNAL_NUM_OPS=$(grep "JournalNumOps" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+              export EDIT_MANIFEST_NUM_OPS=$(grep "GetEditLogManifestNumOps" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               export COMMITTED_ID_TIME=$(ls -l --time-style='+%Y-%m-%d %H:%M:%S' journal-data/hdfs/current/committed-txid | awk '{print $6 FS $7}') &&
               export CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S') &&
               export TIME_DIFF=$(( ( $(date -ud "$CURRENT_TIME" +'%s') - $(date -ud "$COMMITTED_ID_TIME" +'%s') ) )) &&
-              [[ $JOURNAL_NUM_OPS -gt 0 || $TIME_DIFF -le 12 ]]
+              [[ $EDIT_MANIFEST_NUM_OPS -gt 0 || $TIME_DIFF -le 12 ]]
             fi
           delay: 60
           interval: 3
