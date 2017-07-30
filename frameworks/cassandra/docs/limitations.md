@@ -5,7 +5,19 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-* Data Center Name
+## Rack Aware Placement
+
+The DC/OS Cassandra Service does not currently leverage rack information for placement decisions.  However, placement constraints can be used to manually place instances across racks if desired.   
+
+## Security
+
+The security features  are not supported at this time.
+
+## Overlay networks
+
+When Cassandra is deployed on a virtual network, the configuration cannot be updated after installation.
+
+## Data Center Name
 
 Data Center Name:
 
@@ -28,8 +40,7 @@ The name of the data center cannot be changed after Cassandra installation. `ser
 }
 ```
 
-
-* Seed Node Replace
+## Seed Node Replace
 
 While the Cassandra service supports a node replace operation via the command
 `dcos cassandra pod replace ≤node_id≥`, the node replace operation performs a
