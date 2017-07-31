@@ -380,7 +380,7 @@
 
 <p>This operation will move a node to a new system and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined.</p>
 
-<p><strong>Note:</strong> Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.</p>
+<p><strong>Note:</strong> Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You can automate node replacement according to your own preferences.</p>
 
 <ol>
   <li>Run <code class="highlighter-rouge">dcos beta-cassandra pod replace node-&lt;NUM&gt;</code> to halt the current instance with id <code class="highlighter-rouge">&lt;NUM&gt;</code> (if still running) and launch a new instance elsewhere.</li>
@@ -390,6 +390,32 @@
 <div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-cassandra pod replace node-2
 </code></pre>
 </div>
+
+<h2 id="seed-nodes">Seed nodes</h2>
+<p>Cassandra seed nodes are those nodes with indices smaller than the seed node count.  By default, Cassandra is deployed 
+with a seed node count of two.  So, node-0 and node-1 are seed nodes. When a replace operation is performed on one these
+nodes, all other nodes must be restarted to be brought up to date regarding the ip address of the new seed node. This 
+operation is performed automatically.</p>
+
+<p>For example if <code class="highlighter-rouge">node-0</code> needed to be replaced we would execute:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-cassandra pod replace node-0
+</code></pre>
+</div>
+
+<p>which would result in a recovery plan like the following:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-cassandra --name<span class="o">=</span>cassandra plan show recovery
+recovery <span class="o">(</span>IN_PROGRESS<span class="o">)</span>
+└─ permanent-node-failure-recovery <span class="o">(</span>IN_PROGRESS<span class="o">)</span>
+   ├─ node-0:[server] <span class="o">(</span>COMPLETE<span class="o">)</span>
+   ├─ node-1:[server] <span class="o">(</span>STARTING<span class="o">)</span>
+   └─ node-2:[server] <span class="o">(</span>PENDING<span class="o">)</span>
+
+</code></pre>
+</div>
+
+<p><strong>Note:</strong> Only the seed node is being placed on a new node, all other nodes are restarted in place with no loss of data.</p>
 
 <h1 id="configuring-multi-data-center-deployments">Configuring Multi-data-center Deployments</h1>
 
