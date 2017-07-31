@@ -56,7 +56,9 @@ func (cmd *planHandler) getPlanName() string {
 		return cmd.PlanName
 	}
 	// there is no (and should not be) a case where the plan name is requested here where it is not needed.
-	client.PrintMessageAndExit("Must specify a plan name")
+	// this invariant should be guarded by CLI validators, but since other commands, such as `update` route
+	// through the `plan` command, counting on such a guard is error prone, so underlying guard applied here.
+	client.PrintMessageAndExit("Must specify a plan name, e.g. 'deploy'")
 	return ""
 }
 
@@ -279,7 +281,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
 	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
 
-    stop := plan.Command("stop", "Stop the running plan with the provided name").Action(cmd.handleStop)
+	stop := plan.Command("stop", "Stop the running plan with the provided name").Action(cmd.handleStop)
 	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
 
 	pause := plan.Command("pause", "Pause the plan, or a specific phase in that plan with the provided phase name (or UUID)").Alias("interrupt").Action(cmd.handlePause)
@@ -295,7 +297,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
-    forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due to observed failure or known required manual preparation that was not performed").Alias("force").Action(cmd.handleForceComplete)
+	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due to observed failure or known required manual preparation that was not performed").Alias("force").Action(cmd.handleForceComplete)
 	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
 	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
 	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
