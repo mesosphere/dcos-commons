@@ -1,7 +1,5 @@
 import pytest
-import shakedown
-import time
-import json
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
 
 import sdk_cmd
 import sdk_install
@@ -91,10 +89,6 @@ def test_secrets_basic():
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
-    # default is serial strategy, hello deploys first
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-
     hello_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
     world_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "word-0")
 
@@ -127,9 +121,6 @@ def test_secrets_verify():
     create_secrets("{}/".format(PACKAGE_NAME))
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
-
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
@@ -184,9 +175,6 @@ def test_secrets_update():
     create_secrets("{}/".format(PACKAGE_NAME))
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
-
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
@@ -244,9 +232,6 @@ def test_secrets_config_update():
     create_secrets("{}/".format(PACKAGE_NAME))
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
-
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)

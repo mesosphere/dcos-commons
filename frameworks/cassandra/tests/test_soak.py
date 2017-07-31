@@ -7,12 +7,10 @@ import pytest
 import shakedown
 
 from tests.config import *
-import sdk_api
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
-import sdk_test_upgrade
-import sdk_utils
+import sdk_upgrade
 
 
 @pytest.mark.soak_backup
@@ -47,10 +45,12 @@ def test_soak_upgrade_downgrade():
     Assumes that the install options file is placed in the repo root."""
     with open('cassandra.json') as options_file:
         install_options = json.load(options_file)
-
-    sdk_test_upgrade.soak_upgrade_downgrade(
-        PACKAGE_NAME, DEFAULT_TASK_COUNT, install_options
-    )
+    sdk_upgrade.soak_upgrade_downgrade(
+        "beta-{}".format(PACKAGE_NAME),
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=install_options["service"]["name"],
+        additional_options=install_options)
 
 
 @pytest.mark.soak_migration
