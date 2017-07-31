@@ -5,13 +5,13 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-## Rack Aware Placement
+## Rack-Aware Placement
 
-The DC/OS Cassandra Service does not currently leverage rack information for placement decisions.  However, placement constraints can be used to manually place instances across racks if desired.   
+The DC/OS Cassandra Service does not currently leverage rack information for placement decisions.  However, placement across racks can be performed manually using placement constraints; application-level configuration will still not be possible.   
 
 ## Security
 
-The security features  are not supported at this time.
+The security features are not supported at this time.
 
 ## Overlay networks
 
