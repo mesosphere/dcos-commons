@@ -1,4 +1,3 @@
-import os
 import tempfile
 import pytest
 
@@ -28,10 +27,11 @@ def configure_package(configure_universe):
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
 
-        # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
-                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in TEST_JOBS:
             sdk_jobs.install_job(job, tmp_dir=tmp_dir)

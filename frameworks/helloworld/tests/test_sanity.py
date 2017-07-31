@@ -9,6 +9,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
+import sdk_upgrade
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
@@ -27,7 +28,9 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 def configure_package(configure_universe):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_install.install(
+
+        sdk_upgrade.test_upgrade(
+            PACKAGE_NAME,
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
