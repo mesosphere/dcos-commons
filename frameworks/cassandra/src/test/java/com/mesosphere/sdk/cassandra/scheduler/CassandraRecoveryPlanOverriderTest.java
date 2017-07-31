@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -8,8 +7,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -64,16 +62,13 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
     @Before
     public void beforeEach() throws Exception {
         super.beforeEach();
-        stateStore = new DefaultStateStore(new MemPersister());
-        ConfigStore configStore = new DefaultConfigStore<ServiceSpec>(
+        stateStore = new StateStore(new MemPersister());
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(getServiceSpec()),
                 new MemPersister());
         UUID targetConfig = configStore.store(getServiceSpec());
         configStore.setTargetConfig(targetConfig);
-        planOverrider = new CassandraRecoveryPlanOverrider(
-                stateStore,
-                configStore,
-                getReplacePlan(stateStore, configStore));
+        planOverrider = new CassandraRecoveryPlanOverrider(stateStore, getReplacePlan(stateStore, configStore));
     }
 
     @Test
@@ -160,7 +155,7 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
                 .build();
     }
 
-    private Plan getReplacePlan(StateStore stateStore, ConfigStore configStore) throws Exception {
+    private Plan getReplacePlan(StateStore stateStore, ConfigStore<ServiceSpec> configStore) throws Exception {
         final String REPLACE_PLAN_NAME = "replace";
         return new DefaultPlanGenerator(configStore, stateStore).generate(
                 getRawServiceSpec().getPlans().get(REPLACE_PLAN_NAME),

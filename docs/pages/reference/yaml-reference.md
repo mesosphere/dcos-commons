@@ -108,7 +108,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     <div class="noyaml"><ul>
     <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
-    <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has it's own IP address.</li>
+    <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has its own IP address.</li>
     <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
     </ul></div>
 
@@ -230,7 +230,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `ports`
 
-      The ports which your service will be using to accept incoming connections. Each port is given a unique name as follows:
+      The ports which your service will be using to accept incoming connections. Each port is given a unique name across the service, and this name is what's used to advertise that port in the `endpoints` listing. Ports may be defined a task as follows:
 
       ```
       ports:
@@ -346,8 +346,8 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `prefix`
 
-        A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named `foo` will by default have pods with discovery names of `foo-0`, `foo-1`, and so on.
-        This value may be used to have pods whose hostname in Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
+        A custom name to use for advertising the pod via Mesos DNS. By default this is the pod name, so e.g. a pod specification named `foo` will by default have pod with discovery names of `foo-0`, `foo-1`, and so on.
+        This value may be used to have pods whose hostnames are Mesos DNS (default `<podname>-<#>-<taskname>.<servicename>.mesos`) is different from their task name.
         Note that to avoid name collisions, different pods are not allowed to share the same prefix value.
 
       * `visibility`
@@ -360,7 +360,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `plans`
 
-  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
+  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, replacing the default `update` plan (otherwise `deploy` is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
 
   * `strategy`
 

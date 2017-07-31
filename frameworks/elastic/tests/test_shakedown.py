@@ -1,32 +1,39 @@
 import pytest
 
+import shakedown
+
 import sdk_cmd as cmd
 import sdk_hosts
 import sdk_install
+import sdk_marathon
+import sdk_metrics
+import sdk_tasks
 import sdk_test_upgrade
 import sdk_utils
-import sdk_metrics
 from tests.config import *
 
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
-def setup_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            service_name=FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
-def setup_function(function):
+@pytest.fixture(autouse=True)
+def pre_test_setup():
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT)
     wait_for_expected_nodes_to_exist(service_name=FOLDERED_SERVICE_NAME)
-
-
-def teardown_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 @pytest.fixture
@@ -45,10 +52,11 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    for nodetype in ('coordinator', 'data', 'ingest', 'master'):
-        endpoints = json.loads(cmd.run_cli('elastic --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, nodetype)))
-        assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, nodetype + '-0-node'))
-        assert endpoints['vips'][0].startswith(sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, nodetype))
+    for endpoint in ENDPOINT_TYPES:
+        endpoints = json.loads(cmd.run_cli('elastic --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, endpoint)))
+        host = endpoint.split('-')[0] # 'coordinator-http' => 'coordinator'
+        assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, host + '-0-node'))
+        assert endpoints['vip'].startswith(sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, host))
 
 
 @pytest.mark.sanity
@@ -138,7 +146,7 @@ def test_master_reelection():
 def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
-    cmd.run_cli('elastic --name={} pods replace master-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('elastic --name={} pod replace master-0'.format(FOLDERED_SERVICE_NAME))
     # setup_function will verify that the cluster becomes healthy again.
 
 

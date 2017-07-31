@@ -17,7 +17,7 @@ public class TaskVolumesCannotChange implements ConfigValidator<ServiceSpec> {
                 oldConfig.isPresent() ? getAllTasksByName(oldConfig.get(), errors) : Collections.emptyMap();
         Map<String, TaskSpec> newTasks = getAllTasksByName(newConfig, errors);
 
-        // Note: We're itentionally just comparing cases where the tasks in both TaskSpecs.
+        // Note: We're intentionally just comparing cases where the tasks in both TaskSpecs.
         // Enforcement of new/removed tasks should be performed in a separate Validator.
         for (Map.Entry<String, TaskSpec> oldEntry : oldTasks.entrySet()) {
             TaskSpec newTask = newTasks.get(oldEntry.getKey());

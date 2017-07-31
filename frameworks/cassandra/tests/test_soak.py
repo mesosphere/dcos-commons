@@ -48,7 +48,7 @@ def test_soak_upgrade_downgrade():
     with open('cassandra.json') as options_file:
         install_options = json.load(options_file)
 
-    sdk_test_sdk_upgrade.soak_upgrade_downgrade(
+    sdk_test_upgrade.soak_upgrade_downgrade(
         PACKAGE_NAME, DEFAULT_TASK_COUNT, install_options
     )
 

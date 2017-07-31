@@ -9,6 +9,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
  */
 public class TestConstants {
     public static final String SERVICE_NAME = "service-name";
+    public static final String SERVICE_USER = "service-user";
     public static final String CONTAINER_PATH = "test-container-path";
     public static final String CONTAINER_PATH_LABEL = "container-path";
     public static final String EXECUTOR_NAME = "test-executor-name";
@@ -87,11 +88,4 @@ public class TestConstants {
                     .setTaskId(TASK_ID)
                     .setState(Protos.TaskState.TASK_RUNNING)
                     .build();
-
-    public static Protos.Labels getRequiredTaskLabels(int podIndex) {
-        Protos.Labels.Builder builder = Protos.Labels.newBuilder();
-        builder.addLabelsBuilder().setKey("task_type").setValue(TASK_TYPE);
-        builder.addLabelsBuilder().setKey("index").setValue(String.valueOf(podIndex));
-        return builder.build();
-    }
 }

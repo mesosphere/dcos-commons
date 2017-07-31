@@ -3,10 +3,11 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-import static com.mesosphere.sdk.config.YAMLConfigurationLoader.LOGGER;
 import static com.mesosphere.sdk.scheduler.plan.PlanUtils.allHaveStatus;
 import static com.mesosphere.sdk.scheduler.plan.PlanUtils.anyHaveStatus;
 
@@ -17,7 +18,7 @@ import static com.mesosphere.sdk.scheduler.plan.PlanUtils.anyHaveStatus;
  * @param <C> the type of the child elements
  */
 public interface ParentElement<C extends Element> extends Element, Interruptible {
-
+    static final Logger LOGGER = LoggerFactory.getLogger(ParentElement.class);
 
     /**
      * Gets the children of this Element.
@@ -63,7 +64,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
     @Override
     default void update(Protos.TaskStatus taskStatus) {
         Collection<? extends Element> children = getChildren();
-        LOGGER.info("Updated {} with TaskStatus: {}", getName(), TextFormat.shortDebugString(taskStatus));
+        LOGGER.debug("Updated {} with TaskStatus: {}", getName(), TextFormat.shortDebugString(taskStatus));
         children.forEach(element -> element.update(taskStatus));
     }
 
@@ -121,7 +122,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
                     getName(), result, Status.COMPLETE);
         } else if (isInterrupted()) {
             result = Status.WAITING;
-            LOGGER.info("({} status={}) Parent element is interrupted", getName(), result);
+            LOGGER.debug("({} status={}) Parent element is interrupted", getName(), result);
         } else if (anyHaveStatus(Status.PREPARED, children)) {
             result = Status.IN_PROGRESS;
             LOGGER.debug("({} status={}) At least one phase has status: {}",

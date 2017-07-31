@@ -4,51 +4,57 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * This class encapsulates constants common to DC/OS and its services.
  */
 public class DcosConstants {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DcosConstants.class);
+
     private static final String MESOS_MASTER = "master.mesos";
     private static final String MESOS_LEADER = "leader.mesos";
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MESOS_MASTER + ":2181";
     public static final String MESOS_LEADER_URI = "http://" + MESOS_LEADER;
-    public static final Boolean DEFAULT_GPU_POLICY = true;
+    public static final boolean DEFAULT_GPU_POLICY = true;
     public static final String DEFAULT_IP_PROTOCOL = "tcp";
-    public static final String DEFAULT_OVERLAY_NETWORK = "dcos";
-    public static final String DEFAULT_BRIDGE_NETWORK = "mesos-bridge";
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
-    public static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(
-            Arrays.asList(DEFAULT_OVERLAY_NETWORK, DEFAULT_BRIDGE_NETWORK));
-    // DEFAULT_PORT_MAPPING_POLICY decides whether when joining an network that does not have an explicit
-    // port-mapping capability to automatically map ports (ContainerIP:port : HostIP:port). After consideration, it
-    // seems that port mapping (bridge networking) is in fact not common and so we default to true.
-    public static final Boolean DEFAULT_PORT_MAPPING_POLICY = false;
+
     // These ports should be available to a container on the overlay regardless of it's permissions, it's unlikely
     // that a pod will ever exceed 1000 ports.
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_START = 1025;
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
-    public static final String VIP_OVERLAY_FLAG_KEY = "network-scope";
-    public static final String VIP_OVERLAY_FLAG_VALUE = "container";
-    public static final String BRIDGE_FLAG_VALUE = "host";
+
+    public static final String DEFAULT_SERVICE_USER = "root";
+
+    // Network Names
+
+    private static final String DEFAULT_OVERLAY_NETWORK = "dcos";
+    private static final String DEFAULT_BRIDGE_NETWORK = "mesos-bridge";
+    private static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(
+            Arrays.asList(DEFAULT_OVERLAY_NETWORK, DEFAULT_BRIDGE_NETWORK));
 
     public static boolean networkSupportsPortMapping(String networkName) {
-        boolean supportsPortMapping;
-        switch (networkName) {
-            case DEFAULT_OVERLAY_NETWORK:
-                supportsPortMapping = false;
-                break;
-            case DEFAULT_BRIDGE_NETWORK:
-                supportsPortMapping = true;
-                break;
-            default:
-                supportsPortMapping = DEFAULT_PORT_MAPPING_POLICY;
+        if (networkName.equals(DEFAULT_BRIDGE_NETWORK)) {
+            return true;
+        } else if (networkName.equals(DEFAULT_OVERLAY_NETWORK)) {
+            return false;
+        } else {
+            // Here we decide whether to automatically map ports (ContainerIP:port : HostIP:port) when joining a network
+            // that does not have an explicit port-mapping capability. It seems that port mapping (bridge networking) is
+            // in fact not common so we default to disabled.
+            return false;
         }
-        return  supportsPortMapping;
     }
 
-    public static boolean isSupportedNetwork(String networkName) {
-        return SUPPORTED_OVERLAY_NETWORKS.contains(networkName);
+    public static void warnIfUnsupportedNetwork(String networkName) {
+        if (!SUPPORTED_OVERLAY_NETWORKS.contains(networkName)) {
+            LOGGER.warn(
+                    "Virtual network '{}' is not supported, unexpected behavior may result (expected one of: {})",
+                    networkName, SUPPORTED_OVERLAY_NETWORKS);
+        }
     }
 }

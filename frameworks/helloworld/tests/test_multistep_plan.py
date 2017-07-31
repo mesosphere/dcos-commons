@@ -14,21 +14,21 @@ from tests.config import (
     hello_task_count
 )
 
-
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    options = {
-        "service": {
-            "spec_file": "examples/multistep_plan.yml"
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        options = {
+            "service": {
+                "spec_file": "examples/multistep_plan.yml"
+            }
         }
-    }
 
-    sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

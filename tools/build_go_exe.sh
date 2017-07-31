@@ -28,6 +28,10 @@ fi
 GO_VERSION=$(go version | awk '{print $3}')
 # Note, UPX only works on binaries produced by Go 1.7+. However, we require Go 1.8+
 UPX_BINARY="$(which upx || which upx-ucl || echo '')"
+# For dev iteration; upx takes a long time; can set env var
+if [ -n "$CLI_BUILD_SKIP_UPX" ]; then
+    UPX_BINARY=
+fi
 case "$GO_VERSION" in
     go1.[8-9]*|go1.1[0-9]*|go[2-9]*) # go1.8+, go2+ (must come before go1.0-go1.7: support e.g. go1.10)
         echo "Found supported Go version."

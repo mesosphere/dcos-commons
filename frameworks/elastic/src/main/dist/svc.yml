@@ -1,6 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   master:
     count: 3
@@ -11,30 +12,33 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
-      - {{STATSD_PLUGIN}}
+      - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
     placement: {{MASTER_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
         cpus: {{MASTER_NODE_CPUS}}
         memory: {{MASTER_NODE_MEM}}
         ports:
-          http:
+          master-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: master
               port: 9200
-          transport:
+          master-transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
+            env-key: PORT_TRANSPORT
             vip:
               prefix: master
               port: 9300
@@ -42,7 +46,7 @@ pods:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
@@ -50,7 +54,6 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
-          STATSD_PLUGIN: {{STATSD_PLUGIN}}
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -76,30 +79,32 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
-      - {{STATSD_PLUGIN}}
+      - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
     placement: {{DATA_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
         cpus: {{DATA_NODE_CPUS}}
         memory: {{DATA_NODE_MEM}}
         ports:
-          http:
+          data-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: data
               port: 9200
-          transport:
+          data-transport:
             port: 0
+            env-key: PORT_TRANSPORT
             vip:
               prefix: data
               port: 9300
@@ -107,7 +112,7 @@ pods:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
@@ -115,7 +120,6 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
-          STATSD_PLUGIN: {{STATSD_PLUGIN}}
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -141,30 +145,32 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
-      - {{STATSD_PLUGIN}}
+      - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
     placement: {{INGEST_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
         cpus: {{INGEST_NODE_CPUS}}
         memory: {{INGEST_NODE_MEM}}
         ports:
-          http:
+          ingest-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: ingest
               port: 9200
-          transport:
+          ingest-transport:
             port: 0
+            env-key: PORT_TRANSPORT
             vip:
               prefix: ingest
               port: 9300
@@ -172,7 +178,7 @@ pods:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
@@ -180,7 +186,6 @@ pods:
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
-          STATSD_PLUGIN: {{STATSD_PLUGIN}}
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
@@ -206,30 +211,32 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
+      - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
-      - {{STATSD_PLUGIN}}
+      - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
     placement: {{COORDINATOR_NODE_PLACEMENT}}
-    user: {{FRAMEWORK_USER}}
     tasks:
       node:
         goal: RUNNING
         cpus: {{COORDINATOR_NODE_CPUS}}
         memory: {{COORDINATOR_NODE_MEM}}
         ports:
-          http:
+          coordinator-http:
             port: 0
+            env-key: PORT_HTTP
             vip:
               prefix: coordinator
               port: 9200
-          transport:
+          coordinator-transport:
             port: 0
+            env-key: PORT_TRANSPORT
             vip:
               prefix: coordinator
               port: 9300
@@ -237,7 +244,7 @@ pods:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
-        cmd: "./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
@@ -245,7 +252,6 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
-          STATSD_PLUGIN: {{STATSD_PLUGIN}}
         configs:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"

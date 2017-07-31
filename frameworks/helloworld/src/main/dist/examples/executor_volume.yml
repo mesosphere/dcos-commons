@@ -1,10 +1,10 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   hello:
     count: 2
-    user: {{SERVICE_USER}}
     volume:
       path: "hello-container-path"
       type: ROOT
@@ -24,7 +24,6 @@ pods:
         memory: 256
   world:
     count: 1
-    user: {{SERVICE_USER}}
     volumes:
       world-volume:
         path: "world-container-path"

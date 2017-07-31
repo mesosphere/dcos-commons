@@ -10,7 +10,7 @@ tags:
   description: "The endpoints that the service offers for client access"
 - name: "plans"
   description: "Deployment, maintenance, and recovery plans being executed by the service"
-- name: "pods"
+- name: "pod"
   description: "Management of the pods and tasks which are being managed by the service"
 - name: "artifacts"
   description: "Files served by the service scheduler to its tasks"
@@ -263,12 +263,12 @@ paths:
           description: "Only one of phase/step is specified. Either both or neither must be provided."
         404:
           description: "Plan not found."
-  /pods:
+  /pod:
     get:
       tags:
-      - "pods"
+      - "pod"
       summary: "Produces a listing of the names of all pods."
-      operationId: "podsList"
+      operationId: "podList"
       produces:
       - "application/json"
       parameters: []
@@ -277,12 +277,12 @@ paths:
           description: "List of pods."
         500:
           description: "Failed to fetch list of pod names."
-  /pods/status:
+  /pod/status:
     get:
       tags:
-      - "pods"
+      - "pod"
       summary: "Produces a summarized listing of all pod statuses."
-      operationId: "podsListStatus"
+      operationId: "podListStatus"
       produces:
       - "application/json"
       parameters: []
@@ -291,12 +291,12 @@ paths:
           description: "List of pod statuses."
         500:
           description: "Failed to fetch list of pod statuses."
-  /pods/{name}/info:
+  /pod/{name}/info:
     get:
       tags:
-      - "pods"
+      - "pod"
       summary: "Returns information about the specified pod."
-      operationId: "podsGet"
+      operationId: "podGet"
       produces:
       - "application/json"
       parameters:
@@ -312,12 +312,12 @@ paths:
           description: "Requested pod was not found."
         500:
           description: "Failed to fetch information for pod."
-  /pods/{name}/restart:
+  /pod/{name}/restart:
     post:
       tags:
-      - "pods"
+      - "pod"
       summary: "Restarts a pod and attempts to relaunch it on the same cluster node."
-      operationId: "podsRestart"
+      operationId: "podRestart"
       parameters:
       - name: "name"
         in: "path"
@@ -333,12 +333,12 @@ paths:
           description: "Custom restart hook rejected pod restart."
         500:
           description: "Failed to restart pod."
-  /pods/{name}/replace:
+  /pod/{name}/replace:
     post:
       tags:
-      - "pods"
+      - "pod"
       summary: "Restarts a pod and attempts to relaunch it on the next available cluster node."
-      operationId: "podsReplace"
+      operationId: "podReplace"
       parameters:
       - name: "name"
         in: "path"
@@ -354,12 +354,12 @@ paths:
           description: "Custom replace hook rejected pod replace."
         500:
           description: "Failed to replace pod."
-  /pods/{name}/status:
+  /pod/{name}/status:
     get:
       tags:
-      - "pods"
+      - "pod"
       summary: "Produces the status for the requested pod name."
-      operationId: "podsStatus"
+      operationId: "podStatus"
       produces:
       - "application/json"
       parameters:

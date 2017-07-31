@@ -86,6 +86,7 @@ public class DefaultTaskSpec implements TaskSpec {
         builder.goalState = copy.getGoal();
         builder.resourceSet = copy.getResourceSet();
         builder.commandSpec = copy.getCommand().orElse(null);
+        builder.readinessCheckSpec(copy.getReadinessCheck().orElse(null));
         builder.healthCheckSpec = copy.getHealthCheck().orElse(null);
         builder.readinessCheckSpec = copy.getReadinessCheck().orElse(null);
         builder.configFiles = copy.getConfigFiles();

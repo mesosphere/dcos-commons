@@ -1,15 +1,15 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
-    user: {{SERVICE_USER}}
     tasks:
       server:
         goal: RUNNING
-        cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -28,7 +28,6 @@ pods:
   world:
     count: {{WORLD_COUNT}}
     placement: {{WORLD_PLACEMENT}}
-    user: {{SERVICE_USER}}
     tasks:
       server:
         goal: RUNNING

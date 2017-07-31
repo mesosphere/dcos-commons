@@ -8,7 +8,8 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
-func runCLICommand(arg ...string) (string, error) {
+// RunCLICommand runs a DC/OS CLI command
+func RunCLICommand(arg ...string) (string, error) {
 	if config.Verbose {
 		PrintMessage("Running DC/OS CLI command: dcos %s", strings.Join(arg, " "))
 	}
@@ -29,8 +30,9 @@ func runCLICommand(arg ...string) (string, error) {
 	return strings.TrimSpace(string(outBytes)), nil
 }
 
-func requiredCLIConfigValue(name string, description string, errorInstruction string) string {
-	output, err := runCLICommand("config", "show", name)
+// RequiredCLIConfigValue gets config values from the DC/OS CLI
+func RequiredCLIConfigValue(name string, description string, errorInstruction string) string {
+	output, err := RunCLICommand("config", "show", name)
 	if err != nil {
 		PrintMessage("Unable to retrieve configuration value %s (%s) from CLI. %s:",
 			name, description, errorInstruction)
@@ -47,7 +49,7 @@ func requiredCLIConfigValue(name string, description string, errorInstruction st
 // OptionalCLIConfigValue retrieves the CLI configuration for name. If no value can
 // be retrieved, this returns an empty string.
 func OptionalCLIConfigValue(name string) string {
-	output, err := runCLICommand("config", "show", name)
+	output, err := RunCLICommand("config", "show", name)
 	if err != nil {
 		// CLI returns an error code when value isn't known
 		return ""
