@@ -31,11 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.api.ResponseUtils.alreadyReportedResponse;
-import static com.mesosphere.sdk.api.ResponseUtils.elementNotFoundResponse;
-import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
-import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
-import static com.mesosphere.sdk.api.ResponseUtils.plainResponse;
+import static com.mesosphere.sdk.api.ResponseUtils.*;
 
 /**
  * API for management of Plan(s).
