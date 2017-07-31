@@ -92,7 +92,15 @@ public class PlansResourceTest {
 
     @Test
     public void testFullInfoError() {
-        when(mockPlan.isComplete()).thenReturn(false);
+        when(mockPlan.hasErrors()).thenReturn(true);
+        Response response = resource.getPlanInfo(planName);
+        assertEquals(417, response.getStatus());
+        assertTrue(response.getEntity() instanceof PlanInfo);
+    }
+
+    @Test
+    public void testFullInfoErrorEvenIfComplete() {
+        when(mockPlan.isComplete()).thenReturn(true);
         when(mockPlan.hasErrors()).thenReturn(true);
         Response response = resource.getPlanInfo(planName);
         assertEquals(417, response.getStatus());
@@ -102,7 +110,6 @@ public class PlansResourceTest {
     @Test
     public void testFullInfoIncomplete() {
         when(mockPlan.isComplete()).thenReturn(false);
-        when(mockPlan.isInProgress()).thenReturn(true);
         Response response = resource.getPlanInfo(planName);
         assertEquals(202, response.getStatus());
         assertTrue(response.getEntity() instanceof PlanInfo);
