@@ -18,7 +18,6 @@ function usage()
     echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"sanity and not azure\"]"
     echo "-k passed to pytest directly [default NONE]"
-    echo "-f module to test passed directly to pytest [default test_*.py]"
     echo "-p PATH to cluster SSH key [default ~/.ssh/ccm.pem]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "Cluster must be created and \$CLUSTER_URL set"
@@ -91,10 +90,6 @@ case $key in
     pytest_k="$2"
     shift # past argument
     ;;
-    -f)
-    pytest_f="$2"
-    shift # past argument
-    ;;
     -s)
     security="strict"
     ;;
@@ -128,7 +123,6 @@ docker run --rm \
     -e SECURITY=$security \
     -e "PYTEST_K=$pytest_k" \
     -e "PYTEST_M=$pytest_m" \
-    -e "PYTEST_F=$pytest_f" \
     -e FRAMEWORK=$framework \
     -e STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL \
     -v $(pwd):/build \
