@@ -7,21 +7,21 @@ enterprise: 'no'
 
 ## Rack-Aware Placement
 
-The DC/OS Cassandra Service does not currently leverage rack information for placement decisions.  However, placement across racks can be performed manually using placement constraints; application-level configuration will still not be possible.   
+Apache Cassandra's Rack-Aware Replication is not supported at this time.
 
 ## Security
 
-The security features are not supported at this time.
+Apache Cassandra's native TLS, authentication, and authorization features are not supported at this time.
 
 ## Overlay networks
 
-When Cassandra is deployed on a virtual network, the configuration cannot be updated after installation.
+When the DC/OS Cassandra Service is deployed on a virtual network, the configuration cannot be updated after installation.
 
 ## Data Center Name
 
 Data Center Name:
 
-The name of the data center cannot be changed after Cassandra installation. `service.data_center` and `service.rack` options are not allowed to be modified once Cassandra is installed. 
+The name of the data center cannot be changed after installation. `service.data_center` and `service.rack` options are not allowed to be modified once Cassandra is installed. 
 
 ```
 "service": {
