@@ -106,10 +106,12 @@ public class DeploymentStep extends AbstractStep {
         tasks.clear();
 
         for (OfferRecommendation recommendation : recommendations) {
+            Protos.TaskInfo taskInfo;
             if (!(recommendation instanceof LaunchOfferRecommendation)) {
                 continue;
             }
-            Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo();
+            taskInfo = ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo();
+
             if (!taskInfo.getTaskId().getValue().equals("")) {
                 tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
             }

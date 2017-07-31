@@ -65,7 +65,7 @@ public class ResourceBuilder {
             return fromSpec(resourceSpec, resourceId);
         } else {
             VolumeSpec volumeSpec = getVolumeSpec(resource);
-            Optional<String> persistenceId = ResourceUtils.getPersistenceId(resource);
+            Optional<String> persistenceId = ResourceUtils.getPersistenceId(resource.toBuilder());
             Optional<String> sourceRoot = ResourceUtils.getSourceRoot(resource);
             return fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot);
         }
@@ -86,7 +86,7 @@ public class ResourceBuilder {
                 ValueUtils.getValue(resource),
                 ResourceUtils.getRole(resource),
                 resource.getRole(),
-                ResourceUtils.getPrincipal(resource).get());
+                ResourceUtils.getPrincipal(resource.toBuilder()).get());
     }
 
     private static VolumeSpec getVolumeSpec(Resource resource) {

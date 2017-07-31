@@ -78,7 +78,8 @@ class OfferEvaluationUtils {
                 Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId)
                         .setMesosResource(mesosResource)
                         .build();
-                offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
+                offerRecommendation = new ReserveOfferRecommendation(
+                        mesosResourcePool.getOffer(), resource.toBuilder());
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,
@@ -136,8 +137,7 @@ class OfferEvaluationUtils {
                         .build();
                 // Reservation of additional resources
                 offerRecommendation = new ReserveOfferRecommendation(
-                        mesosResourcePool.getOffer(),
-                        resource);
+                        mesosResourcePool.getOffer(), resource.toBuilder());
                 return new ReserveEvaluationOutcome(
                         pass(
                                 offerEvaluationStage,

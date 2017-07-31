@@ -17,6 +17,10 @@ public final class RangeUtils {
         // do not instantiate
     }
 
+    public static Protos.Value.Ranges fromSingleValue(long value) {
+        return Protos.Value.Ranges.newBuilder().addRange(Range.newBuilder().setBegin(value).setEnd(value)).build();
+    }
+
     /**
      * Combines and flattens the provided sets of ranges into a unified set.
      */

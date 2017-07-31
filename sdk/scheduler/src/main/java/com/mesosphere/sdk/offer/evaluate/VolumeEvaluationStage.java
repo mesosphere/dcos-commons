@@ -120,8 +120,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 // Initial reservation of resources
                 logger.info("    Resource '{}' requires a RESERVE operation", volumeSpec.getName());
                 offerRecommendations.add(new ReserveOfferRecommendation(
-                        mesosResourcePool.getOffer(),
-                        resource));
+                        mesosResourcePool.getOffer(), resource.toBuilder()));
             }
         }
 

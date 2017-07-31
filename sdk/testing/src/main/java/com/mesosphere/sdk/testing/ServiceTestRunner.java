@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.StringJoiner;
 
 import org.apache.mesos.SchedulerDriver;
+import com.mesosphere.sdk.specification.PortSpec;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,7 @@ import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.DefaultPortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -304,7 +305,7 @@ public class ServiceTestRunner {
         taskEnv.putAll(DCOS_TASK_ENVVARS);
         // Inject envvars for any ports with envvar advertisement configured:
         for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-            if (!(resourceSpec instanceof PortSpec)) {
+            if (!(resourceSpec instanceof DefaultPortSpec)) {
                 continue;
             }
             PortSpec portSpec = (PortSpec) resourceSpec;
@@ -317,7 +318,9 @@ public class ServiceTestRunner {
                 // See: /proc/sys/net/ipv4/ip_local_port_range
                 portVal = RANDOM.nextInt(61000 - 32768 /* result: 0 thru 28231 */) + 32768;
             }
-            taskEnv.put(portSpec.getEnvKey(), String.valueOf(portVal));
+            if (portSpec.getEnvKey().isPresent()) {
+                taskEnv.put(portSpec.getEnvKey().get(), String.valueOf(portVal));
+            }
         }
         return taskEnv;
     }

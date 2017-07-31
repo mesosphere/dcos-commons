@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.LegacyLaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import org.apache.mesos.Protos;
@@ -12,7 +12,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo}, ensuring
- * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
+ * that this metadata is available in the task's environment and creating a {@link LegacyLaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
@@ -55,8 +55,8 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
 
         return pass(
                 this,
-                Arrays.asList(new LaunchOfferRecommendation(
-                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch, useDefaultExecutor)),
+                Arrays.asList(new LegacyLaunchOfferRecommendation(
+                        offer, taskBuilder.build(), shouldLaunch)),
                 "Added launch information to offer requirement")
                 .build();
     }

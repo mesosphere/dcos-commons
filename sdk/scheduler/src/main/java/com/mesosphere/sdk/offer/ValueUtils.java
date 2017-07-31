@@ -115,6 +115,10 @@ public class ValueUtils {
         }
     }
 
+    public static Boolean isPositive(Value value) {
+        return compare(value, getZero(value.getType())) > 0;
+    }
+
     private static Integer compare(Value.Scalar scal1, Value.Scalar scal2) {
         double val1 = scal1.getValue();
         double val2 = scal2.getValue();

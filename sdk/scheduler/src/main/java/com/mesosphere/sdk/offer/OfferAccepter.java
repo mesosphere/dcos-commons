@@ -64,8 +64,8 @@ public class OfferAccepter {
         List<Operation> operations = new ArrayList<>();
 
         for (OfferRecommendation recommendation : recommendations) {
-            if (recommendation instanceof LaunchOfferRecommendation &&
-                    !((LaunchOfferRecommendation) recommendation).shouldLaunch()) {
+            if ((recommendation instanceof LaunchOfferRecommendation &&
+                    !((LaunchOfferRecommendation) recommendation).shouldLaunch())) {
                 LOGGER.info("Skipping launch of transient Operation: {}",
                         TextFormat.shortDebugString(recommendation.getOperation()));
             } else {

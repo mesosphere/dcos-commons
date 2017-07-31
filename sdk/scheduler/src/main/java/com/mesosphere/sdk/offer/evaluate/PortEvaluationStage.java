@@ -114,7 +114,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
 
-        final String portEnvKey = portSpec.getEnvKey();
+        final String portEnvKey = portSpec.getEnvKey().get();
         final String portEnvVal = Long.toString(port);
         if (getTaskName().isPresent()) {
             String taskName = getTaskName().get();

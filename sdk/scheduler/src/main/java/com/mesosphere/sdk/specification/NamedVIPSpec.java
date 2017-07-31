@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -15,7 +17,7 @@ import java.util.Collection;
 /**
  * This class represents a port mapped to a DC/OS named VIP.
  */
-public class NamedVIPSpec extends PortSpec {
+public class NamedVIPSpec extends DefaultPortSpec {
     @NotNull
     @Size(min = 1)
     private final String protocol;
@@ -46,6 +48,8 @@ public class NamedVIPSpec extends PortSpec {
 
         ValidationUtils.validate(this);
     }
+
+
 
     @JsonProperty("protocol")
     public String getProtocol() {
@@ -79,5 +83,11 @@ public class NamedVIPSpec extends PortSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public void accept(SpecVisitor specVisitor) throws SpecVisitorException {
+        specVisitor.visit(this);
+        specVisitor.finalizeVisit(this);
     }
 }

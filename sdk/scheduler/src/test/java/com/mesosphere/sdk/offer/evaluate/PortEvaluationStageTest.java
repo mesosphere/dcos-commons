@@ -92,7 +92,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     private PortSpec getPortSpec(PodInstance podInstance) {
         return (PortSpec) podInstance.getPod().getTasks().get(0).getResourceSet().getResources().stream()
-                .filter(resourceSpec -> resourceSpec instanceof PortSpec)
+                .filter(resourceSpec -> resourceSpec instanceof DefaultPortSpec)
                 .findFirst()
                 .get();
     }
@@ -119,7 +119,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Integer requestedPort = 80;  // request a port that's not available in the offer.
         String expectedPortEnvVar = "PORT_TEST_IGNORED";
         String expectedPortName = "overlay-port-name";
-        PortSpec portSpec = new PortSpec(
+        PortSpec portSpec = new DefaultPortSpec(
                 getPort(requestedPort),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -159,7 +159,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         String expectedDynamicOverlayPortEnvvar = "PORT_TEST_DYNAMIC_OVERLAY";
         String expectedPortName = "dyn-port-name";
         long expectedDynamicallyAssignedPort = 1025;
-        PortSpec portSpec = new PortSpec(
+        PortSpec portSpec = new DefaultPortSpec(
                 getPort(0),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -201,7 +201,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         String expextedDynamicOverlayPortEnvvar = "PORT_TEST_DYNAMIC";
         String expectedExplicitPortName = "explicit-port";
         String expectedDynamicPortName = "dynamic-port";
-        PortSpec portSpec = new PortSpec(
+        PortSpec portSpec = new DefaultPortSpec(
                 getPort(DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -210,7 +210,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 expectedExplicitPortName,
                 TestConstants.PORT_VISIBILITY,
                 getOverlayNetworkNames());
-        PortSpec dynamPortSpec = new PortSpec(
+        PortSpec dynamPortSpec = new DefaultPortSpec(
                 getPort(0),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -437,7 +437,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10050);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        PortSpec portSpec = new PortSpec(
+        PortSpec portSpec = new DefaultPortSpec(
                 getPort(0),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,

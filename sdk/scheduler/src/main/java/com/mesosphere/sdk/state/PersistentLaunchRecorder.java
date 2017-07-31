@@ -31,13 +31,11 @@ public class PersistentLaunchRecorder implements OperationRecorder {
             return;
         }
 
-        LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
-        Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
-
+        Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) offerRecommendation).getStoreableTaskInfo();
         Optional<PodInstance> podInstance = getPodInstance(taskInfo);
-
         Optional<Protos.TaskStatus> taskStatus = Optional.empty();
         String taskStatusDescription = "";
+
         if (!taskInfo.getTaskId().getValue().equals("")) {
             // Initialize the task status as TASK_STAGING. In practice we should never actually receive a TASK_STAGING
             // status from Mesos so this is effectively an internal stub for the scheduler's own use.

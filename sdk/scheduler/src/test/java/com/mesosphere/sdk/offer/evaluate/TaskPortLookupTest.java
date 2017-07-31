@@ -1,18 +1,19 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.specification.PortSpec;
 import org.apache.mesos.Protos;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Tests for {@link TaskPortLookup}.
@@ -23,7 +24,8 @@ public class TaskPortLookupTest {
             .clearDiscovery()
             .clearCommand()
             .build();
-    @Mock PortSpec mockPortSpec;
+    @Mock
+    PortSpec mockPortSpec;
 
     @Before
     public void initMocks() {
@@ -47,7 +49,7 @@ public class TaskPortLookupTest {
 
         TaskPortLookup taskPortLookup = new TaskPortLookup(testTaskBuilder.build());
         when(mockPortSpec.getPortName()).thenReturn("test-port");
-        when(mockPortSpec.getEnvKey()).thenReturn("PORT_ENV_VAR");
+        when(mockPortSpec.getEnvKey()).thenReturn(Optional.of("PORT_ENV_VAR"));
         assertEquals(Long.valueOf(12345), taskPortLookup.getPriorPort(mockPortSpec).get());
     }
 

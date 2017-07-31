@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -92,22 +93,22 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoRecommendations() throws InvalidRequirementException, IOException {
+    public void testEvaluateNoRecommendations() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
+        when(mockOfferEvaluator.evaluate2(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.recommendations.isEmpty());
-        verify(mockOfferEvaluator).evaluate(podInstanceRequirement, OFFERS);
+        verify(mockOfferEvaluator).evaluate2(podInstanceRequirement, OFFERS);
         assertTrue(step.isPrepared());
     }
 
     @Test
-    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException, IOException {
+    public void testEvaluateNoAcceptedOffers() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
+        when(mockOfferEvaluator.evaluate2(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
         when(mockOfferAccepter.accept(mockSchedulerDriver, mockRecommendations)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
@@ -117,10 +118,10 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateAcceptedOffers() throws InvalidRequirementException, IOException {
+    public void testEvaluateAcceptedOffers() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
+        when(mockOfferEvaluator.evaluate2(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
         when(mockOfferAccepter.accept(mockSchedulerDriver, mockRecommendations)).thenReturn(ACCEPTED_IDS);
 
         assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)));

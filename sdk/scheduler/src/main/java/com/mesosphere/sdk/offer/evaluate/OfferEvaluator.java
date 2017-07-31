@@ -2,9 +2,12 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.evaluate.placement.OfferConsumptionVisitor;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.OfferEvaluationComponentFactory;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
@@ -34,18 +37,121 @@ public class OfferEvaluator {
     private final UUID targetConfigId;
     private final SchedulerConfig schedulerConfig;
     private final boolean useDefaultExecutor;
+    private Capabilities capabilities;
+    private OfferEvaluationComponentFactory offerEvaluationComponentFactory;
 
     public OfferEvaluator(
             StateStore stateStore,
             String serviceName,
             UUID targetConfigId,
             SchedulerConfig schedulerConfig,
-            boolean useDefaultExecutor) {
+            boolean useDefaultExecutor,
+            Capabilities capabilities) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
         this.schedulerConfig = schedulerConfig;
         this.useDefaultExecutor = useDefaultExecutor;
+        this.capabilities = capabilities;
+    }
+
+    private OfferEvaluationComponentFactory getOfferEvaluationComponentFactory() {
+        if (offerEvaluationComponentFactory == null) {
+            offerEvaluationComponentFactory = new OfferEvaluationComponentFactory(
+                    capabilities, serviceName, stateStore.fetchFrameworkId().get(), targetConfigId, schedulerConfig);
+        }
+
+        return offerEvaluationComponentFactory;
+    }
+
+    public List<OfferRecommendation> evaluate2(
+            PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers) throws SpecVisitorException {
+        Map<String, Protos.TaskInfo> allTasks = stateStore.fetchTasks().stream()
+                .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
+        List<Protos.TaskInfo> thisPodTasks =
+                TaskUtils.getTaskNames(podInstanceRequirement.getPodInstance()).stream()
+                        .map(taskName -> allTasks.get(taskName))
+                        .filter(taskInfo -> taskInfo != null)
+                        .collect(Collectors.toList());
+        logger.info("Pod: {}, taskInfos for evaluation.", podInstanceRequirement.getPodInstance().getName());
+        thisPodTasks.forEach(info -> logger.info(TextFormat.shortDebugString(info)));
+
+        List<Protos.TaskInfo> runningTasks = thisPodTasks.stream()
+                .filter(task -> {
+                    Optional<Protos.TaskStatus> status = stateStore.fetchStatus(task.getName());
+
+                    return status.isPresent() && status.get().getState().equals(Protos.TaskState.TASK_RUNNING);
+                })
+                .collect(Collectors.toList());
+        boolean isRunning = !runningTasks.isEmpty();
+
+        OfferEvaluationComponentFactory offerEvaluationComponentFactory = getOfferEvaluationComponentFactory();
+        for (int i = 0; i < offers.size(); ++i) {
+            Protos.Offer offer = offers.get(i);
+            MesosResourcePool resourcePool = new MesosResourcePool(
+                    offer,
+                    OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
+
+            SpecVisitor<List<EvaluationOutcome>> launchOperationVisitor =
+                    offerEvaluationComponentFactory.getLaunchOperationVisitor(
+                            resourcePool, thisPodTasks, allTasks.values(), isRunning, null);
+            OfferConsumptionVisitor offerConsumptionVisitor =
+                    offerEvaluationComponentFactory.getOfferConsumptionVisitor(
+                            resourcePool, runningTasks, launchOperationVisitor);
+            ExistingPodVisitor existingPodVisitor = offerEvaluationComponentFactory.getExistingPodVisitor(
+                    resourcePool, thisPodTasks, offerConsumptionVisitor);
+            SpecVisitor<VisitorResultCollector.Empty> executorVisitor =
+                    offerEvaluationComponentFactory.getExecutorVisitor(existingPodVisitor);
+
+            VisitorResultCollector<List<OfferRecommendation>> unreserveCollector =
+                    existingPodVisitor.getVisitorResultCollector();
+            VisitorResultCollector<List<EvaluationOutcome>> evaluationOutcomeCollector =
+                    offerConsumptionVisitor.getVisitorResultCollector();
+            VisitorResultCollector<List<EvaluationOutcome>> launchCollector =
+                    launchOperationVisitor.getVisitorResultCollector();
+
+            podInstanceRequirement.accept(executorVisitor);
+            executorVisitor.compileResult();
+
+            int failedOutcomeCount = 0;
+            StringBuilder outcomeDetails = new StringBuilder();
+            List<EvaluationOutcome> outcomes = evaluationOutcomeCollector.getResult();
+            outcomes.addAll(launchCollector.getResult());
+            for (EvaluationOutcome outcome : outcomes) {
+                if (!outcome.isPassing()) {
+                    ++failedOutcomeCount;
+                }
+                logOutcome(outcomeDetails, outcome, "");
+            }
+            if (outcomeDetails.length() != 0) {
+                // trim extra trailing newline:
+                outcomeDetails.deleteCharAt(outcomeDetails.length() - 1);
+            }
+
+            if (failedOutcomeCount != 0) {
+                logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
+                        i + 1,
+                        offer.getId().getValue(),
+                        failedOutcomeCount,
+                        evaluationOutcomeCollector.getResult().size(),
+                        outcomeDetails.toString());
+            } else {
+                List<OfferRecommendation> recommendations = outcomes.stream()
+                        .map(outcome -> outcome.getOfferRecommendations())
+                        .flatMap(xs -> xs.stream())
+                        .collect(Collectors.toList());
+                recommendations.addAll(unreserveCollector.getResult());
+                logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
+                        i + 1,
+                        evaluationOutcomeCollector.getResult().size(),
+                        recommendations.size(),
+                        outcomeDetails.toString());
+
+                return recommendations;
+            }
+        }
+
+        return Collections.emptyList();
     }
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
@@ -262,7 +368,7 @@ public class OfferEvaluator {
         List<ResourceSpec> simpleResources = new ArrayList<>();
 
         for (ResourceSpec resourceSpec : resourceSet.getResources()) {
-            if (resourceSpec instanceof PortSpec) {
+            if (resourceSpec instanceof DefaultPortSpec) {
                 if (((PortSpec) resourceSpec).getPort() == 0) {
                     dynamicPorts.add(resourceSpec);
                 } else {
@@ -292,8 +398,7 @@ public class OfferEvaluator {
 
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
             evaluationStages.add(
-                    new VolumeEvaluationStage(
-                            volumeSpec, null, Optional.empty(), Optional.empty(), useDefaultExecutor));
+                    new VolumeEvaluationStage(volumeSpec, null, Optional.empty(), Optional.empty(), true));
         }
 
         String preReservedRole = null;
@@ -308,7 +413,7 @@ public class OfferEvaluator {
                 if (resourceSpec instanceof NamedVIPSpec) {
                     evaluationStages.add(
                             new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskName, Optional.empty()));
-                } else if (resourceSpec instanceof PortSpec) {
+                } else if (resourceSpec instanceof DefaultPortSpec) {
                     evaluationStages.add(new PortEvaluationStage((PortSpec) resourceSpec, taskName, Optional.empty()));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
@@ -323,8 +428,7 @@ public class OfferEvaluator {
 
             for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
                 evaluationStages.add(
-                        new VolumeEvaluationStage(
-                                volumeSpec, taskName, Optional.empty(), Optional.empty(), useDefaultExecutor));
+                        new VolumeEvaluationStage(volumeSpec, taskName, Optional.empty(), Optional.empty(), true));
             }
 
             if (shouldAddExecutorResources) {

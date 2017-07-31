@@ -114,6 +114,11 @@ public class DefaultResourceSpec implements ResourceSpec {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
+    @Override
+    public ResourceSpec getResourceSpec() {
+        return this;
+    }
+
 
     /**
      * {@code DefaultResourceSpec} builder static inner class.

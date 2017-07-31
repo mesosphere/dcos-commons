@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -15,7 +16,6 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -99,8 +99,8 @@ public class DefaultPlanScheduler implements PlanScheduler {
         // requirement and accept them, if any are found:
         List<OfferRecommendation> recommendations = null;
         try {
-            recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
-        } catch (InvalidRequirementException | IOException e) {
+            recommendations = offerEvaluator.evaluate2(podInstanceRequirement, offers);
+        } catch (SpecVisitorException e) {
             logger.error("Failed generate OfferRecommendations.", e);
             return Collections.emptyList();
         }

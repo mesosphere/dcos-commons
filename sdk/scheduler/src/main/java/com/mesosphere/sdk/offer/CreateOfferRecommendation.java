@@ -16,6 +16,7 @@ public class CreateOfferRecommendation implements OfferRecommendation {
 
     public CreateOfferRecommendation(Offer offer, Resource resource) {
         this.offer = offer;
+
         this.operation = Operation.newBuilder()
                 .setType(Operation.Type.CREATE)
                 .setCreate(Operation.Create.newBuilder()

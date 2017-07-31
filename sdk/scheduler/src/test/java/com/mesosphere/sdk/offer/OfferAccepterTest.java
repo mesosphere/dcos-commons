@@ -45,12 +45,11 @@ public class OfferAccepterTest {
         OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
         accepter.accept(
                 driver,
-                Arrays.asList(new LaunchOfferRecommendation(
+                Arrays.asList(new LaunchGroupOfferRecommendation(
                         offer,
                         taskInfoBuilder.build(),
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false,
-                        true)));
+                        false)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),
@@ -63,18 +62,14 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
+        taskInfoBuilder.setExecutor(Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID));
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
         accepter.accept(
                 driver,
-                Arrays.asList(new LaunchOfferRecommendation(
-                        offer,
-                        taskInfoBuilder.build(),
-                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false,
-                        false)));
+                Arrays.asList(new LegacyLaunchOfferRecommendation(offer, taskInfoBuilder.build(), false)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(
                 anyCollectionOf(OfferID.class),

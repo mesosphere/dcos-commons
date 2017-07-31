@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -90,6 +92,11 @@ public class PodInstanceRequirement {
                 .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t))
                 .count() > 0;
         return podConflicts && anyTaskConflicts;
+    }
+
+    public void accept(SpecVisitor visitor) throws SpecVisitorException {
+        visitor.visit(this);
+        getPodInstance().getPod().accept(visitor);
     }
 
     @Override
