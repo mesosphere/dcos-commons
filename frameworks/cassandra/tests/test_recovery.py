@@ -7,7 +7,6 @@ import shakedown
 from tests.config import *
 import sdk_cmd as cmd
 import sdk_install
-import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
@@ -19,10 +18,7 @@ def configure_package(configure_universe):
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
 
-        # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False)
-
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
         yield # let the test session execute
     finally:
@@ -52,7 +48,6 @@ def test_node_replace_replaces_node():
 @sdk_utils.dcos_1_9_or_higher # dcos task exec not supported < 1.9
 def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
-    pod_host = get_pod_host(pod_to_replace)
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
