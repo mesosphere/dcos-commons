@@ -367,6 +367,6 @@ def read_secret(task_name, command):
     lines = sdk_cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
     print(lines)
     for i in lines:
-        if i.startswith(secret_content_default):
+        if i.strip().startswith(secret_content_default):
             return i
     raise Exception("Failed to read secret")
