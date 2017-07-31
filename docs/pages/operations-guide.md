@@ -374,11 +374,9 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 
   
 
-### Absolute and Relative File Paths for Secrets
+**Note:** Absolute paths, with leading slash character, are not allowed.   The file paths for secret is relative path to sandbox, the secret file is placed under the sandbox. 
 
- If `file` is a relative path, the secret file is placed under the sandbox. Absolute paths, with leading slash character, are only allowed if the related pod definition contains an `image-name`.  **Note:** The`user` running the tasks must have permission to create the given absolute file path. 
- 
-Below is a valid secret definition with a Docker `image-name`. The `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
+Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
   
 ```yaml
 name: secret-app/instance2
@@ -387,13 +385,13 @@ pods:
     count: {{COUNT}}
     container:
       image-name: ubuntu:14.04
-    user: root
+    user: nobody
     secrets:
       # absolute path
       secret_name4:
         secret: secret-app/Secret_Path1
         env-key: Secret_Environment_Key
-        file: /etc/keys/keyset1/Secret_FilePath1
+        file: etc/keys/keyset1/Secret_FilePath1
       # relative path in Sandbox
       secret_name5:
         secret: secret-app/instance1/Secret_Path2
