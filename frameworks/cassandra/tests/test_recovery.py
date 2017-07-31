@@ -4,13 +4,17 @@ import time
 
 import shakedown
 
-from tests.config import *
 import sdk_cmd as cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
 import sdk_utils
+
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT
+)
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -41,6 +45,7 @@ def test_node_replace_replaces_node():
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
+    sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
 
@@ -51,7 +56,7 @@ def test_node_replace_replaces_seed_node():
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
-    sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME)
+    sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
 
@@ -110,4 +115,3 @@ def get_pod_host(pod_name):
         if labels[i]['key'] == 'offer_hostname':
             return labels[i]['value']
     return None
-
