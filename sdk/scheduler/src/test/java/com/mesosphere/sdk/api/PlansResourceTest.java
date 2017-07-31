@@ -25,18 +25,12 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class PlansResourceTest {
-    @Mock
-    private Plan mockPlan;
-    @Mock
-    private Strategy<Phase> mockPlanStrategy;
-    @Mock
-    private Phase mockPhase;
-    @Mock
-    private Strategy<Step> mockPhaseStrategy;
-    @Mock
-    private Step mockStep;
-    @Mock
-    private PlanScheduler planScheduler;
+    @Mock private Plan mockPlan;
+    @Mock private Strategy<Phase> mockPlanStrategy;
+    @Mock private Phase mockPhase;
+    @Mock private Strategy<Step> mockPhaseStrategy;
+    @Mock private Step mockStep;
+    @Mock private PlanScheduler planScheduler;
 
     private static final UUID stepId = UUID.randomUUID();
     private static final String stepName = "step-name";
@@ -192,7 +186,6 @@ public class PlansResourceTest {
     }
 
     @Test
-
     public void testInterruptUnknownId() {
         Response response = resource.interruptCommand("bad-name", null);
         assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
