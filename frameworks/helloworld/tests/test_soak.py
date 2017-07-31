@@ -37,6 +37,7 @@ def test_soak_secrets_update():
     secret_content_alternative = "hello-world-secret-data-alternative"
     test_soak_secrets_framework_alive()
 
+    sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret1".format(secret_content_alternative))
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret2".format(secret_content_alternative))
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret3".format(secret_content_alternative))
