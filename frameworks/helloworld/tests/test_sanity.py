@@ -9,7 +9,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_test_upgrade
+import sdk_upgrade
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
@@ -28,13 +28,15 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 def configure_package(configure_universe):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_install.install(
+
+        sdk_upgrade.test_upgrade(
+            PACKAGE_NAME,
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
@@ -61,7 +63,7 @@ def test_mesos_v1_api():
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "mesos_api_version": "V1"}}
+        additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "mesos_api_version": "V1"}}
     )
     check_running(FOLDERED_SERVICE_NAME)
     sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
@@ -71,7 +73,7 @@ def test_mesos_v1_api():
         PACKAGE_NAME,
         DEFAULT_TASK_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
 
 @pytest.mark.sanity
@@ -242,7 +244,7 @@ def test_state_refresh_disable_cache():
 
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
     check_running(FOLDERED_SERVICE_NAME)
-    shakedown.deployment_wait() # ensure marathon thinks the deployment is complete too
+    shakedown.deployment_wait()  # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
@@ -272,6 +274,7 @@ def test_lock():
 
     # Scale to 2 instances
     labels = app["labels"]
+    original_labels = labels.copy()
     labels.pop("MARATHON_SINGLE_INSTANCE_APP")
     marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": labels})
     shakedown.deployment_wait()
@@ -287,3 +290,7 @@ def test_lock():
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
+
+    # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
+    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": original_labels, "instances": 1}, force=True)
+    shakedown.deployment_wait()

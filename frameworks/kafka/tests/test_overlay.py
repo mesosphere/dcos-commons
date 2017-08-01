@@ -1,10 +1,8 @@
-import os
 import pytest
 import shakedown
 
 import sdk_install as install
 import sdk_tasks
-import sdk_plan
 import sdk_networks
 import sdk_utils
 
@@ -22,7 +20,6 @@ def configure_package(configure_universe):
             DEFAULT_BROKER_COUNT,
             service_name=SERVICE_NAME,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
         yield # let the test session execute
     finally:

@@ -49,7 +49,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     @Valid
     @NotNull
-    @Size(min = 1, message = "Atleast one pod should be configured.")
+    @Size(min = 1, message = "At least one pod must be configured.")
     @UniquePodType(message = "Pod types must be unique")
     private List<PodSpec> pods;
 
@@ -75,8 +75,25 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = user;
+        this.user = getUser(user, pods);
         ValidationUtils.validate(this);
+    }
+
+    @VisibleForTesting
+    static String getUser(String user, List<PodSpec> podSpecs) {
+        if (!StringUtils.isBlank(user)) {
+            return user;
+        }
+
+        Optional<PodSpec> podSpecOptional = podSpecs.stream()
+                .filter(podSpec -> podSpec.getUser() != null && podSpec.getUser().isPresent())
+                .findFirst();
+
+        if (podSpecOptional.isPresent()) {
+            return podSpecOptional.get().getUser().get();
+        } else {
+            return DcosConstants.DEFAULT_SERVICE_USER;
+        }
     }
 
     private DefaultServiceSpec(Builder builder) {

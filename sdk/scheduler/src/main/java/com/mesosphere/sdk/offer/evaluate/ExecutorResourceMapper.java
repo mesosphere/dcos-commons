@@ -132,24 +132,24 @@ public class ExecutorResourceMapper {
     }
 
     private Optional<ResourceLabels> findMatchingDiskSpec(
-            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
+            Protos.Resource executorResource, Collection<ResourceSpec> resourceSpecs) {
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (!(resourceSpec instanceof VolumeSpec)) {
                 continue;
             }
 
-            if (taskResource.getDisk().getVolume().getContainerPath().equals(
+            if (executorResource.getDisk().getVolume().getContainerPath().equals(
                     ((VolumeSpec) resourceSpec).getContainerPath())) {
-                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
+                Optional<String> resourceId = ResourceUtils.getResourceId(executorResource);
                 if (!resourceId.isPresent()) {
-                    LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                    LOGGER.error("Failed to find resource ID for resource: {}", executorResource);
                     continue;
                 }
 
                 return Optional.of(new ResourceLabels(
                         resourceSpec,
                         resourceId.get(),
-                        Optional.of(taskResource.getDisk().getPersistence().getId())));
+                        Optional.of(executorResource.getDisk().getPersistence().getId())));
             }
         }
 

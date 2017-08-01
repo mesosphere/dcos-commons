@@ -33,12 +33,12 @@
         "data_center": {
           "description": "The name of the data center this cluster is running in",
           "type": "string",
-          "default": "dc1"
+          "default": "datacenter1"
         },
         "rack": {
           "description": "The name of the rack this cluster is running on",
           "type": "string",
-          "default": "rac1"
+          "default": "rack1"
         },
         "remote_seeds": {
           "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",

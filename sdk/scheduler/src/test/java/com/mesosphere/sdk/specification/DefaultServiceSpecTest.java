@@ -594,6 +594,27 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
     }
 
+    @Test
+    public void getUserFromPod() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getUser()).thenReturn(Optional.of("user"));
+        Assert.assertEquals("user", DefaultServiceSpec.getUser(null, Arrays.asList(podSpec)));
+    }
+
+    @Test
+    public void getUserFromService() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getUser()).thenReturn(Optional.of("pod-user"));
+        Assert.assertEquals("service-user", DefaultServiceSpec.getUser("service-user", Arrays.asList(podSpec)));
+    }
+
+    @Test
+    public void getUserFromDefault() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getUser()).thenReturn(Optional.empty());
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, Arrays.asList(podSpec)));
+    }
+
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
