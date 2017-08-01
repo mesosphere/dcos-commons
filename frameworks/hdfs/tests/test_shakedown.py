@@ -14,7 +14,8 @@ import sdk_upgrade
 import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
-    FOLDERED_SERVICE_NAME
+    FOLDERED_SERVICE_NAME,
+    DEFAULT_TASK_COUNT
 )
 
 
