@@ -411,7 +411,7 @@ See [Advanced update actions](#advanced-update-actions) for commands you can use
 
 ### Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier
 
-If you do not have Enterprise DC/OS 1.10, the CLI commands above are not available. For these versions, you can perform changes from the DC/OS GUI
+If you do not have Enterprise DC/OS 1.10, the CLI commands above are not available. For these versions, you can perform changes from the DC/OS GUI.
 
 <!-- END DUPLICATE BLOCK -->
 
@@ -505,15 +505,13 @@ For example, let's say `_NODEPOD_-3`'s host system has died and `_NODEPOD_-3` ne
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
-# Upgrading and Downgrading
-
-The instructions below show how to safely update one version of a service to the next.
+The instructions below show how to safely update one version of _SERVICENAME_ to the next.
 
 ##### Viewing available versions
 
 The `update package-versions` command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).
 
-For example, for _SERVICENAME_, run:
+For example, run:
 ```bash
 $ dcos _PKGNAME_ update package-versions
 ```
