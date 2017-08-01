@@ -7,6 +7,7 @@ import dcos.marathon
 import os
 import shakedown
 import time
+from retrying import retry
 
 import sdk_api
 import sdk_plan

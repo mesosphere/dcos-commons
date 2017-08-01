@@ -38,15 +38,12 @@ def configure_package(configure_universe):
                 service_name=FOLDERED_SERVICE_NAME,
                 additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
         else:
-            # TODO: IF YOU ARE SEEING THIS TEST FAIL AFTER A NEW UNIVERSE RELEASE, JUST REMOVE THE `test_version_options` PARAMETER BELOW (AND REMOVE THESE COMMENTS)
-            # REASON: 1.1.25-0.10.1.0-beta defaults to user=root, whereas the following release will default to user=nobody (and this value can't change in an upgrade)
             sdk_upgrade.test_upgrade(
                 "beta-{}".format(PACKAGE_NAME),
                 PACKAGE_NAME,
                 DEFAULT_BROKER_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} },
-                test_version_options={"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"} })
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
 
         yield # let the test session execute
     finally:

@@ -320,7 +320,7 @@ You can reference the secret as a file if your service needs to read secrets fro
 * SSL certificates.
 * Configuration files with sensitive data.
 
-For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
+For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-svc/SecretPath1`, as shown below.
 
 ```yaml
 name: secret-svc/instance1
@@ -374,30 +374,28 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 
   
 
-### Absolute and Relative File Paths for Secrets
+**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox. 
 
- If `file` is a relative path, the secret file is placed under the sandbox. Absolute paths, with leading slash character, are only allowed if the related pod definition contains an `image-name`.  **Note:** The`user` running the tasks must have permission to create the given absolute file path. 
- 
-Below is a valid secret definition with a Docker `image-name`. The `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
+Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
+  * Supported: `etc/keys/Secret_FilePath1`
+  * Not supported: `/etc/keys/Secret_FilePath1`
   
 ```yaml
-name: secret-app/instance2
+name: secret-svc/instance2
 pods:
   pod-with-image:
     count: {{COUNT}}
     container:
       image-name: ubuntu:14.04
-    user: root
+    user: nobody
     secrets:
-      # absolute path
       secret_name4:
-        secret: secret-app/Secret_Path1
+        secret: secret-svc/Secret_Path1
         env-key: Secret_Environment_Key
-        file: /etc/keys/keyset1/Secret_FilePath1
-      # relative path in Sandbox
+        file: etc/keys/Secret_FilePath1
       secret_name5:
-        secret: secret-app/instance1/Secret_Path2
-        file: data/keys/keyset2/Secret_FilePath2
+        secret: secret-svc/instance1/Secret_Path2
+        file: data/keys/keyset/Secret_FilePath2
     tasks:
       ....
 ```
