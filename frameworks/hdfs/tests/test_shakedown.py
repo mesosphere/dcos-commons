@@ -13,9 +13,11 @@ import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 from tests.config import (
-    PACKAGE_NAME,
+    DEFAULT_HDFS_TIMEOUT,
+    DEFAULT_TASK_COUNT,
     FOLDERED_SERVICE_NAME,
-    DEFAULT_TASK_COUNT
+    PACKAGE_NAME,
+    ZK_SERVICE_PATH
 )
 
 
