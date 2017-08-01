@@ -9,17 +9,17 @@ public class RawPort {
 
     private final Integer port;
     private final String envKey;
-    private final Boolean endpoint;
+    private final Boolean advertise;
     private final RawVip vip;
 
     private RawPort(
             @JsonProperty("port") Integer port,
             @JsonProperty("env-key") String envKey,
-            @JsonProperty("endpoint") Boolean endpoint,
+            @JsonProperty("advertise") Boolean advertise,
             @JsonProperty("vip") RawVip vip) {
         this.port = port;
         this.envKey = envKey;
-        this.endpoint = endpoint;
+        this.advertise = advertise;
         this.vip = vip;
     }
 
@@ -31,8 +31,8 @@ public class RawPort {
         return envKey;
     }
 
-    public boolean isEndpoint() {
-        return endpoint != null && endpoint;
+    public boolean isAdvertise() {
+        return advertise != null && advertise;
     }
 
     public RawVip getVip() {

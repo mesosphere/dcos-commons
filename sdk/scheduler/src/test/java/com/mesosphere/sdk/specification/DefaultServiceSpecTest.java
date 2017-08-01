@@ -181,7 +181,7 @@ public class DefaultServiceSpecTest {
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains(
-                    "Duplicate port/endpoint names across different tasks: [across-pods, across-tasks, in-resource-set]"));
+                    "Service has duplicate advertised ports across tasks: [across-pods, across-tasks, in-resource-set]"));
         }
     }
 

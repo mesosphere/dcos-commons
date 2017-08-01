@@ -32,10 +32,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     private Optional<String> resourceId;
     private final boolean useHostPorts;
 
-    public PortEvaluationStage(
-            PortSpec portSpec,
-            String taskName,
-            Optional<String> resourceId) {
+    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
         this.portSpec = portSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
@@ -47,8 +44,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         long assignedPort = portSpec.getValue().getRanges().getRange(0).getBegin();
         if (assignedPort == 0) {
             // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
-            Optional<Long> priorTaskPort = podInfoBuilder.lookupPriorTaskPortValue(
-                    getTaskName().get(), portSpec.getPortName(), portSpec.getEnvKey());
+            Optional<Long> priorTaskPort = podInfoBuilder.lookupPriorTaskPortValue(getTaskName().get(), portSpec);
             if (priorTaskPort.isPresent()) {
                 // Reuse the prior port value.
                 assignedPort = priorTaskPort.get();
@@ -109,7 +105,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     }
 
     /**
-     * Overridden in VIP evaluation
+     * Overridden in VIP evaluation.
      */
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
@@ -140,8 +136,10 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
                 // Add port to the health check environment (if defined):
                 if (taskBuilder.hasHealthCheck()) {
-                    taskBuilder.getHealthCheckBuilder().getCommandBuilder().setEnvironment(
-                            EnvUtils.withEnvVar(taskBuilder.getHealthCheck().getCommand().getEnvironment(), portEnvKey, portEnvVal));
+                    Protos.CommandInfo.Builder healthCheckCmdBuilder =
+                            taskBuilder.getHealthCheckBuilder().getCommandBuilder();
+                    healthCheckCmdBuilder.setEnvironment(
+                            EnvUtils.withEnvVar(healthCheckCmdBuilder.getEnvironment(), portEnvKey, portEnvVal));
                 } else {
                     LOGGER.info("Health check is not defined for task: {}", taskName);
                 }

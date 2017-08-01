@@ -131,7 +131,7 @@ public class YAMLToInternalMappers {
         }
         if (!duplicateEndpointNames.isEmpty()) {
             throw new IllegalArgumentException(String.format(
-                    "Service has duplicate endpoint names across tasks: %s", duplicateEndpointNames));
+                    "Service has duplicate advertised ports across tasks: %s", duplicateEndpointNames));
         }
     }
 
@@ -141,7 +141,7 @@ public class YAMLToInternalMappers {
             return;
         }
         for (Map.Entry<String, RawPort> entry : map.entrySet()) {
-            if (!entry.getValue().isEndpoint()) {
+            if (!entry.getValue().isAdvertise()) {
                 // Only check ports that are flagged as endpoints
                 continue;
             }
@@ -563,7 +563,7 @@ public class YAMLToInternalMappers {
             portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
 
             final Protos.DiscoveryInfo.Visibility visibility =
-                    rawPort.isEndpoint() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
+                    rawPort.isAdvertise() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();
