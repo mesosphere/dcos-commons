@@ -269,7 +269,7 @@ Let's say we have the following deployment of our brokers:
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. Redeploy `kafka-1` from the decommissioned broker to somewhere within the new whitelist: `dcos kafka pods replace kafka-1`.
+1. Redeploy `kafka-1` from the decommissioned broker to somewhere within the new whitelist: `dcos kafka pod replace kafka-1`.
 1. Wait for `kafka-1` to be up and healthy before continuing with any other replacement operations.
 
 
@@ -277,7 +277,7 @@ Let's say we have the following deployment of our brokers:
 
 This operation will restart a broker while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.
 
-1. Run `dcos kafka pods restart kafka-0`
+1. Run `dcos kafka pod restart kafka-0`
 
 ## Replacing brokers
 
@@ -285,12 +285,12 @@ This operation will move a broker to a new system and will discard the persisten
 
 **Note:** Brokers are not moved automatically. You must manually perform the following steps to move tasks to new systems. You can build your own automation to perform broker replacement automatically according to your own preferences.
 
-1. Run `dcos kafka pods replace kafka-0` to halt the current instance (if still running) and launch a new instance elsewhere.
+1. Run `dcos kafka pod replace kafka-0` to halt the current instance (if still running) and launch a new instance elsewhere.
 
 For example, let's say `kafka-0`'s host system has died and `kafka-0` needs to be moved.
 
 	```
-	dcos kafka pods replace kafka-0
+	dcos kafka pod replace kafka-0
 	```
 
 <a name="disaster-recovery"></a>

@@ -14,7 +14,7 @@ public class SchedulerStateTest {
 
     @Before
     public void beforeEach() {
-        schedulerState = new SchedulerState(new DefaultStateStore(new MemPersister()));
+        schedulerState = new SchedulerState(new StateStore(new MemPersister()));
     }
 
     @Test

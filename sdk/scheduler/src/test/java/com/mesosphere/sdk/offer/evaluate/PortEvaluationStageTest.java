@@ -81,8 +81,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         return new DefaultPodInstance(serviceSpec.getPods().get(0), 0);
     }
 
-    private List<String> getOverlayNetworkNames() {
-        return new ArrayList<>(Arrays.asList(DcosConstants.DEFAULT_OVERLAY_NETWORK));
+    private Collection<String> getOverlayNetworkNames() {
+        return Arrays.asList("dcos");
     }
 
     private PortSpec getPortSpec(PodInstance podInstance) {

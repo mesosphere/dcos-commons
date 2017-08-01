@@ -2,8 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
@@ -15,8 +13,8 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -172,6 +170,7 @@ public class DefaultSchedulerTest {
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("badhost-shouldbeignored:2181")
                 .pods(Arrays.asList(pods))
+                .user(TestConstants.SERVICE_USER)
                 .build();
     }
 
@@ -196,8 +195,8 @@ public class DefaultSchedulerTest {
 
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
-        stateStore = new DefaultStateStore(new PersisterCache(new MemPersister()));
-        configStore = new DefaultConfigStore<>(
+        stateStore = new StateStore(new PersisterCache(new MemPersister()));
+        configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())

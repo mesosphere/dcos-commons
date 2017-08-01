@@ -1,6 +1,4 @@
-import os
 import pytest
-import time
 
 from xml.etree import ElementTree
 # Do not use import *; it makes it harder to determine the origin of config
@@ -12,21 +10,19 @@ import sdk_install
 import sdk_networks
 import sdk_utils
 import sdk_plan
+import sdk_tasks
 
 import shakedown
-
-overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-    reason="overlay tests currently broken in strict")
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute
     finally:
@@ -40,7 +36,6 @@ def pre_test_setup():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     hdfs_tasks = shakedown.shakedown.get_service_task_ids(PACKAGE_NAME)
@@ -52,7 +47,6 @@ def test_tasks_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
     observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
@@ -67,7 +61,6 @@ def test_endpoints_on_overlay():
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_write_and_read_data_on_overlay():
     write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)

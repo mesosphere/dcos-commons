@@ -1,18 +1,13 @@
-import os
 import pytest
 import shakedown
 
 import sdk_install as install
 import sdk_tasks
-import sdk_plan
 import sdk_networks
 import sdk_utils
 
 
 from tests.test_utils import  *
-
-overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-    reason="overlay tests currently broken in strict")
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -25,7 +20,6 @@ def configure_package(configure_universe):
             DEFAULT_BROKER_COUNT,
             service_name=SERVICE_NAME,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
         yield # let the test session execute
     finally:
@@ -35,7 +29,6 @@ def configure_package(configure_universe):
 @pytest.mark.overlay
 @pytest.mark.smoke
 @pytest.mark.sanity
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_service_overlay_health():
     """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
@@ -54,7 +47,6 @@ def test_service_overlay_health():
 @pytest.mark.smoke
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_overlay_network_deployment_and_endpoints():
     # double check
@@ -71,25 +63,22 @@ def test_overlay_network_deployment_and_endpoints():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
-def test_pods_restart_on_overlay():
+def test_pod_restart_on_overlay():
     restart_broker_pods()
     test_overlay_network_deployment_and_endpoints()
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
-def test_pods_replace_on_overlay():
+def test_pod_replace_on_overlay():
     replace_broker_pod()
     test_overlay_network_deployment_and_endpoints()
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_topic_create_overlay():
     create_topic()
@@ -97,7 +86,6 @@ def test_topic_create_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_topic_delete_overlay():
     delete_topic()

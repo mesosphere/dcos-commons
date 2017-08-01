@@ -1,6 +1,6 @@
 import json
 import pytest
-import sdk_test_upgrade
+import sdk_upgrade
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
@@ -13,5 +13,9 @@ def test_soak_upgrade_downgrade():
     """
     with open('elastic.json') as options_file:
         install_options = json.load(options_file)
-    sdk_test_upgrade.soak_upgrade_downgrade("beta-{}".format(PACKAGE_NAME), PACKAGE_NAME, PACKAGE_NAME,
-                                            DEFAULT_TASK_COUNT, install_options)
+    sdk_upgrade.soak_upgrade_downgrade(
+        "beta-{}".format(PACKAGE_NAME),
+        PACKAGE_NAME,
+        DEFAULT_TASK_COUNT,
+        service_name=install_options["service"]["name"],
+        additional_options=install_options)

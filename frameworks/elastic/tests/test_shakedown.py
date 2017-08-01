@@ -1,5 +1,5 @@
+import json
 import pytest
-
 import shakedown
 
 import sdk_cmd as cmd
@@ -8,7 +8,7 @@ import sdk_install
 import sdk_marathon
 import sdk_metrics
 import sdk_tasks
-import sdk_test_upgrade
+import sdk_upgrade
 import sdk_utils
 from tests.config import *
 
@@ -19,11 +19,13 @@ def configure_package(configure_universe):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
-        sdk_install.install(
+
+        sdk_upgrade.test_upgrade(
+            "beta-{}".format(PACKAGE_NAME),
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
         yield # let the test session execute
     finally:
@@ -75,7 +77,6 @@ def test_metrics():
 
 
 @pytest.mark.sanity
-@pytest.mark.skip(reason="ELASTIC-110")
 def test_xpack_toggle_with_kibana(default_populated_index):
     # Verify disabled by default
     verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
@@ -147,7 +148,7 @@ def test_master_reelection():
 def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
-    cmd.run_cli('elastic --name={} pods replace master-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('elastic --name={} pod replace master-0'.format(FOLDERED_SERVICE_NAME))
     # setup_function will verify that the cluster becomes healthy again.
 
 

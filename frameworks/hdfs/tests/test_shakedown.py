@@ -1,5 +1,4 @@
 import pytest
-import time
 import xml.etree.ElementTree as etree
 
 import shakedown
@@ -8,10 +7,11 @@ import sdk_cmd as cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
+import sdk_metrics
 import sdk_plan
 import sdk_tasks
+import sdk_upgrade
 import sdk_utils
-import sdk_metrics
 from tests.config import *
 
 
@@ -20,12 +20,20 @@ def configure_package(configure_universe):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
+
+        # TODO: upgrade test here fails due to released beta-hdfs not supporting foldered names.
+        # After the next beta-hdfs release (with folder support), delete test_upgrade.py and uncomment this.
+        #sdk_upgrade.test_upgrade(
+        #    "beta-{}".format(PACKAGE_NAME),
+        #    PACKAGE_NAME,
+        #    DEFAULT_TASK_COUNT,
+        #    service_name=FOLDERED_SERVICE_NAME,
+        #    additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
         sdk_install.install(
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
             additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-        sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
         yield # let the test session execute
     finally:
@@ -178,8 +186,8 @@ def test_permanent_and_transient_namenode_failures_0_1():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace name-0'.format(FOLDERED_SERVICE_NAME))
-    cmd.run_cli('hdfs --name={} pods restart name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod replace name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod restart name-1'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
@@ -196,8 +204,8 @@ def test_permanent_and_transient_namenode_failures_1_0():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace name-1'.format(FOLDERED_SERVICE_NAME))
-    cmd.run_cli('hdfs --name={} pods restart name-0'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod replace name-1'.format(FOLDERED_SERVICE_NAME))
+    cmd.run_cli('hdfs --name={} pod restart name-0'.format(FOLDERED_SERVICE_NAME))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
@@ -237,7 +245,7 @@ def test_bump_data_nodes():
 @pytest.mark.sanity
 def test_modify_app_config():
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    #old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
 
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
@@ -257,8 +265,8 @@ def test_modify_app_config():
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', journal_ids)
 
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
-    #new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
-    #assert(old_recovery_plan == new_recovery_plan)
+    new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
+    assert(old_recovery_plan == new_recovery_plan)
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
@@ -310,7 +318,7 @@ def replace_name_node(index):
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    cmd.run_cli('hdfs --name={} pods replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
+    cmd.run_cli('hdfs --name={} pod replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
 
     check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, name_node_name, name_id)

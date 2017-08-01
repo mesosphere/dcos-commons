@@ -1,7 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
@@ -56,24 +59,29 @@ public class OfferEvaluator {
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
+        logger.info("Pod: {}, taskInfos for evaluation.");
+        thisPodTasks.values().forEach(info -> logger.info(TextFormat.shortDebugString(info)));
 
-        boolean anyTaskIsRunning = thisPodTasks.values().stream()
+        boolean noTasksRunning = thisPodTasks.values().stream()
                 .map(taskInfo -> taskInfo.getName())
                 .map(taskName -> stateStore.fetchStatus(taskName))
                 .filter(Optional::isPresent)
                 .map(taskStatus -> taskStatus.get())
-                .filter(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING))
-                .count() > 0;
+                .noneMatch(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING));
 
         Optional<Protos.ExecutorInfo> executorInfo = Optional.empty();
         if (!thisPodTasks.isEmpty()) {
             Protos.ExecutorInfo.Builder execInfoBuilder =
                     thisPodTasks.values().stream().findFirst().get().getExecutor().toBuilder();
-            if (!anyTaskIsRunning) {
+            if (noTasksRunning) {
                 execInfoBuilder.setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
             }
 
             executorInfo = Optional.of(execInfoBuilder.build());
+        }
+
+        if (executorInfo.isPresent()) {
+            logger.info("Pod: {}, executorInfo for evaluation: {}", TextFormat.shortDebugString(executorInfo.get()));
         }
 
         for (int i = 0; i < offers.size(); ++i) {
@@ -87,7 +95,7 @@ public class OfferEvaluator {
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                     podInstanceRequirement,
                     serviceName,
-                    targetConfigId,
+                    getTargetConfig(podInstanceRequirement, thisPodTasks.values()),
                     schedulerFlags,
                     thisPodTasks.values(),
                     stateStore.fetchFrameworkId().get(),
@@ -436,4 +444,35 @@ public class OfferEvaluator {
 
         return null;
     }
+
+    @VisibleForTesting
+    UUID getTargetConfig(PodInstanceRequirement podInstanceRequirement, Collection<Protos.TaskInfo> taskInfos) {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.NONE) || taskInfos.isEmpty()) {
+            return targetConfigId;
+        } else {
+            // 1. Recovery always only handles tasks with a goal state of RUNNING
+            // 2. All tasks in a pod should be launched with the same configuration
+            // Therefore it is correct to take the target configuration of one task as being
+            // representative of the whole of the pod. If tasks in the same pod with a goal
+            // state of RUNNING had different target configurations this should be rectified
+            // in any case, so it is doubly proper to choose a single target configuration as
+            // representative of the whole pod's target configuration.
+
+            Protos.TaskInfo taskInfo = taskInfos.stream().findFirst().get();
+            try {
+                return new TaskLabelReader(taskInfo).getTargetConfiguration();
+            } catch (TaskException e) {
+                logger.error(
+                        String.format(
+                                "Falling back to current target configuration '%s'. " +
+                                        "Failed to determine target configuration for task: %s, with exception: %s",
+                                targetConfigId,
+                                TextFormat.shortDebugString(taskInfo),
+                                e));
+
+                return targetConfigId;
+            }
+        }
+    }
+
 }

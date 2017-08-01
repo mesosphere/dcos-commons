@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -42,7 +43,7 @@ public class ResourceBuilder {
             Optional<String> persistenceId,
             Optional<String> sourceRoot) {
 
-        ResourceBuilder resourceBuilder = fromSpec((ResourceSpec) spec, resourceId);
+        ResourceBuilder resourceBuilder = fromSpec(spec, resourceId);
         switch (spec.getType()) {
             case ROOT:
                 return resourceBuilder.setRootVolume(spec.getContainerPath(), persistenceId);
@@ -255,27 +256,19 @@ public class ResourceBuilder {
     }
 
     private Resource.ReservationInfo getRefinedReservationInfo(String role, String resId) {
-        return Resource.ReservationInfo.newBuilder()
-                .setPrincipal(principal.get())
+        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
                 .setRole(role)
                 .setType(Resource.ReservationInfo.Type.DYNAMIC)
-                .setLabels(
-                        Protos.Labels.newBuilder()
-                                .addLabels(Protos.Label.newBuilder()
-                                        .setKey(MesosResource.RESOURCE_ID_KEY)
-                                        .setValue(resId)))
-                .build();
+                .setPrincipal(principal.get());
+        AuxLabelAccess.setResourceId(reservationBuilder, resId);
+        return reservationBuilder.build();
     }
 
     private Resource.ReservationInfo getLegacyReservationInfo(String resId) {
-        return Resource.ReservationInfo.newBuilder()
-                .setPrincipal(principal.get())
-                .setLabels(
-                        Protos.Labels.newBuilder()
-                                .addLabels(Protos.Label.newBuilder()
-                                        .setKey(MesosResource.RESOURCE_ID_KEY)
-                                        .setValue(resId)))
-                .build();
+        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
+                .setPrincipal(principal.get());
+        AuxLabelAccess.setResourceId(reservationBuilder, resId);
+        return reservationBuilder.build();
     }
 
     private static Resource.Builder setValue(Resource.Builder builder, Value value) {

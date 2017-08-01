@@ -7,8 +7,8 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -39,7 +39,6 @@ public class PodInfoBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodInfoBuilder.class);
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
-    private static final String DCOS_SPACE_LABEL = "DCOS_SPACE";
     private Set<Long> assignedOverlayPorts = new HashSet<>();
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
@@ -194,25 +193,26 @@ public class PodInfoBuilder {
 
     public static Protos.Resource getExistingExecutorVolume(
             VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        return Protos.Resource.newBuilder()
+        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
                 .setName("disk")
                 .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar())
-                .setDisk(Protos.Resource.DiskInfo.newBuilder()
-                        .setPersistence(Protos.Resource.DiskInfo.Persistence.newBuilder()
-                                .setId(persistenceId)
-                                .setPrincipal(volumeSpec.getPrincipal()))
-                        .setVolume(Protos.Volume.newBuilder()
-                                .setContainerPath(volumeSpec.getContainerPath())
-                                .setMode(Protos.Volume.Mode.RW)))
-                .addReservations(Protos.Resource.ReservationInfo.newBuilder()
-                    .setPrincipal(volumeSpec.getPrincipal())
-                    .setRole(volumeSpec.getRole())
-                    .setLabels(Protos.Labels.newBuilder().addLabels(
-                            Protos.Label.newBuilder()
-                                    .setKey(MesosResource.RESOURCE_ID_KEY)
-                                    .setValue(resourceId))))
-                .build();
+                .setScalar(volumeSpec.getValue().getScalar());
+
+        Protos.Resource.DiskInfo.Builder diskInfoBuilder = resourceBuilder.getDiskBuilder();
+        diskInfoBuilder.getPersistenceBuilder()
+                .setId(persistenceId)
+                .setPrincipal(volumeSpec.getPrincipal());
+        diskInfoBuilder.getVolumeBuilder()
+                .setContainerPath(volumeSpec.getContainerPath())
+                .setMode(Protos.Volume.Mode.RW);
+
+        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
+        reservationBuilder
+                .setPrincipal(volumeSpec.getPrincipal())
+                .setRole(volumeSpec.getRole());
+        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+
+        return resourceBuilder.build();
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {
@@ -240,12 +240,6 @@ public class PodInfoBuilder {
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
                 .setTaskId(CommonIdUtils.emptyTaskId())
                 .setSlaveId(CommonIdUtils.emptyAgentId());
-
-        if (!podInstance.getPod().getNetworks().isEmpty()) {
-            taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), false, true));
-        } else {
-            taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
-        }
 
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
@@ -301,11 +295,14 @@ public class PodInfoBuilder {
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
+        //TODO(nickbp): This ContainerInfo handling has turned a bit spaghetti-like and needs cleaning up.
+        //              Currently blindly retaining prior behavior.
         if (useDefaultExecutor) {
-            Protos.ContainerInfo containerInfo = getContainerInfo(podInstance.getPod());
-            if (containerInfo != null) {
-                taskInfoBuilder.setContainer(containerInfo);
-            }
+            taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
+        } else if (!podInstance.getPod().getNetworks().isEmpty()) {
+            taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), false, true));
+        } else {
+            taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
@@ -324,18 +321,11 @@ public class PodInfoBuilder {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
-        Protos.ContainerInfo.Builder containerBuilder = getContainerInfo(podSpec, true, false).toBuilder();
-
-        executorInfoBuilder.getLabelsBuilder().addLabelsBuilder()
-                .setKey(DCOS_SPACE_LABEL)
-                .setValue(getDcosSpaceLabel());
+        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpaceLabelValue());
 
         if (useDefaultExecutor) {
             executorInfoBuilder.setType(Protos.ExecutorInfo.Type.DEFAULT)
                     .setFrameworkId(frameworkID);
-            executorInfoBuilder.getContainerBuilder()
-                    .setType(Protos.ContainerInfo.Type.MESOS)
-                    .getMesosBuilder().clearImage();
         } else {
             // command and user:
             Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
@@ -387,9 +377,7 @@ public class PodInfoBuilder {
 
         // Populate ContainerInfo with the appropriate information from PodSpec
         // This includes networks, rlimits, secret volumes...
-        if (containerBuilder != null) {
-            executorInfoBuilder.setContainer(containerBuilder);
-        }
+        executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
 
         return executorInfoBuilder;
     }
@@ -544,6 +532,7 @@ public class PodInfoBuilder {
      * Get the ContainerInfo for either an Executor or a Task. Since we support both default and custom executors at
      * the moment, there is some conditional logic in here -- with the default executor, things like rlimits and images
      * must be specified at the task level only, while secrets volumes must be specified at the executor level.
+     *
      * @param podSpec The Spec for the task or executor that this container is being attached to
      * @param addExtraParameters Add rlimits and docker image (if task), or secrets volumes if executor
      * @param isTaskContainer Whether this container is being attached to a TaskInfo rather than ExecutorInfo
@@ -559,17 +548,18 @@ public class PodInfoBuilder {
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
                 && secretVolumes.isEmpty()) {
+            // Nothing left to do.
             return containerInfo.build();
         }
 
-        boolean shouldAddImage = podSpec.getImage().isPresent() && addExtraParameters &&
+        boolean shouldAddImage =
+                podSpec.getImage().isPresent() &&
+                addExtraParameters &&
                 ((isTaskContainer && useDefaultExecutor) || (!isTaskContainer && !useDefaultExecutor));
         if (shouldAddImage) {
-            containerInfo.getMesosBuilder()
-                    .setImage(Protos.Image.newBuilder()
-                            .setType(Protos.Image.Type.DOCKER)
-                            .setDocker(Protos.Image.Docker.newBuilder()
-                                    .setName(podSpec.getImage().get())));
+            containerInfo.getMesosBuilder().getImageBuilder()
+                    .setType(Protos.Image.Type.DOCKER)
+                    .getDockerBuilder().setName(podSpec.getImage().get());
         }
 
         // With the default executor, all NetworkInfos must be defined on the executor itself rather than individual
@@ -592,36 +582,22 @@ public class PodInfoBuilder {
         return containerInfo.build();
     }
 
-    private Protos.ContainerInfo getContainerInfo(PodSpec podSpec) {
-        return getContainerInfo(podSpec, true, true);
-    }
-
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
         LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
-
-        if (!DcosConstants.isSupportedNetwork(networkSpec.getName())) {
-            LOGGER.warn(String.format("Virtual network %s is not currently supported, you " +
-                    "may experience unexpected behavior", networkSpec.getName()));
-        }
+        DcosConstants.warnIfUnsupportedNetwork(networkSpec.getName());
 
         if (!networkSpec.getPortMappings().isEmpty()) {
             for (Map.Entry<Integer, Integer> e : networkSpec.getPortMappings().entrySet()) {
-                Integer hostPort = e.getKey();
-                Integer containerPort = e.getValue();
-                netInfoBuilder.addPortMappings(Protos.NetworkInfo.PortMapping.newBuilder()
-                        .setHostPort(hostPort)
-                        .setContainerPort(containerPort)
-                        .build());
+                netInfoBuilder.addPortMappingsBuilder()
+                        .setHostPort(e.getKey())
+                        .setContainerPort(e.getValue());
             }
         }
 
         if (!networkSpec.getLabels().isEmpty()) {
-            List<Protos.Label> labelList = networkSpec.getLabels().entrySet().stream()
-                    .map(e -> Protos.Label.newBuilder().setKey(e.getKey()).setValue(e.getValue()).build())
-                    .collect(Collectors.toList());
-            netInfoBuilder.setLabels(Protos.Labels.newBuilder().addAllLabels(labelList).build());
+            AuxLabelAccess.setNetworkLabels(netInfoBuilder, networkSpec.getLabels());
         }
 
         return netInfoBuilder.build();
@@ -735,17 +711,6 @@ public class PodInfoBuilder {
             }
         }
         return volumes;
-    }
-
-    private static String getDcosSpaceLabel() {
-        String labelString = System.getenv(DCOS_SPACE_LABEL);
-        if (labelString == null) {
-            labelString = System.getenv("MARATHON_APP_ID");
-        }
-        if (labelString == null) {
-            return "/"; // No Authorization for this framework
-        }
-        return labelString;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -15,7 +14,7 @@ import java.util.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by Rand on 5/18/17.
+ * Tests for {@link PodSpecsCannotChangeNetworkRegime}.
  */
 public class PodSpecsCannotChangeNetworkRegimeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotChangeNetworkRegime();
@@ -44,10 +43,8 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
         MockitoAnnotations.initMocks(this);
 
         DefaultNetworkSpec overlayNetworkSpec, bridgeOverlayNetworkSpec;
-        overlayNetworkSpec = new DefaultNetworkSpec(DcosConstants.DEFAULT_OVERLAY_NETWORK,
-                Collections.emptyMap(), Collections.emptyMap());
-        bridgeOverlayNetworkSpec = new DefaultNetworkSpec("mesos-bridge",
-                Collections.emptyMap(), Collections.emptyMap());
+        overlayNetworkSpec = new DefaultNetworkSpec("dcos", Collections.emptyMap(), Collections.emptyMap());
+        bridgeOverlayNetworkSpec = new DefaultNetworkSpec("mesos-bridge", Collections.emptyMap(), Collections.emptyMap());
 
         List<NetworkSpec> overlayNetworkSpecs = new ArrayList<>(Collections.singletonList(overlayNetworkSpec));
         List<NetworkSpec> bridgeNetworkSpecs = new ArrayList<>(Collections.singletonList(bridgeOverlayNetworkSpec));

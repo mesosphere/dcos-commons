@@ -10,7 +10,6 @@ import time
 
 import sdk_api
 import sdk_plan
-import sdk_tasks
 import sdk_utils
 
 
@@ -20,15 +19,15 @@ def install(
         service_name=None,
         additional_options={},
         package_version=None,
-        check_suppression=True,
-        timeout_seconds=15 * 60):
+        timeout_seconds=15 * 60,
+        wait_scheduler_idle=True):
     if not service_name:
         service_name = package_name
     start = time.time()
     merged_options = get_package_options(additional_options)
 
-    sdk_utils.out('Installing {} with options={} version={}'.format(
-        package_name, merged_options, package_version))
+    sdk_utils.out('Installing {}/{} with options={} version={}'.format(
+        package_name, service_name, merged_options, package_version))
 
     # 1. Install package, wait for tasks, wait for marathon deployment
     shakedown.install_package(
@@ -40,19 +39,21 @@ def install(
         timeout_sec=timeout_seconds,
         expected_running_tasks=running_task_count)
 
-    # 2. Ensure the framework is suppressed.
-    #
-    # This is only configurable in order to support installs from
-    # Universe during the upgrade_downgrade tests, because currently
-    # the suppression endpoint isn't supported by all frameworks in
-    # Universe.  It can be removed once all frameworks rely on
-    # dcos-commons >= 0.13.
-    if check_suppression:
-        sdk_utils.out("Waiting for framework to be suppressed...")
+    # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
+    # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
+    if wait_scheduler_idle:
+        # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
+        # total task count via FINISHED tasks, without actually completing deployment
+        sdk_utils.out("Waiting for {}/{} to finish deployment plan...".format(package_name, service_name))
+        sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+
+        # given the above wait for plan completion, here we just wait up to 5 minutes
+        sdk_utils.out("Waiting for {}/{} to be suppressed...".format(package_name, service_name))
         shakedown.wait_for(
             lambda: sdk_api.is_suppressed(service_name), noisy=True, timeout_seconds=5 * 60)
 
-    sdk_utils.out('Install done after {}'.format(shakedown.pretty_duration(time.time() - start)))
+    sdk_utils.out('Installed {}/{} after {}'.format(
+        package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
 def uninstall(service_name, package_name=None, role=None, principal=None, zk=None):

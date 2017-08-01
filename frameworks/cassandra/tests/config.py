@@ -1,7 +1,5 @@
-import json
 import os
 
-import shakedown
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
