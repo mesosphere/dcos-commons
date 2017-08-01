@@ -12,6 +12,8 @@ import sdk_api
 import sdk_plan
 import sdk_utils
 
+TIMEOUT_SECONDS = 15 * 60
+
 
 def install(
         package_name,
@@ -19,7 +21,7 @@ def install(
         service_name=None,
         additional_options={},
         package_version=None,
-        timeout_seconds=15 * 60,
+        timeout_seconds=TIMEOUT_SECONDS,
         wait_scheduler_idle=True):
     if not service_name:
         service_name = package_name
@@ -102,7 +104,7 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
             # service_name may already contain a leading slash:
             marathon_app_id = '/' + service_name.lstrip('/')
             sdk_utils.out('Waiting for no deployments for {}'.format(marathon_app_id))
-            shakedown.deployment_wait(600, marathon_app_id)
+            shakedown.deployment_wait(TIMEOUT_SECONDS, marathon_app_id)
 
             # wait for service to be gone according to marathon
             def marathon_dropped_service():
@@ -115,7 +117,7 @@ def uninstall(service_name, package_name=None, role=None, principal=None, zk=Non
                     sdk_utils.out('Found multiple apps with id {}'.format(marathon_app_id))
                 return len(matching_app_ids) == 0
             sdk_utils.out('Waiting for no {} Marathon app'.format(marathon_app_id))
-            shakedown.time_wait(marathon_dropped_service)
+            shakedown.time_wait(marathon_dropped_service, timeout_seconds=TIMEOUT_SECONDS)
 
         except (dcos.errors.DCOSException, ValueError) as e:
             sdk_utils.out('Got exception when uninstalling package: {}'.format(e))
