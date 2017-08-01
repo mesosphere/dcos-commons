@@ -21,6 +21,7 @@ pods:
         ports:
           overlay-vip:
             port: 4044
+            advertise: true
             vip:
               prefix: overlay-vip
               port: 80
@@ -65,6 +66,7 @@ pods:
         ports:
           host-vip:
             port: 4044
+            advertise: true
             vip:
               prefix: host-vip
               port: 80

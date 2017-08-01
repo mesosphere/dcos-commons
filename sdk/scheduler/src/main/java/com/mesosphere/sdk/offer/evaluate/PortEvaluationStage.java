@@ -44,7 +44,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         long assignedPort = portSpec.getValue().getRanges().getRange(0).getBegin();
         if (assignedPort == 0) {
             // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
-            Optional<Long> priorTaskPort = podInfoBuilder.lookupPriorTaskPortValue(getTaskName().get(), portSpec);
+            Optional<Long> priorTaskPort = podInfoBuilder.getPriorPortForTask(getTaskName().get(), portSpec);
             if (priorTaskPort.isPresent()) {
                 // Reuse the prior port value.
                 assignedPort = priorTaskPort.get();

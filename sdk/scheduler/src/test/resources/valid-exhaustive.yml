@@ -27,6 +27,7 @@ pods:
           meta-data-http:
             port: 8080
             env-key: HTTP_PORT
+            advertise: true
             vip:
               port: 80
         volumes:

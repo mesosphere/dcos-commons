@@ -115,7 +115,7 @@ public class PodInfoBuilder {
      * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
      * it on task relaunch.
      */
-    public Optional<Long> lookupPriorTaskPortValue(String taskSpecName, PortSpec portSpec) {
+    public Optional<Long> getPriorPortForTask(String taskSpecName, PortSpec portSpec) {
         TaskPortLookup portFinder = taskPortFinders.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
         if (portFinder == null) {
             return Optional.empty();
