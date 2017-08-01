@@ -9,6 +9,7 @@ import sdk_install
 import sdk_plan
 import sdk_tasks
 import sdk_marathon
+import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME
@@ -29,6 +30,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(PACKAGE_NAME)
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_rack_not_found():

@@ -37,6 +37,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(PACKAGE_NAME)
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_init():
@@ -70,6 +71,7 @@ def test_canary_init():
     assert steps[3]['status'] == 'PENDING'
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_first():
@@ -107,6 +109,7 @@ def test_canary_first():
     assert steps[3]['status'] == 'PENDING'
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_plan_continue_noop():
@@ -127,6 +130,7 @@ def test_canary_plan_continue_noop():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_second():
@@ -173,6 +177,7 @@ def test_canary_second():
     assert steps2[3]['status'] == 'PENDING'
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_third():
@@ -210,6 +215,7 @@ def test_canary_third():
     assert steps[3]['status'] == 'PENDING'
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_fourth():
@@ -247,6 +253,7 @@ def test_canary_fourth():
     assert steps[3]['status'] == 'COMPLETE'
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_increase_count():
@@ -326,6 +333,7 @@ def test_increase_count():
     assert steps[3]['status'] == 'COMPLETE'
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_increase_cpu():
