@@ -1,6 +1,5 @@
 ---
-post_title: HDFS version HDFS_1.3.0-2.6.0-cdh5.9.1
-nav_title: vHDFS_1.3.0-2.6.0-cdh5.9.1
+post_title: Version HDFS_1.3.0-2.6.0-cdh5.9.1
 menu_order: 0
 post_excerpt: ""
 feature_maturity: preview
