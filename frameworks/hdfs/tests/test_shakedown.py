@@ -21,19 +21,20 @@ def configure_package(configure_universe):
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
 
-        # TODO: upgrade test here fails due to released beta-hdfs not supporting foldered names.
-        # After the next beta-hdfs release (with folder support), delete test_upgrade.py and uncomment this.
-        #sdk_upgrade.test_upgrade(
-        #    "beta-{}".format(PACKAGE_NAME),
-        #    PACKAGE_NAME,
-        #    DEFAULT_TASK_COUNT,
-        #    service_name=FOLDERED_SERVICE_NAME,
-        #    additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
-        sdk_install.install(
-            PACKAGE_NAME,
-            DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        if shakedown.dcos_version_less_than("1.9"):
+            # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
+            sdk_install.install(
+                PACKAGE_NAME,
+                DEFAULT_TASK_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        else:
+            sdk_upgrade.test_upgrade(
+                "beta-{}".format(PACKAGE_NAME),
+                PACKAGE_NAME,
+                DEFAULT_TASK_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
 
         yield # let the test session execute
     finally:
