@@ -32,12 +32,26 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
-        sdk_upgrade.test_upgrade(
-            PACKAGE_NAME,
-            PACKAGE_NAME,
-            DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+        if shakedown.dcos_version_less_than("1.9"):
+            # Note: The hello-world package in DC/OS 1.8 Universe is 1.1.3 and doesn't
+            # have a /suppressed endpoint. It also defaults to user=root, whereas the
+            # following release will default to user=nobody (and this value can't change in an upgrade)
+            sdk_upgrade.test_upgrade(
+                PACKAGE_NAME,
+                PACKAGE_NAME,
+                DEFAULT_TASK_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME } },
+                test_version_options={"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}},
+                wait_scheduler_idle=False)
+        else:
+            sdk_upgrade.test_upgrade(
+                PACKAGE_NAME,
+                PACKAGE_NAME,
+                DEFAULT_TASK_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME } })
+
 
         yield  # let the test session execute
     finally:
