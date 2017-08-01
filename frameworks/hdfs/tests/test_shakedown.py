@@ -22,7 +22,7 @@ def configure_package(configure_universe):
         sdk_utils.gc_frameworks()
 
         if shakedown.dcos_version_less_than("1.9"):
-            # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
+            # HDFS ugprade before 1.8 is not supported.
             sdk_install.install(
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
