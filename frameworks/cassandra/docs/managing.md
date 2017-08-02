@@ -65,7 +65,7 @@ This operation will restart a node, while keeping it at its current location and
 
 This operation will move a node to a new system and will discard the persistent volumes at the prior system to be rebuilt at the new system. Perform this operation if a given system is about to be offlined or has already been offlined.
 
-**Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You canbuild your own automation to perform node replacement automatically according to your own preferences.
+**Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You can automate node replacement according to your own preferences.
 
 1. Run `dcos beta-cassandra pod replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
 
@@ -73,6 +73,32 @@ For example, let's say `node-2`'s host system has died and `node-2` needs to be 
 ```
 dcos beta-cassandra pod replace node-2
 ```
+
+## Seed nodes
+Cassandra seed nodes are those nodes with indices smaller than the seed node count.  By default, Cassandra is deployed 
+with a seed node count of two.  So, node-0 and node-1 are seed nodes. When a replace operation is performed on one these
+nodes, all other nodes must be restarted to be brought up to date regarding the ip address of the new seed node. This 
+operation is performed automatically.
+  
+For example if `node-0` needed to be replaced we would execute:
+
+```bash
+dcos beta-cassandra pod replace node-0
+```
+
+which would result in a recovery plan like the following:
+
+```bash
+$ dcos beta-cassandra --name=cassandra plan show recovery
+recovery (IN_PROGRESS)
+└─ permanent-node-failure-recovery (IN_PROGRESS)
+   ├─ node-0:[server] (COMPLETE)
+   ├─ node-1:[server] (STARTING)
+   └─ node-2:[server] (PENDING)
+
+```
+
+**Note:** Only the seed node is being placed on a new node, all other nodes are restarted in place with no loss of data.
 
 # Configuring Multi-data-center Deployments
 
