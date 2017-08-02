@@ -706,7 +706,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     @Override
     public void update(Observable observable) {
         if (observable == planCoordinator) {
-            suppressOrRevive();
+            suppressOrRevive(planCoordinator);
             completeDeploy();
         }
     }
@@ -809,21 +809,5 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
         });
-    }
-
-    private void suppressOrRevive() {
-        if (planCoordinator.hasOperations()) {
-            if (StateStoreUtils.isSuppressed(stateStore)) {
-                revive();
-            } else {
-                LOGGER.info("Already revived.");
-            }
-        } else {
-            if (StateStoreUtils.isSuppressed(stateStore)) {
-                LOGGER.info("Already suppressed.");
-            } else {
-                suppress();
-            }
-        }
     }
 }
