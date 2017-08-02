@@ -25,6 +25,7 @@ public class DefaultSecretSpec implements SecretSpec {
     /** Regexp in @Pattern:
      *      sub-pattern = [.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*
      *      (sub-pattern)?  = either NULL, or sub-pattern.  So It can be Null.
+     *      No leading slash character is allowed!
      */
     @Pattern(regexp = "([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)?")
     private final String filePath;
