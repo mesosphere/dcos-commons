@@ -45,7 +45,7 @@
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default":"portworx/px-enterprise:1.2.9"
+            "default":"portworx/px-dev:1.2.9"
           },
           "portworx_options": {
             "title": "Portworx Options",
@@ -189,14 +189,21 @@
             "title": "Influxdb Image name",
             "type": "string",
             "default":"influxdb:latest"
+          },
+          "listen_port": {
+            "title": "The port on which influxdb listens for incoming requests",
+            "type": "integer",
+            "default": 8086
           }
+
         },
         "required":[
           "cpus",
           "mem",
           "disk_type",
           "disk_size",
-          "image"
+          "image",
+          "listen_port"
         ]
       },
       "lighthouse": {

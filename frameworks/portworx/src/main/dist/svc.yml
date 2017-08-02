@@ -157,13 +157,14 @@ pods:
           export INFLUXDB_META_DIR=$MESOS_SANDBOX/influxdb/meta &&
           export INFLUXDB_DATA_DIR=$MESOS_SANDBOX/influxdb/data &&
           export INFLUXDB_DATA_WAL_DIR=$MESOS_SANDBOX/influxdb/wal &&
+          export INFLUXDB_HTTP_BIND_ADDRESS=:{{INFLUXDB_LISTEN_PORT}} &&
           influxd
         volume:
           path: "influxdb"
           type: {{INFLUXDB_DISK_TYPE}}
           size: {{INFLUXDB_DISK_SIZE}}
         readiness-check:
-          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_HOST}:8086/ping
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_HOST}.mesos:{{INFLUXDB_LISTEN_PORT}}/ping
           interval: 5
           delay: 0
           timeout: 60
@@ -181,8 +182,8 @@ pods:
           http:
             port: {{LIGHTHOUSE_WEBUI_PORT}}
         cmd: >
-            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:8086/query --data-urlencode "q=CREATE DATABASE px_stats" &&
-            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:8086/ -k {{PORTWORX_KVDB}}
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}.mesos:{{INFLUXDB_LISTEN_PORT}}/query --data-urlencode "q=CREATE DATABASE px_stats" &&
+            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}.mesos:{{INFLUXDB_LISTEN_PORT}}/ -k {{PORTWORX_KVDB}}
         env:
           PWX_LH_PORT: {{LIGHTHOUSE_WEBUI_PORT}}
           PWX_PX_PRECREATE_ADMIN: true

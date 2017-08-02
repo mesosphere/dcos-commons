@@ -19,7 +19,7 @@
     "s3",
     "database"
   ],
-  "preInstallNotes": "This DC/OS Service is currently in preview. Please visit https://docs.portworx.com/scheduler/mesosphere-dcos/install.html for detailed instructions. Default username/password for Lighthouse is portworx@yourcompany.com/admin",
+  "preInstallNotes": "Certified packages are verified by Mesosphere for interoperability with DC/OS. Community packages are unverified and unreviewed content from the community. This is a community package. Be aware that this particular community package installs and operates as a system process in such a way that the detailed status of that process is not directly visible through DC/OS. Monitoring and managing the PX application should only be performed directly through the PX management utility and not through the DC/OS dashboard. Please visit https://docs.portworx.com/scheduler/mesosphere-dcos/install.html for detailed instructions. Default username/password for Lighthouse is portworx@yourcompany.com/admin",
   "postInstallNotes": "To see how Portorx data services integrate with common applications and services, to view the application solutions and to view Portworx reference architectures,  please visit http://docs.portworx.com",
   "postUninstallNotes": "Service uninstalled. Note that any persisting data still exists and will need to be manually removed.",
   "licenses": [
