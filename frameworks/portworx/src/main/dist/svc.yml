@@ -45,6 +45,12 @@ pods:
                 fi
                 {{/LIGHTHOUSE_ENABLED}}
 
+                coreos=$(uname -a | grep coreos)
+
+                if [ -z "$coreos" ];then
+                    $USR_SRC_MOUNT="/usr/src:/usr/src"
+                fi
+
                 echo "[Unit]
                     Description=Portworx Container
                     Wants=docker.service
@@ -68,7 +74,7 @@ pods:
                           -v /var/run/docker.sock:/var/run/docker.sock   \
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
-                          -v /usr/src:/usr/src                           \
+                          $USR_SRC_MOUNT                                \
                           {{#LIGHTHOUSE_ENABLED}}
                           -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
                           {{/LIGHTHOUSE_ENABLED}}
