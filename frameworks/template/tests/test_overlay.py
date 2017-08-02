@@ -1,11 +1,10 @@
 import os
 import pytest
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
 
 import sdk_install
 import sdk_utils
 import sdk_networks
-
-import shakedown
 
 
 from tests.config import (

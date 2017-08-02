@@ -4,11 +4,12 @@ import urllib
 import sdk_hosts
 import sdk_install as install
 import sdk_marathon
+import sdk_metrics
 import sdk_plan
 import sdk_tasks
+import sdk_upgrade
 import sdk_utils
-import sdk_metrics
-import shakedown
+
 import dcos
 import dcos.config
 import dcos.http
@@ -28,12 +29,21 @@ def configure_package(configure_universe):
     try:
         install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
-        install.install(
-            PACKAGE_NAME,
-            DEFAULT_BROKER_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-        sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+
+        if shakedown.dcos_version_less_than("1.9"):
+            # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
+            install.install(
+                PACKAGE_NAME,
+                DEFAULT_BROKER_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        else:
+            sdk_upgrade.test_upgrade(
+                "beta-{}".format(PACKAGE_NAME),
+                PACKAGE_NAME,
+                DEFAULT_BROKER_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
 
         yield # let the test session execute
     finally:

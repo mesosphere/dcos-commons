@@ -2,6 +2,7 @@ import pytest
 import shakedown
 import time
 import json
+from retrying import retry
 
 import sdk_cmd
 import sdk_install
@@ -18,7 +19,7 @@ NUM_HELLO = 2
 NUM_WORLD = 3
 
 secret_content_default = "hello-world-secret-data"
-secret_content_alternative = "hello-world-secret-data-alternative"
+secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
         "service": {
@@ -76,7 +77,6 @@ def configure_package(configure_universe):
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
-@pytest.mark.skip(reason="INFINITY-2043")
 def test_secrets_basic():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -91,10 +91,6 @@ def test_secrets_basic():
     create_secrets("{}/".format(PACKAGE_NAME))
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
-
-    # default is serial strategy, hello deploys first
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     hello_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
     world_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "word-0")
@@ -117,7 +113,6 @@ def test_secrets_basic():
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
-@pytest.mark.skip(reason="INFINITY-2043")
 def test_secrets_verify():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -130,9 +125,6 @@ def test_secrets_verify():
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
@@ -144,26 +136,26 @@ def test_secrets_verify():
 
 
     # first secret: environment variable name is given in yaml
-    assert secret_content_default == task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
 
     # second secret: file path is given in yaml
-    assert secret_content_default == task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")
+    assert secret_content_default == read_secret("world-0", "cat WORLD_SECRET2_FILE")
 
     # third secret : no file path is given in yaml
     #            default file path is equal to secret path
-    assert secret_content_default == task_exec(world_tasks[0], "cat hello-world/secret3")
+    assert secret_content_default == read_secret("world-0", "cat hello-world/secret3")
 
 
     # hello tasks has container image, world tasks do not
 
     # first secret : environment variable name is given in yaml
-    assert secret_content_default == task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
 
     # first secret : both environment variable name and file path are given in yaml
-    assert secret_content_default == task_exec(hello_tasks[0], "cat HELLO_SECRET1_FILE")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
 
     # second secret : file path is given in yaml
-    assert secret_content_default == task_exec(hello_tasks[0], "cat HELLO_SECRET2_FILE")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -173,7 +165,6 @@ def test_secrets_verify():
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
-@pytest.mark.skip(reason="INFINITY-2043")
 def test_secrets_update():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -188,11 +179,9 @@ def test_secrets_update():
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+
 
     sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, PACKAGE_NAME))
     sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, PACKAGE_NAME))
@@ -219,14 +208,14 @@ def test_secrets_update():
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # make sure content is changed
-    assert secret_content_alternative == task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == task_exec(world_tasks[0], "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("world-0", "cat {}/secret3".format(PACKAGE_NAME))
 
     # make sure content is changed
-    assert secret_content_alternative == task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec(hello_tasks[0], "cat HELLO_SECRET1_FILE")
-    assert secret_content_alternative == task_exec(hello_tasks[0], "cat HELLO_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -236,7 +225,6 @@ def test_secrets_update():
 @pytest.mark.secrets
 @pytest.mark.smoke
 @sdk_utils.dcos_1_10_or_higher
-@pytest.mark.skip(reason="INFINITY-2043")
 def test_secrets_config_update():
     # 1) install examples/secrets.yml
     # 2) create new Secrets, delete old Secrets
@@ -249,9 +237,6 @@ def test_secrets_config_update():
 
     sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
-    # launch will fail if secrets are not available or not accessible
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
@@ -261,14 +246,14 @@ def test_secrets_config_update():
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # make sure it has the default value
-    assert secret_content_default == task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_default == task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")
-    assert secret_content_default == task_exec(world_tasks[0], "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_default == read_secret("world-0", "cat {}/secret3".format(PACKAGE_NAME))
 
     # hello tasks has container image
-    assert secret_content_default == task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_default == task_exec(hello_tasks[0], "cat HELLO_SECRET1_FILE")
-    assert secret_content_default == task_exec(hello_tasks[0], "cat HELLO_SECRET2_FILE")
+    assert secret_content_default == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets (defaults)
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -298,13 +283,13 @@ def test_secrets_config_update():
     hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
-    assert secret_content_alternative == task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == task_exec(world_tasks[0], "cat secret3")
+    assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("world-0", "cat secret3")
 
-    assert secret_content_alternative == task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec(hello_tasks[0], "cat HELLO_SECRET1_FILE")
-    assert secret_content_alternative == task_exec(hello_tasks[0], "cat HELLO_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
     delete_secrets()
@@ -314,7 +299,6 @@ def test_secrets_config_update():
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
-@pytest.mark.skip(reason="INFINITY-2043")
 def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
     # 2) Tasks with DCOS_SPACE hello-world/somePath
@@ -328,9 +312,11 @@ def test_secrets_dcos_space():
     create_secrets("{}/somePath/".format(PACKAGE_NAME))
 
     try:
-        sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=options_dcos_space_test)
-
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+        sdk_install.install(
+            PACKAGE_NAME,
+            NUM_HELLO + NUM_WORLD,
+            additional_options=options_dcos_space_test,
+            timeout_seconds=5 * 60) # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
 
         assert False, "Should have failed to install"
 
@@ -376,13 +362,11 @@ def delete_secrets_all(path_prefix=""):
         pass
 
 
-def task_exec(task_name, command):
+@retry
+def read_secret(task_name, command):
     lines = sdk_cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
     print(lines)
     for i in lines:
-        # ignore text starting with:
-        #    Overwriting Environment Variable ....
-        #    Overwriting PATH ......
-        if not i.isspace() and not i.startswith("Overwriting"):
+        if i.strip().startswith(secret_content_default):
             return i
-    return ""
+    raise Exception("Failed to read secret")

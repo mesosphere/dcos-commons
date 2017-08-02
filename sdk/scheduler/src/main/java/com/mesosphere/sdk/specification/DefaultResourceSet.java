@@ -69,6 +69,7 @@ public class DefaultResourceSet implements ResourceSet {
 
     public static Builder newBuilder(DefaultResourceSet copy) {
         Builder builder = new Builder(copy.role, copy.preReservedRole, copy.principal);
+        builder.id = copy.id;
         builder.resources = copy.resources;
         builder.volumes = copy.volumes;
         return builder;
@@ -127,7 +128,7 @@ public class DefaultResourceSet implements ResourceSet {
         }
 
         private String getRole(String preReservedRole, String role) {
-            if (preReservedRole.equals(Constants.ANY_ROLE)) {
+            if (preReservedRole == null || preReservedRole.equals(Constants.ANY_ROLE)) {
                 return role;
             } else {
                 return preReservedRole + "/" + role;

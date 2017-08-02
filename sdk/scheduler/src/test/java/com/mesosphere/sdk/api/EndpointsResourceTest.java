@@ -196,7 +196,7 @@ public class EndpointsResourceTest {
         assertEquals(String.format("vips-2.svc-name%s:3456", EXPECTED_DNS_TLD), dns.get(3));
         JSONArray address = json.getJSONArray("address");
         assertEquals(4, address.length());
-        assertEquals(expectedHostname + ":1234", address.get(0));
+        assertEquals(address.toString(), expectedHostname + ":1234", address.get(0));
         assertEquals(expectedHostname + ":1243", address.get(1));
         assertEquals(expectedHostname + ":2345", address.get(2));
         assertEquals(expectedHostname + ":3456", address.get(3));
@@ -307,22 +307,12 @@ public class EndpointsResourceTest {
         testEndpoint("otherHost");
     }
 
-    private Protos.TaskStatus createTaskStatus(String hostname) {
-        // build mock stateStore from the inside out
-        // IPAddress
-        Protos.NetworkInfo.IPAddress.Builder ipAddressBuilder = Protos.NetworkInfo.IPAddress.newBuilder();
-        ipAddressBuilder.setIpAddress(hostname);
-        // NetworkInfo
-        Protos.NetworkInfo.Builder networkInfoBuilder = Protos.NetworkInfo.newBuilder();
-        networkInfoBuilder.addIpAddresses(ipAddressBuilder.build());
-        // ContainerInfo
-        Protos.ContainerStatus.Builder containerStatusBuilder = Protos.ContainerStatus.newBuilder();
-        containerStatusBuilder.addNetworkInfos(networkInfoBuilder.build());
-        // TaskStatus
-        Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder();
-        taskStatusBuilder.setContainerStatus(containerStatusBuilder.build());
-        taskStatusBuilder.setState(Protos.TaskState.TASK_RUNNING);
-        taskStatusBuilder.setTaskId(TestConstants.TASK_ID);
+    private static Protos.TaskStatus createTaskStatus(String hostname) {
+        Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
+                .setState(Protos.TaskState.TASK_RUNNING)
+                .setTaskId(TestConstants.TASK_ID);
+        taskStatusBuilder.getContainerStatusBuilder().addNetworkInfosBuilder().addIpAddressesBuilder()
+                .setIpAddress(hostname);
         return taskStatusBuilder.build();
     }
 

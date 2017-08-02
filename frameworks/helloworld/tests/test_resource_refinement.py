@@ -1,8 +1,9 @@
 import pytest
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
 
 import sdk_install
 import sdk_utils
-import shakedown
+
 from tests.config import (
     check_running,
     DEFAULT_TASK_COUNT,

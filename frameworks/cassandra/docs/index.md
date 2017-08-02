@@ -1,7 +1,5 @@
-
 ---
 post_title: Overview
-nav_title: Cassandra
 menu_order: 00
 post_excerpt: ""
 feature_maturity: preview
