@@ -28,16 +28,26 @@ def start_plan(service_name, plan, parameters=None):
 
 def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
     def is_empty_recovery_plan(plan):
-        if not plan:
-            return False
+        """Check if the specified plan is the default state of the recovery
+        plan. After a successful deployment, the status of the recovery plan is:
 
-        if plan["phases"]:
-            return False
-        if plan["errors"]:
-            return False
-        if plan["status"] != "COMPLETE":
-            return False
-        return True
+        {
+            "phases": [],
+            "errors": [],
+            "status": "COMPLETE"
+        }
+
+        which should not be seen as a COMPLETE plan.
+        """
+        if not plan:
+            return True
+
+        empty_plan = {
+            "phases": [],
+            "errors": [],
+            "status": "COMPLETE"
+        }
+        return plan == empty_plan
 
     def fn():
         completed_plan = wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
