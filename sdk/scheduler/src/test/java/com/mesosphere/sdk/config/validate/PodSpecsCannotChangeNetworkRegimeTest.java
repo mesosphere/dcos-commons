@@ -14,7 +14,7 @@ import java.util.*;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by Rand on 5/18/17.
+ * Tests for {@link PodSpecsCannotChangeNetworkRegime}.
  */
 public class PodSpecsCannotChangeNetworkRegimeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new PodSpecsCannotChangeNetworkRegime();

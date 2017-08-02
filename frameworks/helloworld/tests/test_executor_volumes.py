@@ -1,6 +1,5 @@
 import pytest
 
-import shakedown
 import sdk_install
 import sdk_plan
 import sdk_utils
