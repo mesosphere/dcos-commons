@@ -19,6 +19,7 @@ import java.util.Collection;
  * This class represents a single port, with associated environment name.
  */
 public class PortSpec extends DefaultResourceSpec {
+    private final String envKey;
     @NotNull
     @Size(min = 1)
     private final String portName;
@@ -36,7 +37,8 @@ public class PortSpec extends DefaultResourceSpec {
             @JsonProperty("port-name") String portName,
             @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
             @JsonProperty("network-names") Collection<String> networkNames) {
-        super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal, envKey);
+        super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal);
+        this.envKey = envKey;
         this.portName = portName;
         if (visibility == null) {
             // TODO(nickbp): Remove this compatibility fallback after October 2017
@@ -57,7 +59,7 @@ public class PortSpec extends DefaultResourceSpec {
                 portSpec.getRole(),
                 portSpec.getPreReservedRole(),
                 portSpec.getPrincipal(),
-                portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
+                portSpec.getEnvKey(),
                 portSpec.getPortName(),
                 portSpec.getVisibility(),
                 portSpec.getNetworkNames());
@@ -76,6 +78,11 @@ public class PortSpec extends DefaultResourceSpec {
     @JsonProperty("network-names")
     public Collection<String> getNetworkNames() {
         return networkNames;
+    }
+
+    @JsonProperty("env-key")
+    public String getEnvKey() {
+        return envKey;
     }
 
     @JsonIgnore

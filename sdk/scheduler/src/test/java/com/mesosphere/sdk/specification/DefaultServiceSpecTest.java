@@ -125,17 +125,17 @@ public class DefaultServiceSpecTest {
         PortSpec portSpec = (PortSpec) portsResources.get(0);
         Assert.assertEquals("name1", portSpec.getPortName());
         Assert.assertEquals(8080, portSpec.getPort());
-        Assert.assertEquals("key1", portSpec.getEnvKey().get());
+        Assert.assertEquals("key1", portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(1);
         Assert.assertEquals("name2", portSpec.getPortName());
         Assert.assertEquals(8088, portSpec.getPort());
-        Assert.assertFalse(portSpec.getEnvKey().isPresent());
+        Assert.assertEquals(null, portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(2);
         Assert.assertEquals("name3", portSpec.getPortName());
         Assert.assertEquals(8089, portSpec.getPort());
-        Assert.assertFalse(portSpec.getEnvKey().isPresent());
+        Assert.assertEquals(null, portSpec.getEnvKey());
     }
 
     @Test

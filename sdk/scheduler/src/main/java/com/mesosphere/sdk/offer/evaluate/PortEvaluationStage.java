@@ -110,6 +110,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         long port = resource.getRanges().getRange(0).getBegin();
 
+        final String portEnvKey = portSpec.getEnvKey();
+        final String portEnvVal = Long.toString(port);
         if (getTaskName().isPresent()) {
             String taskName = getTaskName().get();
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
@@ -126,9 +128,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
                     .setName(portSpec.getPortName());
 
-            if (portSpec.getEnvKey().isPresent()) {
-                final String portEnvKey = portSpec.getEnvKey().get();
-                final String portEnvVal = Long.toString(port);
+            if (portEnvKey != null) {
 
                 // Add port to the main task environment:
                 taskBuilder.getCommandBuilder().setEnvironment(
@@ -169,8 +169,11 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             }
         } else {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
-            executorBuilder.getCommandBuilder().setEnvironment(
-                    withPortEnvironmentVariable(executorBuilder.getCommandBuilder().getEnvironment(), port));
+            if (portEnvKey != null) {
+                Protos.CommandInfo.Builder executorCmdBuilder = executorBuilder.getCommandBuilder();
+                executorCmdBuilder.setEnvironment(
+                            EnvUtils.withEnvVar(executorCmdBuilder.getEnvironment(), portEnvKey, portEnvVal));
+            }
             if (useHostPorts) {
                 executorBuilder.addResources(resource);
             }
@@ -237,13 +240,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
                 .filter(p -> p != 0)
                 .collect(Collectors.toSet());
-    }
-
-    private Protos.Environment withPortEnvironmentVariable(Protos.Environment environment, long port) {
-        if (!portSpec.getEnvKey().isPresent()) {
-            return environment;
-        }
-        return EnvUtils.withEnvVar(environment, portSpec.getEnvKey().get(), Long.toString(port));
     }
 
     private static boolean requireHostPorts(Collection<String> networkNames) {

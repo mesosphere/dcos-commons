@@ -49,8 +49,9 @@ class TaskPortLookup {
         // Tasks launched in older SDK releases may omit the port names in the DiscoveryInfo.
         // TODO(nickbp): Remove this fallback after October 2017
         // When the PortSpec lacks an explicit env name, fall back to trying the legacy "PORT_<PORT_NAME>" default
-        final String portEnvName = portSpec.getEnvKey().orElse(
-                EnvConstants.PORT_NAME_TASKENV_PREFIX + EnvUtils.toEnvName(portSpec.getPortName()));
+        final String portEnvName = portSpec.getEnvKey() != null
+                ? portSpec.getEnvKey()
+                : EnvConstants.PORT_NAME_TASKENV_PREFIX + EnvUtils.toEnvName(portSpec.getPortName());
         try {
             return Optional.ofNullable(Long.parseLong(lastTaskEnvs.get(portEnvName)));
         } catch (NumberFormatException e) {

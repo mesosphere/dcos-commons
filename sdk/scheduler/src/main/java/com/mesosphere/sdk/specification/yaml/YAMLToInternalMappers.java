@@ -466,13 +466,7 @@ public class YAMLToInternalMappers {
         }
 
         return new DefaultVolumeSpec(
-                rawVolume.getSize(),
-                volumeTypeEnum,
-                rawVolume.getPath(),
-                role,
-                preReservedRole,
-                principal,
-                "DISK_SIZE");
+                rawVolume.getSize(), volumeTypeEnum, rawVolume.getPath(), role, preReservedRole, principal);
     }
 
     private static DefaultNetworkSpec convertNetwork(

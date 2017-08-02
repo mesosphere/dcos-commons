@@ -13,7 +13,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * Tests for {@link TaskPortLookup}.
@@ -35,7 +34,7 @@ public class TaskPortLookupTest {
     public void testEmptyTask() throws Exception {
         TaskPortLookup taskPortLookup = new TaskPortLookup(emptyTask);
         when(mockPortSpec.getPortName()).thenReturn("test-port");
-        when(mockPortSpec.getEnvKey()).thenReturn(Optional.empty());
+        when(mockPortSpec.getEnvKey()).thenReturn(null);
         assertFalse(taskPortLookup.getPriorPort(mockPortSpec).isPresent());
     }
 
@@ -48,7 +47,7 @@ public class TaskPortLookupTest {
 
         TaskPortLookup taskPortLookup = new TaskPortLookup(testTaskBuilder.build());
         when(mockPortSpec.getPortName()).thenReturn("test-port");
-        when(mockPortSpec.getEnvKey()).thenReturn(Optional.of("PORT_ENV_VAR"));
+        when(mockPortSpec.getEnvKey()).thenReturn("PORT_ENV_VAR");
         assertEquals(Long.valueOf(12345), taskPortLookup.getPriorPort(mockPortSpec).get());
     }
 
@@ -61,7 +60,7 @@ public class TaskPortLookupTest {
 
         TaskPortLookup taskPortLookup = new TaskPortLookup(testTaskBuilder.build());
         when(mockPortSpec.getPortName()).thenReturn("env-var"); // defaults to PORT_ENV_VAR
-        when(mockPortSpec.getEnvKey()).thenReturn(Optional.empty());
+        when(mockPortSpec.getEnvKey()).thenReturn(null);
         assertEquals(Long.valueOf(12345), taskPortLookup.getPriorPort(mockPortSpec).get());
     }
 
