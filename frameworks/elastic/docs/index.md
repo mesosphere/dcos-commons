@@ -1,6 +1,5 @@
 ---
-post_title: Elastic version 1.0.8-5.2.2
-nav_title: v1.0.8-5.2.2
+post_title: Version 1.0.8-5.2.2
 menu_order: 00
 post_excerpt: ""
 feature_maturity: preview
