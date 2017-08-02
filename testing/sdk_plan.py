@@ -27,7 +27,26 @@ def start_plan(service_name, plan, parameters=None):
 
 
 def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
-    return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
+    def is_empty_recovery_plan(plan):
+        if not plan:
+            return False
+
+        if plan["phases"]:
+            return False
+        if plan["errors"]:
+            return False
+        if plan["status"] != "COMPLETE":
+            return False
+        return True
+
+    def fn():
+        completed_plan = wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
+        if is_empty_recovery_plan(completed_plan):
+            return False
+        else:
+            return completed_plan
+
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
 def wait_for_in_progress_recovery(service_name, timeout_seconds=15 * 60):
