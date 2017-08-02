@@ -42,7 +42,7 @@ public class PodInfoBuilder {
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
-    private final Map<String, TaskPortLookup> taskPortFinders;
+    private final Map<String, TaskPortLookup> portsByTask;
     private final boolean useDefaultExecutor;
 
     public PodInfoBuilder(
@@ -82,12 +82,12 @@ public class PodInfoBuilder {
                 serviceName, podInstance, frameworkID, targetConfigId, schedulerFlags);
 
         this.podInstance = podInstance;
-        this.taskPortFinders = new HashMap<>();
+        this.portsByTask = new HashMap<>();
         for (Protos.TaskInfo currentTask : currentPodTasks) {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
-            taskPortFinders.put(currentTask.getName(), new TaskPortLookup(currentTask));
+            portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
@@ -116,7 +116,7 @@ public class PodInfoBuilder {
      * it on task relaunch.
      */
     public Optional<Long> getPriorPortForTask(String taskSpecName, PortSpec portSpec) {
-        TaskPortLookup portFinder = taskPortFinders.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
+        TaskPortLookup portFinder = portsByTask.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
         if (portFinder == null) {
             return Optional.empty();
         }
