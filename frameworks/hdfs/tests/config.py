@@ -1,8 +1,6 @@
 import shakedown
 
-import sdk_plan
 import sdk_utils
-import sdk_tasks
 
 PACKAGE_NAME = 'hdfs'
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
@@ -42,6 +40,7 @@ def write_lots_of_data_to_hdfs(svc_name, filename):
     rc, output = run_hdfs_command(svc_name, write_command)
     return rc
 
+
 def get_active_name_node(svc_name):
     name_node_0_status = get_name_node_status(svc_name, "name-0-node")
     if name_node_0_status == "active":
@@ -52,6 +51,7 @@ def get_active_name_node(svc_name):
         return "name-1-node"
 
     raise Exception("Failed to determine active name node")
+
 
 def get_name_node_status(svc_name, name_node):
     def get_status():
@@ -68,13 +68,10 @@ def run_hdfs_command(svc_name, command):
     """
     Execute the command using the Docker client
     """
-    full_command = 'docker run -e HDFS_SERVICE_NAME={} mesosphere/hdfs-client:2.6.4 /bin/bash -c "/configure-hdfs.sh && {}"'.format(svc_name, command)
+    full_command = 'docker run -e HDFS_SERVICE_NAME={} ' \
+                   'mesosphere/hdfs-client:2.6.4 ' \
+                   '/bin/bash -c '\
+                   '"/configure-hdfs.sh && {}"'.format(svc_name, command)
 
     rc, output = shakedown.run_command_on_master(full_command)
     return rc, output
-
-
-def check_healthy(count=DEFAULT_TASK_COUNT):
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=25 * 60)
-    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=25 * 60)
-    sdk_tasks.check_running(PACKAGE_NAME, count)
