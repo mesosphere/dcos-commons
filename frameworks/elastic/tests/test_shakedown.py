@@ -75,7 +75,6 @@ def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "data-0-node", DEFAULT_ELASTIC_TIMEOUT)
 
 
-@pytest.mark.focus
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
 def test_xpack_toggle_with_kibana(default_populated_index):
@@ -151,7 +150,28 @@ def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
     cmd.run_cli('elastic --name={} pod replace master-0'.format(FOLDERED_SERVICE_NAME))
-    # setup_function will verify that the cluster becomes healthy again.
+    # pre_test_setup will verify that the cluster becomes healthy again.
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_data_node_replace():
+    cmd.run_cli('elastic --name={} pod replace data-0'.format(FOLDERED_SERVICE_NAME))
+    # pre_test_setup will verify that the cluster becomes healthy again.
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_ingest_node_replace():
+    cmd.run_cli('elastic --name={} pod replace ingest-0'.format(FOLDERED_SERVICE_NAME))
+    # pre_test_setup will verify that the cluster becomes healthy again.
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_coordinator_node_replace():
+    cmd.run_cli('elastic --name={} pod replace coordinator-0'.format(FOLDERED_SERVICE_NAME))
+    # pre_test_setup will verify that the cluster becomes healthy again.
 
 
 @pytest.mark.recovery
