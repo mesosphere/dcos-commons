@@ -1,15 +1,12 @@
 import pytest
-import shakedown
-import time
-import json
 import os
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
 
 import sdk_cmd
-import sdk_install
 import sdk_plan
 import sdk_tasks
-import sdk_marathon
-import sdk_test_upgrade
+import sdk_upgrade
+import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
@@ -30,16 +27,18 @@ if "NUM_WORLD" in os.environ:
 
 @pytest.mark.soak_upgrade
 def test_soak_upgrade_downgrade():
-    sdk_test_upgrade.soak_upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    sdk_upgrade.soak_upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.soak_secrets_update
-@pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")')
+@sdk_utils.dcos_1_10_or_higher
 def test_soak_secrets_update():
 
     secret_content_alternative = "hello-world-secret-data-alternative"
     test_soak_secrets_framework_alive()
 
+    sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
+    sdk_cmd.run_cli("package install --cli hello-world")
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret1".format(secret_content_alternative))
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret2".format(secret_content_alternative))
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret3".format(secret_content_alternative))
@@ -67,7 +66,7 @@ def test_soak_secrets_update():
 
 
 @pytest.mark.soak_secrets_alive
-@pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")')
+@sdk_utils.dcos_1_10_or_higher
 def test_soak_secrets_framework_alive():
 
     sdk_plan.wait_for_completed_deployment(FRAMEWORK_NAME)

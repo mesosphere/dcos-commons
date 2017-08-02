@@ -1,5 +1,4 @@
 import pytest
-import json
 
 import shakedown
 
@@ -10,8 +9,7 @@ import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     check_running,
-    bump_hello_cpus,
-    hello_task_count
+    bump_hello_cpus
 )
 
 @pytest.fixture(scope='module', autouse=True)

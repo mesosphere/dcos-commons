@@ -1,8 +1,6 @@
 import pytest
 
 import json
-import time
-import traceback
 
 import shakedown
 import sdk_cmd
@@ -43,7 +41,8 @@ def test_rack_not_found():
         }
     }
 
-    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, check_suppression=False)
+    # scheduler should fail to deploy, don't wait for it to complete:
+    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, wait_scheduler_idle=False)
     try:
         sdk_tasks.check_running(PACKAGE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"
@@ -93,8 +92,6 @@ def test_hostname_unique():
 
     sdk_install.install(PACKAGE_NAME, num_private_agents * 2, additional_options=options)
     # hello deploys first. One "world" task should end up placed with each "hello" task.
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-
     # ensure "hello" task can still be placed with "world" task
     sdk_cmd.run_cli('hello-world pod replace hello-0')
     sdk_tasks.check_running(PACKAGE_NAME, num_private_agents * 2 - 1, timeout_seconds=10)
@@ -121,7 +118,6 @@ def test_max_per_hostname():
     }
 
     sdk_install.install(PACKAGE_NAME, num_private_agents * 5, additional_options=options)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_count_per_agent(hello_count=2, world_count=3)
 
 
@@ -144,7 +140,6 @@ def test_rr_by_hostname():
     }
 
     sdk_install.install(PACKAGE_NAME, num_private_agents * 4, additional_options=options)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_count_per_agent(hello_count=2, world_count=2)
 
 
@@ -167,7 +162,6 @@ def test_cluster():
     }
 
     sdk_install.install(PACKAGE_NAME, num_private_agents, additional_options=options)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     ensure_count_per_agent(hello_count=num_private_agents, world_count=0)
 
 
