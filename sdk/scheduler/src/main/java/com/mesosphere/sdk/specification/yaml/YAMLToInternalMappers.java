@@ -141,7 +141,7 @@ public class YAMLToInternalMappers {
             return;
         }
         for (Map.Entry<String, RawPort> entry : map.entrySet()) {
-            if (!entry.getValue().isAdvertise()) {
+            if (!entry.getValue().isAdvertised()) {
                 // Only check ports that are flagged as endpoints
                 continue;
             }
@@ -557,7 +557,7 @@ public class YAMLToInternalMappers {
             portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
 
             final Protos.DiscoveryInfo.Visibility visibility =
-                    rawPort.isAdvertise() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
+                    rawPort.isAdvertised() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();

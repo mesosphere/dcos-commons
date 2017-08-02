@@ -17,7 +17,7 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
 
 4. The name of a task can be anything but since Kafka has brokers, change the type of the task in the Kafka pod from `node` to `broker`. Also, notice that `count` is specified as a property of the `kafka` pod. This indicates there will be `count` kafka pods, each of which will run a `broker`.
 
-5. Next, add the following property to the `broker` task in order to open up the necessary port, and mark it as `advertise`d so that it appears in service information.
+5. Next, add the following property to the `broker` task in order to open up the necessary port, and mark it as `advertise`d so that it appears in service endpoint information.
 
 ```
 ports:

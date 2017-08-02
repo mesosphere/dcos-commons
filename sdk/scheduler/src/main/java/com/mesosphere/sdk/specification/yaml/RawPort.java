@@ -31,7 +31,7 @@ public class RawPort {
         return envKey;
     }
 
-    public boolean isAdvertise() {
+    public boolean isAdvertised() {
         return advertise != null && advertise;
     }
 

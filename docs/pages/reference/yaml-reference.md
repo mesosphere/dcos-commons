@@ -254,7 +254,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `env-key`
 
-        This may be used to customize the environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.
+        This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.
 
       * `advertise`
 
