@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 import xml.etree.ElementTree as etree
 
@@ -13,6 +15,8 @@ import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 from tests.config import *
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -71,7 +75,7 @@ def check_properties(xml, expect):
         name = prop.find('name').text
         if name in expect:
             found[name] = prop.find('value').text
-    sdk_utils.out('expect: {}\nfound:  {}'.format(expect, found))
+    log.info('expect: {}\nfound:  {}'.format(expect, found))
     assert expect == found
 
 
@@ -223,7 +227,7 @@ def test_install():
 @pytest.mark.sanity
 def test_bump_journal_cpus():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
-    sdk_utils.out('journal ids: ' + str(journal_ids))
+    log.info('journal ids: ' + str(journal_ids))
 
     sdk_marathon.bump_cpu_count_config(FOLDERED_SERVICE_NAME, 'JOURNAL_CPUS')
 
@@ -234,7 +238,7 @@ def test_bump_journal_cpus():
 @pytest.mark.sanity
 def test_bump_data_nodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
-    sdk_utils.out('data ids: ' + str(data_ids))
+    log.info('data ids: ' + str(data_ids))
 
     sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT')
 
@@ -253,8 +257,8 @@ def test_modify_app_config():
     name_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
     config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    sdk_utils.out('marathon config: ')
-    sdk_utils.out(config)
+    log.info('marathon config: ')
+    log.info(config)
     expiry_ms = int(config['env'][app_config_field])
     config['env'][app_config_field] = str(expiry_ms + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout=15 * 60)
@@ -278,10 +282,10 @@ def test_modify_app_config_rollback():
 
     old_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
     config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    sdk_utils.out('marathon config: ')
-    sdk_utils.out(config)
+    log.info('marathon config: ')
+    log.info(config)
     expiry_ms = int(config['env'][app_config_field])
-    sdk_utils.out('expiry ms: ' + str(expiry_ms))
+    log.info('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout= 15 * 60)
 
@@ -289,8 +293,8 @@ def test_modify_app_config_rollback():
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
 
-    sdk_utils.out('old config: ')
-    sdk_utils.out(old_config)
+    log.info('old config: ')
+    log.info(old_config)
     # Put the old config back (rollback)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, old_config)
 

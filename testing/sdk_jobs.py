@@ -1,6 +1,7 @@
 '''Utilities relating to creation and verification of Metronome jobs'''
 
 import json
+import logging
 import os
 import tempfile
 import traceback
@@ -8,7 +9,8 @@ import traceback
 import shakedown
 
 import sdk_cmd
-import sdk_utils
+
+log = logging.getLogger(__name__)
 
 
 # --- Install/uninstall jobs to the cluster
@@ -21,14 +23,14 @@ def install_job(job_dict, tmp_dir=None):
         tmp_dir = tempfile.mkdtemp(prefix='sdk-test')
     out_filename = os.path.join(tmp_dir, '{}.json'.format(job_name))
     job_str = json.dumps(job_dict)
-    sdk_utils.out('Writing job file for {} to: {}\n{}'.format(job_name, out_filename, job_str))
+    log.info('Writing job file for {} to: {}\n{}'.format(job_name, out_filename, job_str))
     with open(out_filename, 'w') as f:
         f.write(job_str)
 
     try:
         _remove_job_by_name(job_name)
     except:
-        sdk_utils.out('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
+        log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
             job_name, traceback.format_exc()))
     sdk_cmd.run_cli('job add {}'.format(out_filename))
 
@@ -79,13 +81,13 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
             runs = json.loads(sdk_cmd.run_cli(
                 'job history --show-failures --json {}'.format(job_name), print_output=False))
         except:
-            sdk_utils.out(traceback.format_exc())
+            log.info(traceback.format_exc())
             return False
 
         successful_ids = [r['id'] for r in runs['history']['successfulFinishedRuns']]
         failed_ids = [r['id'] for r in runs['history']['failedFinishedRuns']]
 
-        sdk_utils.out('Job {} run history (waiting for successful {}): successful={} failed={}'.format(
+        log.info('Job {} run history (waiting for successful {}): successful={} failed={}'.format(
             job_name, run_id, successful_ids, failed_ids))
         # note: if a job has restart.policy=ON_FAILURE, it won't show up in failed_ids if it fails
         if raise_on_failure and run_id in failed_ids:
