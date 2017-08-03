@@ -12,6 +12,10 @@ assert log_level in (
     'CRITICAL',
     'EXCEPTION')
 
+log_format = '[%(asctime)s|%(name)s|%(levelname)s]: %(message)s'
+if 'TEAMCITY_VERSION' in os.environ:
+    log_format = '[%(name)s|%(levelname)s]: %(message)s'
+
 logging.basicConfig(
-    format='[%(asctime)s] %(levelname)s: %(message)s',
+    format=log_format,
     level=log_level)
