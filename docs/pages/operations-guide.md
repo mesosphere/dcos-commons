@@ -706,7 +706,7 @@ Or for a specific step within a specific phase:
 $ dcos dse update force-restart dse-phase dse-0:[node]
 ```
 
-### Open Source DC/OS, DC/OS 1.9 and Earlier
+### Open Source DC/OS, DC/OS 1.9, and Earlier
 
 If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
