@@ -48,6 +48,7 @@ pods:
             port: 1025
           overlay-dynport:
             port: 0
+            env-key: PORT_OVERLAY_DYNPORT
     tasks:
       server:
         goal: RUNNING
