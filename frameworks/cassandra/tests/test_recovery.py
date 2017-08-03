@@ -37,7 +37,6 @@ def test_node_replace_replaces_seed_node():
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
-    sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
 
@@ -57,7 +56,6 @@ def test_node_replace_replaces_node():
 
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
-    sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
     sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
 
 

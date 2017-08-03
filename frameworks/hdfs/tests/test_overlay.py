@@ -3,7 +3,17 @@ import pytest
 from xml.etree import ElementTree
 # Do not use import *; it makes it harder to determine the origin of config
 # items
-from tests.config import *
+from tests.config import (
+    DEFAULT_HDFS_TIMEOUT,
+    DEFAULT_TASK_COUNT,
+    PACKAGE_NAME,
+    TEST_FILE_1_NAME,
+    TEST_FILE_2_NAME,
+    get_active_name_node,
+    write_data_to_hdfs,
+    read_data_from_hdfs,
+    get_name_node_status
+)
 
 import sdk_hosts
 import sdk_install
@@ -13,6 +23,7 @@ import sdk_plan
 import sdk_tasks
 
 import shakedown
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -24,15 +35,13 @@ def configure_package(configure_universe):
             DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(PACKAGE_NAME)
 
-
 @pytest.fixture(autouse=True)
-def pre_test_setup():
-    check_healthy()
-
+def check_health_at_start():
+    check_healthy(recovery_expected=False)
 
 @pytest.mark.sanity
 @pytest.mark.overlay
@@ -65,7 +74,7 @@ def test_endpoints_on_overlay():
 def test_write_and_read_data_on_overlay():
     write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
     read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
-    check_healthy()
+    check_healthy(recovery_expected=False)
 
 
 @pytest.mark.data_integrity
@@ -82,7 +91,8 @@ def test_integrity_on_data_node_failure():
 
     read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
 
-    check_healthy()
+    # Since we are rebuilding data nodes, we expect the recovery plan to be triggered.
+    check_healthy(recovery_expected=True)
 
 
 @pytest.mark.data_integrity
@@ -105,7 +115,7 @@ def test_integrity_on_name_node_failure():
     write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_2_NAME)
     read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_2_NAME)
 
-    check_healthy()
+    check_healthy(recovery_expected=True)
 
 
 def wait_for_failover_to_complete(namenode):
@@ -118,3 +128,10 @@ def wait_for_failover_to_complete(namenode):
         return status == "active"
 
     shakedown.wait_for(lambda: failover_detection(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+
+
+def check_healthy(recovery_expected, count=DEFAULT_TASK_COUNT):
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME, timeout_seconds=25 * 60)
+    if recovery_expected:
+        sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=25 * 60)
+    sdk_tasks.check_running(PACKAGE_NAME, count)

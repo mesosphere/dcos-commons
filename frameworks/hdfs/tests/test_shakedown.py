@@ -12,7 +12,13 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-from tests.config import *
+from tests.config import (
+    DEFAULT_HDFS_TIMEOUT,
+    DEFAULT_TASK_COUNT,
+    FOLDERED_SERVICE_NAME,
+    PACKAGE_NAME,
+    ZK_SERVICE_PATH
+)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -27,16 +33,16 @@ def configure_package(configure_universe):
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
         else:
             sdk_upgrade.test_upgrade(
                 "beta-{}".format(PACKAGE_NAME),
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
@@ -56,12 +62,17 @@ def test_endpoints():
 
     hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
     expect = {
-        'dfs.namenode.shared.edits.dir': 'qjournal://' + ';'.join([
-            sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)]) + '/hdfs',
+        'dfs.namenode.shared.edits.dir': 'qjournal://{}/hdfs'.format(';'.join([
+            sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)])),
     }
     for i in range(2):
-        expect['dfs.namenode.rpc-address.hdfs.name-{}-node'.format(i)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'name-{}-node'.format(i), 9001)
-        expect['dfs.namenode.http-address.hdfs.name-{}-node'.format(i)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'name-{}-node'.format(i), 9002)
+        name_node = 'name-{}-node'.format(i)
+        expect['dfs.namenode.rpc-address.hdfs.{}'.format(name_node)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME,
+                                                                                             '{}'.format(name_node),
+                                                                                             9001)
+        expect['dfs.namenode.http-address.hdfs.{}'.format(name_node)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME,
+                                                                                              '{}'.format(name_node),
+                                                                                              9002)
     check_properties(hdfs_site, expect)
 
 
@@ -196,6 +207,7 @@ def test_permanent_and_transient_namenode_failures_0_1():
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
+
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanent_and_transient_namenode_failures_1_0():
@@ -269,6 +281,7 @@ def test_modify_app_config():
     new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
     assert(old_recovery_plan == new_recovery_plan)
 
+
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
@@ -283,7 +296,7 @@ def test_modify_app_config_rollback():
     expiry_ms = int(config['env'][app_config_field])
     sdk_utils.out('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout= 15 * 60)
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout=15 * 60)
 
     # Wait for journal nodes to be affected by the change
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)

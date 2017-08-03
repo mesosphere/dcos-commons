@@ -20,6 +20,29 @@ def get_plan(service_name, plan):
     return shakedown.wait_for(fn)
 
 
+def is_empty_recovery_plan(plan):
+    """Check if the specified plan is the default state of the recovery
+    plan. After a successful deployment, the status of the recovery plan is:
+
+    {
+        "phases": [],
+        "errors": [],
+        "status": "COMPLETE"
+    }
+
+    which should not be seen as a COMPLETE plan.
+    """
+    if not plan:
+        return True
+
+    empty_plan = {
+        "phases": [],
+        "errors": [],
+        "status": "COMPLETE"
+    }
+    return plan == empty_plan
+
+
 def start_plan(service_name, plan, parameters=None):
     return dcos.http.post(
         "{}/v1/plans/{}/start".format(shakedown.dcos_service_url(service_name), plan),
@@ -27,15 +50,14 @@ def start_plan(service_name, plan, parameters=None):
 
 
 def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
-    return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
+    def fn():
+        completed_plan = wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
+        if is_empty_recovery_plan(completed_plan):
+            return False
+        else:
+            return completed_plan
 
-
-def wait_for_in_progress_recovery(service_name, timeout_seconds=15 * 60):
-    return wait_for_in_progress_plan(service_name, 'recovery', timeout_seconds)
-
-
-def wait_for_kicked_off_recovery(service_name, timeout_seconds=15 * 60):
-    return wait_for_kicked_off_plan(service_name, 'recovery', timeout_seconds)
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
 def wait_for_completed_deployment(service_name, timeout_seconds=15 * 60):
@@ -43,23 +65,15 @@ def wait_for_completed_deployment(service_name, timeout_seconds=15 * 60):
 
 
 def wait_for_completed_plan(service_name, plan_name, timeout_seconds=15 * 60):
-    return wait_for_plan_status(service_name, plan_name, 'COMPLETE', timeout_seconds)
+    return wait_for_plan_status(service_name, plan_name, "COMPLETE", timeout_seconds)
 
 
 def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=15 * 60):
-    return wait_for_phase_status(service_name, plan_name, phase_name, 'COMPLETE', timeout_seconds)
+    return wait_for_phase_status(service_name, plan_name, phase_name, "COMPLETE", timeout_seconds)
 
 
 def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=15 * 60):
-    return wait_for_step_status(service_name, plan_name, phase_name, step_name, 'COMPLETE', timeout_seconds)
-
-
-def wait_for_kicked_off_plan(service_name, plan_name, timeout_seconds=15 * 60):
-    return wait_for_plan_status(service_name, plan_name, ['STARTING', 'IN_PROGRESS'], timeout_seconds)
-
-
-def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=15 * 60):
-    return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
+    return wait_for_step_status(service_name, plan_name, phase_name, step_name, "COMPLETE", timeout_seconds)
 
 
 def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):
