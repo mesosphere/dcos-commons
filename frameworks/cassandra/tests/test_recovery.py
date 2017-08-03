@@ -11,7 +11,7 @@ import sdk_plan
 import sdk_tasks
 import sdk_utils
 
-TIMEOUT_SECONDS = 20 * 60
+RECOVERY_TIMEOUT_SECONDS = 20 * 60
 
 from tests.config import (
     PACKAGE_NAME,
@@ -40,7 +40,7 @@ def test_node_replace_replaces_seed_node():
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
-    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
 
 @pytest.mark.sanity
@@ -61,7 +61,7 @@ def test_node_replace_replaces_node():
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
-    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=TIMEOUT_SECONDS)
+    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
 
 @pytest.mark.sanity

@@ -14,8 +14,8 @@ DELETE_DATA_JOB = get_delete_data_job(node_address=FOLDERED_NODE_ADDRESS)
 VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS)
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
-no_strict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-        reason="backup/restore tests broken in strict")
+no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
+        reason="backup/restore doesn't work in strict as user needs to be root")
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -46,7 +46,7 @@ def configure_package(configure_universe):
 # use e.g. "TEST_TYPES=sanity and not aws and not azure":
 
 @pytest.mark.azure
-@no_strict
+@no_strict_for_azure
 @pytest.mark.sanity
 def test_backup_and_restore_to_azure():
     client_id = os.getenv('AZURE_CLIENT_ID')
@@ -72,7 +72,6 @@ def test_backup_and_restore_to_azure():
 
 
 @pytest.mark.aws
-@no_strict
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3():
     key_id = os.getenv('AWS_ACCESS_KEY_ID')
