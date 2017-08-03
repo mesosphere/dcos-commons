@@ -242,7 +242,7 @@ def setup_constraint_switch():
     agents = shakedown.get_private_agents()
     some_agent = agents[0]
     other_agent = agents[1]
-    log.info('Agents: {} {}'.format(some_agent, other_agent))
+    log.info('Agents: %s %s', some_agent, other_agent)
     assert some_agent != other_agent
     options = {
         "service": {

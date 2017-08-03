@@ -29,6 +29,6 @@ def run_cli(cmd, print_output=True):
     if ret != 0:
         err = 'Got error code {} when running command "dcos {}":\nstdout: "{}"\nstderr: "{}"'.format(
             ret, cmd, stdout, stderr)
-        log.info(err)
+        log.error(err)
         raise dcos.errors.DCOSException(err)
     return stdout

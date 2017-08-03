@@ -367,7 +367,7 @@ def delete_secrets_all(path_prefix=""):
 def read_secret(task_name, command):
     cmd_str = "task exec {} {}".format(task_name, command)
     lines = sdk_cmd.run_cli(cmd_str).split('\n')
-    log.info('dcos {} output: {}'.format(cmd_str, lines))
+    log.info('dcos %s output: %s', cmd_str, lines)
     for i in lines:
         if i.strip().startswith(secret_content_default):
             return i
