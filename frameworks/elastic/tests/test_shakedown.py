@@ -6,6 +6,7 @@ import sdk_cmd as cmd
 import sdk_install
 import sdk_metrics
 import sdk_upgrade
+import sdk_utils
 from tests.config import *
 
 log = logging.getLogger(__name__)
