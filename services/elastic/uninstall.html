@@ -313,43 +313,44 @@
 </ul>
 <h1>Elastic: Uninstall</h1>
 <div id="content">
-<p>To uninstall the service, replace <code class="highlighter-rouge">name</code> with the name of the Elastic instance to be uninstalled.</p>
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --app-id<span class="o">=</span>&lt;name&gt; elastic
+<h3 id="dcos-110">DC/OS 1.10</h3>
+
+<p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
+
+<ol>
+  <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; beta-elastic</code>.</li>
+</ol>
+
+<p>For example, to uninstall an Elastic instance named <code class="highlighter-rouge">elastic-dev</code>, run:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --app-id<span class="o">=</span>elastic-dev beta-elastic
 </code></pre>
 </div>
 
-<p>Then, use the <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">framework cleaner script</a> to remove your Elastic instance from Zookeeper and destroy all data associated with it. The script requires several arguments. The default values to be used are:</p>
+<h3 id="older-versions">Older versions</h3>
 
-<ul>
-  <li><code class="highlighter-rouge">framework_role</code> is <code class="highlighter-rouge">&lt;service-name&gt;-role</code>.</li>
-  <li><code class="highlighter-rouge">framework_principal</code> is <code class="highlighter-rouge">&lt;service-name&gt;-principal</code>.</li>
-  <li><code class="highlighter-rouge">zk_path</code> is <code class="highlighter-rouge">dcos-service-&lt;service-name&gt;</code>.</li>
-</ul>
+<p>If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:</p>
 
-<p>These values may vary if you customized them during installation. For instance, if you changed the Elastic service name to <code class="highlighter-rouge">customers</code>, then instead of</p>
+<ol>
+  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
+For example, <code class="highlighter-rouge">dcos package uninstall --app-id=elastic-dev beta-elastic</code>.</li>
+  <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
+</ol>
 
-<ul>
-  <li><code class="highlighter-rouge">framework_role</code> is <code class="highlighter-rouge">elastic-role</code>.</li>
-  <li><code class="highlighter-rouge">framework_principal</code> is <code class="highlighter-rouge">elastic-principal</code>.</li>
-  <li><code class="highlighter-rouge">zk_path</code> is <code class="highlighter-rouge">dcos-service-elastic</code>.</li>
-</ul>
+<p>For example, to uninstall an Elastic instance named <code class="highlighter-rouge">elastic-dev</code>, run:</p>
 
-<p>you would use</p>
-
-<ul>
-  <li><code class="highlighter-rouge">framework_role</code> is <code class="highlighter-rouge">customers-role</code>.</li>
-  <li><code class="highlighter-rouge">framework_principal</code> is <code class="highlighter-rouge">customers-principal</code>.</li>
-  <li><code class="highlighter-rouge">zk_path</code> is <code class="highlighter-rouge">dcos-service-customers</code>.</li>
-</ul>
-
-<p>If you are using the Enterprise Edition of DC/OS with authentication enabled, you will need to include the token in the GET command.</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nv">AUTH_TOKEN</span><span class="o">=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span>
-dcos node ssh --master-proxy --leader
-docker run mesosphere/janitor /janitor.py -r elastic-role -p elastic-principal -z dcos-service-elastic --auth_token<span class="o">=</span><span class="nv">$AUTH_TOKEN</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">MY_SERVICE_NAME</span><span class="o">=</span>elastic-dev
+<span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-elastic<span class="sb">`</span>.
+<span class="gp">$ </span>dcos node ssh --master-proxy --leader <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
+    -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
+    -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
+    -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
 </code></pre>
 </div>
+
+<!-- END DUPLICATE BLOCK -->
 
 </div>
 </div>

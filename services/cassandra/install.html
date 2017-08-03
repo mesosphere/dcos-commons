@@ -315,7 +315,7 @@
 <div id="content">
 <p>The default DC/OS Apache Cassandra installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depending on the context of the deployment.</p>
 
-<h2 id="prerequisities">Prerequisities</h2>
+<h2 id="prerequisites">Prerequisites</h2>
 <ul>
   <li>If you are using Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/">need to provision a service account</a> before installing DC/OS Apache Cassandra. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.</li>
   <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
@@ -336,6 +336,8 @@
 <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install beta-cassandra --options=&lt;options&gt;.json
 </code></pre>
 </div>
+
+<p>It is recommended that this custom configuration is stored in source control.</p>
 
 <p>For more information about building the <code class="highlighter-rouge">options.json</code> file, see the <a href="https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/">DC/OS documentation</a> for service configuration access.</p>
 
