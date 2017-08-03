@@ -79,8 +79,7 @@ The command below creates a cluster using `sample-kafka.json`:
 
     $ dcos package install --options=sample-kafka-custom.json kafka
 
-
-It is recommended that this custom configuration is stored in source control.
+**Recommendation:** Store your custom configuration in source control.
 
 See [Configuration Options][6] for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.
 
