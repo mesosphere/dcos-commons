@@ -708,7 +708,7 @@ $ dcos dse update force-restart dse-phase dse-0:[node]
 
 ### Open Source DC/OS, DC/OS 1.9 and Earlier
 
-If you do not have Enterprise DC/OS 1.10, the CLI commands above are not available. For these versions, you can perform changes from the DC/OS GUI.
+If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
 1. Go to the **Services** tab of the DC/OS GUI and click the name of the Scheduler you wish to edit.
 

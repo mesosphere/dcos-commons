@@ -104,7 +104,7 @@ See [Advanced update actions](#advanced-update-actions) for commands you can use
 
 ## Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier
 
-If you do not have Enterprise DC/OS 1.10, the CLI commands above are not available. For these versions, you can perform changes from the DC/OS GUI.
+If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
 <!-- END DUPLICATE BLOCK -->
 
