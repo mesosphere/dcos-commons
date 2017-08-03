@@ -27,7 +27,7 @@ If you are running DC/OS 1.9 or older, or a version of the service that is older
    For example, `dcos package uninstall --app-id=elastic-dev beta-elastic`.
 1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
 
-For example, to uninstall a Kafka instance named `elastic-dev`, run:
+For example, to uninstall an Elastic instance named `elastic-dev`, run:
 
 ```bash
 $ MY_SERVICE_NAME=elastic-dev
