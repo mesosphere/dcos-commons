@@ -11,6 +11,8 @@ import sdk_plan
 import sdk_tasks
 import sdk_utils
 
+TIMEOUT_SECONDS = 20 * 60
+
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
@@ -42,6 +44,7 @@ def test_node_replace_replaces_seed_node():
 
 
 @pytest.mark.sanity
+@pytest.mark.local
 @sdk_utils.dcos_1_9_or_higher  # dcos task exec not supported < 1.9
 def test_node_replace_replaces_node():
     pod_to_replace = 'node-2'
@@ -58,7 +61,7 @@ def test_node_replace_replaces_node():
     # start replace and wait for it to finish
     cmd.run_cli('cassandra pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_kicked_off_recovery(PACKAGE_NAME)
-    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=TIMEOUT_SECONDS)
 
 
 @pytest.mark.sanity
