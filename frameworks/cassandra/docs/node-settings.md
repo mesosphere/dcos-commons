@@ -67,7 +67,9 @@ You can customize the port that Apache Cassandra listens on for Thrift RPC reque
 *   **In DC/OS CLI options.json**: `rpc_port`: integer (default: `9160`)
 *   **DC/OS web interface**: `TASKCFG_ALL_CASSANDRA_RPC_PORT`: `integer`
 
-# Disk Type
+# Disks
+
+## Volume Type
 
 The service supports two volume types:
  - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
@@ -78,6 +80,10 @@ Using `MOUNT` volumes requires [additional configuration on each DC/OS agent sys
 To configure the disk type:
 *   **In DC/OS CLI options.json**: `disk_type`: string (default: `ROOT`)
 *   **DC/OS web interface**: `CASSANDRA_DISK_TYPE`: `string`
+
+## Disk Scheduler
+
+It is [recommended](http://docs.datastax.com/en/landing_page/doc/landing_page/recommendedSettings.html#recommendedSettings__optimizing-ssds) that you pre-configure your storage hosts to use the deadline IO scheduler in production environments.  
 
 # Placement Constraints
 
