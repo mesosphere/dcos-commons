@@ -138,7 +138,7 @@ You can specify a custom configuration in an `options.json` file and pass it to 
 $ dcos package install _PKGNAME_ --options=your-options.json
 ```
 
-It is recommended that this custom configuration is stored in source control.
+**Recommendation:** Store your custom configuration in source control.
 
 For more information about building the options.json file, see the [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/config-universe-service/) for service configuration access.
 
