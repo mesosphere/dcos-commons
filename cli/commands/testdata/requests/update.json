@@ -26,5 +26,6 @@
             "placement": "hostname:UNIQUE"
         }
     },
-    "packageVersion" : "stub-universe"
+    "packageVersion" : "stub-universe",
+    "replace": false
 }

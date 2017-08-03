@@ -373,6 +373,7 @@ func main() {
 	}
 
 	err = os.Setenv("LIBPROCESS_IP", pod_ip)
+	err = os.Setenv("MESOS_CONTAINER_IP", pod_ip)
 	if err != nil {
 		log.Fatalf("Failed to SET new LIBPROCESS_IP: ", err)
 	}

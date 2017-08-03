@@ -8,7 +8,7 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          http:
+          http-one:
             port: 8080
         volume:
           path: "data-store-container-path"
@@ -18,7 +18,7 @@ pods:
         cpus: 0.1
         memory: 512
         ports:
-          http:
+          http-two:
             port: 8080
         volume:
           path: "data-store-container-path"

@@ -7,7 +7,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskInfo;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -64,7 +63,7 @@ public class FailureUtils {
      * Given a {@link Protos.TaskInfo} representing the prior launch of a task (or an empty Optional if no prior version
      * exists), returns the type of launch to be performed.
      */
-    public static FailureUtils.LaunchType getLaunchType(Optional<TaskInfo> priorTaskInfo) {
+    public static FailureUtils.LaunchType getLaunchType(Optional<Protos.TaskInfo> priorTaskInfo) {
         if (!priorTaskInfo.isPresent()) {
             // This task has never been launched anywhere, otherwise the prior TaskInfo would have something
             return FailureUtils.LaunchType.INITIAL_LAUNCH;

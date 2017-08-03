@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.config.ConfigStoreException;
-import com.mesosphere.sdk.config.ConfigTargetStore;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.state.ConfigTargetStore;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;

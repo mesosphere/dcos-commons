@@ -1,10 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -69,8 +67,8 @@ public class DefaultStepFactoryTest {
                         .build();
 
         Persister persister = new MemPersister();
-        stateStore = new DefaultStateStore(persister);
-        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+        stateStore = new StateStore(persister);
+        configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
@@ -103,8 +101,8 @@ public class DefaultStepFactoryTest {
                         .build();
 
         Persister persister = new MemPersister();
-        stateStore = new DefaultStateStore(persister);
-        configStore = new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+        stateStore = new StateStore(persister);
+        configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);

@@ -1,6 +1,5 @@
 import pytest
 
-import shakedown
 import sdk_install
 import sdk_plan
 import sdk_utils
@@ -10,19 +9,21 @@ from tests.config import (
 )
 
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    options = {
-        "service": {
-            "spec_file": "examples/executor_volume.yml"
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        options = {
+            "service": {
+                "spec_file": "examples/executor_volume.yml"
+            }
         }
-    }
 
-    sdk_install.install(PACKAGE_NAME, 3, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 3, additional_options=options)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

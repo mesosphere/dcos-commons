@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -458,7 +458,10 @@ public class TaskUtils {
      * @return true if recovery is needed, false otherwise.
      */
     public static boolean needsRecovery(TaskSpec taskSpec, TaskStatus taskStatus) {
-        if (taskSpec.getGoal() == GoalState.FINISHED && taskStatus.getState() == TaskState.TASK_FINISHED) {
+        // Tasks with a goal state of finished should never leave the purview of their original
+        // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
+        // which reached their goal state of RUNNING and then later failed.
+        if (taskSpec.getGoal() == GoalState.FINISHED) {
             return false;
         } else {
             return isRecoveryNeeded(taskStatus);

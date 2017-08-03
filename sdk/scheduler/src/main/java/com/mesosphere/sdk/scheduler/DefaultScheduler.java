@@ -4,14 +4,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.api.types.RestartHook;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.config.ConfigStore;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.*;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -41,9 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -53,16 +48,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultScheduler extends AbstractScheduler implements Observer {
 
-    /**
-     * Time to wait for the executor thread to terminate. Only used by unit tests.
-     *
-     * Default: 10 seconds
-     */
-    private static final Integer AWAIT_TERMINATION_TIMEOUT_MS = 10 * 1000;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
-
-    protected final ExecutorService executor = Executors.newFixedThreadPool(1);
 
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
@@ -72,7 +58,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
     protected Map<String, EndpointProducer> customEndpointProducers;
-    protected Optional<RestartHook> customRestartHook;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
     protected OfferAccepter offerAccepter;
@@ -89,11 +74,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     public static class Builder {
         private ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
+        private final Persister persister;
 
         // When these optionals are unset, we use default values:
         private Optional<StateStore> stateStoreOptional = Optional.empty();
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
-        private Optional<RestartHook> restartHookOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
         private final List<Plan> manualPlans = new ArrayList<>();
@@ -103,9 +88,19 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         private Collection<Object> customResources = new ArrayList<>();
         private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+            this(
+                    serviceSpec,
+                    schedulerFlags,
+                    schedulerFlags.isStateCacheEnabled() ?
+                            new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
+                            CuratorPersister.newBuilder(serviceSpec).build());
+        }
+
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister) {
             this.serviceSpec = serviceSpec;
             this.schedulerFlags = schedulerFlags;
+            this.persister = persister;
         }
 
         /**
@@ -149,7 +144,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          */
         public StateStore getStateStore() {
             if (!stateStoreOptional.isPresent()) {
-                setStateStore(createStateStore(serviceSpec, getSchedulerFlags()));
+                setStateStore(new StateStore(persister));
             }
             return stateStoreOptional.get();
         }
@@ -180,7 +175,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         public ConfigStore<ServiceSpec> getConfigStore() {
             if (!configStoreOptional.isPresent()) {
                 try {
-                    setConfigStore(createConfigStore(serviceSpec, Collections.emptyList()));
+                    setConfigStore(createConfigStore(serviceSpec, Collections.emptyList(), persister));
                 } catch (ConfigStoreException e) {
                     throw new IllegalStateException("Failed to create default config store", e);
                 }
@@ -203,16 +198,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
          */
         public Builder setCustomConfigValidators(Collection<ConfigValidator<ServiceSpec>> customConfigValidators) {
             this.customConfigValidators = customConfigValidators;
-            return this;
-        }
-
-        /**
-         * Specifies a custom {@link RestartHook} to be added to the /pods/<name>/restart and /pods/<name>/replace APIs.
-         * This may be used to define any custom teardown behavior which should be invoked before a task is restarted
-         * and/or replaced.
-         */
-        public Builder setRestartHook(RestartHook restartHook) {
-            this.restartHookOptional = Optional.ofNullable(restartHook);
             return this;
         }
 
@@ -391,7 +376,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     stateStore,
                     configStore,
                     endpointProducers,
-                    restartHookOptional,
                     Optional.ofNullable(recoveryPlanOverriderFactory),
                     configUpdateResult);
         }
@@ -436,52 +420,26 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
+    /**
+     * Creates a new {@link Builder} based on the provided {@link ServiceSpec} describing the service, including
+     * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
+     * should be organized.
+     */
+    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+        return new Builder(serviceSpec, schedulerFlags);
+    }
 
     /**
      * Creates a new {@link Builder} based on the provided {@link ServiceSpec} describing the service, including
      * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
      * should be organized.
      */
-    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        return new Builder(serviceSpec, schedulerFlags);
-    }
-
-    /**
-     * Creates and returns a new default {@link StateStore} suitable for passing to {@link DefaultScheduler.Builder}.
-     * To avoid the risk of zookeeper consistency issues, the returned storage MUST NOT be written to before the
-     * Scheduler has registered with Mesos, as signified by a call to
-     * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}
-     */
-    public static StateStore createStateStore(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) {
-        Persister persister = CuratorPersister.newBuilder(serviceSpec).build();
-        if (schedulerFlags.isStateCacheEnabled()) {
-            // Wrap persister with a cache, so that we aren't constantly hitting ZK for state queries:
-            try {
-                persister = new PersisterCache(persister);
-            } catch (PersisterException e) {
-                throw new StateStoreException(e);
-            }
-        }
-        return new DefaultStateStore(persister);
-    }
-
-    /**
-     * Creates and returns a new default {@link ConfigStore} suitable for passing to {@link DefaultScheduler.Builder}.
-     * To avoid the risk of zookeeper consistency issues, the returned storage MUST NOT be written to before the
-     * Scheduler has registered with Mesos, as signified by a call to
-     * {@link #registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)}.
-     *
-     * @param customDeserializationSubtypes custom subtypes to register for deserialization of
-     *     {@link DefaultServiceSpec}, mainly useful for deserializing custom implementations of
-     *     {@link com.mesosphere.sdk.offer.evaluate.placement.PlacementRule}s
-     * @throws ConfigStoreException if validating serialization of the config fails, e.g. due to an
-     *                              unrecognized deserialization type
-     */
-    public static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes) throws ConfigStoreException {
-        // Note: We don't bother using a cache here as we don't expect configs to be accessed frequently
-        return createConfigStore(
-                serviceSpec, customDeserializationSubtypes, CuratorPersister.newBuilder(serviceSpec).build());
+    @VisibleForTesting
+    public static Builder newBuilder(
+            ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags,
+            Persister persister) throws PersisterException {
+        return new Builder(serviceSpec, schedulerFlags, persister);
     }
 
     /**
@@ -492,8 +450,9 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     static ConfigStore<ServiceSpec> createConfigStore(
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
                     throws ConfigStoreException {
-        return new DefaultConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes), persister);
+        return new ConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
+                persister);
     }
 
     /**
@@ -591,7 +550,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RestartHook> restartHookOptional,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
         super(stateStore);
@@ -602,17 +560,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.plans = plans;
         this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
-        this.customRestartHook = restartHookOptional;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
         this.updateResult = updateResult;
     }
 
-    @VisibleForTesting
-    void awaitTermination() throws InterruptedException {
-        executor.shutdown();
-        executor.awaitTermination(AWAIT_TERMINATION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    }
 
     protected void initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
@@ -642,6 +594,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
         LOGGER.info("Initializing globals...");
+
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
         taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
         offerAccepter = new OfferAccepter(Collections.singletonList(new PersistentLaunchRecorder(stateStore,
@@ -652,7 +605,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         stateStore,
                         serviceSpec.getName(),
                         configStore.getTargetConfig(),
-                        schedulerFlags),
+                        schedulerFlags,
+                        Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore,
                 taskKiller);
     }
@@ -724,11 +678,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
         resources.add(endpointsResource);
         resources.add(new PlansResource(planCoordinator));
-        if (customRestartHook.isPresent()) {
-            resources.add(new PodsResource(taskKiller, stateStore, customRestartHook.get()));
-        } else {
-            resources.add(new PodsResource(taskKiller, stateStore));
-        }
+        resources.add(new PodResource(taskKiller, stateStore));
         resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
 
@@ -768,57 +718,50 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offersToProcess) {
-        List<Protos.Offer> offers = new ArrayList<>(offersToProcess);
-        executor.execute(() -> {
-            if (!apiServerReady()) {
-                LOGGER.info("Declining all offers. Waiting for API Server to start ...");
-                OfferUtils.declineOffers(driver, offersToProcess);
-                return;
-            }
+    protected void processOfferSet(List<Protos.Offer> offers) {
+        List<Protos.Offer> localOffers = new ArrayList<>(offers);
+        LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
+        for (int i = 0; i < localOffers.size(); ++i) {
+            LOGGER.info("  {}: {}",
+                    i + 1,
+                    TextFormat.shortDebugString(localOffers.get(i)));
+        }
 
-            LOGGER.info("Received {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
-            for (int i = 0; i < offers.size(); ++i) {
-                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-            }
+        // Coordinate amongst all the plans via PlanCoordinator.
+        final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
+        acceptedOffers.addAll(planCoordinator.processOffers(driver, localOffers));
+        LOGGER.info(
+                "Offers accepted by plan coordinator: {}",
+                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Reconciliation is still in progress, declining all offers.");
-                OfferUtils.declineOffers(driver, offers);
-                return;
-            }
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
 
-            // Coordinate amongst all the plans via PlanCoordinator.
-            final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-            acceptedOffers.addAll(planCoordinator.processOffers(driver, offers));
+        // Resource Cleaning:
+        // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
+        // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
+        // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
+        // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
+        // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
+        // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
+        // offer cycle.
+        final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
+        if (cleanerScheduler.isPresent()) {
+            List<Protos.OfferID> cleanedOffers = cleanerScheduler.get().resourceOffers(driver, unusedOffers);
+            LOGGER.info("Offers accepted by resource cleaner: {}", cleanedOffers);
+            acceptedOffers.addAll(cleanedOffers);
+        }
 
-            List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-            offers.clear();
-            offers.addAll(unusedOffers);
+        LOGGER.info(
+                "Total accepted offers: {}",
+                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
-            // Resource Cleaning:
-            // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
-            // become inoperable for long enough that Tasks resident there were relocated.  However, this Agent may
-            // return at a later point and begin offering reserved Resources again.  To ensure that these unexpected
-            // reserved Resources are returned to the Mesos Cluster, the Resource Cleaner performs all necessary
-            // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
-            // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
-            // offer cycle.
-            final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
-            cleanerScheduler.ifPresent(resourceCleanerScheduler -> acceptedOffers.addAll(
-                    resourceCleanerScheduler.resourceOffers(driver, offers)));
+        unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
+        LOGGER.info(
+                "Unused offers to be declined: {}",
+                unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
 
-            unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, acceptedOffers);
-
-            // Decline remaining offers.
-            OfferUtils.declineOffers(driver, unusedOffers);
-        });
+        // Decline remaining offers.
+        OfferUtils.declineOffers(driver, unusedOffers);
     }
 
     public boolean apiServerReady() {
@@ -827,11 +770,12 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        executor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message='{}'",
+        statusExecutor.execute(() -> {
+            LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
                     status.getTaskId().getValue(),
                     status.getState().toString(),
-                    status.getMessage());
+                    status.getMessage(),
+                    TextFormat.shortDebugString(status));
 
             // Store status, then pass status to PlanManager => Plan => Steps
             try {
@@ -842,7 +786,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
                 if (TaskUtils.isRecoveryNeeded(status) && new TaskLabelReader(taskInfo).isInitialLaunch()) {
                     // The initial launch of this task failed. Give up and try again with a clean slate.
-                    taskKiller.killTask(taskInfo.getTaskId(), true);
+                    taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.PERMANENT);
                 }
 
                 if (StateStoreUtils.isSuppressed(stateStore)

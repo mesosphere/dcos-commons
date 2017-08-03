@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.storage;
 
 /**
- * Container for types related to {@link com.mesosphere.sdk.config.ConfigStoreException}s and
+ * Container for types related to {@link com.mesosphere.sdk.state.ConfigStoreException}s and
  * {@link com.mesosphere.sdk.state.StateStoreException}s.
  */
 public class StorageError {

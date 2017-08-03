@@ -1,25 +1,24 @@
 import pytest
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
 
 import sdk_install
 import sdk_utils
-import shakedown
+
 from tests.config import (
     check_running,
     DEFAULT_TASK_COUNT,
     PACKAGE_NAME
 )
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=PACKAGE_NAME,
-        additional_options={"service": { "spec_file": "examples/pre-reserved.yml"} })
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

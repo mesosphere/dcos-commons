@@ -6,18 +6,17 @@ import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos.Label;
-import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Volume;
 import org.apache.mesos.Protos.Resource.DiskInfo;
-import org.apache.mesos.Protos.Resource.ReservationInfo;
 import org.apache.mesos.Protos.Resource.DiskInfo.Persistence;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
 import org.apache.mesos.Protos.Value.Range;
 
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -150,18 +149,9 @@ public class ResourceTestUtils {
     }
 
     public static Resource setResourceId(Resource resource, String resourceId) {
-        Resource.Builder builder = Resource.newBuilder(resource);
-        Labels.Builder newLabels = Labels.newBuilder();
-        for (Label label : builder.getReservationBuilder().getLabels().getLabelsList()) {
-            if (!label.getKey().equals(MesosResource.RESOURCE_ID_KEY)) {
-                newLabels.addLabels(label);
-            }
-        }
-        newLabels.addLabelsBuilder()
-                .setKey(MesosResource.RESOURCE_ID_KEY)
-                .setValue(resourceId);
-        builder.getReservationBuilder().setLabels(newLabels);
-        return builder.build();
+        Resource.Builder resourceBuilder = resource.toBuilder();
+        AuxLabelAccess.setResourceId(resourceBuilder.getReservationBuilder(), resourceId);
+        return resourceBuilder.build();
     }
 
     public static String getResourceId(Resource resource) {
@@ -288,28 +278,15 @@ public class ResourceTestUtils {
             String role,
             String principal) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
-            builder.addReservations(ReservationInfo.newBuilder()
+            Resource.ReservationInfo.Builder reservationBuilder = builder.addReservationsBuilder()
                     .setRole(role)
-                    .setPrincipal(principal)
-                    .setLabels(Labels.newBuilder()
-                            .addLabels(Label.newBuilder()
-                                    .setKey(MesosResource.RESOURCE_ID_KEY)
-                                    .setValue(resourceId)
-                                    .build())
-                            .build())
-                    .build());
+                    .setPrincipal(principal);
+            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         } else {
             builder.setRole(role);
-            builder.setReservation(ReservationInfo.newBuilder()
-                    .setPrincipal(principal)
-                    .setLabels(Labels.newBuilder()
-                            .addLabels(Label.newBuilder()
-                                    .setKey(MesosResource.RESOURCE_ID_KEY)
-                                    .setValue(resourceId)
-                                    .build())
-                            .build())
-                    .build());
-
+            Resource.ReservationInfo.Builder reservationBuilder = builder.getReservationBuilder()
+                    .setPrincipal(principal);
+            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         }
 
         return  builder;

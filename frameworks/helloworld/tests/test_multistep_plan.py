@@ -1,5 +1,4 @@
 import pytest
-import json
 
 import shakedown
 
@@ -10,25 +9,24 @@ import sdk_utils
 from tests.config import (
     PACKAGE_NAME,
     check_running,
-    bump_hello_cpus,
-    hello_task_count
+    bump_hello_cpus
 )
 
-
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    options = {
-        "service": {
-            "spec_file": "examples/multistep_plan.yml"
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        options = {
+            "service": {
+                "spec_file": "examples/multistep_plan.yml"
+            }
         }
-    }
 
-    sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity

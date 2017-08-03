@@ -2,13 +2,14 @@ import pytest
 import urllib
 
 import sdk_hosts
-import sdk_install
+import sdk_install as install
 import sdk_marathon
+import sdk_metrics
 import sdk_plan
 import sdk_tasks
+import sdk_upgrade
 import sdk_utils
-import sdk_metrics
-import shakedown
+
 import dcos
 import dcos.config
 import dcos.http
@@ -23,19 +24,30 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 ZK_SERVICE_PATH = sdk_utils.get_zk_path(PACKAGE_NAME)
 
 
-def setup_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_BROKER_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
-    sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
 
+        if shakedown.dcos_version_less_than("1.9"):
+            # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
+            install.install(
+                PACKAGE_NAME,
+                DEFAULT_BROKER_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+        else:
+            sdk_upgrade.test_upgrade(
+                "beta-{}".format(PACKAGE_NAME),
+                PACKAGE_NAME,
+                DEFAULT_BROKER_COUNT,
+                service_name=FOLDERED_SERVICE_NAME,
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
 
-def teardown_module(module):
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        yield # let the test session execute
+    finally:
+        install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
 # --------- Endpoints -------------
@@ -55,7 +67,7 @@ def test_endpoints_address():
     assert len(endpoints['dns']) == DEFAULT_BROKER_COUNT
     for i in range(len(endpoints['dns'])):
         assert sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
-    assert endpoints['vips'][0] == sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
+    assert endpoints['vip'] == sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, 'broker', 9092)
 
 
 @pytest.mark.smoke
@@ -272,10 +284,10 @@ def test_state_cli():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_pods_cli():
-    assert service_cli('pods list', service_name=FOLDERED_SERVICE_NAME)
-    assert service_cli('pods status {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME)
-    assert service_cli('pods info {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
+def test_pod_cli():
+    assert service_cli('pod list', service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('pod status {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME)
+    assert service_cli('pod info {}-0'.format(DEFAULT_POD_TYPE), service_name=FOLDERED_SERVICE_NAME, print_output=False) # noisy output
 
 @pytest.mark.sanity
 @pytest.mark.metrics
@@ -300,5 +312,3 @@ def test_suppress():
         return response.text == "true"
 
     shakedown.wait_for(fun)
-
-

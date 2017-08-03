@@ -1,4 +1,3 @@
-import os
 import pytest
 import shakedown
 
@@ -7,38 +6,24 @@ import sdk_networks
 import sdk_tasks
 import sdk_utils
 
-from tests.config import (PACKAGE_NAME,
-                          DEFAULT_TASK_COUNT,
-                          DEFAULT_INDEX_NAME,
-                          DEFAULT_INDEX_TYPE,
-                          DEFAULT_SETTINGS_MAPPINGS,
-                          DEFAULT_ELASTIC_TIMEOUT,
-                          wait_for_expected_nodes_to_exist,
-                          delete_index,
-                          create_index,
-                          create_document,
-                          get_elasticsearch_indices_stats,
-                          get_document
-                          )
+from tests.config import *
 
-overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-                                      reason="overlay tests currently broken in strict")
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_universe):
+    try:
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_utils.gc_frameworks()
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
+                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
+        yield # let the test session execute
+    finally:
+        sdk_install.uninstall(PACKAGE_NAME)
 
-def setup_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
-    sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                    additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-
-
-def setup_function(function):
+@pytest.fixture(autouse=True)
+def pre_test_setup():
     sdk_tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
     wait_for_expected_nodes_to_exist()
-
-
-def teardown_module(module):
-    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.fixture
@@ -51,7 +36,6 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_service_health():
     assert shakedown.service_healthy(PACKAGE_NAME)
@@ -59,7 +43,6 @@ def test_service_health():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_indexing(default_populated_index):
     def fun():
@@ -75,7 +58,6 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(PACKAGE_NAME)
@@ -87,15 +69,10 @@ def test_tasks_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 4)
-    expected_endpoints = ("coordinator",
-                          "data",
-                          "ingest",
-                          "master")
-    for endpoint in expected_endpoints:
+    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 8)
+    for endpoint in ENDPOINT_TYPES:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = sdk_networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 4)
+        specific_endpoint = sdk_networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 3)
         sdk_networks.check_endpoints_on_overlay(specific_endpoint)
