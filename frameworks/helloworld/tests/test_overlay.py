@@ -73,15 +73,13 @@ def test_overlay_network():
     try:
         sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME, timeout_seconds=60)
         sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=60)
+        sdk_tasks.check_running(PACKAGE_NAME, len(EXPECTED_TASKS))
     except TimeoutExpired:
         pass
 
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
     framework_task_names = [t["name"] for t in framework_tasks]
-
-    for expected_task in EXPECTED_TASKS:
-        assert(expected_task in framework_task_names), "Missing {expected}".format(expected=expected_task)
 
     for task in framework_tasks:
         name = task["name"]
