@@ -13,7 +13,7 @@ If you are using DC/OS 1.10 and the installed service has a version greater than
 
 1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> beta-elastic`.
 
-For example, to uninstall a Elastic instance named `elastic-dev`, run:
+For example, to uninstall an Elastic instance named `elastic-dev`, run:
 
 ```bash
 dcos package uninstall --app-id=elastic-dev beta-elastic
