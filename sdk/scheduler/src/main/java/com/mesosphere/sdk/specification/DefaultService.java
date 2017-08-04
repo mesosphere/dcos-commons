@@ -76,10 +76,8 @@ public class DefaultService implements Service {
         boolean usesGpus = serviceSpec.getPods().stream()
                 .flatMap(podSpec -> podSpec.getTasks().stream())
                 .flatMap(taskSpec -> taskSpec.getResourceSet().getResources().stream())
-                .collect(Collectors.toList()).stream()
-                .filter(resourceSpec -> resourceSpec.getName().equals("gpus"))
-                .filter(resourceSpec -> resourceSpec.getValue().getScalar().getValue() >= 1)
-                .count() >= 1;
+                .anyMatch(resourceSpec -> resourceSpec.getName().equals("gpus")
+                        && resourceSpec.getValue().getScalar().getValue() >= 1);
         // control automatic opt-in to scarce resources (GPUs) here. If the framework specifies GPU resources >= 1
         // then we opt-in to scarce resource, otherwise follow the default policy (which as of 8/3/17 was to opt-out)
         return usesGpus || DcosConstants.DEFAULT_GPU_POLICY;
