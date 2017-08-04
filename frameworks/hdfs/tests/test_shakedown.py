@@ -172,6 +172,7 @@ def test_kill_all_datanodes():
 
     for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         sdk_tasks.kill_task_with_pattern('datanode', host)
+
     expect_recovery()
 
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
@@ -250,8 +251,15 @@ def test_bump_data_nodes():
 
     sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT')
 
-    check_healthy(count=DEFAULT_TASK_COUNT + 1)
-    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+    try:
+        check_healthy(count=DEFAULT_TASK_COUNT + 1)
+        sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+
+    finally:
+        # TODO(elezar, nima) If one of the operations above (after the initial bump) fail, then
+        # the test will be terminated, and the number of tasks will remain at DEFAULT_TASK_COUNT + 1
+        sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT', delta=-1)
+        check_healthy(count=DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.readiness_check
