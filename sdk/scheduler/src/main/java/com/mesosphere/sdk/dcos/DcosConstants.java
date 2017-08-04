@@ -20,7 +20,7 @@ public class DcosConstants {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MESOS_MASTER + ":2181";
     public static final String MESOS_LEADER_URI = "http://" + MESOS_LEADER;
-    public static final boolean DEFAULT_GPU_POLICY = true;
+    public static final boolean DEFAULT_GPU_POLICY = false;
     public static final String DEFAULT_IP_PROTOCOL = "tcp";
 
     // These ports should be available to a container on the overlay regardless of it's permissions, it's unlikely
