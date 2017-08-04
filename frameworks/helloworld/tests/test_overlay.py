@@ -71,8 +71,6 @@ def test_overlay_network():
     # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
     # we wait for them to redeploy, but if they can't then we won't proceed as we
     # expect the tasks to be running for this test.
-    sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME, timeout_seconds=60)
-    sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=60)
     sdk_tasks.check_running(PACKAGE_NAME, len(EXPECTED_TASKS))
 
     # test that the tasks are all up, which tests the overlay DNS
