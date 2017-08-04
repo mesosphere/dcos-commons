@@ -11,6 +11,7 @@ import sdk_plan
 import sdk_utils
 import sdk_networks
 import sdk_api
+import sdk_tasks
 
 from dcos.http import DCOSHTTPException
 
