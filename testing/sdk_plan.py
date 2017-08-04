@@ -5,6 +5,7 @@ import sdk_api
 import sdk_utils
 import shakedown
 
+TIMEOUT_SECONDS = 15 * 60
 
 def get_deployment_plan(service_name):
     return get_plan(service_name, "deploy")
@@ -26,43 +27,47 @@ def start_plan(service_name, plan, parameters=None):
         json=parameters if parameters is not None else {})
 
 
-def wait_for_completed_recovery(service_name, timeout_seconds=15 * 60):
+def wait_for_completed_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
 
 
-def wait_for_in_progress_recovery(service_name, timeout_seconds=15 * 60):
+def wait_for_in_progress_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_in_progress_plan(service_name, 'recovery', timeout_seconds)
 
 
-def wait_for_kicked_off_recovery(service_name, timeout_seconds=15 * 60):
+def wait_for_kicked_off_deployment(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    return wait_for_kicked_off_plan(service_name, 'deploy', timeout_seconds)
+
+
+def wait_for_kicked_off_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_kicked_off_plan(service_name, 'recovery', timeout_seconds)
 
 
-def wait_for_completed_deployment(service_name, timeout_seconds=15 * 60):
+def wait_for_completed_deployment(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_completed_plan(service_name, 'deploy', timeout_seconds)
 
 
-def wait_for_completed_plan(service_name, plan_name, timeout_seconds=15 * 60):
+def wait_for_completed_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_plan_status(service_name, plan_name, 'COMPLETE', timeout_seconds)
 
 
-def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=15 * 60):
+def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_phase_status(service_name, plan_name, phase_name, 'COMPLETE', timeout_seconds)
 
 
-def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=15 * 60):
+def wait_for_completed_step(service_name, plan_name, phase_name, step_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_step_status(service_name, plan_name, phase_name, step_name, 'COMPLETE', timeout_seconds)
 
 
-def wait_for_kicked_off_plan(service_name, plan_name, timeout_seconds=15 * 60):
+def wait_for_kicked_off_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_plan_status(service_name, plan_name, ['STARTING', 'IN_PROGRESS'], timeout_seconds)
 
 
-def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=15 * 60):
+def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
 
 
-def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 60):
+def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS):
     '''Wait for a plan to have one of the specified statuses'''
     if isinstance(status, str):
         statuses = [status, ]
@@ -80,7 +85,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=15 * 6
     return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=15 * 60):
+def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
     def fn():
         plan = get_plan(service_name, plan_name)
         phase = get_phase(plan, phase_name)
@@ -93,7 +98,7 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
     return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=15 * 60):
+def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
     def fn():
         plan = get_plan(service_name, plan_name)
         step = get_step(get_phase(plan, phase_name), step_name)
