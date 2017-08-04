@@ -1,10 +1,16 @@
+""" This file configures python logging for the pytest framework
+integration tests
+
+Note: pytest must be invoked with this file in the working directory
+E.G. py.test frameworks/<your-frameworks>/tests
+"""
 import logging
 import os
 
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 
-assert log_level in (
+log_levels = (
     'DEBUG',
     'INFO',
     'WARNING',
@@ -12,10 +18,9 @@ assert log_level in (
     'CRITICAL',
     'EXCEPTION')
 
-log_format = '[%(asctime)s|%(name)s|%(levelname)s]: %(message)s'
-if 'TEAMCITY_VERSION' in os.environ:
-    log_format = '[%(name)s|%(levelname)s]: %(message)s'
+assert log_level in log_levels, '{} is not a valid log level. ' \
+    'Use one of: {}'.format(log_level, ', '.join(log_levels))
 
 logging.basicConfig(
-    format=log_format,
+    format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
     level=log_level)
