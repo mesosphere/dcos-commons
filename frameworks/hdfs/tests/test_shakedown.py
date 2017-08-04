@@ -251,15 +251,8 @@ def test_bump_data_nodes():
 
     sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT')
 
-    try:
-        check_healthy(count=DEFAULT_TASK_COUNT + 1)
-        sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
-
-    finally:
-        # TODO(elezar, nima) If one of the operations above (after the initial bump) fail, then
-        # the test will be terminated, and the number of tasks will remain at DEFAULT_TASK_COUNT + 1
-        sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT', delta=-1)
-        check_healthy(count=DEFAULT_TASK_COUNT)
+    check_healthy(count=DEFAULT_TASK_COUNT + 1)
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.readiness_check
