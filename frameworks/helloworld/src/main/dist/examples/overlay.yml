@@ -53,6 +53,11 @@ pods:
         goal: RUNNING
         cmd: "./bootstrap && python3 http_py3responder.py $PORT_OVERLAY_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
+        readiness-check:
+          cmd: "curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026"
+          interval: 5
+          delay: 0
+          timeout: 60
   hello-host-vip:
     count: 1
     uris:
@@ -132,14 +137,14 @@ plans:
   deploy:
     strategy: serial
     phases:
-      hello-overlay-vip-deploy:
-        strategy: serial
-        pod: hello-overlay-vip
-        steps:
-          - default: [[server]]
       hello-overlay-deploy:
         strategy: serial
         pod: hello-overlay
+        steps:
+          - default: [[server]]
+      hello-overlay-vip-deploy:
+        strategy: serial
+        pod: hello-overlay-vip
         steps:
           - default: [[server]]
       hello-host-vip-deploy:
