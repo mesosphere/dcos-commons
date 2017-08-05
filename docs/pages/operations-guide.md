@@ -543,7 +543,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 
 #### Updating package version
 
-The instructions below show how to safely update one version of a package to the next.
+The instructions below show how to safely update one version of a service to the next.
 
 ##### Viewing available versions
 
@@ -706,9 +706,9 @@ Or for a specific step within a specific phase:
 $ dcos dse update force-restart dse-phase dse-0:[node]
 ```
 
-### DC/OS 1.9 and Earlier
+### Open Source DC/OS, DC/OS 1.9, and Earlier
 
-The CLI commands above are not available for DC/OS 1.9 and earlier. If you are using DC/OS 1.9 or earlier, you can perform changes from the DC/OS GUI.
+If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
 1. Go to the **Services** tab of the DC/OS GUI and click the name of the Scheduler you wish to edit.
 
