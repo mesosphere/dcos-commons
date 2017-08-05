@@ -14,7 +14,13 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-from tests.config import *
+from tests.config import (
+    DEFAULT_HDFS_TIMEOUT,
+    DEFAULT_TASK_COUNT,
+    FOLDERED_SERVICE_NAME,
+    PACKAGE_NAME,
+    ZK_SERVICE_PATH
+)
 
 log = logging.getLogger(__name__)
 
@@ -31,16 +37,16 @@ def configure_package(configure_universe):
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
         else:
             sdk_upgrade.test_upgrade(
                 "beta-{}".format(PACKAGE_NAME),
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
@@ -60,12 +66,15 @@ def test_endpoints():
 
     hdfs_site = etree.fromstring(cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
     expect = {
-        'dfs.namenode.shared.edits.dir': 'qjournal://' + ';'.join([
-            sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)]) + '/hdfs',
+        'dfs.namenode.shared.edits.dir': 'qjournal://{}/hdfs'.format(';'.join([
+            sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)])),
     }
     for i in range(2):
-        expect['dfs.namenode.rpc-address.hdfs.name-{}-node'.format(i)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'name-{}-node'.format(i), 9001)
-        expect['dfs.namenode.http-address.hdfs.name-{}-node'.format(i)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'name-{}-node'.format(i), 9002)
+        name_node = 'name-{}-node'.format(i)
+        expect['dfs.namenode.rpc-address.hdfs.{}'.format(name_node)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME,
+                                                                                             name_node, 9001)
+        expect['dfs.namenode.http-address.hdfs.{}'.format(name_node)] = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME,
+                                                                                              name_node, 9002)
     check_properties(hdfs_site, expect)
 
 
@@ -86,7 +95,7 @@ def test_kill_journal_node():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     sdk_tasks.kill_task_with_pattern('journalnode', sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'journal-0-node'))
-    check_healthy()
+    expect_recovery()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
@@ -100,7 +109,7 @@ def test_kill_name_node():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     sdk_tasks.kill_task_with_pattern('namenode', sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'name-0-node'))
-    check_healthy()
+    expect_recovery()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
@@ -114,7 +123,7 @@ def test_kill_data_node():
     name_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
 
     sdk_tasks.kill_task_with_pattern('datanode', sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'data-0-node'))
-    check_healthy()
+    expect_recovery()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
@@ -136,7 +145,7 @@ def test_kill_all_journalnodes():
     for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         sdk_tasks.kill_task_with_pattern('journalnode', host)
 
-    check_healthy()
+    expect_recovery()
     # name nodes fail and restart, so don't check those
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
@@ -151,8 +160,8 @@ def test_kill_all_namenodes():
 
     for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         sdk_tasks.kill_task_with_pattern('namenode', host)
+    expect_recovery()
 
-    check_healthy()
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
@@ -168,7 +177,8 @@ def test_kill_all_datanodes():
     for host in shakedown.get_service_ips(FOLDERED_SERVICE_NAME):
         sdk_tasks.kill_task_with_pattern('datanode', host)
 
-    check_healthy()
+    expect_recovery()
+
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
@@ -194,11 +204,13 @@ def test_permanent_and_transient_namenode_failures_0_1():
     cmd.run_cli('hdfs --name={} pod replace name-0'.format(FOLDERED_SERVICE_NAME))
     cmd.run_cli('hdfs --name={} pod restart name-1'.format(FOLDERED_SERVICE_NAME))
 
-    check_healthy()
+    expect_recovery()
+
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-1', name_1_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+
 
 @pytest.mark.sanity
 @pytest.mark.recovery
@@ -212,7 +224,8 @@ def test_permanent_and_transient_namenode_failures_1_0():
     cmd.run_cli('hdfs --name={} pod replace name-1'.format(FOLDERED_SERVICE_NAME))
     cmd.run_cli('hdfs --name={} pod restart name-0'.format(FOLDERED_SERVICE_NAME))
 
-    check_healthy()
+    expect_recovery()
+
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-0', name_0_ids)
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name-1', name_1_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -242,13 +255,14 @@ def test_bump_data_nodes():
 
     sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'DATA_COUNT')
 
-    check_healthy(DEFAULT_TASK_COUNT + 1)
+    check_healthy(count=DEFAULT_TASK_COUNT + 1)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 @pytest.mark.readiness_check
 @pytest.mark.sanity
 def test_modify_app_config():
+    """This tests checks that the modification of the app config does not trigger a recovery."""
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
     old_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
 
@@ -271,7 +285,8 @@ def test_modify_app_config():
 
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME)
     new_recovery_plan = sdk_plan.get_plan(FOLDERED_SERVICE_NAME, "recovery")
-    assert(old_recovery_plan == new_recovery_plan)
+    assert old_recovery_plan == new_recovery_plan
+
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
@@ -287,7 +302,7 @@ def test_modify_app_config_rollback():
     expiry_ms = int(config['env'][app_config_field])
     log.info('expiry ms: ' + str(expiry_ms))
     config['env'][app_config_field] = str(expiry_ms + 1)
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout= 15 * 60)
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config, timeout=15 * 60)
 
     # Wait for journal nodes to be affected by the change
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -325,13 +340,23 @@ def replace_name_node(index):
 
     cmd.run_cli('hdfs --name={} pod replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
 
-    check_healthy()
+    expect_recovery()
+
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, name_node_name, name_id)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
-def check_healthy(count=DEFAULT_TASK_COUNT):
+def check_healthy(count=DEFAULT_TASK_COUNT, recovery_expected=False):
     sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME, timeout_seconds=25 * 60)
+    if recovery_expected:
+        # TODO(elezar): See INFINITY-2109 where we need to better handle recovery health checks
+        sdk_plan.wait_for_kicked_off_recovery(FOLDERED_SERVICE_NAME, timeout_seconds=25 * 60)
     sdk_plan.wait_for_completed_recovery(FOLDERED_SERVICE_NAME, timeout_seconds=25 * 60)
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, count)
+
+
+def expect_recovery():
+    # TODO(elezar, nima) check_healthy also check for complete deployment, and this should not
+    # affect the state of recovery.
+    check_healthy(count=DEFAULT_TASK_COUNT, recovery_expected=True)
