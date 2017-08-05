@@ -38,7 +38,7 @@ def install(package_name,
             additional_options={},
             package_version=None,
             timeout_seconds=TIMEOUT_SECONDS,
-            wait_scheduler_idle=True):
+            check_suppressed=True):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -56,15 +56,15 @@ def install(package_name,
         timeout_seconds,
         expected_running_tasks)
 
+    # Regardless of check_suppressed, it's safe to wait for the deployment from an install to complete
+    # before proceeding. This can take a while, default is 15 minutes. For example with HDFS, we can hit
+    # the expected total task count via FINISHED tasks, without actually completing deployment.
+    sdk_utils.out("Waiting for {}/{} to finish deployment plan...".format(package_name, service_name))
+    sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+
     # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
-    if wait_scheduler_idle:
-        # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
-        # total task count via FINISHED tasks, without actually completing deployment
-        sdk_utils.out("Waiting for {}/{} to finish deployment plan...".format(
-            package_name, service_name))
-        sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
-
+    if check_suppressed:
         # given the above wait for plan completion, here we just wait up to 5 minutes
         sdk_utils.out("Waiting for {}/{} to be suppressed...".format(
             package_name, service_name))
