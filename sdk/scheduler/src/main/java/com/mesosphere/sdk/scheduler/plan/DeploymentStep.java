@@ -147,8 +147,7 @@ public class DeploymentStep extends AbstractStep {
             case TASK_RUNNING:
                 Protos.TaskInfo taskInfo = tasks.get(status.getTaskId()).getTaskInfo();
                 if (goalState.equals(GoalState.RUNNING)
-                        && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status)
-                        && healthCheckPassed(taskInfo, status)) {
+                        && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
                 } else {
                     setTaskStatus(status.getTaskId(), Status.STARTING);
@@ -166,14 +165,6 @@ public class DeploymentStep extends AbstractStep {
         }
 
         setStatus(getStatus(tasks));
-    }
-
-    private boolean healthCheckPassed(Protos.TaskInfo taskInfo, Protos.TaskStatus taskStatus) {
-        if (!taskInfo.hasHealthCheck()) {
-            return true;
-        }
-
-        return taskStatus.hasHealthy() && taskStatus.getHealthy();
     }
 
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
