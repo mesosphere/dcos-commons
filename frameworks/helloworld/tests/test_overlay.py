@@ -34,15 +34,11 @@ def configure_package(configure_universe):
 
 # test suite constants
 EXPECTED_TASKS = [
-    'getter-0-get-host',
-    'getter-0-get-overlay',
-    'getter-0-get-overlay-vip',
-    'getter-0-get-host-vip',
+    'getter-0-check-comm',
     'hello-host-vip-0-server',
     'hello-overlay-vip-0-server',
     'hello-host-0-server',
     'hello-overlay-0-server']
-
 
 TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
 
@@ -128,6 +124,31 @@ def test_overlay_network():
     assert "dns" in host_endpoints_result.keys()
     assert len(host_endpoints_result["dns"]) == 1
     assert host_endpoints_result["dns"][0] == sdk_hosts.autoip_host(PACKAGE_NAME, "hello-host-vip-0-server", 4044)
+
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+@sdk_utils.dcos_1_9_or_higher
+def test_cni_labels():
+    r = sdk_api.get(PACKAGE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
+    assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
+    try:
+        cni_labels = r[0]["info"]["container"]["networkInfos"][0]["labels"]["labels"]
+    except KeyError:
+        assert False, "CNI labels not present"
+    assert len(cni_labels) == 2, "Got {} labels, should be 2".format(len(cni_labels))
+    for i in [1, 2]:
+        try:
+            obs_key = cni_labels[i]["key"]
+            obs_val = cni_labels[i]["value"]
+            expected_key = "key{}".format(i)
+            expected_value = "val{}".format(i)
+            assert obs_key == expected_key, \
+                "key {i} incorrect, should be {exp} got {obs}".format(i=i, exp=expected_key, obs=obs_key)
+            assert obs_val == expected_value, \
+                "value {i} incorrect, should be {exp} got {obs}".format(i=i, exp=expected_value, obs=obs_val)
+        except KeyError:
+            assert False, "Couldn't get CNI labels from {}".format(cni_labels)
 
 
 @pytest.mark.sanity
