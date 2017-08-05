@@ -11,6 +11,7 @@ import sdk_tasks
 import sdk_utils
 
 PACKAGE_NAME = 'elastic'
+KIBANA_PACKAGE_NAME = 'kibana'
 
 DEFAULT_TASK_COUNT = 7
 DEFAULT_ELASTIC_TIMEOUT = 10 * 60

@@ -74,7 +74,12 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "TASKCFG_ALL_HADOOP_PROXYUSER_ROOT_HOSTS", "*",
                 "TASKCFG_ALL_HADOOP_PROXYUSER_ROOT_GROUPS", "*",
                 "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_GROUPS", "*",
-                "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS", "*");
+                "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS", "*",
+                "TASKCFG_ALL_IPC_CLIENT_CONNECTION_MAXIDLETIME", "100000",
+                "TASKCFG_ALL_IPC_CLIENT_CONNECT_MAX_RETRIES", "100",
+                "TASKCFG_ALL_IPC_CLIENT_CONNECT_RETRY_INTERVAL", "10000",
+                "TASKCFG_ALL_IPC_CLIENT_CONNECT_TIMEOUT", "200000"
+        );
     }
 
     @Test
