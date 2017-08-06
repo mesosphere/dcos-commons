@@ -46,6 +46,8 @@ The command below creates a cluster using a `options.json` file:
 $ dcos package install elastic --options=options.json 
 ```
 
+**Recommendation:** Store your custom configuration in source control.
+
 # Multiple Elastic Cluster Installation
 
 Installing multiple Elastic clusters is identical to installing Elastic clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` is specified for each installation.
