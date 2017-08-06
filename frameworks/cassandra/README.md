@@ -8,7 +8,7 @@
 - [Service Settings](docs/service-settings.md)
 - [Cassandra Settings](docs/cassandra-settings.md)
 - [Node Settings](docs/node-settings.md)
-- [Uninstall](docs/uninstalling.md)
+- [Uninstall](docs/uninstall.md)
 - [Connecting Clients](docs/connecting-clients)
 - [Managing](docs/managing.md)
 - [Disaster Recovery](docs/disaster-recovery.md)
