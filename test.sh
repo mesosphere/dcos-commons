@@ -72,13 +72,14 @@ if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
         echo "Checking $CREDENTIALS_FILE"
         SED_ARGS='s/^.*=\s*//g'
         AWS_ACCESS_KEY_ID=$( grep -oE "^aws_access_key_id\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
+        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID// /}
         AWS_SECRET_ACCESS_KEY=$( grep -oE "^aws_secret_access_key\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
+        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY// /}
     fi
     if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
         echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
         exit 1
     fi
-
 fi
 
 
@@ -140,13 +141,13 @@ if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
 fi
 
 docker run --rm \
-    -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-    -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+    -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+    -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
     -e CLUSTER_URL=$CLUSTER_URL \
     $azure_args \
     -e SECURITY=$security \
-    -e "PYTEST_K=$pytest_k" \
-    -e "PYTEST_M=$pytest_m" \
+    -e PYTEST_K="$pytest_k" \
+    -e PYTEST_M="$pytest_m" \
     -e FRAMEWORK=$framework \
     -e STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL \
     -v $(pwd):/build \
