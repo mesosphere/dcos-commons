@@ -71,7 +71,7 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
         if len(runs) > 0:
             return runs[0]['id']
         return ''
-    run_id = shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=60, ignore_exceptions=False)
+    run_id = shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
 
     def fun():
         # catch errors from CLI: ensure that the only error raised is our own:
