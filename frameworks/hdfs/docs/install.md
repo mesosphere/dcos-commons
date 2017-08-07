@@ -56,6 +56,8 @@ The command below creates a cluster using `sample-hdfs.json`:
 dcos package install --options=sample-hdfs.json hdfs
 ```
 
+**Recommendation:** Store your custom configuration in source control.
+
 This cluster will have 10 data nodes instead of the default value of 3.
 See the Configuration section for a list of fields that can be customized via a options JSON file when the HDFS cluster is created.
 
