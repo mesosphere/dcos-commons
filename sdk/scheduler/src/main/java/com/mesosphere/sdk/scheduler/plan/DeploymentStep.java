@@ -162,7 +162,7 @@ public class DeploymentStep extends AbstractStep {
                 }
                 break;
             default:
-                logger.warn("Failed to process unexpected state: " + status.getState());
+                logger.error("Failed to process unexpected state: " + status.getState());
         }
 
         setStatus(getStatus(tasks));
