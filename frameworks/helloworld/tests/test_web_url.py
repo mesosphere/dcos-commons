@@ -1,12 +1,15 @@
+import logging
+
 import pytest
 
 import sdk_install
 import sdk_plan
-import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME
 )
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -31,7 +34,7 @@ def configure_package(configure_universe):
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(PACKAGE_NAME)
-    sdk_utils.out("deployment_plan: " + str(deployment_plan))
+    log.info("deployment_plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 1)
     assert(deployment_plan['phases'][0]['name'] == 'hello')

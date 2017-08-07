@@ -1,7 +1,6 @@
+import logging
+
 import pytest
-import shakedown
-import time
-import json
 from retrying import retry
 
 import sdk_cmd
@@ -14,6 +13,8 @@ import sdk_utils
 from tests.config import (
     PACKAGE_NAME
 )
+
+log = logging.getLogger(__name__)
 
 NUM_HELLO = 2
 NUM_WORLD = 3
@@ -364,8 +365,9 @@ def delete_secrets_all(path_prefix=""):
 
 @retry
 def read_secret(task_name, command):
-    lines = sdk_cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
-    print(lines)
+    cmd_str = "task exec {} {}".format(task_name, command)
+    lines = sdk_cmd.run_cli(cmd_str).split('\n')
+    log.info('dcos %s output: %s', cmd_str, lines)
     for i in lines:
         if i.strip().startswith(secret_content_default):
             return i

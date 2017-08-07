@@ -1,6 +1,7 @@
-import pytest
-
 import json
+import logging
+
+import pytest
 
 import shakedown
 import sdk_cmd
@@ -12,6 +13,8 @@ import sdk_marathon
 from tests.config import (
     PACKAGE_NAME
 )
+
+log = logging.getLogger(__name__)
 
 num_private_agents = len(shakedown.get_private_agents())
 
@@ -239,7 +242,7 @@ def setup_constraint_switch():
     agents = shakedown.get_private_agents()
     some_agent = agents[0]
     other_agent = agents[1]
-    print("agents", some_agent, other_agent)
+    log.info('Agents: %s %s', some_agent, other_agent)
     assert some_agent != other_agent
     options = {
         "service": {
