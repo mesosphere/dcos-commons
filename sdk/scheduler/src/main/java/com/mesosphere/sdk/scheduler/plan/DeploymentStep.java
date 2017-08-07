@@ -136,6 +136,7 @@ public class DeploymentStep extends AbstractStep {
             case TASK_FAILED:
             case TASK_KILLED:
             case TASK_KILLING:
+            case TASK_LOST:
                 setTaskStatus(status.getTaskId(), Status.PENDING);
                 // Retry the step because something failed.
                 setStatus(Status.PENDING);
