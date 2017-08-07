@@ -101,23 +101,14 @@ pods:
       dcos:
     tasks:
       check-comm:
-        goal: RUNNING
+        goal: FINISHED
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "echo hello && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-        health-check:
-          cmd: |
-            curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output &&
-            curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
-            curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
-            curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output
-          interval: 10
-          grace-period: 30
-          max-consecutive-failures: 3
-          delay: 0
-          timeout: 10
+        cmd: |
+          curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output &&
+          curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
+          curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
+          curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output
 
 plans:
   deploy:
