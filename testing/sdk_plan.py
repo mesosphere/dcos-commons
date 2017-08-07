@@ -1,11 +1,14 @@
 '''Utilities relating to interaction with service plans'''
+import logging
 
 import dcos
 import sdk_api
-import sdk_utils
 import shakedown
 
 TIMEOUT_SECONDS = 15 * 60
+
+log = logging.getLogger(__name__)
+
 
 def get_deployment_plan(service_name):
     return get_plan(service_name, "deploy")
@@ -76,7 +79,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 
     def fn():
         plan = get_plan(service_name, plan_name)
-        sdk_utils.out('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
+        log.info('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
         if plan and plan['status'] in statuses:
             return plan
@@ -89,7 +92,7 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
     def fn():
         plan = get_plan(service_name, plan_name)
         phase = get_phase(plan, phase_name)
-        sdk_utils.out('Waiting for {}.{} phase to have {} status:\n{}'.format(
+        log.info('Waiting for {}.{} phase to have {} status:\n{}'.format(
             plan_name, phase_name, status, plan_string(plan_name, plan)))
         if phase and phase['status'] == status:
             return plan
@@ -102,7 +105,7 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
     def fn():
         plan = get_plan(service_name, plan_name)
         step = get_step(get_phase(plan, phase_name), step_name)
-        sdk_utils.out('Waiting for {}.{}.{} step to have {} status:\n{}'.format(
+        log.info('Waiting for {}.{}.{} step to have {} status:\n{}'.format(
             plan_name, phase_name, step_name, status, plan_string(plan_name, plan)))
         if step and step['status'] == status:
             return plan

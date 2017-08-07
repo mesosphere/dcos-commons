@@ -1,6 +1,7 @@
-import pytest
+import logging
 import os
-import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
+
+import pytest
 
 import sdk_cmd
 import sdk_plan
@@ -11,6 +12,8 @@ from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
 )
+
+log = logging.getLogger(__name__)
 
 FRAMEWORK_NAME = "secrets/hello-world"
 NUM_HELLO = 2
@@ -92,8 +95,9 @@ def test_soak_secrets_restart_hello0():
 
 def task_exec(task_name, command):
 
-    lines = sdk_cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
-    print(lines)
+    cmd_str = "task exec {} {}".format(task_name, command)
+    lines = sdk_cmd.run_cli(cmd_str).split('\n')
+    log.info('dcos %s output: %s', cmd_str, lines)
     for i in lines:
         # ignore text starting with:
         #    Overwriting Environment Variable ....
@@ -101,4 +105,3 @@ def task_exec(task_name, command):
         if not i.isspace() and not i.startswith("Overwriting"):
             return i
     return ""
-

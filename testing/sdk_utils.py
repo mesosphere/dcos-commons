@@ -1,33 +1,10 @@
-import sys
+import logging
 
 import dcos
 import shakedown
 import pytest
 
-def out(msg):
-    '''Emit an informational message on test progress during test runs'''
-    print(msg, file=sys.stderr)
-
-    # I'd much rather the latter, but it is super confusing intermingled with
-    # shakedown output.
-
-    ## pytest is awful; hack around its inability to provide a sanely
-    ## configurable logging environment
-    #current_time = datetime.datetime.now()
-    #frames = inspect.getouterframes(inspect.currentframe())
-    #try:
-    #    parent = frames[1]
-    #finally:
-    #    del frames
-    #try:
-    #    parent_filename = parent[1]
-    #finally:
-    #    del parent
-    #name = inspect.getmodulename(parent_filename)
-    #out = "{current_time} {name} {msg}\n".format(current_time=current_time,
-    #                                             name=name,
-    #                                             msg=msg)
-    #sys.stderr.write(out)
+log = logging.getLogger(__name__)
 
 
 def gc_frameworks():
@@ -47,7 +24,7 @@ def list_reserved_resources():
         if reserved_resources == {}:
             continue
         msg = "on slaveid=%s hostname=%s reserved resources: %s"
-        out(msg % (slave['id'], slave['hostname'], reserved_resources))
+        log.info(msg % (slave['id'], slave['hostname'], reserved_resources))
 
 
 def get_foldered_name(service_name):

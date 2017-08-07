@@ -1,16 +1,20 @@
+import logging
+
 import pytest
 
 import shakedown
 
 import sdk_tasks
 import sdk_install
-import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME,
     check_running,
     bump_hello_cpus
 )
+
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -41,7 +45,7 @@ def test_bump_hello_cpus():
 
     check_running(PACKAGE_NAME)
     hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    sdk_utils.out('hello ids: ' + str(hello_ids))
+    log.info('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus(PACKAGE_NAME)
 

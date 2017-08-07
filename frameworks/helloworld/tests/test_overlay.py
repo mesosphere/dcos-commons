@@ -1,6 +1,7 @@
-import pytest
 import json
-import os
+import logging
+
+import pytest
 
 from shakedown.dcos.spinner import TimeoutExpired
 import shakedown
@@ -17,6 +18,9 @@ from dcos.http import DCOSHTTPException
 from tests.config import (
     PACKAGE_NAME
 )
+
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_universe):
@@ -53,7 +57,7 @@ def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
     deployment_plan = sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-    sdk_utils.out("deployment_plan: " + str(deployment_plan))
+    log.info("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct
     assert(len(deployment_plan['phases']) == 5)
