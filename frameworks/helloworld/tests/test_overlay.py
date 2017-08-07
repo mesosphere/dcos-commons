@@ -12,6 +12,7 @@ import sdk_plan
 import sdk_utils
 import sdk_networks
 import sdk_api
+import sdk_tasks
 
 from dcos.http import DCOSHTTPException
 
@@ -73,19 +74,13 @@ def test_overlay_network():
     assert(len(deployment_plan["phases"][4]["steps"]) == 4)
 
     # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
-    # we wait for them to redeploy, but if they don't fail we still want to proceed.
-    try:
-        sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME, timeout_seconds=60)
-        sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=60)
-    except TimeoutExpired:
-        pass
+    # we wait for them to redeploy, but if they can't then we won't proceed as we
+    # expect the tasks to be running for this test.
+    sdk_tasks.check_running(PACKAGE_NAME, len(EXPECTED_TASKS))
 
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
     framework_task_names = [t["name"] for t in framework_tasks]
-
-    for expected_task in EXPECTED_TASKS:
-        assert(expected_task in framework_task_names), "Missing {expected}".format(expected=expected_task)
 
     for task in framework_tasks:
         name = task["name"]
