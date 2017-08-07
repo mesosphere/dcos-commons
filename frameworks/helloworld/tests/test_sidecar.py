@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 
 import sdk_install
@@ -10,9 +12,11 @@ from tests.config import (
     PACKAGE_NAME
 )
 
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         options = {
@@ -33,7 +37,7 @@ def configure_package(configure_universe):
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(PACKAGE_NAME)
-    sdk_utils.out("deployment plan: " + str(deployment_plan))
+    log.info("deployment plan: " + str(deployment_plan))
 
     assert(len(deployment_plan['phases']) == 2)
     assert(deployment_plan['phases'][0]['name'] == 'server-deploy')
@@ -79,7 +83,7 @@ def run_plan(plan_name, params=None):
     sdk_plan.start_plan(PACKAGE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(PACKAGE_NAME, plan_name)
-    sdk_utils.out("sidecar plan: " + str(started_plan))
+    log.info("sidecar plan: " + str(started_plan))
     assert(len(started_plan['phases']) == 1)
     assert(started_plan['phases'][0]['name'] == plan_name + '-deploy')
     assert(len(started_plan['phases'][0]['steps']) == 2)

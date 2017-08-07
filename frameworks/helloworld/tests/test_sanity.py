@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 
 import dcos.marathon
@@ -23,9 +24,11 @@ from tests.config import (
 )
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
@@ -81,7 +84,7 @@ def test_mesos_v1_api():
 def test_bump_hello_cpus():
     check_running(FOLDERED_SERVICE_NAME)
     hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
-    sdk_utils.out('hello ids: ' + str(hello_ids))
+    log.info('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus(FOLDERED_SERVICE_NAME)
 
@@ -100,7 +103,7 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     check_running(FOLDERED_SERVICE_NAME)
     world_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'world')
-    sdk_utils.out('world ids: ' + str(world_ids))
+    log.info('world ids: ' + str(world_ids))
 
     updated_cpus = bump_world_cpus(FOLDERED_SERVICE_NAME)
 
@@ -120,7 +123,7 @@ def test_bump_hello_nodes():
     check_running(FOLDERED_SERVICE_NAME)
 
     hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
-    sdk_utils.out('hello ids: ' + str(hello_ids))
+    log.info('hello ids: ' + str(hello_ids))
 
     sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'HELLO_COUNT')
 

@@ -1,13 +1,14 @@
 import json
+import logging
 import re
 import shakedown
 
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_plan as plan
 import sdk_tasks as tasks
-import sdk_utils
+
+log = logging.getLogger(__name__)
 
 # Installs a universe version, then upgrades it to a test version
 #
@@ -36,7 +37,7 @@ def test_upgrade(
         install.uninstall(service_name, package_name=test_package_name)
 
     test_version = _get_pkg_version(test_package_name)
-    sdk_utils.out('Found test version: {}'.format(test_version))
+    log.info('Found test version: {}'.format(test_version))
 
     universe_url = _get_universe_url()
 
@@ -48,7 +49,7 @@ def test_upgrade(
 
         universe_version = _get_pkg_version(universe_package_name)
 
-        sdk_utils.out('Installing Universe version: {}={}'.format(universe_package_name, universe_version))
+        log.info('Installing Universe version: {}={}'.format(universe_package_name, universe_version))
         # Keep the service name the same throughout the test
         install.install(
             universe_package_name,
@@ -61,7 +62,7 @@ def test_upgrade(
             shakedown.remove_package_repo('Universe')
             _add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
-    sdk_utils.out('Upgrading to test version: {}={}'.format(test_package_name, test_version))
+    log.info('Upgrading to test version: {}={}'.format(test_package_name, test_version))
     _upgrade_or_downgrade(test_package_name, service_name, running_task_count, test_version_options)
 
 
@@ -85,7 +86,7 @@ def test_downgrade(
         test_version_options = additional_options
 
     test_version = _get_pkg_version(test_package_name)
-    sdk_utils.out('Found test version: {}'.format(test_version))
+    log.info('Found test version: {}'.format(test_version))
 
     universe_url = _get_universe_url()
 
@@ -97,7 +98,7 @@ def test_downgrade(
 
         universe_version = _get_pkg_version(universe_package_name)
 
-        sdk_utils.out('Downgrading to Universe version: {}={}'.format(universe_package_name, universe_version))
+        log.info('Downgrading to Universe version: {}={}'.format(universe_package_name, universe_version))
         _upgrade_or_downgrade(universe_package_name, service_name, running_task_count, additional_options)
 
     finally:
@@ -107,10 +108,10 @@ def test_downgrade(
             _add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
     if reinstall_test_version:
-        sdk_utils.out('Re-upgrading to test version before exiting: {}={}'.format(test_package_name, test_version))
+        log.info('Re-upgrading to test version before exiting: {}={}'.format(test_package_name, test_version))
         _upgrade_or_downgrade(test_package_name, service_name, running_task_count, test_version_options)
     else:
-        sdk_utils.out('Skipping reinstall of test version {}={}, uninstalling universe version {}={}'.format(
+        log.info('Skipping reinstall of test version {}={}, uninstalling universe version {}={}'.format(
             test_package_name, test_version, universe_package_name, universe_version))
         install.uninstall(service_name, package_name=universe_package_name)
 
@@ -167,7 +168,7 @@ def _get_universe_url():
     repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
     for repo in repositories:
         if repo['name'] == 'Universe':
-            sdk_utils.out("Found Universe URL: {}".format(repo['uri']))
+            log.info("Found Universe URL: {}".format(repo['uri']))
             return repo['uri']
     assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
 
@@ -182,7 +183,7 @@ def _upgrade_or_downgrade(package_name, service_name, running_task_count, additi
         additional_options=additional_options,
         package_version=package_version,
         timeout_seconds=25 * 60)
-    sdk_utils.out('Checking that all tasks have restarted')
+    log.info('Checking that all tasks have restarted')
     tasks.check_tasks_updated(service_name, '', task_ids)
 
 
