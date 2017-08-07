@@ -15,7 +15,7 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         log.info("Ensure elasticsearch and kibana are uninstalled...")
         sdk_install.uninstall(KIBANA_PACKAGE_NAME)
