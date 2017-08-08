@@ -550,6 +550,7 @@ now, you must manually run the janitor script as shown above.</p>
 <span class="s">scheduler</span><span class="pi">:</span>
   <span class="s">principal</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world-principal"</span>
   <span class="s">api-port</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">PORT_API</span><span class="pi">}}</span>
+  <span class="s">user</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">SERVICE_USER</span><span class="pi">}}</span>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">hello-world-pod</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
@@ -575,6 +576,9 @@ now, you must manually run the janitor script as shown above.</p>
       </li>
       <li>
         <p><strong>api-port</strong>: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the <a href="#defining-a-target-configuration">Defining a Target Configuration</a> section. This setting may be omitted in which case it defaults to the <code class="highlighter-rouge">PORT_API</code> envvar provided by Marathon.</p>
+      </li>
+      <li>
+        <p><strong>user</strong> This is the account used when running the processes on the host.  The recommended default is <code class="highlighter-rouge">nobody</code>.</p>
       </li>
     </ul>
   </li>
