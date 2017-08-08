@@ -4,7 +4,6 @@ import pytest
 
 import sdk_install
 import sdk_plan
-import sdk_utils
 import sdk_marathon
 
 
@@ -64,7 +63,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     # never trigger recovery
     recovery_plan = sdk_plan.get_plan(PACKAGE_NAME, 'recovery')
     assert(len(recovery_plan['phases']) == 0)
-    sdk_utils.out(recovery_plan)
+    log.info(recovery_plan)
     sdk_plan.start_plan(PACKAGE_NAME, 'sidecar-toxic')
     # Wait for the bad sidecar plan to be starting.
     sdk_plan.wait_for_starting_plan(PACKAGE_NAME, 'sidecar-toxic')

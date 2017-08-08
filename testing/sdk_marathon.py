@@ -44,11 +44,11 @@ def destroy_app(app_name):
 
 
 def restart_app(app_name):
-    sdk_utils.out("Restarting {}...".format(app_name))
+    log.info("Restarting {}...".format(app_name))
     response = sdk_cmd.request('post', api_url('apps/{}/restart'.format(app_name)))
-    sdk_utils.out(response)
+    log.info(response)
     assert response.ok
-    sdk_utils.out("Restarted {}.".format(app_name))
+    log.info("Restarted {}.".format(app_name))
 
 
 def api_url(basename):
