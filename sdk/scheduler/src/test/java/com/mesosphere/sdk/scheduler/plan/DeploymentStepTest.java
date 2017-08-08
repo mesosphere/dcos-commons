@@ -22,12 +22,14 @@ import static org.mockito.Mockito.when;
 /**
  * This class tests the DefaultStep class.
  */
-public class DefaultStepTest {
+public class DeploymentStepTest {
     private static final String TEST_STEP_NAME = "test-step";
 
     @Mock private PodSpec podSpec;
     @Mock private PodInstance podInstance;
     @Mock private TaskSpec taskSpec;
+    private String taskName;
+    private Protos.TaskID taskID;
 
     @Before
     public void beforeEach() {
@@ -38,41 +40,14 @@ public class DefaultStepTest {
         when(taskSpec.getGoal()).thenReturn(GoalState.RUNNING);
         when(podInstance.getPod()).thenReturn(podSpec);
         when(podInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
+        taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
+        taskID = CommonIdUtils.toTaskId(taskName);
     }
 
     @Test
     public void testCompleteTerminal() {
-        DeploymentStep step = new DeploymentStep(
-                TEST_STEP_NAME,
-                Status.PENDING,
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                Collections.emptyList());
-
-        Assert.assertTrue(step.isPending());
-        String taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
-        Protos.TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
-        LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
-                OfferTestUtils.getEmptyOfferBuilder().build(),
-                Protos.TaskInfo.newBuilder()
-                        .setTaskId(taskID)
-                        .setName(taskName)
-                        .setSlaveId(TestConstants.AGENT_ID)
-                        .build(),
-                Protos.ExecutorInfo.newBuilder().setExecutorId(
-                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
-                true);
-        step.updateOfferStatus(Arrays.asList(launchRec));
-
-        Assert.assertTrue(step.isStarting());
-
-        step.update(Protos.TaskStatus.newBuilder()
-                .setTaskId(taskID)
-                .setState(Protos.TaskState.TASK_RUNNING)
-                .build());
-
-        Assert.assertTrue(step.isComplete());
+        Step step = getStartingStep();
+        testStepTransition(step, Protos.TaskState.TASK_RUNNING, Status.STARTING, Status.COMPLETE);
 
         step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
@@ -80,6 +55,21 @@ public class DefaultStepTest {
                 .build());
 
         Assert.assertTrue(step.isComplete());
+    }
+
+    @Test
+    public void testErrorCausesStartingToPending() {
+        Protos.TaskState[] errorStates = {
+                Protos.TaskState.TASK_ERROR,
+                Protos.TaskState.TASK_FAILED,
+                Protos.TaskState.TASK_KILLED,
+                Protos.TaskState.TASK_KILLING,
+                Protos.TaskState.TASK_LOST};
+
+        for (Protos.TaskState state : errorStates) {
+            Step step = getStartingStep();
+            testStepTransition(step, state, Status.STARTING, Status.PENDING);
+        }
     }
 
     @Test
@@ -107,5 +97,45 @@ public class DefaultStepTest {
 
         Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getAsset().get());
         Assert.assertFalse(step.isEligible(dirtyAssets));
+    }
+
+    private void testStepTransition(
+            Step step,
+            Protos.TaskState updateState,
+            Status startStatus,
+            Status endStatus) {
+
+        Assert.assertEquals(startStatus, step.getStatus());
+        step.update(Protos.TaskStatus.newBuilder()
+                .setTaskId(taskID)
+                .setState(updateState)
+                .build());
+
+        Assert.assertEquals(endStatus, step.getStatus());
+    }
+
+    private Step getPendingStep() {
+        return new DeploymentStep(
+                TEST_STEP_NAME,
+                Status.PENDING,
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                Collections.emptyList());
+    }
+
+    private Step getStartingStep() {
+        Step step = getPendingStep();
+        LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
+                OfferTestUtils.getEmptyOfferBuilder().build(),
+                Protos.TaskInfo.newBuilder()
+                        .setTaskId(taskID)
+                        .setName(taskName)
+                        .setSlaveId(TestConstants.AGENT_ID)
+                        .build(),
+                Protos.ExecutorInfo.newBuilder().setExecutorId(
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
+                true,
+                true);
+        step.updateOfferStatus(Arrays.asList(launchRec));
+        return step;
     }
 }
