@@ -8,6 +8,9 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+
+import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
+
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT
