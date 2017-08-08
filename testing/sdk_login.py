@@ -11,7 +11,7 @@ __CLI_LOGIN_EE_PASSWORD = 'deleteme'
 log = logging.getLogger(__name__)
 
 
-def get_acs_token(dcosurl: str, username: str, password: str, is_enterprise: bool) -> None:
+def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> str:
     if is_enterprise:
         log.info('logging into {} as {}'.format(dcosurl, username))
         payload = {'uid': username, 'password': password}
@@ -27,19 +27,13 @@ def get_acs_token(dcosurl: str, username: str, password: str, is_enterprise: boo
     return r.json()['token']
 
 
-def login(dcosurl: str, username: str, password: str, is_enterprise: bool, user_token: str) -> str:
-    if not user_token:
-        user_token = get_acs_token(dcosurl, username, password, is_enterprise)
-    return user_token
-
-
 def configure_cli(dcosurl: str, token: str) -> None:
-    out, err, rc = shakedown.run_dcos_command('dcos config set core.dcos_url {}'.format(dcosurl))
-    assert rc, 'Failed to set core.dcos_url: {}'.format(err)
-    out, err, rc = shakedown.run_dcos_command('dcos config set core.ssl_verify false')
-    assert rc, 'Failed to set core.ssl_verify: {}'.format(err)
+    out, err, rc = shakedown.run_dcos_command('config set core.dcos_url {}'.format(dcosurl))
+    assert not rc, 'Failed to set core.dcos_url: {}'.format(err)
+    out, err, rc = shakedown.run_dcos_command('config set core.ssl_verify false')
+    assert not rc, 'Failed to set core.ssl_verify: {}'.format(err)
     out, err, rc = shakedown.run_dcos_command('config set core.dcos_acs_token {}'.format(token))
-    assert rc, 'Failed to set core.dcos_acs_token: {}'.format(err)
+    assert not rc, 'Failed to set core.dcos_acs_token: {}'.format(err)
 
 
 def logout(dcosurl: str):
@@ -68,14 +62,14 @@ def login_session() -> None:
         dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
         dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', False) and True
         dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
-        token = login(
-            dcosurl=cluster_url,
-            username=dcos_login_username,
-            password=dcos_login_password,
-            is_enterprise=dcos_enterprise,
-            user_token=dcos_acs_token
-        )
-        configure_cli(dcosurl, token)
+        if not dcos_acs_token:
+            dcos_acs_token = login(
+                dcosurl=cluster_url,
+                username=dcos_login_username,
+                password=dcos_login_password,
+                is_enterprise=dcos_enterprise,
+            )
+        configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
         yield
     finally:
         logout(dcosurl=cluster_url)
