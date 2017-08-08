@@ -29,4 +29,5 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testYaml() throws Exception {
         super.testYaml("svc.yml");
     }
+
 }

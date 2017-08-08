@@ -31,6 +31,14 @@ pods:
             vip:
               prefix: broker
               port: 9092
+          {{#ENABLE_TLS}}
+          broker-tls:
+            port: {{BROKER_PORT_TLS}}
+            env-key: KAFKA_BROKER_PORT_TLS
+            vip:
+              prefix: broker-tls
+              port: 9093
+          {{/ENABLE_TLS}}
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
@@ -53,7 +61,7 @@ pods:
             # since the server is just started, the starting and started log lines
             # should be present in the server.log file, independent of whether or
             # not the server.log file is being logrotated.
-            # 
+            #
             # Example log lines follow:
             ## starting:
             # [2017-06-14 22:20:54,260] INFO starting (kafka.server.KafkaServer)
@@ -74,6 +82,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
+        {{#ENABLE_TLS}}
+        transport-encryption:
+          - name: broker
+            type: KEYSTORE
+        {{/ENABLE_TLS}}
 plans:
   deploy:
     strategy: serial

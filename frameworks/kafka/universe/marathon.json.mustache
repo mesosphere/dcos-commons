@@ -61,6 +61,12 @@
     "CNI_PLUGIN_LABELS": "{{brokers.cni_plugin_labels}}",
     {{/service.virtual_networks}}
 
+    {{#service.tls}}
+    "ENABLE_TLS": "yes",
+    "BROKER_PORT_TLS": "{{brokers.port_tls}}",
+    "TASKCFG_ALL_KAFKA_ENABLE_TLS": "{{service.tls}}",
+    {{/service.tls}}
+
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.10.2.1",
 

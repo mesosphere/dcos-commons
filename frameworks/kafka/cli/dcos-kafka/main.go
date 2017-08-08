@@ -139,6 +139,17 @@ func (cmd *TopicHandler) runProducerTest(a *kingpin.Application, e *kingpin.Pars
 	}
 	return nil
 }
+func (cmd *TopicHandler) runProducerTestTLS(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	query := url.Values{}
+	query.Set("messages", strconv.FormatInt(int64(cmd.produceMessageCount), 10))
+	responseBytes, err := client.HTTPServicePutQuery(fmt.Sprintf("v1/topics/%s/operation/producer-test-tls", cmd.topic), query.Encode())
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	} else {
+		client.PrintJSONBytes(responseBytes)
+	}
+	return nil
+}
 func (cmd *TopicHandler) runDelete(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceDelete(fmt.Sprintf("v1/topics/%s", cmd.topic))
 	if err != nil {
@@ -215,6 +226,12 @@ func handleTopicSection(app *kingpin.Application) {
 		"Produces some test messages against a topic").Action(cmd.runProducerTest)
 	producerTest.Arg("topic", "The topic to test").StringVar(&cmd.topic)
 	producerTest.Arg("messages", "The number of messages to produce").IntVar(&cmd.produceMessageCount)
+
+	producerTestTLS := topic.Command(
+		"producer_test_tls",
+		"Produces some test messages against a topic over TLS connection").Action(cmd.runProducerTestTLS)
+	producerTestTLS.Arg("topic", "The topic to test").StringVar(&cmd.topic)
+	producerTestTLS.Arg("messages", "The number of messages to produce").IntVar(&cmd.produceMessageCount)
 
 	topic.Command(
 		"unavailable_partitions",

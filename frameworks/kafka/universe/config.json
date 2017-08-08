@@ -40,6 +40,11 @@
             "type": "boolean",
             "default": false
           },
+          "tls": {
+            "description": "Enable TLS support (requires Enterprise DC/OS running in strict security mode).",
+            "type": "boolean",
+            "default": false
+          },
           "deploy_strategy":{
             "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
             "type":"string",
@@ -108,6 +113,11 @@
           },
           "port": {
             "description": "Port for broker to listen on",
+            "type": "integer",
+            "default": 0
+          },
+          "port_tls": {
+            "description": "Port for broker to listen on for TLS connections, if the TLS is enabled",
             "type": "integer",
             "default": 0
           },

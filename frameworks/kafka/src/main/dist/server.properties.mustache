@@ -27,9 +27,31 @@ broker.id={{POD_INSTANCE_INDEX}}
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
+{{^KAFKA_ENABLE_TLS}}
 listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
+{{/KAFKA_ENABLE_TLS}}
 
-# Hostname and port the broker will advertise to producers and consumers. If not set, 
+{{#KAFKA_ENABLE_TLS}}
+############################# TLS Settings #############################
+listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}},SSL://:{{KAFKA_BROKER_PORT_TLS}}
+
+ssl.keystore.location={{MESOS_SANDBOX}}/broker.keystore
+ssl.keystore.password=notsecure
+ssl.key.password=notsecure
+
+ssl.truststore.location={{MESOS_SANDBOX}}/broker.truststore
+ssl.truststore.password=notsecure
+
+# TODO(mh): Make this configurable?
+ssl.enabled.protocols=TLSv1.2
+
+# TODO(mh): Make this configurable? Would we want to not enable this when the
+# TLS is enabled?
+security.inter.broker.protocol=SSL
+advertised.listeners=PLAINTEXT://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT}},SSL://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT_TLS}}
+{{/KAFKA_ENABLE_TLS}}
+
+# Hostname and port the broker will advertise to producers and consumers. If not set,
 # it uses the value for "listeners" if configured.  Otherwise, it will use the value
 # returned from java.net.InetAddress.getCanonicalHostName().
 #advertised.listeners=PLAINTEXT://your.host.name:9092
