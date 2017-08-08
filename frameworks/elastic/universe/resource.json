@@ -18,27 +18,27 @@
     "icon-medium": "https://downloads.mesosphere.com/universe/assets/elasticsearch-medium.png",
     "icon-large": "https://downloads.mesosphere.com/universe/assets/elasticsearch-large.png"
   },
-  "cli":{
-    "binaries":{
-      "darwin":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-elastic-darwin}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-elastic-darwin"
+  "cli": {
+    "binaries": {
+      "darwin": {
+        "x86-64": {
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-elastic-darwin}}" } ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-elastic-darwin"
         }
       },
-      "linux":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-elastic-linux}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-elastic-linux"
+      "linux": {
+        "x86-64": {
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-elastic-linux}}" } ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-elastic-linux"
         }
       },
-      "windows":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-elastic.exe}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-elastic.exe"
+      "windows": {
+        "x86-64": {
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-elastic.exe}}" } ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-elastic.exe"
         }
       }
     }

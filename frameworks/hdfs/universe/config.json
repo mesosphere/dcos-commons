@@ -1,14 +1,14 @@
 {
-  "type":"object",
-  "properties":{
-    "service":{
-      "type":"object",
+  "type": "object",
+  "properties": {
+    "service": {
+      "type": "object",
       "description": "DC/OS service configuration properties",
-      "properties":{
+      "properties": {
         "name" : {
-          "description":"The name of the service instance",
-          "type":"string",
-          "default":"hdfs"
+          "description": "The name of the service instance",
+          "type": "string",
+          "default": "hdfs"
         },
         "virtual_networks": {
           "description": "Enable DC/OS Virtual Networking",
@@ -101,28 +101,28 @@
         }
       }
     },
-    "journal_node":{
+    "journal_node": {
       "description":"HDFS configuration properties.",
-      "type":"object",
-      "properties":{
-        "cpus":{
-          "description":"Journal node CPU requirement",
-          "type":"number",
+      "type": "object",
+      "properties": {
+        "cpus": {
+          "description": "Journal node CPU requirement",
+          "type": "number",
           "default": 0.3
         },
-        "mem":{
-          "description":"Journal node memory requirement",
-          "type":"number",
+        "mem": {
+          "description": "Journal node memory requirement",
+          "type": "number",
           "default": 2048
         },
-        "disk":{
-          "description":"Journal node disk size requirement in MB",
-          "type":"number",
+        "disk": {
+          "description": "Journal node disk size requirement in MB",
+          "type": "number",
           "default": 5000
         },
-        "disk_type":{
-          "description":"Journal node disk type",
-          "type":"string",
+        "disk_type": {
+          "description": "Journal node disk type",
+          "type": "string",
           "default": "ROOT"
         },
         "virtual_network": {
@@ -141,35 +141,35 @@
           "default": true
         }
       },
-      "required":[
+      "required": [ 
         "cpus",
         "mem",
         "disk",
         "disk_type"
       ]
     },
-    "name_node":{
-      "description":"HDFS configuration properties.",
-      "type":"object",
-      "properties":{
-        "cpus":{
-          "description":"Name node CPU requirement",
-          "type":"number",
+    "name_node": {
+      "description": "HDFS configuration properties.",
+      "type": "object",
+      "properties": {
+        "cpus": {
+          "description": "Name node CPU requirement",
+          "type": "number",
           "default": 0.3
         },
-        "mem":{
-          "description":"Name node memory requirement",
-          "type":"number",
+        "mem": {
+          "description": "Name node memory requirement",
+          "type": "number",
           "default": 2048
         },
-        "disk":{
-          "description":"Name node disk size requirement in MB",
-          "type":"number",
+        "disk": {
+          "description": "Name node disk size requirement in MB",
+          "type": "number",
           "default": 5000
         },
-        "disk_type":{
-          "description":"Name node disk type",
-          "type":"string",
+        "disk_type": {
+          "description": "Name node disk type",
+          "type": "string",
           "default": "ROOT"
         },
         "virtual_network": {
@@ -183,29 +183,29 @@
           "default": ""
         }
       },
-      "required":[
+      "required": [
         "cpus",
         "mem",
         "disk",
         "disk_type"
       ]
     },
-    "zkfc_node":{
+    "zkfc_node": {
       "description":"HDFS configuration properties.",
-      "type":"object",
-      "properties":{
-        "cpus":{
-          "description":"ZKFC node CPU requirement",
-          "type":"number",
+      "type": "object",
+      "properties": {
+        "cpus": {
+          "description": "ZKFC node CPU requirement",
+          "type": "number",
           "default": 0.3
         },
-        "mem":{
-          "description":"ZKFC node memory requirement",
-          "type":"number",
+        "mem": {
+          "description": "ZKFC node memory requirement",
+          "type": "number",
           "default": 2048
         }
       },
-      "required":[
+      "required": [
         "cpus",
         "mem"
       ]
