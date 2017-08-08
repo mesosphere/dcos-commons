@@ -1,7 +1,6 @@
 import logging
 
 import pytest
-from retrying import retry
 
 import sdk_cmd
 import sdk_install
@@ -10,6 +9,10 @@ import sdk_tasks
 import sdk_marathon
 import sdk_utils
 
+import shakedown  # required by @sdk_utils.dcos_X_Y_or_higher
+
+
+from retrying import retry
 from tests.config import (
     PACKAGE_NAME
 )
@@ -56,6 +59,8 @@ options_dcos_space_test = {
     }
 }
 
+REQUIRED_SECRETS = ["secret1", "secret2", "secret3"]
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -66,7 +71,7 @@ def configure_package(configure_security):
         delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
         delete_secrets_all()
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(PACKAGE_NAME)
         delete_secrets_all("{}/".format(PACKAGE_NAME))
@@ -182,11 +187,7 @@ def test_secrets_update():
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
-
-
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, PACKAGE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, PACKAGE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, PACKAGE_NAME))
+    update_secrets("{}/".format(PACKAGE_NAME), secret_content_alternative)
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
@@ -331,36 +332,81 @@ def test_secrets_dcos_space():
     delete_secrets("{}/somePath/".format(PACKAGE_NAME))
 
 
+def _get_secret(name):
+    log.info('Getting the value of secret %s', name)
+    raw_output = sdk_cmd.run_cli("security secrets get {}".format(name),
+                                 print_output=False,
+                                 failure_is_fatal=False).strip()
+    return raw_output.lstrip('value:').strip()
+
+
+def _ensure_value(name, value):
+    def fn():
+        secret_output = _get_secret(name)
+        if secret_output == value:
+            return True
+        else:
+            log.info("Waiting for secret %s to be available", name)
+            log.info("Got: %s (expected %s)", secret_output, value)
+            return False
+
+    shakedown.wait_for(fn, timeout_seconds=5 * 60)
+
+
+def _create_secret(name, value):
+    log.info("Creating secret: %s=%s", name, value)
+    try:
+        sdk_cmd.run_cli("security secrets create --value={} {}".format(value, name))
+    except Exception as e:
+        log.debug("Exception %s when creating secret.", e)
+
+    _ensure_value(name, value)
+
+
+def _update_secret(name, value):
+    log.info("Updating secret to: %s=%s", name, value)
+    try:
+        sdk_cmd.run_cli("security secrets update --value={} {}".format(value, name))
+    except Exception as e:
+        log.debug("Exception %s when creating secret.", e)
+
+    _ensure_value(name, value)
+
+
+def _delete_secret(name):
+    try:
+        sdk_cmd.run_cli("security secrets delete {}".format(name))
+    except Exception as e:
+        log.debug("Exception %s when deleting secret.", e)
+
+    _ensure_value(name, '')
+
+
 def create_secrets(path_prefix="", secret_content_arg=secret_content_default):
-    sdk_cmd.run_cli("security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix))
-    sdk_cmd.run_cli("security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix))
-    sdk_cmd.run_cli("security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix))
+    for s in REQUIRED_SECRETS:
+        _create_secret("{}{}".format(path_prefix, s), secret_content_arg)
 
 
-def delete_secrets(path_prefix=""):
-    sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
+def update_secrets(path_prefix, secret_contents):
+    for s in REQUIRED_SECRETS:
+        _update_secret("{}{}".format(path_prefix, s), secret_contents)
+
+
+def delete_secrets(path_prefix="", continue_on_failure=False):
+    log.info("Deleting secrets: %s", REQUIRED_SECRETS)
+    for s in REQUIRED_SECRETS:
+        try:
+            _delete_secret("{}{}".format(path_prefix, s))
+        except Exception as e:
+            if continue_on_failure:
+                log.error("Failed to delete secret %s in cleanup: %s", s, e)
+            else:
+                raise(e)
 
 
 def delete_secrets_all(path_prefix=""):
-    # if there is any secret left, delete
-    # use in teardown_module
-    try:
-        sdk_cmd.run_cli("security secrets get {}secret1".format(path_prefix))
-        sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    except:
-        pass
-    try:
-        sdk_cmd.run_cli("security secrets get {}secret2".format(path_prefix))
-        sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    except:
-        pass
-    try:
-        sdk_cmd.run_cli("security secrets get {}secret3".format(path_prefix))
-        sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
-    except:
-        pass
+    log.info("Delete ALL secrets: %s", REQUIRED_SECRETS)
+    delete_secrets(path_prefix, continue_on_failure=True)
 
 
 @retry
