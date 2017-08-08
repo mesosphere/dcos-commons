@@ -20,9 +20,13 @@ TIMEOUT_SECONDS = 15 * 60
 
 
 @retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
-def retried_shakedown_install(package_name, package_version, service_name,
-                              merged_options, timeout_seconds,
-                              expected_running_tasks):
+def retried_shakedown_install(
+        package_name,
+        package_version,
+        service_name,
+        merged_options,
+        timeout_seconds,
+        expected_running_tasks):
     shakedown.install_package(
         package_name,
         package_version=package_version,
@@ -33,13 +37,14 @@ def retried_shakedown_install(package_name, package_version, service_name,
         expected_running_tasks=expected_running_tasks)
 
 
-def install(package_name,
-            expected_running_tasks,
-            service_name=None,
-            additional_options={},
-            package_version=None,
-            timeout_seconds=TIMEOUT_SECONDS,
-            wait_scheduler_idle=True):
+def install(
+        package_name,
+        expected_running_tasks,
+        service_name=None,
+        additional_options={},
+        package_version=None,
+        timeout_seconds=TIMEOUT_SECONDS,
+        wait_scheduler_idle=True):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -74,16 +79,16 @@ def install(package_name,
             noisy=True,
             timeout_seconds=5 * 60)
 
-    log.info('Installed {}/{} after {}'.format(package_name, service_name,
-                                                    shakedown.pretty_duration(
-                                                        time.time() - start)))
+    log.info('Installed {}/{} after {}'.format(
+        package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
-def uninstall(service_name,
-              package_name=None,
-              role=None,
-              principal=None,
-              zk=None):
+def uninstall(
+        service_name,
+        package_name=None,
+        role=None,
+        principal=None,
+        zk=None):
     start = time.time()
 
     if package_name is None:

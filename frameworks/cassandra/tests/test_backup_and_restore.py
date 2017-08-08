@@ -21,8 +21,6 @@ no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
-
         # user=root because Azure CLI needs to run in root...
         sdk_install.install(
             PACKAGE_NAME,
