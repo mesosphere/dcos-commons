@@ -11,7 +11,7 @@
           "default": "elastic"
         },
         "secret_name": {
-          "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type":"string",
           "default":""
         },

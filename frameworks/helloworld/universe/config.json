@@ -1,35 +1,35 @@
 {
-  "type":"object",
-    "properties":{
-      "service":{
-        "type":"object",
+  "type": "object",
+    "properties": {
+      "service": {
+        "type": "object",
         "description": "DC/OS service configuration properties",
-        "properties":{
-          "name" : {
-            "description":"The name of the service instance",
-            "type":"string",
-            "default":"hello-world"
+        "properties": {
+          "name": {
+            "description": "The name of the service instance",
+            "type": "string",
+            "default": "hello-world"
           },
-          "sleep" : {
-            "description":"The sleep duration in seconds before tasks exit.",
-            "type":"number",
-            "default":1000
+          "sleep": {
+            "description": "The sleep duration in seconds before tasks exit.",
+            "type": "number",
+            "default": 1000
           },
-          "spec_file" : {
-            "description":"The name of the service spec yaml file.",
-            "type":"string",
-            "default":"svc.yml"
+          "spec_file": {
+            "description": "The name of the service spec yaml file.",
+            "type": "string",
+            "default": "svc.yml"
           },
-          "mesos_api_version" : {
-            "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
-            "type":"string",
+          "mesos_api_version": {
+            "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
+            "type": "string",
             "enum": ["V0", "V1"],
-            "default":"V0"
+            "default": "V0"
           },
           "secret_name": {
-            "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-            "type":"string",
-            "default":""
+            "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+            "type": "string",
+            "default": ""
           },
           "user": {
             "description": "The user that the service will run as.",
@@ -49,44 +49,44 @@
           }
         }
       },
-      "hello":{
-        "description":"Hello pod configuration properties",
-        "type":"object",
-        "properties":{
-          "cpus":{
-            "description":"Hello pod CPU requirements",
-            "type":"number",
-            "default":0.1
+      "hello": {
+        "description": "Hello pod configuration properties",
+        "type": "object",
+        "properties": {
+          "cpus": {
+            "description": "Hello pod CPU requirements",
+            "type": "number",
+            "default": 0.1
           },
-          "gpus":{
-            "description":"Hello pod GPU requirements",
-            "type":"number",
-            "default":1.0
+          "gpus": {
+            "description": "Hello pod GPU requirements",
+            "type": "number",
+            "default": 1.0
           },
-          "mem":{
-            "description":"Hello pod mem requirements (in MB)",
-            "type":"integer",
-            "default":252
+          "mem": {
+            "description": "Hello pod mem requirements (in MB)",
+            "type": "integer",
+            "default": 252
           },
-          "disk":{
-            "description":"Hello pod persistent disk requirements (in MB)",
-            "type":"integer",
-            "default":25
+          "disk": {
+            "description": "Hello pod persistent disk requirements (in MB)",
+            "type": "integer",
+            "default": 25
           },
-          "count":{
-            "description":"Number of Hello pods to run",
-            "type":"integer",
-            "default":1
+          "count": {
+            "description": "Number of Hello pods to run",
+            "type": "integer",
+            "default": 1
           },
-          "placement":{
-            "description":"Marathon-style placement constraint for Hello pods",
-            "type":"string",
-            "default":"hostname:UNIQUE"
+          "placement": {
+            "description": "Marathon-style placement constraint for Hello pods",
+            "type": "string",
+            "default": "hostname:UNIQUE"
           },
-          "secret1":{
-            "description":"secret1",
-            "type":"string",
-            "default":""
+          "secret1": {
+            "description": "secret1",
+            "type": "string",
+            "default": ""
           },
           "secret2": {
             "description": "secret2",
@@ -94,7 +94,7 @@
             "default": ""
           }
         },
-        "required":[
+        "required": [ 
           "cpus",
           "gpus",
           "mem",
@@ -102,52 +102,52 @@
           "count"
         ]
       },
-      "world":{
-        "description":"World pod configuration properties",
-        "type":"object",
-        "properties":{
-          "cpus":{
-            "description":"World pod CPU requirements",
-            "type":"number",
-            "default":0.2
+      "world": {
+        "description": "World pod configuration properties",
+        "type": "object",
+        "properties": {
+          "cpus": {
+            "description": "World pod CPU requirements",
+            "type": "number",
+            "default": 0.2
           },
-          "mem":{
-            "description":"World pod mem requirements (in MB)",
-            "type":"integer",
-            "default":512
+          "mem": {
+            "description": "World pod mem requirements (in MB)",
+            "type": "integer",
+            "default": 512
           },
-          "disk":{
-            "description":"World pod persistent disk requirements (in MB)",
-            "type":"integer",
-            "default":50
+          "disk": {
+            "description": "World pod persistent disk requirements (in MB)",
+            "type": "integer",
+            "default": 50
           },
-          "count":{
-            "description":"Number of World pods to run",
-            "type":"integer",
-            "default":2
+          "count": {
+            "description": "Number of World pods to run",
+            "type": "integer",
+            "default": 2
           },
-          "placement":{
-            "description":"Marathon-style placement constraint for World pods",
-            "type":"string",
-            "default":"hostname:UNIQUE"
+          "placement": {
+            "description": "Marathon-style placement constraint for World pods",
+            "type": "string",
+            "default": "hostname:UNIQUE"
           },
-          "secret1":{
-            "description":"secret1",
-            "type":"string",
-            "default":""
+          "secret1": {
+            "description": "secret1",
+            "type": "string",
+            "default": ""
           },
-          "secret2":{
-            "description":"secret2",
-            "type":"string",
-            "default":""
+          "secret2": {
+            "description": "secret2",
+            "type": "string",
+            "default": ""
           },
-          "secret3":{
-            "description":"secret3",
-            "type":"string",
-            "default":""
+          "secret3": {
+            "description": "secret3",
+            "type": "string",
+            "default": ""
           }
         },
-        "required":[
+        "required": [
           "cpus",
           "mem",
           "disk",

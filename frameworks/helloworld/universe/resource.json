@@ -13,27 +13,27 @@
     "icon-medium": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-medium.png?raw=true",
     "icon-large": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-large.png?raw=true"
   },
-  "cli":{
-    "binaries":{
-      "darwin":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-darwin}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-hello-world-darwin"
+  "cli": {
+    "binaries": {
+      "darwin": {
+        "x86-64": {
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-darwin}}" } ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-hello-world-darwin"
         }
       },
-      "linux":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-linux}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-hello-world-linux"
+      "linux": {
+        "x86-64": {
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-linux}}" } ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-hello-world-linux"
         }
       },
-      "windows":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-hello-world.exe}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-hello-world.exe"
+      "windows": {
+        "x86-64": {
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-hello-world.exe}}" } ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-hello-world.exe"
         }
       }
     }
