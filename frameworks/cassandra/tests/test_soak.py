@@ -6,7 +6,7 @@ import dcos
 import pytest
 import shakedown
 
-from tests.config import *
+import tests.config
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
@@ -27,12 +27,12 @@ def test_backup_and_restore():
     }
 
     with sdk_jobs.InstallJobContext([
-            get_write_data_job(),
-            get_verify_data_job(),
-            get_delete_data_job(),
-            get_verify_deletion_job()]):
-        run_backup_and_restore(
-            PACKAGE_NAME,
+            tests.config.get_write_data_job(),
+            tests.config.get_verify_data_job(),
+            tests.config.get_delete_data_job(),
+            tests.config.get_verify_deletion_job()]):
+        tests.config.run_backup_and_restore(
+            tests.config.SERVICE_NAME,
             'backup-s3',
             'restore-s3',
             plan_parameters)
@@ -46,9 +46,9 @@ def test_soak_upgrade_downgrade():
     with open('cassandra.json') as options_file:
         install_options = json.load(options_file)
     sdk_upgrade.soak_upgrade_downgrade(
-        "beta-{}".format(PACKAGE_NAME),
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
+        "beta-{}".format(tests.config.PACKAGE_NAME),
+        tests.config.PACKAGE_NAME,
+        tests.config.DEFAULT_TASK_COUNT,
         service_name=install_options["service"]["name"],
         additional_options=install_options)
 
@@ -58,13 +58,13 @@ def test_cassandra_migration():
     backup_service_name = os.getenv('CASSANDRA_BACKUP_CLUSTER_NAME')
     restore_service_name = os.getenv('CASSANDRA_RESTORE_CLUSTER_NAME')
 
-    backup_node_address = os.getenv('BACKUP_NODE_ADDRESS', DEFAULT_NODE_ADDRESS)
-    backup_node_port = os.getenv('BACKUP_NODE_PORT', DEFAULT_NODE_PORT)
+    backup_node_address = os.getenv('BACKUP_NODE_ADDRESS', tests.config.DEFAULT_NODE_ADDRESS)
+    backup_node_port = os.getenv('BACKUP_NODE_PORT', tests.config.DEFAULT_NODE_PORT)
 
-    backup_write_data_job = get_write_data_job(backup_node_address, backup_node_port)
-    backup_verify_data_job = get_verify_data_job(backup_node_address, backup_node_port)
-    backup_delete_data_job = get_delete_data_job(backup_node_address, backup_node_port)
-    backup_verify_deletion_job = get_verify_deletion_job(backup_node_address, backup_node_port)
+    backup_write_data_job = tests.config.get_write_data_job(backup_node_address, backup_node_port)
+    backup_verify_data_job = tests.config.get_verify_data_job(backup_node_address, backup_node_port)
+    backup_delete_data_job = tests.config.get_delete_data_job(backup_node_address, backup_node_port)
+    backup_verify_deletion_job = tests.config.get_verify_deletion_job(backup_node_address, backup_node_port)
 
     plan_parameters = {
         'S3_BUCKET_NAME': os.getenv(
@@ -106,10 +106,10 @@ def test_cassandra_migration():
         'RESTORE_NODE_ADDRESS', sdk_hosts.autoip_host('sdk-cassandra', 'node-0-server'))
     restore_node_port = os.getenv('RESTORE_NODE_PORT', '9052')
 
-    restore_write_data_job = get_write_data_job(restore_node_address, restore_node_port)
-    restore_verify_data_job = get_verify_data_job(restore_node_address, restore_node_port)
-    restore_delete_data_job = get_delete_data_job(restore_node_address, restore_node_port)
-    restore_verify_deletion_job = get_verify_deletion_job(restore_node_address, restore_node_port)
+    restore_write_data_job = tests.config.get_write_data_job(restore_node_address, restore_node_port)
+    restore_verify_data_job = tests.config.get_verify_data_job(restore_node_address, restore_node_port)
+    restore_delete_data_job = tests.config.get_delete_data_job(restore_node_address, restore_node_port)
+    restore_verify_deletion_job = tests.config.get_verify_deletion_job(restore_node_address, restore_node_port)
 
     restore_install_job_context = sdk_jobs.InstallJobContext(
         [restore_write_data_job, restore_verify_data_job,
