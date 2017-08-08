@@ -73,12 +73,14 @@ public class YAMLToInternalMappers {
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
+            String podName = entry.getKey();
+            RawPod rawPod = entry.getValue();
             pods.add(convertPod(
-                    entry.getValue(),
+                    rawPod,
                     fileReader,
-                    entry.getKey(),
-                    taskEnvRouter.getConfig(entry.getKey()),
-                    role,
+                    podName,
+                    taskEnvRouter.getConfig(podName),
+                    getRole(rawPod.getPreReservedRole(), role),
                     principal,
                     schedulerFlags.getExecutorURI(),
                     user));
@@ -607,5 +609,19 @@ public class YAMLToInternalMappers {
         }
         return new PortsSpec(
                 Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs);
+    }
+
+    /**
+     * This method provides the correct role for resources to use when reserving refined resources.
+     * @param preReservedRole The role of pre-reserved resources
+     * @param role The role of the service
+     * @return The final role which refined resources should use
+     */
+    private static String getRole(String preReservedRole, String role) {
+        if (preReservedRole == null || preReservedRole.equals(Constants.ANY_ROLE)) {
+            return role;
+        } else {
+            return preReservedRole + "/" + role;
+        }
     }
 }

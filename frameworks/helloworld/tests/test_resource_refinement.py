@@ -14,7 +14,13 @@ from tests.config import (
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+        options = {
+            "service": {
+                "spec_file": "examples/pre-reserved.yml"
+            }
+        }
+
+        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, additional_options=options)
 
         yield # let the test session execute
     finally:
