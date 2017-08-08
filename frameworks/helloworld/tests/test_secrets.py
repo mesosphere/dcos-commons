@@ -1,5 +1,7 @@
+import logging
+
 import pytest
-import shakedown # required by @sdk_utils.dcos_X_Y_or_higher
+from retrying import retry
 
 import sdk_cmd
 import sdk_install
@@ -12,11 +14,13 @@ from tests.config import (
     PACKAGE_NAME
 )
 
+log = logging.getLogger(__name__)
+
 NUM_HELLO = 2
 NUM_WORLD = 3
 
 secret_content_default = "hello-world-secret-data"
-secret_content_alternative = "hello-world-secret-data-alternative"
+secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
         "service": {
@@ -54,7 +58,7 @@ options_dcos_space_test = {
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
@@ -133,26 +137,26 @@ def test_secrets_verify():
 
 
     # first secret: environment variable name is given in yaml
-    assert secret_content_default == task_exec("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
 
     # second secret: file path is given in yaml
-    assert secret_content_default == task_exec("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_default == read_secret("world-0", "cat WORLD_SECRET2_FILE")
 
     # third secret : no file path is given in yaml
     #            default file path is equal to secret path
-    assert secret_content_default == task_exec("world-0", "cat hello-world/secret3")
+    assert secret_content_default == read_secret("world-0", "cat hello-world/secret3")
 
 
     # hello tasks has container image, world tasks do not
 
     # first secret : environment variable name is given in yaml
-    assert secret_content_default == task_exec("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
 
     # first secret : both environment variable name and file path are given in yaml
-    assert secret_content_default == task_exec("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
 
     # second secret : file path is given in yaml
-    assert secret_content_default == task_exec("hello-0", "cat HELLO_SECRET2_FILE")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -179,6 +183,7 @@ def test_secrets_update():
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
+
     sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, PACKAGE_NAME))
     sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, PACKAGE_NAME))
     sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, PACKAGE_NAME))
@@ -204,14 +209,14 @@ def test_secrets_update():
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # make sure content is changed
-    assert secret_content_alternative == task_exec("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec("world-0", "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == task_exec("world-0", "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("world-0", "cat {}/secret3".format(PACKAGE_NAME))
 
     # make sure content is changed
-    assert secret_content_alternative == task_exec("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec("hello-0", "cat HELLO_SECRET1_FILE")
-    assert secret_content_alternative == task_exec("hello-0", "cat HELLO_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -242,14 +247,14 @@ def test_secrets_config_update():
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
     # make sure it has the default value
-    assert secret_content_default == task_exec("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_default == task_exec("world-0", "cat WORLD_SECRET2_FILE")
-    assert secret_content_default == task_exec("world-0", "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_default == read_secret("world-0", "cat {}/secret3".format(PACKAGE_NAME))
 
     # hello tasks has container image
-    assert secret_content_default == task_exec("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_default == task_exec("hello-0", "cat HELLO_SECRET1_FILE")
-    assert secret_content_default == task_exec("hello-0", "cat HELLO_SECRET2_FILE")
+    assert secret_content_default == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets (defaults)
     delete_secrets("{}/".format(PACKAGE_NAME))
@@ -279,13 +284,13 @@ def test_secrets_config_update():
     hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
     world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
 
-    assert secret_content_alternative == task_exec("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec("world-0", "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == task_exec("world-0", "cat secret3")
+    assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("world-0", "cat secret3")
 
-    assert secret_content_alternative == task_exec("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_alternative == task_exec("hello-0", "cat HELLO_SECRET1_FILE")
-    assert secret_content_alternative == task_exec("hello-0", "cat HELLO_SECRET2_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET1_FILE")
+    assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
     delete_secrets()
@@ -358,13 +363,12 @@ def delete_secrets_all(path_prefix=""):
         pass
 
 
-def task_exec(task_name, command):
-    lines = sdk_cmd.run_cli("task exec {} {}".format(task_name, command)).split('\n')
-    print(lines)
+@retry
+def read_secret(task_name, command):
+    cmd_str = "task exec {} {}".format(task_name, command)
+    lines = sdk_cmd.run_cli(cmd_str).split('\n')
+    log.info('dcos %s output: %s', cmd_str, lines)
     for i in lines:
-        # ignore text starting with:
-        #    Overwriting Environment Variable ....
-        #    Overwriting PATH ......
-        if not i.isspace() and not i.startswith("Overwriting"):
+        if i.strip().startswith(secret_content_default):
             return i
-    return ""
+    raise Exception("Failed to read secret")

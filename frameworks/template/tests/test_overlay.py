@@ -16,7 +16,7 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
     reason="overlay tests currently broken in strict")
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()

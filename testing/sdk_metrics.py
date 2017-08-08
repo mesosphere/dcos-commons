@@ -2,12 +2,15 @@
 Utilities relating to verifying the metrics functionality as reported
 by the DC/OS metrics component.
 '''
+import json
+import logging
 
 import shakedown
 
-import sdk_utils as utils
 import sdk_cmd as cmd
-import json
+
+log = logging.getLogger(__name__)
+
 
 def get_metrics(service_name, task_name):
     """Return a list of metrics datapoints.
@@ -31,7 +34,7 @@ def get_metrics(service_name, task_name):
     containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
     containers_response = cmd.request("GET", containers_url, retry=False)
     if containers_response.ok is None:
-        utils.out("Unable to fetch containers list")
+        log.info("Unable to fetch containers list")
         raise Exception("Unable to fetch containers list: {}".format(containers_url))
 
     for container in json.loads(containers_response.text):
@@ -49,7 +52,7 @@ def get_metrics(service_name, task_name):
 
 def wait_for_any_metrics(service_name, task_name, timeout):
     def metrics_exist():
-        utils.out("verifying metrics exist for {}".format(service_name))
+        log.info("verifying metrics exist for {}".format(service_name))
         service_metrics = get_metrics(service_name, task_name)
         return len(service_metrics) != 0
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-SERVICE_ACCOUNT_NAME=service-acct
 LINUX_USER=$1
 ROLE=$2
+SERVICE_ACCOUNT_NAME=${3:-service-acct}
 
 if [ -n "$CLUSTER_URL" ]
 then

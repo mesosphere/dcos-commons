@@ -1,22 +1,24 @@
-import json
+import logging
+
 import pytest
-import shakedown
 
 import sdk_cmd as cmd
-import sdk_hosts
 import sdk_install
-import sdk_marathon
 import sdk_metrics
-import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 from tests.config import *
 
+log = logging.getLogger(__name__)
+
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 
+
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
+        log.info("Ensure elasticsearch and kibana are uninstalled...")
+        sdk_install.uninstall(KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
         sdk_utils.gc_frameworks()
 
@@ -27,8 +29,10 @@ def configure_package(configure_universe):
             service_name=FOLDERED_SERVICE_NAME,
             additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
+        log.info("Clean up elasticsearch and kibana...")
+        sdk_install.uninstall(KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
 
@@ -76,28 +80,29 @@ def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "data-0-node", DEFAULT_ELASTIC_TIMEOUT)
 
 
+@pytest.mark.focus
 @pytest.mark.sanity
+@pytest.mark.timeout(60 * 60)
 def test_xpack_toggle_with_kibana(default_populated_index):
-    # Verify disabled by default
+    log.info("\n***** Verify X-Pack disabled by default in elasticsearch")
     verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
-    enable_xpack(service_name=FOLDERED_SERVICE_NAME)
 
-    # Test kibana with x-pack disabled...
-    sdk_install.uninstall("kibana")
-    shakedown.install_package("kibana", options_json={
+    log.info("\n***** Test kibana with X-Pack disabled...")
+    shakedown.install_package(KIBANA_PACKAGE_NAME, options_json={
         "kibana": {
             "elasticsearch_url": "http://" + sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200)
         }})
-    shakedown.deployment_wait(app_id="/kibana", timeout=DEFAULT_KIBANA_TIMEOUT)
-    check_kibana_adminrouter_integration("service/kibana/")
-    sdk_install.uninstall("kibana")
+    shakedown.deployment_wait(app_id="/{}".format(KIBANA_PACKAGE_NAME), timeout=DEFAULT_KIBANA_TIMEOUT)
+    check_kibana_adminrouter_integration("service/{}/".format(KIBANA_PACKAGE_NAME))
+    log.info("Uninstall kibana with X-Pack disabled")
+    sdk_install.uninstall(KIBANA_PACKAGE_NAME)
 
-    # Set/verify enabled
+    log.info("\n***** Set/verify X-Pack enabled in elasticsearch")
+    enable_xpack(service_name=FOLDERED_SERVICE_NAME)
     verify_commercial_api_status(True, service_name=FOLDERED_SERVICE_NAME)
     verify_xpack_license(service_name=FOLDERED_SERVICE_NAME)
 
-    # Write some data while enabled, disable X-Pack, and verify we can still read what we wrote.
-
+    log.info("\n***** Write some data while enabled, disable X-Pack, and verify we can still read what we wrote.")
     create_document(
         DEFAULT_INDEX_NAME,
         DEFAULT_INDEX_TYPE,
@@ -105,20 +110,22 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         {"name": "X-Pack", "role": "commercial plugin"},
         service_name=FOLDERED_SERVICE_NAME)
 
-    # Test kibana with x-pack enabled...
-    shakedown.install_package("kibana", options_json={
+    log.info("\n***** Test kibana with X-Pack enabled...")
+    shakedown.install_package(KIBANA_PACKAGE_NAME, options_json={
         "kibana": {
             "elasticsearch_url": "http://" + sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200),
             "xpack_enabled": True
         }})
-    # Installing Kibana w/x-pack can take as much as 15 minutes for Marathon deployment to complete,
-    # due to a configured HTTP health check. (typical: 10 minutes)
-    shakedown.deployment_wait(app_id="/kibana", timeout=DEFAULT_KIBANA_TIMEOUT)
-    check_kibana_adminrouter_integration("service/kibana/login")
-    sdk_install.uninstall("kibana")
+    log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
+    log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
+    shakedown.deployment_wait(app_id="/{}".format(KIBANA_PACKAGE_NAME), timeout=DEFAULT_KIBANA_TIMEOUT)
+    check_kibana_adminrouter_integration("service/{}/login".format(KIBANA_PACKAGE_NAME))
+    log.info("\n***** Uninstall kibana with X-Pack enabled")
+    sdk_install.uninstall(KIBANA_PACKAGE_NAME)
 
-    # Disable again
+    log.info("\n***** Disable X-Pack in elasticsearch.")
     disable_xpack(service_name=FOLDERED_SERVICE_NAME)
+    log.info("\n***** Verify we can still read what we wrote when X-Pack was enabled.")
     verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
     doc = get_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 2, service_name=FOLDERED_SERVICE_NAME)
     assert doc["_source"]["name"] == "X-Pack"
@@ -188,4 +195,3 @@ def test_bump_node_counts():
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
-

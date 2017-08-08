@@ -1,9 +1,11 @@
 '''Utilities relating to running commands and HTTP requests'''
+import logging
 
 import dcos.errors
 import sdk_plan
-import sdk_utils
 import shakedown
+
+log = logging.getLogger(__name__)
 
 
 def check_running(service_name, expected_task_count, timeout_seconds=15 * 60):
@@ -11,7 +13,7 @@ def check_running(service_name, expected_task_count, timeout_seconds=15 * 60):
         try:
             tasks = shakedown.get_service_tasks(service_name)
         except dcos.errors.DCOSHTTPException:
-            sdk_utils.out('Failed to get tasks for service {}'.format(service_name))
+            log.info('Failed to get tasks for service {}'.format(service_name))
             tasks = []
         running_task_names = []
         other_tasks = []
@@ -20,7 +22,7 @@ def check_running(service_name, expected_task_count, timeout_seconds=15 * 60):
                 running_task_names.append(t['name'])
             else:
                 other_tasks.append('{}={}'.format(t['name'], t['state']))
-        sdk_utils.out('Waiting for {} running tasks, got {} running/{} total:\n- running: {}\n- other: {}'.format(
+        log.info('Waiting for {} running tasks, got {} running/{} total:\n- running: {}\n- other: {}'.format(
             expected_task_count,
             len(running_task_names), len(tasks),
             sorted(running_task_names),
@@ -41,10 +43,10 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=15 *
         try:
             task_ids = get_task_ids(service_name, prefix)
         except dcos.errors.DCOSHTTPException:
-            sdk_utils.out('Failed to get task ids for service {}'.format(service_name))
+            log.info('Failed to get task ids for service {}'.format(service_name))
             task_ids = []
 
-        sdk_utils.out('Waiting for tasks starting with "{}" to be updated:\n- Old tasks: {}\n- Current tasks: {}'.format(
+        log.info('Waiting for tasks starting with "{}" to be updated:\n- Old tasks: {}\n- Current tasks: {}'.format(
             prefix, sorted(old_task_ids), sorted(task_ids)))
         all_updated = True
         for id in task_ids:
@@ -62,7 +64,7 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_recovery(service_name)
     task_ids = get_task_ids(service_name, prefix)
     task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(sorted(old_task_ids), sorted(task_ids))
-    sdk_utils.out('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
+    log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
     assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated:{}".format(task_sets)
 
 

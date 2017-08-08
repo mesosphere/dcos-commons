@@ -1,5 +1,7 @@
-import pytest
 import json
+import logging
+
+import pytest
 
 import shakedown
 import sdk_cmd
@@ -12,9 +14,11 @@ from tests.config import (
     PACKAGE_NAME
 )
 
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
@@ -42,7 +46,7 @@ def test_canary_init():
     assert json.loads(shakedown.wait_for(fn, noisy=True)) == []
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'WAITING')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -79,7 +83,7 @@ def test_canary_first():
     # do not use service_plan always
     # when here, plan should always return properly
     pl = sdk_plan.wait_for_completed_step(PACKAGE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -145,7 +149,7 @@ def test_canary_second():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.get_deployment_plan(PACKAGE_NAME)
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -182,7 +186,7 @@ def test_canary_third():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_phase(PACKAGE_NAME, 'deploy', 'hello-deploy')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -219,7 +223,7 @@ def test_canary_fourth():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'deploy')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'COMPLETE'
 
@@ -263,7 +267,7 @@ def test_increase_count():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'WAITING')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -297,7 +301,7 @@ def test_increase_count():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'COMPLETE')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'COMPLETE'
 
@@ -330,7 +334,7 @@ def test_increase_cpu():
     sdk_marathon.bump_cpu_count_config(PACKAGE_NAME, 'HELLO_CPUS')
 
     pl = sdk_plan.wait_for_plan_status(PACKAGE_NAME, 'deploy', 'WAITING')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -369,7 +373,7 @@ def test_increase_cpu():
     sdk_tasks.check_running(PACKAGE_NAME, len(expected_tasks))
 
     pl = sdk_plan.wait_for_step_status(PACKAGE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]', 'COMPLETE')
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'WAITING'
 
@@ -399,7 +403,7 @@ def test_increase_cpu():
     sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello-1-server', hello_1_ids)
 
     pl = sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-    sdk_utils.out(pl)
+    log.info(pl)
 
     assert pl['status'] == 'COMPLETE'
 

@@ -68,7 +68,7 @@ dcos kafka endpoints _ENDPOINT_
 
 The default Kafka installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depending on the context of the deployment.
 
-## Prerequisities
+## Prerequisites
 - Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](/1.9/administration/id-and-access-mgt/service-auth/kafka-auth/) before installing Kafka. Only someone with `superuser` permission can create the service account.
 	- `strict` [security mode](https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security) requires a service account.
 	- `permissive` security mode a service account is optional.
