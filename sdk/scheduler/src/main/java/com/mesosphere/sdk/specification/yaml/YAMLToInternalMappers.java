@@ -348,6 +348,15 @@ public class YAMLToInternalMappers {
             discoverySpec = convertDiscovery(rawTask.getDiscovery());
         }
 
+        Collection<TransportEncryptionSpec> transportEncryption = rawTask
+                .getTransportEncryption()
+                .stream()
+                .map(task -> new DefaultTransportEncryptionSpec.Builder()
+                        .name(task.getName())
+                        .type(TransportEncryptionSpec.Type.valueOf(task.getType()))
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
+
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
@@ -355,6 +364,7 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
+                .setTransportEncryption(transportEncryption)
                 .name(taskName);
 
         if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
@@ -608,4 +618,5 @@ public class YAMLToInternalMappers {
         return new PortsSpec(
                 Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs);
     }
+
 }
