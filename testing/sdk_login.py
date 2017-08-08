@@ -33,7 +33,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool, user_
     return user_token
 
 
-def configure_cli(dcosurl: str, token: str) -> None
+def configure_cli(dcosurl: str, token: str) -> None:
     out, err, rc = shakedown.run_dcos_command('dcos config set core.dcos_url {}'.format(dcosurl))
     assert rc, 'Failed to set core.dcos_url: {}'.format(err)
     out, err, rc = shakedown.run_dcos_command('dcos config set core.ssl_verify false')
