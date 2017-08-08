@@ -654,6 +654,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
+                getTaskToDeployNames(deploymentPlanManager.getPlan()),
                 launchConstrainer,
                 failureMonitor,
                 overrideRecoveryPlanManagers);
@@ -809,5 +810,17 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
         });
+    }
+
+    static Set<String> getTaskToDeployNames(Plan deployPlan) {
+        return deployPlan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(podInstanceRequirement ->
+                        TaskUtils.getTaskNames(
+                                podInstanceRequirement.getPodInstance(),
+                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
     }
 }

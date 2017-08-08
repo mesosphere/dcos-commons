@@ -34,6 +34,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     protected final ConfigStore<ServiceSpec> configStore;
     private final List<RecoveryPlanOverrider> recoveryPlanOverriders;
+    private final Set<String> recoverableTaskNames;
 
     protected volatile Plan plan;
 
@@ -45,19 +46,22 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
+            Set<String> recoverableTaskNames,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
-        this(stateStore, configStore, launchConstrainer, failureMonitor, Collections.emptyList());
+        this(stateStore, configStore, recoverableTaskNames, launchConstrainer, failureMonitor, Collections.emptyList());
     }
 
     public DefaultRecoveryPlanManager(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
+            Set<String> recoverableTaskNames,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
             List<RecoveryPlanOverrider> overrideRecoveryManagers) {
         this.stateStore = stateStore;
         this.configStore = configStore;
+        this.recoverableTaskNames = recoverableTaskNames;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
         this.recoveryPlanOverriders = overrideRecoveryManagers;
@@ -190,7 +194,10 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             throws TaskException {
 
         Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
-        logger.info("Found tasks needing recovery: " + getTaskNames(failedTasks));
+        failedTasks = failedTasks.stream()
+                .filter(taskInfo -> recoverableTaskNames.contains(taskInfo.getName()))
+                .collect(Collectors.toList());
+        logger.info("Found tasks needing recovery: {}", getTaskNames(failedTasks));
 
         List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
                 configStore,

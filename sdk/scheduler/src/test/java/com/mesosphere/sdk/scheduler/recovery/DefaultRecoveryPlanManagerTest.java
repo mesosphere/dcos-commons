@@ -116,6 +116,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         recoveryManager = spy(new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
+                new HashSet<>(Arrays.asList(taskInfo.getName())),
                 launchConstrainer,
                 failureMonitor));
         schedulerDriver = mock(SchedulerDriver.class);
