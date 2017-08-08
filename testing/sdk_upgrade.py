@@ -25,7 +25,7 @@ def test_upgrade(
         additional_options={},
         test_version_options=None,
         timeout_seconds=25*60,
-        wait_scheduler_idle=True):
+        wait_for_deployment=True):
     # allow a service name which is different from the package name (common with e.g. folders):
     if service_name is None:
         service_name = test_package_name
@@ -59,7 +59,7 @@ def test_upgrade(
             service_name=service_name,
             additional_options=additional_options,
             timeout_seconds=timeout_seconds,
-            wait_scheduler_idle=wait_scheduler_idle)
+            wait_for_deployment=wait_for_deployment)
     finally:
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list

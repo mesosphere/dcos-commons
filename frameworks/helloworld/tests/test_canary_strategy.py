@@ -33,7 +33,7 @@ def configure_package(configure_security):
                 'hello': {'count': 4},
                 'world': {'count': 4}
             },
-            check_suppressed=False)
+            wait_for_deployment=False)
 
         yield # let the test session execute
     finally:
