@@ -940,7 +940,7 @@ server-lb.hello-world.l4lb.thisdcos.directory:80
 
 # TLS
 
-**This feature works only on `Mesosphere DC/OS Enterprise` and is not supported on `DC/OS open`.**
+**This feature works only on Mesosphere DC/OS Enterprise and is not supported on DC/OS Open.**
 
 The SDK provides an automated way of provisioning X.509 certificates and private keys for tasks. These TLS artifacts can be consumed by tasks to create encrypted TLS connections.
 
@@ -970,9 +970,9 @@ pods:
 
 Every item under `transport-encryption` must have a unique `name`. The `type` field defines the serialization format with which the private key and certificate will be delivered into the task sandbox. Currently, there are two supported formats - `TLS` and `KEYSTORE`. Each item will result in a unique private key and the corresponding certificate.
 
-The TLS artifacts within single task will be unique for a task instance and won't be shared across all instances of the pod task. Different tasks can request TLS artficats with same name but each task will get unique private key and certificate and they won't get shared across different tasks.
+The TLS artifacts within a single task will be unique for a task instance and won't be shared across all instances of the pod task. Different tasks can request TLS artficats with the same name, but each task will get unique private key and certificate, and they won't get shared across different tasks.
 
-In the above example the `$MESOS_SANDBOX` directory would contain following files:
+In the above example, the `$MESOS_SANDBOX` directory would contain following files:
 
 ```
 $MESOS_SANDBOX/
@@ -987,9 +987,9 @@ Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PE
 
 ## Provisioning
 
-TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore and truststore) as a separate secret under the tasks `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](operations-guide.html#authorization-for-secrets) to all necessary secrets. If all secrets exist for a single artifact then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. Operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
+TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](operations-guide.html#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
 
-The scheduler will generate and store TLS artfiacts for both possible formats (`TLS`, `KEYSTORE`) and changing format won't result in a new private key.
+The scheduler will generate and store TLS artfiacts for both possible formats (`TLS`, `KEYSTORE`). Changing the format will not create a new private key.
 
 Generated artifacts are stored as secrets with the following naming scheme:
 
@@ -1011,27 +1011,27 @@ hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__tr
 
 ### Lifetime of secrets containing the TLS artifacts
 
-When a `transport-encryption` item is removed from the service configuration (i.e. YAML file) it is **not** removed from the secret store. If the same `transport-encryption` configuration is added back to the service configuration the existing TLS artifact will be used.
+When a `transport-encryption` item is removed from the service configuration (i.e. YAML file), it is **not** removed from the secret store. If the same `transport-encryption` configuration is added back to the service configuration, the existing TLS artifact will be used.
 
 The `UninstallScheduler` responsible for cleaning up service installation will try to remove all TLS artifact secrets previously provisioned by the scheduler.
 
 ### Task artifacts access
 
-Each task that requests one or more TLS artfiacts will get artifacts delivered to the task sandbox directory (`$MESOS_SANDBOX`) as a file-based secret. This feature ensures that data aren't stored on disk and are held only in memory on virtual filesystem. Secret appears as a normal file that can be used in application. A task will get only TLS artifacts that are configured in service configuration.
+Each task that requests one or more TLS artifacts will get artifacts delivered to the task sandbox directory (`$MESOS_SANDBOX`) as a file-based secret. This feature ensures that data aren't stored on disk and are held only in memory on the virtual filesystem. The secret appears as a normal file that can be used by an application. A task will only get TLS artifacts that are declared in the service configuration file.
 
 ## Private key and certificate details
 
-A scheduler provisions *private key* and `X.509` *certificate* and exposes them to task in various serialization formats.
+The scheduler provisions the *private key* and `X.509` *certificate* and exposes them to the task in various serialization formats.
 
 ### Private key
 
-Private key is generated by using Java [`KeyPairGenerator`](https://docs.oracle.com/javase/7/docs/api/java/security/KeyPairGenerator.html) initialized with `RSA` algorithm. The `RSA` key is generated with `2048` bit size based on [NIST recommnedations](https://www.keylength.com/en/4/).
+The private key is generated by using Java [`KeyPairGenerator`](https://docs.oracle.com/javase/7/docs/api/java/security/KeyPairGenerator.html) initialized with `RSA` algorithm. The `RSA` key is generated with `2048` bit size based on [NIST recommnedations](https://www.keylength.com/en/4/).
 
 ### X.509 certificate
 
 An `X.509` end-entity certificate corresponding to the private key is generated with the help of the [DC/OS certificate authority](https://docs.mesosphere.com/1.9/networking/tls-ssl/ca-api/) by sending it a certificate signing request (CSR, built from the public key). The returned end-entity certificate is signed with the private key corresponding to the signing CA certificate that the DC/OS CA is configured with. That signing CA certificate can either be a root CA certificate automatically created during DC/OS cluster installation or a user-provided (custom) CA certificate.
 
-A certificate has following subject information:
+A certificate has the following subject information:
 
 ```
 CN=[pod-index-task].[service-name]
@@ -1041,26 +1041,26 @@ ST=CA
 C=US
 ```
 
-Additional X.509 `Subject Alternative Names`, based on the pod `discovery` and `vip` confiagurations, are encoded into the certificate. If no `discovery` or port exposed over VIP is configured single the certificate comes with a single SAN.
+Additional X.509 `Subject Alternative Names`, based on the pod `discovery` and `vip` confiagurations, are encoded into the certificate. If no `discovery` or port exposed over VIP is configured, the single the certificate comes with a single SAN.
 
 ```
 DNSName([pod-index-task].[service-name].autoip.dcos.thisdcos.directory)
 ```
 
-Each VIP exposed port will result in a new SAN entry:
+Each VIP-exposed port creates in a new SAN entry:
 
 ```
 DNSName([port-0-vip-prefix].[service-name].l4lb.thisdcos.directory)
 DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 ```
 
-Providing a custom `prefix` under `discovery` level will result in replacing the default SAN `DNSName([pod-index-task].[service-name].autoip.dcos.thisdcos.directory)` with the configured name and pod index, i.e.:
+Providing a custom `prefix` under the `discovery` replaces the default SAN `DNSName([pod-index-task].[service-name].autoip.dcos.thisdcos.directory)` with the configured name and pod index, i.e.:
 
 ```
 DNSName([discovery-prefix-index].[service-name].autoip.dcos.thisdcos.directory)
 ```
 
-This certificate configuration allows to run proper TLS hostname verification by client when task is accessed by one of [internal DNS names](https://docs.mesosphere.com/1.9/networking/dns-overview/).
+This certificate configuration allows the client to run proper TLS hostname verification when the task is accessed by one of the [internal DNS names](https://docs.mesosphere.com/1.9/networking/dns-overview/).
 
 Each certificate is valid for **10 years**.
 
@@ -1072,39 +1072,37 @@ TLS artifacts can be provided to a task in two different formats:
 
 Standard [PEM encoded](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) certificate, private key and root CA certificate. Based on a file extension name it is possible to tell which artifact is in the file.
 
-A certificate file with **.crt** extension contains an end-entity certificate with possible chain of certificates leading to the root CA certificate. The root CA certificate is not part of end-entity certificate file.
+A certificate file with **.crt** extension contains an end-entity certificate with optional chain of certificates leading to the root CA certificate. The root CA certificate is not part of end-entity certificate file.
 
-A **.key** file contains PEM encoded private key.
+A **.key** file contains the PEM encoded private key.
 
-A file with **.crt** extension contains root CA certificate without certificate chain.
+A file with **.crt** extension contains the root CA certificate without the certificate chain.
 
 #### Java Keystore
 
-The [Java Keystore (JKS)](https://en.wikipedia.org/wiki/Keystore) is a repository of various certificates and private keys. When private key and certificate is requested a task will get 2 JKS format files.
+The [Java Keystore (JKS)](https://en.wikipedia.org/wiki/Keystore) is a repository of various certificates and private keys. When a private key and certificate is requested, a task will get 2 JKS format files.
 
-A **.keystore** is a JKS file that contains a private key with end-entity certificate and complete certificate chain including the root CA certificate. Certificate is stored under alias name **`default`**. The keystore and key are protected by single **`notsecure`** password.
+A **.keystore** is a JKS file that contains a private key with an end-entity certificate and a complete certificate chain, including the root CA certificate. The certificate is stored under the alias name **`default`**. The keystore and key are protected by the password **`notsecure`**.
 
-A **.truststore** is a JKS file that contains DC/OS root CA certificate stored as a trust certificate. The certificte is stored under alias **`dcos-root`**. The keystore is protected by **`notsecure`** password.
+A **.truststore** is a JKS file that contains the DC/OS root CA certificate stored as a trust certificate. The certificte is stored under alias **`dcos-root`**. The keystore is protected by **`notsecure`** password.
 
-The password **`notsecure`** that is protecting both JKS files (containing an end-entity certificate with private key and root CA certificate) is selected because most of Java tools and libraries validate for some password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers and tasks can access TLS artificates provisioned by a scheduler.
+The password **`notsecure`** that protects both JKS files (containing an end-entity certificate with private key and root CA certificate) has been selected because most Java tools and libraries require a password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers or tasks can access TLS artifacts provisioned by a scheduler.
 
-**Imporant note:** The DC/OS 1.10 secrets store doesn't provide support for storing binary data. To overcome this limitation the `keystore` and `truststore` files are encoded using Base64 encoding when stored to secrets store. Files are mounted into a task container with additional `base64` file name suffix - `*.keystore.base64` and `*.truststore.base64`. There is a `bootstrap` utility helper that automatically decodes files in `$MESOS_SANDBOX` with `*.keystore.base64` and `*.truststore.base64` extension and stores them in a sandbox directory with expected `*.keystore` and `*.truststore` names. **Decoded files aren't stored using in-memory file system and are stored on a disk even after task finishes until the sandbox is removed by an operator or Mesos GC.**
+**Imporant note:** The DC/OS 1.10 secrets store doesn't provide support for storing binary data. To overcome this limitation, the `keystore` and `truststore` files are Base64 encoded before they are added to the secrets store. Files are mounted into a task container with additional `base64` file name suffix - `*.keystore.base64` and `*.truststore.base64`. There is a `bootstrap` utility helper that automatically decodes files in `$MESOS_SANDBOX` with `*.keystore.base64` and `*.truststore.base64` extension and stores them in a sandbox directory with expected `*.keystore` and `*.truststore` names. **Decoded files aren't stored using in-memory file system and are stored on a disk even after task finishes until the sandbox is removed by an operator or Mesos GC.**
 
 ## Installation requirements
 
 To enable TLS support a `Mesosphere DC/OS Enterprise` cluster must be installed in `permissive` or `strict` security mode.
 
-A scheduler must run with `service account` that has permissions to access:
+A scheduler must run with a `service account` that has permission to access:
 
 - `DC/OS CA` - requires `full` permission to [`dcos:adminrouter:ops:ca:rw`](https://docs.mesosphere.com/1.9/security/perms-reference/#admin-router) resource
 
 - Secrets store - requires `full` permission [`dcos:secrets:default:<service-name>/`](https://docs.mesosphere.com/1.9/security/perms-reference/#secrets) and `full` permission on `dcos:secrets:list:default:<service-name>`
 
-  This is a minimal permission that would allow scheduler to store secrets in service namespace. However with only this permission a scheduler wouldn't be able to clean up created secrets when service is uninstalled. This is a known limitation and will be addressed in `DC/OS` version `1.11`.
+  The secrets store authorizer supports only permissions on explicit secrets paths. Since SDK provisions many secrets for TLS artifacts it is necessary to give a `service account` broad `dcos:superuser`.
 
-  Alternatively it is possible to assign service account broad `full` permission on `dcos:superuser` resource. This is a security risk so it is not adviced to run any scheduler with such a permission.
-
-  Operator can manually clean up secrets via DC/OS UI or CLI before uninstalling service that uses TLS. If operator would like to use `dcos:superuser` permission for automated uninstall it would be possible to assign such permission just before uninstalling package and removing the permission from account after the service has been uninstalled.
+  This is a known limitation and it will get addressed in the future releases of the DC/OS.
 
 # Testing
 
