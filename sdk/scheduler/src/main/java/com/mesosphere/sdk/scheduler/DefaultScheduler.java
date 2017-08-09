@@ -580,8 +580,18 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializePlanCoordinator();
         initializeResources();
         initializeApiServer();
+        killUnneededTasks(getTaskToDeployNames(deploymentPlanManager.getPlan()));
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
+    }
+
+    private void killUnneededTasks(Set<String> taskToDeployNames) {
+        Set<Protos.TaskID> taskIds = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
+        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
 
     private Collection<PlanManager> getOtherPlanManagers() {
