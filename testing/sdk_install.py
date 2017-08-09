@@ -44,7 +44,7 @@ def install(
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
-        wait_scheduler_idle=True):
+        wait_for_deployment=True):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -64,7 +64,7 @@ def install(
 
     # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
-    if wait_scheduler_idle:
+    if wait_for_deployment:
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via FINISHED tasks, without actually completing deployment
         log.info("Waiting for {}/{} to finish deployment plan...".format(

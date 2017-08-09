@@ -47,7 +47,7 @@ def test_rack_not_found():
     }
 
     # scheduler should fail to deploy, don't wait for it to complete:
-    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, check_suppressed=False)
+    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, wait_for_deployment=False)
     try:
         sdk_tasks.check_running(PACKAGE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"
