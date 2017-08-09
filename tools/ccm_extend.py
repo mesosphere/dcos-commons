@@ -70,6 +70,12 @@ if cluster_id is None:
 
 # This API call increases the cluster length by an additional 4 hours.
 # See: https://ccm.mesosphere.com/api-docs/#!/cluster/Cluster_Detail_PUT
-r = requests.put(base_url+'/api/cluster/{}/'.format(cluster_id), data={'time': '240'}, headers=headers)
-r.raise_for_status()
+try:
+    r = requests.put(base_url+'/api/cluster/{}/'.format(cluster_id), data={'time': '240'}, headers=headers)
+    r.raise_for_status()
+except requests.exceptions.HTTPError as e:
+    print(e)
+    print(r)
+    log.error(e)
+    sys.exit(255)
 log.info(r.text)
