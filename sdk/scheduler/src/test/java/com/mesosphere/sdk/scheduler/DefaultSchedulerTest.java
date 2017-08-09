@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
-import static org.awaitility.Awaitility.to;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.any;
@@ -373,7 +372,7 @@ public class DefaultSchedulerTest {
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
 
         // Wait for the Step to become Complete
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isComplete(), equalTo(true));
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
                 PlanTestUtils.getStepStatuses(plan));
 
@@ -445,40 +444,36 @@ public class DefaultSchedulerTest {
                     }
                     unreserve = true;
                     break;
-                case 8:
+                case 8: {
                     // Three RESERVE, One CREATE, three RESERVE (for executor) and One LAUNCH operation
-                    int reserveOp = 0;
-                    int createOp = 0;
-                    int launchOp = 0;
+                    Map<Protos.Offer.Operation.Type, Integer> expectedCounts = new HashMap<>();
+                    expectedCounts.put(Protos.Offer.Operation.Type.RESERVE, 6);
+                    expectedCounts.put(Protos.Offer.Operation.Type.CREATE, 1);
+                    expectedCounts.put(Protos.Offer.Operation.Type.LAUNCH_GROUP, 1);
+                    Map<Protos.Offer.Operation.Type, Integer> operationCounts = new HashMap<>();
                     for (Protos.Offer.Operation operation : operationSet) {
-                        switch (operation.getType()) {
-                            case RESERVE:
-                                ++reserveOp;
-                                break;
-                            case CREATE:
-                                ++createOp;
-                                break;
-                            case LAUNCH_GROUP:
-                                ++launchOp;
-                                break;
-                            default:
-                                Assert.assertTrue(
-                                        "Expected RESERVE, CREATE, or LAUNCH_GROUP, got " + operation.getType(),
-                                        false);
+                        Integer count = operationCounts.get(operation.getType());
+                        if (count == null) {
+                            count = 1;
+                        } else {
+                            ++count;
                         }
+                        operationCounts.put(operation.getType(), count);
                     }
-                    if (reserveOp == 6 && createOp == 1 && launchOp == 1) {
+                    if (expectedCounts.equals(operationCounts)) {
                         launch = true;
                     }
+                    Assert.assertEquals(operationCounts.toString(), expectedCounts.keySet(), operationCounts.keySet());
                     break;
+                }
                 default:
                     break;
             }
         }
 
-        Assert.assertTrue(recovery);
-        Assert.assertTrue(launch);
-        Assert.assertTrue(unreserve);
+        Assert.assertTrue(operations.toString(), recovery);
+        Assert.assertTrue(operations.toString(), launch);
+        Assert.assertTrue(operations.toString(), unreserve);
     }
 
     @Test
@@ -503,7 +498,7 @@ public class DefaultSchedulerTest {
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
 
         // Wait for the Step to become Complete
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isComplete(), equalTo(true));
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
                 PlanTestUtils.getStepStatuses(plan));
 
@@ -545,13 +540,13 @@ public class DefaultSchedulerTest {
                 collectionThat(contains(expectedOffer.getId())),
                 operationsCaptor.capture(),
                 any());
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isStarting(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isStarting(), equalTo(true));
         Assert.assertEquals(0, defaultScheduler.recoveryPlanManager.getPlan().getChildren().size());
 
         operations = operationsCaptor.getValue();
         launchedTaskId = getTaskId(operations);
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(stepTaskA0).isComplete(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isComplete(), equalTo(true));
     }
 
     @Test
@@ -856,14 +851,14 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(6, countOperationType(Protos.Offer.Operation.Type.RESERVE, operations));
         Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, operations));
         Assert.assertEquals(1, countOperationType(Offer.Operation.Type.LAUNCH_GROUP, operations));
-        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(to(step).isStarting(), equalTo(true));
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(step).isStarting(), equalTo(true));
 
         // Sent TASK_RUNNING status
         Protos.TaskID taskId = getTaskId(operations);
         statusUpdate(getTaskId(operations), Protos.TaskState.TASK_RUNNING);
 
         // Wait for the Step to become Complete
-        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(to(step).isComplete(), equalTo(true));
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(Awaitility.to(step).isComplete(), equalTo(true));
 
         return taskId;
     }

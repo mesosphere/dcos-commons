@@ -3,8 +3,8 @@ package com.mesosphere.sdk.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
@@ -37,24 +37,25 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
         Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
 
-        String launchDetails = "";
-        switch (FailureUtils.getLaunchType(stateStore.fetchTask(taskInfo.getName()))) {
+        final String launchDetails;
+        FailureUtils.LaunchType launchType = FailureUtils.getLaunchType(stateStore.fetchTask(taskInfo.getName()));
+        switch (launchType) {
         case INITIAL_LAUNCH:
             launchDetails = "initial launch";
-            taskInfo = taskInfo.toBuilder()
-                    .setLabels(new TaskLabelWriter(taskInfo).setInitialLaunch().toProto())
-                    .build();
             break;
         case RELAUNCH:
             launchDetails = "relaunch";
             break;
-        case UNKNOWN:
-            throw new IllegalStateException("Unsupported launch type");
+        default:
+            launchDetails = ""; // happy compiler
+            throw new IllegalStateException("Unsupported launch type: " + launchType);
         }
 
         Optional<Protos.TaskStatus> taskStatus = Optional.empty();
         String taskStatusDetails = "";
         if (!taskInfo.getTaskId().getValue().equals("")) {
+            // Initialize the task status as TASK_STAGING. In practice we should never actually receive a TASK_STAGING
+            // status from Mesos so this is effectively an internal stub for the scheduler's own use.
             taskStatusDetails = " with STAGING status";
 
             Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
@@ -64,11 +65,15 @@ public class PersistentLaunchRecorder implements OperationRecorder {
                 taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
             }
 
+            if (launchType == FailureUtils.LaunchType.INITIAL_LAUNCH) {
+                AuxLabelAccess.setInitialLaunch(taskStatusBuilder);
+            }
+
             taskStatus = Optional.of(taskStatusBuilder.build());
         }
 
-        logger.info("Persisting {} operation{}: {}",
-                launchDetails, taskStatusDetails, TextFormat.shortDebugString(taskInfo));
+        logger.info("Persisting {} operation{} for {}: {}",
+                launchDetails, taskStatusDetails, taskInfo.getName(), TextFormat.shortDebugString(taskInfo));
 
         updateTaskResourcesWithinResourceSet(taskInfo);
         stateStore.storeTasks(Collections.singletonList(taskInfo));

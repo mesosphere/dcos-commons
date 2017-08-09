@@ -55,16 +55,6 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Ensures that the task is identified as being launched for the first time at its current location. This is
-     * intentionally stored in the TaskInfo as it will be automatically overwritten when the TaskInfo is rebuilt in a
-     * new launch. As such it will automatically be "cleared" when the TaskInfo is regenerated in the offer cycle.
-     */
-    public TaskLabelWriter setInitialLaunch() {
-        writer.put(LabelConstants.INITIAL_LAUNCH_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
-        return this;
-    }
-
-    /**
      * Stores the provided task type string. Any existing task type is overwritten.
      */
     public TaskLabelWriter setType(String taskType) {

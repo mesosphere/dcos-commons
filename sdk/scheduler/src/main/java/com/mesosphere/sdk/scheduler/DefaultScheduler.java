@@ -12,7 +12,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -779,14 +779,22 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
             // Store status, then pass status to PlanManager => Plan => Steps
             try {
+                String taskName = StateStoreUtils.getTaskInfo(stateStore, status).getName();
+                Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
+
                 stateStore.storeStatus(status);
                 planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
                 reconciler.update(status);
 
-                Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
-                if (TaskUtils.isRecoveryNeeded(status) && new TaskLabelReader(taskInfo).isInitialLaunch()) {
+                if (lastStatus.isPresent() &&
+                        AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
+                        TaskUtils.isRecoveryNeeded(status)) {
                     // The initial launch of this task failed. Give up and try again with a clean slate.
-                    taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.PERMANENT);
+                    LOGGER.warn(
+                            "Task {} appears to have failed its initial launch. Marking it for permanent recovery. " +
+                                    "Last status: {}",
+                            taskName, TextFormat.shortDebugString(lastStatus.get()));
+                    taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
                 }
 
                 if (StateStoreUtils.isSuppressed(stateStore)
@@ -805,7 +813,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
                     // TaskInfo exists.
                     try {
-                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
+                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
                     } catch (StateStoreException e) {
                         LOGGER.warn("Unable to store network info for status update: " + status, e);
                     }
