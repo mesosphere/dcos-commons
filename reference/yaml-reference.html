@@ -593,11 +593,13 @@ root: {{ROOT_DIR}}
 
             <div class="highlighter-rouge"><pre class="highlight"><code>ports:
   http-api:
-    port: 0 # use a random port, advertised as PORT_HTTP_API in the task
+    port: 0 # use a random port
+    advertise: true # advertise the port in service endpoint lookups
     vip:
-      port: 80
+      port: 80 # create a VIP
   debug:
     port: 9090
+    env-var: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
 </code></pre>
             </div>
 
@@ -614,9 +616,12 @@ root: {{ROOT_DIR}}
               <li>
                 <p><code class="highlighter-rouge">env-key</code></p>
 
-                <p>This may be used to customize the environment variable used to advertise this port within the task.</p>
+                <p>This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">advertise</code></p>
 
-                <p>By default, environment variables for ports are automatically populated as <code class="highlighter-rouge">PORT_&lt;NAME&gt;</code> in the launched tasks, where any punctuation in <code class="highlighter-rouge">NAME</code> is converted to underscores. For example, a port named <code class="highlighter-rouge">http-api</code> would be advertised as <code class="highlighter-rouge">PORT_HTTP_API</code> by default in the task environment.</p>
+                <p>This may be manually set to <code class="highlighter-rouge">true</code> to enable advertising this port in the service’s <code class="highlighter-rouge">endpoints</code> listing. Default is <code class="highlighter-rouge">false</code>.</p>
               </li>
               <li>
                 <p><code class="highlighter-rouge">vip</code></p>
@@ -632,7 +637,7 @@ root: {{ROOT_DIR}}
                   <li>
                     <p><code class="highlighter-rouge">prefix</code></p>
 
-                    <p>The name to put at the start of the VIP. For example, <code class="highlighter-rouge">http</code> will result in a VIP hostname of <code class="highlighter-rouge">http.&lt;servicename&gt;.l4lb.thisdcos.directory</code>. As this implies, VIP names are on a per-service bases, not per-podtype.</p>
+                    <p>The name to put at the start of the VIP. For example, <code class="highlighter-rouge">http</code> will result in a VIP hostname of <code class="highlighter-rouge">http.&lt;servicename&gt;.l4lb.thisdcos.directory</code>. By default, the parent port’s name is used.</p>
                   </li>
                 </ul>
               </li>

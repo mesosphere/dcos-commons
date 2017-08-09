@@ -185,33 +185,32 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getPodInstance--">getPodInstance</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i7" class="rowColor">
-<td class="colFirst"><code>Protos.TaskInfo.Builder</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilder-java.lang.String-">getTaskBuilder</a></span>(java.lang.String&nbsp;taskSpecName)</code>&nbsp;</td>
-</tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo.Builder&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilders--">getTaskBuilders</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskResourceBuilders--">getTaskResourceBuilders</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i10" class="altColor">
-<td class="colFirst"><code>java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getType--">getType</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i11" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#isAssignedOverlayPort-long-">isAssignedOverlayPort</a></span>(long&nbsp;candidatePort)</code>&nbsp;</td>
-</tr>
-<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;java.lang.Long&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#lookupPriorTaskPortValue-java.lang.String-java.lang.String-java.lang.String-">lookupPriorTaskPortValue</a></span>(java.lang.String&nbsp;taskSpecName,
-                        java.lang.String&nbsp;portName,
-                        java.lang.String&nbsp;portEnvName)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getPriorPortForTask-java.lang.String-com.mesosphere.sdk.specification.PortSpec-">getPriorPortForTask</a></span>(java.lang.String&nbsp;taskSpecName,
+                   <a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec)</code>
 <div class="block">This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
  it on task relaunch.</div>
 </td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>Protos.TaskInfo.Builder</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilder-java.lang.String-">getTaskBuilder</a></span>(java.lang.String&nbsp;taskSpecName)</code>&nbsp;</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo.Builder&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilders--">getTaskBuilders</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>java.util.Collection&lt;Protos.Resource.Builder&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskResourceBuilders--">getTaskResourceBuilders</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i11" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getType--">getType</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i12" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#isAssignedOverlayPort-long-">isAssignedOverlayPort</a></span>(long&nbsp;candidatePort)</code>&nbsp;</td>
 </tr>
 <tr id="i13" class="rowColor">
 <td class="colFirst"><code>void</code></td>
@@ -311,15 +310,14 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;setExecutorBuilder(Protos.ExecutorInfo.Builder&nbsp;executorBuilder)</pre>
 </li>
 </ul>
-<a name="lookupPriorTaskPortValue-java.lang.String-java.lang.String-java.lang.String-">
+<a name="getPriorPortForTask-java.lang.String-com.mesosphere.sdk.specification.PortSpec-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>lookupPriorTaskPortValue</h4>
-<pre>public&nbsp;java.util.Optional&lt;java.lang.Long&gt;&nbsp;lookupPriorTaskPortValue(java.lang.String&nbsp;taskSpecName,
-                                                                   java.lang.String&nbsp;portName,
-                                                                   java.lang.String&nbsp;portEnvName)</pre>
+<h4>getPriorPortForTask</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.Long&gt;&nbsp;getPriorPortForTask(java.lang.String&nbsp;taskSpecName,
+                                                              <a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec)</pre>
 <div class="block">This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
  it on task relaunch.</div>
 </li>

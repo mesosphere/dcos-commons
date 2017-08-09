@@ -73,7 +73,7 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#fields.inherited.from.class.com.mesosphere.sdk.offer.evaluate.PortEvaluationStage">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
@@ -127,21 +127,6 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<ul class="blockList">
-<li class="blockList"><a name="fields.inherited.from.class.com.mesosphere.sdk.offer.evaluate.PortEvaluationStage">
-<!--   -->
-</a>
-<h3>Fields inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#portSpec">portSpec</a></code></li>
-</ul>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -154,10 +139,9 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.lang.String-java.util.Optional-boolean-">NamedVIPEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.lang.String-java.util.Optional-">NamedVIPEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec,
                        java.lang.String&nbsp;taskName,
-                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
-                       boolean&nbsp;useDefaultExecutor)</code>&nbsp;</td>
+                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -177,7 +161,9 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-">setProtos</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
-         Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+         Protos.Resource&nbsp;resource)</code>
+<div class="block">Overridden in VIP evaluation.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -185,7 +171,7 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getPort--">getPort</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getPortEnvironmentVariable-com.mesosphere.sdk.specification.PortSpec-">getPortEnvironmentVariable</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getResourcePort-Protos.Resource-">getResourcePort</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskName--">getTaskName</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskName--">getTaskName</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -208,7 +194,7 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.lang.String-java.util.Optional-boolean-">
+<a name="NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.lang.String-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -216,8 +202,7 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <h4>NamedVIPEvaluationStage</h4>
 <pre>public&nbsp;NamedVIPEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec,
                                java.lang.String&nbsp;taskName,
-                               java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
-                               boolean&nbsp;useDefaultExecutor)</pre>
+                               java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</pre>
 </li>
 </ul>
 </li>
@@ -236,6 +221,8 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <h4>setProtos</h4>
 <pre>protected&nbsp;void&nbsp;setProtos(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
                          Protos.Resource&nbsp;resource)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-">PortEvaluationStage</a></code></span></div>
+<div class="block">Overridden in VIP evaluation.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-">setProtos</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></code></dd>
@@ -295,7 +282,7 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#fields.inherited.from.class.com.mesosphere.sdk.offer.evaluate.PortEvaluationStage">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>

@@ -333,13 +333,19 @@
   <li>
     <p>The name of a task can be anything but since Kafka has brokers, change the type of the task in the Kafka pod from <code class="highlighter-rouge">node</code> to <code class="highlighter-rouge">broker</code>. Also, notice that <code class="highlighter-rouge">count</code> is specified as a property of the <code class="highlighter-rouge">kafka</code> pod. This indicates there will be <code class="highlighter-rouge">count</code> kafka pods, each of which will run a <code class="highlighter-rouge">broker</code>.</p>
   </li>
-  <li>Next, add the following property to the <code class="highlighter-rouge">broker</code> task in order to open up the necessary port.
-    <div class="highlighter-rouge"><pre class="highlight"><code>  ports:
- broker-port:
-   port: 9092
-</code></pre>
-    </div>
+  <li>
+    <p>Next, add the following property to the <code class="highlighter-rouge">broker</code> task in order to open up the necessary port, and mark it as <code class="highlighter-rouge">advertise</code>d so that it appears in service endpoint information.</p>
   </li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>ports:
+  broker-port:
+    port: 9092
+    advertise: true
+</code></pre>
+</div>
+
+<ol>
   <li>Now, let’s modify the command that will start each <code class="highlighter-rouge">broker</code>. This is also a property of the <code class="highlighter-rouge">broker</code> task:</li>
 </ol>
 
@@ -361,9 +367,9 @@
 </ol>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>configs:
-   server-properties:
-      	template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-       	dest: "kafka_2.11-0.10.0.0/config/server.properties"
+  server-properties:
+    template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+    dest: "kafka_2.11-0.10.0.0/config/server.properties"
 </code></pre>
 </div>
 
@@ -390,6 +396,7 @@ memory: {{NODE_MEM}}
 ports:
   broker-port:
     port: 9092
+    advertise: true
 volume:
   path: “kafka-container-path”
   type: {{NODE_DISK_TYPE}}

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":9,"i9":9,"i10":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":9,"i8":9,"i9":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -158,12 +158,11 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#DefaultResourceSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">DefaultResourceSpec</a></span>(java.lang.String&nbsp;name,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#DefaultResourceSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-">DefaultResourceSpec</a></span>(java.lang.String&nbsp;name,
                    Protos.Value&nbsp;value,
                    java.lang.String&nbsp;role,
                    java.lang.String&nbsp;preReservedRole,
-                   java.lang.String&nbsp;principal,
-                   java.lang.String&nbsp;envKey)</code>&nbsp;</td>
+                   java.lang.String&nbsp;principal)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -185,42 +184,38 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getEnvKey--">getEnvKey</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getName--">getName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPreReservedRole--">getPreReservedRole</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getPrincipal--">getPrincipal</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getRole--">getRole</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>Protos.Value</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#getValue--">getValue</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#newBuilder-com.mesosphere.sdk.specification.ResourceSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -246,7 +241,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultResourceSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<a name="DefaultResourceSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -256,8 +251,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
                            Protos.Value&nbsp;value,
                            java.lang.String&nbsp;role,
                            java.lang.String&nbsp;preReservedRole,
-                           java.lang.String&nbsp;principal,
-                           java.lang.String&nbsp;envKey)</pre>
+                           java.lang.String&nbsp;principal)</pre>
 </li>
 </ul>
 </li>
@@ -374,19 +368,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>equals</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
-</dl>
-</li>
-</ul>
-<a name="getEnvKey--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getEnvKey</h4>
-<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getEnvKey()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getEnvKey--">getEnvKey</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
 </dl>
 </li>
 </ul>

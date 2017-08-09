@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":10,"i2":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -129,25 +129,6 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#portSpec">portSpec</a></span></code>&nbsp;</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -160,10 +141,9 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#PortEvaluationStage-com.mesosphere.sdk.specification.PortSpec-java.lang.String-java.util.Optional-boolean-">PortEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#PortEvaluationStage-com.mesosphere.sdk.specification.PortSpec-java.lang.String-java.util.Optional-">PortEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec,
                    java.lang.String&nbsp;taskName,
-                   java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
-                   boolean&nbsp;useDefaultExecutor)</code>&nbsp;</td>
+                   java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -175,7 +155,7 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -189,27 +169,15 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>protected long</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getPort--">getPort</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getPortEnvironmentVariable-com.mesosphere.sdk.specification.PortSpec-">getPortEnvironmentVariable</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec)</code>
-<div class="block">Returns the appropriate environment variable to be used for the provided <a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><code>PortSpec</code></a>.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>protected long</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getResourcePort-Protos.Resource-">getResourcePort</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
-<tr id="i4" class="altColor">
 <td class="colFirst"><code>protected java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskName--">getTaskName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-">setProtos</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
-         Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+         Protos.Resource&nbsp;resource)</code>
+<div class="block">Overridden in VIP evaluation.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -227,30 +195,13 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="portSpec">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>portSpec</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a> portSpec</pre>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PortEvaluationStage-com.mesosphere.sdk.specification.PortSpec-java.lang.String-java.util.Optional-boolean-">
+<a name="PortEvaluationStage-com.mesosphere.sdk.specification.PortSpec-java.lang.String-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -258,8 +209,7 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <h4>PortEvaluationStage</h4>
 <pre>public&nbsp;PortEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec,
                            java.lang.String&nbsp;taskName,
-                           java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
-                           boolean&nbsp;useDefaultExecutor)</pre>
+                           java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId)</pre>
 </li>
 </ul>
 </li>
@@ -270,24 +220,6 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getPort--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getPort</h4>
-<pre>protected&nbsp;long&nbsp;getPort()</pre>
-</li>
-</ul>
-<a name="getResourcePort-Protos.Resource-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getResourcePort</h4>
-<pre>protected&nbsp;long&nbsp;getResourcePort(Protos.Resource&nbsp;resource)</pre>
-</li>
-</ul>
 <a name="evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">
 <!--   -->
 </a>
@@ -318,16 +250,7 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <h4>setProtos</h4>
 <pre>protected&nbsp;void&nbsp;setProtos(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
                          Protos.Resource&nbsp;resource)</pre>
-</li>
-</ul>
-<a name="getPortEnvironmentVariable-com.mesosphere.sdk.specification.PortSpec-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getPortEnvironmentVariable</h4>
-<pre>static&nbsp;java.lang.String&nbsp;getPortEnvironmentVariable(<a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a>&nbsp;portSpec)</pre>
-<div class="block">Returns the appropriate environment variable to be used for the provided <a href="../../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><code>PortSpec</code></a>.</div>
+<div class="block">Overridden in VIP evaluation.</div>
 </li>
 </ul>
 <a name="getTaskName--">
@@ -392,13 +315,13 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
