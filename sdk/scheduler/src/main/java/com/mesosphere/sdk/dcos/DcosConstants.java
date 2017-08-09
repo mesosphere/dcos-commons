@@ -24,7 +24,7 @@ public class DcosConstants {
     public static final String SECRETS_BASE_URI = MESOS_MASTER_URI + "/secrets/v1/";
     public static final String CA_BASE_URI = MESOS_MASTER_URI + "/ca/api/v2/";
     public static final String IAM_AUTH_URL = MESOS_MASTER_URI + "/acs/api/v1/auth/login";
-    public static final boolean DEFAULT_GPU_POLICY = true;
+    public static final boolean DEFAULT_GPU_POLICY = false;
     public static final String DEFAULT_IP_PROTOCOL = "tcp";
 
     // These ports should be available to a container on the overlay regardless of it's permissions, it's unlikely

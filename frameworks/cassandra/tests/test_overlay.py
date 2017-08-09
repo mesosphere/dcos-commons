@@ -23,17 +23,12 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
-    successfully_installed = False
     try:
         sdk_install.uninstall(PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
-
         sdk_install.install(
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-
-        successfully_installed = True
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in TEST_JOBS:
@@ -41,11 +36,10 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        if successfully_installed:
-            sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
-            for job in TEST_JOBS:
-                sdk_jobs.remove_job(job)
+        for job in TEST_JOBS:
+            sdk_jobs.remove_job(job)
 
 
 @pytest.mark.sanity

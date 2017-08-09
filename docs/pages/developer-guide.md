@@ -921,6 +921,7 @@ pods:
         ports:
             http:
                 port: 8080
+                advertise: true
                 vip:
                     prefix: server-lb
                     port: 80

@@ -86,8 +86,7 @@ public class ResourceBuilder {
                 ValueUtils.getValue(resource),
                 ResourceUtils.getRole(resource),
                 resource.getRole(),
-                ResourceUtils.getPrincipal(resource).get(),
-                ""); // env-key isn't used
+                ResourceUtils.getPrincipal(resource).get());
     }
 
     private static VolumeSpec getVolumeSpec(Resource resource) {
@@ -98,8 +97,7 @@ public class ResourceBuilder {
                 resource.getDisk().getVolume().getContainerPath(),
                 ResourceUtils.getRole(resource),
                 resource.getRole(),
-                resource.getDisk().getPersistence().getPrincipal(),
-                ""); // env-key isn't used
+                resource.getDisk().getPersistence().getPrincipal());
     }
 
     private ResourceBuilder(String resourceName, Value value, String preReservedRole) {
