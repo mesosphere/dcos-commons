@@ -112,7 +112,10 @@ case $key in
     ;;
     -s)
     security="strict"
-    [[ $CLUSTER_URL == https* ]] || echo "CLUSTER_URL must be https in strict mode" && exit 1
+    if [[ $CLUSTER_URL != https* ]]; then
+        echo "CLUSTER_URL must be https in strict mode"
+        exit 1
+    fi
     ;;
     -p)
     ssh_path="$2"
@@ -126,6 +129,7 @@ case $key in
 esac
 shift # past argument or value
 done
+
 
 if [ ! -f "$ssh_path" ]; then
     echo "The specified CCM key ($ssh_path) does not exist or is not a file"
