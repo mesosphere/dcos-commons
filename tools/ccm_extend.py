@@ -9,6 +9,7 @@ import time
 import logging
 
 log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 
 base_url = 'https://ccm.mesosphere.com'
