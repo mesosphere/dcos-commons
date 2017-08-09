@@ -105,6 +105,7 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         cmd: |
+          sleep 40 &&
           curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output &&
           curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
           curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
