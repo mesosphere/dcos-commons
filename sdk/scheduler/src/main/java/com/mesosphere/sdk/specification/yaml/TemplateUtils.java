@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification.yaml;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -74,9 +75,25 @@ public class TemplateUtils {
                 }
             });
         }
+
+        Map<String, String> invertEnvironment = new HashMap<>();
+        environment.entrySet().stream()
+                .filter(entry -> StringUtils.equalsIgnoreCase(entry.getValue(), "false"))
+                .forEach(entry -> invertEnvironment.put(entry.getKey(), ""));
+
+        String firstPass = templateContent;
+        if (!invertEnvironment.isEmpty()) {
+            mustacheFactory
+                    .compile(new StringReader(templateContent), templateName)
+                    .execute(writer, invertEnvironment);
+            firstPass = writer.toString();
+        }
+
+        writer = new StringWriter();
         mustacheFactory
-                .compile(new StringReader(templateContent), templateName)
+                .compile(new StringReader(firstPass), templateName)
                 .execute(writer, environment);
+
         return writer.toString();
     }
 
