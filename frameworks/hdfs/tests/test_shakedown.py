@@ -29,22 +29,23 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
 
         if shakedown.dcos_version_less_than("1.9"):
-            # HDFS ugprade before 1.8 is not supported.
+            # HDFS upgrade in 1.8 is not supported.
             sdk_install.install(
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}},
+                timeout_seconds=30*60)
         else:
             sdk_upgrade.test_upgrade(
                 "beta-{}".format(PACKAGE_NAME),
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}},
+                timeout_seconds=30*60)
 
         yield  # let the test session execute
     finally:

@@ -33,12 +33,14 @@ pods:
           master-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: master
               port: 9200
           master-transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: master
               port: 9300
@@ -99,12 +101,14 @@ pods:
           data-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: data
               port: 9200
           data-transport:
             port: 0
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: data
               port: 9300
@@ -165,12 +169,14 @@ pods:
           ingest-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: ingest
               port: 9200
           ingest-transport:
             port: 0
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: ingest
               port: 9300
@@ -231,12 +237,14 @@ pods:
           coordinator-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: coordinator
               port: 9200
           coordinator-transport:
             port: 0
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: coordinator
               port: 9300

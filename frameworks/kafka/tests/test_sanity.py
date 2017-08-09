@@ -28,7 +28,6 @@ ZK_SERVICE_PATH = sdk_utils.get_zk_path(PACKAGE_NAME)
 def configure_package(configure_security):
     try:
         install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
 
         if shakedown.dcos_version_less_than("1.9"):
             # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install

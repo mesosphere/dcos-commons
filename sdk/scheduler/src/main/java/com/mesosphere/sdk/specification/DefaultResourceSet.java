@@ -182,14 +182,8 @@ public class DefaultResourceSet implements ResourceSet {
                         "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
                         volumeType, containerPath, Arrays.asList(VolumeSpec.Type.values())));
             }
-            DefaultVolumeSpec volume = new DefaultVolumeSpec(
-                    size,
-                    volumeTypeEnum,
-                    containerPath,
-                    role,
-                    preReservedRole,
-                    principal,
-                    "DISK_SIZE");
+            DefaultVolumeSpec volume =
+                    new DefaultVolumeSpec(size, volumeTypeEnum, containerPath, role, preReservedRole, principal);
             if (volumes.stream()
                     .anyMatch(volumeSpecification ->
                             Objects.equals(volumeSpecification.getContainerPath(), containerPath))) {

@@ -920,8 +920,8 @@ pods:
         memory: 256
         ports:
             http:
-                protocol: tcp
                 port: 8080
+                advertise: true
                 vip:
                     prefix: server-lb
                     port: 80

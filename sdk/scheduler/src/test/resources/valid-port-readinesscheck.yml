@@ -9,6 +9,7 @@ pods:
         ports:
           test-port:
             port: 10000
+            env-key: PORT_TEST_PORT
         readiness-check:
           cmd: "/bin/true"
           interval: 5

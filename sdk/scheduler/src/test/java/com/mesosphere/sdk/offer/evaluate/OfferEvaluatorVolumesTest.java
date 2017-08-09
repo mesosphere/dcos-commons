@@ -400,8 +400,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
-                                TestConstants.PRINCIPAL,
-                                "env-key")),
+                                TestConstants.PRINCIPAL)),
                 TestConstants.POD_TYPE,
                 0);
 
@@ -460,8 +459,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
-                                TestConstants.PRINCIPAL,
-                                "env-key")),
+                                TestConstants.PRINCIPAL)),
                 TestConstants.POD_TYPE,
                 0);
 

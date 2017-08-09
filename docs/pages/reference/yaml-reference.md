@@ -235,11 +235,13 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       ```
       ports:
         http-api:
-          port: 0 # use a random port, advertised as PORT_HTTP_API in the task
+          port: 0 # use a random port
+          advertise: true # advertise the port in service endpoint lookups
           vip:
-            port: 80
+            port: 80 # create a VIP
         debug:
           port: 9090
+          env-var: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
       ```
 
       All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on `eth0`, but your service is still connected fine over `eth1`. Or vice versa.
@@ -252,9 +254,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `env-key`
 
-        This may be used to customize the environment variable used to advertise this port within the task.
+        This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.
 
-        By default, environment variables for ports are automatically populated as `PORT_<NAME>` in the launched tasks, where any punctuation in `NAME` is converted to underscores. For example, a port named `http-api` would be advertised as `PORT_HTTP_API` by default in the task environment.
+      * `advertise`
+
+        This may be manually set to `true` to enable advertising this port in the service's `endpoints` listing. Default is `false`.
 
       * `vip`
 
@@ -266,7 +270,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
         * `prefix`
 
-          The name to put at the start of the VIP. For example, `http` will result in a VIP hostname of `http.<servicename>.l4lb.thisdcos.directory`. As this implies, VIP names are on a per-service bases, not per-podtype.
+          The name to put at the start of the VIP. For example, `http` will result in a VIP hostname of `http.<servicename>.l4lb.thisdcos.directory`. By default, the parent port's name is used.
 
     * `health-check`
 
