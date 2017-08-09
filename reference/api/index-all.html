@@ -1719,6 +1719,8 @@
 <dd>
 <div class="block">Retrieves the current schema version.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#fetchBooleanProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchBooleanProperty(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#fetchFrameworkId--">fetchFrameworkId()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
@@ -1755,8 +1757,6 @@
 <dd>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksFromPod-com.mesosphere.sdk.state.StateStore-java.lang.String-">fetchTasksFromPod(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">fetchTasksNeedingRecovery(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
@@ -2888,8 +2888,6 @@
 <dd>
 <div class="block">Returns the reserved resource, if present.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getReservedResources-java.util.Collection-">getReservedResources(Collection&lt;Protos.Resource&gt;)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html#getReservedResourcesToBeUnreserved-Offer-">getReservedResourcesToBeUnreserved(Offer)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DefaultResourceCleaner.html" title="class in com.mesosphere.sdk.offer">DefaultResourceCleaner</a></dt>
 <dd>
 <div class="block">Examines the <code>Offer</code> to determine which <code>Resource</code>s should be unreserved.</div>
@@ -2930,8 +2928,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html#getResources--">getResources()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ResourceSet.html#getResources--">getResources()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getResources-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getResources(StateStore, PodInstance, TaskSpec)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#getResourceSet--">getResourceSet()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
