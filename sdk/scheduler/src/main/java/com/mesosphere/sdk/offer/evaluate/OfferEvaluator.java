@@ -278,7 +278,10 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = Optional.empty();
+        if (!TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()) {
+            tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+        }
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
@@ -400,7 +403,10 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo) {
 
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = Optional.empty();
+        if (!TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()) {
+            tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+        }
 
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))

@@ -91,6 +91,19 @@ public class TaskUtils {
     }
 
     /**
+     * Returns all the {@link TaskSpec} that have TLS configuration.
+     *
+     * @param serviceSpec A ServiceSpec defining service.
+     * @return A list of the task specs.
+     */
+    public static List<TaskSpec> getTasksWithTLS(PodInstanceRequirement podInstanceRequirement) {
+        return podInstanceRequirement.getPodInstance().getPod().getTasks()
+                .stream()
+                .filter(taskSpec -> !taskSpec.getTransportEncryption().isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Returns the TaskInfos associated with a PodInstance if its ever been launched.  The list will be empty if the
      * PodInstance has never been launched.
      *
