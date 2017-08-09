@@ -4,6 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.*;
@@ -72,17 +73,14 @@ public class DefaultService implements Service {
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
-        Collection<PodSpec> pods = serviceSpec.getPods();
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        boolean usesGpus = serviceSpec.getPods().stream()
+                .flatMap(podSpec -> podSpec.getTasks().stream())
+                .flatMap(taskSpec -> taskSpec.getResourceSet().getResources().stream())
+                .anyMatch(resourceSpec -> resourceSpec.getName().equals("gpus")
+                        && resourceSpec.getValue().getScalar().getValue() >= 1);
+        // control automatic opt-in to scarce resources (GPUs) here. If the framework specifies GPU resources >= 1
+        // then we opt-in to scarce resource, otherwise follow the default policy (which as of 8/3/17 was to opt-out)
+        return usesGpus || DcosConstants.DEFAULT_GPU_POLICY;
     }
 
     private void initService() {
