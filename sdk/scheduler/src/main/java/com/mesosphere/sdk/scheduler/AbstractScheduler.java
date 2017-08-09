@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -38,6 +39,8 @@ public abstract class AbstractScheduler implements Scheduler {
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
+
+    private Object suppressReviveLock = new Object();
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -213,16 +216,44 @@ public abstract class AbstractScheduler implements Scheduler {
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
+    protected void suppressOrRevive(PlanCoordinator planCoordinator) {
+        synchronized (suppressReviveLock) {
+            if (planCoordinator.hasOperations()) {
+                if (StateStoreUtils.isSuppressed(stateStore)) {
+                    revive();
+                } else {
+                    LOGGER.info("Already revived.");
+                }
+            } else {
+                if (StateStoreUtils.isSuppressed(stateStore)) {
+                    LOGGER.info("Already suppressed.");
+                } else {
+                    suppress();
+                }
+            }
+        }
+    }
+
     void suppress() {
-        LOGGER.info("Suppressing offers.");
-        driver.suppressOffers();
-        StateStoreUtils.setSuppressed(stateStore, true);
+        setOfferMode(true);
     }
 
     void revive() {
-        LOGGER.info("Reviving offers.");
-        driver.reviveOffers();
-        StateStoreUtils.setSuppressed(stateStore, false);
+        setOfferMode(false);
+    }
+
+    private void setOfferMode(boolean suppressed) {
+        synchronized (suppressReviveLock) {
+            if (suppressed) {
+                LOGGER.info("Suppressing offers.");
+                driver.suppressOffers();
+                StateStoreUtils.setSuppressed(stateStore, true);
+            } else {
+                LOGGER.info("Reviving offers.");
+                driver.reviveOffers();
+                StateStoreUtils.setSuppressed(stateStore, false);
+            }
+        }
     }
 
     protected void postRegister() {

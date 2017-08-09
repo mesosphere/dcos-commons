@@ -1,9 +1,11 @@
 '''Utilities relating to interaction with Marathon'''
+import logging
 
 import shakedown
 
 import sdk_cmd
-import sdk_utils
+
+log = logging.getLogger(__name__)
 
 
 def get_config(app_name):
@@ -26,14 +28,14 @@ def get_config(app_name):
 
 def update_app(app_name, config, timeout=600):
     if "env" in config:
-        sdk_utils.out("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
+        log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):
-            sdk_utils.out("  {}={}".format(k, config["env"][k]))
+            log.info("  {}={}".format(k, config["env"][k]))
     response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), log_args=False, json=config)
 
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
 
-    sdk_utils.out("Waiting for Marathon deployment of {} to complete...".format(app_name))
+    log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
     shakedown.deployment_wait(app_id=app_name, timeout=timeout)
 
 

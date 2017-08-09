@@ -12,7 +12,7 @@ from tests.config import (
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)

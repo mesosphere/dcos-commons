@@ -1,12 +1,12 @@
 import pytest
 import sdk_repository
+import sdk_security
 
 
 @pytest.fixture(scope='session')
 def configure_universe():
-    stub_urls = {}
-    try:
-        stub_urls = sdk_repository.add_universe_repos()
-        yield # let the test session execute
-    finally:
-        sdk_repository.remove_universe_repos(stub_urls)
+    yield from sdk_repository.universe_session()
+
+@pytest.fixture(scope='session')
+def configure_security(configure_universe):
+    yield from sdk_security.security_session('hello-world')

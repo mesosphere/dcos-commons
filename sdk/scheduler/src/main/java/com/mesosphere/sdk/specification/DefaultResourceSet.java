@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -120,19 +119,11 @@ public class DefaultResourceSet implements ResourceSet {
         public String preReservedRole;
 
         private Builder(String role, String preReservedRole, String principal) {
-            this.role = getRole(preReservedRole, role);
+            this.role = role;
             this.preReservedRole = preReservedRole;
             this.principal = principal;
             resources = new LinkedList<>();
             volumes = new LinkedList<>();
-        }
-
-        private String getRole(String preReservedRole, String role) {
-            if (preReservedRole == null || preReservedRole.equals(Constants.ANY_ROLE)) {
-                return role;
-            } else {
-                return preReservedRole + "/" + role;
-            }
         }
 
         private Builder addScalarResource(Double r, String resourceId) {
