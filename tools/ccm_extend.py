@@ -8,12 +8,12 @@ import time
 
 import logging
 
-log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger('ccm_extend')
 log.setLevel(logging.INFO)
 
 
 base_url = 'https://ccm.mesosphere.com'
-active_cluster_url = '{}/{}'.format(base_url, 'api/cluster/active/all')
 
 # Load the cluster_info.json to get the cluster name
 with open('cluster_info.json', 'r') as cluster_file:
@@ -35,6 +35,7 @@ cluster_id = None
 while give_up_time > time.time():
     log.info("Looking up cluster id.")
     # Get all active clusters
+    active_cluster_url = '{}/{}'.format(base_url, 'api/cluster/active/all')
     r = requests.get(active_cluster_url, headers=headers)
 
     try:
@@ -51,7 +52,7 @@ while give_up_time > time.time():
         log.error('%s', e)
         continue
 
-    log.info('Found clusters %s. Looking for %s', all_clusters, cluster_name)
+    log.info('Found %s clusters. Looking for %s', len(all_clusters), cluster_name)
     for cluster in all_clusters:
         if cluster['name'] == cluster_name:
             cluster_id = cluster['id']
@@ -71,11 +72,12 @@ if cluster_id is None:
 # This API call increases the cluster length by an additional 4 hours.
 # See: https://ccm.mesosphere.com/api-docs/#!/cluster/Cluster_Detail_PUT
 try:
-    r = requests.put(base_url+'/api/cluster/{}/'.format(cluster_id), json={"time": "240"}, headers=headers)
+    this_cluster_url = '{}/api/cluster/{}/'.format(base_url, cluster_id)
+    r = requests.put(this_cluster_url, json={"time": "240"}, headers=headers)
     r.raise_for_status()
 except requests.exceptions.HTTPError as e:
-    print(e)
-    print(r)
     log.error(e)
-    sys.exit(255)
+    log.error(r)
+    raise e
+
 log.info(r.text)
