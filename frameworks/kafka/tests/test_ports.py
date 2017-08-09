@@ -17,7 +17,7 @@ DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
         utils.gc_frameworks()

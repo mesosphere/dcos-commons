@@ -44,11 +44,11 @@ function usage()
     for framework in $FRAMEWORK_LIST; do
         echo "       $framework"
     done
-    exit 1
 }
 
 if [ "$#" -eq "0" -o x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     usage
+    exit 1
 fi
 
 
@@ -112,6 +112,7 @@ case $key in
     ;;
     -s)
     security="strict"
+    [[ $CLUSTER_URL == https* ]] || echo "CLUSTER_URL must be https in strict mode" && exit 1
     ;;
     -p)
     ssh_path="$2"
@@ -119,6 +120,7 @@ case $key in
     ;;
     *)
     usage
+    exit 1
             # unknown option
     ;;
 esac
@@ -132,6 +134,7 @@ fi
 
 if [ -z "$1" ]; then
     usage
+    exit 1
 fi
 
 framework=$1
