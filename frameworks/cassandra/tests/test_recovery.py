@@ -1,4 +1,5 @@
 import json
+import logging
 import pytest
 import time
 
@@ -18,9 +19,11 @@ from tests.config import (
     DEFAULT_TASK_COUNT
 )
 
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_utils.gc_frameworks()
@@ -49,7 +52,7 @@ def test_node_replace_replaces_seed_node():
 def test_node_replace_replaces_node():
     pod_to_replace = 'node-2'
     pod_host = get_pod_host(pod_to_replace)
-    sdk_utils.out('avoid host for pod {}: {}'.format(pod_to_replace, pod_host))
+    log.info('avoid host for pod {}: {}'.format(pod_to_replace, pod_host))
 
     # Update the placement constraints so the new node doesn't end up on the same host
     config = sdk_marathon.get_config(PACKAGE_NAME)
@@ -69,7 +72,7 @@ def test_node_replace_replaces_node():
 @pytest.mark.shutdown_node
 def test_shutdown_host_test():
     scheduler_ip = shakedown.get_service_ips('marathon', PACKAGE_NAME).pop()
-    sdk_utils.out('marathon ip = {}'.format(scheduler_ip))
+    log.info('marathon ip = {}'.format(scheduler_ip))
 
     node_ip = None
     pod_name = None
@@ -83,17 +86,17 @@ def test_shutdown_host_test():
     assert node_ip is not None, 'Could not find a node to shut down'
 
     old_agent = get_pod_agent(pod_name)
-    sdk_utils.out('pod name = {}, node_ip = {}, agent = {}'.format(pod_name, node_ip, old_agent))
+    log.info('pod name = {}, node_ip = {}, agent = {}'.format(pod_name, node_ip, old_agent))
 
     task_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, pod_name)
 
     # instead of partitioning or reconnecting, we shut down the host permanently
     status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown -h +1')
-    sdk_utils.out('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
+    log.info('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
 
     assert status is True
 
-    sdk_utils.out('sleeping 100s after shutting down agent')
+    log.info('sleeping 100s after shutting down agent')
     time.sleep(100)
 
     cmd.run_cli('cassandra pod replace {}'.format(pod_name))
