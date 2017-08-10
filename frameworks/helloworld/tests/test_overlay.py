@@ -57,8 +57,8 @@ def test_overlay_network():
 
     # test that the deployment plan is correct
     assert(len(deployment_plan['phases']) == 5)
-    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-vip-deploy')
-    assert(deployment_plan['phases'][1]['name'] == 'hello-overlay-deploy')
+    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-deploy')
+    assert(deployment_plan['phases'][1]['name'] == 'hello-overlay-vip-deploy')
     assert(deployment_plan['phases'][2]['name'] == 'hello-host-vip-deploy')
     assert(deployment_plan['phases'][3]['name'] == 'hello-host-deploy')
     assert(deployment_plan["phases"][4]["name"] == "getter-deploy")
@@ -66,7 +66,7 @@ def test_overlay_network():
     assert(len(deployment_plan["phases"][1]["steps"]) == 1)
     assert(len(deployment_plan["phases"][2]["steps"]) == 1)
     assert(len(deployment_plan["phases"][3]["steps"]) == 1)
-    assert(len(deployment_plan["phases"][4]["steps"]) == 4)
+    assert(len(deployment_plan["phases"][4]["steps"]) == 1)
 
     # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
     # we wait for them to redeploy, but if they don't fail we still want to proceed.
@@ -137,16 +137,16 @@ def test_cni_labels():
     r = sdk_api.get(PACKAGE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
     assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
     try:
-        cni_labels = r[0]["info"]["container"]["networkInfos"][0]["labels"]["labels"]
+        cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
     except KeyError:
         assert False, "CNI labels not present"
     assert len(cni_labels) == 2, "Got {} labels, should be 2".format(len(cni_labels))
-    for i in [1, 2]:
+    for i in range(2):
         try:
             obs_key = cni_labels[i]["key"]
             obs_val = cni_labels[i]["value"]
-            expected_key = "key{}".format(i)
-            expected_value = "val{}".format(i)
+            expected_key = "key{}".format(str(i+1))
+            expected_value = "val{}".format(str(i+1))
             assert obs_key == expected_key, \
                 "key {i} incorrect, should be {exp} got {obs}".format(i=i, exp=expected_key, obs=obs_key)
             assert obs_val == expected_value, \
