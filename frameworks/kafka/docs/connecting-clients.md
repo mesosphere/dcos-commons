@@ -69,6 +69,8 @@ The response, for both the CLI and the REST API is as below.
 
 This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.9/networking/).
 
+When the [TLS][15] is enabled you can request details for `broker-tls` port. To verify TLS connection from a client the [DC/OS trust bundle with CA certificate](https://docs.mesosphere.com/1.9/networking/tls-ssl/get-cert/) is required.
+
 # Configuring the Kafka Client Library
 
 ## Adding the Kafka Client Library to Your Application
@@ -176,3 +178,5 @@ The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-co
 
  [13]: https://docs.mesosphere.com/1.9/security/users-groups/
  [14]: https://docs.mesosphere.com/1.9/security/iam-api/
+ [15]: https://docs.mesosphere.com/service-docs/kafka/configure/#tls
+
