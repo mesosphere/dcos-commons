@@ -28,6 +28,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
 
 
 def configure_cli(dcosurl: str, token: str) -> None:
+    # TODO(kwood): INFINITY-2182 - Replace shakedown.run_dcos_command with subprocess invocation
     out, err, rc = shakedown.run_dcos_command('config set core.dcos_url {}'.format(dcosurl))
     assert not rc, 'Failed to set core.dcos_url: {}'.format(err)
     out, err, rc = shakedown.run_dcos_command('config set core.ssl_verify false')
@@ -36,18 +37,14 @@ def configure_cli(dcosurl: str, token: str) -> None:
     assert not rc, 'Failed to set core.dcos_acs_token: {}'.format(err)
 
 
-def logout(dcosurl: str):
-    pass
-
-
 def login_session() -> None:
     """Login to DC/OS.
 
     Behavior is determined by the following environment variables:
     CLUSTER_URL: full URL to the test cluster
+    DCOS_ENTERPRISE: if set to any value assume an EE instance
     DCOS_LOGIN_USERNAME: the EE user (defaults to bootstrapuser)
     DCOS_LOGIN_PASSWORD: the EE password (defaults to deleteme)
-    DCOS_ENTERPRISE: determine how to authenticate (defaults to false)
     DCOS_ACS_TOKEN: bypass auth and use the user supplied token
 
     This should generally be used as a fixture in a framework's conftest.py:
@@ -56,20 +53,17 @@ def login_session() -> None:
     def configure_login():
         yield from sdk_login.login_session()
     """
-    try:
-        cluster_url = os.environ.get('CLUSTER_URL')
-        dcos_login_username = os.environ.get('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
-        dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
-        dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', False) and True
-        dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
-        if not dcos_acs_token:
-            dcos_acs_token = login(
-                dcosurl=cluster_url,
-                username=dcos_login_username,
-                password=dcos_login_password,
-                is_enterprise=dcos_enterprise,
-            )
-        configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
-        yield
-    finally:
-        logout(dcosurl=cluster_url)
+    cluster_url = os.environ.get('CLUSTER_URL')
+    dcos_login_username = os.environ.get('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
+    dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
+    dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', False) and True
+    dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
+    if not dcos_acs_token:
+        dcos_acs_token = login(
+            dcosurl=cluster_url,
+            username=dcos_login_username,
+            password=dcos_login_password,
+            is_enterprise=dcos_enterprise,
+        )
+    configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
+    yield dcos_acs_token
