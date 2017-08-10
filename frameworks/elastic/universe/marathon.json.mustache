@@ -47,13 +47,7 @@
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
-    "VIRTUAL_NETWORK_PLUGIN_LABELS_MASTER": "{{service.virtual_network_labels}}",
-    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
-    "VIRTUAL_NETWORK_PLUGIN_LABELS_DATA": "{{service.virtual_network_labels}}",
-    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
-    "VIRTUAL_NETWORK_PLUGIN_LABELS_INGEST": "{{service.virtual_network_labels}}",
-    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
-    "VIRTUAL_NETWORK_PLUGIN_LABELS_COORDINATOR": "{{service.virtual_network_labels}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_labels}}",
     {{/service.virtual_network_enabled}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
