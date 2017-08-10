@@ -239,7 +239,8 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     Update service configuration to change discovery prefix of a task.
     Scheduler should update task and new SANs should be generated.
     """
-    task_id = sdk_tasks.get_task_ids(PACKAGE_NAME, "discovery")[0]
+    original_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, 'discovery')
+    task_id = original_tasks[0]
     assert task_id
 
     # Load end-entity certificate from PEM encoded file
@@ -263,8 +264,9 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     config = sdk_marathon.get_config(PACKAGE_NAME)
     config['env']['DISCOVERY_TASK_PREFIX'] = DISCOVERY_TASK_PREFIX + '-new'
     sdk_marathon.update_app(PACKAGE_NAME, config)
+    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'discovery', original_tasks)
 
-    new_task_id = sdk_tasks.get_task_ids(PACKAGE_NAME, "discovery")[0]
+    new_task_id = sdk_tasks.get_task_ids(PACKAGE_NAME, 'discovery')[0]
     assert task_id != new_task_id
 
     new_cert = x509.load_pem_x509_certificate(
