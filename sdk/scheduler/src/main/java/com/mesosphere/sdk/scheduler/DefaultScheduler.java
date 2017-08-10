@@ -779,7 +779,9 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
             // Store status, then pass status to PlanManager => Plan => Steps
             try {
-                stateStore.storeStatus(status);
+                String taskName = StateStoreUtils.getTaskName(stateStore, status);
+
+                stateStore.storeStatus(taskName, status);
                 planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
                 reconciler.update(status);
 
@@ -799,8 +801,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
                     // TaskInfo exists.
                     try {
-                        Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
-                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
+                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
                     } catch (StateStoreException e) {
                         LOGGER.warn("Unable to store network info for status update: " + status, e);
                     }

@@ -12,6 +12,8 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
@@ -68,11 +70,6 @@ public class StateStoreUtilsTest {
         assertThat(result, is("VALUE".getBytes(StandardCharsets.UTF_8)));
     }
 
-    @Test(expected = StateStoreException.class)
-    public void testEmptyStateStoreRaisesErrorOnTaskInfo() {
-        StateStoreUtils.getTaskInfo(stateStore, null);
-    }
-
 
     @Test
     public void testEmptyStateStoreHasNoLastCompletedUpdateType() {
@@ -122,7 +119,13 @@ public class StateStoreUtilsTest {
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
 
-        assertThat(StateStoreUtils.getTaskInfo(stateStore, taskStatus), is(taskInfo));
+        assertThat(StateStoreUtils.getTaskName(stateStore, taskStatus), is(taskInfo.getName()));
+    }
+
+
+    @Test(expected = StateStoreException.class)
+    public void testEmptyStateStoreRaisesErrorOnTaskName() {
+        StateStoreUtils.getTaskName(stateStore, null);
     }
 
 
@@ -138,7 +141,7 @@ public class StateStoreUtilsTest {
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
 
         assertThat(stateStore.fetchTasks().size(), is(2));
-        StateStoreUtils.getTaskInfo(stateStore, taskStatus);
+        StateStoreUtils.getTaskName(stateStore, taskStatus);
     }
 
     @Test(expected = StateStoreException.class)
@@ -154,7 +157,62 @@ public class StateStoreUtilsTest {
         TaskStatus taskStatus = newTaskStatus(CommonIdUtils.toTaskId("not-" + taskName), TaskState.TASK_UNKNOWN);
 
         assertThat(taskInfo.getTaskId(), is(not(taskStatus.getTaskId())));
-        StateStoreUtils.getTaskInfo(stateStore, taskStatus);
+        StateStoreUtils.getTaskName(stateStore, taskStatus);
+    }
+
+
+    @Test
+    public void testRepairTaskIdsMissingStatus() {
+        String taskName = "test-task";
+        TaskInfo taskInfo = newTaskInfo(taskName);
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        StateStoreUtils.repairTaskIDs(stateStore);
+
+        assertThat(stateStore.fetchTask(taskName).get(), is(taskInfo));
+        TaskStatus status = stateStore.fetchStatus(taskName).get();
+        assertThat(status.getState(), is(Protos.TaskState.TASK_FAILED));
+        assertThat(status.getTaskId(), is(taskInfo.getTaskId()));
+    }
+
+
+    @Test
+    public void testRepairTaskIdsMismatchedIds() {
+        String taskName = "test-task";
+        TaskInfo taskInfo = newTaskInfo(taskName);
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+        TaskID taskID = CommonIdUtils.toTaskId("not-" + taskName);
+        TaskStatus taskStatus = newTaskStatus(taskID, TaskState.TASK_UNKNOWN);
+        stateStore.storeStatus(taskName, taskStatus);
+
+        StateStoreUtils.repairTaskIDs(stateStore);
+
+        // TaskInfo was updated to match Status' id:
+        assertThat(stateStore.fetchTask(taskName).get().getTaskId(), is(taskID));
+        // TaskStatus was updated to have failed status:
+        TaskStatus status = stateStore.fetchStatus(taskName).get();
+        assertThat(status.getState(), is(Protos.TaskState.TASK_FAILED));
+        assertThat(status.getTaskId(), is(taskID));
+    }
+
+
+    @Test
+    public void testRepairTaskIdsMismatchedIdsEmptyId() {
+        String taskName = "test-task";
+        TaskInfo taskInfo = newTaskInfo(taskName);
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+        TaskID taskID = TaskID.newBuilder().setValue("").build();
+        TaskStatus taskStatus = newTaskStatus(taskID, TaskState.TASK_UNKNOWN);
+        stateStore.storeStatus(taskName, taskStatus);
+
+        StateStoreUtils.repairTaskIDs(stateStore);
+
+        // TaskInfo was updated to match Status' id:
+        assertThat(stateStore.fetchTask(taskName).get().getTaskId(), is(taskID));
+        // TaskStatus state was not updated due to empty id:
+        TaskStatus status = stateStore.fetchStatus(taskName).get();
+        assertThat(status.getState(), is(Protos.TaskState.TASK_UNKNOWN));
+        assertThat(status.getTaskId(), is(taskID));
     }
 
 
@@ -188,7 +246,7 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_RUNNING);
-        stateStore.storeStatus(taskStatus);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore), is(empty()));
     }
@@ -205,7 +263,7 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FAILED);
-        stateStore.storeStatus(taskStatus);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(ImmutableList.of(taskInfo)));
@@ -224,7 +282,7 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_RUNNING);
-        stateStore.storeStatus(taskStatus);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
 
         StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
     }
@@ -256,7 +314,7 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FAILED);
-        stateStore.storeStatus(taskStatus);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
@@ -275,7 +333,7 @@ public class StateStoreUtilsTest {
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_FINISHED);
-        stateStore.storeStatus(taskStatus);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
@@ -294,7 +352,7 @@ public class StateStoreUtilsTest {
 
 
         TaskStatus taskStatus = newTaskStatus(taskInfo, TaskState.TASK_RUNNING);
-        stateStore.storeStatus(taskStatus);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
@@ -383,9 +441,7 @@ public class StateStoreUtilsTest {
     }
 
     private static TaskInfo newTaskInfo(final String taskName) {
-        final TaskID taskID = CommonIdUtils.toTaskId(taskName);
-
-        return newTaskInfo(taskName, taskID);
+        return newTaskInfo(taskName, CommonIdUtils.toTaskId(taskName));
     }
 
     private static TaskInfo newTaskInfo(final String taskName, final TaskID taskID) {
