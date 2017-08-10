@@ -38,13 +38,17 @@ def configure_package(configure_security):
 
 # test suite constants
 EXPECTED_TASKS = [
-    'getter-0-check-comm',
     'hello-host-vip-0-server',
     'hello-overlay-vip-0-server',
     'hello-host-0-server',
     'hello-overlay-0-server']
 
 TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
+
+EXPECTED_NETWORK_LABELS = {
+    "key0": "val0",
+    "key1": "val1"
+}
 
 @pytest.mark.sanity
 @pytest.mark.overlay
@@ -134,6 +138,13 @@ def test_overlay_network():
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_cni_labels():
+    def check_labels(labels, idx):
+        k = labels[idx]["key"]
+        v = labels[idx]["value"]
+        assert k in EXPECTED_NETWORK_LABELS.keys(), "Got unexpected network key {}".format(k)
+        assert v == EXPECTED_NETWORK_LABELS[k], "Value {obs} isn't correct, should be " \
+                                                "{exp}".format(obs=v, exp=EXPECTED_NETWORK_LABELS[k])
+
     r = sdk_api.get(PACKAGE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
     assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
     try:
@@ -143,14 +154,7 @@ def test_cni_labels():
     assert len(cni_labels) == 2, "Got {} labels, should be 2".format(len(cni_labels))
     for i in range(2):
         try:
-            obs_key = cni_labels[i]["key"]
-            obs_val = cni_labels[i]["value"]
-            expected_key = "key{}".format(str(i+1))
-            expected_value = "val{}".format(str(i+1))
-            assert obs_key == expected_key, \
-                "key {i} incorrect, should be {exp} got {obs}".format(i=i, exp=expected_key, obs=obs_key)
-            assert obs_val == expected_value, \
-                "value {i} incorrect, should be {exp} got {obs}".format(i=i, exp=expected_value, obs=obs_val)
+            check_labels(cni_labels, i)
         except KeyError:
             assert False, "Couldn't get CNI labels from {}".format(cni_labels)
 
