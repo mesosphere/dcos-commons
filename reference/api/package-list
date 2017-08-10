@@ -4,10 +4,15 @@ com.mesosphere.sdk.config
 com.mesosphere.sdk.config.validate
 com.mesosphere.sdk.curator
 com.mesosphere.sdk.dcos
+com.mesosphere.sdk.dcos.auth
+com.mesosphere.sdk.dcos.ca
+com.mesosphere.sdk.dcos.http
+com.mesosphere.sdk.dcos.secrets
 com.mesosphere.sdk.executor
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.offer.evaluate.placement
+com.mesosphere.sdk.offer.evaluate.security
 com.mesosphere.sdk.offer.taskdata
 com.mesosphere.sdk.reconciliation
 com.mesosphere.sdk.scheduler

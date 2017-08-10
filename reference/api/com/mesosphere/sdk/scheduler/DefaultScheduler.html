@@ -283,7 +283,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators--">defaultConfigValidators</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators-com.mesosphere.sdk.scheduler.SchedulerFlags-">defaultConfigValidators</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;flags)</code>
 <div class="block">Returns the default configuration validators used by <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler</code></a> instances.</div>
 </td>
 </tr>
@@ -595,13 +595,13 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 </dl>
 </li>
 </ul>
-<a name="defaultConfigValidators--">
+<a name="defaultConfigValidators-com.mesosphere.sdk.scheduler.SchedulerFlags-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>defaultConfigValidators</h4>
-<pre>public static&nbsp;java.util.List&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;defaultConfigValidators()</pre>
+<pre>public static&nbsp;java.util.List&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;defaultConfigValidators(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;flags)</pre>
 <div class="block">Returns the default configuration validators used by <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler</code></a> instances. Additional custom
  validators may be added to this list using <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setCustomConfigValidators-java.util.Collection-"><code>DefaultScheduler.Builder.setCustomConfigValidators(Collection)</code></a>.</div>
 </li>
@@ -623,7 +623,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" titl
 <dd><code>serviceSpec</code> - the service specification to use</dd>
 <dd><code>stateStore</code> - the state store to pass to the updater</dd>
 <dd><code>configStore</code> - the config store to pass to the updater</dd>
-<dd><code>configValidators</code> - the list of config validators, see <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators--"><code>defaultConfigValidators()</code></a> for reasonable
+<dd><code>configValidators</code> - the list of config validators, see <code>#defaultConfigValidators()</code> for reasonable
      defaults</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the config update result, which may contain one or more validation errors produced by

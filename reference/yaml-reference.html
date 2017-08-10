@@ -761,6 +761,27 @@ Note that to avoid name collisions, different pods are not allowed to share the 
               </li>
             </ul>
           </li>
+          <li>
+            <p><code class="highlighter-rouge">transport-encryption</code></p>
+
+            <p>A task may optionally ask for a X.509 TLS certificate with private key and CA certificate bundle. A certificate can be used by service to enable secure communication.</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">name</code></p>
+
+                <p>A name of files representing the TLS artifacts in the task sandbox directory. For example a <code class="highlighter-rouge">name: nginx</code> with <code class="highlighter-rouge">type: TLS</code> will result in <code class="highlighter-rouge">$MESOS_SANDBOX/nginx.crt</code>, <code class="highlighter-rouge">$MESOS_SANDBOX/nginx.key</code> and <code class="highlighter-rouge">$MESOS_SANDBOX/nginx.ca</code> files.</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">type</code></p>
+
+                <p>A type or format of delivered TLS artifacts.
+This can be set either to <code class="highlighter-rouge">TLS</code> for PEM encoded private key file, certificate and CA bundle or <code class="highlighter-rouge">KEYSTORE</code> for certificate and private key to be delivered in a separate keystore file and CA bundle in other truststore file.</p>
+              </li>
+            </ul>
+
+            <p>For detailed information see the <a href="developer-guide.html#tls">SDK Developer Guide</a>.</p>
+          </li>
         </ul>
       </li>
       <li>

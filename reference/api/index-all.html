@@ -116,6 +116,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#addElement-C-">addElement(C)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/URLUtils.html#addPath-java.net.URL-java.lang.String-">addPath(URL, String)</a></span> - Static method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/URLUtils.html" title="class in com.mesosphere.sdk.dcos.http">URLUtils</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/URLUtils.html#addPathUnchecked-java.net.URL-java.lang.String-">addPathUnchecked(URL, String)</a></span> - Static method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/URLUtils.html" title="class in com.mesosphere.sdk.dcos.http">URLUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/StageBuilder.html#addPhase-com.mesosphere.sdk.scheduler.plan.Phase-">addPhase(Phase)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/StageBuilder.html" title="interface in com.mesosphere.sdk.scheduler.plan">StageBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#addPod-com.mesosphere.sdk.specification.PodSpec-">addPod(PodSpec)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
@@ -228,6 +232,8 @@
 <dd>
 <div class="block">A utility class which pairs an attribute name with an attribute value.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#author-java.lang.String-">author(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">AuxLabelAccess</span></a> - Class in <a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a></dt>
 <dd>
 <div class="block">Utilities for adding labels to Mesos protobufs other than <code>Protos.TaskInfo</code>.</div>
@@ -320,7 +326,13 @@
 <div class="block">Returns a new <a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instance using the provided settings, using reasonable defaults where
  custom values were not specified.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
@@ -376,6 +388,8 @@
 <dd>
 <div class="block">Returns a <code>DefaultTaskSpec</code> built from the parameters previously set.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec.Builder</a></dt>
 <dd>
 <div class="block">Returns a <code>DefaultVipSpec</code> built from the parameters previously set.</div>
@@ -389,7 +403,19 @@
 <div class="block">Returns the object representation of the provided template data, with any mustache templating resolved using
  the provided environment map.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#buildAlgorithm--">buildAlgorithm()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html#Builder-com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.Type-java.lang.Object-java.util.Collection-java.lang.String-java.lang.Object...-">Builder(EvaluationOutcome.Type, Object, Collection&lt;OfferRecommendation&gt;, String, Object...)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#buildExecutor--">buildExecutor()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html#buildProcess-Protos.CommandInfo-">buildProcess(Protos.CommandInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer">ProcessBuilderUtils</a></dt>
 <dd>
@@ -406,6 +432,24 @@
 </a>
 <h2 class="title">C</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#CA_BASE_URI">CA_BASE_URI</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth"><span class="typeNameLink">CachedTokenProvider</span></a> - Class in <a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a></dt>
+<dd>
+<div class="block">CachedTokenProvider retrieves token from underlying provider and caches the value.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html#CachedTokenProvider-com.mesosphere.sdk.dcos.auth.TokenProvider-java.time.Duration-">CachedTokenProvider(TokenProvider, Duration)</a></span> - Constructor for class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">CachedTokenProvider</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/ca/CAException.html" title="class in com.mesosphere.sdk.dcos.ca"><span class="typeNameLink">CAException</span></a> - Exception in <a href="com/mesosphere/sdk/dcos/ca/package-summary.html">com.mesosphere.sdk.dcos.ca</a></dt>
+<dd>
+<div class="block">General Certificate Authority endpoint exception.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/CAException.html#CAException--">CAException()</a></span> - Constructor for exception com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/CAException.html" title="class in com.mesosphere.sdk.dcos.ca">CAException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/CAException.html#CAException-java.lang.String-">CAException(String)</a></span> - Constructor for exception com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/CAException.html" title="class in com.mesosphere.sdk.dcos.ca">CAException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/CAException.html#CAException-java.lang.Throwable-">CAException(Throwable)</a></span> - Constructor for exception com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/CAException.html" title="class in com.mesosphere.sdk.dcos.ca">CAException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckMonitor.html#call--">call()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckMonitor.html" title="class in com.mesosphere.sdk.executor">CheckMonitor</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#canarySteps">canarySteps</a></span> - Variable in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">CanaryStrategy</a></dt>
@@ -464,12 +508,28 @@
 <dd>
 <div class="block">Exception thrown when a <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> requires DC/OS features not supported by the active cluster.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos"><span class="typeNameLink">CertificateAuthorityClient</span></a> - Interface in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
+<dd>
+<div class="block">Represents abstraction over DC/OS Certificate Authority.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">CertificateNamesGenerator</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>CertificateNamesGenerator</code></a> creates relevant names for given service pod.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html#CertificateNamesGenerator-java.lang.String-java.lang.String-java.util.Optional-java.util.Collection-">CertificateNamesGenerator(String, String, Optional&lt;String&gt;, Collection&lt;NamedVIPSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">ChainedObserver</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
 <div class="block">Both an Observer and Observable.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ChainedObserver.html#ChainedObserver--">ChainedObserver()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler">ChainedObserver</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html#chainWithRootCert-java.security.cert.X509Certificate-">chainWithRootCert(X509Certificate)</a></span> - Method in class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca">DefaultCAClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html#chainWithRootCert-java.security.cert.X509Certificate-">chainWithRootCert(X509Certificate)</a></span> - Method in interface com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos">CertificateAuthorityClient</a></dt>
+<dd>
+<div class="block">Retrieves complete certificate chain including a root CA certificate for given certificate.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/Configuration.html#CHARSET">CHARSET</a></span> - Static variable in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/executor/CheckHandler.html" title="class in com.mesosphere.sdk.executor"><span class="typeNameLink">CheckHandler</span></a> - Class in <a href="com/mesosphere/sdk/executor/package-summary.html">com.mesosphere.sdk.executor</a></dt>
@@ -508,6 +568,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.CheckValidationException.html#CheckValidationException-java.lang.String-">CheckValidationException(String)</a></span> - Constructor for exception com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.CheckValidationException.html" title="class in com.mesosphere.sdk.executor">CheckHandler.CheckValidationException</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html#cleanUpSecrets-com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator-">cleanUpSecrets(SecretNameGenerator)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsPersister</a></dt>
+<dd>
+<div class="block">Removes all existing secrets stored under given namespace.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#clear-java.util.UUID-">clear(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>
 <div class="block">Deletes the configuration with the provided UUID, or does nothing if no matching
@@ -588,6 +652,14 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a> - package com.mesosphere.sdk.dcos</dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a> - package com.mesosphere.sdk.dcos.auth</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/ca/package-summary.html">com.mesosphere.sdk.dcos.ca</a> - package com.mesosphere.sdk.dcos.ca</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/http/package-summary.html">com.mesosphere.sdk.dcos.http</a> - package com.mesosphere.sdk.dcos.http</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/secrets/package-summary.html">com.mesosphere.sdk.dcos.secrets</a> - package com.mesosphere.sdk.dcos.secrets</dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/executor/package-summary.html">com.mesosphere.sdk.executor</a> - package com.mesosphere.sdk.executor</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a> - package com.mesosphere.sdk.offer</dt>
@@ -595,6 +667,8 @@
 <dt><a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a> - package com.mesosphere.sdk.offer.evaluate</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a> - package com.mesosphere.sdk.offer.evaluate.placement</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a> - package com.mesosphere.sdk.offer.evaluate.security</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a> - package com.mesosphere.sdk.offer.taskdata</dt>
 <dd>&nbsp;</dd>
@@ -756,6 +830,12 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/Constants.html#Constants--">Constants()</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth"><span class="typeNameLink">ConstantTokenProvider</span></a> - Class in <a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a></dt>
+<dd>
+<div class="block">Constant Token Provider always returns single pre-configured auth token.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html#ConstantTokenProvider-java.lang.String-">ConstantTokenProvider(String)</a></span> - Constructor for class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">ConstantTokenProvider</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/MesosResourcePool.html#consumeAtomic-java.lang.String-Value-">consumeAtomic(String, Value)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/MesosResourcePool.html#consumeReservableMerged-java.lang.String-Value-java.lang.String-">consumeReservableMerged(String, Value, String)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a></dt>
@@ -792,6 +872,12 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#create-TaskInfo-java.util.Optional-">create(TaskInfo, Optional&lt;TaskStatus&gt;)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#create-java.lang.String-com.mesosphere.sdk.dcos.secrets.Secret-">create(String, Secret)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/SecretsClient.html#create-java.lang.String-com.mesosphere.sdk.dcos.secrets.Secret-">create(String, Secret)</a></span> - Method in interface com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a></dt>
+<dd>
+<div class="block">Create a new secret.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.html#create-ExecutorDriver-Protos.TaskInfo-Protos.HealthCheck-java.util.concurrent.ScheduledExecutorService-com.mesosphere.sdk.executor.CheckStats-java.lang.String-">create(ExecutorDriver, Protos.TaskInfo, Protos.HealthCheck, ScheduledExecutorService, CheckStats, String)</a></span> - Static method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.html" title="class in com.mesosphere.sdk.executor">CheckHandler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#create-ExecutorDriver-Protos.TaskInfo-">create(ExecutorDriver, Protos.TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
@@ -825,6 +911,8 @@
 <div class="block">Version of <code>#createConfigStore(ServiceSpec, Collection)</code> which allows passing a custom <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>
  object.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#created-java.lang.String-">created(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-">createInternal(Scheduler, FrameworkInfo, String, Credential)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.scheduler">SchedulerDriverFactory</a></dt>
 <dd>
 <div class="block">Broken out into a separate function to allow testing with custom SchedulerDrivers.</div>
@@ -913,6 +1001,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DcosConstants--">DcosConstants()</a></span> - Constructor for class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http"><span class="typeNameLink">DcosHttpClientBuilder</span></a> - Class in <a href="com/mesosphere/sdk/dcos/http/package-summary.html">com.mesosphere.sdk.dcos.http</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http"><code>DcosHttpClientBuilder</code></a> is a helper that simplifies common modifications
+ of <code>org.apache.http.client.HttpClient</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html#DcosHttpClientBuilder--">DcosHttpClientBuilder()</a></span> - Constructor for class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http">DcosHttpClientBuilder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">DcosVersion</span></a> - Class in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
 <dd>
 <div class="block">This class encapsulates the response from a DC/OS cluster's dcos-metadata/dcos-version.json endpoint.</div>
@@ -947,6 +1042,14 @@
 <dd>
 <div class="block">The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca"><span class="typeNameLink">DefaultCAClient</span></a> - Class in <a href="com/mesosphere/sdk/dcos/ca/package-summary.html">com.mesosphere.sdk.dcos.ca</a></dt>
+<dd>
+<div class="block">A default implementation of <a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos"><code>CertificateAuthorityClient</code></a>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html#DefaultCAClient-java.net.URL-Executor-">DefaultCAClient(URL, Executor)</a></span> - Constructor for class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca">DefaultCAClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html#DefaultCAClient-Executor-">DefaultCAClient(Executor)</a></span> - Constructor for class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca">DefaultCAClient</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultCommandSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification"><code>CommandSpec</code></a>.</div>
@@ -969,7 +1072,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html#DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-">DefaultConfigurationUpdater(StateStore, ConfigStore&lt;ServiceSpec&gt;, ConfigurationComparator&lt;ServiceSpec&gt;, Collection&lt;ConfigValidator&lt;ServiceSpec&gt;&gt;)</a></span> - Constructor for class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config">DefaultConfigurationUpdater</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators--">defaultConfigValidators()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators-com.mesosphere.sdk.scheduler.SchedulerFlags-">defaultConfigValidators(SchedulerFlags)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Returns the default configuration validators used by <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler</code></a> instances.</div>
 </dd>
@@ -1168,6 +1271,16 @@
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets"><span class="typeNameLink">DefaultSecretsClient</span></a> - Class in <a href="com/mesosphere/sdk/dcos/secrets/package-summary.html">com.mesosphere.sdk.dcos.secrets</a></dt>
+<dd>
+<div class="block">Default secrets client.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#DefaultSecretsClient-java.net.URL-java.lang.String-Executor-">DefaultSecretsClient(URL, String, Executor)</a></span> - Constructor for class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#DefaultSecretsClient-java.lang.String-Executor-">DefaultSecretsClient(String, Executor)</a></span> - Constructor for class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#DefaultSecretsClient-Executor-">DefaultSecretsClient(Executor)</a></span> - Constructor for class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultSecretSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification"><code>SecretSpec</code></a>.</div>
@@ -1238,11 +1351,23 @@
 <dd>
 <div class="block">Default implementation of a <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-">DefaultTaskSpec(String, GoalState, ResourceSet, CommandSpec, HealthCheckSpec, ReadinessCheckSpec, Collection&lt;ConfigFileSpec&gt;, DiscoverySpec)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.util.Collection-">DefaultTaskSpec(String, GoalState, ResourceSet, CommandSpec, HealthCheckSpec, ReadinessCheckSpec, Collection&lt;ConfigFileSpec&gt;, DiscoverySpec, Collection&lt;TransportEncryptionSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultTaskSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultTaskSpec</code> builder static inner class.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultTransportEncryptionSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TransportEncryptionSpec</code></a>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#DefaultTransportEncryptionSpec-java.lang.String-com.mesosphere.sdk.specification.TransportEncryptionSpec.Type-">DefaultTransportEncryptionSpec(String, TransportEncryptionSpec.Type)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#DefaultTransportEncryptionSpec-com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec.Builder-">DefaultTransportEncryptionSpec(DefaultTransportEncryptionSpec.Builder)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultTransportEncryptionSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultTransportEncryptionSpec</code></a> builder.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultVipSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -1270,6 +1395,12 @@
 <dd>
 <div class="block">Default time to wait between destructive task recoveries (avoid quickly making things worse).</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#delete-java.lang.String-">delete(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/SecretsClient.html#delete-java.lang.String-">delete(String)</a></span> - Method in interface com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a></dt>
+<dd>
+<div class="block">Delete an existing secret.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#deleteAll-java.lang.String-">deleteAll(String)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/MemPersister.html#deleteAll-java.lang.String-">deleteAll(String)</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/MemPersister.html" title="class in com.mesosphere.sdk.storage">MemPersister</a></dt>
@@ -1279,6 +1410,8 @@
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterCache.html#deleteAll-java.lang.String-">deleteAll(String)</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterCache.html" title="class in com.mesosphere.sdk.storage">PersisterCache</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#DELIMITER">DELIMITER</a></span> - Static variable in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">DependencyStrategy</span></a>&lt;<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html" title="type parameter in DependencyStrategy">C</a> extends <a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt; - Class in <a href="com/mesosphere/sdk/scheduler/plan/strategy/package-summary.html">com.mesosphere.sdk.scheduler.plan.strategy</a></dt>
 <dd>
@@ -1335,6 +1468,8 @@
 <dd>
 <div class="block">Creates a new instance with initial <code>status</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#description-java.lang.String-">description(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/JsonSerializer.html#deserialize-byte:A-java.lang.Class-">deserialize(byte[], Class&lt;T&gt;)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/JsonSerializer.html" title="class in com.mesosphere.sdk.state">JsonSerializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/Serializer.html#deserialize-byte:A-java.lang.Class-">deserialize(byte[], Class&lt;T&gt;)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/Serializer.html" title="interface in com.mesosphere.sdk.state">Serializer</a></dt>
@@ -1351,6 +1486,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#DestroyOfferRecommendation-Offer-Resource-">DestroyOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html#disableTLSVerification--">disableTLSVerification()</a></span> - Method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http">DcosHttpClientBuilder</a></dt>
+<dd>
+<div class="block">Disable TLS verification on built HTTP client.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#disconnected-ExecutorDriver-">disconnected(ExecutorDriver)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#disconnected-SchedulerDriver-">disconnected(SchedulerDriver)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
@@ -1552,6 +1691,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></dt>
@@ -1590,6 +1731,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate(MesosResourcePool, PodInfoBuilder)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate(MesosResourcePool, PodInfoBuilder)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate(MesosResourcePool, PodInfoBuilder)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/UnreserveEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate(MesosResourcePool, PodInfoBuilder)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/UnreserveEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">UnreserveEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
@@ -1854,6 +1997,8 @@
 <dd>
 <div class="block">Returns a new <a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerFlags</code></a> instance which is based off the process environment.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#fromEnvironment-com.mesosphere.sdk.scheduler.SchedulerFlags-">fromEnvironment(SchedulerFlags)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromExistingResource-Resource-">fromExistingResource(Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#fromJsonString-java.lang.String-java.lang.Class-">fromJsonString(String, Class&lt;T&gt;)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
@@ -1875,6 +2020,8 @@
 <dd>
 <div class="block">Returns a representation of the provided value using the provided custom object mapper.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/URLUtils.html#fromUnchecked-java.lang.String-">fromUnchecked(String)</a></span> - Static method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/URLUtils.html" title="class in com.mesosphere.sdk.dcos.http">URLUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromUnreservedValue-java.lang.String-Value-">fromUnreservedValue(String, Value)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#fromYamlString-java.lang.String-java.lang.Class-">fromYamlString(String, Class&lt;T&gt;)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
@@ -1888,6 +2035,8 @@
 </a>
 <h2 class="title">G</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#generate-com.mesosphere.sdk.offer.evaluate.security.CertificateNamesGenerator-">generate(CertificateNamesGenerator)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsGenerator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.Generator.html#generate--">generate()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.Generator.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">CanaryStrategy.Generator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/ParallelStrategy.Generator.html#generate--">generate()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/ParallelStrategy.Generator.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">ParallelStrategy.Generator</a></dt>
@@ -1956,6 +2105,8 @@
 <dd>
 <div class="block">Returns a list of all the resources associated with a task, including <code>Executor</code> resources.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getAllSecretPaths--">getAllSecretPaths()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#getApiServerInitTimeout--">getApiServerInitTimeout()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
 <dd>
 <div class="block">Returns the configured time to wait for the API server to come up during scheduler initialization.</div>
@@ -1977,10 +2128,18 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#getAsset--">getAsset()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getAsset--">getAsset()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getAsset--">getAsset()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getAssignedOverlayPorts--">getAssignedOverlayPorts()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.html#getAuthor--">getAuthor()</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#getAuthTokenRefreshThreshold--">getAuthTokenRefreshThreshold()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
+<dd>
+<div class="block">Returns the configured threshold that will trigger auth token refresh before its expiration.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.html#getBootstrapId--">getBootstrapId()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/Configuration.html#getBytes--">getBytes()</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a></dt>
@@ -2014,6 +2173,14 @@
 <div class="block">Returns the candidate element(s), if any, which may have work performed against them.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#getCertificateAuthorityClient--">getCertificateAuthorityClient()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getCertificateMountPath--">getCertificateMountPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getCertificatePath--">getCertificatePath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#getCertPEM--">getCertPEM()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#getChildren-java.lang.String-">getChildren(String)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
@@ -2126,6 +2293,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTask.html#getCpus--">getCpus()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTask.html" title="class in com.mesosphere.sdk.specification.yaml">RawTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.html#getCreated--">getCreated()</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html#getCurrentTimeMillis--">getCurrentTimeMillis()</a></span> - Method in class com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation">DefaultReconciler</a></dt>
 <dd>
 <div class="block">Time retrieval broken out into a separate function to allow overriding its behavior in tests.</div>
@@ -2164,6 +2333,8 @@
 <dd>
 <div class="block">Gets the <a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config"><code>ConfigurationUpdater.UpdateResult.DeploymentType</code></a> detected during this update.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.html#getDescription--">getDescription()</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawConfig.html#getDest--">getDest()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawConfig.html" title="class in com.mesosphere.sdk.specification.yaml">RawConfig</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html#getDirtyAssets--">getDirtyAssets()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanManager</a></dt>
@@ -2257,6 +2428,8 @@
 <div class="block">Returns all errors from this  and all its children.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
@@ -2418,6 +2591,18 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#getJavaURI--">getJavaURI()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#getKeyPairGenerator--">getKeyPairGenerator()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#getKeyStore--">getKeyStore()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getKeyStoreMountPath--">getKeyStoreMountPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#getKeystorePassword--">getKeystorePassword()</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getKeyStorePath--">getKeyStorePath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.html#getLabels--">getLabels()</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.html#getLabels--">getLabels()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NetworkSpec.html#getLabels--">getLabels()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NetworkSpec.html" title="interface in com.mesosphere.sdk.specification">NetworkSpec</a></dt>
@@ -2506,6 +2691,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NetworkSpec.html#getName--">getName()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NetworkSpec.html" title="interface in com.mesosphere.sdk.specification">NetworkSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodInstance.html#getName--">getName()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></dt>
@@ -2522,11 +2709,17 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getName--">getName()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html#getName--">getName()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/util/RLimit.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.specification.util.<a href="com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util">RLimit</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawResource.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawResource.html" title="class in com.mesosphere.sdk.specification.yaml">RawResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTransportEncryption.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTransportEncryption.html" title="class in com.mesosphere.sdk.specification.yaml">RawTransportEncryption</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getNamespaceFromEnvironment-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerFlags-">getNamespaceFromEnvironment(String, SchedulerFlags)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.html#getNetworkNames--">getNetworkNames()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -2600,6 +2793,8 @@
 <dd>
 <div class="block">Returns a recursive list of all paths which are the parent of the provided path.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html#getPath--">getPath()</a></span> - Method in exception com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html" title="class in com.mesosphere.sdk.dcos.secrets">SecretsException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawVolume.html#getPath--">getPath()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml">RawVolume</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimoutMin--">getPermanentFailureTimoutMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
@@ -2696,6 +2891,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
@@ -2798,6 +2995,12 @@
 <div class="block">This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
  it on task relaunch.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getPrivateKeyMountPath--">getPrivateKeyMountPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getPrivateKeyPath--">getPrivateKeyPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#getPrivateKeyPEM--">getPrivateKeyPEM()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#getProcessBuilder--">getProcessBuilder()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getProperty-java.lang.String-">getProperty(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
@@ -2950,6 +3153,20 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getRootBeanClass--">getRootBeanClass()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getRootCACertMountPath--">getRootCACertMountPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getRootCACertPath--">getRootCACertPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#getRootCACertPEM--">getRootCACertPEM()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html#getSANs--">getSANs()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></dt>
+<dd>
+<div class="block">Returns additional Subject Alternative Names for service certificates.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getSansHash-GeneralNames-">getSansHash(GeneralNames)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>
+<div class="block">Creates SHA1 string representation of all <code>GeneralNames</code>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getScheduler--">getScheduler()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getSchedulerFlags--">getSchedulerFlags()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
@@ -2969,6 +3186,12 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodSpec.html#getSecrets--">getSecrets()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getSecrets--">getSecrets()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#getSecretsClient--">getSecretsClient()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#getServiceAccountPrivateKeyPEM--">getServiceAccountPrivateKeyPEM()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html#getServiceAccountUid--">getServiceAccountUid()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#getServiceName-com.mesosphere.sdk.specification.yaml.RawServiceSpec-">getServiceName(RawServiceSpec)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
 <dd>
@@ -3047,6 +3270,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPhase.html#getSteps--">getSteps()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPhase.html" title="class in com.mesosphere.sdk.specification.yaml">RawPhase</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html#getStore--">getStore()</a></span> - Method in exception com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html" title="class in com.mesosphere.sdk.dcos.secrets">SecretsException</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getStoreableTaskInfo--">getStoreableTaskInfo()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html#getStrategy--">getStrategy()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a></dt>
@@ -3061,6 +3286,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPlan.html#getStrategy--">getStrategy()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPlan.html" title="class in com.mesosphere.sdk.specification.yaml">RawPlan</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html#getSubject--">getSubject()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></dt>
+<dd>
+<div class="block">Returns a Subject for service certificate.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getTarget--">getTarget()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
 <dd>
 <div class="block">Produces the content of the current target configuration, or returns an error if reading that
@@ -3124,6 +3353,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getTasks--">getTasks()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getTaskSecretsNamespace--">getTaskSecretsNamespace()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getTaskSpec-com.mesosphere.sdk.specification.PodInstance-java.lang.String-">getTaskSpec(PodInstance, String)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getTaskStatusFromProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">getTaskStatusFromProperty(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
@@ -3136,6 +3367,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--">getTasksToLaunch()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>
 <div class="block">Returns the list of tasks to be launched within this pod.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getTasksWithTLS-com.mesosphere.sdk.specification.ServiceSpec-">getTasksWithTLS(ServiceSpec)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
+<dd>
+<div class="block">Returns all the <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a> that have TLS configuration.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeConverter.html#getTaskType-TaskInfo-">getTaskType(TaskInfo)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeConverter.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeConverter</a></dt>
 <dd>&nbsp;</dd>
@@ -3168,9 +3403,29 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html#getTimeout--">getTimeout()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html" title="class in com.mesosphere.sdk.specification.yaml">RawReadinessCheck</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html#getToken--">getToken()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">CachedTokenProvider</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html#getToken--">getToken()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">ConstantTokenProvider</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.html#getToken--">getToken()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/TokenProvider.html#getToken--">getToken()</a></span> - Method in interface com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/TokenProvider.html" title="interface in com.mesosphere.sdk.dcos.auth">TokenProvider</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckStats.html#getTotalFailures--">getTotalFailures()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckStats.html" title="class in com.mesosphere.sdk.executor">CheckStats</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckStats.html#getTotalSuccesses--">getTotalSuccesses()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckStats.html" title="class in com.mesosphere.sdk.executor">CheckStats</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTransportEncryption--">getTransportEncryption()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getTransportEncryption--">getTransportEncryption()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTask.html#getTransportEncryption--">getTransportEncryption()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTask.html" title="class in com.mesosphere.sdk.specification.yaml">RawTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#getTrustStore--">getTrustStore()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getTrustStoreMountPath--">getTrustStoreMountPath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#getTrustStorePath--">getTrustStorePath()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getType--">getType()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
@@ -3184,11 +3439,17 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getType--">getType()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#getType--">getType()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getType--">getType()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodSpec.html#getType--">getType()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html#getType--">getType()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/VolumeSpec.html#getType--">getType()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTransportEncryption.html#getType--">getType()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTransportEncryption.html" title="class in com.mesosphere.sdk.specification.yaml">RawTransportEncryption</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawVolume.html#getType--">getType()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml">RawVolume</a></dt>
 <dd>&nbsp;</dd>
@@ -3221,6 +3482,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html#getUser--">getUser()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml">RawScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html#getValidatedLabels--">getValidatedLabels()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html" title="class in com.mesosphere.sdk.specification.yaml">RawNetwork</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.html#getValue--">getValue()</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getValue-Offer-">getValue(Offer)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AbstractRoundRobinRule</a></dt>
 <dd>
@@ -3364,6 +3627,14 @@
 </a>
 <h2 class="title">H</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html#handleResponseStatusLine-StatusLine-int-">handleResponseStatusLine(StatusLine, int)</a></span> - Method in class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca">DefaultCAClient</a></dt>
+<dd>
+<div class="block">Handle common responses from different API endpoints of DC/OS CA service.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#handleResponseStatusLine-StatusLine-int-java.lang.String-">handleResponseStatusLine(StatusLine, int, String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>
+<div class="block">Handle common responses from different API endpoints of DC/OS secrets service.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#hardExit-com.mesosphere.sdk.scheduler.SchedulerErrorCode-">hardExit(SchedulerErrorCode)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
 <dd>
 <div class="block">Immediately exits the process with the ordinal value of the provided <code>errorCode</code>.</div>
@@ -3469,6 +3740,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></dt>
@@ -3523,6 +3796,8 @@
 </a>
 <h2 class="title">I</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#IAM_AUTH_URL">IAM_AUTH_URL</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#id-java.lang.String-">id(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>id</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -3636,6 +3911,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#isAlive--">isAlive()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html#isArtifactComplete-com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator-">isArtifactComplete(SecretNameGenerator)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsPersister</a></dt>
+<dd>
+<div class="block">Returns true if all expected paths are stored in secrets service.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
 <dd>
 <div class="block">Reports whether the Asset associated with this Step is dirty.</div>
@@ -3883,6 +4162,8 @@
 <dd>
 <div class="block">Creates a new instance.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#labels-java.util.Collection-">labels(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/LabelUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">LabelUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a></dt>
 <dd>
 <div class="block">Common utility methods for classes which access and manipulate label data.</div>
@@ -3940,6 +4221,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#launchTask-ExecutorDriver-Protos.TaskInfo-">launchTask(ExecutorDriver, Protos.TaskInfo)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#list-java.lang.String-">list(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/SecretsClient.html#list-java.lang.String-">list(String)</a></span> - Method in interface com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a></dt>
+<dd>
+<div class="block">List all secrets paths for given path.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#list--">list()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>
 <div class="block">Returns a list of all stored configuration UUIDs, or an empty list if none are found.</div>
@@ -4083,6 +4370,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_LEADER_URI">MESOS_LEADER_URI</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER_URI">MESOS_MASTER_URI</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER_ZK_CONNECTION_STRING">MESOS_MASTER_ZK_CONNECTION_STRING</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#MESOS_TLD_TASKENV">MESOS_TLD_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
@@ -4143,6 +4432,8 @@
 <dd>
 <div class="block">Sets the <code>name</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html#name-java.lang.String-">name(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonIdUtils.html#NAME_ID_DELIM">NAME_ID_DELIM</a></span> - Static variable in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonIdUtils.html" title="class in com.mesosphere.sdk.offer">CommonIdUtils</a></dt>
 <dd>
 <div class="block">Used in task and executor IDs to separate the task/executor name from a UUID.</div>
@@ -4459,6 +4750,10 @@
 <dd>
 <div class="block">String representation of <a href="com/mesosphere/sdk/storage/PersisterUtils.html#PATH_DELIM"><code>PersisterUtils.PATH_DELIM</code></a>.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/dcos/ca/PEMUtils.html" title="class in com.mesosphere.sdk.dcos.ca"><span class="typeNameLink">PEMUtils</span></a> - Class in <a href="com/mesosphere/sdk/dcos/ca/package-summary.html">com.mesosphere.sdk.dcos.ca</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/dcos/ca/PEMUtils.html" title="class in com.mesosphere.sdk.dcos.ca"><code>PEMUtils</code></a> allows to convert X509 certificates from and to PEM format.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#PERMANENT_FAILURE_DELAY_MIN">PERMANENT_FAILURE_DELAY_MIN</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>
 <div class="block">Default time to wait before declaring a task as permanently failed.</div>
@@ -4471,6 +4766,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#PERMANENTLY_FAILED_LABEL">PERMANENTLY_FAILED_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Label for tracking in the state store whether a task failed.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html#persist-com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator-com.mesosphere.sdk.offer.evaluate.security.TLSArtifacts-">persist(SecretNameGenerator, TLSArtifacts)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsPersister</a></dt>
+<dd>
+<div class="block">Store TLSArtifacts set to secret service.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#PERSISTENCE_ID">PERSISTENCE_ID</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
@@ -4916,6 +5215,10 @@
 <dd>
 <div class="block">Raw YAML task.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/specification/yaml/RawTransportEncryption.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">RawTransportEncryption</span></a> - Class in <a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a></dt>
+<dd>
+<div class="block">Raw YAML transport encryption.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/specification/yaml/RawVip.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">RawVip</span></a> - Class in <a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a></dt>
 <dd>
 <div class="block">Raw YAML vip.</div>
@@ -5039,6 +5342,14 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#remove-Protos.OfferID-">remove(Protos.OfferID)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
 <dd>
 <div class="block">This method removes an offer from the queue based on its OfferID.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#removeSlashes-java.lang.String-">removeSlashes(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dd>
+<div class="block">"/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#replaceDotsWithDashes-java.lang.String-">replaceDotsWithDashes(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dd>
+<div class="block">"hello.kafka" => "hello-kafka".</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#replacementFailurePolicy-com.mesosphere.sdk.specification.ReplacementFailurePolicy-">replacementFailurePolicy(ReplacementFailurePolicy)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
@@ -5330,6 +5641,30 @@
 <div class="block">Creates a new version store against the provided Framework Name, as would be provided to
  <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> or <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets"><span class="typeNameLink">Secret</span></a> - Class in <a href="com/mesosphere/sdk/dcos/secrets/package-summary.html">com.mesosphere.sdk.dcos.secrets</a></dt>
+<dd>
+<div class="block">Secret class represents an HTTP API model for creating and updating a secret.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets"><span class="typeNameLink">Secret.Builder</span></a> - Class in <a href="com/mesosphere/sdk/dcos/secrets/package-summary.html">com.mesosphere.sdk.dcos.secrets</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/dcos/secrets/Secret.html" title="class in com.mesosphere.sdk.dcos.secrets"><code>Secret</code></a> class builder.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#SECRET_NAME_CA_CERT">SECRET_NAME_CA_CERT</a></span> - Static variable in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#SECRET_NAME_CERTIFICATE">SECRET_NAME_CERTIFICATE</a></span> - Static variable in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#SECRET_NAME_KEYSTORE">SECRET_NAME_KEYSTORE</a></span> - Static variable in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#SECRET_NAME_PRIVATE_KEY">SECRET_NAME_PRIVATE_KEY</a></span> - Static variable in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#SECRET_NAME_TRUSTSTORE">SECRET_NAME_TRUSTSTORE</a></span> - Static variable in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">SecretNameGenerator</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
+<dd>
+<div class="block">Provides a way to generate paths for secrets storing a private key, a certificate and a keystore.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html#SecretNameGenerator-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">SecretNameGenerator(String, String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#secretPath-java.lang.String-">secretPath(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>secretPath</code> and returns a reference to this Builder.</div>
@@ -5339,6 +5674,22 @@
 <div class="block">Sets the <code>secrets</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#SECRETS_BASE_URI">SECRETS_BASE_URI</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos"><span class="typeNameLink">SecretsClient</span></a> - Interface in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
+<dd>
+<div class="block">Client for communicating with DC/OS secret service API.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#secretsClient">secretsClient</a></span> - Variable in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html" title="class in com.mesosphere.sdk.dcos.secrets"><span class="typeNameLink">SecretsException</span></a> - Exception in <a href="com/mesosphere/sdk/dcos/secrets/package-summary.html">com.mesosphere.sdk.dcos.secrets</a></dt>
+<dd>
+<div class="block">General Secrets client exception.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html#SecretsException-java.lang.String-java.lang.String-java.lang.String-">SecretsException(String, String, String)</a></span> - Constructor for exception com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html" title="class in com.mesosphere.sdk.dcos.secrets">SecretsException</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html#SecretsException-java.lang.String-java.lang.Throwable-java.lang.String-java.lang.String-">SecretsException(String, Throwable, String, String)</a></span> - Constructor for exception com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/SecretsException.html" title="class in com.mesosphere.sdk.dcos.secrets">SecretsException</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">SecretSpec</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">A SecretSpec defines the features of a Secret.</div>
@@ -5384,6 +5735,16 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#SERVICE_USER">SERVICE_USER</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth"><span class="typeNameLink">ServiceAccountIAMTokenProvider</span></a> - Class in <a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a></dt>
+<dd>
+<div class="block">Provides a token retrieved by `login` operation against IAM service with given service account.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth"><span class="typeNameLink">ServiceAccountIAMTokenProvider.Builder</span></a> - Class in <a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth"><code>ServiceAccountIAMTokenProvider</code></a> class builder.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#serviceName">serviceName</a></span> - Variable in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">ServiceNameCannotContainDoubleUnderscores</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
 <dd>
 <div class="block">Sample configuration validator which validates that a ServiceSpecification's number of PodSpecs
@@ -5420,10 +5781,14 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#setCanLaunch-boolean-">setCanLaunch(boolean)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setCertificateAuthorityClient-com.mesosphere.sdk.dcos.CertificateAuthorityClient-">setCertificateAuthorityClient(CertificateAuthorityClient)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-">setConfigStore(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Specifies a custom <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#setConnectionTimeout-int-">setConnectionTimeout(int)</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setCredentials-java.lang.String-java.lang.String-">setCredentials(String, String)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></dt>
 <dd>
 <div class="block">Assigns credentials to be used when contacting ZK.</div>
@@ -5431,7 +5796,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setCustomConfigValidators-java.util.Collection-">setCustomConfigValidators(Collection&lt;ConfigValidator&lt;ServiceSpec&gt;&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Specifies a custom list of configuration validators to be run when updating to a new target configuration,
- or otherwise uses the default validators returned by <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#defaultConfigValidators--"><code>DefaultScheduler.defaultConfigValidators()</code></a>.</div>
+ or otherwise uses the default validators returned by <code>DefaultScheduler#defaultConfigValidators()</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointsResource.html#setCustomEndpoint-java.lang.String-com.mesosphere.sdk.api.types.EndpointProducer-">setCustomEndpoint(String, EndpointProducer)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api">EndpointsResource</a></dt>
 <dd>
@@ -5443,6 +5808,12 @@
  to the defaults.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setDcosSpace-Protos.ExecutorInfo.Builder-java.lang.String-">setDcosSpace(Protos.ExecutorInfo.Builder, String)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html#setDefaultConnectionTimeout-int-">setDefaultConnectionTimeout(int)</a></span> - Method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http">DcosHttpClientBuilder</a></dt>
+<dd>
+<div class="block">Set default request connection timeout.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#setDisableTLSVerification-boolean-">setDisableTLSVerification(boolean)</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setEnableReplacement-boolean-">setEnableReplacement(boolean)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
@@ -5474,13 +5845,21 @@
 <dd>
 <div class="block">Stores the agent hostname from the provided <code>Offer</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#setIamUrl-java.net.URL-">setIamUrl(URL)</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setIndex-int-">setIndex(int)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Assigns the pod instance index to the provided task.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setKeyPairGenerator-java.security.KeyPairGenerator-">setKeyPairGenerator(KeyPairGenerator)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">setLastCompletedUpdateType(StateStore, ConfigurationUpdater.UpdateResult.DeploymentType)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
 <div class="block">Sets the last completed update type.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html#setLogger-Logger-">setLogger(Logger)</a></span> - Method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http">DcosHttpClientBuilder</a></dt>
+<dd>
+<div class="block">Set custom logger that will log all requests.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany(Map&lt;String, byte[]&gt;)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
@@ -5535,6 +5914,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#setPrincipal-java.util.Optional-">setPrincipal(Optional&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#setPrivateKey-java.security.interfaces.RSAPrivateKey-">setPrivateKey(RSAPrivateKey)</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-">setProtos(PodInfoBuilder, Protos.Resource)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">NamedVIPEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-java.util.Optional-">setProtos(PodInfoBuilder, Protos.Resource, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils</a></dt>
@@ -5580,6 +5961,14 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#setSchedulerDriver-SchedulerDriver-">setSchedulerDriver(SchedulerDriver)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setSchedulerFlags-com.mesosphere.sdk.scheduler.SchedulerFlags-">setSchedulerFlags(SchedulerFlags)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setSecretsClient-com.mesosphere.sdk.dcos.SecretsClient-">setSecretsClient(SecretsClient)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setServiceName-java.lang.String-">setServiceName(String)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#setSignatureAlgorithm-Algorithm-">setSignatureAlgorithm(Algorithm)</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-">setStateStore(StateStore)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
 <div class="block">Specifies a custom <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
@@ -5605,14 +5994,31 @@
 <dd>
 <div class="block">Sets a <code>Label</code> indicating the target configuration.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setTaskName-java.lang.String-">setTaskName(String)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setTlsArtifactsGenerator-com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsGenerator-">setTlsArtifactsGenerator(TLSArtifactsGenerator)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#setTlsArtifactsPersister-com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsPersister-">setTlsArtifactsPersister(TLSArtifactsPersister)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html#setTokenProvider-com.mesosphere.sdk.dcos.auth.TokenProvider-">setTokenProvider(TokenProvider)</a></span> - Method in class com.mesosphere.sdk.dcos.http.<a href="com/mesosphere/sdk/dcos/http/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos.http">DcosHttpClientBuilder</a></dt>
+<dd>
+<div class="block">Enable authentication token.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setTransient--">setTransient()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Ensures that the task is identified as a transient task.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#setTransportEncryption-java.util.Collection-">setTransportEncryption(Collection&lt;TransportEncryptionSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></dt>
+<dd>
+<div class="block">Sets the <code>transportEncryption</code> and returns a reference to this Builder so that methods can be
+ chained together.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setType-java.lang.String-">setType(String)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Stores the provided task type string.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html#setUid-java.lang.String-">setUid(String)</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setUninstalling-com.mesosphere.sdk.state.StateStore-">setUninstalling(StateStore)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
 <div class="block">Sets an 'uninstall' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
@@ -5631,6 +6037,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#sigKill--">sigKill()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html#sign-byte:A-">sign(byte[])</a></span> - Method in class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca">DefaultCAClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html#sign-byte:A-">sign(byte[])</a></span> - Method in interface com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos">CertificateAuthorityClient</a></dt>
+<dd>
+<div class="block">Create a new certificate from CSR by contacting certificate authority.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#sigTerm--">sigTerm()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#slaveLost-SchedulerDriver-Protos.SlaveID-">slaveLost(SchedulerDriver, Protos.SlaveID)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
@@ -5667,6 +6079,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
@@ -5776,6 +6190,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.html#store-int-">store(int)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.html" title="class in com.mesosphere.sdk.state">SchemaVersionStore</a></dt>
 <dd>
 <div class="block">Updates the schema version to the provided value.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#STORE_PREFIX">STORE_PREFIX</a></span> - Static variable in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>
+<div class="block">URL path prefix for secret store.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId(Protos.FrameworkID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
@@ -6117,6 +6535,52 @@
 <dd>
 <div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">TLSArtifacts</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifacts</code></a> is a container that holds various objects related to single private key and its X.509
+ certificate.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html#TLSArtifacts-java.lang.String-java.lang.String-java.lang.String-java.security.KeyStore-java.security.KeyStore-">TLSArtifacts(String, String, String, KeyStore, KeyStore)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">TLSArtifactsGenerator</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
+<dd>
+<div class="block">Generates all necessary artifacts for given task.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#TLSArtifactsGenerator-java.security.KeyPairGenerator-com.mesosphere.sdk.dcos.CertificateAuthorityClient-">TLSArtifactsGenerator(KeyPairGenerator, CertificateAuthorityClient)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsGenerator</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">TLSArtifactsPersister</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
+<dd>
+<div class="block">Stores TLSArtifacts to a secret service.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html#TLSArtifactsPersister-com.mesosphere.sdk.dcos.SecretsClient-java.lang.String-">TLSArtifactsPersister(SecretsClient, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsPersister</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">TLSCleanupStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>TLSCleanupStep</code></a> removes all provisioned <a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifacts</code></a> from secrets service in a given
+ namespace.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#TLSCleanupStep-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.dcos.SecretsClient-java.lang.String-">TLSCleanupStep(Status, SecretsClient, String)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
+<dd>
+<div class="block">Creates a new instance with initial <code>status</code>.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">TLSEvaluationStage</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>TLSEvaluationStage</code></a> is responsible for provisioning X.509 certificates, converting them to
+ PEM and KeyStore formats and injecting them to the container as a secret.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html#TLSEvaluationStage-java.lang.String-java.lang.String-com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsPersister-com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsGenerator-com.mesosphere.sdk.scheduler.SchedulerFlags-">TLSEvaluationStage(String, String, TLSArtifactsPersister, TLSArtifactsGenerator, SchedulerFlags)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">TLSEvaluationStage.Builder</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>TLSEvaluationStage.Builder</code></a> allows to create a <a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>TLSEvaluationStage</code></a> instance.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">TLSRequiresServiceAccount</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate"><code>TLSRequiresServiceAccount</code></a> checks whether the configuration contains provisioning of TLS artifacts
+ and whether the provided <a href="com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerFlags</code></a> contains a service account.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html#TLSRequiresServiceAccount-com.mesosphere.sdk.scheduler.SchedulerFlags-">TLSRequiresServiceAccount(SchedulerFlags)</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate">TLSRequiresServiceAccount</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpDomain-java.lang.String-">toAutoIpDomain(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS domain for tasks within the service.</div>
@@ -6167,6 +6631,12 @@
 <dd>
 <div class="block">Returns a JSON representation of the provided value, or an empty string if conversion fails.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/dcos/auth/TokenProvider.html" title="interface in com.mesosphere.sdk.dcos.auth"><span class="typeNameLink">TokenProvider</span></a> - Interface in <a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a></dt>
+<dd>
+<div class="block">TokenProvider describes an interface that provides valid DC/OS auth token.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#tokenProviderFromEnvironment-com.mesosphere.sdk.scheduler.SchedulerFlags-">tokenProviderFromEnvironment(SchedulerFlags)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvUtils.html#toMap-Environment-">toMap(Environment)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvUtils.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvUtils</a></dt>
 <dd>
 <div class="block">Returns a Map representation of the provided <code>Environment</code>.</div>
@@ -6179,6 +6649,10 @@
 <dd>
 <div class="block">The string prepended to reserved resources to indicate that they are uninstalled.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/PEMUtils.html#toPEM-java.security.cert.X509Certificate-">toPEM(X509Certificate)</a></span> - Static method in class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/PEMUtils.html" title="class in com.mesosphere.sdk.dcos.ca">PEMUtils</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/PEMUtils.html#toPEM-java.security.PrivateKey-">toPEM(PrivateKey)</a></span> - Static method in class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/PEMUtils.html" title="class in com.mesosphere.sdk.dcos.ca">PEMUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvUtils.html#toProto-java.util.Map-">toProto(Map&lt;String, String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvUtils.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvUtils</a></dt>
 <dd>
 <div class="block">Returns a Protobuf representation of the provided environment <code>Map</code>.</div>
@@ -6316,6 +6790,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></dt>
@@ -6336,6 +6812,10 @@
 <dd>
 <div class="block">Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toVipHostname-java.lang.String-com.mesosphere.sdk.api.EndpointUtils.VipInfo-">toVipHostname(String, EndpointUtils.VipInfo)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dd>
+<div class="block">Returns the correct L4LB VIP hostname for the provided task running within the provided service.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#toYamlString-T-">toYamlString(T)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
 <dd>
 <div class="block">Returns a YAML representation of the provided value.</div>
@@ -6353,12 +6833,22 @@
 <div class="block">Returns a new validation error which indicates that a configuration field has an invalid
  transition from its previous value to the current value.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">TransportEncryptionSpec</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block">Spec for defining a TLS encryption support.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html" title="enum in com.mesosphere.sdk.specification"><span class="typeNameLink">TransportEncryptionSpec.Type</span></a> - Enum in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block">The allowed formats of TLS certificate format.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultService.html#TWO_WEEK_SEC">TWO_WEEK_SEC</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification">DefaultService</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#type-java.lang.String-">type(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>type</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html#type-com.mesosphere.sdk.specification.TransportEncryptionSpec.Type-">type(TransportEncryptionSpec.Type)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <a name="I:U">
 <!--   -->
@@ -6394,11 +6884,13 @@
 <dd>
 <div class="block">This scheduler uninstalls the framework and releases all of its resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">UninstallScheduler(int, Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-java.lang.String-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Optional-">UninstallScheduler(String, int, Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerFlags, Optional&lt;SecretsClient&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>
 <div class="block">Creates a new UninstallScheduler based on the provided API port and initialization timeout,
  and a <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-java.lang.String-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-">UninstallScheduler(String, int, Duration, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerFlags)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
 <dd>
 <div class="block">Step which implements the uninstalling of a particular persistent volume or resource.</div>
@@ -6451,6 +6943,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#unwrap-java.lang.Class-">unwrap(Class&lt;U&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#update-java.lang.String-com.mesosphere.sdk.dcos.secrets.Secret-">update(String, Secret)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/SecretsClient.html#update-java.lang.String-com.mesosphere.sdk.dcos.secrets.Secret-">update(String, Secret)</a></span> - Method in interface com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a></dt>
+<dd>
+<div class="block">Update a secret.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation">DefaultReconciler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/reconciliation/Reconciler.html#update-TaskStatus-">update(TaskStatus)</a></span> - Method in interface com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation">Reconciler</a></dt>
@@ -6489,6 +6987,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/Constants.html#UPDATE_PLAN_NAME">UPDATE_PLAN_NAME</a></span> - Static variable in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></dt>
@@ -6518,6 +7018,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters(Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></dt>
@@ -6541,6 +7043,12 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#uris-java.util.Collection-">uris(Collection&lt;URI&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>uris</code> and returns a reference to this Builder so that the methods can be chained together.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html#urlForPath-java.lang.String-">urlForPath(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/DefaultSecretsClient.html" title="class in com.mesosphere.sdk.dcos.secrets">DefaultSecretsClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/http/URLUtils.html" title="class in com.mesosphere.sdk.dcos.http"><span class="typeNameLink">URLUtils</span></a> - Class in <a href="com/mesosphere/sdk/dcos/http/package-summary.html">com.mesosphere.sdk.dcos.http</a></dt>
+<dd>
+<div class="block">URLUtils for easier URL building.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#user-java.lang.String-">user(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
@@ -6581,6 +7089,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html" title="class in com.mesosphere.sdk.config.validate">TaskVolumesCannotChange</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate">TLSRequiresServiceAccount</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/UserCannotChange.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/UserCannotChange.html" title="class in com.mesosphere.sdk.config.validate">UserCannotChange</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/CapabilityValidator.html#validate-com.mesosphere.sdk.specification.ServiceSpec-">validate(ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/CapabilityValidator.html" title="class in com.mesosphere.sdk.specification.validation">CapabilityValidator</a></dt>
@@ -6591,6 +7101,8 @@
 <dd>
 <div class="block">Various utilities for spec validation.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html#value-java.lang.String-">value(String)</a></span> - Method in class com.mesosphere.sdk.dcos.secrets.<a href="com/mesosphere/sdk/dcos/secrets/Secret.Builder.html" title="class in com.mesosphere.sdk.dcos.secrets">Secret.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html#value">value</a></span> - Variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html" title="class in com.mesosphere.sdk.offer.taskdata">AttributeStringUtils.NameValue</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html#value-java.lang.String-">value(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec.Builder</a></dt>
@@ -6627,6 +7139,10 @@
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/GoalState.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this type with the specified name.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html" title="enum in com.mesosphere.sdk.specification">TransportEncryptionSpec.Type</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
@@ -6672,6 +7188,11 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/GoalState.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum type, in
+the order they are declared.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html" title="enum in com.mesosphere.sdk.specification">TransportEncryptionSpec.Type</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>
