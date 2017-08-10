@@ -32,22 +32,6 @@
         <name>ha.zookeeper.parent-znode</name>
         <value>{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
     </property>
-    <property>
-        <name>ipc.client.connection.maxidletime</name>
-        <value>{{IPC_CLIENT_CONNECTION_MAXIDLETIME}}</value>
-    </property>
-    <property>
-        <name>ipc.client.connect.max.retries</name>
-        <value>{{IPC_CLIENT_CONNECT_MAX_RETRIES}}</value>
-    </property>
-    <property>
-        <name>ipc.client.connect.retry.interval</name>
-        <value>{{IPC_CLIENT_CONNECT_RETRY_INTERVAL}}</value>
-    </property>
-    <property>
-        <name>ipc.client.connect.timeout</name>
-        <value>{{IPC_CLIENT_CONNECT_TIMEOUT}}</value>
-    </property>
     {{#TLS_ENABLED}}
     <property>
         <name>hadoop.ssl.hostname.verifier</name>

@@ -58,15 +58,14 @@ pods:
           JOURNALNODE: true
         {{#JOURNAL_READINESS_CHECK_ENABLED}}
         # The absence of journal-data/hdfs indicates HDFS is about to be deployed for the first time.
-        # We test readiness by waiting for the Journal Node to roll up the edit logs. Then it's ready
-        # to receive more edits.
+        # We test readiness by waiting for the Journal Node to roll up the edit logs which takes about 5
+        # minutes. It is then ready to receive more edits.
         readiness-check:
           cmd: >
             if [ ! -d journal-data/hdfs ]; then
               exit 0
             else
-              export EDIT_LOG_ROLLUP_COUNT=$(grep "namenode.FileJournalManager: Finalizing edits file" stderr | wc -l) &&
-              [[ $EDIT_LOG_ROLLUP_COUNT -gt 0 ]]
+              sleep 300;
             fi
           delay: 60
           interval: 3

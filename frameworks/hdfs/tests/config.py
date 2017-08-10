@@ -75,7 +75,7 @@ def run_hdfs_command(svc_name, command):
     return rc, output
 
 
-def check_healthy(service_name=PACKAGE_NAME, count=DEFAULT_TASK_COUNT, recovery_expected=False):
+def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):
     sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds=25 * 60)
     if recovery_expected:
         # TODO(elezar): See INFINITY-2109 where we need to better handle recovery health checks
@@ -84,14 +84,14 @@ def check_healthy(service_name=PACKAGE_NAME, count=DEFAULT_TASK_COUNT, recovery_
     sdk_tasks.check_running(service_name, count)
 
 
-def expect_recovery(service_name=PACKAGE_NAME):
+def expect_recovery(service_name):
     # TODO(elezar, nima) check_healthy also check for complete deployment, and this should not
     # affect the state of recovery.
     check_healthy(service_name=service_name, count=DEFAULT_TASK_COUNT, recovery_expected=True)
 
 
-def get_pod_type_instances(pod_type_prefix, service_name=FOLDERED_SERVICE_NAME):
+def get_pod_type_instances(pod_type_prefix, service_name=PACKAGE_NAME):
     pod_types = sdk_cmd.convert_output_to_list(
         sdk_cmd.run_cli("hdfs --name={} pod list".format(service_name))
     )
-    return [pod_type for pod_type in pod_types if pod_type_prefix in pod_type]
+    return [pod_type for pod_type in pod_types if pod_type.startswith(pod_type_prefix)]
