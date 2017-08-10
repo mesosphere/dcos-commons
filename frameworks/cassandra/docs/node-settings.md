@@ -92,7 +92,7 @@ Cassandra supports deployment on the `dcos` overlay network, a virtual network o
 ```json
 {
     "service": {
-        "virtual_network": true
+        "virtual_network_enabled": true
     }
 }
 ```

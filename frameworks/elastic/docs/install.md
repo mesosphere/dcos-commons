@@ -74,7 +74,7 @@ Elastic supports deployment on the `dcos` overlay network, a virtual network on 
 ```json
 {
     "service": {
-        "virtual_network": true
+        "virtual_network_enabled": true
     }
 }
 ```

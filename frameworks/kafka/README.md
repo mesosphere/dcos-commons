@@ -142,7 +142,7 @@ Kafka supports deployment on the `dcos` overlay network, a virtual network on DC
 ```json
 {
     "service": {
-        "virtual_network": true
+        "virtual_network_enabled": true
     }
 }
 ```
