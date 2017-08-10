@@ -30,3 +30,5 @@ project(":frameworks/template").name = "template"
 include 'frameworks/cassandra'
 project(":frameworks/cassandra").name = "cassandra"
 
+include 'frameworks/helloworld/tests/tls/keystore'
+project(":frameworks/helloworld/tests/tls/keystore").name = 'keystore-app'

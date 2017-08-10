@@ -22,12 +22,15 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
@@ -36,6 +39,7 @@ import java.util.*;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
+    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceSpec.class);
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
@@ -238,8 +242,17 @@ public class DefaultServiceSpec implements ServiceSpec {
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
         ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister);
-        // Serialize and then deserialize:
-        ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());
+
+        ServiceSpec loopbackSpecification;
+        try {
+            // Serialize and then deserialize:
+            loopbackSpecification = factory.parse(serviceSpec.getBytes());
+        } catch (Exception e) {
+            logger.error("Failed to parse JSON for loopback validation", e);
+            logger.error("JSON to be parsed was:\n{}",
+                    new String(serviceSpec.getBytes(), StandardCharsets.UTF_8));
+            throw e;
+        }
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
             StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
@@ -280,7 +293,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 OrRule.class,
                 PassthroughRule.class,
                 PortSpec.class,
-                PortsSpec.class,
                 RegexMatcher.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,

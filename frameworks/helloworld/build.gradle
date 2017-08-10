@@ -25,8 +25,15 @@ dependencies {
     testCompile project(":testing")
 }
 
-distZip.dependsOn ":executor:distZip"
-distZip.finalizedBy copyExecutor
+task copyKeystoreApp(type: Copy) {
+    from('src/../tests/tls/keystore/build/distributions/') {
+        include 'keystore-app.zip'
+    }
+    into('build/distributions')
+}
+
+distZip.dependsOn ":executor:distZip", ":keystore-app:integrationTestZip"
+distZip.finalizedBy copyExecutor, copyKeystoreApp
 
 distributions {
     main {

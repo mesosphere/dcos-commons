@@ -45,7 +45,7 @@ if [ x"$cli_only" = xtrue ]; then
     cli_flag=--cli-only
 fi
 
-${ROOT_DIR}/tools/build_framework.sh $cli_flag $PUBLISH_STEP hello-world $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/hello-world-scheduler.zip
+${ROOT_DIR}/tools/build_framework.sh $cli_flag $PUBLISH_STEP hello-world $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/hello-world-scheduler.zip $BUILD_DIR/keystore-app.zip
 
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1

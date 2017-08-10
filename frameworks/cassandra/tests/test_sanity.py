@@ -26,8 +26,6 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
-
         sdk_upgrade.test_upgrade(
             "beta-{}".format(PACKAGE_NAME),
             PACKAGE_NAME,
@@ -43,7 +41,6 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
-        # remove job definitions from metronome
         for job in TEST_JOBS:
             sdk_jobs.remove_job(job)
 

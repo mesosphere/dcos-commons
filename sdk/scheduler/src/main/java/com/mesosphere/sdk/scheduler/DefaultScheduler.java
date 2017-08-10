@@ -337,7 +337,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
             // Update/validate config as needed to reflect the new service spec:
             Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
-            configValidators.addAll(defaultConfigValidators());
+            configValidators.addAll(defaultConfigValidators(getSchedulerFlags()));
             configValidators.addAll(customConfigValidators);
 
             final ConfigurationUpdater.UpdateResult configUpdateResult =
@@ -458,7 +458,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
      * Returns the default configuration validators used by {@link DefaultScheduler} instances. Additional custom
      * validators may be added to this list using {@link Builder#setCustomConfigValidators(Collection)}.
      */
-    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators() {
+    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators(SchedulerFlags flags) {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new ServiceNameCannotContainDoubleUnderscores(),
@@ -466,7 +466,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 new TaskVolumesCannotChange(),
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
-                new UserCannotChange());
+                new UserCannotChange(),
+                new TLSRequiresServiceAccount(flags));
     }
 
     /**
@@ -706,7 +707,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     @Override
     public void update(Observable observable) {
         if (observable == planCoordinator) {
-            suppressOrRevive();
+            suppressOrRevive(planCoordinator);
             completeDeploy();
         }
     }
@@ -809,21 +810,5 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
         });
-    }
-
-    private void suppressOrRevive() {
-        if (planCoordinator.hasOperations()) {
-            if (StateStoreUtils.isSuppressed(stateStore)) {
-                revive();
-            } else {
-                LOGGER.info("Already revived.");
-            }
-        } else {
-            if (StateStoreUtils.isSuppressed(stateStore)) {
-                LOGGER.info("Already suppressed.");
-            } else {
-                suppress();
-            }
-        }
     }
 }
