@@ -43,11 +43,6 @@ public abstract class AbstractScheduler implements Scheduler {
     private Object suppressReviveLock = new Object();
 
     /**
-     * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
-     */
-    protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
-
-    /**
      * Executor for processing offers off the queue in {@code processOffers()}.
      */
     private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
