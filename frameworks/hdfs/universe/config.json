@@ -141,7 +141,7 @@
           "default": true
         }
       },
-      "required": [ 
+      "required": [
         "cpus",
         "mem",
         "disk",
@@ -250,7 +250,7 @@
           "default": ""
         }
       },
-      "required":[
+      "required": [
         "cpus",
         "mem",
         "disk",

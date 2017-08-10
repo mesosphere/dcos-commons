@@ -15,29 +15,29 @@
             "type": "string",
             "default": "V0"
           },
-          "user":  {
-            "type":  "string",
-            "description":  "The user that the service will run as.",
-            "default":  "nobody"
+          "user": {
+            "type": "string",
+            "description": "The user that the service will run as.",
+            "default": "nobody"
           },
-          "principal":  {
-            "description":  "The principal for the Kafka service instance.",
-            "type":  "string",
-            "default":  ""
+          "principal": {
+            "description": "The principal for the Kafka service instance.",
+            "type": "string",
+            "default": ""
           },
-          "secret_name":  {
-            "description":  "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-            "type":  "string",
-            "default":  ""
+          "secret_name": {
+            "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+            "type": "string",
+            "default": ""
           },
           "placement_constraint": {
             "description": "Marathon-style placement constraint for Broker nodes. Example: rack_id:LIKE:rack-foo-.*,rack_id:MAX_PER:2",
             "type": "string",
             "default": "hostname:MAX_PER:1"
           },
-          "virtual_networks":  {
-            "description":  "Enable DC/OS Virtual Networking",
-            "type":  "boolean",
+          "virtual_networks": {
+            "description": "Enable DC/OS Virtual Networking",
+            "type": "boolean",
             "default":  false
           },
           "deploy_strategy": {
@@ -46,11 +46,11 @@
             "default": "serial",
             "enum":  ["serial", "serial-canary", "parallel-canary", "parallel"]
           },
-          "log_level":  {
-            "description":  "The log level for the DC/OS service.",
-            "type":  "string",
+          "log_level": {
+            "description": "The log level for the DC/OS service.",
+            "type": "string",
             "enum":  ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
-            "default":  "INFO"
+            "default": "INFO"
           }
         },
         "required": [
@@ -75,14 +75,14 @@
             "description": "The Kafka process JVM heap configuration object",
             "type": "object",
             "properties": {
-              "size":  {
+              "size": {
                 "type": "integer",
                 "description": "The amount of JVM heap, in MB, allocated to the Kafka broker process.",
                 "default": 512
               }
             },
-            "additionalProperties":  false,
-            "required":  [
+            "additionalProperties": false,
+            "required": [
               "size"
             ]
           },
@@ -91,35 +91,35 @@
             "type": "integer",
             "default": 5000
           },
-          "disk_type":  {
-            "type":  "string",
-            "description":  "Disk type to be used for storing broker data. See documentation. [ROOT, MOUNT]",
-            "default":  "ROOT"
+          "disk_type": {
+            "type": "string",
+            "description": "Disk type to be used for storing broker data. See documentation. [ROOT, MOUNT]",
+            "default": "ROOT"
           },
-          "disk_path":  {
-            "type":  "string",
-            "description":  "Relative path of consistent disk",
-            "default":  "kafka-broker-data"
+          "disk_path": {
+            "type": "string",
+            "description": "Relative path of consistent disk",
+            "default": "kafka-broker-data"
           },
           "count": {
             "description": "Number of brokers to run",
             "type": "number",
             "default": 3
           },
-          "port":  {
-            "description":  "Port for broker to listen on",
-            "type":  "integer",
+          "port": {
+            "description": "Port for broker to listen on",
+            "type": "integer",
             "default":  0
           },
-          "virtual_network":  {
-            "description":  "Name of virtual network to join",
-            "type":  "string",
-            "default":  "dcos"
+          "virtual_network": {
+            "description": "Name of virtual network to join",
+            "type": "string",
+            "default": "dcos"
           },
-          "cni_plugin_labels":  {
-            "description":  "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
-            "type":  "string",
-            "default":  ""
+          "cni_plugin_labels": {
+            "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+            "type": "string",
+            "default": ""
           }
         },
         "required": [

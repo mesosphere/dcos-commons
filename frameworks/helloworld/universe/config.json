@@ -94,7 +94,7 @@
             "default": ""
           }
         },
-        "required": [ 
+        "required": [
           "cpus",
           "gpus",
           "mem",
