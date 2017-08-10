@@ -36,9 +36,9 @@ plans:
       hello:
         pod: hello
         steps:
-        {{#ENABLED}}
+        {{#TEST_BOOLEAN}}
           - default: [[server-a], [server-b]]
-        {{/ENABLED}}
-        {{^ENABLED}}
+        {{/TEST_BOOLEAN}}
+        {{^TEST_BOOLEAN}}
           - default: [[server-b]]
-        {{/ENABLED}}
+        {{/TEST_BOOLEAN}}

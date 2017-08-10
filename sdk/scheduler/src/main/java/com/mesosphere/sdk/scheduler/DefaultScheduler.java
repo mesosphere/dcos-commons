@@ -580,7 +580,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializePlanCoordinator();
         initializeResources();
         initializeApiServer();
-        killUnneededTasks(getLaunchableTasks(plans));
+        killUnneededTasks(getLaunchableTasks());
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
@@ -664,7 +664,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                getLaunchableTasks(plans),
+                getLaunchableTasks(),
                 launchConstrainer,
                 failureMonitor,
                 overrideRecoveryPlanManagers);
@@ -823,7 +823,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
     }
 
     @VisibleForTesting
-    static Set<String> getLaunchableTasks(Collection<Plan> plans) {
+    Set<String> getLaunchableTasks() {
         return plans.stream()
                 .flatMap(plan -> plan.getChildren().stream())
                 .flatMap(phase -> phase.getChildren().stream())
