@@ -2,12 +2,10 @@ import json
 
 import pytest
 
-import sdk_cmd as cmd
-import sdk_install as install
-import sdk_tasks as tasks
-import sdk_plan as plan
-import sdk_networks as networks
-import sdk_utils as utils
+import sdk_cmd
+import sdk_install
+import sdk_plan
+import sdk_networks
 
 
 from tests.test_utils import  *
@@ -22,7 +20,7 @@ def dcos_security_cli():
     Installs the dcos enterprise cli.
     """
 
-    cmd.run_cli("package install --yes dcos-enterprise-cli")
+    sdk_cmd.run_cli("package install --yes dcos-enterprise-cli")
 
 
 @pytest.fixture(scope='module')
@@ -38,7 +36,7 @@ def service_account(dcos_security_cli):
 
 @pytest.fixture(scope='module')
 def kafka_service_tls(service_account):
-    install.install(
+    sdk_install.install(
         PACKAGE_NAME,
         DEFAULT_BROKER_COUNT,
         service_name=service_account,
@@ -51,14 +49,14 @@ def kafka_service_tls(service_account):
         }
     )
 
-    plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
     # Wait for service health check to pass
     shakedown.service_healthy(PACKAGE_NAME)
 
     yield service_account
 
-    install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.tls
@@ -66,7 +64,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.sanity
 @utils.dcos_1_10_or_higher
 def test_tls_endpoints(kafka_service_tls):
-    endpoints = networks.get_and_test_endpoints("", PACKAGE_NAME, 3)
+    endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 3)
     assert BROKER_TLS_ENDPOINT in endpoints
 
     # Test that broker-tls endpoint is available
