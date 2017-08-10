@@ -120,7 +120,7 @@
             "description": "Port for broker to listen on",
             "type": "integer",
             "default": 0
-          },
+          }
         },
         "required":[
           "cpus",
