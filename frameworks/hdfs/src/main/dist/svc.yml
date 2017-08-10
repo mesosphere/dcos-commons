@@ -58,35 +58,15 @@ pods:
           JOURNALNODE: true
         {{#JOURNAL_READINESS_CHECK_ENABLED}}
         # The absence of journal-data/hdfs indicates HDFS is about to be deployed for the first time.
-        # We test readiness in the following ways:
-        # 1. We hit the JMX endpoint as it includes a field called "RpcDetailedActivityForPort8485".
-        # The "GetEditLogManifestNumOps" field inside of it is indicative of Journal Node operations being
-        # performed in coherence with the other HDFS components since the field is monitoring RPC traffic,
-        # hence signaling that the Journal Node is ready. Or
-        # 2. The existence of journal-data/hdfs/current/committed-txid is used during an update plan
-        # to check that the given Journal Node has in fact started and by writing to the committed-txid
-        # file, hence updating the file's last modified timestamp within the last 12 seconds, signals
-        # that the Journal Node is newly running as part of the update plan.
-        # 3. Once one of the above two checks pass, the Journal Node has started but is not completely ready yet.
-        # Changes cannot be recorded into this Journal Node because its edit log has not been rolled up yet.
-        # It takes about 5 minutes for the edit log to roll up, effectively making the Journal Node ready to
-        # send transactions to.
+        # We test readiness by waiting for the Journal Node to roll up the edit logs. Then it's ready
+        # to receive more edits.
         readiness-check:
           cmd: >
             if [ ! -d journal-data/hdfs ]; then
               exit 0
             else
-              # first condition
-              curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
-              export EDIT_MANIFEST_NUM_OPS=$(grep "GetEditLogManifestNumOps" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              # second condition
-              export COMMITTED_ID_TIME=$(ls -l --time-style='+%Y-%m-%d %H:%M:%S' journal-data/hdfs/current/committed-txid | awk '{print $6 FS $7}') &&
-              export CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S') &&
-              export TIME_DIFF=$(( ( $(date -ud "$CURRENT_TIME" +'%s') - $(date -ud "$COMMITTED_ID_TIME" +'%s') ) )) &&
-              if [ $EDIT_MANIFEST_NUM_OPS -gt 0 || $TIME_DIFF -le 12 ]; then
-                sleep 300;
-                exit 0
-              fi
+              export EDIT_LOG_ROLLUP_COUNT=$(grep "namenode.FileJournalManager: Finalizing edits file" stderr | wc -l) &&
+              [[ $EDIT_LOG_ROLLUP_COUNT -gt 0 ]]
             fi
           delay: 60
           interval: 3
