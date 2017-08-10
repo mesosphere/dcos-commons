@@ -133,6 +133,11 @@
           "description": "Name of virtual network to join",
           "type": "string",
           "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -195,6 +200,11 @@
           "description": "Name of virtual network to join",
           "type": "string",
           "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -257,6 +267,11 @@
           "description": "Name of virtual network to join",
           "type": "string",
           "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -319,6 +334,11 @@
           "description": "Name of virtual network to join",
           "type": "string",
           "default": "dcos"
+        },
+        "cni_plugin_labels": {
+          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
