@@ -46,7 +46,8 @@ public class DefaultTaskSpecTest {
                 new DefaultReadinessCheckSpec("./readiness-check", 2, 2, 2),
                 Arrays.asList(
                         new DefaultConfigFileSpec("name", "relative-path", "template-content")),
-                new DefaultDiscoverySpec("prefix", Protos.DiscoveryInfo.Visibility.CLUSTER));
+                new DefaultDiscoverySpec("prefix", Protos.DiscoveryInfo.Visibility.CLUSTER),
+                null);
 
         DefaultTaskSpec clone = DefaultTaskSpec.newBuilder(original).build();
         Assert.assertEquals(original, clone);

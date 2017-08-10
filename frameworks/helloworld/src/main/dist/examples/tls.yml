@@ -1,0 +1,119 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+pods:
+
+  # Exposes basic TLS artifacts in a container
+  artifacts:
+    count: {{HELLO_COUNT}}
+    uris:
+      - {{JAVA_URI}}
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+
+                ls -lah && cat secure-tls-pod.crt && cat keystore.keystore && sleep $SLEEP_DURATION
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        transport-encryption:
+          - name: secure-tls-pod
+            type: TLS
+          - name: keystore
+            type: KEYSTORE
+
+  # Runs a webservice over TLS using keystore
+  keystore:
+    count: {{HELLO_COUNT}}
+    networks:
+      dcos:
+    uris:
+      - {{JAVA_URI}}
+      - {{BOOTSTRAP_URI}}
+      - {{KEYSTORE_APP_URI}}
+    tasks:
+      webserver:
+        goal: RUNNING
+        # TODO(mh): Try to remove export statement and use && between commands after ./bootstrap, which may give env
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH;
+
+                java -jar keystore-app-{{KEYSTORE_APP_VERSION}}-all.jar server integration-test.yml
+        cpus: 0.5
+        memory: 512
+        transport-encryption:
+          - name: dropwizard
+            type: KEYSTORE
+        ports:
+          keystore-https:
+            port: 8443
+            vip:
+              prefix: keystore-https
+              port: 443
+
+  nginx:
+    count: {{HELLO_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+    image: mesosphere/dcos-commons-tls-nginx:{{NGINX_CONTAINER_VERSION}}
+    networks:
+      dcos:
+    tasks:
+      nginx:
+        goal: RUNNING
+        cmd: >
+               cp nginx.crt /opt/site.crt & cp nginx.key /opt/site.key
+
+               env
+
+               nginx
+        cpus: 0.1
+        memory: 256
+        transport-encryption:
+          - name: nginx
+            type: TLS
+        ports:
+          nginx-https:
+            port: 443
+            vip:
+              prefix: nginx-https
+              port: 443
+
+  discovery:
+    count: {{HELLO_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: sleep 1000
+        cpus: 0.1
+        memory: 256
+        discovery:
+          prefix: {{DISCOVERY_TASK_PREFIX}}
+        transport-encryption:
+          - name: server
+            type: TLS
+
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      artifacts:
+        strategy: parallel
+        pod: artifacts
+      keystore:
+        strategy: parallel
+        pod: keystore
+      nginx:
+        strategy: parallel
+        pod: nginx
+      discovery:
+        strategy: parallel
+        pod: discovery
