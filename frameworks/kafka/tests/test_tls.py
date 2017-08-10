@@ -4,8 +4,10 @@ import pytest
 
 import sdk_cmd
 import sdk_install
-import sdk_plan
 import sdk_networks
+import sdk_plan
+import sdk_security
+import sdk_utils
 
 
 from tests.test_utils import  *
@@ -29,9 +31,14 @@ def service_account(dcos_security_cli):
     Creates service account with `hello-world` name and yields the name.
     """
     name = 'kafka'
-    create_service_account(name)
+    sdk_security.create_service_account(
+        service_account_name=name, secret_name=name)
+    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+    sdk_cmd.run_cli(
+        "security org groups add_user superusers {name}".format(name=name))
     yield name
-    delete_service_account(name)
+    sdk_security.delete_service_account(
+        service_account_name=name, secret_name=name)
 
 
 @pytest.fixture(scope='module')
@@ -62,7 +69,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@utils.dcos_1_10_or_higher
+@sdk_utils.dcos_1_10_or_higher
 def test_tls_endpoints(kafka_service_tls):
     endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 3)
     assert BROKER_TLS_ENDPOINT in endpoints
@@ -77,7 +84,7 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@utils.dcos_1_10_or_higher
+@sdk_utils.dcos_1_10_or_higher
 def test_producer_over_tls(kafka_service_tls):
     service_cli('topic create {}'.format(DEFAULT_TOPIC_NAME))
 
