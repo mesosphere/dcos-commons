@@ -27,6 +27,7 @@ pods:
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
+            advertise: true
             vip:
               prefix: broker
               port: 9092

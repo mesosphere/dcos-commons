@@ -55,7 +55,7 @@ public class YAMLToInternalMappers {
             TaskEnvRouter taskEnvRouter,
             FileReader fileReader) throws Exception {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
-        verifyDistinctPortNames(rawServiceSpec.getPods().values());
+        verifyDistinctEndpointNames(rawServiceSpec.getPods().values());
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
         String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
@@ -73,12 +73,14 @@ public class YAMLToInternalMappers {
         List<PodSpec> pods = new ArrayList<>();
         final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
+            String podName = entry.getKey();
+            RawPod rawPod = entry.getValue();
             pods.add(convertPod(
-                    entry.getValue(),
+                    rawPod,
                     fileReader,
-                    entry.getKey(),
-                    taskEnvRouter.getConfig(entry.getKey()),
-                    role,
+                    podName,
+                    taskEnvRouter.getConfig(podName),
+                    getRole(rawPod.getPreReservedRole(), role),
                     principal,
                     schedulerFlags.getExecutorURI(),
                     user));
@@ -112,37 +114,41 @@ public class YAMLToInternalMappers {
     }
 
     /**
-     * Verifies that tasks in separate pods don't share advertised port names.
+     * Verifies that different tasks don't share advertised endpoint names.
      * Otherwise the 'endpoints' command will have them jumbled together.
      */
-    private static void verifyDistinctPortNames(Collection<RawPod> rawPods) {
-        Set<String> portNames = new HashSet<>();
-        Set<String> portNameDuplicates = new TreeSet<>();
+    private static void verifyDistinctEndpointNames(Collection<RawPod> rawPods) {
+        Set<String> allEndpointNames = new HashSet<>();
+        Set<String> duplicateEndpointNames = new TreeSet<>();
         for (RawPod pod : rawPods) {
             // Check across both task ports, and resource set ports:
             for (RawTask task : pod.getTasks().values()) {
-                collectKeys(task.getPorts(), portNames, portNameDuplicates);
+                collectDuplicateEndpoints(task.getPorts(), allEndpointNames, duplicateEndpointNames);
             }
             if (pod.getResourceSets() != null) {
                 for (RawResourceSet resourceSet : pod.getResourceSets().values()) {
-                    collectKeys(resourceSet.getPorts(), portNames, portNameDuplicates);
+                    collectDuplicateEndpoints(resourceSet.getPorts(), allEndpointNames, duplicateEndpointNames);
                 }
             }
         }
-        if (!portNameDuplicates.isEmpty()) {
-            //TODO(nickbp): Only check this when ports are flagged with 'advertise: true' (the current default)
+        if (!duplicateEndpointNames.isEmpty()) {
             throw new IllegalArgumentException(String.format(
-                    "Duplicate port/endpoint names across different tasks: %s", portNameDuplicates));
+                    "Service has duplicate advertised ports across tasks: %s", duplicateEndpointNames));
         }
     }
 
-    private static <T> void collectKeys(Map<String, T> map, Set<String> seenNames, Set<String> duplicates) {
+    private static void collectDuplicateEndpoints(
+            Map<String, RawPort> map, Set<String> seenEndpoints, Set<String> duplicateEndpoints) {
         if (map == null) {
             return;
         }
-        for (String portName : map.keySet()) {
-            if (!seenNames.add(portName)) {
-                duplicates.add(portName);
+        for (Map.Entry<String, RawPort> entry : map.entrySet()) {
+            if (!entry.getValue().isAdvertised()) {
+                // Only check ports that are flagged as endpoints
+                continue;
+            }
+            if (!seenEndpoints.add(entry.getKey())) {
+                duplicateEndpoints.add(entry.getKey());
             }
         }
     }
@@ -348,6 +354,15 @@ public class YAMLToInternalMappers {
             discoverySpec = convertDiscovery(rawTask.getDiscovery());
         }
 
+        Collection<TransportEncryptionSpec> transportEncryption = rawTask
+                .getTransportEncryption()
+                .stream()
+                .map(task -> new DefaultTransportEncryptionSpec.Builder()
+                        .name(task.getName())
+                        .type(TransportEncryptionSpec.Type.valueOf(task.getType()))
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
+
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
@@ -355,6 +370,7 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
+                .setTransportEncryption(transportEncryption)
                 .name(taskName);
 
         if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
@@ -430,7 +446,7 @@ public class YAMLToInternalMappers {
         }
 
         if (rawPorts != null) {
-            convertPorts(role, preReservedRole, principal, rawPorts, networkNames).getPortSpecs()
+            convertPorts(role, preReservedRole, principal, rawPorts, networkNames)
                     .forEach(resourceSetBuilder::addResource);
         }
 
@@ -462,13 +478,7 @@ public class YAMLToInternalMappers {
         }
 
         return new DefaultVolumeSpec(
-                rawVolume.getSize(),
-                volumeTypeEnum,
-                rawVolume.getPath(),
-                role,
-                preReservedRole,
-                principal,
-                "DISK_SIZE");
+                rawVolume.getSize(), volumeTypeEnum, rawVolume.getPath(), role, preReservedRole, principal);
     }
 
     private static DefaultNetworkSpec convertNetwork(
@@ -533,7 +543,7 @@ public class YAMLToInternalMappers {
         return ports;
     }
 
-    private static PortsSpec convertPorts(
+    private static Collection<PortSpec> convertPorts(
             String role,
             String preReservedRole,
             String principal,
@@ -542,7 +552,6 @@ public class YAMLToInternalMappers {
         Collection<PortSpec> portSpecs = new ArrayList<>();
         Set<Integer> ports = new HashSet<>();
         Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
-        String envKey = null;
 
         for (Map.Entry<String, RawPort> portEntry : rawPorts.entrySet()) {
             String name = portEntry.getKey();
@@ -558,9 +567,9 @@ public class YAMLToInternalMappers {
                     .setBegin(rawPort.getPort())
                     .setEnd(rawPort.getPort());
             portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
-            if (envKey == null) {
-                envKey = rawPort.getEnvKey();
-            }
+
+            final Protos.DiscoveryInfo.Visibility visibility =
+                    rawPort.isAdvertised() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();
@@ -585,15 +594,12 @@ public class YAMLToInternalMappers {
                         rawPort.getEnvKey(),
                         name,
                         DcosConstants.DEFAULT_IP_PROTOCOL,
-                        Constants.DISPLAYED_PORT_VISIBILITY,
+                        visibility,
                         StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix(),
                         rawVip.getPort(),
                         networkNames);
                 portSpecs.add(namedVIPSpec);
             } else {
-                // For now, ports without VIPs are omitted in EndpointsResource. To include them, set the visibility
-                // to Constants.DISPLAYED_PORT_VISIBILITY. Services may manually enable this by manually building their
-                // PortSpec objects in Java.
                 portSpecs.add(new PortSpec(
                         portValueBuilder.build(),
                         role,
@@ -601,11 +607,24 @@ public class YAMLToInternalMappers {
                         principal,
                         rawPort.getEnvKey(),
                         name,
-                        Constants.OMITTED_PORT_VISIBILITY,
+                        visibility,
                         networkNames));
             }
         }
-        return new PortsSpec(
-                Constants.PORTS_RESOURCE_TYPE, portsValueBuilder.build(), role, principal, envKey, portSpecs);
+        return portSpecs;
+    }
+
+    /**
+     * This method provides the correct role for resources to use when reserving refined resources.
+     * @param preReservedRole The role of pre-reserved resources
+     * @param role The role of the service
+     * @return The final role which refined resources should use
+     */
+    private static String getRole(String preReservedRole, String role) {
+        if (preReservedRole == null || preReservedRole.equals(Constants.ANY_ROLE)) {
+            return role;
+        } else {
+            return preReservedRole + "/" + role;
+        }
     }
 }

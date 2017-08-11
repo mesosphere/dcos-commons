@@ -63,14 +63,20 @@ public class EndpointUtils {
     }
 
     /**
-     * Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.
+     * Returns the correct L4LB VIP hostname for the provided task running within the provided service.
      */
-    public static String toVipEndpoint(String serviceName, VipInfo vipInfo) {
-        String hostname = String.format("%s.%s.%s",
+    public static String toVipHostname(String serviceName, VipInfo vipInfo) {
+        return String.format("%s.%s.%s",
                 removeSlashes(vipInfo.getVipName()),
                 removeSlashes(serviceName),
                 Constants.VIP_HOST_TLD);
-        return toEndpoint(hostname, vipInfo.getVipPort());
+    }
+
+    /**
+     * Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.
+     */
+    public static String toVipEndpoint(String serviceName, VipInfo vipInfo) {
+        return toEndpoint(toVipHostname(serviceName, vipInfo), vipInfo.getVipPort());
     }
 
     /**
@@ -83,7 +89,7 @@ public class EndpointUtils {
     /**
      * "/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".
      */
-    private static String removeSlashes(String name) {
+    public static String removeSlashes(String name) {
         return name.replace("/", "");
     }
 
@@ -91,7 +97,7 @@ public class EndpointUtils {
      * "hello.kafka" => "hello-kafka". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
      * dots are converted to dashes with autoip hostnames. See DCOS-16086.
      */
-    private static String replaceDotsWithDashes(String name) {
+    public static String replaceDotsWithDashes(String name) {
         return name.replace('.', '-');
     }
 }

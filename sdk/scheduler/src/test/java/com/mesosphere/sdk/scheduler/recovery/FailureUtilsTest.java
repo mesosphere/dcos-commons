@@ -68,7 +68,7 @@ public class FailureUtilsTest {
         when(mockStateStore.fetchTask(TestConstants.POD_TYPE + "-" + TestConstants.TASK_NAME + "2"))
                 .thenReturn(Optional.empty());
 
-        Assert.assertFalse(FailureUtils.isAllMarkedFailed(mockStateStore, mockPodInstance));
+        Assert.assertFalse(FailureUtils.isAllLabeledAsFailed(mockStateStore, mockPodInstance));
     }
 
     @Test
@@ -88,7 +88,7 @@ public class FailureUtilsTest {
         when(mockStateStore.fetchTask(TestConstants.POD_TYPE + "-" + TestConstants.TASK_NAME + "2"))
                 .thenReturn(Optional.of(TASK2_FAILED));
 
-        Assert.assertTrue(FailureUtils.isAllMarkedFailed(mockStateStore, mockPodInstance));
+        Assert.assertTrue(FailureUtils.isAllLabeledAsFailed(mockStateStore, mockPodInstance));
     }
 
     @Test
@@ -108,7 +108,7 @@ public class FailureUtilsTest {
         when(mockStateStore.fetchTask(TestConstants.POD_TYPE + "-" + TestConstants.TASK_NAME + "2"))
                 .thenReturn(Optional.of(TASK2_NOTFAILED));
 
-        Assert.assertFalse(FailureUtils.isAllMarkedFailed(mockStateStore, mockPodInstance));
+        Assert.assertFalse(FailureUtils.isAllLabeledAsFailed(mockStateStore, mockPodInstance));
     }
 
     @Test
@@ -128,7 +128,7 @@ public class FailureUtilsTest {
         when(mockStateStore.fetchTask(TestConstants.POD_TYPE + "-" + TestConstants.TASK_NAME + "2"))
                 .thenReturn(Optional.of(TASK2_FAILED));
 
-        Assert.assertTrue(FailureUtils.isAllMarkedFailed(mockStateStore, mockPodInstance));
+        Assert.assertTrue(FailureUtils.isAllLabeledAsFailed(mockStateStore, mockPodInstance));
     }
 
     @Test
@@ -148,6 +148,6 @@ public class FailureUtilsTest {
         when(mockStateStore.fetchTask(TestConstants.POD_TYPE + "-" + TestConstants.TASK_NAME + "2"))
                 .thenReturn(Optional.of(TASK2_FAILED));
 
-        Assert.assertFalse(FailureUtils.isAllMarkedFailed(mockStateStore, mockPodInstance));
+        Assert.assertFalse(FailureUtils.isAllLabeledAsFailed(mockStateStore, mockPodInstance));
     }
 }

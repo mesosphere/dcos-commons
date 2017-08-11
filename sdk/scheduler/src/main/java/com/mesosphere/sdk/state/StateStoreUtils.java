@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.TaskException;
@@ -16,7 +17,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -167,7 +173,8 @@ public class StateStoreUtils {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
     }
 
-    private static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
+    @VisibleForTesting
+    protected static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
         byte[] bytes = fetchPropertyOrEmptyArray(stateStore, propertyName);
         if (bytes.length == 0) {
             return false;

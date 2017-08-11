@@ -35,12 +35,6 @@ public class OfferAccepterTest {
     }
 
     @Test
-    public void testConstructor() {
-        OfferAccepter accepter = new OfferAccepter(new TestOperationRecorder());
-        Assert.assertNotNull(accepter);
-    }
-
-    @Test
     public void testLaunchTransient() {
         Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
         Offer offer = OfferTestUtils.getCompleteOffer(resource);
@@ -48,7 +42,7 @@ public class OfferAccepterTest {
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
-        OfferAccepter accepter = new OfferAccepter(recorder);
+        OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
         accepter.accept(
                 driver,
                 Arrays.asList(new LaunchOfferRecommendation(
@@ -72,7 +66,7 @@ public class OfferAccepterTest {
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
-        OfferAccepter accepter = new OfferAccepter(recorder);
+        OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
         accepter.accept(
                 driver,
                 Arrays.asList(new LaunchOfferRecommendation(

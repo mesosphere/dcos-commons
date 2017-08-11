@@ -182,7 +182,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     private boolean isTaskPermanentlyFailed(Protos.TaskInfo taskInfo) {
-        return FailureUtils.isMarkedFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
+        return FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
     }
 
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)

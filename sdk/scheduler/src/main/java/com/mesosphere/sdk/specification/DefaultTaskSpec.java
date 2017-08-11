@@ -44,6 +44,9 @@ public class DefaultTaskSpec implements TaskSpec {
     @Valid
     private final Collection<ConfigFileSpec> configFiles;
 
+    @Valid
+    private Collection<TransportEncryptionSpec> transportEncryption;
+
     @JsonCreator
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
@@ -53,7 +56,8 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
-            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec) {
+            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec,
+            @JsonProperty("transport-encryption") Collection<TransportEncryptionSpec> transportEncryption) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
@@ -62,6 +66,7 @@ public class DefaultTaskSpec implements TaskSpec {
         this.readinessCheckSpec = readinessCheckSpec;
         this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
         this.discoverySpec = discoverySpec;
+        this.transportEncryption = (transportEncryption != null) ? transportEncryption : Collections.emptyList();
     }
 
     private DefaultTaskSpec(Builder builder) {
@@ -73,7 +78,8 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.healthCheckSpec,
                 builder.readinessCheckSpec,
                 builder.configFiles,
-                builder.discoverySpec);
+                builder.discoverySpec,
+                builder.transportEncryption);
     }
 
     public static Builder newBuilder() {
@@ -91,6 +97,7 @@ public class DefaultTaskSpec implements TaskSpec {
         builder.readinessCheckSpec = copy.getReadinessCheck().orElse(null);
         builder.configFiles = copy.getConfigFiles();
         builder.discoverySpec = copy.getDiscovery().orElse(null);
+        builder.transportEncryption = copy.getTransportEncryption();
         return builder;
     }
 
@@ -135,6 +142,11 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
+    public Collection<TransportEncryptionSpec> getTransportEncryption() {
+        return transportEncryption;
+    }
+
+    @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
@@ -165,6 +177,7 @@ public class DefaultTaskSpec implements TaskSpec {
         private ReadinessCheckSpec readinessCheckSpec;
         private Collection<ConfigFileSpec> configFiles;
         private DiscoverySpec discoverySpec;
+        private Collection<TransportEncryptionSpec> transportEncryption;
 
         private Builder() {
         }
@@ -266,6 +279,18 @@ public class DefaultTaskSpec implements TaskSpec {
             DefaultTaskSpec defaultTaskSpec = new DefaultTaskSpec(this);
             ValidationUtils.validate(defaultTaskSpec);
             return defaultTaskSpec;
+        }
+
+        /**
+         * Sets the {@code transportEncryption} and returns a reference to this Builder so that methods can be
+         * chained together.
+         *
+         * @param transportEncryption The {@link TransportEncryptionSpec} to set
+         * @return a reference to this Builder
+         */
+        public Builder setTransportEncryption(Collection<TransportEncryptionSpec> transportEncryption) {
+            this.transportEncryption = transportEncryption;
+            return this;
         }
     }
 }
