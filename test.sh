@@ -130,7 +130,7 @@ docker run --rm \
     -e CLUSTER_URL=$CLUSTER_URL \
     $azure_args \
     -e SECURITY=$security \
-    -e DCOS_ENTERPRISE=DCOS_ENTERPRISE \
+    -e DCOS_ENTERPRISE=$DCOS_ENTERPRISE \
     -e "PYTEST_K=$pytest_k" \
     -e "PYTEST_M=$pytest_m" \
     -e FRAMEWORK=$framework \
