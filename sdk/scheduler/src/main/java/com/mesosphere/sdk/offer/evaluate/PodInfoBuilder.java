@@ -65,7 +65,7 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
-                            schedulerFlags);
+                    schedulerFlags);
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);

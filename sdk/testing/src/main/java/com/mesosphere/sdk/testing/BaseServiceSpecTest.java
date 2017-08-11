@@ -12,6 +12,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mock;
@@ -42,6 +43,7 @@ public class BaseServiceSpecTest {
         MockitoAnnotations.initMocks(this);
         when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
         when(mockFlags.getApiServerPort()).thenReturn(8080);
+        when(mockFlags.getServiceAccountUid()).thenReturn(TestConstants.PRINCIPAL);
     }
 
     protected BaseServiceSpecTest(Map<String, String> envVars) {

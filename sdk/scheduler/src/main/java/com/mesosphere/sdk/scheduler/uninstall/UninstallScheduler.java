@@ -1,11 +1,10 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.api.PlansResource;
+import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
-import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerApiServer;
-import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
+import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
@@ -33,10 +32,14 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private static final String RESOURCE_PHASE = "resource-phase";
     private static final String DEREGISTER_PHASE = "deregister-phase";
+    private static final String TLS_CLEANUP_PHASE = "tls-cleanup-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
     protected final int port;
+    protected final Optional<SecretsClient> secretsClient;
+    protected final String serviceName;
     private final Plan uninstallPlan;
     private final ConfigStore<ServiceSpec> configStore;
+    private final SchedulerFlags schedulerFlags;
     PlanManager uninstallPlanManager;
     private TaskKiller taskKiller;
     private OfferAccepter offerAccepter;
@@ -49,13 +52,19 @@ public class UninstallScheduler extends AbstractScheduler {
      * the framework deregisters itself and cleans up its state in Zookeeper.
      */
     public UninstallScheduler(
+            String serviceName,
             int port,
             Duration apiServerInitTimeout,
             StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore) {
+            ConfigStore<ServiceSpec> configStore,
+            SchedulerFlags schedulerFlags,
+            Optional<SecretsClient> secretsClient) {
         super(stateStore);
         this.port = port;
         this.configStore = configStore;
+        this.schedulerFlags = schedulerFlags;
+        this.secretsClient = secretsClient;
+        this.serviceName = serviceName;
         this.uninstallPlan = getPlan();
         this.uninstallPlanManager = new DefaultPlanManager(uninstallPlan);
         LOGGER.info("Initializing plans resource...");
@@ -65,6 +74,16 @@ public class UninstallScheduler extends AbstractScheduler {
         new Thread(schedulerApiServer).start();
     }
 
+    public UninstallScheduler(
+            String serviceName,
+            int port,
+            Duration apiServerInitTimeout,
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            SchedulerFlags schedulerFlags) {
+        this(serviceName, port, apiServerInitTimeout, stateStore, configStore, schedulerFlags, Optional.empty());
+    }
+
     private Plan getPlan() {
         // If there is no framework ID, wipe ZK and return a COMPLETE plan
         if (!stateStore.fetchFrameworkId().isPresent()) {
@@ -72,6 +91,8 @@ public class UninstallScheduler extends AbstractScheduler {
             stateStore.clearAllData();
             return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
         }
+
+        List<Phase> phases = new ArrayList<>();
 
         // Given this scenario:
         // - Task 1: resource A, resource B
@@ -87,14 +108,26 @@ public class UninstallScheduler extends AbstractScheduler {
 
         Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
                 Collections.emptyList());
+        phases.add(resourcePhase);
+
+        if (secretsClient.isPresent()) {
+            Step tlsCleanupStep = new TLSCleanupStep(
+                    Status.PENDING,
+                    secretsClient.get(),
+                    SecretNameGenerator.getNamespaceFromEnvironment(serviceName, schedulerFlags));
+            List<Step> tlsCleanupSteps = Collections.singletonList(tlsCleanupStep);
+            Phase tlsCleanupPhase = new DefaultPhase(TLS_CLEANUP_PHASE, tlsCleanupSteps, new SerialStrategy<>(),
+                    Collections.emptyList());
+            phases.add(tlsCleanupPhase);
+        }
 
         // We don't have access to the SchedulerDriver yet, so that gets set later
         Step deregisterStep = new DeregisterStep(Status.PENDING, stateStore);
         List<Step> deregisterSteps = Collections.singletonList(deregisterStep);
         Phase deregisterPhase = new DefaultPhase(DEREGISTER_PHASE, deregisterSteps, new SerialStrategy<>(),
                 Collections.emptyList());
+        phases.add(deregisterPhase);
 
-        List<Phase> phases = Arrays.asList(resourcePhase, deregisterPhase);
         return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
     }
 
@@ -170,7 +203,8 @@ public class UninstallScheduler extends AbstractScheduler {
         super.postRegister();
         // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep.
         // It's the second Step of the second Phase of the Plan.
-        DeregisterStep deregisterStep = (DeregisterStep) uninstallPlan.getChildren().get(1).getChildren().get(0);
+        List<Phase> phases = uninstallPlan.getChildren();
+        DeregisterStep deregisterStep = (DeregisterStep) phases.get(phases.size() - 1).getChildren().get(0);
         deregisterStep.setSchedulerDriver(driver);
 
         Collection<String> taskNames = stateStore.fetchTaskNames();
