@@ -15,11 +15,12 @@ FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name>"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-o] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"sanity and not azure\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "-p PATH to cluster SSH key [default ~/.ssh/ccm.pem]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
+    echo "-o Testing against an Open cluster not Enterprise"
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "AWS credentials must exist in the variables:"
     echo "      \$AWS_ACCESS_KEY_ID"
@@ -61,6 +62,7 @@ pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
+DCOS_ENTERPRISE=True
 
 # If AZURE variables are given, change default -m and prepare args for docker
 if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
@@ -94,6 +96,10 @@ case $key in
     security="strict"
     [[ $CLUSTER_URL == https* ]] || echo "CLUSTER_URL must be https in strict mode" && exit 1
     ;;
+    -o)
+    DCOS_ENTERPRISE=False
+    shift # past argument
+    ;;
     -p)
     ssh_path="$2"
     shift # past argument
@@ -124,6 +130,7 @@ docker run --rm \
     -e CLUSTER_URL=$CLUSTER_URL \
     $azure_args \
     -e SECURITY=$security \
+    -e DCOS_ENTERPRISE=DCOS_ENTERPRISE \
     -e "PYTEST_K=$pytest_k" \
     -e "PYTEST_M=$pytest_m" \
     -e FRAMEWORK=$framework \

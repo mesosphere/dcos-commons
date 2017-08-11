@@ -42,7 +42,7 @@ def login_session() -> None:
 
     Behavior is determined by the following environment variables:
     CLUSTER_URL: full URL to the test cluster
-    DCOS_ENTERPRISE: if set to any value assume an EE instance
+    DCOS_ENTERPRISE: testing EE if "True"
     DCOS_LOGIN_USERNAME: the EE user (defaults to bootstrapuser)
     DCOS_LOGIN_PASSWORD: the EE password (defaults to deleteme)
     DCOS_ACS_TOKEN: bypass auth and use the user supplied token
@@ -56,7 +56,7 @@ def login_session() -> None:
     cluster_url = os.environ.get('CLUSTER_URL')
     dcos_login_username = os.environ.get('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
-    dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', False) and True
+    dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', None) == 'True'
     dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
     if not dcos_acs_token:
         dcos_acs_token = login(
