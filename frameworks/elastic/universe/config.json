@@ -26,7 +26,7 @@
           "default": ""
         },
         "virtual_network_enabled": {
-          "description": "Enable DC/OS Virtual Networking",
+          "description": "Enable virtual networking",
           "type": "boolean",
           "default": false
         },
