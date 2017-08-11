@@ -1,0 +1,44 @@
+group 'com.mesosphere.sdk'
+version '0.1-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.1"
+    }
+}
+
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: 'java'
+apply plugin: 'application'
+
+ext {
+    dropwizardVer = '1.1.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile "io.dropwizard:dropwizard-core:${dropwizardVer}"
+    compile "io.dropwizard:dropwizard-client:${dropwizardVer}"
+    compile "io.dropwizard:dropwizard-jackson:${dropwizardVer}"
+    compile "io.dropwizard:dropwizard-hibernate:${dropwizardVer}"
+}
+
+mainClassName = 'com.mesosphere.sdk.testing.tls.keystore.KeystoreApplication'
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+task integrationTestZip(type: Zip, dependsOn: 'shadowJar') {
+    archiveName = "keystore-app.zip"
+    from shadowJar.archivePath
+    from('config/integration-test.yml')
+}
+

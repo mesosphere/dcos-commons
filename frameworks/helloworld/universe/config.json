@@ -153,6 +153,27 @@
           "disk",
           "count"
         ]
+      },
+      "tls":{
+        "description":"TLS pod configuration properties",
+        "type":"object",
+        "properties":{
+          "keystore_app_version":{
+            "description":"Keystore app version",
+            "type":"string",
+            "default":"0.1-SNAPSHOT"
+          },
+          "nginx_container_version":{
+            "description":"NGINX TLS container version",
+            "type":"string",
+            "default":"0.1"
+          },
+          "discovery_task_prefix":{
+            "description":"Service discovery prefix name for discovery task",
+            "type":"string",
+            "default":"discovered"
+          }
+        }
       }
     }
 }

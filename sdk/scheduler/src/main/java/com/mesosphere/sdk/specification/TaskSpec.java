@@ -35,6 +35,10 @@ public interface TaskSpec {
     @JsonProperty("discovery-spec")
     Optional<DiscoverySpec> getDiscovery();
 
+    @JsonProperty("transport-encryption")
+    Collection<TransportEncryptionSpec> getTransportEncryption();
+
+
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return getInstanceName(podInstance, taskSpec.getName());
     }

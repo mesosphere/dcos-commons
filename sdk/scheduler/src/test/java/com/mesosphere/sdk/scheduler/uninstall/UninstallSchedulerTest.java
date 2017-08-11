@@ -75,7 +75,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Collections.singletonList(TASK_A));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
+        uninstallScheduler = new TestScheduler(TestConstants.SERVICE_NAME, 0, Duration.ofSeconds(1), stateStore, configStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
     }
 
@@ -105,7 +105,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Arrays.asList(TASK_A, TASK_B));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, true);
+        uninstallScheduler = new TestScheduler(TestConstants.SERVICE_NAME, 0, Duration.ofSeconds(1), stateStore, configStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
 
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
@@ -162,7 +162,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testApiServerNotReadyDecline() throws InterruptedException {
-        UninstallScheduler uninstallScheduler = new TestScheduler(0, Duration.ofSeconds(1), stateStore, configStore, false);
+        UninstallScheduler uninstallScheduler = new TestScheduler(TestConstants.SERVICE_NAME, 0, Duration.ofSeconds(1), stateStore, configStore, false);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
 
         Protos.Offer offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
@@ -178,12 +178,19 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         private final boolean apiServerReady;
 
         TestScheduler(
+                String serviceName,
                 int port,
                 Duration apiServerInitTimeout,
                 StateStore stateStore,
                 ConfigStore<ServiceSpec> configStore,
                 boolean apiServerReady) {
-            super(port, apiServerInitTimeout, stateStore, configStore);
+            super(
+                    serviceName,
+                    port,
+                    apiServerInitTimeout,
+                    stateStore,
+                    configStore,
+                    OfferRequirementTestUtils.getTestSchedulerFlags());
             this.apiServerReady = apiServerReady;
         }
 

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.Credential;
+import org.json.JSONObject;
 
 import java.time.Duration;
 import java.util.Map;
@@ -54,6 +55,14 @@ public class SchedulerFlags {
     private static final String API_SERVER_TIMEOUT_S_ENV = "API_SERVER_TIMEOUT_S";
     /** The default number of seconds to wait for the Scheduler API to come up during startup. */
     private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600;
+
+    /**
+     * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
+     * token refresh.
+     */
+    private static final String AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV = "AUTH_TOKEN_REFRESH_THRESHOLD_S";
+    /** The default number of seconds before auth token expiration that will trigger auth token refresh. */
+    private static final int DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S = 30;
 
     /** Specifies the URI of the executor artifact to be used when launching tasks. */
     private static final String EXECUTOR_URI_ENV = "EXECUTOR_URI";
@@ -124,6 +133,14 @@ public class SchedulerFlags {
     }
 
     /**
+     * Returns the configured threshold that will trigger auth token refresh before its expiration.
+     */
+    public Duration getAuthTokenRefreshThreshold() {
+        return Duration.ofSeconds(flagStore.getOptionalInt(
+                AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
+    }
+
+    /**
      * Returns the configured API port, or throws {@link FlagException} if the environment lacked the required
      * information.
      */
@@ -176,6 +193,24 @@ public class SchedulerFlags {
      */
     public boolean isSideChannelActive() {
         return flagStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
+    }
+
+    public String getServiceAccountUid() {
+        return getServiceAccountObject().getString("uid");
+    }
+
+    public String getServiceAccountPrivateKeyPEM() {
+        return getServiceAccountObject().getString("private_key");
+    }
+
+    /**
+     * Gets a service account JSON object.
+     *
+     * TODO(mh): Add documentation about this JSON varaible being injected to scheduler runtime
+     * {@see https://github.com/mesosphere/mesos-modules-private/blob/master/common/bouncer.cpp#L340}
+     */
+    private JSONObject getServiceAccountObject() {
+        return new JSONObject(flagStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
     }
 
     /**

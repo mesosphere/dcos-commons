@@ -358,6 +358,21 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
         The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](http://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
 
+    * `transport-encryption`
+
+      A task may optionally ask for a X.509 TLS certificate with private key and CA certificate bundle. A certificate can be used by service to enable secure communication.
+
+      * `name`
+
+        A name of files representing the TLS artifacts in the task sandbox directory. For example a `name: nginx` with `type: TLS` will result in `$MESOS_SANDBOX/nginx.crt`, `$MESOS_SANDBOX/nginx.key` and `$MESOS_SANDBOX/nginx.ca` files.
+
+      * `type`
+
+        A type or format of delivered TLS artifacts.
+        This can be set either to `TLS` for PEM encoded private key file, certificate and CA bundle or `KEYSTORE` for certificate and private key to be delivered in a separate keystore file and CA bundle in other truststore file.
+
+      For detailed information see the [SDK Developer Guide](developer-guide.html#tls).
+
   * `user`
 
     The system user to run this pod as. The available users depend on the administrator's cluster. If clusters are using DC/OS Security enabled, this may need to be set to `nobody`.
