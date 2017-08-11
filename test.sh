@@ -150,13 +150,13 @@ fi
 docker run --rm \
     -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
     -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
-    -e CLUSTER_URL=$CLUSTER_URL \
+    -e CLUSTER_URL="$CLUSTER_URL" \
     $azure_args \
     -e SECURITY=$security \
     -e PYTEST_K="$pytest_k" \
     -e PYTEST_M="$pytest_m" \
     -e FRAMEWORK=$framework \
-    -e STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL \
+    -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -v $(pwd):/build \
     -v $ssh_path:/ssh/key \
     -w /build \
