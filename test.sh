@@ -152,7 +152,7 @@ docker run --rm \
     -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
     -e CLUSTER_URL="$CLUSTER_URL" \
     $azure_args \
-    -e SECURITY=$security \
+    -e SECURITY="$security" \
     -e PYTEST_K="$pytest_k" \
     -e PYTEST_M="$pytest_m" \
     -e FRAMEWORK=$framework \
