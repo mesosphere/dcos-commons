@@ -3,6 +3,7 @@
 import json
 import requests
 import os
+import sys
 import time
 
 base_url = 'https://ccm.mesosphere.com'
@@ -40,7 +41,7 @@ while give_up_time > time.time():
 
 if cluster_id is None:
     print("Never retrieved cluster id from CCM!")
-    os.exit(1)
+    sys.exit(1)
 
 # This API call increases the cluster length by an additional 4 hours.
 # See: https://ccm.mesosphere.com/api-docs/#!/cluster/Cluster_Detail_PUT
