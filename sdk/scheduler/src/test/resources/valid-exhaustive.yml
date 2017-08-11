@@ -27,6 +27,7 @@ pods:
           meta-data-http:
             port: 8080
             env-key: HTTP_PORT
+            advertise: true
             vip:
               port: 80
         volumes:
@@ -61,6 +62,11 @@ pods:
           max-consecutive-failures: 3
           delay: 0
           timeout: 10
+        transport-encryption:
+          - name: secure-pod-pem
+            type: TLS
+          - name: different-cert
+            type: KEYSTORE
   data-store:
     placement: "hostname:UNIQUE"
     count: 3
@@ -99,6 +105,9 @@ pods:
           max-consecutive-failures: 3
           delay: 0
           timeout: 10
+        transport-encryption:
+          - name: secure-pod-pem
+            type: KEYSTORE
 
 plans:
   deploy:

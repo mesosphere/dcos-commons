@@ -60,6 +60,9 @@ cd $GOPATH_EXE_DIR
 
 go get
 
+# run unit tests
+go test -v
+
 # optimization: build a native version of the executable and check if the sha1 matches a
 # previous native build. if the sha1 matches, then we can skip the rebuild.
 NATIVE_FILENAME="native-${EXE_FILENAME}"
