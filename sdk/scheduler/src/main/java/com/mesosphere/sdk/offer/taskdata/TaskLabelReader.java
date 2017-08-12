@@ -127,14 +127,6 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns whether the task is marked as being launched for the first time at its current location.
-     */
-    public boolean isInitialLaunch() {
-        // null is false
-        return Boolean.valueOf(reader.getOptional(LabelConstants.INITIAL_LAUNCH_LABEL).orElse(null));
-    }
-
-    /**
      * Returns whether the task has a readiness check label.
      */
     public boolean hasReadinessCheckLabel() {

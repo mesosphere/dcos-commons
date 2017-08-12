@@ -38,8 +38,17 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
 
         Optional<PodInstance> podInstance = getPodInstance(taskInfo);
-        final boolean isInitialLaunch =
-                podInstance.isPresent() ? FailureUtils.isAllLabeledAsFailed(stateStore, podInstance.get()) : false;
+        final boolean isInitialLaunch;
+        if (!podInstance.isPresent()) {
+            isInitialLaunch = false;
+            logger.debug("No pod instance found!");
+        } else {
+            Collection<Protos.TaskInfo> podTasks =
+                    StateStoreUtils.fetchPodTasks(stateStore, podInstance.get());
+            // If there are no taskinfos, then treat this as an initial launch:
+            isInitialLaunch = podTasks.isEmpty() ||
+                    podTasks.stream().allMatch(podTask -> FailureUtils.isLabeledAsFailed(podTask));
+        }
 
         Optional<Protos.TaskStatus> taskStatus = Optional.empty();
         String taskStatusDescription = "";

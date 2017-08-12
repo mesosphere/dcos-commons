@@ -8,7 +8,6 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 
 import org.apache.mesos.Protos;
 
-import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
@@ -28,19 +27,6 @@ public class FailureUtils {
      */
     public static boolean isLabeledAsFailed(Protos.TaskInfo taskInfo) {
         return new TaskLabelReader(taskInfo).isPermanentlyFailed();
-    }
-
-    /**
-     * Returns whether <i>all</i> present tasks in the provided pod have been marked as permanently failed in the
-     * provided state store. If no tasks are present, or if any present tasks are not marked failed, then this returns
-     * {@code false}.
-     */
-    public static boolean isAllLabeledAsFailed(StateStore stateStore, PodInstance podInstance) {
-        Collection<Protos.TaskInfo> taskInfos = StateStoreUtils.fetchPodTasks(stateStore, podInstance);
-        if (taskInfos.isEmpty()) {
-            return false;
-        }
-        return taskInfos.stream().allMatch(taskInfo -> isLabeledAsFailed(taskInfo));
     }
 
     /**

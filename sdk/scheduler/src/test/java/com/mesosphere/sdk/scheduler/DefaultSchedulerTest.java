@@ -8,6 +8,8 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -347,6 +349,107 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING),
                 PlanTestUtils.getStepStatuses(plan));
+    }
+
+    @Test
+    public void testInitialLaunchReplaceRecover() throws Exception {
+        // Get first Step associated with Task A-0
+        Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
+        Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
+        Assert.assertTrue(stepTaskA0.isPending());
+
+        Assert.assertTrue(stateStore.fetchTaskNames().isEmpty());
+
+        // Launch 1: Task enters ERROR without reaching RUNNING - kill and replace
+
+        // Offer sufficient Resource and wait for its acceptance
+        Protos.Offer offer = getSufficientOfferForTaskA();
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
+        verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
+                collectionThat(contains(offer.getId())),
+                operationsCaptor.capture(),
+                any());
+        defaultScheduler.awaitOffersProcessed();
+
+        Protos.TaskInfo initialFailedTask = getTask(operationsCaptor.getValue());
+
+        // Task should be initial state
+        Protos.TaskStatus status = stateStore.fetchStatus(initialFailedTask.getName()).get();
+        Assert.assertTrue(status.toString(), AuxLabelAccess.isInitialLaunch(status));
+
+        // Without sending TASK_RUNNING or any other status, pretend the task failed
+        statusUpdate(initialFailedTask.getTaskId(), Protos.TaskState.TASK_ERROR);
+
+        // Expect pod to be killed, initial state to be overwritten, and all tasks to be marked permanently failed
+        verify(mockSchedulerDriver, timeout(1000).times(1)).killTask(initialFailedTask.getTaskId());
+        Assert.assertFalse(
+                AuxLabelAccess.isInitialLaunch(stateStore.fetchStatus(initialFailedTask.getName()).get()));
+        Assert.assertTrue(
+                new TaskLabelReader(stateStore.fetchTask(initialFailedTask.getName()).get()).isPermanentlyFailed());
+
+        // Launch 2: Task enters ERROR after reaching RUNNING - restart in-place
+
+        // Offer again, and launch successfully this time
+        offer = getSufficientOfferForTaskA();
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
+        verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
+                collectionThat(contains(offer.getId())),
+                operationsCaptor.capture(),
+                any());
+        defaultScheduler.awaitOffersProcessed();
+
+        Protos.TaskInfo launchedFailedTask = getTask(operationsCaptor.getValue());
+
+        // Task should be in initial state
+        status = stateStore.fetchStatus(launchedFailedTask.getName()).get();
+        Assert.assertTrue(status.toString(), AuxLabelAccess.isInitialLaunch(status));
+
+        // Sent TASK_RUNNING status
+        statusUpdate(launchedFailedTask.getTaskId(), Protos.TaskState.TASK_RUNNING);
+
+        // Check that the step is complete and the task is no longer in initial launch state
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isComplete(), equalTo(true));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
+        status = stateStore.fetchStatus(launchedFailedTask.getName()).get();
+        Assert.assertFalse(status.toString(), AuxLabelAccess.isInitialLaunch(status));
+
+        // Now simulate another failure, and verify that the task is NOT marked as permanently failed
+        statusUpdate(launchedFailedTask.getTaskId(), Protos.TaskState.TASK_ERROR);
+        verify(mockSchedulerDriver, timeout(1000).times(0)).killTask(launchedFailedTask.getTaskId());
+        Assert.assertFalse(
+                new TaskLabelReader(stateStore.fetchTask(launchedFailedTask.getName()).get()).isPermanentlyFailed());
+
+        // Launch 3: In-place relaunch of last instance
+
+        // Offer again, and check that the task is relaunched as-is
+        defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
+        verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
+                collectionThat(contains(offer.getId())),
+                operationsCaptor.capture(),
+                any());
+        defaultScheduler.awaitOffersProcessed();
+
+        Protos.TaskInfo relaunchedTask = getTask(operationsCaptor.getValue());
+
+        // Not an initial launch.
+        status = stateStore.fetchStatus(relaunchedTask.getName()).get();
+        Assert.assertFalse(status.toString(), AuxLabelAccess.isInitialLaunch(status));
+
+        // Sent TASK_RUNNING status
+        statusUpdate(relaunchedTask.getTaskId(), Protos.TaskState.TASK_RUNNING);
+
+        // Check that the step is complete and the task is still not in initial launch state
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isComplete(), equalTo(true));
+        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PREPARED, Status.PENDING),
+                PlanTestUtils.getStepStatuses(plan));
+        status = stateStore.fetchStatus(relaunchedTask.getName()).get();
+        Assert.assertFalse(status.toString(), AuxLabelAccess.isInitialLaunch(status));
+
+        // Just in case, again verify that killTask() was ONLY called for the initial failed task:
+        verify(mockSchedulerDriver, times(1)).killTask(initialFailedTask.getTaskId());
+        verify(mockSchedulerDriver, times(0)).killTask(launchedFailedTask.getTaskId());
+        verify(mockSchedulerDriver, times(0)).killTask(relaunchedTask.getTaskId());
     }
 
     @Test
@@ -746,17 +849,21 @@ public class DefaultSchedulerTest {
         return count;
     }
 
-    private Protos.TaskID getTaskId(Collection<Protos.Offer.Operation> operations) {
+    private static Protos.TaskInfo getTask(Collection<Protos.Offer.Operation> operations) {
         for (Protos.Offer.Operation operation : operations) {
             if (operation.getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
-                return operation.getLaunchGroup().getTaskGroup().getTasks(0).getTaskId();
+                return operation.getLaunchGroup().getTaskGroup().getTasks(0);
             }
         }
 
         return null;
     }
 
-    private Protos.TaskStatus getTaskStatus(Protos.TaskID taskID, Protos.TaskState state) {
+    private static Protos.TaskID getTaskId(Collection<Protos.Offer.Operation> operations) {
+        return getTask(operations).getTaskId();
+    }
+
+    private static Protos.TaskStatus getTaskStatus(Protos.TaskID taskID, Protos.TaskState state) {
         return Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
                 .setState(state)
@@ -841,7 +948,7 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resource and wait for its acceptance
         defaultScheduler.resourceOffers(mockSchedulerDriver, offers);
         verify(mockSchedulerDriver, timeout(1000).times(1)).acceptOffers(
-                (Collection<Protos.OfferID>) Matchers.argThat(contains(offerId)),
+                Matchers.argThat(isACollectionThat(contains(offerId))),
                 operationsCaptor.capture(),
                 any());
 
@@ -861,6 +968,21 @@ public class DefaultSchedulerTest {
         Awaitility.await().atMost(5, TimeUnit.SECONDS).untilCall(Awaitility.to(step).isComplete(), equalTo(true));
 
         return taskId;
+    }
+
+    /**
+     * Workaround for typecast warnings relating to Collection arguments.
+     * @see https://stackoverflow.com/questions/20441594/mockito-and-hamcrest-how-to-verify-invokation-of-collection-argument
+     */
+    private static <T> Matcher<Collection<T>> isACollectionThat(final Matcher<Iterable<? extends T>> matcher) {
+        return new BaseMatcher<Collection<T>>() {
+            @Override public boolean matches(Object item) {
+                return matcher.matches(item);
+            }
+            @Override public void describeTo(Description description) {
+                matcher.describeTo(description);
+            }
+        };
     }
 
     private void statusUpdate(Protos.TaskID launchedTaskId, Protos.TaskState state) {
