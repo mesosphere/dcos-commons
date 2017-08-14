@@ -136,6 +136,7 @@ public class DeploymentStep extends AbstractStep {
             case TASK_FAILED:
             case TASK_KILLED:
             case TASK_KILLING:
+            case TASK_LOST:
                 setTaskStatus(status.getTaskId(), Status.PENDING);
                 // Retry the step because something failed.
                 setStatus(Status.PENDING);
@@ -161,7 +162,7 @@ public class DeploymentStep extends AbstractStep {
                 }
                 break;
             default:
-                logger.warn("Failed to process unexpected state: " + status.getState());
+                logger.error("Failed to process unexpected state: " + status.getState());
         }
 
         setStatus(getStatus(tasks));

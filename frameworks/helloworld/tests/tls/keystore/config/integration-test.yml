@@ -1,0 +1,35 @@
+template: Hello, %s!
+
+defaultName: ${DW_DEFAULT_NAME:-Stranger}
+
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+    - type: https
+      port: 8443
+      keyStorePath: dropwizard.keystore
+      keyStorePassword: notsecure
+      trustStorePath: dropwizard.truststore
+      trustStorePassword: notsecure
+      keyManagerPassword: notsecure
+      certAlias: default # This is defined in TLSArtifactsGenerator class
+      validateCerts: false
+      validatePeers: false
+
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
+
+  appenders:
+    - type: console
+
+jerseyClient:
+  tls:
+    protocol: TLSv1.2
+    verifyHostname: true
+    trustStorePath: dropwizard.truststore
+    trustStorePassword: notsecure
+    trustSelfSignedCertificates: false

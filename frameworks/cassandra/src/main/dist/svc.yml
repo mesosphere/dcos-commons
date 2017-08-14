@@ -34,6 +34,7 @@ pods:
             port: {{TASKCFG_ALL_CASSANDRA_SSL_STORAGE_PORT}}
           node:
             port: {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+            advertise: true
             vip:
               prefix: node
               port: 9042

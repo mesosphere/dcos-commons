@@ -17,11 +17,13 @@ In this tutorial we'll be walking through step-by-step instructions on getting a
 
 4. The name of a task can be anything but since Kafka has brokers, change the type of the task in the Kafka pod from `node` to `broker`. Also, notice that `count` is specified as a property of the `kafka` pod. This indicates there will be `count` kafka pods, each of which will run a `broker`.
 
-5. Next, add the following property to the `broker` task in order to open up the necessary port.
+5. Next, add the following property to the `broker` task in order to open up the necessary port, and mark it as `advertise`d so that it appears in service endpoint information.
+
 ```
-  ports:
-    broker-port:
-      port: 9092
+ports:
+  broker-port:
+    port: 9092
+    advertise: true
 ```
 
 6. Now, let's modify the command that will start each `broker`. This is also a property of the `broker` task:
@@ -41,9 +43,9 @@ uris:
 
 ```
 configs:
-   server-properties:
-      	template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-       	dest: "kafka_2.11-0.10.0.0/config/server.properties"
+  server-properties:
+    template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
+    dest: "kafka_2.11-0.10.0.0/config/server.properties"
 ```
 
 9. Save and exit the `svc.yml` file. It should look similar to the following:
@@ -67,6 +69,7 @@ pods:
         ports:
           broker-port:
             port: 9092
+            advertise: true
         volume:
           path: "kafka-container-path"
           type: {{NODE_DISK_TYPE}}

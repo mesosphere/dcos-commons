@@ -13,20 +13,25 @@ set -e
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
 
+# Set default values
+security="permissive"
+pytest_m="sanity and not azure"
+pytest_k=""
+azure_args=""
+ssh_path="${HOME}/.ssh/ccm.pem"
+
 function usage()
 {
     echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name>"
-    echo "-m passed to pytest directly [default -m \"sanity and not azure\"]"
+    echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
-    echo "-p PATH to cluster SSH key [default ~/.ssh/ccm.pem]"
+    echo "-p PATH to cluster SSH key [default ${ssh_path}]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "AWS credentials must exist in the variables:"
     echo "      \$AWS_ACCESS_KEY_ID"
     echo "      \$AWS_SECRET_ACCESS_KEY"
-    echo "Azure tests will run if thses variables are set:"
-    echo "      \$AWS_ACCESS_KEY_ID"
-    echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "Azure tests will run if these variables are set:"
     echo "      \$AZURE_CLIENT_ID"
     echo "      \$AZURE_CLIENT_SECRET"
     echo "      \$AZURE_TENANT_ID"
@@ -41,10 +46,11 @@ function usage()
     done
 }
 
-if [ "$#" -eq "0" ]; then
+if [ "$#" -eq "0" -o x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     usage
     exit 1
 fi
+
 
 if [ -z "$CLUSTER_URL" ]; then
     echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
@@ -52,15 +58,30 @@ if [ -z "$CLUSTER_URL" ]; then
 fi
 
 if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
-    echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
-    exit 1
+    CREDENTIALS_FILE="$HOME/.aws/credentials"
+
+    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
+    if [ $( echo "$PROFILES" | wc -l ) != "1" ]; then
+        echo "Only single profile credentials files are supported"
+        echo "Found:"
+        echo "$PROFILES"
+        exit 1
+    fi
+
+    if  [ -f "$CREDENTIALS_FILE" ]; then
+        echo "Checking $CREDENTIALS_FILE"
+        SED_ARGS='s/^.*=\s*//g'
+        AWS_ACCESS_KEY_ID=$( grep -oE "^aws_access_key_id\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
+        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID// /}
+        AWS_SECRET_ACCESS_KEY=$( grep -oE "^aws_secret_access_key\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
+        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY// /}
+    fi
+    if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
+        exit 1
+    fi
 fi
 
-security="permissive"
-pytest_m="sanity and not azure"
-pytest_k=""
-azure_args=""
-ssh_path="${HOME}/.ssh/ccm.pem"
 
 # If AZURE variables are given, change default -m and prepare args for docker
 if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
@@ -77,8 +98,7 @@ EOFF
     pytest_m="sanity"
 fi
 
-while [[ $# -gt 1 ]]
-do
+while [[ $# -gt 1 ]]; do
 key="$1"
 
 case $key in
@@ -92,7 +112,10 @@ case $key in
     ;;
     -s)
     security="strict"
-    [[ $CLUSTER_URL == https* ]] || echo "CLUSTER_URL must be https in strict mode" && exit 1
+    if [[ $CLUSTER_URL != https* ]]; then
+        echo "CLUSTER_URL must be https in strict mode"
+        exit 1
+    fi
     ;;
     -p)
     ssh_path="$2"
@@ -107,6 +130,12 @@ esac
 shift # past argument or value
 done
 
+
+if [ ! -f "$ssh_path" ]; then
+    echo "The specified CCM key ($ssh_path) does not exist or is not a file"
+    exit 1
+fi
+
 if [ -z "$1" ]; then
     usage
     exit 1
@@ -119,15 +148,15 @@ if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
 fi
 
 docker run --rm \
-    -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-    -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-    -e CLUSTER_URL=$CLUSTER_URL \
+    -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+    -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+    -e CLUSTER_URL="$CLUSTER_URL" \
     $azure_args \
-    -e SECURITY=$security \
-    -e "PYTEST_K=$pytest_k" \
-    -e "PYTEST_M=$pytest_m" \
+    -e SECURITY="$security" \
+    -e PYTEST_K="$pytest_k" \
+    -e PYTEST_M="$pytest_m" \
     -e FRAMEWORK=$framework \
-    -e STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL \
+    -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -v $(pwd):/build \
     -v $ssh_path:/ssh/key \
     -w /build \

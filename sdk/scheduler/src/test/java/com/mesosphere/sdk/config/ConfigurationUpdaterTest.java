@@ -6,6 +6,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.*;
 import org.mockito.Mock;
@@ -134,7 +135,7 @@ public class ConfigurationUpdaterTest {
                         mockStateStore,
                         mockConfigStore,
                         DefaultServiceSpec.getComparatorInstance(),
-                        DefaultScheduler.defaultConfigValidators());
+                        DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -149,7 +150,10 @@ public class ConfigurationUpdaterTest {
     @Test
     public void testValidationDifferentConfigs() throws ConfigStoreException {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -166,7 +170,7 @@ public class ConfigurationUpdaterTest {
                         mockStateStore,
                         mockConfigStore,
                         DefaultServiceSpec.getComparatorInstance(),
-                        DefaultScheduler.defaultConfigValidators());
+                        DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, NEW_ID, UNKNOWN_ID));
@@ -180,7 +184,10 @@ public class ConfigurationUpdaterTest {
     public void testValidationSameConfig() throws ConfigStoreException {
         // strings are equal, so validation of ints is skipped:
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
@@ -191,7 +198,10 @@ public class ConfigurationUpdaterTest {
     @Test
     public void testValidationSingleError() throws ConfigStoreException {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);
@@ -203,7 +213,10 @@ public class ConfigurationUpdaterTest {
     @Test
     public void testUserSetAtPodLevelButNotAtServiceLevel() throws ConfigStoreException {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         // ORIGINAL_SERVICE_SPECIFICATION doesn't set service user
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
@@ -217,7 +230,10 @@ public class ConfigurationUpdaterTest {
     @Test
     public void testUserSetAtServiceLevelButNotPodLevel() throws ConfigStoreException {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
                 .user(DcosConstants.DEFAULT_SERVICE_USER);
@@ -242,7 +258,10 @@ public class ConfigurationUpdaterTest {
     @Test
     public void testPodsUsersUnsetInPreviousServiceSpecButSetToRootInNewServiceSpec() throws ConfigStoreException {
         final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                mockStateStore, mockConfigStore, DefaultServiceSpec.getComparatorInstance(), DefaultScheduler.defaultConfigValidators());
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
                 .user(DcosConstants.DEFAULT_SERVICE_USER);

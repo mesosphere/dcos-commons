@@ -19,7 +19,6 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,10 +42,8 @@ public class PodInfoBuilder {
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
     private Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
-    // TODO(nickbp): Remove this env storage after October 2017 when it's no longer used as a fallback for dynamic ports
-    private final Map<String, Map<String, String>> lastTaskEnvs;
+    private final Map<String, TaskPortLookup> portsByTask;
     private final boolean useDefaultExecutor;
-    private final Map<String, Map<String, Long>> lastTaskPorts;
 
     public PodInfoBuilder(
             PodInstanceRequirement podInstanceRequirement,
@@ -68,7 +65,7 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
-                            schedulerFlags);
+                    schedulerFlags);
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
@@ -85,21 +82,12 @@ public class PodInfoBuilder {
                 serviceName, podInstance, frameworkID, targetConfigId, schedulerFlags);
 
         this.podInstance = podInstance;
-
-        this.lastTaskPorts = new HashMap<>();
-        this.lastTaskEnvs = new HashMap<>();
+        this.portsByTask = new HashMap<>();
         for (Protos.TaskInfo currentTask : currentPodTasks) {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
-            Map<String, Long> taskPorts = new HashMap<>();
-            for (Protos.Port port : currentTask.getDiscovery().getPorts().getPortsList()) {
-                if (!Strings.isEmpty(port.getName())) {
-                    taskPorts.put(port.getName(), (long) port.getNumber());
-                }
-            }
-            this.lastTaskPorts.put(currentTask.getName(), taskPorts);
-            this.lastTaskEnvs.put(currentTask.getName(), EnvUtils.toMap(currentTask.getCommand().getEnvironment()));
+            portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
@@ -127,31 +115,12 @@ public class PodInfoBuilder {
      * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
      * it on task relaunch.
      */
-    public Optional<Long> lookupPriorTaskPortValue(String taskSpecName, String portName, String portEnvName) {
-        Map<String, Long> taskPorts = lastTaskPorts.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
-        if (taskPorts != null) {
-            Long lastPort = taskPorts.get(portName);
-            if (lastPort != null) {
-                return Optional.of(lastPort);
-            }
+    public Optional<Long> getPriorPortForTask(String taskSpecName, PortSpec portSpec) {
+        TaskPortLookup portFinder = portsByTask.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
+        if (portFinder == null) {
+            return Optional.empty();
         }
-
-        // Fall back to searching the task environment.
-        // Tasks launched in older SDK releases may omit the port names in the DiscoveryInfo.
-        // TODO(nickbp): Remove this fallback after October 2017
-        Map<String, String> env = lastTaskEnvs.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
-        if (env != null) {
-            try {
-                return Optional.ofNullable(Long.parseLong(env.get(portEnvName)));
-            } catch (NumberFormatException e) {
-                // We're just making a best-effort attempt to recover the port value, so give up if this happens.
-                LOGGER.warn(String.format("Failed to recover port %s from task %s environment variable %s",
-                        portName, portEnvName, taskSpecName), e);
-            }
-        }
-
-        // Port not found.
-        return Optional.empty();
+        return portFinder.getPriorPort(portSpec);
     }
 
     public Collection<Protos.Resource.Builder> getTaskResourceBuilders() {

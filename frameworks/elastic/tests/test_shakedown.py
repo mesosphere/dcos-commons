@@ -20,7 +20,6 @@ def configure_package(configure_security):
         log.info("Ensure elasticsearch and kibana are uninstalled...")
         sdk_install.uninstall(KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
 
         sdk_upgrade.test_upgrade(
             "beta-{}".format(PACKAGE_NAME),
