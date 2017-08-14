@@ -39,7 +39,7 @@ def configure_package(configure_security):
             service_name=FOLDERED_SERVICE_NAME,
             additional_options={"service": {
                                     "name": FOLDERED_SERVICE_NAME,
-                                    "user": "nobody"}
+                                    "user": "root"}
                                 })
 
         yield  # let the test session execute
