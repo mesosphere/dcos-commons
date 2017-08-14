@@ -53,9 +53,9 @@ for framework in $FRAMEWORK_LIST; do
     fi
 
     echo "Configuring dcoscli for cluster: $CLUSTER_URL"
+    # TODO(kwood): INFINITY-2183 - remove these once import issues are handled
     dcos config set core.dcos_url $CLUSTER_URL
     dcos config set core.ssl_verify false
-    /build/tools/dcos_login.py
 
     echo "Starting test for $framework at "`date`
     py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
