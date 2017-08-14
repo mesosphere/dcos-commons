@@ -32,9 +32,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
-        service_config = {"service": {"name": FOLDERED_SERVICE_NAME}}
-        if shakedown.dcos_version_less_than("1.9"):
-            service_config["service"]["user"] = "root"
+        service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
 
         sdk_upgrade.test_upgrade(
             PACKAGE_NAME,
