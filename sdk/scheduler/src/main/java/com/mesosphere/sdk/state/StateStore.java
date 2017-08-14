@@ -172,10 +172,8 @@ public class StateStore {
      * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
      *                             TaskInfo wasn't stored first
-     * @return the previous TaskStatus, or an empty Optional if none was present before
      */
-    public Optional<Protos.TaskStatus> storeStatus(String taskName, Protos.TaskStatus status)
-            throws StateStoreException {
+    public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
@@ -193,7 +191,6 @@ public class StateStore {
         } catch (PersisterException e) {
             throw new StateStoreException(e);
         }
-        return currentStatusOptional;
     }
 
     /**

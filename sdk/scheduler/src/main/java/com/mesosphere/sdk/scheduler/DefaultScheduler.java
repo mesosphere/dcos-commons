@@ -803,12 +803,15 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     try {
                         StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
                     } catch (StateStoreException e) {
-                        LOGGER.warn("Unable to store network info for status update: " + status, e);
+                        LOGGER.warn(String.format(
+                                "Unable to store network info for %s status update: %s",
+                                taskName, TextFormat.shortDebugString(status)), e);
                     }
                 }
             } catch (Exception e) {
-                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                        + "This may be expected if Mesos sent stale status information: " + status, e);
+                LOGGER.warn(String.format("Failed to handle TaskStatus received from Mesos. "
+                        + "This may be expected if Mesos sent stale status information: %s",
+                        TextFormat.shortDebugString(status)), e);
             }
         });
     }

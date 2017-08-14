@@ -23,10 +23,9 @@ import static org.junit.Assert.*;
 public class StateStoreTest {
     private static final Protos.FrameworkID FRAMEWORK_ID =
             Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
-    private static final String TASK_NAME = "test-task-name";
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
+            .setTaskId(CommonIdUtils.toTaskId(TestConstants.TASK_NAME))
             .setState(TASK_STATE)
             .build();
     public static final String PROPERTY_VALUE = "DC/OS";
@@ -85,9 +84,9 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchTask() throws Exception {
-        Protos.TaskInfo testTask = createTask(TASK_NAME);
+        Protos.TaskInfo testTask = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
-        assertEquals(testTask, store.fetchTask(TASK_NAME).get());
+        assertEquals(testTask, store.fetchTask(TestConstants.TASK_NAME).get());
         Collection<Protos.TaskInfo> outTasks = store.fetchTasks();
         assertEquals(1, outTasks.size());
         assertEquals(testTask, outTasks.iterator().next());
@@ -95,7 +94,7 @@ public class StateStoreTest {
 
     @Test
     public void testFetchMissingTask() throws Exception {
-        assertFalse(store.fetchTask(TASK_NAME).isPresent());
+        assertFalse(store.fetchTask(TestConstants.TASK_NAME).isPresent());
     }
 
     @Test
@@ -105,13 +104,13 @@ public class StateStoreTest {
 
     @Test
     public void testRepeatedStoreTask() throws Exception {
-        Collection<Protos.TaskInfo> tasks = createTasks(TASK_NAME);
+        Collection<Protos.TaskInfo> tasks = createTasks(TestConstants.TASK_NAME);
         store.storeTasks(tasks);
-        assertEquals(tasks.iterator().next(), store.fetchTask(TASK_NAME).get());
+        assertEquals(tasks.iterator().next(), store.fetchTask(TestConstants.TASK_NAME).get());
 
-        tasks = createTasks(TASK_NAME);
+        tasks = createTasks(TestConstants.TASK_NAME);
         store.storeTasks(tasks);
-        assertEquals(tasks.iterator().next(), store.fetchTask(TASK_NAME).get());
+        assertEquals(tasks.iterator().next(), store.fetchTask(TestConstants.TASK_NAME).get());
 
         Collection<String> taskNames = store.fetchTaskNames();
         assertEquals(1, taskNames.size());
@@ -120,20 +119,20 @@ public class StateStoreTest {
 
     @Test
     public void testStoreClearTask() throws Exception {
-        store.storeTasks(createTasks(TASK_NAME));
-        store.clearTask(TASK_NAME);
+        store.storeTasks(createTasks(TestConstants.TASK_NAME));
+        store.clearTask(TestConstants.TASK_NAME);
     }
 
     @Test
     public void testStoreClearFetchTask() throws Exception {
-        store.storeTasks(createTasks(TASK_NAME));
-        store.clearTask(TASK_NAME);
-        assertFalse(store.fetchTask(TASK_NAME).isPresent());
+        store.storeTasks(createTasks(TestConstants.TASK_NAME));
+        store.clearTask(TestConstants.TASK_NAME);
+        assertFalse(store.fetchTask(TestConstants.TASK_NAME).isPresent());
     }
 
     @Test
     public void testStoreClearAllData() throws Exception {
-        store.storeTasks(createTasks(TASK_NAME));
+        store.storeTasks(createTasks(TestConstants.TASK_NAME));
         store.storeFrameworkId(FRAMEWORK_ID);
         store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
         assertEquals(7, PersisterUtils.getAllKeys(persister).size());
@@ -146,7 +145,7 @@ public class StateStoreTest {
 
     @Test
     public void testClearMissingTask() throws Exception {
-        store.clearTask(TASK_NAME);
+        store.clearTask(TestConstants.TASK_NAME);
     }
 
     @Test
@@ -235,13 +234,13 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchStatusExactMatch() throws Exception {
-        Protos.TaskInfo task = createTask(TASK_NAME);
+        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
 
         // taskstatus id must exactly match taskinfo id:
         Protos.TaskStatus status = TASK_STATUS.toBuilder().setTaskId(task.getTaskId()).build();
-        store.storeStatus(TASK_NAME, status);
-        assertEquals(status, store.fetchStatus(TASK_NAME).get());
+        store.storeStatus(TestConstants.TASK_NAME, status);
+        assertEquals(status, store.fetchStatus(TestConstants.TASK_NAME).get());
         Collection<Protos.TaskStatus> statuses = store.fetchStatuses();
         assertEquals(1, statuses.size());
         assertEquals(status, statuses.iterator().next());
@@ -249,7 +248,7 @@ public class StateStoreTest {
 
     @Test
     public void testFetchMissingStatus() throws Exception {
-        assertTrue(!store.fetchStatus(TASK_NAME).isPresent());
+        assertTrue(!store.fetchStatus(TestConstants.TASK_NAME).isPresent());
     }
 
     @Test
@@ -259,18 +258,18 @@ public class StateStoreTest {
 
     @Test
     public void testRepeatedStoreStatus() throws Exception {
-        Protos.TaskInfo task = createTask(TASK_NAME);
+        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
 
         // taskstatus id must exactly match taskinfo id:
         Protos.TaskStatus status = TASK_STATUS.toBuilder().setTaskId(task.getTaskId()).build();
-        store.storeStatus(TASK_NAME, status);
-        assertEquals(status, store.fetchStatus(TASK_NAME).get());
+        store.storeStatus(TestConstants.TASK_NAME, status);
+        assertEquals(status, store.fetchStatus(TestConstants.TASK_NAME).get());
 
-        store.storeStatus(TASK_NAME, status);
-        assertEquals(status, store.fetchStatus(TASK_NAME).get());
+        store.storeStatus(TestConstants.TASK_NAME, status);
+        assertEquals(status, store.fetchStatus(TestConstants.TASK_NAME).get());
 
-        assertEquals(Arrays.asList(TASK_NAME), store.fetchTaskNames());
+        assertEquals(Arrays.asList(TestConstants.TASK_NAME), store.fetchTaskNames());
         Collection<Protos.TaskStatus> statuses = store.fetchStatuses();
         assertEquals(1, statuses.size());
         assertEquals(status, statuses.iterator().next());
@@ -323,28 +322,28 @@ public class StateStoreTest {
 
     @Test
     public void testStoreStatusSucceedsOnUUIDChangeWithTaskInfoUpdate() throws Exception {
-        Protos.TaskInfo task = createTask(TASK_NAME);
+        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
-        store.storeStatus(TASK_NAME, TASK_STATUS);
-        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME).get());
+        store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
+        assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
 
         // change the taskinfo id:
-        Protos.TaskInfo taskNewId = createTask(TASK_NAME);
+        Protos.TaskInfo taskNewId = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(taskNewId));
-        store.storeStatus(TASK_NAME, TASK_STATUS);
-        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME).get());
+        store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
+        assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
     }
 
     @Test
     public void testStoreFetchTaskAndStatus() throws Exception {
-        Protos.TaskInfo testTask = createTask(TASK_NAME);
+        Protos.TaskInfo testTask = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
         Collection<Protos.TaskInfo> outTasks = store.fetchTasks();
         assertEquals(1, outTasks.size());
         assertEquals(testTask, outTasks.iterator().next());
 
-        store.storeStatus(TASK_NAME, TASK_STATUS);
-        assertEquals(TASK_STATUS, store.fetchStatus(TASK_NAME).get());
+        store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
+        assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
     }
 
     @Test

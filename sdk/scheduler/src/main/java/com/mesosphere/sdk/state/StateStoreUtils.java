@@ -125,7 +125,7 @@ public class StateStoreUtils {
     /**
      * TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.
      * It is therefore possible for the states across these elements to become out of sync.  While the scheduler process
-     * is up they remain in sync.  This method guarantees produces an initial synchronized state.
+     * is up they remain in sync.  This method produces an initial synchronized state.
      *
      * For example:
      * <ol>
@@ -137,8 +137,8 @@ public class StateStoreUtils {
      * <li>Scheduler comes back and sees TaskInfo(name=foo, id=2) and TaskStatus(name=foo, id=1, status=RUNNING)</li>
      * </ol>
      *
-     * Note that this ID mismatch would specifically cause problems {@link #getTaskName(StateStore, TaskStatus)} which
-     * requires that the ids align.
+     * Note that this ID mismatch would specifically cause problems with calls against
+     * {@link #getTaskName(StateStore, TaskStatus)} which requires that the ids align.
      */
     static void repairTaskIDs(StateStore stateStore) {
         Map<String, Protos.TaskStatus> repairedStatuses = new HashMap<>();
@@ -251,7 +251,7 @@ public class StateStoreUtils {
      */
     public static void setLastCompletedUpdateType(
             StateStore stateStore,
-             ConfigurationUpdater.UpdateResult.DeploymentType updateResultDeploymentType) {
+            ConfigurationUpdater.UpdateResult.DeploymentType updateResultDeploymentType) {
         stateStore.storeProperty(
                 LAST_COMPLETED_UPDATE_TYPE_KEY,
                 updateResultDeploymentType.name().getBytes(StandardCharsets.UTF_8));
