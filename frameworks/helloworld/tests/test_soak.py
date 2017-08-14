@@ -2,16 +2,12 @@ import logging
 import os
 
 import pytest
-
 import sdk_cmd
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-from tests.config import (
-    PACKAGE_NAME,
-    DEFAULT_TASK_COUNT
-)
+from tests import config
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +26,7 @@ if "NUM_WORLD" in os.environ:
 
 @pytest.mark.soak_upgrade
 def test_soak_upgrade_downgrade():
-    sdk_upgrade.soak_upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    sdk_upgrade.soak_upgrade_downgrade(config.PACKAGE_NAME, config.PACKAGE_NAME, config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.soak_secrets_update

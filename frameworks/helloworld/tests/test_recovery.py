@@ -1,48 +1,41 @@
 import json
 
 import pytest
-import shakedown
-
 import sdk_cmd
 import sdk_install
-import sdk_utils
 import sdk_marathon
 import sdk_tasks
-from tests.config import (
-    PACKAGE_NAME,
-    DEFAULT_TASK_COUNT,
-    check_running,
-    bump_world_cpus,
-    bump_hello_cpus
-)
+import sdk_utils
+import shakedown
+from tests import config
 
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT)
+        sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.install(config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT)
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_hello_node():
-    check_running()
-    hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello-0')
+    config.check_running()
+    hello_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-0')
     sdk_tasks.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello', hello_ids)
 
-    check_running()
+    config.check_running()
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_pod_restart():
-    hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello-0')
+    hello_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-0')
 
     # get current agent id:
     stdout = sdk_cmd.run_cli('hello-world pod info hello-0')
@@ -55,8 +48,8 @@ def test_pod_restart():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
 
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello', hello_ids)
+    config.check_running()
 
     # check agent didn't move:
     stdout = sdk_cmd.run_cli('hello-world pod info hello-0')
@@ -67,7 +60,7 @@ def test_pod_restart():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_pod_replace():
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world-0')
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world-0')
 
     # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
     #stdout = sdk_cmd.run_cli('hello-world pod info world-0')
@@ -79,8 +72,8 @@ def test_pod_replace():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'world-0-server'
 
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world-0', world_ids)
+    config.check_running()
 
     # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
     #stdout = sdk_cmd.run_cli('hello-world pod info world-0')
@@ -90,92 +83,92 @@ def test_pod_replace():
 
 @pytest.mark.recovery
 def test_scheduler_died():
-    sdk_tasks.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(PACKAGE_NAME))
-    check_running()
+    sdk_tasks.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.PACKAGE_NAME))
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_all_executors_killed():
-    for host in shakedown.get_service_ips(PACKAGE_NAME):
+    for host in shakedown.get_service_ips(config.PACKAGE_NAME):
         sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', host)
-    check_running()
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_master_killed():
     sdk_tasks.kill_task_with_pattern('mesos-master')
-    check_running()
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_zk_killed():
     sdk_tasks.kill_task_with_pattern('zookeeper')
-    check_running()
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_kill_task_in_node():
     # kill 1 of 2 world tasks
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world')
-    bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(PACKAGE_NAME))
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
+    config.bump_world_cpus()
+    sdk_tasks.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(config.PACKAGE_NAME))
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_kill_all_task_in_node():
     #  kill both world tasks
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world')
-    hosts = shakedown.get_service_ips(PACKAGE_NAME)
-    bump_world_cpus()
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
+    hosts = shakedown.get_service_ips(config.PACKAGE_NAME)
+    config.bump_world_cpus()
     [sdk_tasks.kill_task_with_pattern('world', h) for h in hosts]
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_scheduler_died():
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world')
-    host = sdk_marathon.get_scheduler_host(PACKAGE_NAME)
-    bump_world_cpus()
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
+    host = sdk_marathon.get_scheduler_host(config.PACKAGE_NAME)
+    config.bump_world_cpus()
     sdk_tasks.kill_task_with_pattern('helloworld.scheduler.Main', host)
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_executor_killed():
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world')
-    bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(PACKAGE_NAME))
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
+    config.bump_world_cpus()
+    sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.PACKAGE_NAME))
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_updates_then_all_executors_killed():
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world')
-    hosts = shakedown.get_service_ips(PACKAGE_NAME)
-    bump_world_cpus()
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
+    hosts = shakedown.get_service_ips(config.PACKAGE_NAME)
+    config.bump_world_cpus()
     [sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_master_killed():
-    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world')
-    bump_world_cpus()
+    world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
+    config.bump_world_cpus()
     sdk_tasks.kill_task_with_pattern('mesos-master')
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    config.check_running()
 
 
 @pytest.mark.recovery
 def test_config_update_then_zk_killed():
-    hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    bump_hello_cpus()
+    hello_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello')
+    config.bump_hello_cpus()
     sdk_tasks.kill_task_with_pattern('zookeeper')
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'hello', hello_ids)
-    check_running()
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello', hello_ids)
+    config.check_running()
