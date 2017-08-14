@@ -37,7 +37,10 @@ def configure_package(configure_security):
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME } })
+            additional_options={"service": {
+                                    "name": FOLDERED_SERVICE_NAME,
+                                    "user": "nobody"}
+                                })
 
         yield  # let the test session execute
     finally:
