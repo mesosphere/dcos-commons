@@ -1,6 +1,7 @@
 import json
 
 import pytest
+import shakedown
 
 import sdk_cmd
 import sdk_install
@@ -10,7 +11,13 @@ import sdk_security
 import sdk_utils
 
 
-from tests.test_utils import  *
+from tests.test_utils import (
+    DEFAULT_TOPIC_NAME,
+    DEFAULT_PARTITION_COUNT,
+    DEFAULT_BROKER_COUNT,
+    PACKAGE_NAME,
+    service_cli
+)
 
 # Name of the broker TLS vip
 BROKER_TLS_ENDPOINT = 'broker-tls'

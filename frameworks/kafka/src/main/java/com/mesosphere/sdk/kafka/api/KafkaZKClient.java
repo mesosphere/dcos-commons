@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -30,7 +31,6 @@ public class KafkaZKClient {
 
     private final String PROTOCOL_NAME_PLAINTEXT = "PLAINTEXT";
     private final String PROTOCOL_NAME_TLS = "SSL";
-
 
     private final CuratorFramework zkClient;
 
@@ -107,19 +107,23 @@ public class KafkaZKClient {
         return Collections.emptyList();
     }
 
-    private List<String> getBrokerEndpoints(String protocolName) throws Exception {
-        List<String> endpoints = new ArrayList<>();
+    private List<String> getBrokerEndpoints(final String protocolName) throws Exception {
+        final List<String> endpoints = new ArrayList<>();
 
-        List<String> ids = zkClient.getChildren().forPath(IDS_PATH);
+        final List<String> ids = zkClient.getChildren().forPath(IDS_PATH);
         for (String id : ids) {
             byte[] bytes = zkClient.getData().forPath(IDS_PATH + "/" + id);
             JSONObject broker = new JSONObject(new String(bytes, StandardCharsets.UTF_8));
-            String mappedProtocolName = broker.getJSONObject("listener_security_protocol_map").getString(protocolName);
-            StreamSupport.stream(broker.getJSONArray("endpoints").spliterator(), false)
-                    .map(endpoint -> endpoint.toString())
-                    .filter(endpoint -> endpoint.startsWith(mappedProtocolName))
-                    .map(endpoint -> endpoint.substring((mappedProtocolName + "://").length()))
-                    .forEach(endpoint -> endpoints.add(endpoint));
+            final String mappedProtocolName = broker
+                    .getJSONObject("listener_security_protocol_map")
+                    .getString(protocolName);
+            endpoints.addAll(
+                    StreamSupport.stream(broker.getJSONArray("endpoints").spliterator(), false)
+                        .map(endpoint -> endpoint.toString())
+                        .filter(endpoint -> endpoint.startsWith(mappedProtocolName + "://"))
+                        .map(endpoint -> endpoint.substring((mappedProtocolName + "://").length()))
+                        .collect(Collectors.toList())
+            );
         }
 
         return endpoints;

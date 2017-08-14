@@ -208,11 +208,11 @@ Configure the port number that the brokers listen on. If the port is set to a pa
 *   **In DC/OS CLI options.json**: `broker-port`: integer (default: `9092`)
 *   **DC/OS web interface**: `BROKER_PORT`: `integer`
 
-### TLS Broker port
+### TLS Broker Port
 
-Configure the port number that brokers listen on with TLS connection. The default value is `9093`. Same rules apply as for [Broker Port](#broker-port).
+Configure the port number that brokers listen on with a TLS connection. The default value is `9093`. Same rules apply as for [Broker Port](#broker-port).
 
-This setting requires [TLS](#tls) to be enabled, otherwise is ignored.
+This setting requires [TLS](#tls) to be enabled, otherwise it is ignored.
 
 *   **In DC/OS CLI options.json**: `broker-port_tls`: integer (default: `9093`)
 *   **DC/OS web interface**: `BROKER_PORT_TLS`: `integer`
@@ -316,9 +316,9 @@ It is possible to expose Kafka over a secure TLS connection.
 }
 ```
 
-Once the TLS is enabled, Kafka will do inter-node communication over secure TLS connections. Additional TLS port named `broker-tls` will be available for clients connecting to the service. Only the [`TLSv1.2`](https://www.ietf.org/rfc/rfc5246.txt) is supported. The non-TLS `broker` port will be still available.
+Once the TLS is enabled, Kafka will use secure TLS connections for inter-node communication. Additional TLS port named `broker-tls` will be available for clients connecting to the service. Only the [`TLS version 1.2`](https://www.ietf.org/rfc/rfc5246.txt) is supported. The non-TLS `broker` port will still be available.
 
-Enabling the TLS is possible only in `permissive` or `strict` cluster security modes. Both modes **require** a [service account](https://docs.mesosphere.com/service-docs/kafka/kafka-auth/). Additionally, the service account **must have** the `dcos:superuser` permission. If the permission is missing the Kafka scheduler will not abe able to provision TLS artifacts.
+Enabling the TLS is possible only in `permissive` or `strict` cluster security modes. Both modes **require** a [service account](https://docs.mesosphere.com/service-docs/kafka/kafka-auth/). Additionally, the service account **must have** the `dcos:superuser` permission. If the permission is missing the Kafka scheduler will not abe able to provision the TLS artifacts.
 
 There is a performance impact with TLS connections that should be considered:
 
@@ -326,7 +326,7 @@ There is a performance impact with TLS connections that should be considered:
 
 * encryption and decryption of messages sent over the socket
 
-It is possible to use Kafka CLI utility to test the performance impact of TLS by comparing output of following commands:
+It is possible to use the Kafka CLI utility to test the performance impact of TLS by comparing the output of following commands:
 
 ```
 export KAFKA_TOPIC_NAME=tls-test
@@ -340,7 +340,7 @@ dcos kafka topic producer_test ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
 dcos kafka topic producer_test_tls ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
 ```
 
-For more information about the TLS in the SDK see the [TLS documetnation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
+For more information about the TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
 
 ## Recovery and Health Checks
 

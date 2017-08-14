@@ -229,7 +229,7 @@ func handleTopicSection(app *kingpin.Application) {
 
 	producerTestTLS := topic.Command(
 		"producer_test_tls",
-		"Produces some test messages against a topic over TLS connection").Action(cmd.runProducerTestTLS)
+		"Produces some test messages against a topic over a TLS connection").Action(cmd.runProducerTestTLS)
 	producerTestTLS.Arg("topic", "The topic to test").StringVar(&cmd.topic)
 	producerTestTLS.Arg("messages", "The number of messages to produce").IntVar(&cmd.produceMessageCount)
 

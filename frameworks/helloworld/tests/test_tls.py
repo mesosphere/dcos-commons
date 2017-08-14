@@ -240,6 +240,8 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     Scheduler should update task and new SANs should be generated.
     """
     original_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, 'discovery')
+    assert len(original_tasks) == 1, 'Expecting exactly one task ID'
+
     task_id = original_tasks[0]
     assert task_id
 
