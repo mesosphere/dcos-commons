@@ -32,6 +32,10 @@
         <name>ha.zookeeper.parent-znode</name>
         <value>{{SERVICE_ZK_ROOT}}/hadoop-ha</value>
     </property>
+    <property>
+        <name>ipc.client.connect.max.retries</name>
+        <value>{{IPC_CLIENT_CONNECT_MAX_RETRIES}}</value>
+    </property>
     {{#TLS_ENABLED}}
     <property>
         <name>hadoop.ssl.hostname.verifier</name>

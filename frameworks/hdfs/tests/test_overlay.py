@@ -4,6 +4,7 @@ from xml.etree import ElementTree
 from tests.config import (
     PACKAGE_NAME,
     DEFAULT_TASK_COUNT,
+    DEFAULT_HDFS_TIMEOUT,
     TEST_FILE_1_NAME,
     TEST_FILE_2_NAME,
     check_healthy,

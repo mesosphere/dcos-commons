@@ -67,9 +67,9 @@ pods:
               export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               [[ $LAGGING_TX_COUNT -eq 0 ]]
             fi
-          delay: 60
-          interval: 3
-          timeout: 1
+          delay: 30
+          interval: 5
+          timeout: 15
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
   name:
     count: 2

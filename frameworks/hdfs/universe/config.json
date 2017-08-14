@@ -310,6 +310,11 @@
           "type": "string",
           "description": "",
           "default": "INFO,console"
+        },
+        "ipc_client_connect_max_retries": {
+          "type": "integer",
+          "description": "Indicates the number of retries a client will make to establish a server connection.",
+          "default": 300
         }
       },
       "required": [
