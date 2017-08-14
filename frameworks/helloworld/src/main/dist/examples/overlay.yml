@@ -8,12 +8,11 @@ pods:
     uris:
       # this python script starts a basic HTTP server, it responds on a specific port with a given message
       # USAGE: python3 http_py3responder.py <port> <message>
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-      - {{BOOTSTRAP_URI}}
+      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
     # join the 'dcos' overlay network
     networks:
       dcos:
-       labels: "key1:val1,key2:val2"
+       labels: "key0:val0,key1:val1"
     image: ubuntu:14.04
     resource-sets:
       hello-resource:
@@ -29,13 +28,12 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "./bootstrap && python3 http_py3responder.py 4044 hello from the overlay network with a VIP!"
+        cmd: "python3 http_py3responder.py server 4044 hello from the overlay network with a VIP!"
         resource-set: hello-resource
   hello-overlay:
     count: 1
     uris:
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-      - {{BOOTSTRAP_URI}}
+      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
     networks:
       dcos:
         labels:
@@ -53,13 +51,17 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "./bootstrap && python3 http_py3responder.py $PORT_OVERLAY_DYNPORT hello from the overlay network!"
+        cmd: "python3 http_py3responder.py server $PORT_OVERLAY_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
+        readiness-check:
+          cmd: "python3 http_py3responder.py GET http://hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026"
+          interval: 10
+          delay: 15
+          timeout: 10
   hello-host-vip:
     count: 1
     uris:
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-      - {{BOOTSTRAP_URI}}
+      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
     image: ubuntu:14.04
     resource-sets:
       hello-resource:
@@ -75,13 +77,12 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "./bootstrap && python3 http_py3responder.py 4044 hello from the host network with a VIP!"
+        cmd: "python3 http_py3responder.py server 4044 hello from the host network with a VIP!"
         resource-set: hello-resource
   hello-host:
     count: 1
     uris:
-      - "https://s3-us-west-2.amazonaws.com/infinity-artifacts/testing/http_py3responder.py"
-      - {{BOOTSTRAP_URI}}
+      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
     image: ubuntu:14.04
     resource-sets:
       hello-resource:
@@ -93,7 +94,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "./bootstrap && python3 http_py3responder.py 4044 hello from the host network!"
+        cmd: "python3 http_py3responder.py server 4044 hello from the host network!"
         resource-set: hello-resource
   getter:
     count: {{HELLO_COUNT}}
@@ -102,47 +103,29 @@ pods:
     networks:
       dcos:
     tasks:
-      get-overlay:
-        goal: RUNNING
+      check-comm:
+        goal: FINISHED
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
-        cmd: "./bootstrap && curl -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-overlay-vip:
-        goal: RUNNING
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        cmd: "./bootstrap && curl -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-host-vip:
-        goal: RUNNING
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        cmd: "./bootstrap && curl -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-      get-host:
-        goal: RUNNING
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
-        cmd: "./bootstrap && curl -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output && sleep $SLEEP_DURATION"
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
+        cmd: |
+          sleep 40 &&
+          curl -f -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output &&
+          curl -f -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
+          curl -f -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
+          curl -f -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output
 
 plans:
   deploy:
     strategy: serial
     phases:
-      hello-overlay-vip-deploy:
-        strategy: serial
-        pod: hello-overlay-vip
-        steps:
-          - default: [[server]]
       hello-overlay-deploy:
         strategy: serial
         pod: hello-overlay
+        steps:
+          - default: [[server]]
+      hello-overlay-vip-deploy:
+        strategy: serial
+        pod: hello-overlay-vip
         steps:
           - default: [[server]]
       hello-host-vip-deploy:
@@ -159,6 +142,6 @@ plans:
         strategy: serial
         pod: getter
         steps:
-          - default: [[get-overlay], [get-host], [get-overlay-vip], [get-host-vip]]
+          - default: [[check-comm]]
 
 

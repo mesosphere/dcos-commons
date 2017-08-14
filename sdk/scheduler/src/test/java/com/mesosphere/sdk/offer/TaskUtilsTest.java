@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultResourceSet;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import org.apache.mesos.Protos;
@@ -12,6 +9,9 @@ import org.junit.Test;
 import java.util.*;
 
 import javax.validation.ValidationException;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * This class tests the TaskUtils class.
@@ -181,6 +181,62 @@ public class TaskUtilsTest {
                         new DefaultConfigFileSpec("config", "../relative/path/to/config", "a config template")));
 
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
+    @Test
+    public void testAreDifferentTaskSpecificationsVIP() {
+        Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.RANGES);
+        portValueBuilder.getRangesBuilder().addRangeBuilder()
+                .setBegin(80)
+                .setEnd(80);
+
+        ResourceSet oldResourceSet = mock(ResourceSet.class);
+        ResourceSet newResourceSet = mock(ResourceSet.class);
+
+        ResourceSpec oldVip = new NamedVIPSpec(
+                portValueBuilder.build(),
+                TestConstants.ROLE,
+                TestConstants.PRE_RESERVED_ROLE,
+                TestConstants.PRINCIPAL,
+                "env-key",
+                "port-name",
+                "protocol",
+                TestConstants.PORT_VISIBILITY,
+                TestConstants.VIP_NAME,
+                TestConstants.VIP_PORT,
+                Arrays.asList("network-name"));
+
+        ResourceSpec newVip = new NamedVIPSpec(
+                portValueBuilder.build(),
+                TestConstants.ROLE,
+                TestConstants.PRE_RESERVED_ROLE,
+                TestConstants.PRINCIPAL,
+                "env-key",
+                "port-name",
+                "protocol",
+                TestConstants.PORT_VISIBILITY,
+                TestConstants.VIP_NAME + "-different", // Different vip name
+                TestConstants.VIP_PORT,
+                Arrays.asList("network-name"));
+
+        when(oldResourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+        when(oldResourceSet.getResources()).thenReturn(Arrays.asList(oldVip)); // Old VIP
+        when(oldResourceSet.getVolumes()).thenReturn(Collections.emptyList());
+
+        when(newResourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+        when(newResourceSet.getResources()).thenReturn(Arrays.asList(newVip)); // New VIP
+        when(newResourceSet.getVolumes()).thenReturn(Collections.emptyList());
+
+        TaskSpec oldTaskSpecification = DefaultTaskSpec.newBuilder(TestPodFactory.getTaskSpec())
+                .resourceSet(oldResourceSet)
+                .build();
+
+        TaskSpec newTaskSpecification = DefaultTaskSpec.newBuilder(TestPodFactory.getTaskSpec())
+                .resourceSet(newResourceSet)
+                .build();
+
+        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
     @Test(expected=ValidationException.class)
