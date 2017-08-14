@@ -142,6 +142,22 @@ def test_kill_scheduler():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+def test_kill_all_journalnodes():
+    journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
+
+    for journal_pod in get_pod_type_instances("journal", FOLDERED_SERVICE_NAME):
+        sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, journal_pod))
+        # wait for the entire service to recover as name nodes are affected as well when journal nodes go down
+        expect_recovery(service_name=FOLDERED_SERVICE_NAME)
+
+    # name nodes fail and restart, so don't check those
+    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
 def test_kill_all_namenodes():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     name_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
@@ -323,20 +339,6 @@ def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "journal-0-node", DEFAULT_HDFS_TIMEOUT)
 
 
-@pytest.mark.sanity
-@pytest.mark.recovery
-def test_kill_all_journalnodes():
-    journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
-    data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
- 
-    for journal_pod in get_pod_type_instances("journal", FOLDERED_SERVICE_NAME):
-        sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, journal_pod))
-        # wait for the entire service to recover as name nodes are affected as well when journal nodes go down
-        expect_recovery(service_name=FOLDERED_SERVICE_NAME)
-
-    # name nodes fail and restart, so don't check those
-    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
-    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
 def replace_name_node(index):
