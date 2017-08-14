@@ -36,6 +36,13 @@
     {{/service.service_account_secret}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
+    {{#service.tls}}
+    "TASKCFG_ALL_CASSANDRA_ENABLE_TLS": "{{service.tls}}",
+    {{#service.tls_allow_plaintext}}
+    "TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
+    {{/service.tls_allow_plaintext}}
+    {{/service.tls}}
+
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
     "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
     "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{cassandra.authorizer}}",

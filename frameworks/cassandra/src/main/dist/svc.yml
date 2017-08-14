@@ -81,6 +81,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 60
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: KEYSTORE
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
       repair:
         goal: FINISHED
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE

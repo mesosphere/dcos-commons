@@ -63,16 +63,31 @@ unlogged_batch_across_partitions_warn_threshold: 10
 compaction_large_partition_warning_threshold_mb: 100
 request_scheduler: org.apache.cassandra.scheduler.NoScheduler
 server_encryption_options:
+{{#CASSANDRA_ENABLE_TLS}}
+    internode_encryption: all
+{{/CASSANDRA_ENABLE_TLS}}
+{{^CASSANDRA_ENABLE_TLS}}
     internode_encryption: none
-    keystore: conf/.keystore
-    keystore_password: cassandra
-    truststore: conf/.truststore
-    truststore_password: cassandra
+{{/CASSANDRA_ENABLE_TLS}}
+    keystore: node.keystore
+    keystore_password: notsecure
+    truststore: node.truststore
+    truststore_password: notsecure
 client_encryption_options:
+{{#CASSANDRA_ENABLE_TLS}}
+    enabled: true
+{{/CASSANDRA_ENABLE_TLS}}
+{{^CASSANDRA_ENABLE_TLS}}
     enabled: false
+{{/CASSANDRA_ENABLE_TLS}}
+{{#CASSANDRA_ALLOW_PLAINTEXT}}
+    optional: true
+{{/CASSANDRA_ALLOW_PLAINTEXT}}
+{{^CASSANDRA_ALLOW_PLAINTEXT}}
     optional: false
-    keystore: conf/.keystore
-    keystore_password: cassandra
+{{/CASSANDRA_ALLOW_PLAINTEXT}}
+    keystore: node.keystore
+    keystore_password: notsecure
 inter_dc_tcp_nodelay: false
 tracetype_query_ttl: 86400
 tracetype_repair_ttl: 604800

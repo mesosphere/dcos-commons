@@ -66,6 +66,16 @@
           "type": "string",
           "default": ""
         },
+        "tls": {
+          "description": "Enable TLS support (requires Enterprise DC/OS running in permissive or strict security mode).",
+          "type": "boolean",
+          "default": false
+        },
+        "tls_allow_plaintext": {
+          "description": "Allow clients to connect over a non-encrypted connections.",
+          "type": "boolean",
+          "default": false
+        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
