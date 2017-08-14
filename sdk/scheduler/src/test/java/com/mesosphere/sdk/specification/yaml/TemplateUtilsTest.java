@@ -100,4 +100,58 @@ public class TemplateUtilsTest {
                 Collections.emptyMap(),
                 TemplateUtils.MissingBehavior.EXCEPTION));
     }
+
+    @Test
+    public void testApplyTrueEnvVarToSection() throws IOException {
+        String filename = "test-render-inverted.yml";
+        String yaml = getYamlContent(filename);
+        Assert.assertTrue(yaml.contains("ENABLED"));
+
+        Map<String, String> envMap = new HashMap<>();
+        envMap.put("ENABLED", String.valueOf(true));
+        String renderedYaml = TemplateUtils.applyEnvToMustache(
+                filename, yaml, envMap, TemplateUtils.MissingBehavior.EMPTY_STRING);
+
+        Assert.assertTrue(renderedYaml.contains("cmd: ./enabled true"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./disabled"));
+        Assert.assertFalse(renderedYaml.contains("ENABLED"));
+    }
+
+    @Test
+    public void testApplyFalseEnvVarToInvertedSection() throws IOException {
+        String filename = "test-render-inverted.yml";
+        String yaml = getYamlContent(filename);
+        Assert.assertTrue(yaml.contains("ENABLED"));
+
+        Map<String, String> envMap = new HashMap<>();
+        envMap.put("ENABLED", String.valueOf(false));
+        String renderedYaml = TemplateUtils.applyEnvToMustache(
+                filename, yaml, envMap, TemplateUtils.MissingBehavior.EMPTY_STRING);
+
+        Assert.assertTrue(renderedYaml.contains("cmd: ./disabled false"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./enabled"));
+        Assert.assertFalse(renderedYaml.contains("ENABLED"));
+    }
+
+    @Test
+    public void testApplyEmptyEnvVarToInvertedSection() throws IOException {
+        String filename = "test-render-inverted.yml";
+        String yaml = getYamlContent(filename);
+        Assert.assertTrue(yaml.contains("ENABLED"));
+
+        Map<String, String> envMap = new HashMap<>();
+        envMap.put("ENABLED", "");
+        String renderedYaml = TemplateUtils.applyEnvToMustache(
+                filename, yaml, envMap, TemplateUtils.MissingBehavior.EMPTY_STRING);
+
+        Assert.assertTrue(renderedYaml.contains("cmd: ./disabled"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./disabled false"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./enabled"));
+        Assert.assertFalse(renderedYaml.contains("ENABLED"));
+    }
+
+    private String getYamlContent(String fileName) throws IOException {
+        File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+        return FileUtils.readFileToString(file);
+    }
 }
