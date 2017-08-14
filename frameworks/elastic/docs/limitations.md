@@ -17,6 +17,6 @@ The maximum number of deployable nodes is constrained by the DC/OS cluster's res
 
 The `serial` deploy strategy does wait for the cluster to reach green before proceeding to the next node.
 
-# Overlay networks
+# Virutal networks
 
-When elastic is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network. 
+When elastic is deployed on a virtual network such as the `dcos` overlay network, the configuration cannot be updated to use the host network.
