@@ -302,7 +302,7 @@ When a pod is on a virtual network such as the `dcos`:
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
-Specifying that pods join a virtual nework has the following indirect effects:
+Specifying that pods join a virtual network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
