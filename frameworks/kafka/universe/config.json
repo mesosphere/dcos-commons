@@ -35,10 +35,20 @@
             "type":"string",
             "default":"hostname:MAX_PER:1"
           },
-          "virtual_networks": {
-            "description": "Enable DC/OS Virtual Networking",
+          "virtual_network_enabled": {
+            "description": "Enable virtual networking",
             "type": "boolean",
             "default": false
+          },
+          "virtual_network_name": {
+            "description": "The name of the virtual network to join",
+            "type": "string",
+            "default": "dcos"
+          },
+          "virtual_network_plugin_labels": {
+            "description": "Labels to pass to the virtual network plugin. Comma-separated key:value pairs. For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+            "type": "string",
+            "default": ""
           },
           "deploy_strategy":{
             "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
@@ -110,16 +120,6 @@
             "description": "Port for broker to listen on",
             "type": "integer",
             "default": 0
-          },
-          "virtual_network": {
-            "description": "Name of virtual network to join",
-            "type": "string",
-            "default": "dcos"
-          },
-          "cni_plugin_labels": {
-            "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
-            "type": "string",
-            "default": ""
           }
         },
         "required":[
