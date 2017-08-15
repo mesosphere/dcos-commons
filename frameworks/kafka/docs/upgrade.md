@@ -7,7 +7,7 @@ enterprise: 'no'
 
 # Upgrade Kafka from 0.10.2.1 to 0.11.0.0
 
-This document explains upgrading the DC/OS Kafka service from 0.10.2.x to 0.11.0.0 version. Please follow the Kafka [upgrade](https://kafka.apache.org/documentation/#upgrade) documentation for more information. 
+This document explains upgrading the DC/OS Kafka service from 0.10.2.x to 0.11.0.0 version. Please follow the Kafka [upgrade](https://kafka.apache.org/documentation/#upgrade) documentation for more information. Information about the new message format in 0.11.0 is available [here](https://kafka.apache.org/documentation/#upgrade_11_message_format). Kafka 0.11.0 introduces idempotent and transactional capabilies. These new 0.11.0 features requires the new messaging format, and so will not work on older formats. Please also note that 0.11.0 clients can communicate with older brokers, such as 0.10.2 brokers.  
 
 The rolling upgrade procedure (from 0.10.2.x to 0.11.0.0) is explained below. This is the recommended way of upgrading to 0.11.0.0 in order to guarantee no downtime while upgrading Kafka.
 
@@ -86,7 +86,7 @@ Once you verify that all brokers are restarted, update the log version. Change t
     $ dcos kafka update start --options=options.json
     
     
-    
+Finally, the new service will be running the Kafka 0.11.0 version with two specific customized options (inter.broker.protocol.version and log.message.format.version). Since protocol and log versions are updated (new protocol and log formats), you can not directly roll back to the previous package version. Please note that default settings for protocol and log versions are overwritten with these customized options (step 1 through 3), even though  their values are same as defaults of the new package. Pay attention to these customized options for further package updates since they will be preserved unless overwritten explicitly.
     
     
     
