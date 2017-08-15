@@ -97,19 +97,19 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `networks`
 
-    Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the `dcos` overlay network. To have the pod join the overlay add the following to its YAML specification:
+    Allows the pod to join any number of virtual networks on the DC/OS cluster. One kind of virtual network that is supported at present is the `dcos` overlay network. To have the pod join a virtual network (the `dcos` overlay network in this case) add the following to its YAML specification:
 
     ```
     networks:
       dcos:
     ```
 
-    Pods on overlay networks have the following effects:
+    Pods on virtual networks have the following effects:
 
     <div class="noyaml"><ul>
-    <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
+    <li>The pod receives its own IP address from the subnet of the virtual network belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
     <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has its own IP address.</li>
-    <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
+    <li>Once the pod is on a virtual network, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
     </ul></div>
 
     For more information see the [DC/OS Virtual Network documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).

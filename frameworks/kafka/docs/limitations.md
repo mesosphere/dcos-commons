@@ -22,6 +22,6 @@ The number of deployable brokers is constrained by two factors. First, brokers h
 
 The security features introduced in Apache Kafka 0.9 are not supported at this time.
 
-## Overlay networks
+## Virtual networks
 
-When Kafka is deployed on the `dcos` overlay network, the configuration cannot be updated to use the host network.
+When Kafka is deployed on a virtual network such as the `dcos` overlay network, the configuration cannot be updated to use the host network.

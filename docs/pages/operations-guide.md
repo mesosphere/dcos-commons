@@ -278,15 +278,15 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 
 A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
 
-## Overlay networks
+## Virtual networks
 
-The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
 
 ```yaml
 pods:
-  pod-on-overlay:
+  pod-on-virtual-network:
     count: {{COUNT}}
-    # join the 'dcos' overlay network
+    # join the 'dcos' virtual network
     networks:
       dcos:
     tasks:
@@ -297,15 +297,15 @@ pods:
       ...
 ```
 
-When a pod is on the `dcos` overlay network:
+When a pod is on a virtual network such as the `dcos`:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
-Specifying that pods join the `dcos` overlay network has the following indirect effects:
+Specifying that pods join a virtual network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
-    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
-  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
+    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
 
 ## Secrets
 
@@ -313,7 +313,7 @@ Enterprise DC/OS provides a secrets store to enable access to sensitive data suc
 
 **Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod. 
+The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
 
 You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
 * Kerberos keytabs or other credential files.
@@ -354,7 +354,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
 For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
- 
+
 On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
 
@@ -372,14 +372,14 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 | `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/dev3`        | Yes                        |
 | `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/someDir/dev3`| Yes                        |
 
-  
 
-**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox. 
+
+**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
 
 Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
   * Supported: `etc/keys/Secret_FilePath1`
   * Not supported: `/etc/keys/Secret_FilePath1`
-  
+
 ```yaml
 name: secret-svc/instance2
 pods:
