@@ -1,5 +1,6 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
   user: {{SERVICE_USER}}
   principal: {{SERVICE_PRINCIPAL}}
 pods:
