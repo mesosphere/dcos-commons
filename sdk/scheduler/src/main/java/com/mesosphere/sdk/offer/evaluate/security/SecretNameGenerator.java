@@ -72,11 +72,11 @@ public class SecretNameGenerator {
     }
 
     public String getKeyStorePath() {
-        return getSecretPath(SECRET_NAME_KEYSTORE);
+        return getSecretPath(SECRET_NAME_KEYSTORE, true);
     }
 
     public String getTrustStorePath() {
-        return getSecretPath(SECRET_NAME_TRUSTSTORE);
+        return getSecretPath(SECRET_NAME_TRUSTSTORE, true);
     }
 
     public String getCertificateMountPath() {
@@ -92,14 +92,18 @@ public class SecretNameGenerator {
     }
 
     public String getKeyStoreMountPath() {
-        return withBase64Suffix(getMountPath("keystore"));
+        return getMountPath("keystore");
     }
 
     public String getTrustStoreMountPath() {
-        return withBase64Suffix(getMountPath("truststore"));
+        return getMountPath("truststore");
     }
 
     private String getSecretPath(String name) {
+        return getSecretPath(name, false);
+    }
+
+    private String getSecretPath(String name, boolean withBase64Prefix) {
         String[] names = Arrays.asList(sanHash, taskInstanceName, transportEncryptionName, name)
                 .stream()
                 .filter(item -> item != null)
@@ -107,6 +111,10 @@ public class SecretNameGenerator {
                 .toArray(String[]::new);
 
         String fullName = String.join(DELIMITER, names);
+        if (withBase64Prefix) {
+            fullName = withBase64Prefix(fullName);
+        }
+
         return String.format("%s/%s", getTaskSecretsNamespace(), fullName);
     }
 
@@ -114,10 +122,10 @@ public class SecretNameGenerator {
         return String.format("%s.%s", transportEncryptionName, suffix);
     }
 
-    // This should get removed once secrets store will support binary data
-    // @see DCOS-16005
-    private String withBase64Suffix(String path) {
-        return path + ".base64";
+    // Prefix the secret name with __dcos_base64__ string so the secrets will get decoded by mesos secrets module.
+    // See: DCOS-17621
+    private String withBase64Prefix(String name) {
+       return String.format("__dcos_base64__%s", name);
     }
 
     public static String getNamespaceFromEnvironment(String defaultNamespace, SchedulerFlags flags) {

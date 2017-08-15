@@ -17,6 +17,9 @@ from tests.config import (
 log = logging.getLogger(__name__)
 
 
+# global pytest variable applicable to whole module
+pytestmark = sdk_utils.dcos_1_9_or_higher
+
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
@@ -30,7 +33,7 @@ def configure_package(configure_security):
                 'hello': {'count': 4},
                 'world': {'count': 4}
             },
-            wait_scheduler_idle=False)
+            wait_for_deployment=False)
 
         yield # let the test session execute
     finally:

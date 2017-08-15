@@ -53,15 +53,11 @@
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
 
-    {{#service.virtual_networks}}
+    {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    "VIRTUAL_NETWORK_NAME_JOURNAL": "{{journal_node.virtual_network}}",
-    "CNI_PLUGIN_LABELS_JOURNAL": "{{journal_node.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_NAME": "{{name_node.virtual_network}}",
-    "CNI_PLUGIN_LABELS_NAME": "{{name_node.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_DATA": "{{data_node.virtual_network}}",
-    "CNI_PLUGIN_LABELS_DATA": "{{data_node.cni_plugin_labels}}",
-    {{/service.virtual_networks}}
+    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
+    {{/service.virtual_network_enabled}}
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
