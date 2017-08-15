@@ -26,7 +26,8 @@ def configure_package(configure_security):
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+            additional_options={"service": {"name": FOLDERED_SERVICE_NAME},
+                                "ingest_nodes": {"count": 1}})
 
         yield  # let the test session execute
     finally:
@@ -48,7 +49,7 @@ def default_populated_index():
     create_document(DEFAULT_INDEX_NAME, DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"}, service_name=FOLDERED_SERVICE_NAME)
 
 
-@pytest.mark.sanity
+@pytest.mark.focus
 @pytest.mark.smoke
 def test_service_health():
     assert shakedown.service_healthy(FOLDERED_SERVICE_NAME)
@@ -79,7 +80,6 @@ def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "data-0-node", DEFAULT_ELASTIC_TIMEOUT)
 
 
-@pytest.mark.focus
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
 def test_xpack_toggle_with_kibana(default_populated_index):

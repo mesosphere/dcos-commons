@@ -211,8 +211,8 @@
         "count": {
           "description": "Number of ingest nodes to run",
           "type": "integer",
-          "default": 1,
-          "minimum": 1
+          "default": 0,
+          "minimum": 0
         },
         "cpus": {
           "description": "Node cpu requirements",
