@@ -13,9 +13,9 @@ Apache Cassandra's Rack-Aware Replication is not supported at this time.
 
 Apache Cassandra's native TLS, authentication, and authorization features are not supported at this time.
 
-## Overlay networks
+## Virtual networks
 
-When the DC/OS Cassandra Service is deployed on a virtual network, the configuration cannot be updated after installation.
+When the DC/OS Cassandra Service is deployed on a virtual network, the service may not be switched to host networking without a full re-installation. The same is true for attempting to switch from host to virtual networking.
 
 ## Data Center Name
 
