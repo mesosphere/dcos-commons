@@ -197,7 +197,7 @@ public class OfferEvaluator {
                 StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance());
         // If there are no taskinfos, then label the pod as "new" rather than "failed" in logs:
         return !taskInfos.isEmpty() &&
-                taskInfos.stream().allMatch(taskInfo -> FailureUtils.isLabeledAsFailed(taskInfo));
+                taskInfos.stream().allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
     }
 
     private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {

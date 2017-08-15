@@ -25,15 +25,18 @@ public class FailureUtils {
      * @param taskInfo The Task to check for failure.
      * @return True if the Task has been marked, false otherwise.
      */
-    public static boolean isLabeledAsFailed(Protos.TaskInfo taskInfo) {
+    public static boolean isPermanentlyFailed(Protos.TaskInfo taskInfo) {
         return new TaskLabelReader(taskInfo).isPermanentlyFailed();
     }
 
     /**
      * Marks all tasks associated with this pod as failed.
-     * These will effectively be automatically cleared when the pod is redeployed.
+     * This setting will effectively be automatically cleared when the pod is redeployed.
+     *
+     * @param stateStore the state storage where any updated tasks will be stored
+     * @param podInstance the pod whose tasks will be marked as failed
      */
-    public static void markFailed(StateStore stateStore, PodInstance podInstance) {
+    public static void setPermanentlyFailed(StateStore stateStore, PodInstance podInstance) {
         stateStore.storeTasks(
                 StateStoreUtils.fetchPodTasks(stateStore, podInstance).stream()
                         .map(taskInfo -> taskInfo.toBuilder()

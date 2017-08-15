@@ -87,7 +87,7 @@ public class AuxLabelAccess {
      */
     public static boolean isInitialLaunch(Protos.TaskStatus taskStatus) {
         String val = LabelUtils.toMap(taskStatus.getLabels()).get(LabelConstants.INITIAL_LAUNCH_LABEL);
-        return val != null && val.equals(LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
+        return LabelConstants.BOOLEAN_LABEL_TRUE_VALUE.equals(val);
     }
 
     // VIPs

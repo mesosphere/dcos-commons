@@ -40,14 +40,18 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         Optional<PodInstance> podInstance = getPodInstance(taskInfo);
         final boolean isInitialLaunch;
         if (!podInstance.isPresent()) {
+            // This may happen in one of the following cases:
+            // - The TaskInfo lacked the needed labels to determine what pod it belonged to
+            // - The TaskInfo refers to a pod that can't be found in the ServiceSpec (change in service definition?)
+            // In either case, let's play it safe and assume that this shouldn't be treated as an initial launch.
             isInitialLaunch = false;
-            logger.debug("No pod instance found!");
+            logger.warn("No pod found for task {}: treating this as not an initial launch", taskInfo.getName());
         } else {
             Collection<Protos.TaskInfo> podTasks =
                     StateStoreUtils.fetchPodTasks(stateStore, podInstance.get());
             // If there are no taskinfos, then treat this as an initial launch:
             isInitialLaunch = podTasks.isEmpty() ||
-                    podTasks.stream().allMatch(podTask -> FailureUtils.isLabeledAsFailed(podTask));
+                    podTasks.stream().allMatch(podTask -> FailureUtils.isPermanentlyFailed(podTask));
         }
 
         Optional<Protos.TaskStatus> taskStatus = Optional.empty();
