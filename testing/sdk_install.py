@@ -83,7 +83,20 @@ def install(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
-def uninstall(
+@retry(stop_max_attempt_number=5, wait_fixed=5000, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
+def uninstall(service_name,
+              package_name=None,
+              role=None,
+              principal=None,
+              zk=None):
+    _uninstall(service_name,
+               package_name,
+               role,
+               principal,
+               zk)
+
+
+def _uninstall(
         service_name,
         package_name=None,
         role=None,
@@ -102,6 +115,9 @@ def uninstall(
         except (dcos.errors.DCOSException, ValueError) as e:
             log.info('Got exception when uninstalling package, ' +
                           'continuing with janitor anyway: {}'.format(e))
+            if 'marathon' in str(e):
+                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
+                raise
 
         janitor_start = time.time()
 
@@ -159,6 +175,9 @@ def uninstall(
         except (dcos.errors.DCOSException, ValueError) as e:
             log.info(
                 'Got exception when uninstalling package: {}'.format(e))
+            if 'marathon' in str(e):
+                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
+                raise
         finally:
             sdk_utils.list_reserved_resources()
 
