@@ -56,8 +56,8 @@ func (cmd *describeHandler) handleDescribe(a *kingpin.Application, e *kingpin.Pa
 	return nil
 }
 
-// HandleDescribe adds the describe subcommand to the passed in kingpin.Application.
-func HandleDescribe(app *kingpin.Application) {
+// HandleDescribeSection adds the describe subcommand to the passed in kingpin.Application.
+func HandleDescribeSection(app *kingpin.Application) {
 	cmd := &describeHandler{}
 	app.Command("describe", "View the configuration for this service").Action(cmd.handleDescribe)
 }
