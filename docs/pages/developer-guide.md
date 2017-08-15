@@ -1089,8 +1089,6 @@ A **.truststore** is a JKS file that contains the DC/OS root CA certificate stor
 
 The password **`notsecure`** that protects both JKS files (containing an end-entity certificate with private key and root CA certificate) has been selected because most Java tools and libraries require a password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers or tasks can access TLS artifacts provisioned by a scheduler.
 
-**Imporant note:** The DC/OS 1.10 secrets store doesn't provide support for storing binary data. To overcome this limitation, the `keystore` and `truststore` files are Base64 encoded before they are added to the secrets store. Files are mounted into a task container with additional `base64` file name suffix - `*.keystore.base64` and `*.truststore.base64`. There is a `bootstrap` utility helper that automatically decodes files in `$MESOS_SANDBOX` with `*.keystore.base64` and `*.truststore.base64` extension and stores them in a sandbox directory with expected `*.keystore` and `*.truststore` names. **Decoded files aren't stored using in-memory file system and are stored on a disk even after task finishes until the sandbox is removed by an operator or Mesos GC.**
-
 ## Installation requirements
 
 To enable TLS support a `Mesosphere DC/OS Enterprise` cluster must be installed in `permissive` or `strict` security mode.
