@@ -62,7 +62,7 @@ public class OfferEvaluator {
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
-        logger.info("Pod: {}, taskInfos for evaluation.");
+        logger.info("Pod: {}, taskInfos for evaluation.", podInstanceRequirement.getPodInstance().getName());
         thisPodTasks.values().forEach(info -> logger.info(TextFormat.shortDebugString(info)));
 
         boolean noTasksRunning = thisPodTasks.values().stream()
@@ -84,7 +84,9 @@ public class OfferEvaluator {
         }
 
         if (executorInfo.isPresent()) {
-            logger.info("Pod: {}, executorInfo for evaluation: {}", TextFormat.shortDebugString(executorInfo.get()));
+            logger.info("Pod: {}, executorInfo for evaluation: {}",
+                    podInstanceRequirement.getPodInstance().getName(),
+                    TextFormat.shortDebugString(executorInfo.get()));
         }
 
         for (int i = 0; i < offers.size(); ++i) {
