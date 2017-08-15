@@ -63,6 +63,11 @@ pods:
             if [ ! -d journal-data/hdfs ]; then
               exit 0
             else
+              if [ ! -f rollEdits.txt ]; then
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs dfsadmin -rollEdits;
+                touch rollEdits.txt
+              fi
               curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
               export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               [[ $LAGGING_TX_COUNT -eq 0 ]]

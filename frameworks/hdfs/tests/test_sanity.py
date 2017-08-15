@@ -245,11 +245,14 @@ def test_install():
 @pytest.mark.sanity
 def test_bump_journal_cpus():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
+    name_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
     log.info('journal ids: ' + str(journal_ids))
 
     sdk_marathon.bump_cpu_count_config(FOLDERED_SERVICE_NAME, 'JOURNAL_CPUS')
 
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
+    # journal node update should not cause any of the name nodes to crash
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     check_healthy(service_name=FOLDERED_SERVICE_NAME)
 
 
