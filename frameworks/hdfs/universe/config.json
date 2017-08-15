@@ -10,10 +10,20 @@
           "type":"string",
           "default":"hdfs"
         },
-        "virtual_networks": {
-          "description": "Enable DC/OS Virtual Networking",
+        "virtual_network_enabled": {
+          "description": "Enable virtual networking",
           "type": "boolean",
           "default": false
+        },
+        "virtual_network_name": {
+          "description": "The name of the virtual network to join",
+          "type": "string",
+          "default": "dcos"
+        },
+        "virtual_network_plugin_labels": {
+          "description": "Labels to pass to the virtual network plugin. Comma-separated key:value pairs. For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+          "type": "string",
+          "default": ""
         },
         "user": {
           "type": "string",
@@ -125,16 +135,6 @@
           "type":"string",
           "default": "ROOT"
         },
-        "virtual_network": {
-          "description": "Name of virtual network to join",
-          "type": "string",
-          "default": "dcos"
-        },
-        "cni_plugin_labels": {
-          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
-          "type": "string",
-          "default": ""
-        },
         "enable_readiness_check": {
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
@@ -171,16 +171,6 @@
           "description":"Name node disk type",
           "type":"string",
           "default": "ROOT"
-        },
-        "virtual_network": {
-          "description": "Name of virtual network to join",
-          "type": "string",
-          "default": "dcos"
-        },
-        "cni_plugin_labels": {
-          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
-          "type": "string",
-          "default": ""
         }
       },
       "required":[
@@ -238,16 +228,6 @@
           "description":"Data node disk type",
           "type":"string",
           "default": "ROOT"
-        },
-        "virtual_network": {
-          "description": "Name of virtual network to join",
-          "type": "string",
-          "default": "dcos"
-        },
-        "cni_plugin_labels": {
-          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
-          "type": "string",
-          "default": ""
         }
       },
       "required":[

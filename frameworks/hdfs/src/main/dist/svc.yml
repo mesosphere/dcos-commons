@@ -13,8 +13,8 @@ pods:
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_JOURNAL}}:
-        labels: {{CNI_PLUGIN_LABELS_JOURNAL}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:
@@ -102,8 +102,8 @@ pods:
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS_NAME}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     resource-sets:
       name-resources:
@@ -273,8 +273,8 @@ pods:
       {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_DATA}}:
-        labels: {{CNI_PLUGIN_LABELS_DATA}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:

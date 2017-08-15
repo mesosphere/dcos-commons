@@ -9,6 +9,7 @@ import sdk_install
 import sdk_plan
 import sdk_tasks
 import sdk_marathon
+import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME
@@ -29,6 +30,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(PACKAGE_NAME)
 
 
+@sdk_utils.dcos_1_9_or_higher
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_rack_not_found():
@@ -45,7 +47,7 @@ def test_rack_not_found():
     }
 
     # scheduler should fail to deploy, don't wait for it to complete:
-    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, wait_scheduler_idle=False)
+    sdk_install.install(PACKAGE_NAME, 0, additional_options=options, wait_for_deployment=False)
     try:
         sdk_tasks.check_running(PACKAGE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"

@@ -113,6 +113,7 @@ public class TemplateUtilsTest {
                 filename, yaml, envMap, TemplateUtils.MissingBehavior.EMPTY_STRING);
 
         Assert.assertTrue(renderedYaml.contains("cmd: ./enabled true"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./disabled"));
         Assert.assertFalse(renderedYaml.contains("ENABLED"));
     }
 
@@ -128,6 +129,7 @@ public class TemplateUtilsTest {
                 filename, yaml, envMap, TemplateUtils.MissingBehavior.EMPTY_STRING);
 
         Assert.assertTrue(renderedYaml.contains("cmd: ./disabled false"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./enabled"));
         Assert.assertFalse(renderedYaml.contains("ENABLED"));
     }
 
@@ -144,6 +146,7 @@ public class TemplateUtilsTest {
 
         Assert.assertTrue(renderedYaml.contains("cmd: ./disabled"));
         Assert.assertFalse(renderedYaml.contains("cmd: ./disabled false"));
+        Assert.assertFalse(renderedYaml.contains("cmd: ./enabled"));
         Assert.assertFalse(renderedYaml.contains("ENABLED"));
     }
 
