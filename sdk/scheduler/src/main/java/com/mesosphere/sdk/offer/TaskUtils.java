@@ -8,9 +8,8 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
@@ -176,7 +175,7 @@ public class TaskUtils {
             if (oldResourceSpec == null) {
                 LOGGER.debug("Resource not found: {}", resourceName);
                 return true;
-            } else if (areDifferent(oldResourceSpec, newEntry.getValue())) {
+            } else if (!EqualsBuilder.reflectionEquals(oldResourceSpec, newEntry.getValue())) {
                 LOGGER.debug("Resources are different.");
                 return true;
             }
@@ -233,28 +232,6 @@ public class TaskUtils {
         Optional<DiscoverySpec> newDiscoverySpec = newTaskSpec.getDiscovery();
         if (!Objects.equals(oldDiscoverySpec, newDiscoverySpec)) {
             LOGGER.debug("DiscoverySpecs '{}' and '{}' are different.", oldDiscoverySpec, newDiscoverySpec);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static boolean areDifferent(ResourceSpec oldResourceSpec, ResourceSpec newResourceSpec) {
-        Protos.Value oldValue = oldResourceSpec.getValue();
-        Protos.Value newValue = newResourceSpec.getValue();
-        if (!ValueUtils.equal(oldValue, newValue)) {
-            return true;
-        }
-
-        String oldRole = oldResourceSpec.getRole();
-        String newRole = newResourceSpec.getRole();
-        if (!Objects.equals(oldRole, newRole)) {
-            return true;
-        }
-
-        String oldPrincipal = oldResourceSpec.getPrincipal();
-        String newPrincipal = newResourceSpec.getPrincipal();
-        if (!Objects.equals(oldPrincipal, newPrincipal)) {
             return true;
         }
 
