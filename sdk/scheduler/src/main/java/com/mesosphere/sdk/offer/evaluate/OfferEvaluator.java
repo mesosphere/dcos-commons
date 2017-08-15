@@ -16,6 +16,9 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -59,7 +62,7 @@ public class OfferEvaluator {
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
-        logger.info("Pod: {}, taskInfos for evaluation.");
+        logger.info("Pod: {}, taskInfos for evaluation.", podInstanceRequirement.getPodInstance().getName());
         thisPodTasks.values().forEach(info -> logger.info(TextFormat.shortDebugString(info)));
 
         boolean noTasksRunning = thisPodTasks.values().stream()
@@ -81,7 +84,9 @@ public class OfferEvaluator {
         }
 
         if (executorInfo.isPresent()) {
-            logger.info("Pod: {}, executorInfo for evaluation: {}", TextFormat.shortDebugString(executorInfo.get()));
+            logger.info("Pod: {}, executorInfo for evaluation: {}",
+                    podInstanceRequirement.getPodInstance().getName(),
+                    TextFormat.shortDebugString(executorInfo.get()));
         }
 
         for (int i = 0; i < offers.size(); ++i) {
@@ -257,6 +262,8 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
             evaluationStages.add(new PlacementRuleEvaluationStage(
@@ -279,17 +286,10 @@ public class OfferEvaluator {
 
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
-                    NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
                     evaluationStages.add(
-                            new NamedVIPEvaluationStage(namedVIPSpec, taskName, Optional.empty(), useDefaultExecutor));
+                            new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskName, Optional.empty()));
                 } else if (resourceSpec instanceof PortSpec) {
-                    PortSpec portSpec = (PortSpec) resourceSpec;
-                    evaluationStages.add(
-                            new PortEvaluationStage(
-                                    portSpec,
-                                    taskName,
-                                    Optional.empty(),
-                                    useDefaultExecutor));
+                    evaluationStages.add(new PortEvaluationStage((PortSpec) resourceSpec, taskName, Optional.empty()));
                 } else {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), taskName));
                 }
@@ -313,6 +313,23 @@ public class OfferEvaluator {
                     evaluationStages.add(new ResourceEvaluationStage(resourceSpec, Optional.empty(), null));
                 }
                 shouldAddExecutorResources = false;
+            }
+
+            TaskSpec taskSpec = podInstanceRequirement
+                    .getPodInstance()
+                    .getPod()
+                    .getTasks()
+                    .stream()
+                    .filter(taskSpec1 -> taskSpec1.getName().equals(taskName))
+                    .findFirst()
+                    .get();
+
+            if (!taskSpec.getTransportEncryption().isEmpty()) {
+                evaluationStages.add(tlsBuilder
+                        .get()
+                        .setServiceName(serviceName)
+                        .setTaskName(taskName)
+                        .build());
             }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
@@ -367,6 +384,8 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo) {
 
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
                 .collect(Collectors.toList());
@@ -396,13 +415,15 @@ public class OfferEvaluator {
         evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
 
         for (TaskSpec taskSpec : taskSpecs) {
-            String taskInfoName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
+            String taskInstanceName = TaskSpec.getInstanceName(
+                    podInstanceRequirement.getPodInstance(), taskSpec.getName());
             Protos.TaskInfo taskInfo = getTaskInfoSharingResourceSet(
                     podInstanceRequirement.getPodInstance(),
                     taskSpec,
                     podTasks);
             if (taskInfo == null) {
-                logger.error(String.format("Failed to fetch task %s.  Cannot generate resource map.", taskInfoName));
+                logger.error(
+                        String.format("Failed to fetch task %s.  Cannot generate resource map.", taskInstanceName));
                 return Collections.emptyList();
             }
 
@@ -411,11 +432,30 @@ public class OfferEvaluator {
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
 
+            if (!taskSpec.getTransportEncryption().isEmpty()) {
+                evaluationStages.add(tlsBuilder
+                        .get()
+                        .setServiceName(serviceName)
+                        .setTaskName(taskSpec.getName())
+                        .build());
+            }
+
             boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
             evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName(), shouldLaunch, useDefaultExecutor));
         }
 
         return evaluationStages;
+    }
+
+    private static Optional<TLSEvaluationStage.Builder> getTLSEvaluationStageBuilderFromEnvironment(
+            SchedulerFlags flags) {
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = Optional.empty();
+        try {
+            tlsBuilder = Optional.of(TLSEvaluationStage.Builder.fromEnvironment(flags));
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException | SchedulerFlags.FlagException e) {
+            logger.error("Failed to create TLSEvaluationStage.Builder, no TLS will be provisioned", e);
+        }
+        return tlsBuilder;
     }
 
     private static Protos.TaskInfo getTaskInfoSharingResourceSet(

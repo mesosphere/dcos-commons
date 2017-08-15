@@ -66,7 +66,7 @@ while give_up_time > time.time():
     time.sleep(60)
 
 if cluster_id is None:
-    log.info("Never retrieved cluster id from CCM!")
+    log.info("Never retrieved cluster id from CCM for cluster %s!", cluster_name)
     sys.exit(1)
 
 # This API call increases the cluster length by an additional 4 hours.

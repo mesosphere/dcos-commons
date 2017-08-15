@@ -29,8 +29,7 @@ public class DefaultTaskSpecTest {
                                                 .build(),
                                         TestConstants.ROLE,
                                         TestConstants.PRE_RESERVED_ROLE,
-                                        TestConstants.PRINCIPAL,
-                                        "env-key")),
+                                        TestConstants.PRINCIPAL)),
                         Arrays.asList(
                                 new DefaultVolumeSpec(
                                         100,
@@ -38,8 +37,7 @@ public class DefaultTaskSpecTest {
                                         TestConstants.CONTAINER_PATH,
                                         TestConstants.ROLE,
                                         TestConstants.PRE_RESERVED_ROLE,
-                                        TestConstants.PRINCIPAL,
-                                        "env-key")),
+                                        TestConstants.PRINCIPAL)),
                         TestConstants.ROLE,
                         TestConstants.PRE_RESERVED_ROLE,
                         TestConstants.PRINCIPAL),
@@ -48,7 +46,8 @@ public class DefaultTaskSpecTest {
                 new DefaultReadinessCheckSpec("./readiness-check", 2, 2, 2),
                 Arrays.asList(
                         new DefaultConfigFileSpec("name", "relative-path", "template-content")),
-                new DefaultDiscoverySpec("prefix", Protos.DiscoveryInfo.Visibility.CLUSTER));
+                new DefaultDiscoverySpec("prefix", Protos.DiscoveryInfo.Visibility.CLUSTER),
+                null);
 
         DefaultTaskSpec clone = DefaultTaskSpec.newBuilder(original).build();
         Assert.assertEquals(original, clone);

@@ -4,6 +4,8 @@ import pytest
 
 import sdk_install
 import sdk_plan
+import sdk_marathon
+
 
 from tests.config import (
     PACKAGE_NAME
@@ -51,6 +53,29 @@ def test_sidecar():
 @pytest.mark.sanity
 def test_sidecar_parameterized():
     run_plan('sidecar-parameterized', {'PLAN_PARAMETER': 'parameterized'})
+
+
+@pytest.mark.sanity
+def test_toxic_sidecar_doesnt_trigger_recovery():
+    # 1. Run the toxic sidecar plan that will never succeed.
+    # 2. Restart the scheduler.
+    # 3. Verify that its recovery plan is empty, as a failed FINISHED task should
+    # never trigger recovery
+    recovery_plan = sdk_plan.get_plan(PACKAGE_NAME, 'recovery')
+    assert(len(recovery_plan['phases']) == 0)
+    log.info(recovery_plan)
+    sdk_plan.start_plan(PACKAGE_NAME, 'sidecar-toxic')
+    # Wait for the bad sidecar plan to be starting.
+    sdk_plan.wait_for_starting_plan(PACKAGE_NAME, 'sidecar-toxic')
+
+    # Restart the scheduler and wait for it to come up.
+    sdk_marathon.restart_app(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+
+    # Now, verify that its recovery plan is empty.
+    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'recovery')
+    recovery_plan = sdk_plan.get_plan(PACKAGE_NAME, 'recovery')
+    assert(len(recovery_plan['phases']) == 0)
 
 
 def run_plan(plan_name, params=None):

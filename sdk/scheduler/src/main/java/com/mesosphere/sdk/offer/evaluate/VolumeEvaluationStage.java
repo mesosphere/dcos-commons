@@ -24,7 +24,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final VolumeSpec volumeSpec;
     private final Optional<String> persistenceId;
     private final String taskName;
-    private Optional<String> resourceId;
+    private final Optional<String> resourceId;
     private final boolean useDefaultExecutor;
 
     public VolumeEvaluationStage(
@@ -83,11 +83,13 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 return evaluationOutcome;
             }
 
-            resourceId = reserveEvaluationOutcome.getResourceId();
-
             offerRecommendations.addAll(evaluationOutcome.getOfferRecommendations());
             mesosResource = evaluationOutcome.getMesosResource().get();
-            resource = ResourceBuilder.fromSpec(volumeSpec, resourceId, persistenceId, Optional.empty())
+            resource = ResourceBuilder.fromSpec(
+                    volumeSpec,
+                    reserveEvaluationOutcome.getResourceId(),
+                    persistenceId,
+                    Optional.empty())
                     .setMesosResource(mesosResource)
                     .build();
         } else {

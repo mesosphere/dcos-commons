@@ -51,8 +51,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 value,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
 
         Protos.Resource resource = resourceBuilder.build();
@@ -118,8 +117,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                     value,
                     TestConstants.ROLE,
                     TestConstants.PRE_RESERVED_ROLE,
-                    TestConstants.PRINCIPAL,
-                    "CPUS_ENV_KEY");
+                    TestConstants.PRINCIPAL);
             ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
 
             Protos.Resource resource = resourceBuilder.build();
@@ -140,8 +138,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 value,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, resourceId);
 
         Protos.Resource resource = resourceBuilder.build();
@@ -172,8 +169,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.empty(),
@@ -231,8 +227,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
@@ -271,8 +266,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.empty(),
@@ -343,8 +337,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
@@ -389,8 +382,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 value,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource = ResourceBuilder.fromSpec(resourceSpec, resourceId).build();
         Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
@@ -416,8 +408,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource = ResourceBuilder.fromSpec(
@@ -449,8 +440,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> sourceRoot = Optional.of(TestConstants.MOUNT_SOURCE_ROOT);

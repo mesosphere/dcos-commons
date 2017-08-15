@@ -1,0 +1,15 @@
+name: test-render
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        {{#ENABLED}}
+        cmd: ./enabled {{ENABLED}}
+        {{/ENABLED}}
+        {{^ENABLED}}
+        cmd: ./disabled {{ENABLED}}
+        {{/ENABLED}}
+        cpus: 1.0
+        memory: 256

@@ -13,8 +13,6 @@ from tests.test_utils import  *
 def configure_package(configure_security):
     try:
         install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
-
         install.install(
             PACKAGE_NAME,
             DEFAULT_BROKER_COUNT,
