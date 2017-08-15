@@ -45,6 +45,11 @@
             "type": "boolean",
             "default": false
           },
+          "tls_allow_plaintext": {
+            "description": "Keep the plaintext port open when the TLS is enabled. (Allows clients to connect using a non-encrypted connection and takes effect only if the TLS is enabled.)",
+            "type": "boolean",
+            "default": false
+          },
           "deploy_strategy":{
             "description":"Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
             "type":"string",

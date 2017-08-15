@@ -58,7 +58,7 @@ def kafka_service_tls(service_account):
             "service": {
                 "secret_name": service_account,
                 "principal": service_account,
-                "tls": True,
+                "tls": True
             }
         }
     )
@@ -78,7 +78,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
 def test_tls_endpoints(kafka_service_tls):
-    endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 3)
+    endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 2)
     assert BROKER_TLS_ENDPOINT in endpoints
 
     # Test that broker-tls endpoint is available

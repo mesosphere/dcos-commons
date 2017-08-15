@@ -342,6 +342,21 @@ dcos kafka topic producer_test_tls ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
 
 For more information about the TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
 
+### TLS and plaintext
+
+It is possible to keep both TLS and plaintext ports opened at the same time and have clients accessing both of them. To keep the plaintext port open use the following TLS configuration:
+
+```
+{
+    "service": {
+        "tls": true,
+        "tls_allow_plaintext": true
+    }
+}
+```
+
+The plaintext port will be disabled by default when the TLS is enabled.
+
 ## Recovery and Health Checks
 
 You can enable automated replacement of brokers and configure the circumstances under which they are replaced.
