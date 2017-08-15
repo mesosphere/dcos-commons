@@ -37,9 +37,9 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
     return stdout
 
 
-def convert_output_to_list(output):
-    """When a list is the expected output of a command,
-    this converts the string output to said expected list.
+def convert_string_list_to_list(output):
+    """When a string-representation of a list is the expected output
+    of a command, this converts the string output to said expected list.
 
     In spite of being a one-liner it standardizes the conversion.
     """

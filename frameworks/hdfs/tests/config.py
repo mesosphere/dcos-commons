@@ -91,7 +91,7 @@ def expect_recovery(service_name):
 
 
 def get_pod_type_instances(pod_type_prefix, service_name=PACKAGE_NAME):
-    pod_types = sdk_cmd.convert_output_to_list(
+    pod_types = sdk_cmd.convert_string_list_to_list(
         sdk_cmd.run_cli("hdfs --name={} pod list".format(service_name))
     )
     return [pod_type for pod_type in pod_types if pod_type.startswith(pod_type_prefix)]

@@ -148,7 +148,7 @@ def test_kill_all_journalnodes():
 
     for journal_pod in get_pod_type_instances("journal", FOLDERED_SERVICE_NAME):
         sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, journal_pod))
-        # wait for the entire service to recover as name nodes are affected as well when journal nodes go down
+        # wait for the entire service to recover as name nodes will crash if quorum is lost among journal nodes
         expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
     # name nodes fail and restart, so don't check those
