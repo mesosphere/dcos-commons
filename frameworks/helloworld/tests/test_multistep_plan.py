@@ -1,34 +1,36 @@
+import logging
+
 import pytest
-import json
 
 import shakedown
 
 import sdk_tasks
-import sdk_install as install
-import sdk_utils
+import sdk_install
 
 from tests.config import (
     PACKAGE_NAME,
     check_running,
-    bump_hello_cpus,
-    hello_task_count
+    bump_hello_cpus
 )
 
+log = logging.getLogger(__name__)
+
+
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
         options = {
             "service": {
                 "spec_file": "examples/multistep_plan.yml"
             }
         }
 
-        install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.install(PACKAGE_NAME, 1, additional_options=options)
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -43,7 +45,7 @@ def test_bump_hello_cpus():
 
     check_running(PACKAGE_NAME)
     hello_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello')
-    sdk_utils.out('hello ids: ' + str(hello_ids))
+    log.info('hello ids: ' + str(hello_ids))
 
     updated_cpus = bump_hello_cpus(PACKAGE_NAME)
 
@@ -54,4 +56,3 @@ def test_bump_hello_cpus():
     running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
-

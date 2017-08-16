@@ -8,10 +8,11 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mock;
@@ -42,6 +43,7 @@ public class BaseServiceSpecTest {
         MockitoAnnotations.initMocks(this);
         when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
         when(mockFlags.getApiServerPort()).thenReturn(8080);
+        when(mockFlags.getServiceAccountUid()).thenReturn(TestConstants.PRINCIPAL);
     }
 
     protected BaseServiceSpecTest(Map<String, String> envVars) {
@@ -99,9 +101,8 @@ public class BaseServiceSpecTest {
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, mockFlags, new MemPersister())
-                .setStateStore(new DefaultStateStore(persister))
-                .setConfigStore(
-                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+                .setStateStore(new StateStore(persister))
+                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(getRawServiceSpec(fileName))
                 .build();
     }

@@ -6,12 +6,16 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -91,6 +95,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
+        targetConfig = fixServiceSpecUser(targetConfig);
+
         // Check for any validation errors (including against the prior config, if one is available)
         // NOTE: We ALWAYS run validation regardless of config equality. This allows the configured
         // validators to always have a say in whether a given configuration is valid, regardless of
@@ -141,6 +147,35 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
     }
+
+    /**
+     * Detects whether the previous {@link ServiceSpec} set the user. If it didn't, we set it to "root"
+     * as Mesos treats a non-set user as "root".
+     *
+     * @param targetConfig The previous service spec from the config
+     */
+    private Optional<ServiceSpec> fixServiceSpecUser(Optional<ServiceSpec> targetConfig) {
+        if (!targetConfig.isPresent()) {
+            return Optional.empty();
+        }
+        DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(targetConfig.get());
+
+        if (targetConfig.get().getUser() == null) {
+            serviceSpecWithUser.user(DcosConstants.DEFAULT_SERVICE_USER);
+        }
+
+        List<PodSpec> podsWithUser = new ArrayList<>();
+        for (PodSpec podSpec : targetConfig.get().getPods()) {
+            podsWithUser.add(
+                    podSpec.getUser() != null && podSpec.getUser().isPresent() ? podSpec :
+                            DefaultPodSpec.newBuilder(podSpec).user(DcosConstants.DEFAULT_SERVICE_USER).build()
+            );
+        }
+        serviceSpecWithUser.pods(podsWithUser);
+
+        return Optional.of(serviceSpecWithUser.build());
+    }
+
 
     /**
      * Searches for any task configurations which are already identical to the target configuration

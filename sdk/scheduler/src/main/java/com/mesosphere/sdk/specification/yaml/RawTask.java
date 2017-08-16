@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,6 +25,7 @@ public class RawTask {
     private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
     private final String resourceSet;
     private final RawDiscovery discovery;
+    private final List<RawTransportEncryption> transportEncryption;
 
     private RawTask(
             @JsonProperty("goal") String goal,
@@ -38,7 +41,8 @@ public class RawTask {
             @JsonProperty("volume") RawVolume volume,
             @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
             @JsonProperty("resource-set") String resourceSet,
-            @JsonProperty("discovery") RawDiscovery discovery) {
+            @JsonProperty("discovery") RawDiscovery discovery,
+            @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption) {
         this.goal = goal;
         this.cmd = cmd;
         this.env = env;
@@ -53,6 +57,7 @@ public class RawTask {
         this.volumes = volumes;
         this.resourceSet = resourceSet;
         this.discovery = discovery;
+        this.transportEncryption = transportEncryption;
     }
 
     public Double getCpus() {
@@ -109,5 +114,10 @@ public class RawTask {
 
     public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
         return volumes;
+    }
+
+    public List<RawTransportEncryption> getTransportEncryption() {
+        return transportEncryption == null ?
+                Collections.emptyList() : transportEncryption;
     }
 }

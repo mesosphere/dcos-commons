@@ -278,15 +278,15 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 
 A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
 
-## Overlay networks
+## Virtual networks
 
-The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
 
 ```yaml
 pods:
-  pod-on-overlay:
+  pod-on-virtual-network:
     count: {{COUNT}}
-    # join the 'dcos' overlay network
+    # join the 'dcos' virtual network
     networks:
       dcos:
     tasks:
@@ -297,15 +297,15 @@ pods:
       ...
 ```
 
-When a pod is on the `dcos` overlay network:
+When a pod is on a virtual network such as the `dcos`:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
 
-Specifying that pods join the `dcos` overlay network has the following indirect effects:
+Specifying that pods join a virtual network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
-    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
-  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
+    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
 
 ## Secrets
 
@@ -313,31 +313,31 @@ Enterprise DC/OS provides a secrets store to enable access to sensitive data suc
 
 **Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod. 
+The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
 
 You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
 * Kerberos keytabs or other credential files.
 * SSL certificates.
 * Configuration files with sensitive data.
 
-For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-app/SecretPath1`, as shown below.
+For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-svc/SecretPath1`, as shown below.
 
 ```yaml
-name: secret-app/instance1
+name: secret-svc/instance1
 pods:
   pod-with-secret:
     count: {{COUNT}}
     # add secret file to pod's sandbox
     secrets:
       secret_name1:
-        secret: secret-app/Secret_Path1
+        secret: secret-svc/Secret_Path1
         env-key: Secret_Environment_Key
         file: data/somePath/Secret_FilePath1
       secret_name2:
-        secret: secret-app/instance1/Secret_Path2
+        secret: secret-svc/instance1/Secret_Path2
         file: data/somePath/Secret_FilePath2
       secret_name3:
-        secret: secret-app/Secret_Path3
+        secret: secret-svc/Secret_Path3
         env-key: Secret_Environment_Key2
     tasks:
       ....
@@ -353,48 +353,49 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-app/Secret_Path1` can only be accessed by applications with an ID under `/secret-app/`. Applications with IDs `/secret-app/app1` and `/secret-app/instance2/app2` all have access to this secret, because they are under `/secret-app/`.
- 
-On the other hand, the secret with path `secret-app/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-app` because it is not _under_ this secret's namespace, which is `/secret-app/insance1/`. `secret-app/instance1/Secret_Path2` can be accessed by any service with ID under `/secret-app/instance1/`, for example `/secret-app/instance1/app3` or `/secret-app/instance1/someDir/app4`.
+For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
+
+On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
 
-| Secret                               | Service                             | Can service access secret? |
+| Secret                               | Service ID                          | Can service access secret? |
 |--------------------------------------|-------------------------------------|----------------------------|
-| `secret-app/Secret_Path1`            | `/user/app1`                        | No                         |
-| `secret-app/Secret_Path1`            | `/secret-app/app1`                  | Yes                        |
-| `secret-app/Secret_Path1`            | `/secret-app/instance2/app2`        | Yes                        |
-| `secret-app/Secret_Path1`            | `/secret-app/a/b/c/app3`            | Yes                        |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/app1`                  | No                         |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/instance2/app3`        | No                         |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/instance1/app3`        | Yes                        |
-| `secret-app/instance1/Secret_Path2`  | `/secret-app/instance1/someDir/app3`| Yes                        |
+| `secret-svc/Secret_Path1`            | `/user`                             | No                         |
+| `secret-svc/Secret_Path1`            | `/user/dev1`                        | No                         |
+| `secret-svc/Secret_Path1`            | `/secret-svc`                       | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/dev1`                  | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/instance2/dev2`        | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/a/b/c/dev3`            | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/dev1`                  | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance2/dev3`        | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1`             | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/dev3`        | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/someDir/dev3`| Yes                        |
 
-  
 
-### Absolute and Relative File Paths for Secrets
 
- If `file` is a relative path, the secret file is placed under the sandbox. Absolute paths, with leading slash character, are only allowed if the related pod definition contains an `image-name`.  **Note:** The`user` running the tasks must have permission to create the given absolute file path. 
- 
-Below is a valid secret definition with a Docker `image-name`. The `/etc/keys/keyset1` and `$MESOS_SANDBOX/data/keys/keyset2` directories will be created if they do not exist.
-  
+**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
+
+Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
+  * Supported: `etc/keys/Secret_FilePath1`
+  * Not supported: `/etc/keys/Secret_FilePath1`
+
 ```yaml
-name: secret-app/instance2
+name: secret-svc/instance2
 pods:
   pod-with-image:
     count: {{COUNT}}
     container:
       image-name: ubuntu:14.04
-    user: root
+    user: nobody
     secrets:
-      # absolute path
       secret_name4:
-        secret: secret-app/Secret_Path1
+        secret: secret-svc/Secret_Path1
         env-key: Secret_Environment_Key
-        file: /etc/keys/keyset1/Secret_FilePath1
-      # relative path in Sandbox
+        file: etc/keys/Secret_FilePath1
       secret_name5:
-        secret: secret-app/instance1/Secret_Path2
-        file: data/keys/keyset2/Secret_FilePath2
+        secret: secret-svc/instance1/Secret_Path2
+        file: data/keys/keyset/Secret_FilePath2
     tasks:
       ....
 ```
@@ -521,7 +522,7 @@ Once we know the configuration is good, it should be added to our source control
 
 Above, we described how a configuration update (including updating the version of the service) is handled. Now we will quickly show the steps to perform such an update.
 
-Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in ][Reconfiguration](#Reconfiguration).
+Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in [Reconfiguration](#Reconfiguration).
 
 ### Enterprise DC/OS 1.10
 
@@ -542,7 +543,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 
 #### Updating package version
 
-The instructions below show how to safely update one version of a package to the next.
+The instructions below show how to safely update one version of a service to the next.
 
 ##### Viewing available versions
 
@@ -705,9 +706,9 @@ Or for a specific step within a specific phase:
 $ dcos dse update force-restart dse-phase dse-0:[node]
 ```
 
-### DC/OS 1.9 and Earlier
+### Open Source DC/OS, DC/OS 1.9, and Earlier
 
-The CLI commands above are not available for DC/OS 1.9 and earlier. If you are using DC/OS 1.9 or earlier, you can perform changes from the DC/OS GUI.
+If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
 1. Go to the **Services** tab of the DC/OS GUI and click the name of the Scheduler you wish to edit.
 

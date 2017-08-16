@@ -44,17 +44,11 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.secret_name}}
 
-    {{#service.virtual_networks}}
+    {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    "VIRTUAL_NETWORK_NAME_MASTER": "{{master_nodes.virtual_network}}",
-    "CNI_PLUGIN_LABELS_MASTER": "{{master_nodes.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_DATA": "{{data_nodes.virtual_network}}",
-    "CNI_PLUGIN_LABELS_DATA": "{{data_nodes.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_INGEST": "{{ingest_nodes.virtual_network}}",
-    "CNI_PLUGIN_LABELS_INGEST": "{{ingest_nodes.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_COORDINATOR": "{{coordinator_nodes.virtual_network}}",
-    "CNI_PLUGIN_LABELS_COORDINATOR": "{{coordinator_nodes.cni_plugin_labels}}",
-    {{/service.virtual_networks}}
+    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
+    {{/service.virtual_network_enabled}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",

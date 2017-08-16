@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification.yaml;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -74,9 +75,20 @@ public class TemplateUtils {
                 }
             });
         }
+
+        Map<String, Object> objEnv = new HashMap<>();
+        for (Map.Entry<String, String> entry : environment.entrySet()) {
+            if (StringUtils.equalsIgnoreCase(entry.getValue(), "false") ||
+                    StringUtils.equalsIgnoreCase(entry.getValue(), "true")) {
+                objEnv.put(entry.getKey(), Boolean.valueOf(entry.getValue()));
+            } else {
+                objEnv.put(entry.getKey(), entry.getValue());
+            }
+        }
+
         mustacheFactory
                 .compile(new StringReader(templateContent), templateName)
-                .execute(writer, environment);
+                .execute(writer, objEnv);
         return writer.toString();
     }
 

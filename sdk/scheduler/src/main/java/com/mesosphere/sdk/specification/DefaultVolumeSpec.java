@@ -38,8 +38,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             String containerPath,
             String role,
             String preReservedRole,
-            String principal,
-            String envKey) {
+            String principal) {
         this(
                 type,
                 containerPath,
@@ -47,8 +46,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 scalarValue(diskSize),
                 role,
                 preReservedRole,
-                principal,
-                envKey);
+                principal);
     }
 
     @JsonCreator
@@ -59,9 +57,8 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("pre-reserved-role") String preReservedRole,
-            @JsonProperty("principal")  String principal,
-            @JsonProperty("env-key")  String envKey) {
-        super(name, value, role, preReservedRole, principal, envKey);
+            @JsonProperty("principal")  String principal) {
+        super(name, value, role, preReservedRole, principal);
         this.type = type;
         this.containerPath = containerPath;
 

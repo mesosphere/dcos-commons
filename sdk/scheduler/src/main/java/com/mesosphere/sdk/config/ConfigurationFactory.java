@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.config;
 
+import com.mesosphere.sdk.state.ConfigStoreException;
+
 /**
  * This interface defines a way for previously stored Configuration objects to be reconstructed from
  * a byte array.

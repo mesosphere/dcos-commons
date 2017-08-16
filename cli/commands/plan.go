@@ -55,7 +55,11 @@ func (cmd *planHandler) getPlanName() string {
 	if len(cmd.PlanName) > 0 {
 		return cmd.PlanName
 	}
-	return "deploy"
+	// there is no (and should not be) a case where the plan name is requested here where it is not needed.
+	// this invariant should be guarded by CLI validators, but since other commands, such as `update` route
+	// through the `plan` command, counting on such a guard is error prone, so underlying guard applied here.
+	client.PrintMessageAndExit("Must specify a plan name, e.g. 'deploy'")
+	return ""
 }
 
 type plansResponse struct {
@@ -267,36 +271,36 @@ func HandlePlanSection(app *kingpin.Application) {
 	cmd := &planHandler{}
 	plan := app.Command("plan", "Query service plans")
 
-	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(cmd.handleForceComplete)
-	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
-	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
-	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
+	plan.Command("list", "Show all plans for this service").Action(cmd.handleList)
 
-	forceRestart := plan.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(cmd.handleForceRestart)
+	status := plan.Command("status", "Display the status of the plan with the provided plan name").Alias("show").Action(cmd.handleStatus)
+	status.Arg("plan", "Name of the plan to show").Required().StringVar(&cmd.PlanName)
+	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
+
+	start := plan.Command("start", "Start the plan with the provided name and any optional plan arguments").Action(cmd.handleStart)
+	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
+	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
+
+	stop := plan.Command("stop", "Stop the running plan with the provided name").Action(cmd.handleStop)
+	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
+
+	pause := plan.Command("pause", "Pause the plan, or a specific phase in that plan with the provided phase name (or UUID)").Alias("interrupt").Action(cmd.handlePause)
+	pause.Arg("plan", "Name of the plan to pause").Required().StringVar(&cmd.PlanName)
+	pause.Arg("phase", "Name or UUID of a specific phase to pause").StringVar(&cmd.Phase)
+
+	resume := plan.Command("resume", "Resume the plan, or a specific phase in that plan with the provided phase name (or UUID)").Alias("continue").Action(cmd.handleResume)
+	resume.Arg("plan", "Name of the plan to resume").Required().StringVar(&cmd.PlanName)
+	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
+
+	forceRestart := plan.Command("force-restart", "Restart the plan with the provided name, or a specific phase in the plan with the provided name, or a specific step in a phase of the plan with the provided step name.").Alias("restart").Action(cmd.handleForceRestart)
 	forceRestart.Arg("plan", "Name of the plan to restart").Required().StringVar(&cmd.PlanName)
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
-	plan.Command("list", "Show all plans for this service").Action(cmd.handleList)
-
-	pause := plan.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(cmd.handlePause)
-	pause.Arg("plan", "Name of the plan to pause").StringVar(&cmd.PlanName)
-	pause.Arg("phase", "Name or UUID of a specific phase to pause").StringVar(&cmd.Phase)
-
-	resume := plan.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(cmd.handleResume)
-	resume.Arg("plan", "Name of the plan to resume").StringVar(&cmd.PlanName)
-	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
-
-	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.handleStart)
-	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
-	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
-
-	status := plan.Command("status", "Display the deploy plan or the plan with the provided name").Alias("show").Action(cmd.handleStatus)
-	status.Arg("plan", "Name of the plan to show").StringVar(&cmd.PlanName)
-	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
-
-	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.handleStop)
-	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
+	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due to observed failure or known required manual preparation that was not performed").Alias("force").Action(cmd.handleForceComplete)
+	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
+	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
+	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 }
 
 func toStatusTree(planName string, planJSONBytes []byte) string {

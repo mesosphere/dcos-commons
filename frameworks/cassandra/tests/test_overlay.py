@@ -1,4 +1,3 @@
-import os
 import tempfile
 import pytest
 
@@ -21,20 +20,16 @@ DELETE_DATA_JOB = get_delete_data_job()
 VERIFY_DELETION_JOB = get_verify_deletion_job()
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
-overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-    reason="overlay tests currently broken in strict")
-
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
+        sdk_install.install(
+            PACKAGE_NAME,
+            DEFAULT_TASK_COUNT,
+            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        # check_suppression=False due to https://jira.mesosphere.com/browse/CASSANDRA-568
-        sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT, check_suppression=False,
-                        additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-        sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in TEST_JOBS:
             sdk_jobs.install_job(job, tmp_dir=tmp_dir)
@@ -50,7 +45,6 @@ def configure_package(configure_universe):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_service_overlay_health():
     shakedown.service_healthy(PACKAGE_NAME)
@@ -66,7 +60,6 @@ def test_service_overlay_health():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
@@ -85,7 +78,6 @@ def test_functionality():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints():
     endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"

@@ -4,6 +4,8 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Objects;
 
+import com.mesosphere.sdk.state.ConfigStoreException;
+
 /**
  * This class implements the Configuration interface for configurations stored as Strings.
  */

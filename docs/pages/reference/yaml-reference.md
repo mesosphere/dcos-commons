@@ -97,19 +97,19 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `networks`
 
-    Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the `dcos` overlay network. To have the pod join the overlay add the following to its YAML specification:
+    Allows the pod to join any number of virtual networks on the DC/OS cluster. One kind of virtual network that is supported at present is the `dcos` overlay network. To have the pod join a virtual network (the `dcos` overlay network in this case) add the following to its YAML specification:
 
     ```
     networks:
       dcos:
     ```
 
-    Pods on overlay networks have the following effects:
+    Pods on virtual networks have the following effects:
 
     <div class="noyaml"><ul>
-    <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
+    <li>The pod receives its own IP address from the subnet of the virtual network belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
     <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has its own IP address.</li>
-    <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
+    <li>Once the pod is on a virtual network, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
     </ul></div>
 
     For more information see the [DC/OS Virtual Network documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
@@ -235,11 +235,13 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       ```
       ports:
         http-api:
-          port: 0 # use a random port, advertised as PORT_HTTP_API in the task
+          port: 0 # use a random port
+          advertise: true # advertise the port in service endpoint lookups
           vip:
-            port: 80
+            port: 80 # create a VIP
         debug:
           port: 9090
+          env-var: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
       ```
 
       All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on `eth0`, but your service is still connected fine over `eth1`. Or vice versa.
@@ -252,9 +254,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `env-key`
 
-        This may be used to customize the environment variable used to advertise this port within the task.
+        This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.
 
-        By default, environment variables for ports are automatically populated as `PORT_<NAME>` in the launched tasks, where any punctuation in `NAME` is converted to underscores. For example, a port named `http-api` would be advertised as `PORT_HTTP_API` by default in the task environment.
+      * `advertise`
+
+        This may be manually set to `true` to enable advertising this port in the service's `endpoints` listing. Default is `false`.
 
       * `vip`
 
@@ -266,7 +270,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
         * `prefix`
 
-          The name to put at the start of the VIP. For example, `http` will result in a VIP hostname of `http.<servicename>.l4lb.thisdcos.directory`. As this implies, VIP names are on a per-service bases, not per-podtype.
+          The name to put at the start of the VIP. For example, `http` will result in a VIP hostname of `http.<servicename>.l4lb.thisdcos.directory`. By default, the parent port's name is used.
 
     * `health-check`
 
@@ -353,6 +357,21 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       * `visibility`
 
         The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](http://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
+
+    * `transport-encryption`
+
+      A task may optionally ask for a X.509 TLS certificate with private key and CA certificate bundle. A certificate can be used by service to enable secure communication.
+
+      * `name`
+
+        A name of files representing the TLS artifacts in the task sandbox directory. For example a `name: nginx` with `type: TLS` will result in `$MESOS_SANDBOX/nginx.crt`, `$MESOS_SANDBOX/nginx.key` and `$MESOS_SANDBOX/nginx.ca` files.
+
+      * `type`
+
+        A type or format of delivered TLS artifacts.
+        This can be set either to `TLS` for PEM encoded private key file, certificate and CA bundle or `KEYSTORE` for certificate and private key to be delivered in a separate keystore file and CA bundle in other truststore file.
+
+      For detailed information see the [SDK Developer Guide](developer-guide.html#tls).
 
   * `user`
 

@@ -1,6 +1,6 @@
 {
   "packagingVersion": "3.0",
-  "minDcosReleaseVersion": "1.9",
+  "minDcosReleaseVersion": "1.8",
   "name": "hello-world",
   "version":  "{{package-version}}",
   "maintainer": "support@mesosphere.io",

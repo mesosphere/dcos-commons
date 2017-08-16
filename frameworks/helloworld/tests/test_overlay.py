@@ -1,12 +1,13 @@
-import pytest
 import json
-import os
+import logging
+
+import pytest
 
 from shakedown.dcos.spinner import TimeoutExpired
 import shakedown
 
 import sdk_hosts
-import sdk_install as install
+import sdk_install
 import sdk_plan
 import sdk_utils
 import sdk_networks
@@ -18,51 +19,50 @@ from tests.config import (
     PACKAGE_NAME
 )
 
-overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-    reason="overlay tests currently broken in strict")
+log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
-        install.uninstall(PACKAGE_NAME)
-        sdk_utils.gc_frameworks()
-        options = { "service": { "spec_file": "examples/overlay.yml" } }
-
-        install.install(PACKAGE_NAME, 1, additional_options=options)
+        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.install(
+            PACKAGE_NAME,
+            1,
+            additional_options={ "service": { "spec_file": "examples/overlay.yml" } })
 
         yield # let the test session execute
     finally:
-        install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME)
 
 
 # test suite constants
 EXPECTED_TASKS = [
-    'getter-0-get-host',
-    'getter-0-get-overlay',
-    'getter-0-get-overlay-vip',
-    'getter-0-get-host-vip',
     'hello-host-vip-0-server',
     'hello-overlay-vip-0-server',
     'hello-host-0-server',
     'hello-overlay-0-server']
 
-
 TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
+
+EXPECTED_NETWORK_LABELS = {
+    "key0": "val0",
+    "key1": "val1"
+}
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
     deployment_plan = sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-    sdk_utils.out("deployment_plan: " + str(deployment_plan))
+    log.info("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct
     assert(len(deployment_plan['phases']) == 5)
-    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-vip-deploy')
-    assert(deployment_plan['phases'][1]['name'] == 'hello-overlay-deploy')
+    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-deploy')
+    assert(deployment_plan['phases'][1]['name'] == 'hello-overlay-vip-deploy')
     assert(deployment_plan['phases'][2]['name'] == 'hello-host-vip-deploy')
     assert(deployment_plan['phases'][3]['name'] == 'hello-host-deploy')
     assert(deployment_plan["phases"][4]["name"] == "getter-deploy")
@@ -70,7 +70,7 @@ def test_overlay_network():
     assert(len(deployment_plan["phases"][1]["steps"]) == 1)
     assert(len(deployment_plan["phases"][2]["steps"]) == 1)
     assert(len(deployment_plan["phases"][3]["steps"]) == 1)
-    assert(len(deployment_plan["phases"][4]["steps"]) == 4)
+    assert(len(deployment_plan["phases"][4]["steps"]) == 1)
 
     # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
     # we wait for them to redeploy, but if they don't fail we still want to proceed.
@@ -136,7 +136,31 @@ def test_overlay_network():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
+@sdk_utils.dcos_1_9_or_higher
+def test_cni_labels():
+    def check_labels(labels, idx):
+        k = labels[idx]["key"]
+        v = labels[idx]["value"]
+        assert k in EXPECTED_NETWORK_LABELS.keys(), "Got unexpected network key {}".format(k)
+        assert v == EXPECTED_NETWORK_LABELS[k], "Value {obs} isn't correct, should be " \
+                                                "{exp}".format(obs=v, exp=EXPECTED_NETWORK_LABELS[k])
+
+    r = sdk_api.get(PACKAGE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
+    assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
+    try:
+        cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
+    except KeyError:
+        assert False, "CNI labels not present"
+    assert len(cni_labels) == 2, "Got {} labels, should be 2".format(len(cni_labels))
+    for i in range(2):
+        try:
+            check_labels(cni_labels, i)
+        except KeyError:
+            assert False, "Couldn't get CNI labels from {}".format(cni_labels)
+
+
+@pytest.mark.sanity
+@pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_port_names():
     def check_task_ports(task_name, expected_port_count, expected_port_names):
@@ -156,7 +180,6 @@ def test_port_names():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@overlay_nostrict
 @sdk_utils.dcos_1_9_or_higher
 def test_srv_records():
     def check_port_record(task_records, task_name, record_name):

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -50,8 +51,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 value,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
 
         Protos.Resource resource = resourceBuilder.build();
@@ -117,8 +117,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                     value,
                     TestConstants.ROLE,
                     TestConstants.PRE_RESERVED_ROLE,
-                    TestConstants.PRINCIPAL,
-                    "CPUS_ENV_KEY");
+                    TestConstants.PRINCIPAL);
             ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty());
 
             Protos.Resource resource = resourceBuilder.build();
@@ -139,8 +138,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 value,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, resourceId);
 
         Protos.Resource resource = resourceBuilder.build();
@@ -171,8 +169,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.empty(),
@@ -230,8 +227,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
@@ -270,8 +266,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.empty(),
@@ -342,8 +337,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
@@ -388,8 +382,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 value,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "CPUS_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource = ResourceBuilder.fromSpec(resourceSpec, resourceId).build();
         Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
@@ -415,8 +408,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource = ResourceBuilder.fromSpec(
@@ -448,8 +440,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "VOL_ENV_KEY");
+                TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> sourceRoot = Optional.of(TestConstants.MOUNT_SOURCE_ROOT);
@@ -491,10 +482,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
         Assert.assertEquals(TestConstants.ROLE, reservationInfo.getRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
-
-        Protos.Label label = reservationInfo.getLabels().getLabels(0);
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, label.getKey());
-        Assert.assertEquals(36, label.getValue().length());
+        Assert.assertEquals(36, AuxLabelAccess.getResourceId(reservationInfo).get().length());
     }
 
     private void validateScalarResourceLegacy(Protos.Resource resource) {
@@ -505,10 +493,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
 
         Protos.Resource.ReservationInfo reservationInfo = resource.getReservation();
         Assert.assertEquals(TestConstants.PRINCIPAL, reservationInfo.getPrincipal());
+        Assert.assertFalse(reservationInfo.hasRole());
         Assert.assertEquals(1, reservationInfo.getLabels().getLabelsCount());
-
-        Protos.Label label = reservationInfo.getLabels().getLabels(0);
-        Assert.assertEquals(MesosResource.RESOURCE_ID_KEY, label.getKey());
+        Assert.assertEquals(36, AuxLabelAccess.getResourceId(reservationInfo).get().length());
     }
 
     private void validateDisk(Protos.Resource resource) {
@@ -525,13 +512,5 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Protos.Volume volume = diskInfo.getVolume();
         Assert.assertEquals(TestConstants.CONTAINER_PATH, volume.getContainerPath());
         Assert.assertEquals(Protos.Volume.Mode.RW, volume.getMode());
-    }
-
-    private void validateRole(Protos.Resource resource) {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
-            Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
-        } else {
-            Assert.assertEquals(TestConstants.ROLE, resource.getRole());
-        }
     }
 }

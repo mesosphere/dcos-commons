@@ -1,7 +1,7 @@
-import json
+""" Utilties specific to Cassandra tests """
+
 import os
 
-import shakedown
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
@@ -27,7 +27,7 @@ def _get_test_job(name, cmd, restart_policy='NEVER'):
             'docker': { 'image': 'cassandra:3.0.13' },
             'cpus': 1,
             'mem': 512,
-            'user': 'root',
+            'user': 'nobody',
             'restart': { 'policy': restart_policy }
         }
     }
