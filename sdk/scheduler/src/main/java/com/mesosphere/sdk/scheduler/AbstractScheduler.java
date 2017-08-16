@@ -86,8 +86,8 @@ public abstract class AbstractScheduler implements Scheduler {
             while (true) {
                 // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
-                offers.forEach(offer -> eventBus.post(offer));
                 processOfferSet(offers);
+                offers.forEach(offer -> eventBus.post(offer));
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
                             offers.stream()

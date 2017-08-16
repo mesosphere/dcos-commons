@@ -33,6 +33,18 @@ public class SuppressReviveManager {
     private final SchedulerDriver driver;
     private final Collection<PlanManager> planManagers;
     private final StateStore stateStore;
+
+    /**
+     * A race is possible with the scheduled thread.
+     *     1. Revive
+     *     2. Check plans for suppress/revive
+     *     3. Plans are still all complete because they haven't been refreshed by an Offer
+     *     4. Suppress
+     *     5. Oops
+     *
+     * To avoid this race if we are revived, we cannot be again suppressed until an Offer and been processed.  See
+     * {@link AbstractScheduler#processOffers()}
+     */
     private AtomicBoolean eligibleToSuppress = new AtomicBoolean(false);
 
     private final Object suppressReviveLock = new Object();
