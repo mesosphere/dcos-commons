@@ -1,5 +1,3 @@
-import logging
-
 import pytest
 
 import sdk_cmd as cmd

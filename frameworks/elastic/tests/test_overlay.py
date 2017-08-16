@@ -1,12 +1,10 @@
 import pytest
-import shakedown
 
 import sdk_install
 import sdk_networks
-import sdk_tasks
 import sdk_utils
-
 from tests.config import *
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -14,17 +12,18 @@ def configure_package(configure_security):
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_install.install(
             PACKAGE_NAME,
-            DEFAULT_TASK_COUNT,
+            NO_INGEST_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute
     finally:
         sdk_install.uninstall(PACKAGE_NAME)
 
+
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    sdk_tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
-    wait_for_expected_nodes_to_exist()
+    sdk_tasks.check_running(PACKAGE_NAME, NO_INGEST_TASK_COUNT)
+    wait_for_expected_nodes_to_exist(task_count=NO_INGEST_TASK_COUNT)
 
 
 @pytest.fixture
@@ -62,8 +61,8 @@ def test_indexing(default_populated_index):
 @sdk_utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(PACKAGE_NAME)
-    assert len(elastic_tasks) == DEFAULT_TASK_COUNT, \
-        "Incorrect number of tasks should be {} got {}".format(DEFAULT_TASK_COUNT, len(elastic_tasks))
+    assert len(elastic_tasks) == NO_INGEST_TASK_COUNT, \
+        "Incorrect number of tasks should be {} got {}".format(NO_INGEST_TASK_COUNT, len(elastic_tasks))
     for task in elastic_tasks:
         sdk_networks.check_task_network(task)
 

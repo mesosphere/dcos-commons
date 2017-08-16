@@ -12,9 +12,6 @@ log = logging.getLogger(__name__)
 # 1) delete this file
 # 2) remove `"ingest_nodes": {"count": 1}` from `configure_package` in `test_sanity.py`
 
-# task count without ingest node
-NO_INGEST_TASK_COUNT = DEFAULT_TASK_COUNT - 1
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
