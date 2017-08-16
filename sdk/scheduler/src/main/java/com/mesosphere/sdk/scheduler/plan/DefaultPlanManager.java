@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.scheduler.ChainedObserver;
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -9,7 +8,7 @@ import java.util.*;
  * Provides the default implementation of a {@link PlanManager}.
  * Encapsulates the plan and a strategy for executing that plan.
  */
-public class DefaultPlanManager extends ChainedObserver implements PlanManager {
+public class DefaultPlanManager implements PlanManager {
     private final Plan plan;
 
     public DefaultPlanManager(final Plan plan) {
@@ -18,7 +17,6 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
         // sidecar plans and should be externally proceeded.
         plan.interrupt();
         this.plan = plan;
-        this.plan.subscribe(this);
     }
 
     @Override

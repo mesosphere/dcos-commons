@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import com.mesosphere.sdk.scheduler.Observable;
 
 /**
  * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
@@ -28,7 +26,7 @@ import com.mesosphere.sdk.scheduler.Observable;
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
-public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
+public class DefaultRecoveryPlanManager implements PlanManager {
     public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
     public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -74,7 +72,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected void setPlan(Plan plan) {
         synchronized (planLock) {
             this.plan = plan;
-            this.plan.subscribe(this);
             List<String> stepNames = plan.getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
                     .map(step -> step.getName())
@@ -108,7 +105,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public void update(Protos.TaskStatus status) {
         synchronized (planLock) {
             getPlan().update(status);
-            notifyObservers();
         }
     }
 
@@ -150,8 +146,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .flatMap(phase -> phase.getChildren().stream())
                     .filter(step -> step instanceof DefaultRecoveryStep)
                     .collect(Collectors.toList());
-            steps.forEach(step -> ((DefaultRecoveryStep) step).subscribe(this));
-
             setPlan(plan);
         }
     }
@@ -300,27 +294,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                     .collect(Collectors.toSet()));
         }
         return dirtyAssets;
-    }
-
-    @Override
-    public void update(Observable obj) {
-        if (obj instanceof DefaultRecoveryStep) {
-
-            /**
-             * Any step which has completed work on a pod is no longer permanently failed.  A pod may have been marked
-             * as permanently failed either by human intervention or by a FailureMonitor determining a pod has met its
-             * failure criteria.  See the {@link DefaultTaskFailureListener} as an example of tasks being marked
-             * permanently failed.  It should remain marked as permanently failed until its recovery is complete so that
-             * resources reserved in partial recovery are freed.
-             */
-            DefaultRecoveryStep step = (DefaultRecoveryStep) obj;
-            if (step.isComplete() && step.getPodInstanceRequirement().isPresent()) {
-                PodInstance podInstance = step.getPodInstanceRequirement().get().getPodInstance();
-                stateStore.storeTasks(FailureUtils.clearFailed(podInstance, stateStore));
-            }
-        }
-
-        notifyObservers();
     }
 
     private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {

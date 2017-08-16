@@ -4,7 +4,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -13,10 +14,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -39,8 +37,6 @@ public abstract class AbstractScheduler implements Scheduler {
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
-
-    private Object suppressReviveLock = new Object();
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -108,7 +104,6 @@ public abstract class AbstractScheduler implements Scheduler {
         });
     }
 
-    protected abstract void processOfferSet(List<Protos.Offer> offers);
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
@@ -146,10 +141,6 @@ public abstract class AbstractScheduler implements Scheduler {
             }
         }
     }
-
-    protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
-
-    protected abstract boolean apiServerReady();
 
     /**
      * All offers must have been presented to resourceOffers() before calling this.  This call will block until all
@@ -216,50 +207,17 @@ public abstract class AbstractScheduler implements Scheduler {
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
-    protected void suppressOrRevive(PlanCoordinator planCoordinator) {
-        synchronized (suppressReviveLock) {
-            if (planCoordinator.hasOperations()) {
-                if (StateStoreUtils.isSuppressed(stateStore)) {
-                    revive();
-                } else {
-                    LOGGER.info("Already revived.");
-                }
-            } else {
-                if (StateStoreUtils.isSuppressed(stateStore)) {
-                    LOGGER.info("Already suppressed.");
-                } else {
-                    suppress();
-                }
-            }
-        }
-    }
-
-    void suppress() {
-        setOfferMode(true);
-    }
-
-    void revive() {
-        setOfferMode(false);
-    }
-
-    private void setOfferMode(boolean suppressed) {
-        synchronized (suppressReviveLock) {
-            if (suppressed) {
-                LOGGER.info("Suppressing offers.");
-                driver.suppressOffers();
-                StateStoreUtils.setSuppressed(stateStore, true);
-            } else {
-                LOGGER.info("Reviving offers.");
-                driver.reviveOffers();
-                StateStoreUtils.setSuppressed(stateStore, false);
-            }
-        }
-    }
-
     protected void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        revive();
+        SuppressReviveManager.start(stateStore, driver, getPlanManagers());
     }
 
+    protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
+
+    protected abstract boolean apiServerReady();
+
+    protected abstract void processOfferSet(List<Protos.Offer> offers);
+
+    protected abstract Collection<PlanManager> getPlanManagers();
 }

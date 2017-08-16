@@ -2,8 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import com.mesosphere.sdk.scheduler.ChainedObserver;
-import com.mesosphere.sdk.scheduler.Observable;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 
@@ -16,9 +14,8 @@ import java.util.UUID;
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
  * optionally contain a List of errors associated with the phase.
  *
- * A {@link DefaultPlan} is an {@link Observable} and will forward updates from its {@link Phase}s.
  */
-public class DefaultPlan extends ChainedObserver implements Plan {
+public class DefaultPlan implements Plan {
 
     private final UUID id = UUID.randomUUID();
     private final Strategy<Phase> strategy;
@@ -35,8 +32,6 @@ public class DefaultPlan extends ChainedObserver implements Plan {
         this.strategy = strategy;
         this.phases = phases;
         this.errors = errors;
-
-        getChildren().forEach(phase -> phase.subscribe(this));
     }
 
     public DefaultPlan(String name, List<Phase> phases) {

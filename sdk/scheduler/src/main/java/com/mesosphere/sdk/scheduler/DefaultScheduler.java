@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler extends AbstractScheduler implements Observer {
+public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -581,7 +581,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializePlanCoordinator();
         initializeResources();
         initializeApiServer();
-        planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
 
@@ -700,18 +699,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    /**
-     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
-     * or revive offers should be made.
-     */
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive(planCoordinator);
-            completeDeploy();
-        }
-    }
-
     private void completeDeploy() {
         if (!planCoordinator.hasOperations()) {
             StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult.getDeploymentType());
@@ -764,6 +751,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         OfferUtils.declineOffers(driver, unusedOffers);
     }
 
+    @Override
+    protected Collection<PlanManager> getPlanManagers() {
+        return planCoordinator.getPlanManagers();
+    }
+
     public boolean apiServerReady() {
         return schedulerApiServer.ready();
     }
@@ -782,11 +774,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 stateStore.storeStatus(status);
                 planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
                 reconciler.update(status);
-
-                if (StateStoreUtils.isSuppressed(stateStore)
-                        && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
-                    revive();
-                }
 
                 // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
                 // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
