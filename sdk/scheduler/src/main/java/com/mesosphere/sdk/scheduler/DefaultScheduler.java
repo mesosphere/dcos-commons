@@ -770,45 +770,43 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        statusExecutor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
-                    status.getTaskId().getValue(),
-                    status.getState().toString(),
-                    status.getMessage(),
-                    TextFormat.shortDebugString(status));
+        LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
+                status.getTaskId().getValue(),
+                status.getState().toString(),
+                status.getMessage(),
+                TextFormat.shortDebugString(status));
 
-            // Store status, then pass status to PlanManager => Plan => Steps
-            try {
-                stateStore.storeStatus(status);
-                planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
-                reconciler.update(status);
+        // Store status, then pass status to PlanManager => Plan => Steps
+        try {
+            stateStore.storeStatus(status);
+            planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
+            reconciler.update(status);
 
-                if (StateStoreUtils.isSuppressed(stateStore)
-                        && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
-                    revive();
-                }
-
-                // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
-                // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
-                // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
-                // on TASK_RUNNINGs
-                if (status.hasContainerStatus() &&
-                        status.getContainerStatus().getNetworkInfosCount() > 0 &&
-                        status.getContainerStatus().getNetworkInfosList().stream()
-                                .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-                    // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
-                    // TaskInfo exists.
-                    try {
-                        Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
-                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
-                    } catch (StateStoreException e) {
-                        LOGGER.warn("Unable to store network info for status update: " + status, e);
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                        + "This may be expected if Mesos sent stale status information: " + status, e);
+            if (StateStoreUtils.isSuppressed(stateStore)
+                    && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
+                revive();
             }
-        });
+
+            // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
+            // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
+            // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
+            // on TASK_RUNNINGs
+            if (status.hasContainerStatus() &&
+                    status.getContainerStatus().getNetworkInfosCount() > 0 &&
+                    status.getContainerStatus().getNetworkInfosList().stream()
+                            .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+                // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
+                // TaskInfo exists.
+                try {
+                    Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
+                    StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
+                } catch (StateStoreException e) {
+                    LOGGER.warn("Unable to store network info for status update: " + status, e);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                    + "This may be expected if Mesos sent stale status information: " + status, e);
+        }
     }
 }
