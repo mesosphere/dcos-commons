@@ -40,7 +40,7 @@ the shutdown portion of the task restart, the previous configuration value for
 `brokers.kill_grace_period` is in effect. Following the shutdown, each broker
 task is launched with the new effective configuration value. So, care should be
 taken to monitor the period of time that Kafka brokers are taking to cleanly
-shutdown. The relevant log entries are enumerated within Configure.
+shutdown. The relevant log entries are enumerated within [Configure](configure.md).
 
 Create an options file `kafka-options.json` with the following content:
 

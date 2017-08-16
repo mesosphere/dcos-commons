@@ -202,14 +202,14 @@ The option is termed `brokers.kill_grace_period`.
 
 The Graceful Shutdown feature is especially important for large-scale deployments.
 This configuration option is used to provide the broker sufficient time during
-shutdown, to ensure that all in-memory data is flushed to disk, all replicated
-state is replicated. When granted such time for a clean shutdown, the subsequent
-restart will be nearly as fast as the first startup, so is a large contributor
-towards the Kafka service's high availability feature. The default value is `30`
-seconds and is visible within the brokers' log with the following flow:
+shutdown, to ensure that all in-memory data is flushed to disk and all state is
+replicated. When granted such time for a clean shutdown, the subsequent restart
+will be nearly as fast as the first startup, so is a large contributor towards
+the Kafka service's high availability feature. The default value is `30` seconds
+and is visible within the brokers' log with the following flow:
 
 1. The task launch log line contains `kill_policy { grace_period { nanoseconds: 30000000000 } }`
-1. *** snip *** normal operation.
+1. Log lines from normal operation (details elided).
 1. The task graceful shutdown log line contains SIGTERM as well as the grace time granted.
 1. The underlying Kafka logging of shutdown operations includes a stream of subsystem shutdowns prior to the overarching system
    shutdown indicated by the entry `[Kafka Server 1], shut down completed (kafka.server.KafkaServer)`.

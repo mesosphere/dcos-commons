@@ -63,7 +63,7 @@ Sample JSON options file named `sample-kafka-custom.json`:
     {
         "service": {
             "name": "sample-kafka-custom",
-            "placement_strategy": "NODE",
+            "placement_strategy": "NODE"
         },
         "brokers": {
             "count": 10,

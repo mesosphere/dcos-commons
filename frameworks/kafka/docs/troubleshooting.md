@@ -77,5 +77,5 @@ In the example below, the broker with id `0` will be replaced on new machine as 
 
 # Extending the Kill Grace Period
 
-If the Kafka brokers are not completing the clean shutdown within the configured (or default of `30` seconds)
+If the Kafka brokers are not completing the clean shutdown within the configured
 `brokers.kill_grace_period` (Kill Grace Period), extend the Kill Grace Period, see Managing - Extend Kill Grace Period.
