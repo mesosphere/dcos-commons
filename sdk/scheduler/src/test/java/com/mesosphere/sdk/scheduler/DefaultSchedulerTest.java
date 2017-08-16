@@ -9,7 +9,6 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
