@@ -170,7 +170,7 @@ pods:
         cmd: >
               export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
