@@ -6,18 +6,19 @@ title: Secrets Tutorial
 # Secrets Tutorial
 
 
+The SDK enables you to integrate DC/OS secrets using both a declarative YAML API and flexible JAVA API. In YAML, secrets are declared within the `secret:` section in a pod specification. Similarly, in JAVA API, a `SecretSpec` is added to the `PodSpec` object. 
 
-`dcos-commons` enables integration of DC/OS secrets both in declarative YAML API and flexible JAVA API. In YAML, secrets are declared within the `secret:` section in a pod specification. Similarly, in JAVA API, a `SecretSpec` is added to the `PodSpec` object. 
+Refer to the [Developer Guide](developer-guide.html) for more information about the JAVA API. Refer to the [Operations Guide](operations-guide.html) for a detailed explaination of how to use DC/OS secrets in your SDK-baser service. 
 
-Please refer to [Developer Guide](developer-guide.html)  for more information about the JAVA API. Please refer to [Operations Guide](operations-guide.html) for detailed explaination of how DC/OS secrets can be used in dcos-commons. 
+In this tutorial, we will use the existing `hello-world` service to experiment with secrets. First, create a DC/OS Enterprise 1.10 cluster (at least 3 nodes is recommended). 
 
-In this tutorial, we will use the existing `hello-world` service to experiment with secrets. First of all, create a DC/OS Enterprise 1.10 cluster (at least 3 nodes is recommended). Please note that integration of secrets in dcos-commons is only supported in DC/OS Enterprise 1.10 onwards.
+*Note*: Secrets integration is only supported in DC/OS Enterprise 1.10 and above.
 
 
 ## Create Secrets
 
 
-Use DCOS CLI to create a secret.  You must have the Enterprise DC/OS CLI installed.
+Use the DC/OS CLI to create a secret.  You must have the Enterprise DC/OS CLI installed.
 
 Install DC/OS Enterprise CLI:
 
@@ -31,7 +32,7 @@ Create a secret with path `hello-world/secret1`:
 $ dcos security secrets  create -v "the value of secret1" hello-world/secret1
 ```
 
-Now, lets create a key and add its private key to a secret with path `hello-world/secret2` and its public key to another secret with path `hello-world/secret3`.
+Now, create a key and add its private key to a secret with path `hello-world/secret2` and its public key to another secret with path `hello-world/secret3`.
 
 Create key and cert:
 
@@ -40,7 +41,7 @@ $openssl genrsa -out privatekey.pem 1024
 $openssl req -new -x509 -key privatekey.pem -out publickey.cer -days 1825
 ```
 
-Create secrets with value from these private and public key files:
+Create secrets with the values from the private and public key files:
 
 ```
 $ dcos security secrets  create -f privatekey.pem  hello-world/secret2
@@ -60,11 +61,11 @@ $ dcos security secrets get hello-world/secret3
 ```
 
 
-## Install Service with Secrets
+## Install the Service with Secrets
 
 
 
-The `hello-world` package includes a sample YAML file for secrets. Please examine the following `examples/secrets.yml` file to grasp how secrets are declared:
+The `hello-world` package includes a sample YAML file for secrets. The `examples/secrets.yml` file demonstrates how secrets are declared:
 
 ```
 name: {{FRAMEWORK_NAME}}
@@ -116,12 +117,14 @@ pods:
 ```
 
 
-The `hello` pod has two secrets. The first secret with path `hello-world/secret1` is exposed both as an environment variable and as a file. The second one is exposed only as a file. The value of the second secret with path `hello-world/secret2`, that is the private key, will be copied to the `HELLO_SECRET2_FILE` file located in the sandbox. 
+The `hello` pod has two secrets. The first secret, with path `hello-world/secret1`, is exposed both as an environment variable and as a file. The second one is exposed only as a file. The value of the second secret with path `hello-world/secret2`, which is the private key, will be copied to the `HELLO_SECRET2_FILE` file located in the sandbox. 
   
-The `world` pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All `server` tasks in the `world` pod will have access to the value of these three secrets, either as a file and/or as an evironment variable.  Please note that the secret path is the default file path if no `file` keyword is given. Therefore, the file path for the third secret is same as the secret path.
+The `world` pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All `server` tasks in the `world` pod will have access to the value of these three secrets, either as a file and/or as an evironment variable.  
+
+*Note*: The secret path is the default file path if no `file` keyword is given. Therefore, the file path for the third secret is same as the secret path.
 
 
-Next, install `hello-world` package using the following "`option.json`" file:
+Next, install the `hello-world` package using the following "`option.json`" file:
 
 
 ```
@@ -147,16 +150,16 @@ $ cat option.json
 }
 ```
 
-Here, we use `examples/secrets.yml` spec file. And, we also overwrite a couple of `hello` and `world` options -  `secret1`, `secret2`, and `secret3` parameters are set to specific secret paths.  Please examine `universe/config.json` for more information about the `hello-world` package configuration.
+Here, we use `examples/secrets.yml` spec file. And, we also overwrite several `hello` and `world` options -  `secret1`, `secret2`, and `secret3` parameters are set to specific secret paths.  Examine `universe/config.json` for more information about the `hello-world` package configuration.
 
 
 
 ## Verify Secrets
 
 
-You can use `dcos task exec` command to attach to the container that is running the task you want to examine. 
+Use the `dcos task exec` command to attach to the container that is running the task you want to examine. 
 
-Please note that tasks of the `hello` pod in our example are running inside a docker image (`ubuntu:14.04`).
+*Note*: The tasks of the `hello` pod in our example are running inside a docker image (`ubuntu:14.04`).
 
 Run the following command to attach to the same container that is running the first task of the `hello` pod, that is `hello-0-server` (task name is `server`):
 
@@ -214,7 +217,7 @@ secret3
 ```
 
 
-Please note that the third secret for the `word` pod does not have a specific `file` keyword. Therefore, its secret path `hello-world/secret3` is also used as the file path by default. As can be seen in the output, `hello-world` directory is created and content of the third secret is copied to the `secret3` file. 
+Please note that the third secret for the `word` pod does not have a specific `file` keyword. Therefore, its secret path `hello-world/secret3` is also used as the file path by default. As can be seen in the output, `hello-world` directory is created and the content of the third secret is copied to the `secret3` file. 
 
 
 
@@ -229,7 +232,7 @@ $ dcos security secrets update -v "This is the NEW value for secret1" hello-worl
 
 
 
-Secret value is securely copied from the secret store to a file and/or to an environment variable. A secret file is an in-memory file and it disappears when all tasks of the pod terminate. 
+The secret value is securely copied from the secret store to a file and/or to an environment variable. A secret file is an in-memory file and it disappears when all tasks of the pod terminate. 
 
 Since we updated the value of `hello-world/secret1`,  we need to restart all associated pods to copy the new value from the secret store.
 
