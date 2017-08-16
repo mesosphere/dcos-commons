@@ -95,7 +95,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testInitialPlan() throws Exception {
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
+        // 1 task kill + 3 unique resources + deregister step
+        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
@@ -109,53 +110,60 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
 
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        // 4 unique resources + deregister step.
-        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING,
+        // 2 task kills + 4 unique resources + deregister step.
+        List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING,
                 Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
-    public void testUninstallStepsPrepared() throws Exception {
-        // Initial call to resourceOffers() will return all steps from resource phase as candidates
+    public void testTaskKillStepCompletes() throws Exception {
+        // Initial call to resourceOffers() will return all steps from the task kill phase as candidates
         // regardless of the offers sent in, and will start the steps.
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.PREPARED, Status.PREPARED, Status.PREPARED, Status.PENDING);
+        // 1 task kill + 3 resources + deregister step.
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
     public void testUninstallStepsComplete() throws Exception {
+        // Send in two resource offers, expect 2 resource steps complete.
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
                 RESERVED_RESOURCE_2));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PREPARED, Status.PENDING);
+        // 1 task kill + 3 resources + deregister step
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
 
+        // Send in third resource offer, expect all resource steps complete.
         offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
         plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
+        // 1 task kill + 3 resources + deregister step
+        expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
     @Test
     public void testPlanCompletes() throws Exception {
+        // Turn the crank until everything but deregister would be complete.
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1,
                 RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
 
-        // Turn the crank once to start the first Step (the DeleteServiceRootPathStep) in the serial misc-phase
+        // Now, turn the crank one last time to complete that step as well.
         uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         Plan plan = uninstallScheduler.uninstallPlanManager.getPlan();
-        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
+        // 1 task kill + 3 resources + deregister step
+        List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
         assert plan.isComplete();
     }

@@ -16,8 +16,8 @@ public class TaskKillStep extends UninstallStep {
     private TaskKiller taskKiller;
     private Protos.TaskID taskID;
 
-    public TaskKillStep(Status status, Protos.TaskID taskID) {
-        super("kill-task-" + taskID.getValue(), status);
+    public TaskKillStep(Protos.TaskID taskID) {
+        super("kill-task-" + taskID.getValue(), Status.PENDING);
         this.taskID = taskID;
     }
 

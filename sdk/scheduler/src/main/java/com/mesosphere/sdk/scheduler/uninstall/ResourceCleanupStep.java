@@ -19,6 +19,7 @@ public class ResourceCleanupStep extends UninstallStep {
      */
     public ResourceCleanupStep(String resourceId, Status status) {
         super(resourceId, status);
+        setStatus(status);
     }
 
     @Override

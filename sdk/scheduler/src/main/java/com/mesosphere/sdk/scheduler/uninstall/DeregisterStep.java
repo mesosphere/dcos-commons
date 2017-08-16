@@ -19,8 +19,8 @@ public class DeregisterStep extends UninstallStep {
      * Creates a new instance with initial {@code status}. The {@link SchedulerDriver} must be
      * set separately.
      */
-    DeregisterStep(Status status, StateStore stateStore) {
-        super("deregister", status);
+    DeregisterStep(StateStore stateStore) {
+        super("deregister", Status.PENDING);
         this.stateStore = stateStore;
     }
 

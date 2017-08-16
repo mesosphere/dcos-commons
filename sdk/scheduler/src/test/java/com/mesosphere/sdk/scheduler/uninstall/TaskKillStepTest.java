@@ -33,7 +33,7 @@ public class TaskKillStepTest {
     }
 
     private TaskKillStep createStep() {
-        TaskKillStep step = new TaskKillStep(Status.PENDING, taskID);
+        TaskKillStep step = new TaskKillStep(taskID);
         step.setTaskKiller(mockTaskKiller);
         return step;
     }

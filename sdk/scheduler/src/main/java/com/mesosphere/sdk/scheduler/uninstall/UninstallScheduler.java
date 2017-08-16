@@ -94,9 +94,9 @@ public class UninstallScheduler extends AbstractScheduler {
         List<Phase> phases = new ArrayList<>();
 
         // First, we kill all the tasks, so that we may release their reserved resources.
-        List<Step> taskKillSteps = stateStore.fetchStatuses().stream()
-                .map(Protos.TaskStatus::getTaskId)
-                .map(taskID -> new TaskKillStep(Status.PENDING, taskID))
+        List<Step> taskKillSteps = stateStore.fetchTasks().stream()
+                .map(Protos.TaskInfo::getTaskId)
+                .map(taskID -> new TaskKillStep(taskID))
                 .collect(Collectors.toList());
         Phase taskKillPhase = new DefaultPhase(TASK_KILL_PHASE, taskKillSteps, new ParallelStrategy<>(),
                 Collections.emptyList());
@@ -130,7 +130,7 @@ public class UninstallScheduler extends AbstractScheduler {
         }
 
         // We don't have access to the SchedulerDriver yet, so that gets set later
-        Step deregisterStep = new DeregisterStep(Status.PENDING, stateStore);
+        Step deregisterStep = new DeregisterStep(stateStore);
         List<Step> deregisterSteps = Collections.singletonList(deregisterStep);
         Phase deregisterPhase = new DefaultPhase(DEREGISTER_PHASE, deregisterSteps, new SerialStrategy<>(),
                 Collections.emptyList());
