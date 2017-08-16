@@ -66,7 +66,7 @@ pods:
               curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
               export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              [[ $LAGGING_TX_COUNT -eq 0 ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
+              [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
             fi
           delay: 30
           interval: 5

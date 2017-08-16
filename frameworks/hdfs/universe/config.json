@@ -139,6 +139,11 @@
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
           "default": true
+        },
+        "lagging_tx_count": {
+          "description": "The number of transactions that this JournalNode is lagging",
+          "type": "integer",
+          "default": 0
         }
       },
       "required":[

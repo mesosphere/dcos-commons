@@ -148,8 +148,8 @@ def test_kill_all_journalnodes():
 
     for journal_pod in get_pod_type_instances("journal", FOLDERED_SERVICE_NAME):
         sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, journal_pod))
-        # wait for the entire service to recover as name nodes will crash if quorum is lost among journal nodes
-        expect_recovery(service_name=FOLDERED_SERVICE_NAME)
+
+    expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
     # name nodes fail and restart, so don't check those
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -165,7 +165,8 @@ def test_kill_all_namenodes():
 
     for name_pod in get_pod_type_instances("name", FOLDERED_SERVICE_NAME):
         sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, name_pod))
-        expect_recovery(service_name=FOLDERED_SERVICE_NAME)
+
+    expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
@@ -340,8 +341,6 @@ def test_modify_app_config_rollback():
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "journal-0-node", DEFAULT_HDFS_TIMEOUT)
-
-
 
 
 def replace_name_node(index):
