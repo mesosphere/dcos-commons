@@ -1,9 +1,13 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -21,12 +26,14 @@ import java.util.stream.Collectors;
 public class SuppressReviveManager {
     private static SuppressReviveManager suppressReviveManager;
     private static final int SUPPRESSS_REVIVE_POLL_RATE_S = 5;
+    private static final int SUPPRESSS_REVIVE_DELAY_S = 30;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ScheduledExecutorService plansMonitor = Executors.newScheduledThreadPool(1);
     private final SchedulerDriver driver;
     private final Collection<PlanManager> planManagers;
     private final StateStore stateStore;
+    private AtomicBoolean eligibleToSuppress = new AtomicBoolean(false);
 
     private final Object suppressReviveLock = new Object();
     private static final Object instanceLock = new Object();
@@ -34,11 +41,12 @@ public class SuppressReviveManager {
     public static void start(
             StateStore stateStore,
             SchedulerDriver driver,
+            EventBus eventBus,
             Collection<PlanManager> planManagers) {
 
         synchronized (instanceLock) {
             if (suppressReviveManager == null) {
-                suppressReviveManager = new SuppressReviveManager(stateStore, driver, planManagers);
+                suppressReviveManager = new SuppressReviveManager(stateStore, driver, eventBus, planManagers);
                 suppressReviveManager.revive();
             }
         }
@@ -50,10 +58,39 @@ public class SuppressReviveManager {
         }
     }
 
-    private SuppressReviveManager(StateStore stateStore, SchedulerDriver driver, Collection<PlanManager> planManagers) {
+    public static void reviveNow() {
+        Optional<SuppressReviveManager> suppressReviveManager = getSuppressReviveManager();
+        if (suppressReviveManager.isPresent()) {
+            suppressReviveManager.get().revive();
+        }
+    }
+
+    public void revive() {
+        reviveInternal();
+    }
+
+    @Subscribe
+    public void handleTaskStatus(Protos.TaskStatus taskStatus) {
+        if (TaskUtils.isRecoveryNeeded(taskStatus)) {
+            SuppressReviveManager.reviveNow();
+        }
+    }
+
+    @Subscribe
+    public void handleOffer(Protos.Offer offer) {
+        eligibleToSuppress.set(true);
+    }
+
+    private SuppressReviveManager(
+            StateStore stateStore,
+            SchedulerDriver driver,
+            EventBus eventBus,
+            Collection<PlanManager> planManagers) {
+
         this.stateStore = stateStore;
         this.driver = driver;
         this.planManagers = planManagers;
+        eventBus.register(this);
         plansMonitor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override
@@ -61,23 +98,12 @@ public class SuppressReviveManager {
                         suppressOrRevive();
                     }
                 },
-                0,
+                SUPPRESSS_REVIVE_DELAY_S,
                 SUPPRESSS_REVIVE_POLL_RATE_S,
                 TimeUnit.SECONDS);
         logger.info(
                 "Monitoring these plans for suppress/revive: {}",
                 planManagers.stream().map(planManager -> planManager.getPlan().getName()).collect(Collectors.toList()));
-    }
-
-    public static void revive() {
-        Optional<SuppressReviveManager> suppressReviveManager = getSuppressReviveManager();
-        if (suppressReviveManager.isPresent()) {
-            suppressReviveManager.get().reviveNow();
-        }
-    }
-
-    public void reviveNow() {
-        reviveInternal();
     }
 
     private void suppressOrRevive() {
@@ -101,7 +127,12 @@ public class SuppressReviveManager {
     }
 
     private void suppressInternal() {
-        setOfferMode(true);
+        if (eligibleToSuppress.get()) {
+            setOfferMode(true);
+            eligibleToSuppress.set(false);
+        } else {
+            logger.warn("Skipping suppress, because not yet eligible to suppress.");
+        }
     }
 
     private void reviveInternal() {

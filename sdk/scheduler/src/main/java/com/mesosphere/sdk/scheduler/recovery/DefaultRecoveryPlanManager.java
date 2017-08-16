@@ -6,7 +6,6 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -139,14 +138,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 }
             }
 
-            Plan plan = createPlan(defaultRequirements, phases);
-
-            // Subscribe to state changes in recovery steps
-            List<Step> steps = plan.getChildren().stream()
-                    .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> step instanceof DefaultRecoveryStep)
-                    .collect(Collectors.toList());
-            setPlan(plan);
+            setPlan(createPlan(defaultRequirements, phases));
         }
     }
 

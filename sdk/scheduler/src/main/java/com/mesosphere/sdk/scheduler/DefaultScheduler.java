@@ -768,15 +768,13 @@ public class DefaultScheduler extends AbstractScheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
 
+        eventBus.post(status);
+
         // Store status, then pass status to PlanManager => Plan => Steps
         try {
             stateStore.storeStatus(status);
             planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
             reconciler.update(status);
-
-            if (TaskUtils.isRecoveryNeeded(status)) {
-                SuppressReviveManager.revive();
-            }
 
             // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
             // We expect the TaskStatus to contain an IP address in both Host or CNI networking.

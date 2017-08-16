@@ -1,13 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
-import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -34,6 +33,7 @@ public abstract class AbstractScheduler implements Scheduler {
     protected final OfferQueue offerQueue = new OfferQueue();
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
+    protected final EventBus eventBus = new EventBus();
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
@@ -86,6 +86,7 @@ public abstract class AbstractScheduler implements Scheduler {
             while (true) {
                 // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
+                offers.forEach(offer -> eventBus.post(offer));
                 processOfferSet(offers);
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
@@ -205,7 +206,7 @@ public abstract class AbstractScheduler implements Scheduler {
     protected void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        SuppressReviveManager.start(stateStore, driver, getPlanManagers());
+        SuppressReviveManager.start(stateStore, driver, eventBus, getPlanManagers());
     }
 
     protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
