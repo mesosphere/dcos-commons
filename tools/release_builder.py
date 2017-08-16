@@ -174,14 +174,11 @@ class UniverseReleaseBuilder(object):
         '''
         # replace package.json:version (smart replace)
         path = os.path.join(pkgdir, 'package.json')
-        packaging_version = '3.0'
-        logger.info('[1/2] Setting version={}, packagingVersion={} in {}'.format(
-            self._pkg_version, packaging_version, path))
+        logger.info('[1/2] Setting version={} in {}'.format(self._pkg_version, path))
         with open(path, 'r') as orig_file:
             orig_content = orig_file.read()
             content_json = json.loads(orig_content)
             content_json['version'] = self._pkg_version
-            content_json['packagingVersion'] = packaging_version
             if 'minDcosReleaseVersion' not in content_json:
                 raise Exception('minDcosReleaseVersion must be specified in package.json: {}'.format(content_json))
             # dumps() adds trailing space, fix that:
