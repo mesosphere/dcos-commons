@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Before;
@@ -121,7 +123,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec))
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -164,7 +166,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec))
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -186,7 +188,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec))
                 .build();
 
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -233,7 +235,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
                 .build();
 
-        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(3, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -258,7 +260,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
                 .build();
 
-        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(3, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -283,7 +285,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
                 .build();
 
-        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(3, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -308,7 +310,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
                 .build();
 
-        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(3, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test
@@ -333,7 +335,7 @@ public class UserCannotChangeTest {
                 .pods(Arrays.asList(mockNewPodSpec, mockNewPodSpec2))
                 .build();
 
-        Assert.assertEquals(2, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+        Assert.assertEquals(3, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 
     @Test

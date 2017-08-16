@@ -4,7 +4,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -24,8 +23,8 @@ class TaskResourceMapper {
     private final List<OfferEvaluationStage> evaluationStages;
     private final String taskSpecName;
     private final Collection<ResourceSpec> resourceSpecs;
+    private final TaskPortLookup taskPortFinder;
     private final Collection<Protos.Resource> resources;
-    private final Map<String, String> taskEnv;
     private final boolean useDefaultExecutor;
 
     /**
@@ -57,8 +56,8 @@ class TaskResourceMapper {
         this.resourceSpecs = new ArrayList<>();
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
+        this.taskPortFinder = new TaskPortLookup(taskInfo);
         this.resources = taskInfo.getResourcesList();
-        this.taskEnv = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         this.evaluationStages = getEvaluationStagesInternal();
         this.useDefaultExecutor = useDefaultExecutor;
     }
@@ -85,7 +84,7 @@ class TaskResourceMapper {
                     matchingResource = findMatchingDiskSpec(taskResource, remainingResourceSpecs);
                     break;
                 case Constants.PORTS_RESOURCE_TYPE:
-                    matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs, taskEnv);
+                    matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs);
                     break;
                 default:
                     matchingResource = findMatchingResourceSpec(taskResource, remainingResourceSpecs);
@@ -152,7 +151,7 @@ class TaskResourceMapper {
     }
 
     private Optional<ResourceLabels> findMatchingPortSpec(
-            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs, Map<String, String> taskEnv) {
+            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
         Protos.Value.Ranges ranges = taskResource.getRanges();
         boolean hasMultiplePorts = ranges.getRangeCount() != 1
                 || ranges.getRange(0).getEnd() - ranges.getRange(0).getBegin() != 0;
@@ -167,14 +166,10 @@ class TaskResourceMapper {
             }
             PortSpec portSpec = (PortSpec) resourceSpec;
             if (portSpec.getPort() == 0) {
-                // For dynamic ports, we need to detect the port that we actually used.
-                // TODO(nickbp): Once we're storing port name as a label in the task resource, search for that instead.
-                //               We should then only check env as a fallback when the label isn't present.
-                String portEnvVal = taskEnv.get(PortEvaluationStage.getPortEnvironmentVariable(portSpec));
-                if (portEnvVal != null
-                        && RangeUtils.isInAny(
-                                taskResource.getRanges().getRangeList(),
-                                Integer.parseInt(portEnvVal))) {
+                // For dynamic ports, we need to detect the port value that we had selected.
+                Optional<Long> priorTaskPort = taskPortFinder.getPriorPort(portSpec);
+                if (priorTaskPort.isPresent()
+                        && RangeUtils.isInAny(taskResource.getRanges().getRangeList(), priorTaskPort.get())) {
 
                     // The advertised port value is present in this resource. Resource must match!
                     Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
@@ -232,11 +227,9 @@ class TaskResourceMapper {
             Optional<String> resourceId,
             Optional<String> persistenceId) {
         if (resourceSpec instanceof NamedVIPSpec) {
-            NamedVIPSpec namedVIPSpec = (NamedVIPSpec) resourceSpec;
-            return new NamedVIPEvaluationStage(namedVIPSpec, taskSpecName, resourceId, useDefaultExecutor);
+            return new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskSpecName, resourceId);
         } else if (resourceSpec instanceof PortSpec) {
-            PortSpec portSpec = (PortSpec) resourceSpec;
-            return new PortEvaluationStage(portSpec, taskSpecName, resourceId, useDefaultExecutor);
+            return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecName, resourceId);
         } else if (resourceSpec instanceof VolumeSpec) {
             return new VolumeEvaluationStage(
                     (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, useDefaultExecutor);

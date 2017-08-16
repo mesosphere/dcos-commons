@@ -17,10 +17,9 @@ DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-        utils.gc_frameworks()
 
         yield # let the test session execute
     finally:
@@ -29,20 +28,22 @@ def configure_package(configure_universe):
 
 @pytest.mark.sanity
 def test_dynamic_port_comes_online():
-    sdk_install.install(PACKAGE_NAME,
-                    DEFAULT_BROKER_COUNT,
-                    service_name=SERVICE_NAME,
-                    additional_options=DYNAMIC_PORT_OPTIONS_DICT)
+    sdk_install.install(
+        PACKAGE_NAME,
+        DEFAULT_BROKER_COUNT,
+        service_name=SERVICE_NAME,
+        additional_options=DYNAMIC_PORT_OPTIONS_DICT)
     sdk_tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
     sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
 
 @pytest.mark.sanity
 def test_static_port_comes_online():
-    sdk_install.install(PACKAGE_NAME,
-                    DEFAULT_BROKER_COUNT,
-                    service_name=SERVICE_NAME,
-                    additional_options=STATIC_PORT_OPTIONS_DICT)
+    sdk_install.install(
+        PACKAGE_NAME,
+        DEFAULT_BROKER_COUNT,
+        service_name=SERVICE_NAME,
+        additional_options=STATIC_PORT_OPTIONS_DICT)
 
     sdk_tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
     # static config continues to be used in the following tests:

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.Credential;
+import org.json.JSONObject;
 
 import java.time.Duration;
 import java.util.Map;
@@ -55,6 +56,14 @@ public class SchedulerFlags {
     /** The default number of seconds to wait for the Scheduler API to come up during startup. */
     private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600;
 
+    /**
+     * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
+     * token refresh.
+     */
+    private static final String AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV = "AUTH_TOKEN_REFRESH_THRESHOLD_S";
+    /** The default number of seconds before auth token expiration that will trigger auth token refresh. */
+    private static final int DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S = 30;
+
     /** Specifies the URI of the executor artifact to be used when launching tasks. */
     private static final String EXECUTOR_URI_ENV = "EXECUTOR_URI";
     /** Specifies the URI of the libmesos package used by the scheduler itself. */
@@ -78,6 +87,16 @@ public class SchedulerFlags {
      * is against the index of the port in the list.
      */
     private static final String MARATHON_API_PORT_ENV = "PORT_API";
+
+    /**
+     * Name of the scheduler in Marathon, e.g. "/path/to/myservice".
+     */
+    private static final String MARATHON_APP_ID_ENV = "MARATHON_APP_ID";
+
+    /**
+     * DC/OS Space to be used by this service, overriding the marathon app id.
+     */
+    private static final String DCOS_SPACE_ENV = "DCOS_SPACE";
 
     /**
      * If this environment variable is present in the scheduler environment, the master is using
@@ -114,6 +133,14 @@ public class SchedulerFlags {
     }
 
     /**
+     * Returns the configured threshold that will trigger auth token refresh before its expiration.
+     */
+    public Duration getAuthTokenRefreshThreshold() {
+        return Duration.ofSeconds(flagStore.getOptionalInt(
+                AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
+    }
+
+    /**
      * Returns the configured API port, or throws {@link FlagException} if the environment lacked the required
      * information.
      */
@@ -137,6 +164,20 @@ public class SchedulerFlags {
         return flagStore.getRequired(JAVA_HOME_ENV);
     }
 
+    public String getDcosSpaceLabelValue() {
+        String value = flagStore.getOptional(DCOS_SPACE_ENV, null);
+        if (value != null) {
+            return value;
+        }
+
+        value = flagStore.getOptional(MARATHON_APP_ID_ENV, null);
+        if (value != null) {
+            return value;
+        }
+
+        return "/"; // No Authorization for this framework
+    }
+
     public boolean isStateCacheEnabled() {
         return !flagStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
@@ -152,6 +193,24 @@ public class SchedulerFlags {
      */
     public boolean isSideChannelActive() {
         return flagStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
+    }
+
+    public String getServiceAccountUid() {
+        return getServiceAccountObject().getString("uid");
+    }
+
+    public String getServiceAccountPrivateKeyPEM() {
+        return getServiceAccountObject().getString("private_key");
+    }
+
+    /**
+     * Gets a service account JSON object.
+     *
+     * TODO(mh): Add documentation about this JSON varaible being injected to scheduler runtime
+     * {@see https://github.com/mesosphere/mesos-modules-private/blob/master/common/bouncer.cpp#L340}
+     */
+    private JSONObject getServiceAccountObject() {
+        return new JSONObject(flagStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
     }
 
     /**

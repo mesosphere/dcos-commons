@@ -15,7 +15,7 @@ import sdk_utils
 
 from tests.test_utils import *
 
-BROKERS_KILL_GRACE_PERIOD = int(os.environ.get('BROKERS_KILL_GRACE_PERIOD', 30))
+BROKERS_KILL_GRACE_PERIOD = int(os.environ.get('BROKER_KILL_GRACE_PERIOD', 30))
 EXPECTED_KAFKA_STARTUP_SECONDS = os.environ.get('KAFKA_EXPECTED_STARTUP', 30)
 EXPECTED_DCOS_STARTUP_SECONDS = os.environ.get('DCOS_EXPECTED_STARTUP', 30)
 STARTUP_POLL_DELAY_SECONDS = os.environ.get('STARTUP_LOG_POLL_DELAY', 2)
@@ -23,7 +23,7 @@ STARTUP_POLL_DELAY_SECONDS = os.environ.get('STARTUP_LOG_POLL_DELAY', 2)
 def setup_module(module):
     options = {
         "brokers": {
-            "kill_grace_period": BROKERS_KILL_GRACE_PERIOD
+            "kill_grace_period": BROKER_KILL_GRACE_PERIOD
         }
     }
 

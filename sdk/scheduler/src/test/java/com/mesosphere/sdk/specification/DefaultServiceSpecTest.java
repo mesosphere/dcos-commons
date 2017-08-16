@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Iterables;
-
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import org.apache.mesos.Protos;
@@ -21,8 +19,7 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
-import com.mesosphere.sdk.state.DefaultConfigStore;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -86,7 +83,8 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
-        Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
+        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec) ==
+                DcosConstants.DEFAULT_GPU_POLICY);
         validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
 
@@ -128,17 +126,17 @@ public class DefaultServiceSpecTest {
         PortSpec portSpec = (PortSpec) portsResources.get(0);
         Assert.assertEquals("name1", portSpec.getPortName());
         Assert.assertEquals(8080, portSpec.getPort());
-        Assert.assertEquals("key1", portSpec.getEnvKey().get());
+        Assert.assertEquals("key1", portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(1);
         Assert.assertEquals("name2", portSpec.getPortName());
         Assert.assertEquals(8088, portSpec.getPort());
-        Assert.assertFalse(portSpec.getEnvKey().isPresent());
+        Assert.assertEquals(null, portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(2);
         Assert.assertEquals("name3", portSpec.getPortName());
         Assert.assertEquals(8089, portSpec.getPort());
-        Assert.assertFalse(portSpec.getEnvKey().isPresent());
+        Assert.assertEquals(null, portSpec.getEnvKey());
     }
 
     @Test
@@ -184,7 +182,7 @@ public class DefaultServiceSpecTest {
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains(
-                    "Duplicate port/endpoint names across different tasks: [across-pods, across-tasks, in-resource-set]"));
+                    "Service has duplicate advertised ports across tasks: [across-pods, across-tasks, in-resource-set]"));
         }
     }
 
@@ -260,7 +258,7 @@ public class DefaultServiceSpecTest {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
-        Assert.assertNotEquals(15, DefaultTaskSpec.taskKillGracePeriodSecondsDefault);
+        Assert.assertNotEquals(15, DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT);
         int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
         Assert.assertEquals(15, taskKillGracePeriodSeconds);
     }
@@ -273,7 +271,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
 
         int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
-        Assert.assertEquals(DefaultTaskSpec.taskKillGracePeriodSecondsDefault, taskKillGracePeriodSeconds);
+        Assert.assertEquals(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT, taskKillGracePeriodSeconds);
     }
 
     @Test
@@ -481,8 +479,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals(DcosConstants.DEFAULT_OVERLAY_NETWORK, Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
-                .getName());
+        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -639,6 +636,27 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
     }
 
+    @Test
+    public void getUserFromPod() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getUser()).thenReturn(Optional.of("user"));
+        Assert.assertEquals("user", DefaultServiceSpec.getUser(null, Arrays.asList(podSpec)));
+    }
+
+    @Test
+    public void getUserFromService() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getUser()).thenReturn(Optional.of("pod-user"));
+        Assert.assertEquals("service-user", DefaultServiceSpec.getUser("service-user", Arrays.asList(podSpec)));
+    }
+
+    @Test
+    public void getUserFromDefault() {
+        PodSpec podSpec = mock(PodSpec.class);
+        when(podSpec.getUser()).thenReturn(Optional.empty());
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, Arrays.asList(podSpec)));
+    }
+
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
@@ -651,9 +669,8 @@ public class DefaultServiceSpecTest {
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
         DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
-                .setStateStore(new DefaultStateStore(persister))
-                .setConfigStore(
-                        new DefaultConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+                .setStateStore(new StateStore(persister))
+                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .build();
     }
 }

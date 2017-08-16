@@ -35,8 +35,11 @@ public interface TaskSpec {
     @JsonProperty("discovery-spec")
     Optional<DiscoverySpec> getDiscovery();
 
-    @JsonProperty("task-kill-grace-period-seconds")
+    @JsonProperty("kill-grace-period")
     Integer getTaskKillGracePeriodSeconds();
+
+    @JsonProperty("transport-encryption")
+    Collection<TransportEncryptionSpec> getTransportEncryption();
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return getInstanceName(podInstance, taskSpec.getName());

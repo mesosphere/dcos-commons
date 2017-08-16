@@ -69,10 +69,20 @@ if [ x$PULLREQUEST = "xtrue" ]; then
   fi
 fi
 
+# Verify SDK CLI, run unit tests
+_notify_github pending "SDK CLI build running"
+pushd $REPO_ROOT_DIR/cli
+go test ./...
+if [ $? -ne 0 ]; then
+  _notify_github failure "SDK CLI build failed"
+  popd
+  exit 1
+fi
+popd
+_notify_github success "SDK CLI build running"
+
 # Build steps for SDK libraries:
-
 _notify_github pending "SDK build running"
-
 ./gradlew clean jar
 if [ $? -ne 0 ]; then
   _notify_github failure "SDK build failed"

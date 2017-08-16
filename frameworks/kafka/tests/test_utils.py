@@ -1,22 +1,20 @@
-import pytest
 import json
+import logging
 
 import shakedown
 import sdk_cmd
 import sdk_tasks
-import sdk_utils
 
 from tests.config import (
     PACKAGE_NAME,
     SERVICE_NAME,
     DEFAULT_PARTITION_COUNT,
-    DEFAULT_REPLICATION_FACTOR,
     DEFAULT_BROKER_COUNT,
-    DEFAULT_PLAN_NAME,
-    DEFAULT_PHASE_NAME,
     DEFAULT_POD_TYPE,
     DEFAULT_TASK_NAME
 )
+
+log = logging.getLogger(__name__)
 
 DEFAULT_TOPIC_NAME = 'topic1'
 EPHEMERAL_TOPIC_NAME = 'topic_2'
@@ -48,6 +46,7 @@ def restart_broker_pods(service_name=SERVICE_NAME):
         broker_id = sdk_tasks.get_task_ids(service_name,'{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME))
         restart_info = service_cli('pod restart {}-{}'.format(DEFAULT_POD_TYPE, i), service_name=service_name)
         sdk_tasks.check_tasks_updated(service_name, '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME), broker_id)
+        sdk_tasks.check_running(service_name, DEFAULT_BROKER_COUNT)
         assert len(restart_info) == 2
         assert restart_info['tasks'][0] == '{}-{}-{}'.format(DEFAULT_POD_TYPE, i, DEFAULT_TASK_NAME)
 
@@ -63,7 +62,7 @@ def replace_broker_pod(service_name=SERVICE_NAME):
 
 def create_topic(service_name=SERVICE_NAME):
     create_info = service_cli('topic create {}'.format(EPHEMERAL_TOPIC_NAME), service_name=service_name)
-    sdk_utils.out(create_info)
+    log.info(create_info)
     assert ('Created topic "%s".\n' % EPHEMERAL_TOPIC_NAME in create_info['message'])
     assert ("topics with a period ('.') or underscore ('_') could collide." in create_info['message'])
     topic_list_info = service_cli('topic list', service_name=service_name)

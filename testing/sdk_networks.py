@@ -3,7 +3,7 @@ import json
 import shakedown
 
 
-ENABLE_VIRTUAL_NETWORKS_OPTIONS = {'service':{'virtual_networks':True}}
+ENABLE_VIRTUAL_NETWORKS_OPTIONS = {'service': {'virtual_network_enabled': True}}
 
 
 def check_task_network(task_name, expected_network_name="dcos"):

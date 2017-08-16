@@ -9,6 +9,7 @@ pods:
         ports:
           in-resource-set:
             port: 8081
+            advertise: true
     tasks:
       meta-data-task:
         goal: RUNNING
@@ -18,8 +19,12 @@ pods:
         ports:
           across-pods:
             port: 8081
+            advertise: true
           in-resource-set:
             port: 8082
+            advertise: true
+          not-advertised-notadupe:
+            port: 8083
       resource-set-task:
         goal: RUNNING
         cmd: "./task-cmd"
@@ -35,10 +40,15 @@ pods:
         ports:
           across-tasks:
             port: 8080
+            advertise: true
           across-pods:
             port: 8081
+            advertise: true
           notadupe1:
             port: 8082
+            advertise: true
+          not-advertised-notadupe:
+            port: 8083
       data-store-task:
         goal: RUNNING
         cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
@@ -47,5 +57,7 @@ pods:
         ports:
           across-tasks:
             port: 8080
+            advertise: true
           notadupe2:
             port: 8081
+            advertise: true

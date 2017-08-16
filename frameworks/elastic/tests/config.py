@@ -1,4 +1,5 @@
 import json
+import logging
 from functools import wraps
 
 import shakedown
@@ -8,9 +9,11 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
+
+log = logging.getLogger(__name__)
 
 PACKAGE_NAME = 'elastic'
+KIBANA_PACKAGE_NAME = 'kibana'
 
 DEFAULT_TASK_COUNT = 7
 DEFAULT_ELASTIC_TIMEOUT = 10 * 60
@@ -78,7 +81,7 @@ def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME):
         if result is None:
             return False
         node_count = result["number_of_nodes"]
-        sdk_utils.out('Waiting for {} healthy nodes, got {}'.format(DEFAULT_TASK_COUNT, node_count))
+        log.info('Waiting for {} healthy nodes, got {}'.format(DEFAULT_TASK_COUNT, node_count))
         return node_count == DEFAULT_TASK_COUNT
 
     return shakedown.wait_for(expected_nodes, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
@@ -250,5 +253,5 @@ def _master_zero_http_port(service_name):
     # ]
 
     port = dns[0].split(':')[-1]
-    sdk_utils.out("Extracted {} as port for {}".format(port, dns[0]))
+    log.info("Extracted {} as port for {}".format(port, dns[0]))
     return port

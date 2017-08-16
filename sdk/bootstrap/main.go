@@ -4,9 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
-	"github.com/aryann/difflib"
-	"github.com/nickbp/mustache"
 	"io/ioutil"
 	"log"
 	"net"
@@ -17,6 +14,10 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
+	"github.com/aryann/difflib"
+	"github.com/nickbp/mustache"
 )
 
 // arg handling
@@ -403,6 +404,7 @@ func main() {
 	if args.installCerts {
 		installDCOSCertIntoJRE()
 	}
+
 	log.Printf("Local IP --> %s", pod_ip)
 	log.Printf("SDK Bootstrap successful.")
 }

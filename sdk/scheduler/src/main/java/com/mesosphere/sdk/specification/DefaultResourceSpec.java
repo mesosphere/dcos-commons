@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Optional;
 
 /**
  * This class provides a default implementation of the ResourceSpec interface.
@@ -31,7 +30,6 @@ public class DefaultResourceSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)
     private final String principal;
-    private final String envKey;
     private final String preReservedRole;
 
     @JsonCreator
@@ -40,14 +38,12 @@ public class DefaultResourceSpec implements ResourceSpec {
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("pre-reserved-role") String preReservedRole,
-            @JsonProperty("principal") String principal,
-            @JsonProperty("env-key") String envKey) {
+            @JsonProperty("principal") String principal) {
         this.name = name;
         this.value = value;
         this.role = role;
         this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.principal = principal;
-        this.envKey = envKey;
     }
 
     private DefaultResourceSpec(Builder builder) {
@@ -56,7 +52,6 @@ public class DefaultResourceSpec implements ResourceSpec {
         role = builder.role;
         preReservedRole = builder.preReservedRole;
         principal = builder.principal;
-        envKey = builder.envKey;
     }
 
     public static Builder newBuilder() {
@@ -70,7 +65,6 @@ public class DefaultResourceSpec implements ResourceSpec {
         builder.role = copy.getRole();
         builder.preReservedRole = copy.getPreReservedRole();
         builder.principal = copy.getPrincipal();
-        builder.envKey = copy.getEnvKey().isPresent() ? copy.getEnvKey().get() : null;
         return builder;
     }
 
@@ -102,23 +96,17 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Override
     public String toString() {
         return String.format(
-                "name: %s, value: %s, role: %s, preReservedRole: %s, principal: %s, envKey: %s",
+                "name: %s, value: %s, role: %s, preReservedRole: %s, principal: %s",
                 getName(),
                 TextFormat.shortDebugString(getValue()),
                 getRole(),
                 getPreReservedRole(),
-                getPrincipal(),
-                getEnvKey());
+                getPrincipal());
     }
 
     @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public Optional<String> getEnvKey() {
-        return Optional.ofNullable(envKey);
     }
 
     @Override
@@ -135,7 +123,6 @@ public class DefaultResourceSpec implements ResourceSpec {
         private Protos.Value value;
         private String role;
         private String principal;
-        private String envKey;
         public String preReservedRole = Constants.ANY_ROLE;
 
         private Builder() {
@@ -188,17 +175,6 @@ public class DefaultResourceSpec implements ResourceSpec {
          */
         public Builder principal(String principal) {
             this.principal = principal;
-            return this;
-        }
-
-        /**
-         * Sets the {@code envKey} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param envKey the {@code envKey} to set
-         * @return a reference to this Builder
-         */
-        public Builder envKey(String envKey) {
-            this.envKey = envKey;
             return this;
         }
 

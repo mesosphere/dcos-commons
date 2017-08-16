@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.config.ConfigStoreException;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
@@ -17,17 +16,21 @@ import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
@@ -36,6 +39,7 @@ import java.util.*;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
+    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceSpec.class);
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
@@ -49,7 +53,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     @Valid
     @NotNull
-    @Size(min = 1, message = "Atleast one pod should be configured.")
+    @Size(min = 1, message = "At least one pod must be configured.")
     @UniquePodType(message = "Pod types must be unique")
     private List<PodSpec> pods;
 
@@ -75,8 +79,25 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = user;
+        this.user = getUser(user, pods);
         ValidationUtils.validate(this);
+    }
+
+    @VisibleForTesting
+    static String getUser(String user, List<PodSpec> podSpecs) {
+        if (!StringUtils.isBlank(user)) {
+            return user;
+        }
+
+        Optional<PodSpec> podSpecOptional = podSpecs.stream()
+                .filter(podSpec -> podSpec.getUser() != null && podSpec.getUser().isPresent())
+                .findFirst();
+
+        if (podSpecOptional.isPresent()) {
+            return podSpecOptional.get().getUser().get();
+        } else {
+            return DcosConstants.DEFAULT_SERVICE_USER;
+        }
     }
 
     private DefaultServiceSpec(Builder builder) {
@@ -221,8 +242,17 @@ public class DefaultServiceSpec implements ServiceSpec {
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
         ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister);
-        // Serialize and then deserialize:
-        ServiceSpec loopbackSpecification = factory.parse(serviceSpec.getBytes());
+
+        ServiceSpec loopbackSpecification;
+        try {
+            // Serialize and then deserialize:
+            loopbackSpecification = factory.parse(serviceSpec.getBytes());
+        } catch (Exception e) {
+            logger.error("Failed to parse JSON for loopback validation", e);
+            logger.error("JSON to be parsed was:\n{}",
+                    new String(serviceSpec.getBytes(), StandardCharsets.UTF_8));
+            throw e;
+        }
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
             StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
@@ -263,7 +293,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 OrRule.class,
                 PassthroughRule.class,
                 PortSpec.class,
-                PortsSpec.class,
                 RegexMatcher.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,

@@ -3,7 +3,7 @@ package com.mesosphere.sdk.api;
 import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.state.DefaultStateStore;
+import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StateResourceTest {
-    @Mock private DefaultStateStore mockStateStore;
+    @Mock private StateStore mockStateStore;
     @Mock private Persister mockPersister;
     @Mock private PersisterCache mockPersisterCache;
 

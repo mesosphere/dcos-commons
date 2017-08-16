@@ -32,26 +32,21 @@
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
     "HELLO_PLACEMENT": "{{hello.placement}}",
-    {{#service.kill_grace_period}}
-    "TASKCFG_ALL_HELLO_KILL_GRACE_PERIOD": "{{service.kill_grace_period}}",
-    {{/service.kill_grace_period}}
     {{#hello.kill_grace_period}}
-    "TASKCFG_ALL_HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
+    "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
     {{/hello.kill_grace_period}}
     "WORLD_COUNT": "{{world.count}}",
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
     "WORLD_DISK": "{{world.disk}}",
     "WORLD_PLACEMENT": "{{world.placement}}",
-    {{#service.kill_grace_period}}
-    "TASKCFG_ALL_WORLD_KILL_GRACE_PERIOD": "{{service.kill_grace_period}}",
-    {{/service.kill_grace_period}}
     {{#world.kill_grace_period}}
-    "TASKCFG_ALL_WORLD_KILL_GRACE_PERIOD": "{{world.kill_grace_period}}",
+    "WORLD_KILL_GRACE_PERIOD": "{{world.kill_grace_period}}",
     {{/world.kill_grace_period}}
     "SLEEP_DURATION": "{{service.sleep}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "KEYSTORE_APP_URI": "{{resource.assets.uris.keystore-app-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     {{#service.secret_name}}
@@ -75,7 +70,13 @@
     "WORLD_SECRET3" : "{{world.secret3}}",
     {{/world.secret3}}
 
-    "MESOS_API_VERSION": "{{service.mesos_api_version}}"
+    {{#tls.discovery_task_prefix}}
+    "DISCOVERY_TASK_PREFIX": "{{tls.discovery_task_prefix}}",
+    {{/tls.discovery_task_prefix}}
+
+    "MESOS_API_VERSION": "{{service.mesos_api_version}}",
+    "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
+    "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

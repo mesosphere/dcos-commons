@@ -17,7 +17,7 @@ pods:
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS}}
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       broker:
@@ -27,6 +27,7 @@ pods:
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
+            advertise: true
             vip:
               prefix: broker
               port: 9092
