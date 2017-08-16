@@ -16,25 +16,13 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Step which implements the uninstalling of a particular persistent volume or resource.
+ * Common parent for all uninstall steps. Uninstall steps do not fully interact
+ * with the mesos offer cycle and as such have stubs for most AbstractStep methods.
  */
-public class UninstallStep extends AbstractStep {
+public abstract class UninstallStep extends AbstractStep {
 
-    /**
-     * Creates a new instance with the provided {@code resourceId} and initial {@code status}.
-     */
-    public UninstallStep(String resourceId, Status status) {
-        super(resourceId, status);
-    }
-
-    @Override
-    public Optional<PodInstanceRequirement> start() {
-        if (getStatus().equals(Status.PENDING)) {
-            logger.info("Setting state to Prepared for resource {}", getName());
-            setStatus(Status.PREPARED);
-        }
-
-        return getPodInstanceRequirement();
+    public UninstallStep(String name, Status status) {
+        super(name, status);
     }
 
     @Override
@@ -44,19 +32,6 @@ public class UninstallStep extends AbstractStep {
 
     @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
-        // Expecting a singleton UninstallRecommendation attached to a resource with a resource ID. If it matches
-        // the resource ID for this step, we mark the step as COMPLETE.
-        boolean isMatched = recommendations.stream()
-                .filter(offerRecommendation -> offerRecommendation instanceof UninstallRecommendation)
-                .map(offerRecommendation -> (UninstallRecommendation) offerRecommendation)
-                .map(UninstallRecommendation::getResource)
-                .map(ResourceUtils::getResourceId)
-                .filter(uninstallResourceId -> uninstallResourceId.isPresent())
-                .anyMatch(uninstallResourceId -> getName().equals(uninstallResourceId.get()));
-        if (isMatched) {
-            logger.info("Completed uninstall step for resource {}", getName());
-            setStatus(Status.COMPLETE);
-        }
     }
 
     @Override

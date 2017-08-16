@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * Step which implements the deregistering of a framework.
  */
-public class DeregisterStep extends AbstractStep {
+public class DeregisterStep extends UninstallStep {
 
     private SchedulerDriver schedulerDriver;
     private StateStore stateStore;
@@ -52,28 +52,4 @@ public class DeregisterStep extends AbstractStep {
         setStatus(Status.COMPLETE);
         return Optional.empty();
     }
-
-    @Override
-    public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
-        return Optional.empty();
-    }
-
-    @Override
-    public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
-    }
-
-    @Override
-    public Optional<PodInstanceRequirement> getAsset() {
-        return getPodInstanceRequirement();
-    }
-
-    @Override
-    public List<String> getErrors() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void update(Protos.TaskStatus status) {
-    }
-
 }
