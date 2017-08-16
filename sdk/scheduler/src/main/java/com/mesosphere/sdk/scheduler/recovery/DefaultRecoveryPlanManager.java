@@ -112,8 +112,8 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     public void update(Protos.TaskStatus status) {
         synchronized (planLock) {
             getPlan().update(status);
-            notifyObservers();
         }
+        notifyObservers();
     }
 
     protected void updatePlan(Collection<PodInstanceRequirement> dirtyAssets) {
