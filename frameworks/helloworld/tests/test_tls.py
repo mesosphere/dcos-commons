@@ -77,7 +77,7 @@ def hello_world_service(service_account):
             "service": {
                 "spec_file": "examples/tls.yml",
                 "secret_name": service_account,
-                "principal": service_account,
+                "service_account": service_account,
                 },
             "tls": {
                 "discovery_task_prefix": DISCOVERY_TASK_PREFIX,

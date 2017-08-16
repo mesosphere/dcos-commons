@@ -22,9 +22,8 @@
             "type": "string",
             "default": "root"
           },
-          "principal": {
-            "title": "Custom principal (optional)",
-            "description": "The principal for the service instance, or empty to use the default.",
+          "service_account": {
+            "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
             "type": "string",
             "default": ""
           },

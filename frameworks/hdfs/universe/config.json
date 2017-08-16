@@ -30,10 +30,10 @@
           "description": "The linux user used to run the scheduler and all executors.",
           "default": "nobody"
         },
-        "principal" : {
-          "description":"The principal for the HDFS service instance.",
-          "type":"string",
-          "default":""
+        "service_account" : {
+          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
+          "type": "string",
+          "default": ""
         },
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
