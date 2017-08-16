@@ -56,6 +56,7 @@ def test_sidecar_parameterized():
 
 
 @pytest.mark.sanity
+@pytest.mark.elezar
 def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
     # 2. Restart the scheduler.
@@ -66,7 +67,8 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     log.info(recovery_plan)
     sdk_plan.start_plan(PACKAGE_NAME, 'sidecar-toxic')
     # Wait for the bad sidecar plan to be starting.
-    sdk_plan.wait_for_starting_plan(PACKAGE_NAME, 'sidecar-toxic')
+    # Here we use the `sidecar-toxic-sensor` task
+    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'sidecar-toxic-sensor')
 
     # Restart the scheduler and wait for it to come up.
     sdk_marathon.restart_app(PACKAGE_NAME)

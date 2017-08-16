@@ -40,9 +40,19 @@ pods:
       sidecar-toxic:
         goal: FINISHED
         cmd: >
-          echo 'I'm addicted to you / Don't you know that you're toxic?'
+          echo "I'm addicted to you / Don't you know that you're toxic?" > hello-container-path/toxic-output
 
           exit 1
+        resource-set: sidecar-resources
+      sidecare-toxic-sensor:
+        # We need a more reliable way to check whether the toxic-sidecar has run than to wait for it to be in the
+        # STARTING state.
+        goal: FINISHED
+        cmd: >
+          while [ -f hello-container-path/toxic-output ]; do
+            echo "waiting for hello-container-path/toxic-output";
+            sleep 1;
+          done
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -81,4 +91,4 @@ plans:
         strategy: parallel
         pod: hello
         steps:
-          - default: [[sidecar-toxic]]
+          - default: [[sidecar-toxic, sidecar-toxic-sensor]]
