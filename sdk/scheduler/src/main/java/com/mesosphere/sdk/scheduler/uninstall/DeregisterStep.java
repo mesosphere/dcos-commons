@@ -1,16 +1,10 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
-import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 /**

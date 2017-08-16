@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -18,7 +17,7 @@ public class TaskKillStep extends UninstallStep {
     private Protos.TaskID taskID;
 
     public TaskKillStep(Status status, Protos.TaskID taskID) {
-        super("kill-task-"+taskID.getValue(), status);
+        super("kill-task-" + taskID.getValue(), status);
         this.taskID = taskID;
     }
 
