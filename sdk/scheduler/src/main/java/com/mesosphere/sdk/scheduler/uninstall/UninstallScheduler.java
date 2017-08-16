@@ -182,20 +182,18 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        statusExecutor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message='{}'",
-                    status.getTaskId().getValue(),
-                    status.getState().toString(),
-                    status.getMessage());
+        LOGGER.info("Received status update for taskId={} state={} message='{}'",
+                status.getTaskId().getValue(),
+                status.getState().toString(),
+                status.getMessage());
 
-            try {
-                stateStore.storeStatus(status);
-                reconciler.update(status);
-            } catch (Exception e) {
-                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                        + "This may be expected if Mesos sent stale status information: " + status, e);
-            }
-        });
+        try {
+            stateStore.storeStatus(status);
+            reconciler.update(status);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                    + "This may be expected if Mesos sent stale status information: " + status, e);
+        }
     }
 
     @Override
