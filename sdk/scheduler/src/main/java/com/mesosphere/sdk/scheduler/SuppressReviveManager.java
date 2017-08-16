@@ -9,9 +9,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This class monitors all plans and suppresses or revives offers when appropriate.
@@ -42,26 +44,40 @@ public class SuppressReviveManager {
         }
     }
 
+    public static Optional<SuppressReviveManager> getSuppressReviveManager() {
+        synchronized (instanceLock) {
+            return Optional.ofNullable(suppressReviveManager);
+        }
+    }
+
     private SuppressReviveManager(StateStore stateStore, SchedulerDriver driver, Collection<PlanManager> planManagers) {
         this.stateStore = stateStore;
         this.driver = driver;
         this.planManagers = planManagers;
-        revive();
-        plansMonitor.schedule(
+        plansMonitor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override
                     public void run() {
                         suppressOrRevive();
                     }
                 },
+                0,
                 SUPPRESSS_REVIVE_POLL_RATE_S,
                 TimeUnit.SECONDS);
+        logger.info(
+                "Monitoring these plans for suppress/revive: {}",
+                planManagers.stream().map(planManager -> planManager.getPlan().getName()).collect(Collectors.toList()));
     }
 
-    public void revive() {
-        synchronized (suppressReviveLock) {
-            reviveInternal();
+    public static void revive() {
+        Optional<SuppressReviveManager> suppressReviveManager = getSuppressReviveManager();
+        if (suppressReviveManager.isPresent()) {
+            suppressReviveManager.get().reviveNow();
         }
+    }
+
+    public void reviveNow() {
+        reviveInternal();
     }
 
     private void suppressOrRevive() {
