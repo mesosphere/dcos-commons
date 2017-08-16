@@ -93,6 +93,7 @@ def check_properties(xml, expect):
 
 
 @pytest.mark.recovery
+@pytest.mark.skip(reason="JIRA: INFINITY-2218 - journal node restart breaks HDFS...")
 def test_kill_journal_node():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal-0')
     name_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
@@ -133,6 +134,7 @@ def test_kill_data_node():
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
 
 
+@pytest.mark.skip(reason="JIRA: INFINITY-2218 - journal node restart breaks HDFS...")
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
@@ -142,6 +144,7 @@ def test_kill_scheduler():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.skip(reason="JIRA: INFINITY-2218 - journal node restart breaks HDFS...")
 def test_kill_all_journalnodes():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
@@ -243,6 +246,7 @@ def test_install():
 
 
 @pytest.mark.sanity
+@pytest.mark.skip(reason="JIRA: INFINITY-2218 - journal node restart breaks HDFS...")
 def test_bump_journal_cpus():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     name_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'name')
@@ -270,6 +274,7 @@ def test_bump_data_nodes():
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'data', data_ids)
 
 
+@pytest.mark.skip(reason="JIRA: INFINITY-2218 - journal node restart breaks HDFS...")
 @pytest.mark.readiness_check
 @pytest.mark.sanity
 def test_modify_app_config():
@@ -299,6 +304,7 @@ def test_modify_app_config():
     assert old_recovery_plan == new_recovery_plan
 
 
+@pytest.mark.skip(reason="JIRA: INFINITY-2218 - journal node restart breaks HDFS...")
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
