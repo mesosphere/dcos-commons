@@ -8,11 +8,11 @@ title: Secrets Tutorial
 
 The SDK enables you to integrate DC/OS secrets using both a declarative YAML API and flexible JAVA API. In YAML, secrets are declared within the `secret:` section in a pod specification. Similarly, in JAVA API, a `SecretSpec` is added to the `PodSpec` object. 
 
-Refer to the [Developer Guide](developer-guide.html) for more information about the JAVA API. Refer to the [Operations Guide](operations-guide.html) for a detailed explaination of how to use DC/OS secrets in your SDK-baser service. 
+Refer to the [Developer Guide](developer-guide.html) for more information about the JAVA API. Refer to the [Operations Guide](operations-guide.html) for a detailed explaination of how to use DC/OS secrets in your SDK-based service. 
 
 In this tutorial, we will use the existing `hello-world` service to experiment with secrets. First, create a DC/OS Enterprise 1.10 cluster (at least 3 nodes is recommended). 
 
-*Note*: Secrets integration is only supported in DC/OS Enterprise 1.10 and above.
+**Note**: Secrets integration is only supported in DC/OS Enterprise 1.10 and above.
 
 
 ## Create Secrets
@@ -119,7 +119,7 @@ pods:
 
 The `hello` pod has two secrets. The first secret, with path `hello-world/secret1`, is exposed both as an environment variable and as a file. The second one is exposed only as a file. The value of the second secret with path `hello-world/secret2`, which is the private key, will be copied to the `HELLO_SECRET2_FILE` file located in the sandbox. 
   
-The `world` pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All `server` tasks in the `world` pod will have access to the value of these three secrets, either as a file and/or as an evironment variable.  
+The `world` pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All `server` tasks in the `world` pod will have access to the values of these three secrets, either as a file and/or as an evironment variable.  
 
 *Note*: The secret path is the default file path if no `file` keyword is given. Therefore, the file path for the third secret is same as the secret path.
 
@@ -217,7 +217,7 @@ secret3
 ```
 
 
-Please note that the third secret for the `word` pod does not have a specific `file` keyword. Therefore, its secret path `hello-world/secret3` is also used as the file path by default. As can be seen in the output, `hello-world` directory is created and the content of the third secret is copied to the `secret3` file. 
+The third secret for the `word` pod does not have a specific `file` keyword. Therefore, its secret path `hello-world/secret3` is also used as the file path by default. As can be seen in the output, `hello-world` directory is created and the content of the third secret is copied to the `secret3` file. 
 
 
 
@@ -247,7 +247,8 @@ $ dcos hello-world pod restart hello-0
 
 As can be seen in the output, the `hello-0-server` task is already updated after the restart.  
 
-```$ dcos task exec -it hello-0-server bash
+```
+$ dcos task exec -it hello-0-server bash
 
 > $ echo $HELLO_SECRET1_ENV                  
 This is the NEW value for secret1
@@ -270,7 +271,8 @@ the value of secret1
 
 Now, restart all remaining pods in order to get the new value of `hello-world/secret1`:
 
-```$ dcos hello-world pod list
+```
+$ dcos hello-world pod list
 [
   "hello-0",
   "world-0",
