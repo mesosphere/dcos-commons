@@ -139,6 +139,11 @@
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
           "default": true
+        },
+        "lagging_tx_count": {
+          "description": "The number of transactions that this JournalNode is lagging",
+          "type": "integer",
+          "default": 0
         }
       },
       "required": [
@@ -310,6 +315,11 @@
           "type": "string",
           "description": "",
           "default": "INFO,console"
+        },
+        "ipc_client_connect_max_retries": {
+          "type": "integer",
+          "description": "Indicates the number of retries a client will make to establish a server connection.",
+          "default": 300
         }
       },
       "required": [
