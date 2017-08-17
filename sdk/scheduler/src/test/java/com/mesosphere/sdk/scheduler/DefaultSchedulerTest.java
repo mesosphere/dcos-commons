@@ -8,10 +8,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
-import com.mesosphere.sdk.scheduler.plan.Phase;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -721,6 +718,12 @@ public class DefaultSchedulerTest {
                 .findFirst().get();
 
         Assert.assertEquals(2, deployPlan.getChildren().size());
+    }
+
+    @Test
+    public void testGetLaunchableTasks() {
+        Set<String> launchableTasks = defaultScheduler.getLaunchableTasks();
+        Assert.assertEquals(new String[]{"POD-A-0-A", "POD-B-0-B", "POD-B-1-B"}, launchableTasks.toArray());
     }
 
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.

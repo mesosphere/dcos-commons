@@ -26,6 +26,11 @@
             "enum": ["V0", "V1"],
             "default": "V0"
           },
+          "test_boolean" : {
+            "description": "A boolean value for testing purposes",
+            "type": "boolean",
+            "default": true
+          },
           "secret_name": {
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type": "string",

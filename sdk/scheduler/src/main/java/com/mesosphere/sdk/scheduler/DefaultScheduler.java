@@ -581,8 +581,18 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializePlanCoordinator();
         initializeResources();
         initializeApiServer();
+        killUnneededTasks(getLaunchableTasks());
         planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
+    }
+
+    private void killUnneededTasks(Set<String> taskToDeployNames) {
+        Set<Protos.TaskID> taskIds = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
+        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
 
     private Collection<PlanManager> getOtherPlanManagers() {
@@ -655,6 +665,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
+                getLaunchableTasks(),
                 launchConstrainer,
                 failureMonitor,
                 overrideRecoveryPlanManagers);
@@ -808,5 +819,19 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                     + "This may be expected if Mesos sent stale status information: " + status, e);
         }
+    }
+
+    @VisibleForTesting
+    Set<String> getLaunchableTasks() {
+        return plans.stream()
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(podInstanceRequirement ->
+                        TaskUtils.getTaskNames(
+                                podInstanceRequirement.getPodInstance(),
+                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
     }
 }
