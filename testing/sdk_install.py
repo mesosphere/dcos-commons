@@ -193,6 +193,7 @@ def get_package_options(additional_options={}):
         return _merge_dictionaries(additional_options, {
             'service': {
                 'service_account': 'service-acct',
+                'principal': 'service-acct',
                 'secret_name': 'secret',
                 'mesos_api_version': 'V0'
             }
