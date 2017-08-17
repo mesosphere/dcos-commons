@@ -1,14 +1,13 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
+
 import org.apache.mesos.Protos;
 
-import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
@@ -16,74 +15,33 @@ import java.util.stream.Collectors;
  */
 public class FailureUtils {
 
+    private FailureUtils() {
+        // do not instantiate
+    }
+
     /**
      * Check if a Task has been marked as permanently failed.
      *
      * @param taskInfo The Task to check for failure.
      * @return True if the Task has been marked, false otherwise.
      */
-    public static boolean isLabeledAsFailed(Protos.TaskInfo taskInfo) {
+    public static boolean isPermanentlyFailed(Protos.TaskInfo taskInfo) {
         return new TaskLabelReader(taskInfo).isPermanentlyFailed();
     }
 
-    public static boolean isLabeledAsFailed(PodInstance podInstance, StateStore stateStore) {
-        Collection<Protos.TaskInfo> taskInfos = getTaskInfos(podInstance, stateStore);
-        if (taskInfos.isEmpty()) {
-            return false;
-        }
-
-        return taskInfos.stream().allMatch(taskInfo -> isLabeledAsFailed(taskInfo));
-    }
-
     /**
-     * Mark a task as permanently failed.  This new marked Task should be persistently stored.
+     * Marks all tasks associated with this pod as failed.
+     * This setting will effectively be automatically cleared when the pod is redeployed.
      *
-     * @param taskInfo The Task to be marked.
-     * @return The marked TaskInfo which may be a copy of the original TaskInfo.
+     * @param stateStore the state storage where any updated tasks will be stored
+     * @param podInstance the pod whose tasks will be marked as failed
      */
-    @VisibleForTesting
-    public static Protos.TaskInfo markFailed(Protos.TaskInfo taskInfo) {
-        return taskInfo.toBuilder()
-                .setLabels(new TaskLabelWriter(taskInfo)
-                        .setPermanentlyFailed()
-                        .toProto())
-                .build();
-    }
-
-    public static void markFailed(PodInstance podInstance, StateStore stateStore) {
+    public static void setPermanentlyFailed(StateStore stateStore, PodInstance podInstance) {
         stateStore.storeTasks(
-                getTaskInfos(podInstance, stateStore).stream()
-                        .map(taskInfo -> FailureUtils.markFailed(taskInfo))
+                StateStoreUtils.fetchPodTasks(stateStore, podInstance).stream()
+                        .map(taskInfo -> taskInfo.toBuilder()
+                                .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
+                                .build())
                         .collect(Collectors.toList()));
-    }
-
-    /**
-     * Remove the permanently failed label, if any, from the TaskInfo.
-     */
-    @VisibleForTesting
-    static Protos.TaskInfo clearFailed(Protos.TaskInfo taskInfo) {
-        return taskInfo.toBuilder()
-                .setLabels(new TaskLabelWriter(taskInfo)
-                        .clearPermanentlyFailed()
-                        .toProto())
-                .build();
-    }
-
-    public static Collection<Protos.TaskInfo> clearFailed(PodInstance podInstance, StateStore stateStore) {
-        return getTaskInfos(podInstance, stateStore).stream()
-                .map(taskInfo -> FailureUtils.clearFailed(taskInfo))
-                .collect(Collectors.toList());
-    }
-
-    private static Collection<Protos.TaskInfo> getTaskInfos(PodInstance podInstance, StateStore stateStore) {
-        Collection<String> taskInfoNames = podInstance.getPod().getTasks().stream()
-                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
-                .collect(Collectors.toList());
-
-        return taskInfoNames.stream()
-                .map(name -> stateStore.fetchTask(name))
-                .filter(taskInfo -> taskInfo.isPresent())
-                .map(taskInfo -> taskInfo.get())
-                .collect(Collectors.toList());
     }
 }

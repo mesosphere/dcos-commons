@@ -7,7 +7,6 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -187,7 +186,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     }
 
     private boolean isTaskPermanentlyFailed(Protos.TaskInfo taskInfo) {
-        return FailureUtils.isLabeledAsFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
+        return FailureUtils.isPermanentlyFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
     }
 
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
@@ -311,32 +310,16 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
 
     @Override
     public void update(Observable obj) {
-        if (obj instanceof DefaultRecoveryStep) {
-
-            /**
-             * Any step which has completed work on a pod is no longer permanently failed.  A pod may have been marked
-             * as permanently failed either by human intervention or by a FailureMonitor determining a pod has met its
-             * failure criteria.  See the {@link DefaultTaskFailureListener} as an example of tasks being marked
-             * permanently failed.  It should remain marked as permanently failed until its recovery is complete so that
-             * resources reserved in partial recovery are freed.
-             */
-            DefaultRecoveryStep step = (DefaultRecoveryStep) obj;
-            if (step.isComplete() && step.getPodInstanceRequirement().isPresent()) {
-                PodInstance podInstance = step.getPodInstanceRequirement().get().getPodInstance();
-                stateStore.storeTasks(FailureUtils.clearFailed(podInstance, stateStore));
-            }
-        }
-
         notifyObservers();
     }
 
-    private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
+    private static List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
         return taskInfos.stream()
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
     }
 
-    private List<String> getPodNames(Collection<PodInstanceRequirement> podInstanceRequirements) {
+    private static List<String> getPodNames(Collection<PodInstanceRequirement> podInstanceRequirements) {
         return podInstanceRequirements.stream()
                 .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance())
                 .map(podInstance -> podInstance.getName())

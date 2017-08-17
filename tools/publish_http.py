@@ -160,21 +160,20 @@ from http.server import SimpleHTTPRequestHandler
 rootdir = '{}'
 host = '{}'
 port = {}
-json_content_type = '{}'
 
 class CustomTypeHandler(SimpleHTTPRequestHandler):
     def __init__(self, req, client_addr, server):
         SimpleHTTPRequestHandler.__init__(self, req, client_addr, server)
     def guess_type(self, path):
         if path.endswith('.json'):
-            return json_content_type
+            return 'application/vnd.dcos.universe.repo+json;charset=utf-8'
         return SimpleHTTPRequestHandler.guess_type(self, path)
 
 os.chdir(rootdir)
 httpd = socketserver.TCPServer((host, port), CustomTypeHandler)
 print('Serving %s at http://%s:%s' % (rootdir, host, port))
 httpd.serve_forever()
-'''.format(self._http_dir, self._http_host, port, self._package_builder.content_type())
+'''.format(self._http_dir, self._http_host, port)
 
         httpd_py_path = os.path.join(self._http_dir, procname)
         if not os.path.isdir(self._http_dir):
