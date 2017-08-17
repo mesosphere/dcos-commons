@@ -12,13 +12,7 @@ import pytest
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 
-log_levels = (
-    'DEBUG',
-    'INFO',
-    'WARNING',
-    'ERROR',
-    'CRITICAL',
-    'EXCEPTION')
+log_levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'EXCEPTION')
 
 assert log_level in log_levels, '{} is not a valid log level. ' \
     'Use one of: {}'.format(log_level, ', '.join(log_levels))
@@ -44,7 +38,8 @@ def get_task_ids(user: str=None):
 def get_task_logs_for_id(task_id: str, lines: int=1000000):
     try:
         task_logs = subprocess.check_output([
-            'dcos', 'task', 'log', task_id, '--lines', str(lines)]).decode()
+            'dcos', 'task', 'log', task_id, '--lines', str(lines), 'stderr'
+        ]).decode()
         return task_logs
     except subprocess.CalledProcessError:
         return None
