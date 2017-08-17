@@ -46,7 +46,7 @@ public class DeploymentStep extends AbstractStep {
             if (!(recommendation instanceof LaunchOfferRecommendation)) {
                 continue;
             }
-            Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) recommendation).getTaskInfo();
+            Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo();
             if (!taskInfo.getTaskId().getValue().equals("")) {
                 tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
             }
@@ -125,7 +125,7 @@ public class DeploymentStep extends AbstractStep {
                     CommonIdUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
             logger.error(String.format("Failed to update status for step %s", getName()), e);
-            setStatus(getStatus()); // Log status
+            setStatus(super.getStatus()); // Log status
             return;
         }
 
@@ -170,8 +170,8 @@ public class DeploymentStep extends AbstractStep {
 
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
         if (tasks.containsKey(taskID)) {
-            TaskStatusPair taskStatusPair = new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status);
-            tasks.replace(taskID, taskStatusPair);
+            // Update the TaskStatusPair with the new status:
+            tasks.replace(taskID, new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status));
             logger.info("Status for: {} is: {}", taskID.getValue(), status);
         }
     }
@@ -187,7 +187,7 @@ public class DeploymentStep extends AbstractStep {
             logger.info("TaskId: {} has status: {}", taskId, status);
             if (!status.equals(Status.COMPLETE)) {
                 // Keep and log current status
-                return getStatus();
+                return super.getStatus();
             }
         }
 
@@ -209,6 +209,11 @@ public class DeploymentStep extends AbstractStep {
 
         public Status getStatus() {
             return status;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s(%s):%s", taskInfo.getName(), taskInfo.getTaskId().getValue(), status);
         }
     }
 }

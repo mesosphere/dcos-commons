@@ -154,8 +154,12 @@ public class DefaultCAClientTest {
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         PemWriter writer = new PemWriter(new OutputStreamWriter(os, "UTF-8"));
-        writer.writeObject(new JcaMiscPEMGenerator(csr));
-        writer.flush();
+        try {
+            writer.writeObject(new JcaMiscPEMGenerator(csr));
+        } finally {
+            writer.flush();
+            writer.close();
+        }
 
         return os.toByteArray();
     }
