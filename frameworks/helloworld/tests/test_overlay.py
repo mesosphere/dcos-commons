@@ -52,6 +52,7 @@ EXPECTED_NETWORK_LABELS = {
 
 @pytest.mark.sanity
 @pytest.mark.overlay
+@pytest.mark.smoke
 @sdk_utils.dcos_1_9_or_higher
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
