@@ -42,8 +42,12 @@ def get_task_ids(user: str=None):
 
 
 def get_task_logs_for_id(task_id: str, lines: int=1000000):
-    return subprocess.check_output([
-        'dcos', 'task', 'log', task_id, '--lines', str(lines)]).decode()
+    try:
+        task_logs = subprocess.check_output([
+            'dcos', 'task', 'log', task_id, '--lines', str(lines)]).decode()
+        return task_logs
+    except subprocess.CalledProcessError:
+        return None
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -75,5 +79,7 @@ def get_task_logs_on_failure(request):
         # Scheduler should be the only task running as root
         for root_task in get_task_ids():
             log_name = '{}_{}.log'.format(request.node.name, root_task)
-            with open(log_name, 'w') as f:
-                f.write(get_task_logs_for_id(root_task))
+            task_logs = get_task_logs_for_id(root_task)
+            if task_logs:
+                with open(log_name, 'w') as f:
+                    f.write(task_logs)
