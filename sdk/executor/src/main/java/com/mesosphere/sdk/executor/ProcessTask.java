@@ -66,14 +66,14 @@ public class ProcessTask implements ExecutorTask {
     }
 
     private Duration getTaskKillGracePeriod(Protos.TaskInfo taskInfo) {
+        if (!taskInfo.hasKillPolicy()) {
+            return noGracePeriod;
+        }
         Protos.KillPolicy killPolicy = taskInfo.getKillPolicy();
-        if (killPolicy == null) {
+        if (!killPolicy.hasGracePeriod()) {
             return noGracePeriod;
         }
         Protos.DurationInfo gracePeriod = killPolicy.getGracePeriod();
-        if (gracePeriod == null) {
-            return noGracePeriod;
-        }
         return Duration.ofNanos(gracePeriod.getNanoseconds());
     }
 

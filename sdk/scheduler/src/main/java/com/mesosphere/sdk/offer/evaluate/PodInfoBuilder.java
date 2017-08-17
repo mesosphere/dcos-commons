@@ -496,10 +496,10 @@ public class PodInfoBuilder {
     private static void setTaskKillGracePeriod(
             Protos.TaskInfo.Builder taskInfoBuilder,
             TaskSpec taskSpec) throws InvalidRequirementException {
-        Integer taskKillGracePeriodSecondsOptional = taskSpec.getTaskKillGracePeriodSeconds();
-        int taskKillGracePeriodSeconds = (taskKillGracePeriodSecondsOptional != null) ?
-            taskKillGracePeriodSecondsOptional : 0;
-        if (taskKillGracePeriodSeconds < 0) {
+        Integer taskKillGracePeriodSeconds = taskSpec.getTaskKillGracePeriodSeconds();
+        if (taskKillGracePeriodSeconds == null) {
+            taskKillGracePeriodSeconds = 0;
+        } else if (taskKillGracePeriodSeconds < 0) {
             throw new InvalidRequirementException(String.format(
                         "kill-grace-period must be zero or a positive integer, received: %d",
                         taskKillGracePeriodSeconds));

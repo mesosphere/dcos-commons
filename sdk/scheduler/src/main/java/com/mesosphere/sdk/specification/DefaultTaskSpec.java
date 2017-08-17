@@ -52,7 +52,7 @@ public class DefaultTaskSpec implements TaskSpec {
     private final Collection<ConfigFileSpec> configFiles;
 
     @DecimalMin("0")
-    @DecimalMax("1209600") //<< two weeks
+    @DecimalMax("1209600") //<< two weeks (product spec)
     private final int taskKillGracePeriodSeconds;
 
     // The default of 0s for task kill grace period is based on upgrade path,

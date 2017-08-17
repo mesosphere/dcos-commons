@@ -30,9 +30,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(PACKAGE_NAME)
 
 
-# the only need for having a different WORLD_KILL_GRACE_PERIOD is/was to ensure that
-# the test of grace properly fails to detect a SIGTERM-dependent log message,
-# so environment variable is a fine-enough toggle.
 WORLD_KILL_GRACE_PERIOD = int(os.environ.get('WORLD_KILL_GRACE_PERIOD', 15))
 
 def setup_module():

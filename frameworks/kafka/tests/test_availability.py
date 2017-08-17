@@ -28,7 +28,6 @@ def setup_module(module):
     }
 
     sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
-    sdk_utils.gc_frameworks()
 
     sdk_install.install(
         PACKAGE_NAME,
