@@ -59,7 +59,8 @@ def test_upgrade(
             service_name=service_name,
             additional_options=additional_options,
             timeout_seconds=timeout_seconds,
-            wait_for_deployment=wait_for_deployment)
+            wait_for_deployment=wait_for_deployment,
+            old_permissions=True)
     finally:
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list
