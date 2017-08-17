@@ -44,11 +44,12 @@ def install(
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
-        wait_for_deployment=True):
+        wait_for_deployment=True,
+        old_permissions=False):
     if not service_name:
         service_name = package_name
     start = time.time()
-    merged_options = get_package_options(additional_options)
+    merged_options = get_package_options(additional_options, old_permissions)
 
     log.info('Installing {}/{} with options={} version={}'.format(
         package_name, service_name, merged_options, package_version))
@@ -185,18 +186,31 @@ def _uninstall(
             sdk_utils.list_reserved_resources()
 
 
-def get_package_options(additional_options={}):
+def get_package_options(additional_options={}, old_permissions=False):
     # expected SECURITY values: 'permissive', 'strict', 'disabled'
     if os.environ.get('SECURITY', '') == 'strict':
         # strict mode requires correct principal and secret to perform install.
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
-        return _merge_dictionaries(additional_options, {
-            'service': {
-                'service_account': 'service-acct',
-                'secret_name': 'secret',
-                'mesos_api_version': 'V0'
-            }
-        })
+
+
+        # This hack gets around a difference in names for service account credentials.
+        # Can be removed once released packages are using the new names.
+        if old_permissions:
+            return _merge_dictionaries(additional_options, {
+                'service': {
+                    'secret_name': 'secret',
+                    'principal': 'service-acct',
+                    'mesos_api_version': 'V0'
+                }
+            })
+        else:
+            return _merge_dictionaries(additional_options, {
+                'service': {
+                    'service_account': 'service-acct',
+                    'secret_name': 'secret',
+                    'mesos_api_version': 'V0'
+                }
+            })
     else:
         return additional_options
 
