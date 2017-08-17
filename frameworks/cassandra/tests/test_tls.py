@@ -1,5 +1,7 @@
 import json
+import os
 import textwrap
+import uuid
 from typing import List
 
 import dcos.http
@@ -20,6 +22,7 @@ from tests.config import (
     DEFAULT_NODE_PORT,
     DEFAULT_TASK_COUNT,
     PACKAGE_NAME,
+    run_backup_and_restore
 )
 
 def get_cqlsh_tls_rc_config(
@@ -151,6 +154,16 @@ def get_delete_data_job():
         'delete-data', [_get_cqlsh_for_query(query)])
 
 
+def get_verify_deletion_job():
+    commands = [
+        '{command} | grep "0 rows"'.format(
+            command=_get_cqlsh_for_query('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';')),
+        '{command} | grep "0 rows'.format(
+            command=_get_cqlsh_for_query('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';')),
+    ]
+    return _get_cqlsh_job_over_tls(
+        'delete-data', commandsx)
+
 def _get_cqlsh_job_over_tls(name: str, commands: List[str]):
     """
     Creates a DC/OS job with `cqlsh` utility that will be ready to run commands
@@ -194,11 +207,10 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_tls_connection(cassandra_service_tls):
+def test_tls_connection():
     """
     Tests writing, reading and deleting data over a secure TLS connection.
     """
-
     with sdk_jobs.InstallJobContext([
             get_write_data_job(),
             get_verify_data_job(),
@@ -206,4 +218,21 @@ def test_tls_connection(cassandra_service_tls):
 
         sdk_jobs.run_job(get_write_data_job())
         sdk_jobs.run_job(get_verify_data_job())
+
+        key_id = os.getenv('AWS_ACCESS_KEY_ID')
+        if not key_id:
+            assert False, 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+        plan_parameters = {
+            'AWS_ACCESS_KEY_ID': key_id,
+            'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
+            'AWS_REGION': os.getenv('AWS_REGION', 'us-west-2'),
+            'S3_BUCKET_NAME': os.getenv('AWS_BUCKET_NAME', 'infinity-framework-test'),
+            'SNAPSHOT_NAME': str(uuid.uuid1()),
+            'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
+        }
+
+        # Run backup plan, uploading snapshots and schema to the cloudddd
+        sdk_plan.start_plan(PACKAGE_NAME, 'backup-s3', parameters=plan_parameters)
+        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'backup-s3')
+
         sdk_jobs.run_job(get_delete_data_job())

@@ -97,9 +97,23 @@ pods:
       backup-schema:
         goal: FINISHED
         cmd: >
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                ./bootstrap --resolve=false
+
+                export SSL_CERTIFICATE=$MESOS_SANDBOX/cqlsh.ca ;
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
                 mkdir container-path/snapshot ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{CASSANDRA_CQLSH_SSL_FLAGS}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        configs:
+          cqlshrc:
+            template: {{CONFIG_TEMPLATE_PATH}}/cqlshrc
+            dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        transport-encryption:
+          - name: cqlsh
+            type: TLS
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
       snapshot:
         goal: FINISHED
         cmd: >
@@ -207,21 +221,21 @@ plans:
         pod: node
         steps:
           - default: [[backup-schema]]
-      create-snapshots:
-        strategy: parallel
-        pod: node
-        steps:
-          - default: [[snapshot]]
-      upload-backups:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[upload-s3]]
-      cleanup-snapshots:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[cleanup-snapshot]]
+      # create-snapshots:
+      #   strategy: parallel
+      #   pod: node
+      #   steps:
+      #     - default: [[snapshot]]
+      # upload-backups:
+      #   strategy: {{BACKUP_RESTORE_STRATEGY}}
+      #   pod: node
+      #   steps:
+      #     - default: [[upload-s3]]
+      # cleanup-snapshots:
+      #   strategy: {{BACKUP_RESTORE_STRATEGY}}
+      #   pod: node
+      #   steps:
+      #     - default: [[cleanup-snapshot]]
   restore-s3:
     strategy: serial
     phases:
