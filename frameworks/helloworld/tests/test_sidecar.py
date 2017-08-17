@@ -2,9 +2,12 @@ import logging
 
 import pytest
 
+import sdk_cmd
 import sdk_install
 import sdk_plan
 import sdk_marathon
+
+import shakedown
 
 
 from tests.config import (
@@ -66,9 +69,23 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     assert(len(recovery_plan['phases']) == 0)
     log.info(recovery_plan)
     sdk_plan.start_plan(PACKAGE_NAME, 'sidecar-toxic')
-    # Wait for the bad sidecar plan to be starting.
-    # Here we use the `sidecar-toxic-sensor` task
-    sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'sidecar-toxic-sensor')
+
+    def is_sidecar_toxic_started():
+        """
+        Since the sidecar task fails too quickly, we check for the contents of
+        the file generated in hello-container-path/toxic-output instead
+
+        Note that we only check the output of hello-0.
+        """
+        cmd = "dcos task exec -t hello-0-server cat hello-container-path/toxic-output"
+        expected_output = "I'm addicted to you / Don't you know that you're toxic?"
+
+        output = sdk_cmd.run_cli(cmd).strip()
+        logging.info("Checking for toxic output returned: %s", output)
+
+        return output == expected_output
+
+    shakedown.wait_for(is_sidecar_toxic_started, timeout_seconds=5 * 60)
 
     # Restart the scheduler and wait for it to come up.
     sdk_marathon.restart_app(PACKAGE_NAME)
