@@ -16,25 +16,23 @@ This document explains how to upgrade the DC/OS Kafka service from 0.10.2.x to 0
 
 - 0.11.0.0 clients can communicate with older brokers, such as 0.10.2.x brokers. However 0.11.0.0 clients are required for these new features. 
 
-The rolling [upgrade procedure](https://kafka.apache.org/documentation/#upgrade) (from 0.10.2.x to 0.11.0.0) is explained below. This procedure guarantees no downtime during the upgrade.
-
-
-1. Upgrade the code to the new version:
-   * Upgrade Kafka software to [0.11.0.0](https://archive.apache.org/dist/kafka/0.11.0.0/RELEASE_NOTES.html).
+The recommended Kafka rolling upgrade from `0.10.2.x` to `0.11.0.0` includes the following steps:
+1. Upgrade service the latest version of DC/OS Kafka package:
+   * Upgrade Kafka software to `0.11.0.0`.
+   * Do not update protocol and log versions, keep them same.
    * Restart the brokers one at a time.    
    * Wait until the entire cluster is upgraded.
 
 2. Change `inter.broker.protocol.version` to `0.11.0.0`:
-
    * In the `server.properties` file, change `inter.broker.protocol.version` to `0.11.0.0`.
    * Do not change log.message.format.version yet.
    * Restart the brokers one by one for the new protocol version to take affect.
 
 3. Change `log.message.format.version` to `0.11.0`:
-
    * In the server.properties files, change `log.message.format.version` to `0.11.0`.
    * Restart the brokers one by one for the new log format version to take affect.
 
+This is an overview of the rolling upgrade process to guarantee no downtime during the upgrade. The process for upgrading Kafka with DC/OS is documented in detail below.
 
 
 The new DC/OS Kafka package (with Kafka 0.11.0.0 version) that we will be upgrading to has the following default settings:
@@ -43,12 +41,14 @@ The new DC/OS Kafka package (with Kafka 0.11.0.0 version) that we will be upgrad
 * inter.broker.protocol.version = 0.11.0.0
 * log.message.format.version = 0.11.0
 
-The current DC/OS Kafka service (installed with Kafka 0.10.2.x version) will typically have the following configuration:
+The previous DC/OS Kafka package (with Kafka 0.10.2.x version) will have the following configuration:
 
 * Kafka Version = 0.10.2.1
 * inter.broker.protocol.version = 0.10.0.0
 * log.message.format.version = 0.10.0
 
+
+Here we assume that you already have a DC/OS Kafka service running, installed with the previous package version (with Kafka 0.10.2.x).  In order to guarantee no downtime during the upgrade process (upgrade service to the new DC/OS Kafka package with 0.11.0.0), follow the steps described below.  
 
 #### Step 1
 
@@ -105,7 +105,7 @@ The new service will be running the Kafka 0.11.0.0 with two specific customized 
 
 Since protocol and log versions have been updated (new protocol and log formats), you can not directly roll back to the previous package version.
 
-**Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package. Pay attention to these customized options for further package updates since they will be preserved unless overwritten explicitly.
+**Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package. Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.
 
     
     
