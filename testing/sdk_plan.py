@@ -70,6 +70,10 @@ def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=TIMEOUT_S
     return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
 
 
+def wait_for_starting_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
+    return wait_for_plan_status(service_name, plan_name, 'STARTING', timeout_seconds)
+
+
 def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS):
     '''Wait for a plan to have one of the specified statuses'''
     if isinstance(status, str):

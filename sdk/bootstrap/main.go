@@ -51,9 +51,6 @@ type args struct {
 
 	// Get Task IP
 	getTaskIp bool
-
-	// Whether to decode java keystore secrets files from base64 to binary
-	decodeKeystores bool
 }
 
 func parseArgs() args {
@@ -82,11 +79,6 @@ func parseArgs() args {
 		"Whether to install certs from .ssl to the JRE.")
 
 	flag.BoolVar(&args.getTaskIp, "get-task-ip", false, "Print task IP")
-
-	flag.BoolVar(&args.decodeKeystores, "decode-keystores", true,
-		"Decodes any *.keystore.base64 and *.truststore.base64 files in mesos "+
-			"sandbox directory from BASE64 encoding to binary format and stores "+
-			"them without base64 suffix")
 
 	flag.Parse()
 
@@ -314,11 +306,6 @@ func installDCOSCertIntoJRE() {
 	log.Println("Successfully installed the certificate.")
 }
 
-func decodeKeystores() error {
-	return NewSecretBase64Decoder(os.Getenv("MESOS_SANDBOX")).
-		decodeKeystores()
-}
-
 func isDir(path string) (bool, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
@@ -416,13 +403,6 @@ func main() {
 
 	if args.installCerts {
 		installDCOSCertIntoJRE()
-	}
-
-	if args.decodeKeystores {
-		if err := decodeKeystores(); err != nil {
-			log.Printf("Error when decoding base64 secrets: %s\n", err)
-			os.Exit(0)
-		}
 	}
 
 	log.Printf("Local IP --> %s", pod_ip)

@@ -17,6 +17,9 @@ from tests.config import (
 log = logging.getLogger(__name__)
 
 
+# global pytest variable applicable to whole module
+pytestmark = sdk_utils.dcos_1_9_or_higher
+
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
@@ -30,14 +33,13 @@ def configure_package(configure_security):
                 'hello': {'count': 4},
                 'world': {'count': 4}
             },
-            wait_scheduler_idle=False)
+            wait_for_deployment=False)
 
         yield # let the test session execute
     finally:
         sdk_install.uninstall(PACKAGE_NAME)
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_init():
     def fn():
@@ -70,7 +72,6 @@ def test_canary_init():
     assert steps[3]['status'] == 'PENDING'
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_first():
     sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
@@ -107,7 +108,6 @@ def test_canary_first():
     assert steps[3]['status'] == 'PENDING'
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_plan_continue_noop():
     sdk_cmd.run_cli('hello-world plan continue deploy')
@@ -127,7 +127,6 @@ def test_canary_plan_continue_noop():
     assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_second():
     sdk_cmd.run_cli('hello-world plan continue deploy world-deploy')
@@ -173,7 +172,6 @@ def test_canary_second():
     assert steps2[3]['status'] == 'PENDING'
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_third():
     sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
@@ -210,7 +208,6 @@ def test_canary_third():
     assert steps[3]['status'] == 'PENDING'
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_canary_fourth():
     sdk_cmd.run_cli('hello-world plan continue deploy world-deploy')
@@ -247,7 +244,6 @@ def test_canary_fourth():
     assert steps[3]['status'] == 'COMPLETE'
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_increase_count():
     sdk_marathon.bump_task_count_config(PACKAGE_NAME, 'HELLO_COUNT')
@@ -326,7 +322,6 @@ def test_increase_count():
     assert steps[3]['status'] == 'COMPLETE'
 
 
-@pytest.mark.smoke
 @pytest.mark.sanity
 def test_increase_cpu():
     hello_0_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'hello-0-server')

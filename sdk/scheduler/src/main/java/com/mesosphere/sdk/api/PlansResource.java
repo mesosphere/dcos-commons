@@ -95,6 +95,8 @@ public class PlansResource extends PrettyJsonResource {
     /**
      * Idempotently stops a plan.  If a plan is in progress, it is interrupted and the plan is reset such that all
      * elements are pending.  If a plan is already stopped, it has no effect.
+     *
+     * @see interruptCommand for the distinctions between Stop and Interrupt actions.
      */
     @POST
     @Path("/plans/{planName}/stop")
@@ -149,6 +151,20 @@ public class PlansResource extends PrettyJsonResource {
         return jsonOkResponse(getCommandResult("continue"));
     }
 
+    /**
+     * Interrupts (Pauses) a plan or if specified a phase within a plan.  If a plan/phase is in progress, it
+     * is interrupted and the plan/phase is reset such that it is pending.  If the plan/phase is already in
+     * a non-interruptable state (interrupted or complete), the response will indicate as such.
+     *
+     * An interrupted Phase is not immediately halted, but sets the interrupted bit to ensure that subsequent
+     * requests to process will not proceed. @see Interruptible .
+     *
+     * Interrupt differs from stop in the following ways:
+     * A) Interrupt can be issued for a specific phase or for all phases within a plan.  Stop can only be
+     *    issued for a plan. 
+     * B) Interrupt updates the underlying Phase/Step state. Stop not only updates the underlying state, but
+     *    also restarts the Plan.
+     */
     @POST
     @Path("/plans/{planName}/interrupt")
     public Response interruptCommand(

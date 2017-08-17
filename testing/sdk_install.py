@@ -44,7 +44,7 @@ def install(
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
-        wait_scheduler_idle=True):
+        wait_for_deployment=True):
     if not service_name:
         service_name = package_name
     start = time.time()
@@ -64,7 +64,7 @@ def install(
 
     # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
-    if wait_scheduler_idle:
+    if wait_for_deployment:
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via FINISHED tasks, without actually completing deployment
         log.info("Waiting for {}/{} to finish deployment plan...".format(
@@ -72,18 +72,34 @@ def install(
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
         # given the above wait for plan completion, here we just wait up to 5 minutes
-        log.info("Waiting for {}/{} to be suppressed...".format(
-            package_name, service_name))
-        shakedown.wait_for(
-            lambda: sdk_api.is_suppressed(service_name),
-            noisy=True,
-            timeout_seconds=5 * 60)
+        if shakedown.dcos_version_less_than("1.9"):
+            log.info("Skipping `is_suppressed` check for %s/%s as this is only suppored starting in version 1.9",
+                     package_name, service_name)
+        else:
+            log.info("Waiting for %s/%s to be suppressed...", package_name, service_name)
+            shakedown.wait_for(
+                lambda: sdk_api.is_suppressed(service_name),
+                noisy=True,
+                timeout_seconds=5 * 60)
 
     log.info('Installed {}/{} after {}'.format(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
-def uninstall(
+@retry(stop_max_attempt_number=5, wait_fixed=5000, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
+def uninstall(service_name,
+              package_name=None,
+              role=None,
+              principal=None,
+              zk=None):
+    _uninstall(service_name,
+               package_name,
+               role,
+               principal,
+               zk)
+
+
+def _uninstall(
         service_name,
         package_name=None,
         role=None,
@@ -102,6 +118,9 @@ def uninstall(
         except (dcos.errors.DCOSException, ValueError) as e:
             log.info('Got exception when uninstalling package, ' +
                           'continuing with janitor anyway: {}'.format(e))
+            if 'marathon' in str(e):
+                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
+                raise
 
         janitor_start = time.time()
 
@@ -159,6 +178,9 @@ def uninstall(
         except (dcos.errors.DCOSException, ValueError) as e:
             log.info(
                 'Got exception when uninstalling package: {}'.format(e))
+            if 'marathon' in str(e):
+                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
+                raise
         finally:
             sdk_utils.list_reserved_resources()
 

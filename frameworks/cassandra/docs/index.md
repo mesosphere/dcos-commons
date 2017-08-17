@@ -16,4 +16,3 @@ For more information on Apache Cassandra, see the Apache Cassandra [documentatio
 *   Simple horizontal scaling of Cassandra nodes
 *   Straightforward backup and restore of data out of the box
 *   Multi-datacenter replication support
-*   Rack-aware scheduling with placement constraints
