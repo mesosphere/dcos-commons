@@ -20,8 +20,8 @@
             "description": "The user that the service will run as.",
             "default": "nobody"
           },
-          "principal": {
-            "description": "The principal for the Kafka service instance.",
+          "service_account": {
+            "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
             "type": "string",
             "default": ""
           },
