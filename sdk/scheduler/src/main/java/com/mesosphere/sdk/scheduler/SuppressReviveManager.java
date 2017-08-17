@@ -13,20 +13,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
  * This class monitors all plans and suppresses or revives offers when appropriate.
  */
 public class SuppressReviveManager {
-    private static SuppressReviveManager suppressReviveManager;
-    private static final int SUPPRESSS_REVIVE_POLL_RATE_S = 5;
-    private static final int SUPPRESSS_REVIVE_DELAY_S = 30;
+    public static final int SUPPRESSS_REVIVE_INTERVAL_S = 5;
+    public static final int SUPPRESSS_REVIVE_DELAY_S = 5;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ScheduledExecutorService plansMonitor = Executors.newScheduledThreadPool(1);
@@ -34,70 +32,49 @@ public class SuppressReviveManager {
     private final Collection<PlanManager> planManagers;
     private final StateStore stateStore;
 
-    /**
-     * A race is possible with the scheduled thread.
-     *     1. Revive
-     *     2. Check plans for suppress/revive
-     *     3. Plans are still all complete because they haven't been refreshed by an Offer
-     *     4. Suppress
-     *     5. Oops
-     *
-     * To avoid this race if we are revived, we cannot be again suppressed until an Offer and been processed.  See
-     * {@link AbstractScheduler#processOffers()}
-     */
-    private AtomicBoolean eligibleToSuppress = new AtomicBoolean(false);
-
     private final Object suppressReviveLock = new Object();
-    private static final Object instanceLock = new Object();
+    private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
 
-    public static void start(
-            StateStore stateStore,
-            SchedulerDriver driver,
-            EventBus eventBus,
-            Collection<PlanManager> planManagers) {
-
-        synchronized (instanceLock) {
-            if (suppressReviveManager == null) {
-                suppressReviveManager = new SuppressReviveManager(stateStore, driver, eventBus, planManagers);
-                suppressReviveManager.revive();
-            }
-        }
-    }
-
-    public static Optional<SuppressReviveManager> getSuppressReviveManager() {
-        synchronized (instanceLock) {
-            return Optional.ofNullable(suppressReviveManager);
-        }
-    }
-
-    public static void reviveNow() {
-        Optional<SuppressReviveManager> suppressReviveManager = getSuppressReviveManager();
-        if (suppressReviveManager.isPresent()) {
-            suppressReviveManager.get().revive();
-        }
-    }
-
-    public void revive() {
-        reviveInternal();
+    public enum State {
+        INITIAL,
+        WAITING_FOR_OFFER,
+        REVIVED,
+        SUPPRESSED
     }
 
     @Subscribe
     public void handleTaskStatus(Protos.TaskStatus taskStatus) {
+        logger.debug("Handling TaskStatus: {}", taskStatus);
         if (TaskUtils.isRecoveryNeeded(taskStatus)) {
-            SuppressReviveManager.reviveNow();
+            revive();
         }
     }
 
     @Subscribe
     public void handleOffer(Protos.Offer offer) {
-        eligibleToSuppress.set(true);
+        logger.debug("Handling offer: {}", offer);
+        state.compareAndSet(State.WAITING_FOR_OFFER, State.REVIVED);
     }
 
-    private SuppressReviveManager(
+    public State getState() {
+        return state.get();
+    }
+
+    public SuppressReviveManager(
             StateStore stateStore,
             SchedulerDriver driver,
             EventBus eventBus,
             Collection<PlanManager> planManagers) {
+        this(stateStore, driver, eventBus, planManagers, SUPPRESSS_REVIVE_DELAY_S, SUPPRESSS_REVIVE_INTERVAL_S);
+    }
+
+    public SuppressReviveManager(
+            StateStore stateStore,
+            SchedulerDriver driver,
+            EventBus eventBus,
+            Collection<PlanManager> planManagers,
+            int pollDelay,
+            int pollInterval) {
 
         this.stateStore = stateStore;
         this.driver = driver;
@@ -110,45 +87,61 @@ public class SuppressReviveManager {
                         suppressOrRevive();
                     }
                 },
-                SUPPRESSS_REVIVE_DELAY_S,
-                SUPPRESSS_REVIVE_POLL_RATE_S,
+                pollDelay,
+                pollInterval,
                 TimeUnit.SECONDS);
         logger.info(
                 "Monitoring these plans for suppress/revive: {}",
                 planManagers.stream().map(planManager -> planManager.getPlan().getName()).collect(Collectors.toList()));
     }
 
+    public void start() {
+        // This must be run on a separate thread to avoid deadlock with the MesosToSchedulerDriverAdapter
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                revive();
+            }
+        }).start();
+    }
+
     private void suppressOrRevive() {
         synchronized (suppressReviveLock) {
+            if (state.get().equals(State.WAITING_FOR_OFFER)) {
+                logger.debug("Waiting for an offer.");
+                return;
+            }
+
             boolean hasOperations = planManagers.stream()
                     .anyMatch(planManager -> PlanUtils.hasOperations(planManager.getPlan()));
             if (hasOperations) {
                 if (StateStoreUtils.isSuppressed(stateStore)) {
-                    reviveInternal();
+                    revive();
                 } else {
-                    logger.info("Already revived.");
+                    logger.debug("Already revived.");
                 }
             } else {
                 if (StateStoreUtils.isSuppressed(stateStore)) {
-                    logger.info("Already suppressed.");
+                    logger.debug("Already suppressed.");
                 } else {
-                    suppressInternal();
+                    suppress();
                 }
             }
         }
     }
 
-    private void suppressInternal() {
-        if (eligibleToSuppress.get()) {
+    private void suppress() {
+        synchronized (suppressReviveLock) {
             setOfferMode(true);
-            eligibleToSuppress.set(false);
-        } else {
-            logger.warn("Skipping suppress, because not yet eligible to suppress.");
+            state.set(State.SUPPRESSED);
         }
     }
 
-    private void reviveInternal() {
-        setOfferMode(false);
+    private void revive() {
+        synchronized (suppressReviveLock) {
+            setOfferMode(false);
+            state.set(State.WAITING_FOR_OFFER);
+        }
     }
 
     private void setOfferMode(boolean suppressed) {

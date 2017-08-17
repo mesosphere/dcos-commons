@@ -9,7 +9,6 @@ import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;

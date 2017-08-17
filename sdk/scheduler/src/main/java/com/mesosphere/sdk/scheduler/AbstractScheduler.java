@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 public abstract class AbstractScheduler implements Scheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScheduler.class);
+    private SuppressReviveManager suppressReviveManager;
+
     protected final StateStore stateStore;
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
@@ -206,7 +208,11 @@ public abstract class AbstractScheduler implements Scheduler {
     protected void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        SuppressReviveManager.start(stateStore, driver, eventBus, getPlanManagers());
+        if (suppressReviveManager == null) {
+            suppressReviveManager = new SuppressReviveManager(stateStore, driver, eventBus, getPlanManagers());
+        }
+
+        suppressReviveManager.start();
     }
 
     protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
