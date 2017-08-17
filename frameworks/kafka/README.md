@@ -137,16 +137,16 @@ The amount of RAM allocated to each broker may be customized. Customize this val
 Each port exposed by the service may be customized in the service configuration. If you wish to install multiple instances of the service and have them colocate on the same machines, you must ensure that **no** ports are common between those instances. Customizing ports is only needed if you require multiple instances sharing a single machine. This customization is optional otherwise.
 
 
-### Overlay networks
-Kafka supports deployment on the `dcos` overlay network, a virtual network on DC/OS that allows each broker to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
+### Virtual networks
+Kafka supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each broker to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
 ```json
 {
     "service": {
-        "virtual_network": true
+        "virtual_network_enabled": true
     }
 }
 ```
-As per the [limitations](https://docs.mesosphere.com/service-docs/kafka/v1.1.19.1-0.10.1.0/limitations/) once the service is deployed on the overlay network, it cannot be updated to use the host network. 
+As per the [limitations](https://docs.mesosphere.com/service-docs/kafka/v1.1.19.1-0.10.1.0/limitations/) once the service is deployed on a virtual network, it cannot be updated to use the host network.
 
 ### Storage Volumes
 

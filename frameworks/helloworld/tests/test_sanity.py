@@ -32,12 +32,14 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
 
+        service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
+
         sdk_upgrade.test_upgrade(
             PACKAGE_NAME,
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+            additional_options=service_config)
 
         yield  # let the test session execute
     finally:

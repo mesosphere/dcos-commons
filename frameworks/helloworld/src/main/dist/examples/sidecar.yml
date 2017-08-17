@@ -22,7 +22,9 @@ pods:
         cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
-          SLEEP_DURATION: 1000
+          # Note, this is very high so that the test test_sidecar.test_toxic_sidecar_doesnt_trigger_recovery
+          # will always have an empty recovery plan.
+          SLEEP_DURATION: 10000
       once:
         goal: FINISHED
         cmd: "echo 'I run only once' >> hello-container-path/output"
@@ -34,6 +36,13 @@ pods:
       sidecar-parameterized:
         goal: FINISHED
         cmd: "echo $PLAN_PARAMETER >> hello-container-path/output && grep parameterized < hello-container-path/output"
+        resource-set: sidecar-resources
+      sidecar-toxic:
+        goal: FINISHED
+        cmd: >
+          echo 'I'm addicted to you / Don't you know that you're toxic?'
+
+          exit 1
         resource-set: sidecar-resources
 plans:
   deploy:
@@ -65,3 +74,11 @@ plans:
         pod: hello
         steps:
           - default: [[sidecar-parameterized]]
+  sidecar-toxic:
+    strategy: serial
+    phases:
+      sidecar-toxic-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[sidecar-toxic]]

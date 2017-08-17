@@ -34,6 +34,7 @@
     "JOURNAL_MEM": "{{journal_node.mem}}",
     "JOURNAL_DISK": "{{journal_node.disk}}",
     "JOURNAL_DISK_TYPE": "{{journal_node.disk_type}}",
+    "JOURNAL_LAGGING_TX_COUNT": "{{journal_node.lagging_tx_count}}",
     "NAME_CPUS": "{{name_node.cpus}}",
     "NAME_MEM": "{{name_node.mem}}",
     "NAME_DISK": "{{name_node.disk}}",
@@ -53,15 +54,11 @@
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
 
-    {{#service.virtual_networks}}
+    {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    "VIRTUAL_NETWORK_NAME_JOURNAL": "{{journal_node.virtual_network}}",
-    "CNI_PLUGIN_LABELS_JOURNAL": "{{journal_node.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_NAME": "{{name_node.virtual_network}}",
-    "CNI_PLUGIN_LABELS_NAME": "{{name_node.cni_plugin_labels}}",
-    "VIRTUAL_NETWORK_NAME_DATA": "{{data_node.virtual_network}}",
-    "CNI_PLUGIN_LABELS_DATA": "{{data_node.cni_plugin_labels}}",
-    {{/service.virtual_networks}}
+    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
+    {{/service.virtual_network_enabled}}
 
     {{#service.secret_name}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
@@ -123,10 +120,7 @@
     "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_GROUPS": "*",
     "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS": "*",
     "TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}",
-    "TASKCFG_ALL_IPC_CLIENT_CONNECTION_MAXIDLETIME": "300000",
-    "TASKCFG_ALL_IPC_CLIENT_CONNECT_MAX_RETRIES": "100",
-    "TASKCFG_ALL_IPC_CLIENT_CONNECT_RETRY_INTERVAL": "100000",
-    "TASKCFG_ALL_IPC_CLIENT_CONNECT_TIMEOUT": "300000",
+    "TASKCFG_ALL_IPC_CLIENT_CONNECT_MAX_RETRIES": "{{hdfs.ipc_client_connect_max_retries}}",
     "TASKCFG_ALL_TASK_USER": "{{service.user}}",
     "CONFIG_TEMPLATE_PATH": "hdfs-scheduler"
   },

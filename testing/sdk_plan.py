@@ -14,6 +14,10 @@ def get_deployment_plan(service_name):
     return get_plan(service_name, "deploy")
 
 
+def get_recovery_plan(service_name):
+    return get_plan(service_name, "recovery")
+
+
 def get_plan(service_name, plan):
     def fn():
         output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
@@ -70,6 +74,10 @@ def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=TIMEOUT_S
     return wait_for_plan_status(service_name, plan_name, 'IN_PROGRESS', timeout_seconds)
 
 
+def wait_for_starting_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
+    return wait_for_plan_status(service_name, plan_name, 'STARTING', timeout_seconds)
+
+
 def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS):
     '''Wait for a plan to have one of the specified statuses'''
     if isinstance(status, str):
@@ -112,6 +120,11 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
         else:
             return False
     return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+
+
+def recovery_plan_is_empty(service_name):
+    plan = get_recovery_plan(service_name)
+    return len(plan['phases']) == 0 and len(plan['errors']) == 0 and plan['status'] == 'COMPLETE'
 
 
 def get_phase(plan, name):

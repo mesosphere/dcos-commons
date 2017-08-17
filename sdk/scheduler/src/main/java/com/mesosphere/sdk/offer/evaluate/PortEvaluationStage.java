@@ -29,7 +29,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     private final PortSpec portSpec;
     private final String taskName;
-    private Optional<String> resourceId;
+    private final Optional<String> resourceId;
     private final boolean useHostPorts;
 
     public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
@@ -41,13 +41,15 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        long assignedPort = portSpec.getValue().getRanges().getRange(0).getBegin();
-        if (assignedPort == 0) {
+        long requestedPort = portSpec.getValue().getRanges().getRange(0).getBegin();
+        long assignedPort = requestedPort;
+        if (requestedPort == 0) {
             // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
             Optional<Long> priorTaskPort = podInfoBuilder.getPriorPortForTask(getTaskName().get(), portSpec);
             if (priorTaskPort.isPresent()) {
                 // Reuse the prior port value.
                 assignedPort = priorTaskPort.get();
+                LOGGER.info("Using previously reserved dynamic port: {}", assignedPort);
             } else {
                 // Choose a new port value.
                 Optional<Integer> dynamicPort = useHostPorts ?
@@ -65,6 +67,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                             .build();
                 }
                 assignedPort = dynamicPort.get();
+                LOGGER.info("Claiming new dynamic port: {}", assignedPort);
             }
         }
 
@@ -83,14 +86,15 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
-            resourceId = reserveEvaluationOutcome.getResourceId();
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceId).build());
+
+            Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult).build());
             return EvaluationOutcome.pass(
                     this,
                     evaluationOutcome.getOfferRecommendations(),
                     "Offer contains required %sport: '%s' with resourceId: '%s'",
                     resourceId.isPresent() ? "previously reserved " : "",
-                    portSpec.getPortName(),
+                    assignedPort,
                     resourceId)
                     .mesosResource(evaluationOutcome.getMesosResource().get())
                     .build();

@@ -36,8 +36,8 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Ensures that the task is identified as a transient task. This is a "task" which is never launched, only sent to
-     * Mesos as a way to capture some resources.
+     * Ensures that the task is identified as a transient task. This is a "task" which is never launched, only passed to
+     * Mesos as a way to capture some resources. This is used for e.g. reserving space to run sidecar tasks.
      */
     public TaskLabelWriter setTransient() {
         writer.put(LabelConstants.TRANSIENT_FLAG_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);

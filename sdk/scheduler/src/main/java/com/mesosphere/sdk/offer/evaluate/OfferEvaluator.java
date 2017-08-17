@@ -64,7 +64,7 @@ public class OfferEvaluator {
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
-        logger.info("Pod: {}, taskInfos for evaluation.");
+        logger.info("Pod: {}, taskInfos for evaluation.", podInstanceRequirement.getPodInstance().getName());
         thisPodTasks.values().forEach(info -> logger.info(TextFormat.shortDebugString(info)));
 
         boolean noTasksRunning = thisPodTasks.values().stream()
@@ -86,7 +86,9 @@ public class OfferEvaluator {
         }
 
         if (executorInfo.isPresent()) {
-            logger.info("Pod: {}, executorInfo for evaluation: {}", TextFormat.shortDebugString(executorInfo.get()));
+            logger.info("Pod: {}, executorInfo for evaluation: {}",
+                    podInstanceRequirement.getPodInstance().getName(),
+                    TextFormat.shortDebugString(executorInfo.get()));
         }
 
         for (int i = 0; i < offers.size(); ++i) {
@@ -161,7 +163,7 @@ public class OfferEvaluator {
 
         final String description;
         final boolean shouldGetNewRequirement;
-        if (getPodHasFailed(podInstanceRequirement)) {
+        if (isPermanentlyFailed(podInstanceRequirement)) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noLaunchedTasksExist) {
@@ -188,7 +190,11 @@ public class OfferEvaluator {
         return evaluationPipeline;
     }
 
-    private boolean getPodHasFailed(PodInstanceRequirement podInstanceRequirement) {
+    /**
+     * Returns whether the pod has permanently failed in its previous run, in which case it should be relaunched from
+     * scratch.
+     */
+    private boolean isPermanentlyFailed(PodInstanceRequirement podInstanceRequirement) {
         if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
             return true;
         }

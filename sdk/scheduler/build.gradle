@@ -99,7 +99,6 @@ dependencies {
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.eclipse.jetty:jetty-servlet:${jettyServletVer}"
-    compile "com.github.spullara.mustache.java:compiler:${mustacheVer}"
     compile "org.hibernate:hibernate-validator:${hibernateValidatorVer}"
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
