@@ -1,5 +1,6 @@
 {
   "packagingVersion": "4.0",
+  "upgradesFrom": ["1.0.31-3.0.13-beta"],
   "minDcosReleaseVersion": "1.8",
   "name": "cassandra",
   "version": "{{package-version}}",

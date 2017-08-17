@@ -1,5 +1,6 @@
 {
   "packagingVersion": "4.0",
+  "upgradesFrom": ["1.3.3-2.6.0-cdh5.11.0-beta"],
   "minDcosReleaseVersion": "1.8",
   "name": "hdfs",
   "version": "{{package-version}}",

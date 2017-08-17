@@ -1,5 +1,6 @@
 {
   "packagingVersion": "4.0",
+  "upgradesFrom": ["1.1.26-0.10.1.0-beta"],
   "minDcosReleaseVersion": "1.8",
   "name": "kafka",
   "version": "{{package-version}}",
