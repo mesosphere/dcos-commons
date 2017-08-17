@@ -7,8 +7,8 @@ pods:
     count: 3
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_MASTER}}:
-        labels: {{CNI_PLUGIN_LABELS_MASTER}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -76,8 +76,8 @@ pods:
     count: {{DATA_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_DATA}}:
-        labels: {{CNI_PLUGIN_LABELS_DATA}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -144,8 +144,8 @@ pods:
     count: {{INGEST_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_INGEST}}:
-        labels: {{CNI_PLUGIN_LABELS_INGEST}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -212,8 +212,8 @@ pods:
     count: {{COORDINATOR_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_COORDINATOR}}:
-        labels: {{CNI_PLUGIN_LABELS_COORDINATOR}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}

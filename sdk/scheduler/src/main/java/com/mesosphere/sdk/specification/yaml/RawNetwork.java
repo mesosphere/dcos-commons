@@ -61,7 +61,7 @@ public class RawNetwork {
             if (kv.length != 2) {
                 throw new IllegalArgumentException(String.format("Illegal label string, got %s, should be " +
                         "comma-seperated key value pairs (seperated by colons)." +
-                        " For example [k_0:v_0,k_1:v_1,...,k_n:v_n]", labelsCsv));
+                        " For example: k_0:v_0,k_1:v_1,...,k_n:v_n", labelsCsv));
             }
         });
         return kvs;

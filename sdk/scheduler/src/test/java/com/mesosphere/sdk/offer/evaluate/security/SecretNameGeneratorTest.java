@@ -39,12 +39,12 @@ public class SecretNameGeneratorTest {
 
     @Test
     public void getKeyStorePath() throws Exception {
-        Assert.assertEquals(DEFAULT_GENERATOR.getKeyStorePath(), "service/pod-0-task__exposed__keystore");
+        Assert.assertEquals(DEFAULT_GENERATOR.getKeyStorePath(), "service/__dcos_base64__pod-0-task__exposed__keystore");
     }
 
     @Test
     public void getTrustStorePath() throws Exception {
-        Assert.assertEquals(DEFAULT_GENERATOR.getTrustStorePath(), "service/pod-0-task__exposed__truststore");
+        Assert.assertEquals(DEFAULT_GENERATOR.getTrustStorePath(), "service/__dcos_base64__pod-0-task__exposed__truststore");
     }
 
     @Test
@@ -64,12 +64,12 @@ public class SecretNameGeneratorTest {
 
     @Test
     public void getKeyStoreMountPath() throws Exception {
-        Assert.assertEquals(DEFAULT_GENERATOR.getKeyStoreMountPath(), "exposed.keystore.base64");
+        Assert.assertEquals(DEFAULT_GENERATOR.getKeyStoreMountPath(), "exposed.keystore");
     }
 
     @Test
     public void getTrustStoreMountPath() throws Exception {
-        Assert.assertEquals(DEFAULT_GENERATOR.getTrustStoreMountPath(), "exposed.truststore.base64");
+        Assert.assertEquals(DEFAULT_GENERATOR.getTrustStoreMountPath(), "exposed.truststore");
     }
 
     @Test
