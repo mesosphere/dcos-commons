@@ -1,5 +1,7 @@
-""" This file configures python logging for the pytest framework
-integration tests
+""" This file configures the pytest driven integration tests with:
+* logging functionality
+* global fixtures
+* custom pytest hooks
 
 Note: pytest must be invoked with this file in the working directory
 E.G. py.test frameworks/<your-frameworks>/tests
@@ -7,6 +9,7 @@ E.G. py.test frameworks/<your-frameworks>/tests
 import logging
 import os
 import subprocess
+import typing
 
 import pytest
 
@@ -28,9 +31,12 @@ logging.basicConfig(
     level=log_level)
 
 
-def get_task_ids_for_user(user: str):
-    """ This function uses dcos task WITHOUT the JSON options because
-    that can return the wrong user for schedulers
+def get_task_ids_for_user(user: str) -> typing.Iterable[str]:
+    """ yields the task_id for a given user string
+
+    This function uses `dcos task` WITHOUT the `--json` option because
+    that can return the wrong user for schedulers.
+    See: https://jira.mesosphere.com/browse/DCOS_OSS-1512
     """
     tasks = subprocess.check_output(['dcos', 'task']).decode().split('\n')
     for task_str in tasks:
@@ -41,14 +47,20 @@ def get_task_ids_for_user(user: str):
             yield task[4]
 
 
-def get_task_logs_for_id(task_id: str, lines: int=1000000):
+def get_task_logs_for_id(task_id: str) -> str:
+    """ Thin wrapper to return the logs for a given task.
+    Note: this command will only return logs from the last
+    stdout file of the task
+    """
     return subprocess.check_output([
-        'dcos', 'task', 'log', task_id, '--lines', str(lines)]).decode()
+        'dcos', 'task', 'log', task_id, '--lines', '1000000']).decode()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """
+    """ This hook allows teardown fixtures to access the test report so
+    that we can perform custom introspection on failures
+
     See: https://docs.pytest.org/en/latest/example/simple.html\
     #making-test-result-information-available-in-fixtures
     """
@@ -73,7 +85,16 @@ def get_scheduler_logs_on_failure(request):
         if not getattr(request.node, report).failed:
             continue
         # Scheduler should be the only task running as root
-        for root_task in get_task_ids_for_user('root'):
-            log_name = '{}_{}.log'.format(request.node.name, root_task)
-            with open(log_name, 'w') as f:
-                f.write(get_task_logs_for_id(root_task))
+        try:
+            for root_task in get_task_ids_for_user('root'):
+                log_name = '{}_{}.log'.format(request.node.name, root_task)
+                with open(log_name, 'w') as f:
+                    f.write(get_task_logs_for_id(root_task))
+        except subprocess.CalledProcessError as ex:
+            error_msg = 'Task logs were not retrieved due to error!\n' \
+                'Command: ' + ' '.join(ex.cmd)
+            if ex.stdout:
+                error_msg += '\nSTDOUT: ' + ex.stdout.decode()
+            if ex.stderr:
+                error_msg += '\nSTDERR: ' + ex.stderr.decode()
+            raise Exception(error_msg)
