@@ -1,9 +1,18 @@
 import pytest
 
 from xml.etree import ElementTree
-# Do not use import *; it makes it harder to determine the origin of config
-# items
-from tests.config import *
+from tests.config import (
+    PACKAGE_NAME,
+    DEFAULT_TASK_COUNT,
+    DEFAULT_HDFS_TIMEOUT,
+    TEST_FILE_1_NAME,
+    TEST_FILE_2_NAME,
+    check_healthy,
+    get_name_node_status,
+    write_data_to_hdfs,
+    read_data_from_hdfs,
+    get_active_name_node
+)
 
 import sdk_hosts
 import sdk_install
@@ -31,7 +40,7 @@ def configure_package(configure_security):
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    check_healthy()
+    check_healthy(service_name=PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -65,7 +74,7 @@ def test_endpoints_on_overlay():
 def test_write_and_read_data_on_overlay():
     write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
     read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
-    check_healthy()
+    check_healthy(service_name=PACKAGE_NAME)
 
 
 @pytest.mark.data_integrity
@@ -82,7 +91,7 @@ def test_integrity_on_data_node_failure():
 
     read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_1_NAME)
 
-    check_healthy()
+    check_healthy(service_name=PACKAGE_NAME)
 
 
 @pytest.mark.data_integrity
@@ -105,7 +114,7 @@ def test_integrity_on_name_node_failure():
     write_data_to_hdfs(PACKAGE_NAME, TEST_FILE_2_NAME)
     read_data_from_hdfs(PACKAGE_NAME, TEST_FILE_2_NAME)
 
-    check_healthy()
+    check_healthy(service_name=PACKAGE_NAME)
 
 
 def wait_for_failover_to_complete(namenode):

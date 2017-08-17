@@ -58,39 +58,19 @@ pods:
           JOURNALNODE: true
         {{#JOURNAL_READINESS_CHECK_ENABLED}}
         # The absence of journal-data/hdfs indicates HDFS is about to be deployed for the first time.
-        # We test readiness in the following ways:
-        # 1. We hit the JMX endpoint as it includes a field called "RpcDetailedActivityForPort8485".
-        # The "GetEditLogManifestNumOps" field inside of it is indicative of Journal Node operations being
-        # performed in coherence with the other HDFS components since the field is monitoring RPC traffic,
-        # hence signaling that the Journal Node is ready. Or
-        # 2. The existence of journal-data/hdfs/current/committed-txid is used during an update plan
-        # to check that the given Journal Node has in fact started and by writing to the committed-txid
-        # file, hence updating the file's last modified timestamp within the last 12 seconds, signals
-        # that the Journal Node is newly running as part of the update plan.
-        # 3. Once one of the above two checks pass, the Journal Node has started but is not completely ready yet.
-        # Changes cannot be recorded into this Journal Node because its edit log has not been rolled up yet.
-        # It takes about 5 minutes for the edit log to roll up, effectively making the Journal Node ready to
-        # send transactions to.
         readiness-check:
           cmd: >
             if [ ! -d journal-data/hdfs ]; then
               exit 0
             else
-              # first condition
               curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
-              export EDIT_MANIFEST_NUM_OPS=$(grep "GetEditLogManifestNumOps" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              # second condition
-              export COMMITTED_ID_TIME=$(ls -l --time-style='+%Y-%m-%d %H:%M:%S' journal-data/hdfs/current/committed-txid | awk '{print $6 FS $7}') &&
-              export CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S') &&
-              export TIME_DIFF=$(( ( $(date -ud "$CURRENT_TIME" +'%s') - $(date -ud "$COMMITTED_ID_TIME" +'%s') ) )) &&
-              if [ $EDIT_MANIFEST_NUM_OPS -gt 0 || $TIME_DIFF -le 12 ]; then
-                sleep 300;
-                exit 0
-              fi
+              export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+              export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+              [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
             fi
-          delay: 60
-          interval: 3
-          timeout: 1
+          delay: 30
+          interval: 5
+          timeout: 15
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
   name:
     count: 2
@@ -190,7 +170,7 @@ pods:
         cmd: >
               export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
           {{#KRB5_CONF_URI}}
@@ -216,7 +196,7 @@ pods:
         cmd: >
               export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
               mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc
+              ./bootstrap --resolve-hosts name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#KRB5_CONF_URI}}
