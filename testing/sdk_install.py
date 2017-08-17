@@ -190,10 +190,16 @@ def get_package_options(additional_options={}):
     if os.environ.get('SECURITY', '') == 'strict':
         # strict mode requires correct principal and secret to perform install.
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
+
+
+        # This is a temporary hack to allow us to test moving between old and new config.json parameter
+        # names! This should be removed once the released version of all packages has service_account.
         return _merge_dictionaries(additional_options, {
             'service': {
                 'service_account': 'service-acct',
                 'secret_name': 'secret',
+                'service_account_secret': 'secret',
+                'principal': 'service-acct',
                 'mesos_api_version': 'V0'
             }
         })
