@@ -47,7 +47,7 @@ public class SuppressReviveManagerTest {
 
     @Parameterized.Parameters
     public static List<Object[]> data() {
-        return Arrays.asList(new Object[10][0]);
+        return Arrays.asList(new Object[100][0]);
     }
 
     public SuppressReviveManagerTest() {

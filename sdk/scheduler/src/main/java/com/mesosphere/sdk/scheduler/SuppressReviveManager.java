@@ -33,6 +33,8 @@ public class SuppressReviveManager {
     private final StateStore stateStore;
 
     private final Object suppressReviveLock = new Object();
+
+    private final Object stateLock = new Object();
     private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
 
     public enum State {
@@ -40,24 +42,6 @@ public class SuppressReviveManager {
         WAITING_FOR_OFFER,
         REVIVED,
         SUPPRESSED
-    }
-
-    @Subscribe
-    public void handleTaskStatus(Protos.TaskStatus taskStatus) {
-        logger.debug("Handling TaskStatus: {}", taskStatus);
-        if (TaskUtils.isRecoveryNeeded(taskStatus)) {
-            revive();
-        }
-    }
-
-    @Subscribe
-    public void handleOffer(Protos.Offer offer) {
-        logger.debug("Handling offer: {}", offer);
-        state.compareAndSet(State.WAITING_FOR_OFFER, State.REVIVED);
-    }
-
-    public State getState() {
-        return state.get();
     }
 
     public SuppressReviveManager(
@@ -100,47 +84,115 @@ public class SuppressReviveManager {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                revive();
+                transitionState(null, State.WAITING_FOR_OFFER);
             }
         }).start();
     }
 
-    private void suppressOrRevive() {
-        synchronized (suppressReviveLock) {
-            if (state.get().equals(State.WAITING_FOR_OFFER)) {
-                logger.debug("Waiting for an offer.");
+    public State getState() {
+        return state.get();
+    }
+
+    @Subscribe
+    public void handleTaskStatus(Protos.TaskStatus taskStatus) {
+        logger.debug("Handling TaskStatus: {}", taskStatus);
+        if (TaskUtils.isRecoveryNeeded(taskStatus)) {
+            transitionState(getState(), State.WAITING_FOR_OFFER);
+        }
+    }
+
+    @Subscribe
+    public void handleOffer(Protos.Offer offer) {
+        logger.debug("Handling offer: {}", offer);
+        State state = this.state.get();
+        switch (state) {
+            case WAITING_FOR_OFFER:
+                transitionState(State.WAITING_FOR_OFFER, State.REVIVED);
+                break;
+            default:
+                logger.debug("State remains '{}' after receiving Offer: {}", state, offer);
+        }
+    }
+
+    private void transitionState(State start, State end) {
+        synchronized (stateLock) {
+            if (start == null) {
+                start = getState();
+            }
+
+            if (start.equals(end)) {
+                logger.debug("NOOP transition for state: '{}'", start);
                 return;
             }
 
-            boolean hasOperations = planManagers.stream()
-                    .anyMatch(planManager -> PlanUtils.hasOperations(planManager.getPlan()));
-            if (hasOperations) {
-                if (StateStoreUtils.isSuppressed(stateStore)) {
+            switch (end) {
+                case INITIAL:
+                    logger.error("Invalid state transition.  End state should never be INITIAL");
+                    return;
+                case WAITING_FOR_OFFER:
                     revive();
-                } else {
-                    logger.debug("Already revived.");
-                }
-            } else {
-                if (StateStoreUtils.isSuppressed(stateStore)) {
-                    logger.debug("Already suppressed.");
-                } else {
-                    suppress();
-                }
+                    break;
+                case REVIVED:
+                    switch (start) {
+                        case WAITING_FOR_OFFER:
+                            // The only acceptable transition
+                            break;
+                        default:
+                            logTransitionError(start, end);
+                            return;
+                    }
+                    break;
+                case SUPPRESSED:
+                    switch (start) {
+                        case REVIVED:
+                            suppress();
+                            break;
+                        case WAITING_FOR_OFFER:
+                            logTransitionWarning(start, end);
+                            return;
+                        default:
+                            logTransitionError(start, end);
+                            return;
+                    }
+                    break;
             }
+
+            if (state.compareAndSet(start, end)) {
+                logger.debug("Transitioned from '{}' to '{}'", start, end);
+            } else {
+                logger.error("Failed to transitioned from '{}' to '{}'", start, end);
+                return;
+            }
+        }
+    }
+
+    private void logTransitionError(State start, State end) {
+        logger.error("Invalid transition from '{}' to '{}'.", start, end);
+    }
+
+    private void logTransitionWarning(State start, State end) {
+        logger.warn("Unexpected transition from '{}' to '{}'.", start, end);
+    }
+
+    private void suppressOrRevive() {
+        boolean hasOperations = planManagers.stream()
+                .anyMatch(planManager -> PlanUtils.hasOperations(planManager.getPlan()));
+        if (hasOperations) {
+            transitionState(null, State.WAITING_FOR_OFFER);
+        } else {
+            transitionState(null, State.SUPPRESSED);
         }
     }
 
     private void suppress() {
         synchronized (suppressReviveLock) {
             setOfferMode(true);
-            state.set(State.SUPPRESSED);
         }
     }
 
     private void revive() {
         synchronized (suppressReviveLock) {
             setOfferMode(false);
-            state.set(State.WAITING_FOR_OFFER);
         }
     }
 
