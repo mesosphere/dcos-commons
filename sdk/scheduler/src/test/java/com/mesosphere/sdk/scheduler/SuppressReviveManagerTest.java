@@ -15,13 +15,10 @@ import org.awaitility.Awaitility;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +27,6 @@ import static org.mockito.Mockito.when;
 /**
  * This class tests {@link SuppressReviveManager}.
  */
-@RunWith(Parameterized.class)
 public class SuppressReviveManagerTest {
     private StateStore stateStore;
     private EventBus eventBus = new EventBus();
@@ -44,15 +40,6 @@ public class SuppressReviveManagerTest {
 
     @Mock private Phase completePhase;
     @Mock private Phase inProgressPhase;
-
-    @Parameterized.Parameters
-    public static List<Object[]> data() {
-        return Arrays.asList(new Object[100][0]);
-    }
-
-    public SuppressReviveManagerTest() {
-
-    }
 
     @Before
     public void beforeEach() {

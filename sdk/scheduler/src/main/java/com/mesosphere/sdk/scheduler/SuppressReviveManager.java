@@ -37,6 +37,9 @@ public class SuppressReviveManager {
     private final Object stateLock = new Object();
     private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
 
+    /**
+     * The states of the suppress/revive state machine.
+     */
     public enum State {
         INITIAL,
         WAITING_FOR_OFFER,

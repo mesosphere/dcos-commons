@@ -32,7 +32,7 @@ public class DefaultSecretsClient implements SecretsClient {
     private String store;
     private Executor httpExecutor;
 
-    private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public DefaultSecretsClient(URL baseUrl, String store, Executor executor) {
         this.baseUrl = URLUtils.addPathUnchecked(baseUrl, String.format(STORE_PREFIX, store));
@@ -69,7 +69,7 @@ public class DefaultSecretsClient implements SecretsClient {
 
     @Override
     public void create(String path, Secret secret) throws IOException, SecretsException {
-        String body = OBJECT_MAPPER.writeValueAsString(secret);
+        String body = objectMapper.writeValueAsString(secret);
         Request httpRequest = Request.Put(urlForPath(path).toString())
                 .bodyString(body, ContentType.APPLICATION_JSON);
         StatusLine statusLine = httpExecutor.execute(httpRequest).returnResponse().getStatusLine();
@@ -86,7 +86,7 @@ public class DefaultSecretsClient implements SecretsClient {
 
     @Override
     public void update(String path, Secret secret) throws IOException, SecretsException {
-        String body = OBJECT_MAPPER.writeValueAsString(secret);
+        String body = objectMapper.writeValueAsString(secret);
         Request httpRequest = Request.Patch(urlForPath(path).toString())
                 .bodyString(body, ContentType.APPLICATION_JSON);
         StatusLine statusLine = httpExecutor.execute(httpRequest).returnResponse().getStatusLine();
