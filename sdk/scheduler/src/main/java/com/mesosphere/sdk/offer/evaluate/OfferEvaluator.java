@@ -503,7 +503,9 @@ public class OfferEvaluator {
 
     @VisibleForTesting
     UUID getTargetConfig(PodInstanceRequirement podInstanceRequirement, Collection<Protos.TaskInfo> taskInfos) {
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.NONE) || taskInfos.isEmpty()) {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.NONE) ||
+                podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT) ||
+                taskInfos.isEmpty()) {
             return targetConfigId;
         } else {
             // 1. Recovery always only handles tasks with a goal state of RUNNING
@@ -530,5 +532,4 @@ public class OfferEvaluator {
             }
         }
     }
-
 }

@@ -7,9 +7,12 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -241,9 +244,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
             PodInstanceRequirement podInstanceRequirement = null;
             if (failedPodTaskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
                 logger.info("Recovering permanently failed pod: '{}'", failedPod);
-                podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
-                        .recoveryType(RecoveryType.PERMANENT)
-                        .build();
+                podInstanceRequirement = getPermanentlyFailedPodRequirement(failedPod);
             } else if (failedPodTaskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
                 logger.info("Recovering transiently failed pod: '{}'", failedPod);
                 podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
@@ -264,6 +265,36 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         }
 
         return recoveryRequirements;
+    }
+
+    private PodInstanceRequirement getPermanentlyFailedPodRequirement(PodInstanceRequirement failedPod)
+            throws TaskException {
+
+        // Permanently failed pods should be recovered using the latest target configuration
+        ServiceSpec serviceSpec;
+        try {
+            serviceSpec = configStore.fetch(configStore.getTargetConfig());
+        } catch (ConfigStoreException e) {
+            throw new TaskException(e);
+        }
+
+        // PodSpecs are already guaranteed to be of a unique type so finding the first one is fine.
+        Optional<PodSpec> podSpec = serviceSpec.getPods().stream()
+                .filter(ps -> ps.getType().equals(failedPod.getPodInstance().getPod().getType()))
+                .findFirst();
+
+        if (!podSpec.isPresent()) {
+            throw new TaskException(
+                    String.format(
+                            "Permanently failed pod of type '%s' is not present in the target configuration.",
+                            failedPod.getPodInstance().getPod().getType()));
+
+        }
+
+        PodInstance podInstance = new DefaultPodInstance(podSpec.get(), failedPod.getPodInstance().getIndex());
+        return PodInstanceRequirement.newBuilder(podInstance, failedPod.getTasksToLaunch())
+                        .recoveryType(RecoveryType.PERMANENT)
+                        .build();
     }
 
     private void logFailedPod(String failedPodName, List<Protos.TaskInfo> failedTasks) {

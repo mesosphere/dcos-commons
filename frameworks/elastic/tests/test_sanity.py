@@ -195,7 +195,6 @@ def test_bump_node_counts():
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
 
 
-@pytest.mark.gabriel
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_pod_replace_then_immediate_config_update():
