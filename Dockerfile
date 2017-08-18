@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM phusion/baseimage:latest
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -17,14 +17,13 @@ RUN apt-get update && apt-get install -y \
     # install go 1.7
     add-apt-repository -y ppa:longsleep/golang-backports && \
     apt-get update && apt-get install -y golang-go && \
-    apt-get clean
+    rm -rf /var/lib/apt/lists/*
 # AWS CLI for uploading build artifacts
 RUN pip install awscli
 # Install the testing dependencies
-ADD test_requirements.txt test_requirements.txt
+COPY test_requirements.txt test_requirements.txt
 RUN pip3 install -r test_requirements.txt
 # shakedown and dcos-cli require this to output cleanly
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 # use an arbitrary path for temporary build artifacts
 ENV GOPATH=/go-tmp
