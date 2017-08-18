@@ -97,6 +97,11 @@
             "description": "secret2",
             "type": "string",
             "default": ""
+          },
+          "kill_grace_period": {
+            "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `0`",
+            "type": "integer",
+            "default": 0
           }
         },
         "required": [
@@ -150,6 +155,11 @@
             "description": "secret3",
             "type": "string",
             "default": ""
+          },
+          "kill_grace_period": {
+            "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `0`",
+            "type": "integer",
+            "default": 0
           }
         },
         "required": [

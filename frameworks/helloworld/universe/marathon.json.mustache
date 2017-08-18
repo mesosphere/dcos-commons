@@ -32,11 +32,17 @@
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
     "HELLO_PLACEMENT": "{{hello.placement}}",
+    {{#hello.kill_grace_period}}
+    "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
+    {{/hello.kill_grace_period}}
     "WORLD_COUNT": "{{world.count}}",
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
     "WORLD_DISK": "{{world.disk}}",
     "WORLD_PLACEMENT": "{{world.placement}}",
+    {{#world.kill_grace_period}}
+    "WORLD_KILL_GRACE_PERIOD": "{{world.kill_grace_period}}",
+    {{/world.kill_grace_period}}
     "SLEEP_DURATION": "{{service.sleep}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",

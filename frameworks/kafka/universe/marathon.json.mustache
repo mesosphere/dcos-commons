@@ -26,6 +26,11 @@
     "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
+    {{#brokers.kill_grace_period}}
+    "BROKER_KILL_GRACE_PERIOD": "{{brokers.kill_grace_period}}",
+    {{/brokers.kill_grace_period}}
+    "CMD_PREFIX": "{{service.cmd_prefix}}",
+    "SECRET_NAME": "{{service.secret_name}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",

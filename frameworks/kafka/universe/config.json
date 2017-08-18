@@ -119,7 +119,12 @@
           "port": {
             "description": "Port for broker to listen on",
             "type": "integer",
-            "default":  0
+            "default": 0
+          },
+          "kill_grace_period": {
+            "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `30`",
+            "type": "integer",
+            "default": 30
           }
         },
         "required": [
