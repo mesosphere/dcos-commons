@@ -37,7 +37,7 @@ public class DefaultRecoveryStep extends DeploymentStep {
     @Override
     public Optional<PodInstanceRequirement> start() {
         if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-            FailureUtils.markFailed(podInstanceRequirement.getPodInstance(), stateStore);
+            FailureUtils.setPermanentlyFailed(stateStore, podInstanceRequirement.getPodInstance());
         }
 
         return super.start();

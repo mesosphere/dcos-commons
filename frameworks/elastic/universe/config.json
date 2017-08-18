@@ -10,18 +10,18 @@
           "type": "string",
           "default": "elastic"
         },
-        "secret_name": {
+        "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-          "type":"string",
-          "default":""
+          "type": "string",
+          "default": ""
         },
         "user": {
           "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string",
           "default": "nobody"
         },
-        "principal": {
-          "description": "The principal for the Elasticsearch service instance.",
+        "service_account": {
+          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
           "type": "string",
           "default": ""
         },

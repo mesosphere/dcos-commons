@@ -112,4 +112,8 @@ public class TaskTestUtils {
                 .setState(taskState)
                 .build();
     }
+
+    public static Protos.TaskInfo withFailedFlag(Protos.TaskInfo task) {
+        return task.toBuilder().setLabels(new TaskLabelWriter(task).setPermanentlyFailed().toProto()).build();
+    }
 }

@@ -64,12 +64,12 @@
               "description": "The name of the service instance",
               "type": "string"
             },
-            "principal": {
+            "service_account": {
               "default": "",
               "description": "The principal for the service instance.",
               "type": "string"
             },
-            "secret_name": {
+            "service_account_secret": {
               "default": "",
               "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
               "type": "string"
@@ -220,8 +220,8 @@
     "service": {
       "mesos_api_version": "V1",
       "name": "hello-world",
-      "principal": "",
-      "secret_name": "",
+      "service_account": "",
+      "service_account_secret": "",
       "sleep": 1000,
       "spec_file": "svc.yml",
       "user": "root"
