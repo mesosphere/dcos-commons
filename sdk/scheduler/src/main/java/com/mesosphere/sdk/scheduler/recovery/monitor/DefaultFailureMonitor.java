@@ -9,6 +9,6 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 public class DefaultFailureMonitor implements FailureMonitor {
     @Override
     public boolean hasFailed(Protos.TaskInfo task) {
-        return FailureUtils.isLabeledAsFailed(task);
+        return FailureUtils.isPermanentlyFailed(task);
     }
 }
