@@ -7,6 +7,7 @@ import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
 import com.mesosphere.sdk.dcos.auth.ServiceAccountIAMTokenProvider;
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.ca.DefaultCAClient;
+import com.mesosphere.sdk.dcos.http.CustomRedirectStrategy;
 import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.http.URLUtils;
 import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
@@ -18,7 +19,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.http.client.fluent.Executor;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
@@ -270,7 +270,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             Executor executor = Executor.newInstance(
                     new DcosHttpClientBuilder()
                             .setTokenProvider(tokenProvider)
-                            .setRedirectStrategy(new LaxRedirectStrategy())
+                            .setRedirectStrategy(new CustomRedirectStrategy())
                             .build());
 
             CertificateAuthorityClient certificateAuthorityClient = new DefaultCAClient(executor);
