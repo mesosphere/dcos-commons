@@ -49,7 +49,7 @@ def test_indexing(default_populated_index):
         indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
         observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
         assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(observed_count)
-        doc = get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
+        doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
         observed_name = doc["_source"]["name"]
         return observed_name == "Loren"
 
