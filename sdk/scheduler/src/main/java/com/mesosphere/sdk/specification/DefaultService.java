@@ -122,8 +122,6 @@ public class DefaultService implements Service {
             LOGGER.info("Launching UninstallScheduler...");
             this.scheduler = new UninstallScheduler(
                     schedulerBuilder.getServiceSpec().getName(),
-                    schedulerBuilder.getSchedulerFlags().getApiServerPort(),
-                    schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
                     stateStore,
                     schedulerBuilder.getConfigStore(),
                     schedulerBuilder.getSchedulerFlags(),
@@ -169,8 +167,12 @@ public class DefaultService implements Service {
         Protos.Status status = new SchedulerDriverFactory()
                 .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
                 .run();
-        // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
+        // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
+        // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
+        if (status != Protos.Status.DRIVER_STOPPED) {
+            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+        }
     }
 
     private boolean allButStateStoreUninstalled() {

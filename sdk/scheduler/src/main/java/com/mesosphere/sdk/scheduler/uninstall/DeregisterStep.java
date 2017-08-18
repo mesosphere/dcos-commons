@@ -39,6 +39,7 @@ public class DeregisterStep extends UninstallStep {
         stateStore.clearFrameworkId();
         // Unregisters the framework in addition to stopping the SchedulerDriver thread:
         // Calling with failover == false causes Mesos to teardown the framework.
+        // This call will cause DefaultService's schedulerDriver.run() call to return DRIVER_STOPPED.
         schedulerDriver.stop(false);
         logger.info("Deleting service root path for framework...");
         stateStore.clearAllData();
