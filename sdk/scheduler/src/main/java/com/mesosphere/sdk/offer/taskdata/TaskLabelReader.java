@@ -118,7 +118,8 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns whether the task is marked as permanently failed.
+     * Returns whether the task is marked as permanently failed. This is intentionally stored in the TaskInfo as it will
+     * be automatically overwritten when the TaskInfo is replaced.
      */
     public boolean isPermanentlyFailed() {
         // null is false
@@ -129,7 +130,6 @@ public class TaskLabelReader {
      * Returns whether the task has a readiness check label.
      */
     public boolean hasReadinessCheckLabel() {
-        // null is false
         return reader.getOptional(LabelConstants.READINESS_CHECK_LABEL).isPresent();
     }
 }

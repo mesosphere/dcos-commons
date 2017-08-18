@@ -26,7 +26,6 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
-    protected boolean useCustomExecutor;
     protected UUID targetConfig;
 
     @Before
@@ -36,12 +35,10 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         targetConfig = UUID.randomUUID();
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, true);
-        useCustomExecutor = true;
     }
 
     protected void useCustomExecutor() {
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, false);
-        useCustomExecutor = false;
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {
@@ -77,15 +74,9 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
             if (recommendation instanceof ReserveOfferRecommendation) {
                 reservedResources.addAll(recommendation.getOperation().getReserve().getResourcesList());
             } else if (recommendation instanceof LaunchOfferRecommendation) {
-                // DO NOT extract the TaskInfo from the Operation. That version has a packed CommandInfo.
-                LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendation;
-                if (useCustomExecutor) {
-                    Protos.TaskInfo taskInfo = launchOfferRecommendation.getTaskInfo().toBuilder()
-                            .setExecutor(launchOfferRecommendation.getExecutorInfo()).build();
-                    stateStore.storeTasks(Arrays.asList(taskInfo));
-                } else {
-                    stateStore.storeTasks(Arrays.asList(((LaunchOfferRecommendation) recommendation).getTaskInfo()));
-                }
+                // DO NOT extract the TaskInfo from the Launch Operation. That version has a packed CommandInfo.
+                stateStore.storeTasks(Arrays.asList(
+                        ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo()));
             }
         }
 

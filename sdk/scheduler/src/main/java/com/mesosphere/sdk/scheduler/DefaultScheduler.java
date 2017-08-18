@@ -12,6 +12,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -581,7 +582,17 @@ public class DefaultScheduler extends AbstractScheduler {
         initializePlanCoordinator();
         initializeResources();
         initializeApiServer();
+        killUnneededTasks(getLaunchableTasks());
         LOGGER.info("Done initializing.");
+    }
+
+    private void killUnneededTasks(Set<String> taskToDeployNames) {
+        Set<Protos.TaskID> taskIds = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
+        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
 
     private Collection<PlanManager> getOtherPlanManagers() {
@@ -654,6 +665,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
+                getLaunchableTasks(),
                 launchConstrainer,
                 failureMonitor,
                 overrideRecoveryPlanManagers);
@@ -772,9 +784,23 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Store status, then pass status to PlanManager => Plan => Steps
         try {
+            String taskName = StateStoreUtils.getTaskInfo(stateStore, status).getName();
+            Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
+
             stateStore.storeStatus(status);
             planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
             reconciler.update(status);
+
+            if (lastStatus.isPresent() &&
+                    AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
+                    TaskUtils.isRecoveryNeeded(status)) {
+                // The initial launch of this task failed. Give up and try again with a clean slate.
+                LOGGER.warn(
+                        "Task {} appears to have failed its initial launch. Marking pod for permanent recovery. " +
+                                "Last status: {}",
+                        taskName, TextFormat.shortDebugString(lastStatus.get()));
+                taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
+            }
 
             // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
             // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
@@ -787,8 +813,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
                 // TaskInfo exists.
                 try {
-                    Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
-                    StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
+                    StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
                 } catch (StateStoreException e) {
                     LOGGER.warn("Unable to store network info for status update: " + status, e);
                 }
@@ -798,5 +823,19 @@ public class DefaultScheduler extends AbstractScheduler {
                     + "This may be expected if Mesos sent stale status information: " + status, e);
         }
 
+    }
+
+    @VisibleForTesting
+    Set<String> getLaunchableTasks() {
+        return plans.stream()
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(podInstanceRequirement ->
+                        TaskUtils.getTaskNames(
+                                podInstanceRequirement.getPodInstance(),
+                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
     }
 }

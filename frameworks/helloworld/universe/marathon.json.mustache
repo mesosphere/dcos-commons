@@ -24,7 +24,7 @@
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "SERVICE_PRINCIPAL": "{{service.principal}}",
+    "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "SERVICE_USER": "{{service.user}}",
     "HELLO_COUNT": "{{hello.count}}",
     "HELLO_CPUS": "{{hello.cpus}}",
@@ -70,7 +70,8 @@
 
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
-    "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}"
+    "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",
+    "TEST_BOOLEAN": "{{service.test_boolean}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
