@@ -90,12 +90,12 @@ def install(
 def uninstall(service_name,
               package_name=None,
               role=None,
-              principal=None,
+              service_account=None,
               zk=None):
     _uninstall(service_name,
                package_name,
                role,
-               principal,
+               service_account,
                zk)
 
 
@@ -103,7 +103,7 @@ def _uninstall(
         service_name,
         package_name=None,
         role=None,
-        principal=None,
+        service_account=None,
         zk=None):
     start = time.time()
 
@@ -128,16 +128,16 @@ def _uninstall(
         deslashed_service_name = service_name.lstrip('/').replace('/', '__')
         if role is None:
             role = deslashed_service_name + '-role'
-        if principal is None:
-            principal = service_name + '-principal'
+        if service_account is None:
+            service_account = service_name + '-principal'
         if zk is None:
             zk = 'dcos-service-' + deslashed_service_name
         janitor_cmd = ('docker run mesosphere/janitor /janitor.py '
-                       '-r {role} -p {principal} -z {zk} --auth_token={auth}')
+                       '-r {role} -p {service_account} -z {zk} --auth_token={auth}')
         shakedown.run_command_on_master(
             janitor_cmd.format(
                 role=role,
-                principal=principal,
+                service_account=service_account,
                 zk=zk,
                 auth=shakedown.run_dcos_command(
                     'config show core.dcos_acs_token')[0].strip()))
@@ -192,6 +192,7 @@ def get_package_options(additional_options={}):
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
         return _merge_dictionaries(additional_options, {
             'service': {
+                'service_account': 'service-acct',
                 'principal': 'service-acct',
                 'secret_name': 'secret',
                 'mesos_api_version': 'V0'

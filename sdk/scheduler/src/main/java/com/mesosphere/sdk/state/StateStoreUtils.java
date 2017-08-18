@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Utilities for implementations and users of {@link StateStore}.
@@ -89,6 +91,25 @@ public class StateStoreUtils {
             }
         }
         return results;
+    }
+
+    /**
+     * Returns all {@link TaskInfo}s associated with the provided {@link PodInstance}, or an empty list if none were
+     * found.
+     *
+     * @throws StateStoreException in the event of an IO error other than missing tasks
+     */
+    public static Collection<TaskInfo> fetchPodTasks(StateStore stateStore, PodInstance podInstance)
+            throws StateStoreException {
+        Collection<String> taskInfoNames = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+                .collect(Collectors.toList());
+
+        return taskInfoNames.stream()
+                .map(name -> stateStore.fetchTask(name))
+                .filter(taskInfo -> taskInfo.isPresent())
+                .map(taskInfo -> taskInfo.get())
+                .collect(Collectors.toList());
     }
 
     /**
