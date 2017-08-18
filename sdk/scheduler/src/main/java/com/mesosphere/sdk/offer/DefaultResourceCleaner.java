@@ -83,7 +83,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {
         return stateStore.fetchTasks().stream()
-                .filter(taskInfo -> !FailureUtils.isLabeledAsFailed(taskInfo))
+                .filter(taskInfo -> !FailureUtils.isPermanentlyFailed(taskInfo))
                 .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());

@@ -26,6 +26,11 @@
             "enum": ["V0", "V1"],
             "default": "V0"
           },
+          "test_boolean" : {
+            "description": "A boolean value for testing purposes",
+            "type": "boolean",
+            "default": true
+          },
           "secret_name": {
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type": "string",
@@ -36,8 +41,8 @@
             "type": "string",
             "default": "nobody"
           },
-          "principal": {
-            "description": "The principal for the service instance.",
+          "service_account": {
+            "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of the Mesos framework.",
             "type": "string",
             "default": ""
           },

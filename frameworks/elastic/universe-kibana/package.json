@@ -1,5 +1,5 @@
 {
-  "packagingVersion": "3.0",
+  "packagingVersion": "4.0",
   "minDcosReleaseVersion": "1.9",
   "name": "kibana",
   "version": "{{package-version}}",

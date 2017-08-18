@@ -9,11 +9,9 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -30,6 +28,7 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
  */
 public class UninstallScheduler extends AbstractScheduler {
 
+    private static final String TASK_KILL_PHASE = "task-kill-phase";
     private static final String RESOURCE_PHASE = "resource-phase";
     private static final String DEREGISTER_PHASE = "deregister-phase";
     private static final String TLS_CLEANUP_PHASE = "tls-cleanup-phase";
@@ -94,6 +93,15 @@ public class UninstallScheduler extends AbstractScheduler {
 
         List<Phase> phases = new ArrayList<>();
 
+        // First, we kill all the tasks, so that we may release their reserved resources.
+        List<Step> taskKillSteps = stateStore.fetchTasks().stream()
+                .map(Protos.TaskInfo::getTaskId)
+                .map(taskID -> new TaskKillStep(taskID))
+                .collect(Collectors.toList());
+        Phase taskKillPhase = new DefaultPhase(TASK_KILL_PHASE, taskKillSteps, new ParallelStrategy<>(),
+                Collections.emptyList());
+        phases.add(taskKillPhase);
+
         // Given this scenario:
         // - Task 1: resource A, resource B
         // - Task 2: resource A, resource C
@@ -101,12 +109,12 @@ public class UninstallScheduler extends AbstractScheduler {
         // We filter to unique Resource Id's, because Executor level resources are tracked
         // on multiple Tasks. So in this scenario we should have 3 uninstall steps around resources A, B, and C.
         List<Protos.Resource> allResources = ResourceUtils.getAllResources(stateStore.fetchTasks());
-        List<Step> taskSteps = ResourceUtils.getResourceIds(allResources).stream()
-                .map(resourceId -> new UninstallStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
+        List<Step> resourceSteps = ResourceUtils.getResourceIds(allResources).stream()
+                .map(resourceId -> new ResourceCleanupStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
                         Status.COMPLETE : Status.PENDING))
                 .collect(Collectors.toList());
 
-        Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, taskSteps, new ParallelStrategy<>(),
+        Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(),
                 Collections.emptyList());
         phases.add(resourcePhase);
 
@@ -122,7 +130,7 @@ public class UninstallScheduler extends AbstractScheduler {
         }
 
         // We don't have access to the SchedulerDriver yet, so that gets set later
-        Step deregisterStep = new DeregisterStep(Status.PENDING, stateStore);
+        Step deregisterStep = new DeregisterStep(stateStore);
         List<Step> deregisterSteps = Collections.singletonList(deregisterStep);
         Phase deregisterPhase = new DefaultPhase(DEREGISTER_PHASE, deregisterSteps, new SerialStrategy<>(),
                 Collections.emptyList());
@@ -145,9 +153,30 @@ public class UninstallScheduler extends AbstractScheduler {
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
         taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore), driver);
-        Phase resourcePhase = uninstallPlan.getChildren().get(0);
+        // Add the task killer to the task kill steps.
+        uninstallPlan.getChildren().stream()
+                .filter(phase -> phase.getName().equals(TASK_KILL_PHASE))
+                .findFirst()
+                .get()
+                .getChildren()
+                .forEach(step -> ((TaskKillStep) step).setTaskKiller(taskKiller));
+
+        // Attach the resource phase to the uninstall recorder.
+        Phase resourcePhase = uninstallPlan.getChildren().stream()
+                .filter(phase -> phase.getName().equals(RESOURCE_PHASE))
+                .findFirst()
+                .get();
         UninstallRecorder uninstallRecorder = new UninstallRecorder(stateStore, resourcePhase);
         offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
+
+        // Set the driver on the DeregisterStep
+        ((DeregisterStep) uninstallPlan.getChildren()
+                .stream()
+                .filter(phase -> phase.getName().equals(DEREGISTER_PHASE))
+                .findFirst()
+                .get()
+                .getChildren()
+                .get(0)).setSchedulerDriver(driver);
     }
 
     public boolean apiServerReady() {
@@ -193,23 +222,6 @@ public class UninstallScheduler extends AbstractScheduler {
         } catch (Exception e) {
             LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                     + "This may be expected if Mesos sent stale status information: " + status, e);
-        }
-    }
-
-    @Override
-    protected void postRegister() {
-        super.postRegister();
-        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep.
-        // It's the second Step of the second Phase of the Plan.
-        List<Phase> phases = uninstallPlan.getChildren();
-        DeregisterStep deregisterStep = (DeregisterStep) phases.get(phases.size() - 1).getChildren().get(0);
-        deregisterStep.setSchedulerDriver(driver);
-
-        Collection<String> taskNames = stateStore.fetchTaskNames();
-        LOGGER.info("Found {} tasks to restart and clear: {}", taskNames.size(), taskNames);
-        for (String taskName : taskNames) {
-            stateStore.fetchTask(taskName)
-                    .ifPresent(taskInfo -> taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT));
         }
     }
 }
