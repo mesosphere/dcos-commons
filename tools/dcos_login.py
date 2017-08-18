@@ -26,6 +26,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
     login_endpoint = '{dcosurl}/acs/api/v1/auth/login'.format(dcosurl=dcosurl)
     r = requests.post(login_endpoint, headers=headers, json=payload, verify=False)
     assert r.status_code == 200, '{} failed {}: {}'.format(login_endpoint, r.status_code, r.text)
+    log.info('Login was successful!')
 
     return r.json()['token']
 
@@ -39,8 +40,10 @@ def configure_cli(dcosurl: str, token: str) -> None:
         # check to see if the target cluster has been configured
         if _netloc(cluster.get_url()) == _netloc(dcosurl):
             dcos.cluster.set_attached(cluster.cluster_path)
+            log.info('Attached to already setup cluster: ' + cluster.cluster_id)
             # cluster attached successfully, can begin using CLI/tests
             return
+    log.warning('Target cluster has not been setup yet. Performing setup...')
     with dcos.cluster.setup_directory() as temp_path:
         dcos.cluster.set_attached(temp_path)
         dcos.config.set_val('core.dcos_url', dcosurl)
@@ -66,9 +69,10 @@ def login_session() -> None:
     cluster_url = os.environ.get('CLUSTER_URL')
     dcos_login_username = os.environ.get('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
-    dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', 'true') == 'true'
+    dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true'
     dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
     if not dcos_acs_token:
+        log.info('No ACS token provided, logging in...')
         dcos_acs_token = login(
             dcosurl=cluster_url,
             username=dcos_login_username,
