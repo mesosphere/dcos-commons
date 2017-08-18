@@ -41,9 +41,9 @@
           "default": "V0"
         },
         "service_account_secret": {
-          "description":"Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-          "type":"string",
-          "default":""
+          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "type": "string",
+          "default": ""
         },
         "deploy_strategy": {
           "description": "HDFS deployment strategy. [parallel, serial]",
