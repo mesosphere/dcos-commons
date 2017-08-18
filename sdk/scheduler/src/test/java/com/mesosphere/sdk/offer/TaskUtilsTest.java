@@ -1,14 +1,17 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.*;
 
 import javax.validation.ValidationException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.UUID;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -268,5 +271,25 @@ public class TaskUtilsTest {
                 .setState(Protos.TaskState.TASK_LOST)
                 .build();
         Assert.assertTrue(TaskUtils.isRecoveryNeeded(taskStatus));
+    }
+
+    @Test
+    public void testGetTasksWithTLS() {
+        TransportEncryptionSpec transportEncryptionSpec = new DefaultTransportEncryptionSpec.Builder()
+                .name("test")
+                .build();
+
+        TaskSpec taskWithTls = TestPodFactory.getTaskSpec("has-tls", "abc");
+        taskWithTls = DefaultTaskSpec.newBuilder(taskWithTls)
+                .setTransportEncryption(Collections.singletonList(transportEncryptionSpec))
+                .build();
+        TaskSpec taskWithoutTls = TestPodFactory.getTaskSpec("no-tls", "abc");
+
+        PodSpec podSpec = TestPodFactory.getPodSpec("test", "user", 1, Arrays.asList(taskWithoutTls, taskWithTls));
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 1);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("has-tls", "no-tls")).build();
+
+        Assert.assertEquals(Arrays.asList(taskWithTls), TaskUtils.getTasksWithTLS(podInstanceRequirement));
     }
 }
