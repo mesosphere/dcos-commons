@@ -9,7 +9,6 @@ import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -219,7 +218,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
     @Test
     public void stoppedTaskTransitionsToFailed() throws Exception {
-        final List<TaskInfo> infos = Collections.singletonList(FailureUtils.markFailed(taskInfo));
+        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.withFailedFlag(taskInfo));
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(infos.get(0));
@@ -320,7 +319,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     @Test
     public void permanentlyFailedTasksAreRescheduled() throws Exception {
         // Prepare permanently failed task with some reserved resources
-        final TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
+        final TaskInfo failedTaskInfo = TaskTestUtils.withFailedFlag(taskInfo);
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
@@ -421,53 +420,5 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
-    }
-
-    @Test
-    public void testClearCompletedPermanentFailureStep() {
-        String taskName0 = TestConstants.TASK_NAME + 0;
-        TaskSpec taskSpec0 =
-                TestPodFactory.getTaskSpec(
-                        taskName0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
-        TaskSpec taskSpec1 =
-                TestPodFactory.getTaskSpec(
-                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder("")
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-
-        TaskInfo taskInfo0 = TaskInfo.newBuilder()
-                .setName(TaskSpec.getInstanceName(podInstance, taskSpec0))
-                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .build();
-        TaskInfo taskInfo1 = TaskInfo.newBuilder()
-                .setName(TaskSpec.getInstanceName(podInstance, taskSpec1))
-                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .build();
-        stateStore.storeTasks(Arrays.asList(taskInfo0, taskInfo1));
-
-        FailureUtils.markFailed(podInstance, stateStore);
-        assertTrue(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
-
-        // PodInstanceRequirement addresses only 1 Task in the Pod, but the whole pod should be cleared
-        // of its permanent failure mark
-        PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(taskName0))
-                        .recoveryType(RecoveryType.PERMANENT)
-                        .build();
-        Step step = new DefaultRecoveryStep(
-                podInstance.getName(),
-                Status.COMPLETE,
-                podInstanceRequirement,
-                new UnconstrainedLaunchConstrainer(),
-                stateStore);
-
-        recoveryManager.update(step);
-        assertFalse(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
     }
 }
