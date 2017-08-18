@@ -27,3 +27,5 @@ RUN pip3 install -r test_requirements.txt
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 # use an arbitrary path for temporary build artifacts
 ENV GOPATH=/go-tmp
+# make a dir for holding the SSH key in tests
+RUN mkdir /root/.ssh
