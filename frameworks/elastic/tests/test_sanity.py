@@ -193,3 +193,20 @@ def test_bump_node_counts():
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
+
+
+@pytest.mark.gabriel
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_pod_replace_then_immediate_config_update():
+    plugin_name = 'analysis-phonetic'
+    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
+
+    cmd.run_cli('elastic --name={} pod replace data-0'.format(FOLDERED_SERVICE_NAME))
+
+    # issue config update immediately
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
+
+    # ensure all nodes, especially data-0, get launched with the updated config
+    check_plugin_installed(plugin_name, service_name=FOLDERED_SERVICE_NAME)
