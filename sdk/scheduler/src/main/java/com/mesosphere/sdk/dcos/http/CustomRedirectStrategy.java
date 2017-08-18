@@ -1,29 +1,14 @@
 package com.mesosphere.sdk.dcos.http;
 
-import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 
 /**
- * A copy of {@link org.apache.http.impl.client.LaxRedirectStrategy} with addition support for PUT method redirect
- * that is necessary for SecretsClient.
+ * Extension of LaxRedirectStrategy that adds PUT as a re-directable method.
  */
-public class CustomRedirectStrategy extends DefaultRedirectStrategy {
-    private static final String[] REDIRECT_METHODS = new String[]{"GET", "POST", "PUT", "HEAD", "DELETE"};
-
-    public CustomRedirectStrategy() {
-    }
+public class CustomRedirectStrategy extends LaxRedirectStrategy {
 
     protected boolean isRedirectable(String method) {
-        String[] arr$ = REDIRECT_METHODS;
-        int len$ = arr$.length;
-
-        for(int i$ = 0; i$ < len$; ++i$) {
-            String m = arr$[i$];
-            if (m.equalsIgnoreCase(method)) {
-                return true;
-            }
-        }
-
-        return false;
+        return method.equalsIgnoreCase(HttpPut.METHOD_NAME) || super.isRedirectable(method);
     }
 }
-
