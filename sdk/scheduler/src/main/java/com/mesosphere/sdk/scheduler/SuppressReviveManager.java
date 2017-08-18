@@ -87,7 +87,7 @@ public class SuppressReviveManager {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                transitionState(null, State.WAITING_FOR_OFFER);
+                transitionState(State.WAITING_FOR_OFFER);
             }
         }).start();
     }
@@ -100,7 +100,7 @@ public class SuppressReviveManager {
     public void handleTaskStatus(Protos.TaskStatus taskStatus) {
         logger.debug("Handling TaskStatus: {}", taskStatus);
         if (TaskUtils.isRecoveryNeeded(taskStatus)) {
-            transitionState(getState(), State.WAITING_FOR_OFFER);
+            transitionState(State.WAITING_FOR_OFFER);
         }
     }
 
@@ -110,25 +110,23 @@ public class SuppressReviveManager {
         State state = this.state.get();
         switch (state) {
             case WAITING_FOR_OFFER:
-                transitionState(State.WAITING_FOR_OFFER, State.REVIVED);
+                transitionState(State.REVIVED);
                 break;
             default:
                 logger.debug("State remains '{}' after receiving Offer: {}", state, offer);
         }
     }
 
-    private void transitionState(State start, State end) {
+    private void transitionState(State target) {
         synchronized (stateLock) {
-            if (start == null) {
-                start = getState();
-            }
+            State current = getState();
 
-            if (start.equals(end)) {
-                logger.debug("NOOP transition for state: '{}'", start);
+            if (current.equals(target)) {
+                logger.debug("NOOP transition for state: '{}'", target);
                 return;
             }
 
-            switch (end) {
+            switch (target) {
                 case INITIAL:
                     logger.error("Invalid state transition.  End state should never be INITIAL");
                     return;
@@ -136,34 +134,34 @@ public class SuppressReviveManager {
                     revive();
                     break;
                 case REVIVED:
-                    switch (start) {
+                    switch (current) {
                         case WAITING_FOR_OFFER:
                             // The only acceptable transition
                             break;
                         default:
-                            logTransitionError(start, end);
+                            logTransitionError(current, target);
                             return;
                     }
                     break;
                 case SUPPRESSED:
-                    switch (start) {
+                    switch (current) {
                         case REVIVED:
                             suppress();
                             break;
                         case WAITING_FOR_OFFER:
-                            logTransitionWarning(start, end);
+                            logTransitionWarning(current, target);
                             return;
                         default:
-                            logTransitionError(start, end);
+                            logTransitionError(current, target);
                             return;
                     }
                     break;
             }
 
-            if (state.compareAndSet(start, end)) {
-                logger.debug("Transitioned from '{}' to '{}'", start, end);
+            if (state.compareAndSet(current, target)) {
+                logger.debug("Transitioned from '{}' to '{}'", current, target);
             } else {
-                logger.error("Failed to transitioned from '{}' to '{}'", start, end);
+                logger.error("Failed to transitioned from '{}' to '{}'", current, target);
                 return;
             }
         }
@@ -181,9 +179,9 @@ public class SuppressReviveManager {
         boolean hasOperations = planManagers.stream()
                 .anyMatch(planManager -> PlanUtils.hasOperations(planManager.getPlan()));
         if (hasOperations) {
-            transitionState(null, State.WAITING_FOR_OFFER);
+            transitionState(State.WAITING_FOR_OFFER);
         } else {
-            transitionState(null, State.SUPPRESSED);
+            transitionState(State.SUPPRESSED);
         }
     }
 
