@@ -3,6 +3,9 @@
 PLUGINS=""
 IFS=","
 
+# If a plugin fails to install, exit the script immediately with an error
+set -e
+
 if [ -n "$ELASTICSEARCH_PLUGINS" ]; then
     PLUGINS="$ELASTICSEARCH_PLUGINS"
 fi

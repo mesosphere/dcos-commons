@@ -3,8 +3,10 @@ package com.mesosphere.sdk.state;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -35,56 +37,85 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
         Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
 
-        Protos.TaskStatus taskStatus = null;
+        Optional<PodInstance> podInstance = getPodInstance(taskInfo);
+        final boolean isInitialLaunch;
+        if (!podInstance.isPresent()) {
+            // This may happen in one of the following cases:
+            // - The TaskInfo lacked the needed labels to determine what pod it belonged to
+            // - The TaskInfo refers to a pod that can't be found in the ServiceSpec (change in service definition?)
+            // In either case, let's play it safe and assume that this shouldn't be treated as an initial launch.
+            isInitialLaunch = false;
+            logger.warn("No pod found for task {}: treating this as not an initial launch", taskInfo.getName());
+        } else {
+            Collection<Protos.TaskInfo> podTasks =
+                    StateStoreUtils.fetchPodTasks(stateStore, podInstance.get());
+            // If there are no taskinfos, then treat this as an initial launch:
+            isInitialLaunch = podTasks.isEmpty() ||
+                    podTasks.stream().allMatch(podTask -> FailureUtils.isPermanentlyFailed(podTask));
+        }
+
+        Optional<Protos.TaskStatus> taskStatus = Optional.empty();
+        String taskStatusDescription = "";
         if (!taskInfo.getTaskId().getValue().equals("")) {
-            // Record initial TaskStatus of STAGING:
+            // Initialize the task status as TASK_STAGING. In practice we should never actually receive a TASK_STAGING
+            // status from Mesos so this is effectively an internal stub for the scheduler's own use.
+            taskStatusDescription = " with STAGING status";
+
             Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
                     .setTaskId(taskInfo.getTaskId())
                     .setState(Protos.TaskState.TASK_STAGING);
-
             if (taskInfo.hasExecutor()) {
                 taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
             }
 
-            taskStatus = taskStatusBuilder.build();
+            if (isInitialLaunch) {
+                // Mark in the TaskStatus that this was the first launch of the task at this location.
+                AuxLabelAccess.setInitialLaunch(taskStatusBuilder);
+            }
+
+            taskStatus = Optional.of(taskStatusBuilder.build());
         }
 
-        logger.info("Persisting launch operation{}: {}",
-                taskStatus != null ? " with STAGING status" : "",
+        logger.info("Persisting {} operation{} for {}: {}",
+                (isInitialLaunch) ? "initial launch" : "relaunch",
+                taskStatusDescription,
+                taskInfo.getName(),
                 TextFormat.shortDebugString(taskInfo));
 
-        updateTaskResourcesWithinResourceSet(taskInfo);
-        stateStore.storeTasks(Collections.singletonList(taskInfo));
-        if (taskStatus != null) {
-            stateStore.storeStatus(taskStatus);
+        if (podInstance.isPresent()) {
+            updateTaskResourcesWithinResourceSet(podInstance.get(), taskInfo);
         }
+        stateStore.storeTasks(Collections.singletonList(taskInfo));
+        if (taskStatus.isPresent()) {
+            stateStore.storeStatus(taskStatus.get());
+        }
+    }
+
+    @VisibleForTesting
+    Optional<PodInstance> getPodInstance(Protos.TaskInfo taskInfo) throws TaskException {
+        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        return podSpecOptional.isPresent()
+                ? Optional.of(new DefaultPodInstance(podSpecOptional.get(), new TaskLabelReader(taskInfo).getIndex()))
+                : Optional.empty();
     }
 
     /**
      * This method keeps the resources associated with tasks in the state store up to date, when a task which shares
      * their resource-set is launched.
+     *
+     * @param podInstance the parent pod associated with the task being launched
      * @param taskInfo the task being launched
-     * @throws TaskException is thrown on a failure to read meta-data from the TaskInfo
      */
     @VisibleForTesting
-    void updateTaskResourcesWithinResourceSet(Protos.TaskInfo taskInfo) throws TaskException {
-        // Find the PodSpec + TaskSpec for this TaskInfo
-        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
-        if (!podSpecOptional.isPresent()) {
-            return;
-        }
-
-        int index = new TaskLabelReader(taskInfo).getIndex();
-        PodInstance podInstance = new DefaultPodInstance(podSpecOptional.get(), index);
-
-        Optional<TaskSpec> taskSpecOptional = TaskUtils.getTaskSpec(podInstance, taskInfo.getName());
-        if (!taskSpecOptional.isPresent()) {
+    void updateTaskResourcesWithinResourceSet(PodInstance podInstance, Protos.TaskInfo taskInfo) {
+        Optional<TaskSpec> taskSpec = TaskUtils.getTaskSpec(podInstance, taskInfo.getName());
+        if (!taskSpec.isPresent()) {
             return;
         }
 
         // Update any other TaskInfos in this resource set to have the same resources:
         Collection<Protos.TaskInfo> taskInfosWithSameResourceSet =
-                getOtherTasksInResourceSet(podInstance, taskSpecOptional.get());
+                getOtherTasksInResourceSet(podInstance, taskSpec.get());
         stateStore.storeTasks(updateTasksWithResources(
                 taskInfosWithSameResourceSet,
                 taskInfo.getResourcesList(),

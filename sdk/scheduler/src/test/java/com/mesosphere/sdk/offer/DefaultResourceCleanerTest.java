@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos.Offer;
@@ -295,7 +294,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testExpectedPermanentlyFailedResource() {
-        TaskInfo failedTask = FailureUtils.markFailed(TASK_INFO_1);
+        TaskInfo failedTask = TaskTestUtils.withFailedFlag(TASK_INFO_1);
         when(mockStateStore.fetchTasks()).thenReturn(Arrays.asList(failedTask, TASK_INFO_2));
         ResourceCleaner cleaner = new DefaultResourceCleaner(mockStateStore);
 
@@ -307,7 +306,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testExpectedPermanentlyFailedVolume() {
-        TaskInfo failedTask = FailureUtils.markFailed(TASK_INFO_2);
+        TaskInfo failedTask = TaskTestUtils.withFailedFlag(TASK_INFO_2);
         when(mockStateStore.fetchTasks()).thenReturn(Arrays.asList(TASK_INFO_1, failedTask));
         ResourceCleaner cleaner = new DefaultResourceCleaner(mockStateStore);
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
