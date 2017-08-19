@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.scheduler.DefaultObservable;
-import com.mesosphere.sdk.scheduler.Observable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +8,8 @@ import java.io.IOException;
 /**
  * Read/write interface for the state of a Scheduler.
  *
- * {@link SchedulerState} is an {@link Observable}.  It notifies its observers when tasks are modified.
  */
-public class SchedulerState extends DefaultObservable {
+public class SchedulerState {
     private static final Logger log = LoggerFactory.getLogger(SchedulerState.class);
     private static final String SUPPRESSED_KEY = "suppressed";
 

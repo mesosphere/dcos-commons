@@ -14,13 +14,13 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
-  {{#service.secret_name}}
+  {{#service.service_account_secret}}
   "secrets": {
     "serviceCredential": {
-      "source": "{{service.secret_name}}"
+      "source": "{{service.service_account_secret}}"
     }
   },
-  {{/service.secret_name}}
+  {{/service.service_account_secret}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
@@ -32,22 +32,28 @@
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
     "HELLO_PLACEMENT": "{{hello.placement}}",
+    {{#hello.kill_grace_period}}
+    "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
+    {{/hello.kill_grace_period}}
     "WORLD_COUNT": "{{world.count}}",
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
     "WORLD_DISK": "{{world.disk}}",
     "WORLD_PLACEMENT": "{{world.placement}}",
+    {{#world.kill_grace_period}}
+    "WORLD_KILL_GRACE_PERIOD": "{{world.kill_grace_period}}",
+    {{/world.kill_grace_period}}
     "SLEEP_DURATION": "{{service.sleep}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "KEYSTORE_APP_URI": "{{resource.assets.uris.keystore-app-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    {{#service.secret_name}}
+    {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
-    {{/service.secret_name}}
+    {{/service.service_account_secret}}
     {{#hello.secret1}}
     "HELLO_SECRET1" : "{{hello.secret1}}",
     {{/hello.secret1}}

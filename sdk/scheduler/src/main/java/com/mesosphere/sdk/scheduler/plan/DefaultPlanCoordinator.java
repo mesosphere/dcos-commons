@@ -4,7 +4,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
-import com.mesosphere.sdk.scheduler.ChainedObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
  *
  * A {@link DefaultPlanCoordinator} is an {@link Observable} and will forward updates from its plans.
  */
-public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoordinator {
+public class DefaultPlanCoordinator implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
     private final List<PlanManager> planManagers = new LinkedList<>();
@@ -29,7 +28,6 @@ public class DefaultPlanCoordinator extends ChainedObserver implements PlanCoord
             throw new IllegalArgumentException("At least one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
-        this.planManagers.stream().forEach(manager -> manager.subscribe(this));
         this.planScheduler = planScheduler;
     }
 
