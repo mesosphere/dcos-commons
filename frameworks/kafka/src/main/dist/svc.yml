@@ -74,6 +74,7 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
+        kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
     strategy: serial

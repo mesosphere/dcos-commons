@@ -35,7 +35,7 @@ public class TLSRequiresServiceAccount implements ConfigValidator<ServiceSpec> {
 
     private Collection<ConfigValidationError> getConfigValidationErrors() {
         String errorMessage = "Scheduler is missing a service account that is required for " +
-                "provisioning TLS artifacts. Please configure {service.secret_name} in order to continue.";
+                "provisioning TLS artifacts. Please configure in order to continue.";
         return Arrays.asList(
                 ConfigValidationError.valueError("transport-encryption", "", errorMessage)
         );

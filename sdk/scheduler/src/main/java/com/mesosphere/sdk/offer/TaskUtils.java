@@ -235,6 +235,14 @@ public class TaskUtils {
             return true;
         }
 
+        int oldTaskKillGracePeriodSeconds = oldTaskSpec.getTaskKillGracePeriodSeconds();
+        int newTaskKillGracePeriodSeconds = newTaskSpec.getTaskKillGracePeriodSeconds();
+        if (oldTaskKillGracePeriodSeconds != newTaskKillGracePeriodSeconds) {
+            LOGGER.debug("TaskKillGracePeriodSeconds '{}' and '{}' are different.",
+                    oldTaskKillGracePeriodSeconds, newTaskKillGracePeriodSeconds);
+            return true;
+        }
+
         return false;
     }
 

@@ -42,7 +42,7 @@
             "type": "string",
             "default": ""
           },
-          "secret_name": {
+          "service_account_secret": {
             "title": "Credential secret name (optional)",
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type": "string",
