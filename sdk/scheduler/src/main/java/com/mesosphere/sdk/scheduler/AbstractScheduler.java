@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
@@ -35,7 +36,7 @@ public abstract class AbstractScheduler implements Scheduler {
     protected final OfferQueue offerQueue = new OfferQueue();
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
-    protected final EventBus eventBus = new EventBus();
+    protected final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
