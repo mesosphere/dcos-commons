@@ -18,12 +18,13 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME)
         sdk_install.install(config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME)
 
 
 WORLD_KILL_GRACE_PERIOD = int(os.environ.get('WORLD_KILL_GRACE_PERIOD', 15))
+
 
 def setup_module():
     options = {
@@ -32,9 +33,9 @@ def setup_module():
         }
     }
 
-    sdk_install.uninstall(PACKAGE_NAME)
-    sdk_install.install(PACKAGE_NAME, DEFAULT_TASK_COUNT,
-                    additional_options = options)
+    sdk_install.uninstall(config.PACKAGE_NAME)
+    sdk_install.install(config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT,
+                        additional_options=options)
 
 
 @pytest.mark.sanity
@@ -42,7 +43,8 @@ def setup_module():
 def test_kill_hello_node():
     config.check_running()
     hello_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-0')
-    sdk_tasks.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
+    sdk_tasks.kill_task_with_pattern(
+        'hello', 'hello-0-server.hello-world.mesos')
     sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello', hello_ids)
 
     config.check_running()
@@ -90,7 +92,8 @@ def test_pods_restart_graceful_shutdown():
     # ensure the SIGTERM was sent via the "all clean" message in the world
     # service's signal trap/handler, BUT not the shell command, indicated
     # by "echo".
-    stdout = cmd.run_cli("task log --completed --lines=1000 {}".format(world_ids[0]))
+    stdout = cmd.run_cli(
+        "task log --completed --lines=1000 {}".format(world_ids[0]))
     clean_msg = None
     for s in stdout.split('\n'):
         if s.find('echo') < 0 and s.find('all clean') >= 0:
@@ -127,7 +130,8 @@ def test_pod_replace():
 
 @pytest.mark.recovery
 def test_scheduler_died():
-    sdk_tasks.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.PACKAGE_NAME))
+    sdk_tasks.kill_task_with_pattern(
+        'helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.PACKAGE_NAME))
     config.check_running()
 
 
@@ -155,7 +159,8 @@ def test_config_update_then_kill_task_in_node():
     # kill 1 of 2 world tasks
     world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
     config.bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(config.PACKAGE_NAME))
+    sdk_tasks.kill_task_with_pattern(
+        'world', 'world-0-server.{}.mesos'.format(config.PACKAGE_NAME))
     sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -185,7 +190,8 @@ def test_config_update_then_scheduler_died():
 def test_config_update_then_executor_killed():
     world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
     config.bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.PACKAGE_NAME))
+    sdk_tasks.kill_task_with_pattern(
+        'helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.PACKAGE_NAME))
     sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -195,7 +201,8 @@ def test_config_updates_then_all_executors_killed():
     world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world')
     hosts = shakedown.get_service_ips(config.PACKAGE_NAME)
     config.bump_world_cpus()
-    [sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
+    [sdk_tasks.kill_task_with_pattern(
+        'helloworld.executor.Main', h) for h in hosts]
     sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
     config.check_running()
 
