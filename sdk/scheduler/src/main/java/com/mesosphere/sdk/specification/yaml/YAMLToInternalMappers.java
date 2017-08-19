@@ -370,6 +370,8 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
+                .name(taskName)
+                .taskKillGracePeriodSeconds(rawTask.getTaskKillGracePeriodSeconds())
                 .setTransportEncryption(transportEncryption)
                 .name(taskName);
 

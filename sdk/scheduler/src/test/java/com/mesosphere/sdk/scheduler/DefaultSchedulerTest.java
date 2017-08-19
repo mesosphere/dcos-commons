@@ -1006,7 +1006,17 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(defaultScheduler.deploymentPlanManager.getPlan().isComplete());
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 PlanTestUtils.getStepStatuses(plan));
-        Assert.assertTrue(StateStoreUtils.isSuppressed(stateStore));
+        Awaitility.await()
+                .atMost(
+                        SuppressReviveManager.SUPPRESSS_REVIVE_DELAY_S +
+                        SuppressReviveManager.SUPPRESSS_REVIVE_INTERVAL_S + 1,
+                        TimeUnit.SECONDS)
+                .until(new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return StateStoreUtils.isSuppressed(stateStore);
+                    }
+                });
 
         return taskIds;
     }

@@ -276,6 +276,7 @@ public class PodInfoBuilder {
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
     }
@@ -490,6 +491,28 @@ public class PodInfoBuilder {
                     .setReadinessCheck(builder.build())
                     .toProto());
         }
+    }
+
+    private static void setTaskKillGracePeriod(
+            Protos.TaskInfo.Builder taskInfoBuilder,
+            TaskSpec taskSpec) throws InvalidRequirementException {
+        Integer taskKillGracePeriodSeconds = taskSpec.getTaskKillGracePeriodSeconds();
+        if (taskKillGracePeriodSeconds == null) {
+            taskKillGracePeriodSeconds = 0;
+        } else if (taskKillGracePeriodSeconds < 0) {
+            throw new InvalidRequirementException(String.format(
+                        "kill-grace-period must be zero or a positive integer, received: %d",
+                        taskKillGracePeriodSeconds));
+        }
+        long taskKillGracePeriodNanoseconds = 1000000000L * taskKillGracePeriodSeconds;
+        Protos.DurationInfo taskKillGracePeriodDuration = Protos.DurationInfo.newBuilder()
+            .setNanoseconds(taskKillGracePeriodNanoseconds)
+            .build();
+
+        Protos.KillPolicy.Builder killPolicyBuilder = Protos.KillPolicy.newBuilder()
+            .setGracePeriod(taskKillGracePeriodDuration);
+
+        taskInfoBuilder.setKillPolicy(killPolicyBuilder.build());
     }
 
     private static String getConfigTemplateDownloadPath(ConfigFileSpec config) {

@@ -171,7 +171,6 @@ public class CustomExecutor implements Executor {
 
     @Override
     public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
-        // TODO(mohit): Implement SIGKILL shutdown. Currently only perform SIGTERM.
         try {
             if (!launchedTasks.containsKey(taskId)) {
                 LOGGER.error("Unable to kill unknown TaskID: {}", taskId.getValue());

@@ -210,11 +210,18 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
+    protected Collection<PlanManager> getPlanManagers() {
+        return Arrays.asList(uninstallPlanManager);
+    }
+
+    @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
         LOGGER.info("Received status update for taskId={} state={} message='{}'",
                 status.getTaskId().getValue(),
                 status.getState().toString(),
                 status.getMessage());
+
+        eventBus.post(status);
 
         try {
             stateStore.storeStatus(status);
