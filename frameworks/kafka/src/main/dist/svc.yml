@@ -99,6 +99,7 @@ pods:
           - name: broker
             type: KEYSTORE
         {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
     strategy: serial

@@ -25,7 +25,7 @@
             "type": "string",
             "default": ""
           },
-          "secret_name": {
+          "service_account_secret": {
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
             "type": "string",
             "default": ""
@@ -135,6 +135,11 @@
             "description": "Port for broker to listen on for TLS connections, if the TLS is enabled",
             "type": "integer",
             "default":  0
+          },
+          "kill_grace_period": {
+            "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `30`",
+            "type": "integer",
+            "default": 30
           }
         },
         "required": [

@@ -58,13 +58,13 @@ def service_account(dcos_security_cli):
     """
     name = 'hello-world'
     sdk_security.create_service_account(
-        service_account_name=name, secret_name=name)
+        service_account_name=name, service_account_secret=name)
     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
     yield name
     sdk_security.delete_service_account(
-        service_account_name=name, secret_name=name)
+        service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module')
@@ -76,8 +76,8 @@ def hello_world_service(service_account):
         additional_options={
             "service": {
                 "spec_file": "examples/tls.yml",
-                "secret_name": service_account,
                 "service_account": service_account,
+                "service_account_secret": service_account,
                 },
             "tls": {
                 "discovery_task_prefix": DISCOVERY_TASK_PREFIX,

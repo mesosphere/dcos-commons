@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.scheduler.DefaultObservable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
@@ -12,7 +11,7 @@ import java.util.UUID;
 /**
  * Provides a default implementation of commonly-used {@link Step} logic.
  */
-public abstract class AbstractStep extends DefaultObservable implements Step {
+public abstract class AbstractStep implements Step {
 
     /**
      * Non-static to ensure that we inherit the names of subclasses.
@@ -67,10 +66,6 @@ public abstract class AbstractStep extends DefaultObservable implements Step {
             status = newStatus;
             logger.info("{}: changed status from: {} to: {} (interrupted={})",
                     getName(), oldStatus, newStatus, interrupted);
-        }
-        // Just in case, avoid possibility of deadlocks by calling out from outside the lock:
-        if (!Objects.equals(oldStatus, newStatus)) {
-            notifyObservers();
         }
     }
 

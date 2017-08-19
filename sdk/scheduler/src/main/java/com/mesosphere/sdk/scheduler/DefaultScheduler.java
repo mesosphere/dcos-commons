@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler extends AbstractScheduler implements Observer {
+public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -583,7 +583,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializeResources();
         initializeApiServer();
         killUnneededTasks(getLaunchableTasks());
-        planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
 
@@ -712,18 +711,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    /**
-     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
-     * or revive offers should be made.
-     */
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive(planCoordinator);
-            completeDeploy();
-        }
-    }
-
     private void completeDeploy() {
         if (!planCoordinator.hasOperations()) {
             StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult.getDeploymentType());
@@ -776,6 +763,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         OfferUtils.declineOffers(driver, unusedOffers);
     }
 
+    @Override
+    protected Collection<PlanManager> getPlanManagers() {
+        return planCoordinator.getPlanManagers();
+    }
+
     public boolean apiServerReady() {
         return schedulerApiServer.ready();
     }
@@ -787,6 +779,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 status.getState().toString(),
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
+
+        eventBus.post(status);
 
         // Store status, then pass status to PlanManager => Plan => Steps
         try {
@@ -806,11 +800,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                                 "Last status: {}",
                         taskName, TextFormat.shortDebugString(lastStatus.get()));
                 taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
-            }
-
-            if (StateStoreUtils.isSuppressed(stateStore)
-                    && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
-                revive();
             }
 
             // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
@@ -833,6 +822,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                     + "This may be expected if Mesos sent stale status information: " + status, e);
         }
+
     }
 
     @VisibleForTesting

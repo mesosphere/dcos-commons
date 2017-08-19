@@ -278,7 +278,8 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags,
+                podInstanceRequirement);
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
@@ -400,7 +401,8 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo) {
 
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags);
+        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags,
+                podInstanceRequirement);
 
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
@@ -464,8 +466,13 @@ public class OfferEvaluator {
     }
 
     private static Optional<TLSEvaluationStage.Builder> getTLSEvaluationStageBuilderFromEnvironment(
-            SchedulerFlags flags) {
+            SchedulerFlags flags, PodInstanceRequirement podInstanceRequirement) {
         Optional<TLSEvaluationStage.Builder> tlsBuilder = Optional.empty();
+        // Don't create a TLS stage if there's no TLS requested.
+        if (TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()) {
+            return tlsBuilder;
+        }
+
         try {
             tlsBuilder = Optional.of(TLSEvaluationStage.Builder.fromEnvironment(flags));
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException | SchedulerFlags.FlagException e) {
