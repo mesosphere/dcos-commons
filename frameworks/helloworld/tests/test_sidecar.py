@@ -77,7 +77,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
 
         Note that we only check the output of hello-0.
         """
-        cmd = "task exec hello-0-server cat hello-container-path/toxic-output-0"
+        cmd = "task exec hello-0-server cat hello-container-path/toxic-output"
         expected_output = "I'm addicted to you / Don't you know that you're toxic?"
 
         output = sdk_cmd.run_cli(cmd).strip()

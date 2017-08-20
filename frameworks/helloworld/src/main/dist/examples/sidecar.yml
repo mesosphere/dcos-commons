@@ -40,7 +40,7 @@ pods:
       sidecar-toxic:
         goal: FINISHED
         cmd: >
-          echo "I'm addicted to you / Don't you know that you're toxic?" > hello-container-path/toxic-output-$POD_INSTANCE_INDEX
+          echo "I'm addicted to you / Don't you know that you're toxic?" > hello-container-path/toxic-output
 
           exit 1
         resource-set: sidecar-resources
