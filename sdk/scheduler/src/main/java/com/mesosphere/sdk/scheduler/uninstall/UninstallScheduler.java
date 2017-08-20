@@ -10,6 +10,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -111,19 +112,21 @@ public class UninstallScheduler extends AbstractScheduler {
         // on multiple Tasks. So in this scenario we should have 3 uninstall steps around resources A, B, and C.
 
         // Filter the tasks to those that have actually created resources.
-        List<Protos.TaskID> tasksWithNoResources = stateStore.fetchStatuses()
+        // If a task has failed its initial launch, it will have a status of TASK_ERROR
+        // and its TaskInfo will labeled as permanently failed.
+        List<Protos.TaskID> tasksInErrorState = stateStore.fetchStatuses()
                 .stream()
-                .filter(taskStatus -> AuxLabelAccess.isInitialLaunch(taskStatus)
-                        && taskStatus.getState() != Protos.TaskState.TASK_ERROR)
+                .filter(taskStatus -> taskStatus.getState() == Protos.TaskState.TASK_ERROR)
                 .map(Protos.TaskStatus::getTaskId)
                 .collect(Collectors.toList());
 
-        List<Protos.TaskInfo> launchedTasks = stateStore.fetchTasks()
+        List<Protos.TaskInfo> tasksNotFailedAndErrored = stateStore.fetchTasks()
                 .stream()
-                .filter(taskInfo -> !tasksWithNoResources.contains(taskInfo.getTaskId()))
+                .filter(taskInfo -> !(FailureUtils.isPermanentlyFailed(taskInfo)
+                        && tasksInErrorState.contains(taskInfo.getTaskId())))
                 .collect(Collectors.toList());
 
-        List<Protos.Resource> allResources = ResourceUtils.getAllResources(launchedTasks);
+        List<Protos.Resource> allResources = ResourceUtils.getAllResources(tasksNotFailedAndErrored);
         List<Step> resourceSteps = ResourceUtils.getResourceIds(allResources).stream()
                 .map(resourceId -> new ResourceCleanupStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
                         Status.COMPLETE : Status.PENDING))
