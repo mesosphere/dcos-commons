@@ -4,6 +4,7 @@ import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
@@ -108,7 +109,21 @@ public class UninstallScheduler extends AbstractScheduler {
         // Create one UninstallStep per unique Resource, including Executor resources.
         // We filter to unique Resource Id's, because Executor level resources are tracked
         // on multiple Tasks. So in this scenario we should have 3 uninstall steps around resources A, B, and C.
-        List<Protos.Resource> allResources = ResourceUtils.getAllResources(stateStore.fetchTasks());
+
+        // Filter the tasks to those that have actually created resources.
+        List<Protos.TaskID> tasksWithNoResources = stateStore.fetchStatuses()
+                .stream()
+                .filter(taskStatus -> AuxLabelAccess.isInitialLaunch(taskStatus)
+                        && taskStatus.getState() != Protos.TaskState.TASK_ERROR)
+                .map(Protos.TaskStatus::getTaskId)
+                .collect(Collectors.toList());
+
+        List<Protos.TaskInfo> launchedTasks = stateStore.fetchTasks()
+                .stream()
+                .filter(taskInfo -> !tasksWithNoResources.contains(taskInfo.getTaskId()))
+                .collect(Collectors.toList());
+
+        List<Protos.Resource> allResources = ResourceUtils.getAllResources(launchedTasks);
         List<Step> resourceSteps = ResourceUtils.getResourceIds(allResources).stream()
                 .map(resourceId -> new ResourceCleanupStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
                         Status.COMPLETE : Status.PENDING))
