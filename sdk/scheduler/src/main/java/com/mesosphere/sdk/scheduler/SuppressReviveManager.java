@@ -131,7 +131,14 @@ public class SuppressReviveManager {
                     logger.error("Invalid state transition.  End state should never be INITIAL");
                     return;
                 case WAITING_FOR_OFFER:
-                    revive();
+                    switch (current) {
+                        case REVIVED:
+                            logger.debug("Already revived, no need to revive again and wait for offers.");
+                            target = State.REVIVED;
+                            break;
+                        default:
+                            revive();
+                    }
                     break;
                 case REVIVED:
                     switch (current) {

@@ -29,6 +29,10 @@ import static org.mockito.Mockito.when;
  */
 public class SuppressReviveManagerTest {
     private StateStore stateStore;
+
+    // This EventBus publishes events synchronously.  Changing this property would invalidate assertions in tests below.
+    // For example, asserting that a state transition does not occur after an event is safe now, that assertion would
+    // prove nothing if we put an asynchronous EventBus here.
     private EventBus eventBus = new EventBus();
     private SuppressReviveManager suppressReviveManager;
 
@@ -107,6 +111,13 @@ public class SuppressReviveManagerTest {
         waitStateStore(stateStore, false);
         sendOffer();
         waitRevived(stateStore, suppressReviveManager);
+    }
+
+    @Test
+    public void avoidRevivingFromRevivedState() {
+        reviveOnPlanInProgress();
+        sendFailedTaskStatus();
+        Assert.assertEquals(SuppressReviveManager.State.REVIVED, suppressReviveManager.getState());
     }
 
     private SuppressReviveManager getSuppressedManager() {
