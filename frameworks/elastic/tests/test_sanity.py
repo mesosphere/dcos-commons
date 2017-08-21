@@ -198,7 +198,7 @@ def test_bump_node_counts():
     coordinator_nodes = int(config['env']['COORDINATOR_NODE_COUNT'])
     config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
-    sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
+    sdk_tasks.check_running(FOLDERED_SERVICE_NAME, config.DEFAULT_TASK_COUNT + 3)
 
 
 @pytest.mark.recovery
