@@ -34,7 +34,8 @@ def retried_shakedown_install(
         options_json=merged_options,
         wait_for_completion=True,
         timeout_sec=timeout_seconds,
-        expected_running_tasks=expected_running_tasks)
+        expected_running_tasks=expected_running_tasks,
+        wait_for_marathon_deployment=False)
 
 
 def install(
