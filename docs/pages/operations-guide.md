@@ -916,7 +916,8 @@ Display the status of the plan with the provided plan name
 dcos kafka plan status deploy
 ```
 
-NOTE: the --json flag, though not default is helpful in extracting phase UUIDs.
+NOTE: the `--json` flag, though not default is helpful in extracting phase UUIDs. Using the UUID instead of name for a
+phase is a more certain way to ensure that the request, ie to pause or force-complete, is exactly the phase intended.
 
 ### Start
 Start the plan with the provided name and any optional plan arguments
