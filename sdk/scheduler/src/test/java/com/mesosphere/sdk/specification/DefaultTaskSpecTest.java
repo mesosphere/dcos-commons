@@ -47,6 +47,7 @@ public class DefaultTaskSpecTest {
                 Arrays.asList(
                         new DefaultConfigFileSpec("name", "relative-path", "template-content")),
                 new DefaultDiscoverySpec("prefix", Protos.DiscoveryInfo.Visibility.CLUSTER),
+                DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT,
                 null);
 
         DefaultTaskSpec clone = DefaultTaskSpec.newBuilder(original).build();
