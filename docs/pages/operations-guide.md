@@ -571,6 +571,12 @@ If you are missing mandatory configuration parameters, the `update` command will
 $ dcos dse update start --options=options.json --package-version="1.1.6-5.0.7"
 ```
 
+If you want to update the configuration options as a full replace, instead of the default hash merge of configuration
+options, add the `--replace=true` flag, as follows:
+```bash
+$ dcos dse update start --options=options.json --replace=true --package-verion="1.1.6-5.0.7"
+```
+
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
 
 #### Updating configuration
