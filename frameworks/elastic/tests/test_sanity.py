@@ -190,12 +190,28 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 @pytest.mark.sanity
 def test_bump_node_counts():
     # Run this test last, as it changes the task count
-    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
-    marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
-    ingest_nodes = int(marathon_config['env']['INGEST_NODE_COUNT'])
-    marathon_config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
-    coordinator_nodes = int(marathon_config['env']['COORDINATOR_NODE_COUNT'])
-    marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
-    sdk_tasks.check_running(FOLDERED_SERVICE_NAME, config.DEFAULT_TASK_COUNT + 3)
+    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    data_nodes = int(config['env']['DATA_NODE_COUNT'])
+    config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
+    ingest_nodes = int(config['env']['INGEST_NODE_COUNT'])
+    config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
+    coordinator_nodes = int(config['env']['COORDINATOR_NODE_COUNT'])
+    config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    sdk_tasks.check_running(FOLDERED_SERVICE_NAME, DEFAULT_TASK_COUNT + 3)
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_pod_replace_then_immediate_config_update():
+    plugin_name = 'analysis-phonetic'
+    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
+
+    cmd.run_cli('elastic --name={} pod replace data-0'.format(FOLDERED_SERVICE_NAME))
+
+    # issue config update immediately
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
+
+    # ensure all nodes, especially data-0, get launched with the updated config
+    check_plugin_installed(plugin_name, service_name=FOLDERED_SERVICE_NAME)
