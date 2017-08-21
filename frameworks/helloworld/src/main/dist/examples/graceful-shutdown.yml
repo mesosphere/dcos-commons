@@ -1,0 +1,28 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+pods:
+  hello:
+    count: 1
+    user: {{SERVICE_USER}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: |
+          # for graceful shutdown
+          #   trap SIGTERM and mock a cleanup timeframe
+          terminated () {
+            echo "$(date) received SIGTERM, zzz for 3 ..."
+            sleep 3
+            echo "$(date) ... all clean, peace out"
+            exit 0
+          }
+          trap terminated SIGTERM
+          echo "$(date) trapping SIGTERM, watch here for the signal..."
+
+          while true; do
+            sleep 0.1
+          done
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        kill-grace-period: {{HELLO_KILL_GRACE_PERIOD}}

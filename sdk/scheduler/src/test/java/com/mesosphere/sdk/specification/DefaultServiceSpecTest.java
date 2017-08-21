@@ -252,6 +252,47 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validTaskKillGracePeriodSeconds() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-task-kill-grace-period-seconds.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+
+        Assert.assertNotEquals(15, DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT);
+        int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
+        Assert.assertEquals(15, taskKillGracePeriodSeconds);
+    }
+
+    @Test
+    public void validTaskKillGracePeriodSecondsReasonableDefault() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+
+        int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
+        Assert.assertEquals(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT, taskKillGracePeriodSeconds);
+    }
+
+    @Test
+    public void invalidTaskKillGracePeriodSeconds() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-kill-grace-period-seconds.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        try {
+            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertTrue(constraintViolations.size() > 0);
+        }
+    }
+
+    private int getTaskKillGracePeriodSeconds(DefaultServiceSpec serviceSpec) {
+        return serviceSpec.getPods().get(0).getTasks().get(0).getTaskKillGracePeriodSeconds();
+    }
+
+    @Test
     public void invalidDuplicatePodName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());

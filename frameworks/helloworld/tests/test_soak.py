@@ -2,6 +2,7 @@ import logging
 import os
 
 import pytest
+import shakedown
 
 import sdk_cmd
 import sdk_plan
