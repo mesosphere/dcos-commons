@@ -199,7 +199,7 @@ def test_pod_replace_then_immediate_config_update():
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
 
     # ensure all nodes, especially data-0, get launched with the updated config
-    check_plugin_installed(plugin_name, service_name=FOLDERED_SERVICE_NAME)
+    config.check_plugin_installed(plugin_name, service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.recovery
@@ -209,9 +209,9 @@ def test_bump_node_counts():
     marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
     data_nodes = int(marathon_config ['env']['DATA_NODE_COUNT'])
     marathon_config ['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
-    ingest_nodes = int(config['env']['INGEST_NODE_COUNT'])
+    ingest_nodes = int(marathon_config['env']['INGEST_NODE_COUNT'])
     marathon_config ['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
     coordinator_nodes = int(marathon_config ['env']['COORDINATOR_NODE_COUNT'])
-    marathon_config ['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
+    marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
     sdk_tasks.check_running(FOLDERED_SERVICE_NAME, config.DEFAULT_TASK_COUNT + 3)
