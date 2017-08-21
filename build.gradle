@@ -54,6 +54,9 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
+            url "https://repository.apache.org/content/groups/snapshots/"
+        }
+        maven {
             url "http://downloads.mesosphere.com/maven/"
         }
         maven {
@@ -117,7 +120,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = '1.3.0-reservation-refinement'
+    mesosVer = '1.4.0-SNAPSHOT'
 }
 
 subprojects {

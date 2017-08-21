@@ -5,6 +5,7 @@ scheduler:
 pods:
   hello:
     count: 2
+    share-pid-namespace: true
     volume:
       path: "hello-container-path"
       type: ROOT
@@ -19,7 +20,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo $TASK_NAME >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "ls -Li /proc/self/ns/pid >> hello-container-path/output && sleep $SLEEP_DURATION"
         resource-set: hello-resources
         env:
           # Note, this is very high so that the test test_sidecar.test_toxic_sidecar_doesnt_trigger_recovery
@@ -31,7 +32,7 @@ pods:
         resource-set: sidecar-resources
       sidecar:
         goal: FINISHED
-        cmd: "echo 'sidecar' >> hello-container-path/output"
+        cmd: "ls -Li /proc/self/ns/pid >> hello-container-path/output"
         resource-set: sidecar-resources
       sidecar-parameterized:
         goal: FINISHED
