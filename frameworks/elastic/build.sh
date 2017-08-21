@@ -31,9 +31,6 @@ while :; do
     shift
 done
 
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
-
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $FRAMEWORK_DIR/versions.sh
 
@@ -48,9 +45,6 @@ if [ x"$cli_only" = xtrue ]; then
 fi
 
 ${ROOT_DIR}/tools/build_framework.sh $PUBLISH_STEP elastic $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/elastic-scheduler.zip
-
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1
 
 # Chain to build kibana as well
 if [ "$UNIVERSE_URL_PATH" ]; then

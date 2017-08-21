@@ -32,9 +32,6 @@ while :; do
 done
 
 
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
-
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROOT_DIR="$(dirname "$(dirname $FRAMEWORK_DIR)")"
 export TOOLS_DIR=${ROOT_DIR}/tools
@@ -47,6 +44,3 @@ if [ x"$cli_only" = xtrue ]; then
 fi
 
 ${ROOT_DIR}/tools/build_framework.sh $cli_flag $PUBLISH_STEP template $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/template-scheduler.zip
-
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1

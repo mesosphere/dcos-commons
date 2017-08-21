@@ -10,9 +10,6 @@
 # Arguments:
 # - BOX_PATH: Local path to use for .box image (useful if installing from USB stick)
 
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-start.png >/dev/null 2>&1
-
 # abort script at first error:
 set -e
 
@@ -65,6 +62,3 @@ echo ""
 echo "Repair routes:  ${SCRIPT_DIR}/node-route.sh # (use this if VM connectivity is lost)"
 echo "Delete VM/data: pushd ${VAGRANT_DIR} && vagrant destroy && vagrant box remove $BOX_NAME && popd"
 echo "---"
-
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/create-dev-env-finish.png >/dev/null 2>&1
