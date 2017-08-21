@@ -71,8 +71,13 @@ def test_tasks_on_overlay():
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 8)
-    for endpoint in ENDPOINT_TYPES:
+    endpoint_types_without_ingest = (
+        'coordinator-http', 'coordinator-transport',
+        'data-http', 'data-transport',
+        'master-http', 'master-transport')
+
+    observed_endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, len(endpoint_types_without_ingest))
+    for endpoint in endpoint_types_without_ingest:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
         specific_endpoint = sdk_networks.get_and_test_endpoints(endpoint, PACKAGE_NAME, 3)
         sdk_networks.check_endpoints_on_overlay(specific_endpoint)
