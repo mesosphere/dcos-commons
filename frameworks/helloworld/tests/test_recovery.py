@@ -81,7 +81,7 @@ def test_pod_restart():
 
 
 @pytest.mark.recovery
-@sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_1_9_or_higher
 def test_pods_restart_graceful_shutdown():
     world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world-0')
 
