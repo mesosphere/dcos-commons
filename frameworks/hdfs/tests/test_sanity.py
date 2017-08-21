@@ -113,6 +113,13 @@ def test_kill_name_node():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     sdk_tasks.kill_task_with_pattern('namenode', sdk_hosts.system_host(FOLDERED_SERVICE_NAME, 'name-0-node'))
+
+    # Offer Fragmentation preferentially affects the CustomExecutor for some reason.
+    # TODO: Remove condition when JIRA is resolved or 1.10 stops being supported
+    # https://jira.mesosphere.com/browse/CORE-1278
+    if shakedown.dcos_version_less_than("1.10"):
+        sdk_tasks.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
+
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'journal', journal_ids)
