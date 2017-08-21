@@ -5,7 +5,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-This document explains how to upgrade the DC/OS Kafka service from version 0.10.2.x to 0.11.0.0.
+This document explains how to upgrade the DC/OS Apache Kafka service from version `1.1.16-0.10.1.0-beta` to `2.0.0-0.11.0.0`.
 
 - Refer to the Kafka [upgrade](https://kafka.apache.org/documentation/#upgrade) documentation for more information.
 
@@ -15,7 +15,7 @@ This document explains how to upgrade the DC/OS Kafka service from version 0.10.
 
 # Overview
 
-This is an overview of the rolling upgrade process, which guarantees no downtime during the upgrade. The process for upgrading Kafka with DC/OS is documented in detail below.
+This is an overview of the rolling upgrade process. The process for upgrading Kafka with DC/OS is documented in detail below.
 
 1. Upgrade your package to the latest version of DC/OS Kafka service:
    * Upgrade Kafka software to `0.11.0.0`.
@@ -34,24 +34,24 @@ This is an overview of the rolling upgrade process, which guarantees no downtime
 
 # Detailed upgrade instructions
 
-The new DC/OS Kafka package (with Kafka version 0.11.0.0) that we will be upgrading to has the following default settings:
+The new DC/OS Kafka package `2.0.0-0.11.0.0` (with Kafka version 0.11.0.0) that we will be upgrading to has the following default settings:
 
 * Kafka Version = 0.11.0.0
 * inter.broker.protocol.version = 0.11.0.0
 * log.message.format.version = 0.11.0
 
-The previous DC/OS Kafka package (with Kafka version 0.10.2.x) has the following configuration:
+The beta DC/OS Kafka package `1.1.16-0.10.1.0-beta` (with Kafka 0.10.2.x) has the following configuration:
 
 * Kafka Version = 0.10.2.1
 * inter.broker.protocol.version = 0.10.0.0
 * log.message.format.version = 0.10.0
 
 
-Here, we assume that you already have a DC/OS Kafka service running, installed with the previous package version (Kafka 0.10.2.x). In order to guarantee no downtime during the upgrade process, follow the steps below.  
+Here, we assume that you already have a DC/OS Kafka service running, installed with the beta package version `1.1.16-0.10.1.0-beta` (with Kafka 0.10.2.x). In order to guarantee no downtime during the upgrade process, follow the steps below.  
 
 #### Step 1
 
-First, make a note of the existing protocol and log versions. Upgrade your service to the new package (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
+First, make a note of the existing protocol and log versions. Upgrade your service to the new package version `2.0.0-0.11.0.0` (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
    
     {
         "kafka": {
@@ -60,9 +60,9 @@ First, make a note of the existing protocol and log versions. Upgrade your servi
         }
     }
 
-Now, upgrade to the package that provides the new code, Kafka 0.11.0.0. 
+Now, upgrade to the package `2.0.0-0.11.0.0` that provides the new code, Kafka 0.11.0.0. 
 
-    $ dcos kafka update start --options=options.json --package-version=<new-kafka-package-with-0.11.0.0>
+    $ dcos kafka update start --options=options.json --package-version=2.0.0-0.11.0.0
 
 Since we updated with a customized options file, the protocol and log version are overwritten and not updated to the new package's default settings. The existing protocol and log version are specifically set in `options.json`. 
 
@@ -103,7 +103,7 @@ The new service will be running Kafka 0.11.0.0 with two customized options (`int
 
 Since protocol and log versions have been updated with new protocol and log formats, you can not directly roll back to the previous package version.
 
-**Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package. Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.
+**Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package version `2.0.0-0.11.0.0` . Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.
 
     
     
