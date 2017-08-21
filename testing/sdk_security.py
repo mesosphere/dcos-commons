@@ -141,7 +141,7 @@ def create_service_account(service_account_name: str, service_account_secret: st
         secret=service_account_secret))
 
     log.info('Install cli necessary for security')
-    out, err, rc = shakedown.run_dcos_command('package install dcos-enterprise-cli --package-version=1.0.7')
+    out, err, rc = shakedown.run_dcos_command('package install dcos-enterprise-cli')
     assert not rc, 'Failed to install dcos-enterprise cli extension: {err}'.format(err=err)
 
     log.info('Create keypair')
