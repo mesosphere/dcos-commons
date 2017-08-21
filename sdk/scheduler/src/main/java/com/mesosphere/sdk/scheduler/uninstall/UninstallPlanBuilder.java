@@ -28,6 +28,7 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -88,12 +89,25 @@ class UninstallPlanBuilder {
         // Create one UninstallStep per unique Resource, including Executor resources.
         // We filter to unique Resource Id's, because Executor level resources are tracked on multiple Tasks.
         // So in this scenario we should have 3 uninstall steps around resources A, B, and C.
-        Collection<Protos.TaskInfo> tasks = stateStore.fetchTasks();
-        resourceSteps = ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasks)).stream()
+
+        // Filter the tasks to those that have actually created resources. Tasks in an ERROR state which are also
+        // flagged as permanently failed are assumed to not have resources reserved on Mesos' end, despite our State
+        // Store still listing them with resources. This is because we log the planned reservation before it occurs.
+        Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
+        List<Protos.TaskID> taskIdsInErrorState = stateStore.fetchStatuses().stream()
+                .filter(taskStatus -> taskStatus.getState() == Protos.TaskState.TASK_ERROR)
+                .map(Protos.TaskStatus::getTaskId)
+                .collect(Collectors.toList());
+        List<Protos.TaskInfo> tasksNotFailedAndErrored = allTasks.stream()
+                .filter(taskInfo -> !(FailureUtils.isPermanentlyFailed(taskInfo)
+                        && taskIdsInErrorState.contains(taskInfo.getTaskId())))
+                .collect(Collectors.toList());
+
+        resourceSteps = ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasksNotFailedAndErrored)).stream()
                 .map(resourceId -> new ResourceCleanupStep(resourceId))
                 .collect(Collectors.toList());
-        LOGGER.info("Configuring resource cleanup of {} tasks: {}/{} expected resources have been unreserved",
-                tasks.size(),
+        LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
+                tasksNotFailedAndErrored.size(), allTasks.size(),
                 resourceSteps.stream().filter(step -> step.getStatus() == Status.COMPLETE).count(),
                 resourceSteps.size());
         phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));

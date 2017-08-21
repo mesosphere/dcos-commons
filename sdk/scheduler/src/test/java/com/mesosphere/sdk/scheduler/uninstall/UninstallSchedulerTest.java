@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -61,10 +63,20 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     private static final Protos.TaskInfo TASK_A =
             TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_1, RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
-    private static final Protos.TaskInfo TASK_B = Protos.TaskInfo.newBuilder(
-            TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_2, RESERVED_RESOURCE_4)))
-                    .setName("other-task-info")
-                    .build();
+    private static final Protos.TaskInfo TASK_B;
+    static {
+        // Mark this one as permanently failed. Doesn't take effect unless the task is ALSO in an error state:
+        Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder(
+                TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_2, RESERVED_RESOURCE_4)))
+                .setTaskId(CommonIdUtils.toTaskId("other-task-info"))
+                .setName("other-task-info");
+        builder.setLabels(new TaskLabelWriter(builder)
+                .setPermanentlyFailed()
+                .toProto());
+        TASK_B = builder.build();
+    }
+    private static final Protos.TaskStatus TASK_B_STATUS_ERROR =
+            TaskTestUtils.generateStatus(TASK_B.getTaskId(), Protos.TaskState.TASK_ERROR);
 
     private StateStore stateStore;
     private UninstallScheduler uninstallScheduler;
@@ -101,7 +113,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testInitialPlanTaskResourceOverlap() throws Exception {
-        // Add TASK_B, which overlaps with TASK_A.
+        // Add TASK_B, which overlaps partially with TASK_A.
         stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Arrays.asList(TASK_A, TASK_B));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
@@ -113,6 +125,23 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         List<Status> expected = Arrays.asList(
                 Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING,
                 Status.PENDING, Status.PENDING);
+        Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
+    }
+
+    @Test
+    public void testInitialPlanTaskError() throws Exception {
+        // Specify TASK_ERROR status for TASK_B. Its sole exclusive resource should then be omitted from the plan:
+        stateStore = new StateStore(new MemPersister());
+        stateStore.storeTasks(Arrays.asList(TASK_A, TASK_B));
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        stateStore.storeStatus(TASK_B_STATUS_ERROR);
+        uninstallScheduler = new TestScheduler(TestConstants.SERVICE_NAME, stateStore, mockConfigStore, true);
+        uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+
+        Plan plan = uninstallScheduler.getPlan();
+        // 2 task kills + 3 unique resources (from task A, not task B) + deregister step.
+        List<Status> expected = Arrays.asList(
+                Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
     }
 
