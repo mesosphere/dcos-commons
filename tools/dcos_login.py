@@ -67,6 +67,8 @@ def login_session() -> None:
     DCOS_ACS_TOKEN: bypass auth and use the user supplied token
     """
     cluster_url = os.environ.get('CLUSTER_URL')
+    if not cluster_url:
+        raise Exception('Must have CLUSTER_URL set in environment!')
     dcos_login_username = os.environ.get('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
     dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true'
