@@ -6,7 +6,6 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
-    share-pid-namespace: true
     tasks:
       server:
         goal: RUNNING
