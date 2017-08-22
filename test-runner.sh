@@ -53,8 +53,6 @@ for framework in $FRAMEWORK_LIST; do
     fi
 
     echo "Configuring dcoscli for cluster: $CLUSTER_URL"
-    dcos config set core.dcos_url $CLUSTER_URL
-    dcos config set core.ssl_verify false
     /build/tools/dcos_login.py
 
     echo "Starting test for $framework at "`date`

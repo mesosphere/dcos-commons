@@ -93,7 +93,6 @@ public class TaskUtils {
     /**
      * Returns all the {@link TaskSpec} that have TLS configuration.
      *
-     * @param serviceSpec A ServiceSpec defining service.
      * @return A list of the task specs.
      */
     public static List<TaskSpec> getTasksWithTLS(PodInstanceRequirement podInstanceRequirement) {

@@ -7,6 +7,8 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -30,6 +32,7 @@ public abstract class AbstractScheduler implements Scheduler {
     private SuppressReviveManager suppressReviveManager;
 
     protected final StateStore stateStore;
+    protected final ConfigStore<ServiceSpec> configStore;
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
@@ -54,8 +57,9 @@ public abstract class AbstractScheduler implements Scheduler {
     /**
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
-    protected AbstractScheduler(StateStore stateStore) {
+    protected AbstractScheduler(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
         this.stateStore = stateStore;
+        this.configStore = configStore;
         processOffers();
     }
 
@@ -215,7 +219,12 @@ public abstract class AbstractScheduler implements Scheduler {
         reconciler.start();
         reconciler.reconcile(driver);
         if (suppressReviveManager == null) {
-            suppressReviveManager = new SuppressReviveManager(stateStore, driver, eventBus, getPlanManagers());
+            suppressReviveManager = new SuppressReviveManager(
+                    stateStore,
+                    configStore,
+                    driver,
+                    eventBus,
+                    getPlanManagers());
         }
 
         suppressReviveManager.start();

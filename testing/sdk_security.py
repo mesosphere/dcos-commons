@@ -127,7 +127,7 @@ def grant_permissions(linux_user: str, role_name: str, service_account_name: str
 
 def revoke_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
     dcosurl, headers = get_dcos_credentials()
-    # log.info("Revoking permissions to {account}".format(account=service_account_name))
+    # log.info("Revoking permissions to {account}".format(account=service_account_nae))
     permissions = get_permissions(service_account_name, role_name, linux_user)
     for permission in permissions:
         revoke(dcosurl, headers, **permission)
@@ -140,7 +140,7 @@ def create_service_account(service_account_name: str, service_account_secret: st
         secret=service_account_secret))
 
     log.info('Install cli necessary for security')
-    sdk_cmd.run_cli('package install dcos-enterprise-cli --package-version=1.0.7')
+    sdk_cmd.run_cli('package install dcos-enterprise-cli --yes')
 
     log.info('Remove any existing service account and/or secret')
     delete_service_account(service_account_name, service_account_secret)
