@@ -4,6 +4,7 @@ import dcos
 import dcos.config
 import dcos.http
 import pytest
+import sdk_cmd
 import sdk_hosts
 import sdk_install as install
 import sdk_marathon

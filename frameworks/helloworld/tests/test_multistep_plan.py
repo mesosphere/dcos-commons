@@ -40,7 +40,7 @@ def test_bump_hello_cpus():
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
     log.info('hello ids: ' + str(hello_ids))
 
-    updated_cpus = bump_hello_cpus(config.SERVICE_NAME)
+    updated_cpus = config.bump_hello_cpus(config.SERVICE_NAME)
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
     config.check_running(config.SERVICE_NAME)

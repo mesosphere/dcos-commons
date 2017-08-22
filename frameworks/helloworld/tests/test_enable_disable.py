@@ -1,4 +1,3 @@
-import json
 import pytest
 
 import sdk_install

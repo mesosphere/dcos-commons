@@ -5,7 +5,6 @@ import uuid
 import pytest
 import sdk_install
 import sdk_jobs
-import sdk_utils
 from tests import config
 
 WRITE_DATA_JOB = config.get_write_data_job(node_address=config.FOLDERED_NODE_ADDRESS)
@@ -61,7 +60,7 @@ def test_backup_and_restore_to_azure():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    run_backup_and_restore(
+    config.run_backup_and_restore(
         config.FOLDERED_SERVICE_NAME,
         'backup-azure',
         'restore-azure',

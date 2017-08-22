@@ -1,10 +1,10 @@
 from xml.etree import ElementTree
 
 import pytest
+import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
-import sdk_plan
 import sdk_tasks
 import sdk_utils
 import shakedown
@@ -90,7 +90,7 @@ def test_integrity_on_name_node_failure():
     This test checks that it is possible to write and read data after the active name node fails
     so as to verify a failover sustains expected functionality.
     """
-    active_name_node = config.get_active_name_node(SERVICE_NAME)
+    active_name_node = config.get_active_name_node(config.SERVICE_NAME)
     sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
 
     predicted_active_name_node = "name-1-node"

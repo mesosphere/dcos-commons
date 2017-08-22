@@ -8,7 +8,6 @@ import sdk_tasks
 PACKAGE_NAME = 'beta-hdfs'
 SERVICE_NAME = 'hdfs'
 
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 TEST_CONTENT_SMALL = "This is some test data"

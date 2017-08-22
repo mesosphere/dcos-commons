@@ -152,8 +152,6 @@ def create_service_account(service_account_name: str, service_account_secret: st
     sdk_cmd.run_cli(
         'security org service-accounts create -p public-key.pem -d "My service account" "{account}"'.format(
             account=service_account_name))
-    assert not rc, 'Failed to create service account "{account}": {err}'.format(
-            account=service_account_name, err=err)
 
     log.info('Create secret')
     sdk_cmd.run_cli(

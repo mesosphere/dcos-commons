@@ -4,8 +4,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_utils as utils
-from tests import config, test_utils
+from tests import config
 
 STATIC_PORT_OPTIONS_DICT = {"brokers": {"port": 9092}}
 DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}

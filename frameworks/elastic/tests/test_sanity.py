@@ -1,4 +1,3 @@
-import json
 import logging
 
 import pytest
@@ -158,7 +157,7 @@ def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
     master_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'master-0')
-    cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace master-0')
+    cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace master-0')
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'master-0', master_ids)
     # pre_test_setup will verify that the cluster becomes healthy again.
 

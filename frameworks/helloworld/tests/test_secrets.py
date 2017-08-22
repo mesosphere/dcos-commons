@@ -127,11 +127,6 @@ def test_secrets_verify():
 
     # Verify secret content, one from each pod type
 
-    # get task id - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
-
-
     # first secret: environment variable name is given in yaml
     assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
 
@@ -200,10 +195,6 @@ def test_secrets_update():
     # wait till it is running
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
-    # get new task ids - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
-
     # make sure content is changed
     assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
@@ -238,9 +229,6 @@ def test_secrets_config_update():
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content, one from each pod type
-    # get tasks ids - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
 
     # make sure it has the default value
     assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
@@ -275,10 +263,6 @@ def test_secrets_config_update():
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content is changed
-
-    # get task ids - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
 
     assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")

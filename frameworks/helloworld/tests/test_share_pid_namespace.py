@@ -4,7 +4,6 @@ import pytest
 
 import sdk_install
 import sdk_plan
-import sdk_marathon
 
 
 from tests.config import (

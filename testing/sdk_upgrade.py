@@ -1,5 +1,3 @@
-import base64
-import gzip
 import json
 import logging
 import re
@@ -9,7 +7,6 @@ import tempfile
 import sdk_cmd as cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_plan as plan
 import sdk_tasks as tasks
 
 log = logging.getLogger(__name__)
@@ -204,8 +201,7 @@ def soak_upgrade_downgrade(
         service_name,
         running_task_count,
         install_options,
-        timeout_seconds,
-        package_version)
+        timeout_seconds)
 
     # Default Universe is at --index=0
     version = _get_pkg_version(universe_package_name)

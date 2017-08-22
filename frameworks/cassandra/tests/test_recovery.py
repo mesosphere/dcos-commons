@@ -103,12 +103,12 @@ def test_shutdown_host_test():
 
 
 def get_pod_agent(pod_name):
-    stdout = cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
+    stdout = cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
     return stdout[0]['info']['slaveId']['value']
 
 
 def get_pod_host(pod_name):
-    stdout = cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
+    stdout = cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
     labels = stdout[0]['info']['labels']['labels']
     for i in range(0, len(labels)):
         if labels[i]['key'] == 'offer_hostname':

@@ -21,10 +21,11 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
+
 @pytest.fixture(autouse=True)
 def pre_test_setup():
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
-    wait_for_expected_nodes_to_exist()
+    config.wait_for_expected_nodes_to_exist()
 
 
 @pytest.fixture

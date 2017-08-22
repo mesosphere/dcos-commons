@@ -1,4 +1,3 @@
-import os
 import time
 
 import pytest
@@ -63,7 +62,7 @@ def service_account(dcos_security_cli):
 
 @pytest.fixture(scope='module')
 def hello_world_service(service_account):
-    sdk_install.uninstall(PACKAGE_NAME, config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,

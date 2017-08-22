@@ -1,5 +1,4 @@
 '''Utilities relating to running commands and HTTP requests'''
-import ast
 import json as jsonlib
 import logging
 

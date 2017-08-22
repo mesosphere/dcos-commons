@@ -30,7 +30,7 @@ def test_backup_and_restore():
             config.get_verify_data_job(),
             config.get_delete_data_job(),
             config.get_verify_deletion_job()]):
-        run_backup_and_restore(
+        config.run_backup_and_restore(
             config.SERVICE_NAME,
             'backup-s3',
             'restore-s3',
