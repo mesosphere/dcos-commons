@@ -6,12 +6,13 @@ import pytest
 from shakedown.dcos.spinner import TimeoutExpired
 import shakedown
 
+import sdk_api
+import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_networks
 import sdk_plan
 import sdk_utils
-import sdk_networks
-import sdk_api
 
 from dcos.http import DCOSHTTPException
 
@@ -25,15 +26,16 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
         sdk_install.install(
             PACKAGE_NAME,
+            SERVICE_NAME,
             1,
             additional_options={ "service": { "spec_file": "examples/overlay.yml" } })
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
 
 
 # test suite constants
@@ -57,7 +59,7 @@ EXPECTED_NETWORK_LABELS = {
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
-    deployment_plan = sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    deployment_plan = sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
     log.info("deployment_plan: " + str(deployment_plan))
 
     # test that the deployment plan is correct
@@ -76,13 +78,13 @@ def test_overlay_network():
     # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
     # we wait for them to redeploy, but if they don't fail we still want to proceed.
     try:
-        sdk_plan.wait_for_in_progress_recovery(PACKAGE_NAME, timeout_seconds=60)
-        sdk_plan.wait_for_completed_recovery(PACKAGE_NAME, timeout_seconds=60)
+        sdk_plan.wait_for_in_progress_recovery(SERVICE_NAME, timeout_seconds=60)
+        sdk_plan.wait_for_completed_recovery(SERVICE_NAME, timeout_seconds=60)
     except TimeoutExpired:
         pass
 
     # test that the tasks are all up, which tests the overlay DNS
-    framework_tasks = [task for task in shakedown.get_service_tasks(PACKAGE_NAME, completed=False)]
+    framework_tasks = [task for task in shakedown.get_service_tasks(SERVICE_NAME, completed=False)]
     framework_task_names = [t["name"] for t in framework_tasks]
 
     for expected_task in EXPECTED_TASKS:
@@ -103,14 +105,10 @@ def test_overlay_network():
     sdk_networks.check_task_network("hello-host-0-server", expected_network_name=None)
     sdk_networks.check_task_network("hello-host-vip-0-server", expected_network_name=None)
 
-    endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints".format(pkg=PACKAGE_NAME))
-    endpoints_result = json.loads(endpoints_result)
-    assert rc == 0, "Getting endpoints failed"
+    endpoints_result = sdk_cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'endpoints', json=True)
     assert len(endpoints_result) == 2, "Wrong number of endpoints got {} should be 2".format(len(endpoints_result))
 
-    overlay_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints overlay-vip".format(pkg=PACKAGE_NAME))
-    assert rc == 0, "Getting overlay endpoints failed"
-    overlay_endpoints_result = json.loads(overlay_endpoints_result)
+    overlay_endpoints_result = sdk_cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'endpoints overlay-vip', json=True)
     assert "address" in overlay_endpoints_result.keys(), "overlay endpoints missing 'address'"\
            "{}".format(overlay_endpoints_result)
     assert len(overlay_endpoints_result["address"]) == 1
@@ -119,11 +117,9 @@ def test_overlay_network():
     assert overlay_port == "4044"
     assert "dns" in overlay_endpoints_result.keys()
     assert len(overlay_endpoints_result["dns"]) == 1
-    assert overlay_endpoints_result["dns"][0] == sdk_hosts.autoip_host(PACKAGE_NAME, "hello-overlay-vip-0-server", 4044)
+    assert overlay_endpoints_result["dns"][0] == sdk_hosts.autoip_host(SERVICE_NAME, "hello-overlay-vip-0-server", 4044)
 
-    host_endpoints_result, _, rc = shakedown.run_dcos_command("{pkg} endpoints host-vip".format(pkg=PACKAGE_NAME))
-    assert rc == 0, "Getting host endpoints failed"
-    host_endpoints_result = json.loads(host_endpoints_result)
+    host_endpoints_result = sdk_cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'endpoints host-vip', json=True)
     assert "address" in host_endpoints_result.keys(), "overlay endpoints missing 'address'"\
            "{}".format(host_endpoints_result)
     assert len(host_endpoints_result["address"]) == 1
@@ -132,7 +128,7 @@ def test_overlay_network():
     assert host_port == "4044"
     assert "dns" in host_endpoints_result.keys()
     assert len(host_endpoints_result["dns"]) == 1
-    assert host_endpoints_result["dns"][0] == sdk_hosts.autoip_host(PACKAGE_NAME, "hello-host-vip-0-server", 4044)
+    assert host_endpoints_result["dns"][0] == sdk_hosts.autoip_host(SERVICE_NAME, "hello-host-vip-0-server", 4044)
 
 
 @pytest.mark.sanity
@@ -146,7 +142,7 @@ def test_cni_labels():
         assert v == EXPECTED_NETWORK_LABELS[k], "Value {obs} isn't correct, should be " \
                                                 "{exp}".format(obs=v, exp=EXPECTED_NETWORK_LABELS[k])
 
-    r = sdk_api.get(PACKAGE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
+    r = sdk_api.get(SERVICE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
     assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
     try:
         cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
@@ -167,7 +163,7 @@ def test_port_names():
     def check_task_ports(task_name, expected_port_count, expected_port_names):
         endpoint = "/v1/tasks/info/{}".format(task_name)
         try:
-            r = sdk_api.get(PACKAGE_NAME, endpoint).json()
+            r = sdk_api.get(SERVICE_NAME, endpoint).json()
         except DCOSHTTPException:
             return False, "Failed to get API endpoint {}".format(endpoint)
         sdk_networks.check_port_names(r, expected_port_count, expected_port_names)
@@ -190,7 +186,7 @@ def test_srv_records():
             "Missing SRV record for {} (prefix={}) in task {}:\nmatching={}\nall={}".format(
                 record_name, record_name_prefix, task_name, matching_records, task_records)
 
-    fmk_srvs = sdk_networks.get_framework_srv_records(PACKAGE_NAME)
+    fmk_srvs = sdk_networks.get_framework_srv_records(SERVICE_NAME)
     for task in TASKS_WITH_PORTS:
         task_records = sdk_networks.get_task_record(task, fmk_srvs)
         if task == "hello-overlay-0-server":

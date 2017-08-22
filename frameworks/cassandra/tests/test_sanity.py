@@ -1,4 +1,3 @@
-import json
 import pytest
 import shakedown
 import tempfile
@@ -19,15 +18,15 @@ VERIFY_DATA_JOB = get_verify_data_job(node_address=FOLDERED_NODE_ADDRESS)
 DELETE_DATA_JOB = get_delete_data_job(node_address=FOLDERED_NODE_ADDRESS)
 VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS)
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, FOLDERED_SERVICE_NAME)
         sdk_upgrade.test_upgrade(
-            "beta-{}".format(PACKAGE_NAME),
+            PACKAGE_NAME,
             PACKAGE_NAME,
             DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
@@ -39,7 +38,7 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
         for job in TEST_JOBS:
             sdk_jobs.remove_job(job)
@@ -54,7 +53,7 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(FOLDERED_SERVICE_NAME)))
+    endpoints = cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'endpoints node', json=True)
     assert endpoints['dns'][0] == sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server', 9042)
     assert endpoints['vip'] == sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, 'node', 9042)
 

@@ -24,9 +24,10 @@ TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_J
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
         sdk_install.install(
             PACKAGE_NAME,
+            SERVICE_NAME,
             DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
@@ -36,7 +37,7 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
 
         for job in TEST_JOBS:
             sdk_jobs.remove_job(job)
@@ -47,7 +48,7 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_service_overlay_health():
-    shakedown.service_healthy(PACKAGE_NAME)
+    shakedown.service_healthy(SERVICE_NAME)
     node_tasks = (
         "node-0-server",
         "node-1-server",
@@ -69,19 +70,20 @@ def test_functionality():
         before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
         after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
 
-        sdk_plan.start_plan(PACKAGE_NAME, 'cleanup', parameters=parameters)
-        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'cleanup')
+        sdk_plan.start_plan(SERVICE_NAME, 'cleanup', parameters=parameters)
+        sdk_plan.wait_for_completed_plan(SERVICE_NAME, 'cleanup')
 
-        sdk_plan.start_plan(PACKAGE_NAME, 'repair', parameters=parameters)
-        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'repair')
+        sdk_plan.start_plan(SERVICE_NAME, 'repair', parameters=parameters)
+        sdk_plan.wait_for_completed_plan(SERVICE_NAME, 'repair')
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints():
-    endpoints = sdk_networks.get_and_test_endpoints("", PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
+    # tests that the correct number of endpoints are found, should just be "node":
+    endpoints = sdk_networks.get_and_test_endpoints(PACKAGE_NAME, SERVICE_NAME, "", 1)
     assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)
-    endpoints = sdk_networks.get_and_test_endpoints("node", PACKAGE_NAME, 3)
+    endpoints = sdk_networks.get_and_test_endpoints(PACKAGE_NAME, SERVICE_NAME, "node", 3)
     assert "address" in endpoints, "Endpoints missing address key"
     sdk_networks.check_endpoints_on_overlay(endpoints)

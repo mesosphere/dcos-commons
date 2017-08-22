@@ -9,6 +9,7 @@ import sdk_networks
 
 from tests.config import (
     PACKAGE_NAME,
+    SERVICE_NAME,
     DEFAULT_TASK_COUNT
 )
 
@@ -18,15 +19,16 @@ overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
         sdk_install.install(
             PACKAGE_NAME,
+            SERVICE_NAME,
             DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
 
 
 @pytest.mark.sanity

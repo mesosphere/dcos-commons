@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This is a separate build script for Kibana. It creates a stub Universe for the Kibana package and optionally
 # publishes it to S3 or a local artifact server.
 set -e

@@ -27,18 +27,18 @@ def setup_module(module):
         }
     }
 
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
 
     sdk_install.install(
         PACKAGE_NAME,
+        SERVICE_NAME,
         DEFAULT_BROKER_COUNT,
-        service_name=SERVICE_NAME,
         additional_options=options)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
 
 
 def teardown_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    sdk_install.uninstall(PACKAGE_NAME, SERVICE_NAME)
 
 
 @pytest.mark.availability
@@ -49,7 +49,7 @@ def test_service_startup_rapid():
     retry_delay_seconds = STARTUP_POLL_DELAY_SECONDS
 
     task_short_name = 'kafka-0'
-    broker_task_id_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, task_short_name)[0]
+    broker_task_id_0 = sdk_tasks.get_task_ids(SERVICE_NAME, task_short_name)[0]
 
     # the following 'dcos kafka topic ....' command has expected output as follows:
     # 'Output: 100 records sent ....'
@@ -59,22 +59,21 @@ def test_service_startup_rapid():
     retries = 15
     retry_delay = 1.0
     while retries > 0:
-        stdout = sdk_cmd.run_cli('kafka topic producer_test test 100')
+        stdout = sdk_cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'topic producer_test test 100')
         if 'records sent' in stdout:
             break
 
-    stdout = sdk_cmd.run_cli('kafka pods restart {}'.format(task_short_name))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(PACKAGE_NAME, SERVICE_NAME, 'pods restart {}'.format(task_short_name), json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == task_short_name
     assert jsonobj['tasks'] == [ '{}-broker'.format(task_short_name) ]
 
     starting_fallback_time = datetime.datetime.now()
 
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, '{}-'.format(DEFAULT_POD_TYPE), [ broker_task_id_0 ])
+    sdk_tasks.check_tasks_updated(SERVICE_NAME, '{}-'.format(DEFAULT_POD_TYPE), [ broker_task_id_0 ])
     sdk_tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
 
-    broker_task_id_1 = sdk_tasks.get_task_ids(PACKAGE_NAME, task_short_name)[0]
+    broker_task_id_1 = sdk_tasks.get_task_ids(SERVICE_NAME, task_short_name)[0]
 
     # extract starting and started lines from log
     starting_time = started_time = None

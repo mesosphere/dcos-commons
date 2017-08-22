@@ -83,8 +83,8 @@ def test_soak_secrets_restart_hello0():
     world_tasks_old = sdk_tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
-    sdk_cmd.run_cli('hello-world --name={} pod restart hello-0'.format(FRAMEWORK_NAME))
-    sdk_cmd.run_cli('hello-world --name={} pod restart world-0'.format(FRAMEWORK_NAME))
+    sdk_cmd.svc_cli(PACKAGE_NAME, FRAMEWORK_NAME, 'pod restart hello-0')
+    sdk_cmd.svc_cli(PACKAGE_NAME, FRAMEWORK_NAME, 'pod restart world-0')
 
     # wait pod restart to complete
     sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, "hello-0", hello_tasks_old)

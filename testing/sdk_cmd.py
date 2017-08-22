@@ -1,6 +1,7 @@
 '''Utilities relating to running commands and HTTP requests'''
-import logging
 import ast
+import json as jsonlib
+import logging
 
 import dcos.http
 import shakedown
@@ -25,6 +26,14 @@ def request(method, url, retry=True, log_args=True, **kwargs):
         return fn()
 
 
+def svc_cli(package_name, service_name, service_cmd, json=False, print_output=True, return_stderr_in_stdout=False):
+    full_cmd = '{} --name={} {}'.format(package_name, service_name, service_cmd)
+    result = run_cli(full_cmd, print_output=print_output, return_stderr_in_stdout=return_stderr_in_stdout)
+    if json:
+        return jsonlib.loads(result)
+    return result
+
+
 def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
     (stdout, stderr, ret) = shakedown.run_dcos_command(cmd, print_output=print_output)
     if ret != 0:
@@ -35,12 +44,3 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
     if return_stderr_in_stdout:
         stdout = stdout + "\n" + stderr
     return stdout
-
-
-def convert_string_list_to_list(output):
-    """When a string-representation of a list is the expected output
-    of a command, this converts the string output to said expected list.
-
-    In spite of being a one-liner it standardizes the conversion.
-    """
-    return [element.strip() for element in ast.literal_eval(output)]

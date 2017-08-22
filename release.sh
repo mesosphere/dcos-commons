@@ -91,12 +91,5 @@ fi
 ./build.sh
 ./gradlew publish
 
-# Scripts below expect an S3_BUCKET env var. To be supplied by Jenkins.
-
-# INFINITY-1208: Disable build and publish for now as it requires changes coming in
-# the self-hosted branch. 3-27-17 bwood
-# ./tools/build_publishable.sh
-# ./tools/release_artifacts.sh
-
 # Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
 # This ensures that builds against different tags don't step on each other.

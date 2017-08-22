@@ -252,66 +252,22 @@ def _upgrade_or_downgrade(
         # CLI upgrade flow
         if from_package_name != to_package_name:
             # cosmos doesn't support upgrades across package names.
-            # perform surgery on the running app's labels so that cosmos thinks the package names match.
-            log.info('Renaming package in app {}: {} => {}'.format(service_name, from_package_name, to_package_name))
-            new_config = _rename_package(marathon.get_config(service_name), to_package_name)
-            marathon.update_app(service_name, new_config)
-            plan.wait_for_completed_deployment(service_name)
+            raise 'Unable to perform cosmos upgrade across different package names: from={} to={}'.format(
+                from_package_name, to_package_name)
         if additional_options:
             with tempfile.NamedTemporaryFile() as opts_f:
                 opts_f.write(json.dumps(additional_options))
-                cmd.run_cli('{} --name={} update start --package-version={} --options={}'.format(to_package_name, service_name, to_package_version, opts_f.name))
+                cmd.svc_cli(
+                    to_package_name,
+                    'update start --package-version={} --options={}'.format(to_package_version, opts_f.name),
+                    service_name=service_name)
         else:
-            cmd.run_cli('{} --name={} update start --package-version={}'.format(to_package_name, service_name, to_package_version))
+            cmd.svc_cli(
+                to_package_name,
+                'update start --package-version={}'.format(to_package_version),
+                service_name=service_name)
     log.info('Checking that all tasks have restarted')
     tasks.check_tasks_updated(service_name, '', task_ids)
-
-
-def _rename_package(marathon_app, desired_name):
-    '''Updates the package name in the provided package.
-    This hack allows us to test upgrades across package names, such as 'beta-kafka' v6 => 'kafka' stub-universe'''
-    labels = marathon_app['labels']
-
-    for expected_label in [PACKAGE_NAME_LABEL, PACKAGE_METADATA_LABEL, PACKAGE_DEF_LABEL]:
-        if expected_label not in labels:
-            raise 'Missing required label "{}" in marathon app: {}.'.format(expected_label, marathon_app['labels'])
-
-    # PACKAGE_NAME
-    log.info('Updating {}:'.format(PACKAGE_NAME_LABEL))
-    log.info('  {} => {}'.format(labels[PACKAGE_NAME_LABEL], desired_name))
-    labels[PACKAGE_NAME_LABEL] = desired_name
-
-    # PACKAGE_METADATA
-    # b64decode => update blob.name => b64encode
-    log.info('Updating {}.{}:'.format(PACKAGE_METADATA_LABEL, 'name'))
-    pkg_metadata = json.loads(base64.b64decode(labels[PACKAGE_METADATA_LABEL]).decode('utf-8'))
-    log.info('  {} => {}'.format(pkg_metadata['name'], desired_name))
-    pkg_metadata['name'] = desired_name
-    labels[PACKAGE_METADATA_LABEL] = base64.b64encode(json.dumps(pkg_metadata).encode('utf-8')).decode('utf-8')
-
-    # PACKAGE_DEFINITION
-    # b64decode => get data field => b64decode => gunzip => set blob.name => gzip => b64encode => update data field => b64encode
-    log.info('Updating {}.data.{}:'.format(PACKAGE_METADATA_LABEL, 'name'))
-
-    pkg_def = json.loads(base64.b64decode(labels[PACKAGE_DEF_LABEL]).decode('utf-8'))
-    use_gzip = pkg_def['metadata']['Content-Encoding'] == 'gzip'
-
-    pkg_def_data_raw = base64.b64decode(pkg_def['data'])
-    if use_gzip:
-        pkg_def_data_raw = gzip.decompress(pkg_def_data_raw)
-    pkg_def_data = json.loads(pkg_def_data_raw.decode('utf-8'))
-
-    log.info('  {} => {}'.format(pkg_def_data['name'], desired_name))
-    pkg_def_data['name'] = desired_name
-
-    pkg_def_data_raw = json.dumps(pkg_def_data).encode('utf-8')
-    if use_gzip:
-        pkg_def_data_raw = gzip.compress(pkg_def_data_raw)
-    pkg_def['data'] = base64.b64encode(pkg_def_data_raw).decode('utf-8')
-    labels[PACKAGE_DEF_LABEL] = base64.b64encode(json.dumps(pkg_def).encode('utf-8')).decode('utf-8')
-
-    marathon_app['labels'] = labels
-    return marathon_app
 
 
 def _get_pkg_version(package_name):

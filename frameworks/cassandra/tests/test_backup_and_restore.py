@@ -20,12 +20,12 @@ no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, FOLDERED_SERVICE_NAME)
         # user=root because Azure CLI needs to run in root...
         sdk_install.install(
             PACKAGE_NAME,
+            FOLDERED_SERVICE_NAME,
             DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
             additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "user": "root" } })
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
@@ -34,7 +34,7 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
         # remove job definitions from metronome
         for job in TEST_JOBS:

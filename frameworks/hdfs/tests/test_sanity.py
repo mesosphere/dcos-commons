@@ -19,7 +19,6 @@ from tests.config import (
     DEFAULT_TASK_COUNT,
     FOLDERED_SERVICE_NAME,
     PACKAGE_NAME,
-    ZK_SERVICE_PATH,
     check_healthy,
     expect_recovery,
     get_pod_type_instances
@@ -31,19 +30,19 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
         if shakedown.dcos_version_less_than("1.9"):
             # HDFS upgrade in 1.8 is not supported.
             sdk_install.install(
                 PACKAGE_NAME,
+                FOLDERED_SERVICE_NAME,
                 DEFAULT_TASK_COUNT,
-                service_name=FOLDERED_SERVICE_NAME,
                 additional_options={"service": {"name": FOLDERED_SERVICE_NAME}},
                 timeout_seconds=30*60)
         else:
             sdk_upgrade.test_upgrade(
-                "beta-{}".format(PACKAGE_NAME),
+                PACKAGE_NAME,
                 PACKAGE_NAME,
                 DEFAULT_TASK_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
@@ -52,7 +51,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
 
 @pytest.fixture(autouse=True)
@@ -63,12 +62,12 @@ def pre_test_setup():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    core_site = etree.fromstring(sdk_cmd.run_cli('hdfs --name={} endpoints core-site.xml'.format(FOLDERED_SERVICE_NAME)))
+    core_site = etree.fromstring(sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'endpoints core-site.xml')
     check_properties(core_site, {
-        'ha.zookeeper.parent-znode': '/dcos-service-{}/hadoop-ha'.format(ZK_SERVICE_PATH)
+        'ha.zookeeper.parent-znode': '/{}/hadoop-ha'.format(sdk_utils.get_zk_path(FOLDERED_SERVICE_NAME))
     })
 
-    hdfs_site = etree.fromstring(sdk_cmd.run_cli('hdfs --name={} endpoints hdfs-site.xml'.format(FOLDERED_SERVICE_NAME)))
+    hdfs_site = etree.fromstring(sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'endpoints hdfs-site.xml')
     expect = {
         'dfs.namenode.shared.edits.dir': 'qjournal://{}/hdfs'.format(';'.join([
             sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)])),
@@ -147,7 +146,7 @@ def test_kill_all_journalnodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     for journal_pod in get_pod_type_instances("journal", FOLDERED_SERVICE_NAME):
-        sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, journal_pod))
+        sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart {}'.format(journal_pod))
 
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -164,7 +163,7 @@ def test_kill_all_namenodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     for name_pod in get_pod_type_instances("name", FOLDERED_SERVICE_NAME):
-        sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, name_pod))
+        sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart {}'.format(name_pod))
 
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -181,7 +180,7 @@ def test_kill_all_datanodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     for data_pod in get_pod_type_instances("data", FOLDERED_SERVICE_NAME):
-        sdk_cmd.run_cli('hdfs --name={} pod restart {}'.format(FOLDERED_SERVICE_NAME, data_pod))
+        sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart {}'.format(data_pod))
 
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -207,8 +206,8 @@ def test_permanent_and_transient_namenode_failures_0_1():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    sdk_cmd.run_cli('hdfs --name={} pod replace name-0'.format(FOLDERED_SERVICE_NAME))
-    sdk_cmd.run_cli('hdfs --name={} pod restart name-1'.format(FOLDERED_SERVICE_NAME))
+    sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace name-0')
+    sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart name-1')
 
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -227,8 +226,8 @@ def test_permanent_and_transient_namenode_failures_1_0():
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    sdk_cmd.run_cli('hdfs --name={} pod replace name-1'.format(FOLDERED_SERVICE_NAME))
-    sdk_cmd.run_cli('hdfs --name={} pod restart name-0'.format(FOLDERED_SERVICE_NAME))
+    sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace name-1')
+    sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart name-0')
 
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -350,7 +349,7 @@ def replace_name_node(index):
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    sdk_cmd.run_cli('hdfs --name={} pod replace {}'.format(FOLDERED_SERVICE_NAME, name_node_name))
+    sdk_cmd.svc_cli(PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace {}'.format(name_node_name))
 
     expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
