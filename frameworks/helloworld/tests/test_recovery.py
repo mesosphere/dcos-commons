@@ -81,8 +81,9 @@ def test_pod_restart():
 
 
 @pytest.mark.recovery
+@sdk_utils.dcos_1_9_or_higher
 def test_pods_restart_graceful_shutdown():
-    world_ids = tasks.get_task_ids(PACKAGE_NAME, 'world-0')
+    world_ids = sdk_tasks.get_task_ids(PACKAGE_NAME, 'world-0')
 
     stdout = cmd.run_cli('hello-world pods restart world-0')
     jsonobj = json.loads(stdout)
@@ -91,7 +92,7 @@ def test_pods_restart_graceful_shutdown():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'world-0-server'
 
-    tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
+    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world', world_ids)
     check_running()
 
     # ensure the SIGTERM was sent via the "all clean" message in the world
