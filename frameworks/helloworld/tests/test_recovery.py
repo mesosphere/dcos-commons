@@ -81,7 +81,7 @@ def test_pod_restart():
 def test_pods_restart_graceful_shutdown():
     world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world-0')
 
-    stdout = sdk_cmd.run_cli('hello-world pods restart world-0')
+    stdout = sdk_cmd.run_cli('hello-world pod restart world-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
