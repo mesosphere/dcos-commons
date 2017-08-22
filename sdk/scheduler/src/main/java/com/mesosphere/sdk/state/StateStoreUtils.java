@@ -1,17 +1,13 @@
 package com.mesosphere.sdk.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.ConfigStore;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
@@ -20,8 +16,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Utilities for implementations and users of {@link StateStore}.
@@ -33,15 +33,10 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
-    private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private StateStoreUtils() {
         // do not instantiate
     }
-
-
-    // Utilities for StateStore users:
-
 
     /**
      * Returns the requested property, or an empty array if the property is not present.
@@ -53,7 +48,6 @@ public class StateStoreUtils {
             return new byte[0];
         }
     }
-
 
     /**
      * Fetches and returns all {@link TaskInfo}s for tasks needing recovery.
@@ -97,46 +91,6 @@ public class StateStoreUtils {
         return results;
     }
 
-    public static Collection<TaskInfo> fetchTasksFromPod(StateStore stateStore, String pod) throws StateStoreException {
-        Collection<TaskInfo> allInfos = stateStore.fetchTasks();
-
-        List<TaskInfo> results = new ArrayList<>();
-        for (TaskInfo info : allInfos) {
-            String taskPod;
-            try {
-                taskPod = new TaskLabelReader(info).getType();
-            } catch (TaskException e) {
-                continue;
-            }
-
-            if (pod.equals(taskPod)) {
-                results.add(info);
-            }
-        }
-
-        return results;
-    }
-
-
-    // Utilities for StateStore implementations:
-
-
-    /**
-     * Shared implementation for validating property key limits, for use by all StateStore
-     * implementations.
-     *
-     * @see StateStore#storeProperty(String, byte[])
-     * @see StateStore#fetchProperty(String)
-     */
-    public static void validateKey(String key) throws StateStoreException {
-        if (StringUtils.isBlank(key)) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, "Key cannot be blank or null");
-        }
-        if (key.contains("/")) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, "Key cannot contain '/'");
-        }
-    }
-
     /**
      * Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
      * TaskInfo.
@@ -171,79 +125,6 @@ public class StateStoreUtils {
     }
 
     /**
-     * Shared implementation for validating property value limits, for use by all StateStore
-     * implementations.
-     *
-     * @see StateStore#storeProperty(String, byte[])
-     */
-    public static void validateValue(byte[] value) throws StateStoreException {
-        if (value == null) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, "Property value must not be null.");
-        }
-        if (value.length > MAX_VALUE_LENGTH_BYTES) {
-            throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                    "Property value length %d exceeds limit of %d bytes.",
-                    value.length, MAX_VALUE_LENGTH_BYTES));
-        }
-    }
-
-    public static Collection<Protos.Resource> getReservedResources(Collection<Protos.Resource> resources) {
-        Collection<Protos.Resource> reservedResources = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
-            MesosResource mesosResource = new MesosResource(resource);
-            if (mesosResource.getResourceId().isPresent()) {
-                reservedResources.add(resource);
-            }
-        }
-
-        return reservedResources;
-    }
-
-    public static Collection<Protos.Resource> getResources(
-            StateStore stateStore,
-            PodInstance podInstance,
-            TaskSpec taskSpec) {
-        String resourceSetName = taskSpec.getResourceSet().getId();
-
-        Collection<String> tasksWithResourceSet = podInstance.getPod().getTasks().stream()
-                .filter(taskSpec1 -> resourceSetName.equals(taskSpec1.getResourceSet().getId()))
-                .map(taskSpec1 -> TaskSpec.getInstanceName(podInstance, taskSpec1))
-                .distinct()
-                .collect(Collectors.toList());
-
-        LOGGER.info("Tasks with resource set: {}, {}", resourceSetName, tasksWithResourceSet);
-
-        Collection<TaskInfo> taskInfosForPod = stateStore.fetchTasks().stream()
-                .filter(taskInfo -> {
-                    try {
-                        return TaskUtils.isSamePodInstance(taskInfo, podInstance);
-                    } catch (TaskException e) {
-                        return false;
-                    }
-                })
-                .collect(Collectors.toList());
-
-        LOGGER.info("Tasks for pod: {}",
-                taskInfosForPod.stream()
-                        .map(TaskInfo::getName)
-                        .collect(Collectors.toList()));
-
-        Optional<TaskInfo> taskInfoOptional = taskInfosForPod.stream()
-                .filter(taskInfo -> tasksWithResourceSet.contains(taskInfo.getName()))
-                .findFirst();
-
-        if (taskInfoOptional.isPresent()) {
-            LOGGER.info("Found Task with resource set: {}, {}",
-                    resourceSetName,
-                    TextFormat.shortDebugString(taskInfoOptional.get()));
-            return taskInfoOptional.get().getResourcesList();
-        } else {
-            LOGGER.error("Failed to find a Task with resource set: {}", resourceSetName);
-            return Collections.emptyList();
-        }
-    }
-
-    /**
      * Returns the current value of the 'suppressed' property in the provided {@link StateStore}.
      */
     public static boolean isSuppressed(StateStore stateStore) throws StateStoreException {
@@ -271,7 +152,8 @@ public class StateStoreUtils {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
     }
 
-    private static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
+    @VisibleForTesting
+    protected static boolean fetchBooleanProperty(StateStore stateStore, String propertyName) {
         byte[] bytes = fetchPropertyOrEmptyArray(stateStore, propertyName);
         if (bytes.length == 0) {
             return false;

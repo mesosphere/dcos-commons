@@ -7,8 +7,8 @@ pods:
     count: 3
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_MASTER}}:
-        labels: {{CNI_PLUGIN_LABELS_MASTER}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -33,12 +33,14 @@ pods:
           master-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: master
               port: 9200
           master-transport:
             port: {{MASTER_NODE_TRANSPORT_PORT}}
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: master
               port: 9300
@@ -74,8 +76,8 @@ pods:
     count: {{DATA_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_DATA}}:
-        labels: {{CNI_PLUGIN_LABELS_DATA}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -99,12 +101,14 @@ pods:
           data-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: data
               port: 9200
           data-transport:
             port: 0
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: data
               port: 9300
@@ -140,8 +144,8 @@ pods:
     count: {{INGEST_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_INGEST}}:
-        labels: {{CNI_PLUGIN_LABELS_INGEST}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -165,12 +169,14 @@ pods:
           ingest-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: ingest
               port: 9200
           ingest-transport:
             port: 0
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: ingest
               port: 9300
@@ -206,8 +212,8 @@ pods:
     count: {{COORDINATOR_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_COORDINATOR}}:
-        labels: {{CNI_PLUGIN_LABELS_COORDINATOR}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -231,12 +237,14 @@ pods:
           coordinator-http:
             port: 0
             env-key: PORT_HTTP
+            advertise: true
             vip:
               prefix: coordinator
               port: 9200
           coordinator-transport:
             port: 0
             env-key: PORT_TRANSPORT
+            advertise: true
             vip:
               prefix: coordinator
               port: 9300

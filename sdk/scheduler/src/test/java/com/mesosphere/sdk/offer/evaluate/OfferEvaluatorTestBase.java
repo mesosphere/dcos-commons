@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.state.DefaultStateStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
@@ -28,18 +27,20 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
     protected boolean useCustomExecutor;
+    protected UUID targetConfig;
 
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        stateStore = new DefaultStateStore(new MemPersister());
+        stateStore = new StateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags, true);
+        targetConfig = UUID.randomUUID();
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, true);
         useCustomExecutor = true;
     }
 
     protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, UUID.randomUUID(), flags, false);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, false);
         useCustomExecutor = false;
     }
 

@@ -7,10 +7,14 @@ pods:
     pre-reserved-role: slave_public
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
+    volume:
+      path: pod-container-path
+      type: ROOT
+      size: {{HELLO_DISK}}
     tasks:
       server:
         goal: RUNNING
-        cmd: echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cmd: echo hello >> hello-container-path/output && echo hello >> pod-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         volume:
@@ -20,7 +24,7 @@ pods:
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-check:
-          cmd: stat hello-container-path/output
+          cmd: stat hello-container-path/output && stat pod-container-path/output
           interval: 5
           grace-period: 30
           delay: 0

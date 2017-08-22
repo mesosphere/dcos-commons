@@ -1,7 +1,10 @@
+import logging
+
 import dcos
 import shakedown
 
-import sdk_utils
+log = logging.getLogger(__name__)
+
 
 def get(service_name, endpoint):
     '''
@@ -19,5 +22,5 @@ def get(service_name, endpoint):
 
 def is_suppressed(service_name):
     response = get(service_name, "/v1/state/properties/suppressed")
-    sdk_utils.out("{} suppressed={}".format(service_name, response.content))
+    log.info("{} suppressed={}".format(service_name, response.content))
     return response.content == b"true"

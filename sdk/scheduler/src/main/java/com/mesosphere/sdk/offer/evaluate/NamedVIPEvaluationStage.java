@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.api.EndpointUtils;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,9 +21,8 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     public NamedVIPEvaluationStage(
             NamedVIPSpec namedVIPSpec,
             String taskName,
-            Optional<String> resourceId,
-            boolean useDefaultExecutor) {
-        super(namedVIPSpec, taskName, resourceId, useDefaultExecutor);
+            Optional<String> resourceId) {
+        super(namedVIPSpec, taskName, resourceId);
         this.namedVIPSpec = namedVIPSpec;
     }
 
@@ -31,21 +30,20 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     protected void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource) {
         super.setProtos(podInfoBuilder, resource);
 
-        // Find the port entry which was created above, and append VIP metadata to it.
+        // Find the matching port entry which was created above.
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
         List<Protos.Port.Builder> portBuilders =
                 taskBuilder.getDiscoveryBuilder().getPortsBuilder().getPortsBuilderList().stream()
-                        .filter(port -> port.getName().equals(portSpec.getPortName()))
+                        .filter(port -> port.getName().equals(namedVIPSpec.getPortName()))
                         .collect(Collectors.toList());
         if (portBuilders.size() != 1) {
             throw new IllegalStateException(String.format(
-                    "Expected one port entry with name %s: %s", portSpec.getPortName(), portBuilders.toString()));
+                    "Expected one port entry with name %s: %s", namedVIPSpec.getPortName(), portBuilders.toString()));
         }
-        portBuilders.get(0)
-                .setProtocol(namedVIPSpec.getProtocol())
-                .getLabelsBuilder().addAllLabels(EndpointUtils.createVipLabels(
-                        namedVIPSpec.getVipName(),
-                        namedVIPSpec.getVipPort(),
-                        namedVIPSpec.getNetworkNames()));
+
+        // Update port entry with VIP metadata.
+        Protos.Port.Builder portBuilder = portBuilders.get(0);
+        portBuilder.setProtocol(namedVIPSpec.getProtocol());
+        AuxLabelAccess.setVIPLabels(portBuilder, namedVIPSpec);
     }
 }

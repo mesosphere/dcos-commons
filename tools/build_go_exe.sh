@@ -34,7 +34,6 @@ if [ -n "$CLI_BUILD_SKIP_UPX" ]; then
 fi
 case "$GO_VERSION" in
     go1.[8-9]*|go1.1[0-9]*|go[2-9]*) # go1.8+, go2+ (must come before go1.0-go1.7: support e.g. go1.10)
-        echo "Found supported Go version."
         ;;
     go0.*|go1.[0-7]*) # go0.*, go1.0-go1.7
         echo "Detected Go <=1.7. This is too old, please install Go 1.8+: $(which go) $GO_VERSION"
@@ -60,6 +59,9 @@ fi
 cd $GOPATH_EXE_DIR
 
 go get
+
+# run unit tests
+go test -v
 
 # optimization: build a native version of the executable and check if the sha1 matches a
 # previous native build. if the sha1 matches, then we can skip the rebuild.
