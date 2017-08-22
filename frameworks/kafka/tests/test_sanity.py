@@ -15,7 +15,7 @@ import sdk_utils
 import shakedown
 from tests import config, test_utils
 
-DEFAULT_TOPIC_NAME = 'topic1'
+DEFAULT_TOPIC_NAME = config.DEFAULT_TOPIC_NAME
 EPHEMERAL_TOPIC_NAME = 'topic_2'
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.PACKAGE_NAME)
 ZK_SERVICE_PATH = sdk_utils.get_zk_path(config.PACKAGE_NAME)
