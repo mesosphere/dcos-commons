@@ -242,5 +242,10 @@ def test_tls_connection(cassandra_service_tls):
         sdk_plan.start_plan(PACKAGE_NAME, 'restore-s3', parameters=plan_parameters)
         sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'restore-s3')
 
+    with sdk_jobs.InstallJobContext([
+            get_write_data_job(),
+            get_verify_data_job(),
+            get_delete_data_job()]):
+
         sdk_jobs.run_job(get_verify_data_job())
         sdk_jobs.run_job(get_delete_data_job())
