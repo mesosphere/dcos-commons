@@ -30,17 +30,17 @@ Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other co
         $ dcos package install kafka -—options=options.json
 
 # Graceful Shutdown
-## Extend Kill Grace Period
+## Extend the Kill Grace Period
 
-Increase the `brokers.kill_grace_period` value via the DC/OS CLI, i.e. to `60`
+Increase the `brokers.kill_grace_period` value via the DC/OS CLI, i.e.,  to `60`
 seconds. This example assumes that the Kafka service instance is named `kafka`.
 
-During the reconfiguration, each of the Kafka broker tasks are restarted. During
+During the configuration update, each of the Kafka broker tasks are restarted. During
 the shutdown portion of the task restart, the previous configuration value for
 `brokers.kill_grace_period` is in effect. Following the shutdown, each broker
-task is launched with the new effective configuration value. So, care should be
-taken to monitor the period of time that Kafka brokers are taking to cleanly
-shutdown. The relevant log entries are enumerated within [Configure](configure.md).
+task is launched with the new effective configuration value. Take care to monitor
+the amount of time Kafka brokers take to cleanly shutdown. Find the relevant log
+entries in the [Configure](configure.md) section.
 
 Create an options file `kafka-options.json` with the following content:
 
@@ -60,24 +60,8 @@ When restarting a Kafka broker, when the Kill Grace Period has been configured
 to a period that sufficiently allows Kafka to cleanly shutdown, the broker's
 shutdown time will be longer, but the subsequent startup time will be much more
 rapid as the Byzantine reconciliation activities otherwise required for startup
-can be safely skipped. Besides the observable differences in shutdown and startup
-times, broker task restart should otherwise be the same as when the broker is not
-granted sufficient grace.
+can be safely skipped. An appropriate kill grace period has been configured allows Kafka to shut down cleanly. A graceful (or clean) shutdown takes longer than an ungraceful shutdown, but the next startup will be much quicker. This is because the complex reconciliation activities that would have been required are not necessary after graceful shutdown.
 
 ## Replace a Broker with Grace
 
-Similar to restarting a broker with grace, when replacing a broker, the grace
-period must be respected during the shutdown. Respecting the grace period for
-a clean shutdown for a broker that is intentionally being moved to another
-task thus losing persisted state (if ROOT, not MOUNT volumes are in use) is
-not perfect, but will be refined in further development of the Graceful Shutdown
-feature of the DC/OS SDK, including the Kafka service implementation. Also,
-broker replacement is generally performed due to machine or task or broker state
-requiring the move to another task, so requiring the Byzantine reconciliation
-activities at broker startup. In such cases, the shutdown portion of the restart
-is likely to be rapid however may unecessarily cleanly shutdown or be killed
-when the grace period completes. For this reason, the recommended approach to
-setting the Kill Grace Period is to keep the period sufficiently long to allow
-clean shutdown, but reasonably short, and monitor the Kafka broker clean
-shutdown times (viewable in broker logs) to keep this value tuned to match the
-scale of data flowing through the Kafka service.
+The grace period must also be respected when a broker is shut down before replacement. While it is not ideal that a broker must respect the grace period even if it is going to lose persistent state, this behavior will be improved in future versions of the SDK. Broker replacement generally requires complex and time-consuming reconciliation activities at startup if there was not a graceful shutdown, so the respect of the grace kill period still provides value in most situations. We recommend setting the kill grace period only sufficiently long enough to allow graceful shutdown. Monitor the Kafka broker clean shutdown times in the broker logs to keep this value tuned to the scale of data flowing through the Kafka service.

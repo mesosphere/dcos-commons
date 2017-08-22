@@ -197,25 +197,26 @@ The name of this Kafka instance in DC/OS. This is an option that cannot be chang
 
 ## Kill Grace Period
 
-The number of seconds to grant each broker to cleanly shutdown in response to SIGTERM.
-The option is termed `brokers.kill_grace_period`.
+The kiill grace period is the number of seconds each broker has to cleanly shut
+down in response to SIGTERM. If a broker exceeds this time, it will be killed.
+Use the `brokers.kill_grace_period` configuration option to set a kill grace period.
 
-The Graceful Shutdown feature is especially important for large-scale deployments.
-This configuration option is used to provide the broker sufficient time during
-shutdown, to ensure that all in-memory data is flushed to disk and all state is
-replicated. When granted such time for a clean shutdown, the subsequent restart
-will be nearly as fast as the first startup, so is a large contributor towards
-the Kafka service's high availability feature. The default value is `30` seconds
-and is visible within the brokers' log with the following flow:
+The graceful shutdown feature is especially important for large-scale deployments.
+Use the graceful shutdown configuraiton option to provide the broker sufficient
+time during shutdown. This ensure that all in-memory data is flushed to disk and
+all state is replicated. When a broker has sufficient time to shut down, the
+subsequent restart will be nearly as fast as the first startup. This is a large
+contributor to the Kafka service's high availability.
 
-1. The task launch log line contains `kill_policy { grace_period { nanoseconds: 30000000000 } }`
-1. Log lines from normal operation (details elided).
+You can observe the graceful shutdown feature via the following log entries:
+
+1. The task launch log line contains `kill_policy { grace_period { nanoseconds: 30000000000 } }`.
 1. The task graceful shutdown log line contains SIGTERM as well as the grace time granted.
 1. The underlying Kafka logging of shutdown operations includes a stream of subsystem shutdowns prior to the overarching system
    shutdown indicated by the entry `[Kafka Server 1], shut down completed (kafka.server.KafkaServer)`.
 1. The presence (or not) of a SIGKILL log line indicating that the underlying Kafka broker did not shutdown cleanly within the
    allotted grace period.
-1. The task status update marked by `TASK_KILLED` indicating the end of the shutdown activity.
+1. The task status update marked by `TASK_KILLED`, indicating the end of the shutdown activity.
 
 ## Broker Count
 
