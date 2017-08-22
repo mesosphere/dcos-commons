@@ -180,6 +180,22 @@ def test_plugin_install_and_uninstall(default_populated_index):
 
 @pytest.mark.recovery
 @pytest.mark.sanity
+def test_pod_replace_then_immediate_config_update():
+    plugin_name = 'analysis-phonetic'
+    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
+
+    cmd.run_cli('elastic --name={} pod replace data-0'.format(FOLDERED_SERVICE_NAME))
+
+    # issue marathon_config update immediately
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
+
+    # ensure all nodes, especially data-0, get launched with the updated marathon_config
+    config.check_plugin_installed(plugin_name, service_name=FOLDERED_SERVICE_NAME)
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, "master")
     shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(FOLDERED_SERVICE_NAME), "elastic.scheduler.Main")
