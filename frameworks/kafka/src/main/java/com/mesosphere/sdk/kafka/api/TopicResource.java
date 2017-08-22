@@ -106,18 +106,24 @@ public class TopicResource {
                         "Possibles operations are [producer-test, delete, partitions, config, deleteConfig].");
             } else {
                 switch (type) {
-                    case "producer-test":
-                        int messageCount = Integer.parseInt(messages);
-                        result = cmdExecutor.producerTest(topicName, messageCount);
+                    case "producer-test": {
+                        result = cmdExecutor.producerTest(topicName, Integer.parseInt(messages));
                         break;
-                    case "partitions":
+                    }
+                    case "producer-test-tls": {
+                        result = cmdExecutor.producerTestOverTLS(topicName, Integer.parseInt(messages));
+                        break;
+                    }
+                    case "partitions": {
                         cmds = Arrays.asList("--partitions", partitions);
                         result = cmdExecutor.alterTopic(topicName, cmds);
                         break;
-                    default:
+                    }
+                    default: {
                         result = new JSONObject();
                         result.put("Error", "Unrecognized operation: " + type);
                         break;
+                    }
                 }
             }
             return ResponseUtils.jsonOkResponse(result);
