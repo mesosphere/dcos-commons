@@ -3,7 +3,6 @@ post_title: Connecting Clients
 nav_title: Connecting Clients
 menu_order: 70
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 

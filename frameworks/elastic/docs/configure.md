@@ -1,7 +1,6 @@
 ---
 post_title: Configuring
 menu_order: 30
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -57,7 +56,7 @@ You can view the deploy plan for the DC/OS Elastic Service via the service URL: 
 
 Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator.
 
-The default placement strategy specifies no constraint except that all the master nodes are distributed to different agents. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers. 
+The default placement strategy specifies no constraint except that all the master nodes are distributed to different agents. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers.
 
 ![agent](img/private-nodes-by-agent.png)
 ![vip](img/private-node-by-vip.png)

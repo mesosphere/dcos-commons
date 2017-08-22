@@ -2,7 +2,6 @@
 post_title: Overview
 menu_order: 00
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
