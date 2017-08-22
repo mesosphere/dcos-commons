@@ -74,7 +74,7 @@ server_encryption_options:
     truststore: node.truststore
     truststore_password: notsecure
     protocol: TLSv1.2
-    cipher_suites: [TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]
+    cipher_suites: [TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA]
 client_encryption_options:
 {{#CASSANDRA_ENABLE_TLS}}
     enabled: true
