@@ -5,6 +5,8 @@ import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -19,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -29,6 +32,10 @@ import static org.mockito.Mockito.when;
  */
 public class SuppressReviveManagerTest {
     private StateStore stateStore;
+
+    // This EventBus publishes events synchronously.  Changing this property would invalidate assertions in tests below.
+    // For example, asserting that a state transition does not occur after an event is safe now, that assertion would
+    // prove nothing if we put an asynchronous EventBus here.
     private EventBus eventBus = new EventBus();
     private SuppressReviveManager suppressReviveManager;
 
@@ -40,6 +47,8 @@ public class SuppressReviveManagerTest {
 
     @Mock private Phase completePhase;
     @Mock private Phase inProgressPhase;
+
+    @Mock private ConfigStore<ServiceSpec> configStore;
 
     @Before
     public void beforeEach() {
@@ -63,6 +72,7 @@ public class SuppressReviveManagerTest {
         when(planManager.getPlan()).thenReturn(completePlan);
         suppressReviveManager = new SuppressReviveManager(
                 stateStore,
+                configStore,
                 driver,
                 eventBus,
                 Arrays.asList(planManager));
@@ -75,6 +85,7 @@ public class SuppressReviveManagerTest {
         when(planManager.getPlan()).thenReturn(inprogressPlan);
         suppressReviveManager = new SuppressReviveManager(
                 stateStore,
+                configStore,
                 driver,
                 eventBus,
                 Arrays.asList(planManager));
@@ -109,6 +120,56 @@ public class SuppressReviveManagerTest {
         waitRevived(stateStore, suppressReviveManager);
     }
 
+    @Test
+    public void avoidRevivingFromRevivedState() {
+        reviveOnPlanInProgress();
+        sendFailedTaskStatus();
+        Assert.assertEquals(SuppressReviveManager.State.REVIVED, suppressReviveManager.getState());
+    }
+
+    @Test
+    public void reviveOnTasksNeedingRecovery() {
+        when(planManager.getPlan()).thenReturn(completePlan);
+        TestSuppressReviveManager testSuppressReviveManager = new TestSuppressReviveManager(
+                stateStore,
+                configStore,
+                driver,
+                eventBus,
+                Arrays.asList(planManager),
+                0,
+                1);
+        testSuppressReviveManager.start();
+        waitState(testSuppressReviveManager, SuppressReviveManager.State.WAITING_FOR_OFFER);
+        sendOffer();
+        waitSuppressed(stateStore, testSuppressReviveManager);
+        testSuppressReviveManager.setTasksNeedRecovery(true);
+        waitState(testSuppressReviveManager, SuppressReviveManager.State.WAITING_FOR_OFFER);
+    }
+
+    private static class TestSuppressReviveManager extends SuppressReviveManager {
+        private boolean tasksNeedRecovery = false;
+
+        public TestSuppressReviveManager(
+                StateStore stateStore,
+                ConfigStore<ServiceSpec> configStore,
+                SchedulerDriver driver,
+                EventBus eventBus,
+                Collection<PlanManager> planManagers,
+                int pollDelay,
+                int pollInterval) {
+            super(stateStore, configStore, driver, eventBus, planManagers, pollDelay, pollInterval);
+        }
+
+        @Override
+        protected boolean hasTasksNeedingRecovery() {
+            return tasksNeedRecovery;
+        }
+
+        public void setTasksNeedRecovery(boolean tasksNeedRecovery) {
+            this.tasksNeedRecovery =  tasksNeedRecovery;
+        }
+    }
+
     private SuppressReviveManager getSuppressedManager() {
         when(planManager.getPlan()).thenReturn(completePlan);
         Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
@@ -123,6 +184,7 @@ public class SuppressReviveManagerTest {
     private SuppressReviveManager getSuppressReviveManager(PlanManager planManager) {
         return new SuppressReviveManager(
                 stateStore,
+                configStore,
                 driver,
                 eventBus,
                 Arrays.asList(planManager),

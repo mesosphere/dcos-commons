@@ -53,7 +53,6 @@ public class DefaultScheduler extends AbstractScheduler {
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final Collection<Plan> plans;
-    protected final ConfigStore<ServiceSpec> configStore;
     final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
@@ -553,13 +552,12 @@ public class DefaultScheduler extends AbstractScheduler {
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
-        super(stateStore);
+        super(stateStore, configStore);
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
         this.plans = plans;
-        this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
@@ -827,15 +825,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @VisibleForTesting
     Set<String> getLaunchableTasks() {
-        return plans.stream()
-                .flatMap(plan -> plan.getChildren().stream())
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .flatMap(podInstanceRequirement ->
-                        TaskUtils.getTaskNames(
-                                podInstanceRequirement.getPodInstance(),
-                                podInstanceRequirement.getTasksToLaunch()).stream())
-                .collect(Collectors.toSet());
+        return PlanUtils.getLaunchableTasks(plans);
     }
 }
