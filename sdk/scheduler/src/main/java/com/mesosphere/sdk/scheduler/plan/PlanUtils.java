@@ -1,9 +1,12 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -53,5 +56,18 @@ public class PlanUtils {
         return planManagers.stream()
                 .filter(planManager -> !planManager.getPlan().isInterrupted())
                 .collect(Collectors.toList());
+    }
+
+    public static Set<String> getLaunchableTasks(Collection<Plan> plans) {
+        return plans.stream()
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(podInstanceRequirement ->
+                        TaskUtils.getTaskNames(
+                                podInstanceRequirement.getPodInstance(),
+                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
     }
 }
