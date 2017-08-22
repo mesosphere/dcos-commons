@@ -33,7 +33,7 @@ SECRET_NAME=secret
 echo Creating service account for account=$SERVICE_ACCOUNT_NAME secret=$SECRET_NAME
 
 echo Install cli necessary for security...
-if ! dcos package install dcos-enterprise-cli --package-version=1.0.7; then
+if ! dcos package install dcos-enterprise-cli --yes; then
     echo "Failed to install dcos-enterprise cli extension" >&2
     exit 1
 fi

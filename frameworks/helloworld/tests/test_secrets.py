@@ -57,7 +57,7 @@ options_dcos_space_test = {
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME)
-        sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
+        sdk_cmd.run_cli("package install --cli dcos-enterprise-cli --yes")
         delete_secrets_all("{}/".format(config.PACKAGE_NAME))
         delete_secrets_all("{}/somePath/".format(config.PACKAGE_NAME))
         delete_secrets_all()
