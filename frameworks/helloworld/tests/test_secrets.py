@@ -1,18 +1,14 @@
 import logging
 
 import pytest
-from retrying import retry
-
 import sdk_cmd
 import sdk_install
+import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_marathon
 import sdk_utils
-
-from tests.config import (
-    PACKAGE_NAME
-)
+from retrying import retry
+from tests import config
 
 log = logging.getLogger(__name__)
 
@@ -60,17 +56,17 @@ options_dcos_space_test = {
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME)
         sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
-        delete_secrets_all("{}/".format(PACKAGE_NAME))
-        delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
+        delete_secrets_all("{}/".format(config.PACKAGE_NAME))
+        delete_secrets_all("{}/somePath/".format(config.PACKAGE_NAME))
         delete_secrets_all()
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
-        delete_secrets_all("{}/".format(PACKAGE_NAME))
-        delete_secrets_all("{}/somePath/".format(PACKAGE_NAME))
+        sdk_install.uninstall(config.PACKAGE_NAME)
+        delete_secrets_all("{}/".format(config.PACKAGE_NAME))
+        delete_secrets_all("{}/somePath/".format(config.PACKAGE_NAME))
         delete_secrets_all()
 
 
@@ -87,27 +83,27 @@ def test_secrets_basic():
     # 6) ensure all tasks are running
     # 7) delete Secrets
 
-    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME)
 
-    create_secrets("{}/".format(PACKAGE_NAME))
+    create_secrets("{}/".format(config.PACKAGE_NAME))
 
-    sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
-    hello_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_tasks_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, "word-0")
+    hello_tasks_0 = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "hello-0")
+    world_tasks_0 = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "word-0")
 
     # ensure that secrets work after replace
     sdk_cmd.run_cli('hello-world pod replace hello-0')
     sdk_cmd.run_cli('hello-world pod replace world-0')
 
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_0)
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_tasks_0)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, "hello-0", hello_tasks_0)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world-0', world_tasks_0)
 
     # tasks will fail if secret files are not created by mesos module
-    sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # clean up and delete secrets
-    delete_secrets("{}/".format(PACKAGE_NAME))
+    delete_secrets("{}/".format(config.PACKAGE_NAME))
 
 
 @pytest.mark.sanity
@@ -120,20 +116,20 @@ def test_secrets_verify():
     # 3) verify Secrets content
     # 4) delete Secrets
 
-    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME)
 
-    create_secrets("{}/".format(PACKAGE_NAME))
+    create_secrets("{}/".format(config.PACKAGE_NAME))
 
-    sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
     # tasks will fail if secret file is not created
-    sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content, one from each pod type
 
     # get task id - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
+    hello_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "hello-0")
+    world_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "world-0")
 
 
     # first secret: environment variable name is given in yaml
@@ -159,7 +155,7 @@ def test_secrets_verify():
     assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
-    delete_secrets("{}/".format(PACKAGE_NAME))
+    delete_secrets("{}/".format(config.PACKAGE_NAME))
 
 
 @pytest.mark.sanity
@@ -174,44 +170,44 @@ def test_secrets_update():
     # 5) verify Secrets content (updated after restart)
     # 6) delete Secrets
 
-    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME)
 
-    create_secrets("{}/".format(PACKAGE_NAME))
+    create_secrets("{}/".format(config.PACKAGE_NAME))
 
-    sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
     # tasks will fail if secret file is not created
-    sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
 
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, PACKAGE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, PACKAGE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, PACKAGE_NAME))
+    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, config.PACKAGE_NAME))
+    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, config.PACKAGE_NAME))
+    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, config.PACKAGE_NAME))
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
-    hello_tasks_old = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_tasks_old = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
+    hello_tasks_old = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "hello-0")
+    world_tasks_old = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "world-0")
 
     # restart pods to retrieve new secret's content
     sdk_cmd.run_cli('hello-world pod restart hello-0')
     sdk_cmd.run_cli('hello-world pod restart world-0')
 
     # wait pod restart to complete
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, "hello-0", hello_tasks_old)
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, 'world-0', world_tasks_old)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, "hello-0", hello_tasks_old)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world-0', world_tasks_old)
 
     # wait till it is running
-    sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # get new task ids - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
+    hello_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "hello-0")
+    world_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "world-0")
 
     # make sure content is changed
     assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == read_secret("world-0", "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_alternative == read_secret("world-0", "cat {}/secret3".format(config.PACKAGE_NAME))
 
     # make sure content is changed
     assert secret_content_alternative == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
@@ -219,7 +215,7 @@ def test_secrets_update():
     assert secret_content_alternative == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets
-    delete_secrets("{}/".format(PACKAGE_NAME))
+    delete_secrets("{}/".format(config.PACKAGE_NAME))
 
 
 @pytest.mark.sanity
@@ -232,24 +228,24 @@ def test_secrets_config_update():
     # 2) update configuration with new Secrets
     # 4) verify secret content (using new Secrets after config update)
 
-    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME)
 
-    create_secrets("{}/".format(PACKAGE_NAME))
+    create_secrets("{}/".format(config.PACKAGE_NAME))
 
-    sdk_install.install(PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
 
     # tasks will fail if secret file is not created
-    sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content, one from each pod type
     # get tasks ids - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
+    hello_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "hello-0")
+    world_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "world-0")
 
     # make sure it has the default value
     assert secret_content_default == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_default == read_secret("world-0", "cat WORLD_SECRET2_FILE")
-    assert secret_content_default == read_secret("world-0", "cat {}/secret3".format(PACKAGE_NAME))
+    assert secret_content_default == read_secret("world-0", "cat {}/secret3".format(config.PACKAGE_NAME))
 
     # hello tasks has container image
     assert secret_content_default == read_secret("hello-0", "bash -c 'echo $HELLO_SECRET1_ENV'")
@@ -257,32 +253,32 @@ def test_secrets_config_update():
     assert secret_content_default == read_secret("hello-0", "cat HELLO_SECRET2_FILE")
 
     # clean up and delete secrets (defaults)
-    delete_secrets("{}/".format(PACKAGE_NAME))
+    delete_secrets("{}/".format(config.PACKAGE_NAME))
 
     # create new secrets with new content -- New Value
     create_secrets(secret_content_arg=secret_content_alternative)
 
-    config = sdk_marathon.get_config(PACKAGE_NAME)
-    config['env']['HELLO_SECRET1'] = 'secret1'
-    config['env']['HELLO_SECRET2'] = 'secret2'
-    config['env']['WORLD_SECRET1'] = 'secret1'
-    config['env']['WORLD_SECRET2'] = 'secret2'
-    config['env']['WORLD_SECRET3'] = 'secret3'
+    marathon_config = sdk_marathon.get_config(config.PACKAGE_NAME)
+    marathon_config['env']['HELLO_SECRET1'] = 'secret1'
+    marathon_config['env']['HELLO_SECRET2'] = 'secret2'
+    marathon_config['env']['WORLD_SECRET1'] = 'secret1'
+    marathon_config['env']['WORLD_SECRET2'] = 'secret2'
+    marathon_config['env']['WORLD_SECRET3'] = 'secret3'
 
     # config update
-    sdk_marathon.update_app(PACKAGE_NAME, config)
+    sdk_marathon.update_app(config.PACKAGE_NAME, marathon_config)
 
     # wait till plan is complete - pods are supposed to restart
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.PACKAGE_NAME)
 
     # all tasks are running
-    sdk_tasks.check_running(PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
+    sdk_tasks.check_running(config.PACKAGE_NAME, NUM_HELLO + NUM_WORLD)
 
     # Verify secret content is changed
 
     # get task ids - only first pod
-    hello_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "hello-0")
-    world_tasks = sdk_tasks.get_task_ids(PACKAGE_NAME, "world-0")
+    hello_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "hello-0")
+    world_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "world-0")
 
     assert secret_content_alternative == read_secret("world-0", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("world-0", "cat WORLD_SECRET2_FILE")
@@ -307,14 +303,14 @@ def test_secrets_dcos_space():
     #               (for example hello-world/somePath/anotherPath/)
     #    can access these Secrets
 
-    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME)
 
     # cannot access these secrets because of DCOS_SPACE authorization
-    create_secrets("{}/somePath/".format(PACKAGE_NAME))
+    create_secrets("{}/somePath/".format(config.PACKAGE_NAME))
 
     try:
         sdk_install.install(
-            PACKAGE_NAME,
+            config.PACKAGE_NAME,
             NUM_HELLO + NUM_WORLD,
             additional_options=options_dcos_space_test,
             timeout_seconds=5 * 60) # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
@@ -328,7 +324,7 @@ def test_secrets_dcos_space():
         pass  # expected to fail
 
     # clean up and delete secrets
-    delete_secrets("{}/somePath/".format(PACKAGE_NAME))
+    delete_secrets("{}/somePath/".format(config.PACKAGE_NAME))
 
 
 def create_secrets(path_prefix="", secret_content_arg=secret_content_default):

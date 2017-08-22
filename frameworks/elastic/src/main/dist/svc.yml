@@ -60,13 +60,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -128,13 +121,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -196,13 +182,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -264,13 +243,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5

@@ -4,25 +4,16 @@ import re
 
 import dcos.marathon
 import pytest
-import shakedown
-
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-from tests.config import (
-    PACKAGE_NAME,
-    DEFAULT_TASK_COUNT,
-    configured_task_count,
-    hello_task_count,
-    world_task_count,
-    check_running,
-    bump_hello_cpus,
-    bump_world_cpus
-)
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
+import shakedown
+from tests import config
+
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.PACKAGE_NAME)
 
 log = logging.getLogger(__name__)
 
@@ -30,20 +21,20 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
         service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
 
         sdk_upgrade.test_upgrade(
-            PACKAGE_NAME,
-            PACKAGE_NAME,
-            DEFAULT_TASK_COUNT,
+            config.PACKAGE_NAME,
+            config.PACKAGE_NAME,
+            config.DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
             additional_options=service_config)
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
 
 def close_enough(val0, val1):
@@ -54,7 +45,7 @@ def close_enough(val0, val1):
 
 @pytest.mark.smoke
 def test_install():
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
 
 
 # Note: presently the mesos v1 api does _not_ work in strict mode.
@@ -63,20 +54,20 @@ def test_install():
 def test_mesos_v1_api():
     # Install Hello World using the v1 api.
     # Then, clean up afterwards.
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
     sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
+        config.PACKAGE_NAME,
+        config.DEFAULT_TASK_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "mesos_api_version": "V1"}}
     )
-    check_running(FOLDERED_SERVICE_NAME)
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
+    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
     # reinstall the v0 version for the following tests
     sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
+        config.PACKAGE_NAME,
+        config.DEFAULT_TASK_COUNT,
         service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
@@ -84,18 +75,18 @@ def test_mesos_v1_api():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_cpus():
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
     hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
     log.info('hello ids: ' + str(hello_ids))
 
-    updated_cpus = bump_hello_cpus(FOLDERED_SERVICE_NAME)
+    updated_cpus = config.bump_hello_cpus(FOLDERED_SERVICE_NAME)
 
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
 
     all_tasks = shakedown.get_service_tasks(FOLDERED_SERVICE_NAME)
     running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
-    assert len(running_tasks) == hello_task_count(FOLDERED_SERVICE_NAME)
+    assert len(running_tasks) == config.hello_task_count(FOLDERED_SERVICE_NAME)
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
 
@@ -103,18 +94,18 @@ def test_bump_hello_cpus():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_world_cpus():
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
     world_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'world')
     log.info('world ids: ' + str(world_ids))
 
-    updated_cpus = bump_world_cpus(FOLDERED_SERVICE_NAME)
+    updated_cpus = config.bump_world_cpus(FOLDERED_SERVICE_NAME)
 
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'world', world_ids)
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
 
     all_tasks = shakedown.get_service_tasks(FOLDERED_SERVICE_NAME)
     running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
-    assert len(running_tasks) == world_task_count(FOLDERED_SERVICE_NAME)
+    assert len(running_tasks) == config.world_task_count(FOLDERED_SERVICE_NAME)
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
 
@@ -122,14 +113,14 @@ def test_bump_world_cpus():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_nodes():
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
 
     hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
     log.info('hello ids: ' + str(hello_ids))
 
     sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'HELLO_COUNT')
 
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
 
 
@@ -137,7 +128,7 @@ def test_bump_hello_nodes():
 def test_pod_list():
     stdout = sdk_cmd.run_cli('hello-world --name={} pod list'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
-    assert len(jsonobj) == configured_task_count(FOLDERED_SERVICE_NAME)
+    assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
     first_world = -1
@@ -156,7 +147,7 @@ def test_pod_list():
 def test_pod_status_all():
     stdout = sdk_cmd.run_cli('hello-world --name={} pod status'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
-    assert len(jsonobj) == configured_task_count(FOLDERED_SERVICE_NAME)
+    assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
     for k, v in jsonobj.items():
         assert re.match('(hello|world)-[0-9]+', k)
         assert len(v) == 1
@@ -218,19 +209,19 @@ def test_state_properties_get():
 @pytest.mark.sanity
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
     task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, '')
 
     # caching enabled by default:
     stdout = sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
     assert "Received cmd: refresh" in stdout
 
-    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    marathon_config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
 
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     def check_cache_refresh_fails_409conflict():
@@ -243,12 +234,12 @@ def test_state_refresh_disable_cache():
 
     shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
-    config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    del config['env']['DISABLE_STATE_CACHE']
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, config)
+    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    del marathon_config['env']['DISABLE_STATE_CACHE']
+    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
 
     sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
-    check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(FOLDERED_SERVICE_NAME)
     shakedown.deployment_wait()  # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
