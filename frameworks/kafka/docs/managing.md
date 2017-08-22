@@ -167,11 +167,7 @@ Issue the following command:
 
 ## Restart a Broker with Grace
 
-When restarting a Kafka broker, when the Kill Grace Period has been configured
-to a period that sufficiently allows Kafka to cleanly shutdown, the broker's
-shutdown time will be longer, but the subsequent startup time will be much more
-rapid as the Byzantine reconciliation activities otherwise required for startup
-can be safely skipped. An appropriate kill grace period has been configured allows Kafka to shut down cleanly. A graceful (or clean) shutdown takes longer than an ungraceful shutdown, but the next startup will be much quicker. This is because the complex reconciliation activities that would have been required are not necessary after graceful shutdown.
+A graceful (or clean) shutdown takes longer than an ungraceful shutdown, but the next startup will be much quicker. This is because the complex reconciliation activities that would have been required are not necessary after graceful shutdown.
 
 ## Replace a Broker with Grace
 
