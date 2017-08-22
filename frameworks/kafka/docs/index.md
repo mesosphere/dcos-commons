@@ -15,7 +15,7 @@ DC/OS Kafka offers the following benefits of a semi-managed service:
 *   Easy installation
 *   Multiple Kafka clusters
 *   Elastic scaling of brokers
-*   Replication for high availability
+*   Replication and graceful shutdown for high availability
 *   Kafka cluster and broker monitoring
 
 # Features

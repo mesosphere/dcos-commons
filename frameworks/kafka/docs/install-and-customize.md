@@ -14,7 +14,7 @@ Kafka is available in the Universe and can be installed by using either the web 
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
 - Your cluster must have at least three private nodes.
-  
+
 # Default Installation
 
 To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing Kafka on Enterprise DC/OS](#install-enterprise).
@@ -66,7 +66,8 @@ Sample JSON options file named `sample-kafka-custom.json`:
             "placement_strategy": "NODE"
         },
         "brokers": {
-            "count": 10
+            "count": 10,
+            "kill_grace_period": 30
         },
         "kafka": {
             "delete_topic_enable": true,
