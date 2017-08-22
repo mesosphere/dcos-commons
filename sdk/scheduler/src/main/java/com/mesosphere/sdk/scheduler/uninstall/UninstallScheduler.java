@@ -59,7 +59,7 @@ public class UninstallScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
             Optional<SecretsClient> secretsClient) {
-        super(stateStore);
+        super(stateStore, configStore);
         this.port = port;
         this.configStore = configStore;
         this.schedulerFlags = schedulerFlags;

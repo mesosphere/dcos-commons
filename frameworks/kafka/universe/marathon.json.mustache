@@ -64,6 +64,14 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
 
+    {{#service.tls}}
+    "BROKER_PORT_TLS": "{{brokers.port_tls}}",
+    "TASKCFG_ALL_KAFKA_ENABLE_TLS": "{{service.tls}}",
+    {{#service.tls_allow_plaintext}}
+    "TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
+    {{/service.tls_allow_plaintext}}
+    {{/service.tls}}
+
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.11.0.0",
 

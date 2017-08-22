@@ -17,12 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,14 +47,29 @@ public class StateStoreUtils {
     }
 
     /**
+     * Fetches and returns all {@link TaskInfo}s for tasks needing recovery and in the list of
+     * launchable Tasks.
+     *
+     * @return Terminated TaskInfos
+     */
+    public static Collection<TaskInfo> fetchTasksNeedingRecovery(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            Set<String> launchableTaskNames) throws TaskException {
+
+        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).stream()
+                .filter(taskInfo -> launchableTaskNames.contains(taskInfo.getName()))
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Fetches and returns all {@link TaskInfo}s for tasks needing recovery.
      *
      * @return Terminated TaskInfos
      */
     public static Collection<TaskInfo> fetchTasksNeedingRecovery(
             StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore)
-            throws StateStoreException, TaskException {
+            ConfigStore<ServiceSpec> configStore) throws TaskException {
 
         Collection<TaskInfo> allInfos = stateStore.fetchTasks();
         Collection<TaskStatus> allStatuses = stateStore.fetchStatuses();

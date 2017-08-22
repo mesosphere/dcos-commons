@@ -1,17 +1,17 @@
 import os
-import pytest
 import tempfile
 import uuid
 
-from tests.config import *
+import pytest
 import sdk_install
 import sdk_jobs
 import sdk_utils
+from tests import config
 
-WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)
-VERIFY_DATA_JOB = get_verify_data_job(node_address=FOLDERED_NODE_ADDRESS)
-DELETE_DATA_JOB = get_delete_data_job(node_address=FOLDERED_NODE_ADDRESS)
-VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS)
+WRITE_DATA_JOB = config.get_write_data_job(node_address=config.FOLDERED_NODE_ADDRESS)
+VERIFY_DATA_JOB = config.get_verify_data_job(node_address=config.FOLDERED_NODE_ADDRESS)
+DELETE_DATA_JOB = config.get_delete_data_job(node_address=config.FOLDERED_NODE_ADDRESS)
+VERIFY_DELETION_JOB = config.get_verify_deletion_job(node_address=config.FOLDERED_NODE_ADDRESS)
 TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
 no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
@@ -20,13 +20,13 @@ no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(config.FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
         # user=root because Azure CLI needs to run in root...
         sdk_install.install(
-            PACKAGE_NAME,
-            DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "user": "root" } })
+            config.PACKAGE_NAME,
+            config.DEFAULT_TASK_COUNT,
+            service_name=config.FOLDERED_SERVICE_NAME,
+            additional_options={"service": { "name": config.FOLDERED_SERVICE_NAME, "user": "root" } })
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in TEST_JOBS:
@@ -34,7 +34,7 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(config.FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
         # remove job definitions from metronome
         for job in TEST_JOBS:
@@ -62,11 +62,11 @@ def test_backup_and_restore_to_azure():
     }
 
     run_backup_and_restore(
-        FOLDERED_SERVICE_NAME,
+        config.FOLDERED_SERVICE_NAME,
         'backup-azure',
         'restore-azure',
         plan_parameters,
-        FOLDERED_NODE_ADDRESS)
+        config.FOLDERED_NODE_ADDRESS)
 
 
 @pytest.mark.aws
@@ -84,9 +84,9 @@ def test_backup_and_restore_to_s3():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    run_backup_and_restore(
-        FOLDERED_SERVICE_NAME,
+    config.run_backup_and_restore(
+        config.FOLDERED_SERVICE_NAME,
         'backup-s3',
         'restore-s3',
         plan_parameters,
-        FOLDERED_NODE_ADDRESS)
+        config.FOLDERED_NODE_ADDRESS)

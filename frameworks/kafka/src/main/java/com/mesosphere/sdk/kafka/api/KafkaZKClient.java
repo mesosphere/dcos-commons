@@ -10,10 +10,13 @@ import org.apache.zookeeper.KeeperException;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.List;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Read-only interface for retrieving information from ZooKeeper for Kafka brokers and topics.
@@ -25,6 +28,9 @@ public class KafkaZKClient {
     private static final int CURATOR_MAX_RETRIES = 3;
     private static final String IDS_PATH = "/brokers/ids";
     private static final String TOPICS_PATH = "/brokers/topics";
+
+    private final String PROTOCOL_NAME_PLAINTEXT = "PLAINTEXT";
+    private final String PROTOCOL_NAME_TLS = "SSL";
 
     private final CuratorFramework zkClient;
 
@@ -84,17 +90,42 @@ public class KafkaZKClient {
     }
 
     public List<String> getBrokerEndpoints() {
-        List<String> endpoints = new ArrayList<>();
         try {
-            List<String> ids = zkClient.getChildren().forPath(IDS_PATH);
-            for (String id : ids) {
-                byte[] bytes = zkClient.getData().forPath(IDS_PATH + "/" + id);
-                JSONObject broker = new JSONObject(new String(bytes, StandardCharsets.UTF_8));
-                endpoints.add(broker.getString("host") + ":" + broker.getInt("port"));
-            }
+            return getBrokerEndpoints(PROTOCOL_NAME_PLAINTEXT);
         } catch (Exception ex) {
             log.error("Failed to retrieve broker endpoints with exception: ", ex);
         }
+        return Collections.emptyList();
+    }
+
+    public List<String> getBrokerTLSEndpoints() {
+        try {
+            return getBrokerEndpoints(PROTOCOL_NAME_TLS);
+        } catch (Exception ex) {
+            log.error("Failed to retrieve broker TLS endpoints with exception: ", ex);
+        }
+        return Collections.emptyList();
+    }
+
+    private List<String> getBrokerEndpoints(final String protocolName) throws Exception {
+        final List<String> endpoints = new ArrayList<>();
+
+        final List<String> ids = zkClient.getChildren().forPath(IDS_PATH);
+        for (String id : ids) {
+            byte[] bytes = zkClient.getData().forPath(IDS_PATH + "/" + id);
+            JSONObject broker = new JSONObject(new String(bytes, StandardCharsets.UTF_8));
+            final String mappedProtocolName = broker
+                    .getJSONObject("listener_security_protocol_map")
+                    .getString(protocolName);
+            endpoints.addAll(
+                    StreamSupport.stream(broker.getJSONArray("endpoints").spliterator(), false)
+                        .map(endpoint -> endpoint.toString())
+                        .filter(endpoint -> endpoint.startsWith(mappedProtocolName + "://"))
+                        .map(endpoint -> endpoint.substring((mappedProtocolName + "://").length()))
+                        .collect(Collectors.toList())
+            );
+        }
+
         return endpoints;
     }
 }
