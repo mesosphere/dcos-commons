@@ -96,6 +96,31 @@ public class CmdExecutor {
                     "No brokers were found to run producer test against topic %s", topicName));
         }
 
+        List<String> cmd = getProducerPerfCommand(topicName, messages, brokerEndpoints);
+
+        return runCmd(cmd);
+    }
+
+    public JSONObject producerTestOverTLS(String topicName, int messages) throws Exception {
+        /* e.g. ./kafka-producer-perf-test.sh --topic topic0 --num-records 1000 --producer-props
+         bootstrap.servers=
+         ip-10-0-2-171.us-west-2.compute.internal:9092,ip-10-0-2-172.us-west-2.compute.internal:9093,
+         ip-10-0-2-173.us-west-2.compute.internal:9094 security.protocol=SSL --throughput 100000 --record-size 1024
+         */
+        List<String> brokerEndpoints = kafkaZkClient.getBrokerTLSEndpoints();
+        if (brokerEndpoints.isEmpty()) {
+            throw new IllegalStateException(String.format(
+                    "No brokers were found to run producer test against topic %s", topicName));
+        }
+
+        List<String> cmd = getProducerPerfCommand(topicName, messages, brokerEndpoints);
+        // Configure TLS protocol
+        cmd.add("security.protocol=SSL");
+
+        return runCmd(cmd);
+    }
+
+    private List<String> getProducerPerfCommand(String topicName, int messages, List<String> endpoints) {
         List<String> cmd = new ArrayList<String>();
         cmd.add(binPath + "kafka-producer-perf-test.sh");
         cmd.add("--topic");
@@ -107,9 +132,8 @@ public class CmdExecutor {
         cmd.add("--record-size");
         cmd.add("1024");
         cmd.add("--producer-props");
-        cmd.add("bootstrap.servers=" + StringUtils.join(brokerEndpoints, ","));
-
-        return runCmd(cmd);
+        cmd.add("bootstrap.servers=" + StringUtils.join(endpoints, ","));
+        return cmd;
     }
 
     public JSONArray getOffsets(String topicName, Long time) throws Exception {

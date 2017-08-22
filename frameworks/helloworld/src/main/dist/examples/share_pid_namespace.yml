@@ -1,0 +1,48 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: 2
+    share-pid-namespace: true
+    volume:
+      path: "hello-container-path"
+      type: ROOT
+      size: 1024
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+      sidecar-resources:
+        cpus: 1
+        memory: 256
+      share-resources:
+        cpus: 1
+        memory: 256
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "readlink /proc/self/ns/pid >> hello-container-path/output && sleep $SLEEP_DURATION"
+        resource-set: hello-resources
+        env:
+          SLEEP_DURATION: 10000
+      once:
+        goal: FINISHED
+        cmd: >
+              [ "$(readlink /proc/self/ns/pid)" == "$(tail -n 1 hello-container-path/output)" ]
+        resource-set: sidecar-resources
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      server-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[server]]
+      once-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[once]]

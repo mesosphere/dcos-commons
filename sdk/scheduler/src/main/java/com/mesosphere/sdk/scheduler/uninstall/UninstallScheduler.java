@@ -45,7 +45,7 @@ public class UninstallScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
             Optional<SecretsClient> secretsClient) {
-        super(stateStore);
+        super(stateStore, configStore);
         this.uninstallPlanBuilder =
                 new UninstallPlanBuilder(serviceName, stateStore, configStore, schedulerFlags, secretsClient);
         this.uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());

@@ -4,11 +4,7 @@ import pytest
 import sdk_install
 import sdk_marathon
 import shakedown
-
-from tests.config import (
-    PACKAGE_NAME,
-    check_running
-)
+from tests import config
 
 log = logging.getLogger(__name__)
 
@@ -16,14 +12,14 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME)
         options = sdk_install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
         # don't wait for install to complete successfully:
-        shakedown.install_package(PACKAGE_NAME, options_json=options)
+        shakedown.install_package(config.PACKAGE_NAME, options_json=options)
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME)
 
 
 @pytest.mark.sanity
@@ -37,7 +33,7 @@ def test_deploy():
     consecutive_task_running = 0
     def fn():
         nonlocal consecutive_task_running
-        svc_tasks = shakedown.get_service_tasks(PACKAGE_NAME)
+        svc_tasks = shakedown.get_service_tasks(config.PACKAGE_NAME)
         states = [t['state'] for t in svc_tasks]
         log.info('Task states: {}'.format(states))
         if 'TASK_RUNNING' in states:
@@ -53,11 +49,11 @@ def test_deploy():
         log.info('Timeout reached as expected')
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
-    config = sdk_marathon.get_config(PACKAGE_NAME)
-    env = config['env']
+    marathon_config = sdk_marathon.get_config(config.PACKAGE_NAME)
+    env = marathon_config['env']
     del env['SLEEP_DURATION']
     env['TASKCFG_ALL_OUTPUT_FILENAME'] = 'output'
     env['TASKCFG_ALL_SLEEP_DURATION'] = '1000'
-    sdk_marathon.update_app(PACKAGE_NAME, config)
+    sdk_marathon.update_app(config.PACKAGE_NAME, marathon_config)
 
-    check_running()
+    config.check_running()
