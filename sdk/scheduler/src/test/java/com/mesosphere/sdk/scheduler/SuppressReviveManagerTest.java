@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -124,6 +125,49 @@ public class SuppressReviveManagerTest {
         reviveOnPlanInProgress();
         sendFailedTaskStatus();
         Assert.assertEquals(SuppressReviveManager.State.REVIVED, suppressReviveManager.getState());
+    }
+
+    @Test
+    public void reviveOnTasksNeedingRecovery() {
+        when(planManager.getPlan()).thenReturn(completePlan);
+        TestSuppressReviveManager testSuppressReviveManager = new TestSuppressReviveManager(
+                stateStore,
+                configStore,
+                driver,
+                eventBus,
+                Arrays.asList(planManager),
+                0,
+                1);
+        testSuppressReviveManager.start();
+        waitState(testSuppressReviveManager, SuppressReviveManager.State.WAITING_FOR_OFFER);
+        sendOffer();
+        waitSuppressed(stateStore, testSuppressReviveManager);
+        testSuppressReviveManager.setTasksNeedRecovery(true);
+        waitState(testSuppressReviveManager, SuppressReviveManager.State.WAITING_FOR_OFFER);
+    }
+
+    private static class TestSuppressReviveManager extends SuppressReviveManager {
+        private boolean tasksNeedRecovery = false;
+
+        public TestSuppressReviveManager(
+                StateStore stateStore,
+                ConfigStore<ServiceSpec> configStore,
+                SchedulerDriver driver,
+                EventBus eventBus,
+                Collection<PlanManager> planManagers,
+                int pollDelay,
+                int pollInterval) {
+            super(stateStore, configStore, driver, eventBus, planManagers, pollDelay, pollInterval);
+        }
+
+        @Override
+        protected boolean hasTasksNeedingRecovery() {
+            return tasksNeedRecovery;
+        }
+
+        public void setTasksNeedRecovery(boolean tasksNeedRecovery) {
+            this.tasksNeedRecovery =  tasksNeedRecovery;
+        }
     }
 
     private SuppressReviveManager getSuppressedManager() {

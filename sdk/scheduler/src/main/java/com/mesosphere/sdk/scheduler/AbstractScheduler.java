@@ -219,7 +219,12 @@ public abstract class AbstractScheduler implements Scheduler {
         reconciler.start();
         reconciler.reconcile(driver);
         if (suppressReviveManager == null) {
-            suppressReviveManager = new SuppressReviveManager(stateStore, configStore, driver, eventBus, getPlanManagers());
+            suppressReviveManager = new SuppressReviveManager(
+                    stateStore,
+                    configStore,
+                    driver,
+                    eventBus,
+                    getPlanManagers());
         }
 
         suppressReviveManager.start();

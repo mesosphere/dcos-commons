@@ -58,7 +58,14 @@ public class SuppressReviveManager {
             SchedulerDriver driver,
             EventBus eventBus,
             Collection<PlanManager> planManagers) {
-        this(stateStore, configStore, driver, eventBus, planManagers, SUPPRESSS_REVIVE_DELAY_S, SUPPRESSS_REVIVE_INTERVAL_S);
+        this(
+                stateStore,
+                configStore,
+                driver,
+                eventBus,
+                planManagers,
+                SUPPRESSS_REVIVE_DELAY_S,
+                SUPPRESSS_REVIVE_INTERVAL_S);
     }
 
     public SuppressReviveManager(
@@ -226,7 +233,7 @@ public class SuppressReviveManager {
         }
     }
 
-    private boolean hasTasksNeedingRecovery() {
+    protected boolean hasTasksNeedingRecovery() {
         Collection<Plan> plans = planManagers.stream()
                 .map(planManager -> planManager.getPlan())
                 .collect(Collectors.toList());
