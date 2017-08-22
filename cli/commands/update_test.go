@@ -109,7 +109,7 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersionsNoPackageVersions() {
 
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("testdata/input/config.json", "")
+	doUpdate("testdata/input/config.json", "", false)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update-configuration.json")
@@ -120,9 +120,22 @@ func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
+func (suite *UpdateTestSuite) TestUpdateConfigurationOverwrite() {
+	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
+	doUpdate("testdata/input/config.json", "", true)
+
+	// assert request is what we expect
+	expectedRequest := suite.loadFile("testdata/requests/update-configuration-replace.json")
+	assert.JSONEq(suite.T(), string(expectedRequest), string(suite.requestBody))
+
+	// assert CLI output is what we expect
+	expectedOutput := "Update started. Please use `dcos hello-world --name=hello-world update status` to view progress.\n"
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+}
+
 func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("", "stub-universe")
+	doUpdate("", "stub-universe", false)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update-package-version.json")
@@ -135,7 +148,7 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 
 func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("testdata/input/config.json", "stub-universe")
+	doUpdate("testdata/input/config.json", "stub-universe", false)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update.json")
@@ -147,19 +160,19 @@ func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithWrongPath() {
-	doUpdate("testdata/input/emptyASDF.json", "")
+	doUpdate("testdata/input/emptyASDF.json", "", false)
 	expectedOutput := "Failed to load specified options file testdata/input/emptyASDF.json: open testdata/input/emptyASDF.json: no such file or directory\n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithEmptyFile() {
-	doUpdate("testdata/input/empty.json", "")
-	expectedOutput := "Failed to parse JSON in specified options file testdata/input/empty.json: unexpected end of JSON input\n"
+	doUpdate("testdata/input/empty.json", "", false)
+	expectedOutput := "Failed to parse JSON in specified options file testdata/input/empty.json: unexpected end of JSON input\nContent (1 bytes):  \n"
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
-	doUpdate("testdata/input/malformed.json", "")
-	expectedOutput := "Failed to parse JSON in specified options file testdata/input/malformed.json: unexpected end of JSON input\n"
+	doUpdate("testdata/input/malformed.json", "", false)
+	expectedOutput := fmt.Sprintf("Failed to parse JSON in specified options file testdata/input/malformed.json: unexpected end of JSON input\nContent (340 bytes): %s\n", suite.loadFile("testdata/input/malformed.json"))
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }

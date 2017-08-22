@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import shakedown
+import tempfile
 
 import sdk_cmd as cmd
 import sdk_install as install
@@ -66,9 +67,11 @@ def test_upgrade(
             shakedown.remove_package_repo('Universe')
             _add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
-    log.info('Upgrading to test version: {}={}'.format(test_package_name, test_version))
+    log.info('Upgrading {} to {}={}'.format(universe_package_name, test_package_name, test_version))
     _upgrade_or_downgrade(
+        universe_package_name,
         test_package_name,
+        test_version,
         service_name,
         running_task_count,
         test_version_options,
@@ -110,7 +113,9 @@ def test_downgrade(
 
         log.info('Downgrading to Universe version: {}={}'.format(universe_package_name, universe_version))
         _upgrade_or_downgrade(
+            test_package_name,
             universe_package_name,
+            universe_version,
             service_name,
             running_task_count,
             additional_options,
@@ -125,7 +130,9 @@ def test_downgrade(
     if reinstall_test_version:
         log.info('Re-upgrading to test version before exiting: {}={}'.format(test_package_name, test_version))
         _upgrade_or_downgrade(
+            universe_package_name,
             test_package_name,
+            test_version,
             service_name,
             running_task_count,
             test_version_options,
@@ -181,19 +188,24 @@ def soak_upgrade_downgrade(
         running_task_count,
         install_options={},
         timeout_seconds=25*60):
-    print('Upgrading to test version')
+    version = 'stub-universe'
+    print('Upgrading to test version: {} => {} {}'.format(universe_package_name, test_package_name, version))
     _upgrade_or_downgrade(
+        universe_package_name,
         test_package_name,
+        version,
         service_name,
         running_task_count,
         install_options,
-        timeout_seconds,
-        package_version='stub-universe')
+        timeout_seconds)
 
-    print('Downgrading to Universe version')
     # Default Universe is at --index=0
+    version = _get_pkg_version(universe_package_name)
+    print('Downgrading to Universe version: {} => {} {}'.format(test_package_name, universe_package_name, version))
     _upgrade_or_downgrade(
+        test_package_name,
         universe_package_name,
+        version,
         service_name,
         running_task_count,
         install_options,
@@ -210,21 +222,35 @@ def _get_universe_url():
 
 
 def _upgrade_or_downgrade(
-        package_name,
+        from_package_name,
+        to_package_name,
+        to_package_version,
         service_name,
         running_task_count,
         additional_options,
-        timeout_seconds,
-        package_version=None):
+        timeout_seconds):
     task_ids = tasks.get_task_ids(service_name, '')
-    marathon.destroy_app(service_name)
-    install.install(
-        package_name,
-        running_task_count,
-        service_name=service_name,
-        additional_options=additional_options,
-        timeout_seconds=timeout_seconds,
-        package_version=package_version)
+    if shakedown.dcos_version_less_than("1.10") or shakedown.ee_version() is None or from_package_name != to_package_name:
+        log.info('Using marathon upgrade flow to upgrade {} => {} {}'.format(from_package_name, to_package_name, to_package_version))
+        marathon.destroy_app(service_name)
+        install.install(
+            to_package_name,
+            running_task_count,
+            service_name=service_name,
+            additional_options=additional_options,
+            timeout_seconds=timeout_seconds,
+            package_version=to_package_version)
+    else:
+        log.info('Using CLI upgrade flow to upgrade {} => {} {}'.format(from_package_name, to_package_name, to_package_version))
+        if additional_options:
+            with tempfile.NamedTemporaryFile() as opts_f:
+                opts_f.write(json.dumps(additional_options).encode('utf-8'))
+                opts_f.flush() # ensure json content is available for the CLI
+                cmd.run_cli(
+                    '{} --name={} update start --package-version={} --options={}'.format(to_package_name, service_name, to_package_version, opts_f.name))
+        else:
+            cmd.run_cli(
+                '{} --name={} update start --package-version={}'.format(to_package_name, service_name, to_package_version))
     log.info('Checking that all tasks have restarted')
     tasks.check_tasks_updated(service_name, '', task_ids)
 
