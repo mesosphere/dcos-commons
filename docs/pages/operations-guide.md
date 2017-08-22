@@ -566,9 +566,19 @@ $ dcos package install --cli dse --package-version="1.1.6-5.0.7"
 $ dcos dse update start --package-version="1.1.6-5.0.7"
 ```
 
-If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration) below):
+If you are missing mandatory configuration parameters, the `update` command will return an error.
+
+To supply missing configuration values or to override configuration values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration) below):
 ```bash
 $ dcos dse update start --options=options.json --package-version="1.1.6-5.0.7"
+```
+
+The default behavior on update is to merge ‘Default’, ‘Stored’ and ‘Provided’ configurations, in that order, and then
+validate against the schema. In some situations, such as when a schema option has been removed, the default behavior
+might result in an invalid configuration. You can work around this with `--replace=true` which, when specified,
+will override the ‘Stored’ options with the ‘Provided’ options.
+```bash
+$ dcos dse update start --options=options.json --replace=true --package-verion="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
