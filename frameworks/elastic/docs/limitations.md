@@ -15,8 +15,8 @@ The maximum number of deployable nodes is constrained by the DC/OS cluster's res
 
 # Upgrade and Configuration Rolling Updates Do Not Wait for Health
 
-The `serial` deploy strategy does wait for the cluster to reach green before proceeding to the next node.
+The `serial` deploy strategy does not wait for the cluster to reach green before proceeding to the next node.
 
-# Virutal networks
+# Virtual networks
 
 When elastic is deployed on a virtual network such as the `dcos` overlay network, the configuration cannot be updated to use the host network.
