@@ -208,6 +208,15 @@ Configure the port number that the brokers listen on. If the port is set to a pa
 *   **In DC/OS CLI options.json**: `broker-port`: integer (default: `9092`)
 *   **DC/OS web interface**: `BROKER_PORT`: `integer`
 
+### TLS Broker Port
+
+Configure the port number that brokers listen on with a TLS connection. The default value is `9093`. Same rules apply as for [Broker Port](#broker-port).
+
+This setting requires [TLS](#tls) to be enabled, otherwise it is ignored.
+
+*   **In DC/OS CLI options.json**: `broker-port_tls`: integer (default: `9093`)
+*   **DC/OS web interface**: `BROKER_PORT_TLS`: `integer`
+
 ## Configure Broker Placement Strategy <!-- replace this with a discussion of PLACEMENT_CONSTRAINTS? -->
 
 `ANY` allows brokers to be placed on any node with sufficient resources, while `NODE` ensures that all brokers within a given Kafka cluster are never colocated on the same node. This is an option that cannot be changed once the Kafka cluster is started: it can only be configured via the DC/OS CLI `--options` flag when the Kafka instance is created.
@@ -293,6 +302,60 @@ To configure it:
 ```
 
 This configuration option cannot be changed after installation.
+
+## TLS
+
+It is possible to expose Kafka over a secure TLS connection.
+
+**DC/OS CLI options.json**:
+```
+{
+    "service": {
+        "tls": true
+    }
+}
+```
+
+Once the TLS is enabled, Kafka will use secure TLS connections for inter-node communication. Additional TLS port named `broker-tls` will be available for clients connecting to the service. Only the [`TLS version 1.2`](https://www.ietf.org/rfc/rfc5246.txt) is supported. The non-TLS `broker` port will still be available.
+
+Enabling the TLS is possible only in `permissive` or `strict` cluster security modes. Both modes **require** a [service account](https://docs.mesosphere.com/service-docs/kafka/kafka-auth/). Additionally, the service account **must have** the `dcos:superuser` permission. If the permission is missing the Kafka scheduler will not abe able to provision the TLS artifacts.
+
+There is a performance impact with TLS connections that should be considered:
+
+* the initial TLS handshake
+
+* encryption and decryption of messages sent over the socket
+
+It is possible to use the Kafka CLI utility to test the performance impact of TLS by comparing the output of following commands:
+
+```
+export KAFKA_TOPIC_NAME=tls-test
+export KAFKA_MSG_COUNT=100000
+dcos kafka topic create ${KAFKA_TOPIC_NAME}
+
+# Test no TLS
+dcos kafka topic producer_test ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
+
+# Test TLS
+dcos kafka topic producer_test_tls ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
+```
+
+For more information about the TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
+
+### TLS and plaintext
+
+It is possible to keep both TLS and plaintext ports opened at the same time and have clients accessing both of them. To keep the plaintext port open use the following TLS configuration:
+
+```
+{
+    "service": {
+        "tls": true,
+        "tls_allow_plaintext": true
+    }
+}
+```
+
+The plaintext port will be disabled by default when the TLS is enabled.
 
 ## Recovery and Health Checks
 

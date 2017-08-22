@@ -2,9 +2,13 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -35,6 +39,7 @@ public class SuppressReviveManager {
     private final Object suppressReviveLock = new Object();
 
     private final Object stateLock = new Object();
+    private final ConfigStore<ServiceSpec> configStore;
     private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
 
     /**
@@ -49,14 +54,23 @@ public class SuppressReviveManager {
 
     public SuppressReviveManager(
             StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
             SchedulerDriver driver,
             EventBus eventBus,
             Collection<PlanManager> planManagers) {
-        this(stateStore, driver, eventBus, planManagers, SUPPRESSS_REVIVE_DELAY_S, SUPPRESSS_REVIVE_INTERVAL_S);
+        this(
+                stateStore,
+                configStore,
+                driver,
+                eventBus,
+                planManagers,
+                SUPPRESSS_REVIVE_DELAY_S,
+                SUPPRESSS_REVIVE_INTERVAL_S);
     }
 
     public SuppressReviveManager(
             StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
             SchedulerDriver driver,
             EventBus eventBus,
             Collection<PlanManager> planManagers,
@@ -64,6 +78,7 @@ public class SuppressReviveManager {
             int pollInterval) {
 
         this.stateStore = stateStore;
+        this.configStore = configStore;
         this.driver = driver;
         this.planManagers = planManagers;
         eventBus.register(this);
@@ -131,7 +146,14 @@ public class SuppressReviveManager {
                     logger.error("Invalid state transition.  End state should never be INITIAL");
                     return;
                 case WAITING_FOR_OFFER:
-                    revive();
+                    switch (current) {
+                        case REVIVED:
+                            logger.debug("Already revived, no need to revive again and wait for offers.");
+                            target = State.REVIVED;
+                            break;
+                        default:
+                            revive();
+                    }
                     break;
                 case REVIVED:
                     switch (current) {
@@ -178,7 +200,7 @@ public class SuppressReviveManager {
     private void suppressOrRevive() {
         boolean hasOperations = planManagers.stream()
                 .anyMatch(planManager -> PlanUtils.hasOperations(planManager.getPlan()));
-        if (hasOperations) {
+        if (hasOperations || hasTasksNeedingRecovery()) {
             transitionState(State.WAITING_FOR_OFFER);
         } else {
             transitionState(State.SUPPRESSED);
@@ -208,6 +230,23 @@ public class SuppressReviveManager {
                 driver.reviveOffers();
                 StateStoreUtils.setSuppressed(stateStore, false);
             }
+        }
+    }
+
+    protected boolean hasTasksNeedingRecovery() {
+        Collection<Plan> plans = planManagers.stream()
+                .map(planManager -> planManager.getPlan())
+                .collect(Collectors.toList());
+        try {
+            return StateStoreUtils.fetchTasksNeedingRecovery(
+                    stateStore,
+                    configStore,
+                    PlanUtils.getLaunchableTasks(plans)).size() > 0;
+        } catch (TaskException e) {
+            logger.error("Failed to determine whether any tasks need recovery.", e);
+            // The safest course of action is to assume recovery is needed.  If it turns out not to be needed, we'll
+            // suppress offers again soon.
+            return true;
         }
     }
 }
