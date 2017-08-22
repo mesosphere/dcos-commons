@@ -8,6 +8,7 @@ import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,6 +135,8 @@ public class ServiceAccountIAMTokenProvider implements TokenProvider {
             if (connectionTimeout > 0) {
                 httpClientBuilder.setDefaultConnectionTimeout(connectionTimeout);
             }
+
+            httpClientBuilder.setRedirectStrategy(new LaxRedirectStrategy());
 
             return Executor.newInstance(httpClientBuilder.build());
         }

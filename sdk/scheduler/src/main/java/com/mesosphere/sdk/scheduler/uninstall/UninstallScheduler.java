@@ -9,6 +9,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -108,7 +109,23 @@ public class UninstallScheduler extends AbstractScheduler {
         // Create one UninstallStep per unique Resource, including Executor resources.
         // We filter to unique Resource Id's, because Executor level resources are tracked
         // on multiple Tasks. So in this scenario we should have 3 uninstall steps around resources A, B, and C.
-        List<Protos.Resource> allResources = ResourceUtils.getAllResources(stateStore.fetchTasks());
+
+        // Filter the tasks to those that have actually created resources.
+        // If a task has failed its initial launch, it will have a status of TASK_ERROR
+        // and its TaskInfo will labeled as permanently failed.
+        List<Protos.TaskID> tasksInErrorState = stateStore.fetchStatuses()
+                .stream()
+                .filter(taskStatus -> taskStatus.getState() == Protos.TaskState.TASK_ERROR)
+                .map(Protos.TaskStatus::getTaskId)
+                .collect(Collectors.toList());
+
+        List<Protos.TaskInfo> tasksNotFailedAndErrored = stateStore.fetchTasks()
+                .stream()
+                .filter(taskInfo -> !(FailureUtils.isPermanentlyFailed(taskInfo)
+                        && tasksInErrorState.contains(taskInfo.getTaskId())))
+                .collect(Collectors.toList());
+
+        List<Protos.Resource> allResources = ResourceUtils.getAllResources(tasksNotFailedAndErrored);
         List<Step> resourceSteps = ResourceUtils.getResourceIds(allResources).stream()
                 .map(resourceId -> new ResourceCleanupStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
                         Status.COMPLETE : Status.PENDING))

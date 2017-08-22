@@ -10,7 +10,10 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -594,7 +597,8 @@ public class DefaultSchedulerTest {
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
         Protos.TaskID launchedTaskId = getTaskId(operations);
 
-        // Sent TASK_RUNNING status
+        // Send TASK_RUNNING status after the task is Starting (Mesos has been sent Launch)
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isStarting(), equalTo(true));
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
 
         // Wait for the Step to become Complete
@@ -645,6 +649,8 @@ public class DefaultSchedulerTest {
 
         operations = operationsCaptor.getValue();
         launchedTaskId = getTaskId(operations);
+        // Send TASK_RUNNING status after the task is Starting (Mesos has been sent Launch)
+        Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isStarting(), equalTo(true));
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
         Awaitility.await().atMost(1, TimeUnit.SECONDS).untilCall(Awaitility.to(stepTaskA0).isComplete(), equalTo(true));
     }
