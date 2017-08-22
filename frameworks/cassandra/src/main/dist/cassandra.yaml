@@ -73,6 +73,8 @@ server_encryption_options:
     keystore_password: notsecure
     truststore: node.truststore
     truststore_password: notsecure
+    protocol: TLSv1.2
+    cipher_suites: [TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256]
 client_encryption_options:
 {{#CASSANDRA_ENABLE_TLS}}
     enabled: true
@@ -88,6 +90,8 @@ client_encryption_options:
 {{/CASSANDRA_ALLOW_PLAINTEXT}}
     keystore: node.keystore
     keystore_password: notsecure
+    protocol: TLSv1.2
+    cipher_suites: [TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA]
 inter_dc_tcp_nodelay: false
 tracetype_query_ttl: 86400
 tracetype_repair_ttl: 604800

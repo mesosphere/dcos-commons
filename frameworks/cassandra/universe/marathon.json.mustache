@@ -38,7 +38,7 @@
 
     {{#service.tls}}
     "TASKCFG_ALL_CASSANDRA_ENABLE_TLS": "{{service.tls}}",
-    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=\"./apache-cassandra-3.0.14/conf/cqlshrc\"",
+    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.14/conf/cqlshrc",
     {{#service.tls_allow_plaintext}}
     "TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
     {{/service.tls_allow_plaintext}}

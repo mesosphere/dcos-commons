@@ -85,13 +85,13 @@ def service_account():
     """
     name = PACKAGE_NAME
     sdk_security.create_service_account(
-        service_account_name=name, secret_name=name)
+        service_account_name=name, service_account_secret=name)
      # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
     yield name
     sdk_security.delete_service_account(
-        service_account_name=name, secret_name=name)
+        service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module')
@@ -102,8 +102,8 @@ def cassandra_service_tls(service_account):
         service_name=service_account,
         additional_options={
             "service": {
-                "secret_name": service_account,
-                "principal": service_account,
+                "service_account_secret": service_account,
+                "service_account": service_account,
                 "tls": True,
                 "tls_allow_plaintext": False,
             }
@@ -162,7 +162,8 @@ def get_verify_deletion_job():
             command=_get_cqlsh_for_query('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';')),
     ]
     return _get_cqlsh_job_over_tls(
-        'delete-data', commandsx)
+        'delete-data', commands)
+
 
 def _get_cqlsh_job_over_tls(name: str, commands: List[str]):
     """
@@ -207,7 +208,7 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_tls_connection():
+def test_tls_connection(cassandra_service_tls):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
     """
@@ -235,4 +236,11 @@ def test_tls_connection():
         sdk_plan.start_plan(PACKAGE_NAME, 'backup-s3', parameters=plan_parameters)
         sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'backup-s3')
 
+        sdk_jobs.run_job(get_delete_data_job())
+
+        # Run backup plan, uploading snapshots and schema to the cloudddd
+        sdk_plan.start_plan(PACKAGE_NAME, 'restore-s3', parameters=plan_parameters)
+        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'restore-s3')
+
+        sdk_jobs.run_job(get_verify_data_job())
         sdk_jobs.run_job(get_delete_data_job())
