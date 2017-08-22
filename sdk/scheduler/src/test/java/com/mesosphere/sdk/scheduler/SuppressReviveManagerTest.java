@@ -5,6 +5,8 @@ import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -45,6 +47,8 @@ public class SuppressReviveManagerTest {
     @Mock private Phase completePhase;
     @Mock private Phase inProgressPhase;
 
+    @Mock private ConfigStore<ServiceSpec> configStore;
+
     @Before
     public void beforeEach() {
         stateStore = new StateStore(new MemPersister());
@@ -67,6 +71,7 @@ public class SuppressReviveManagerTest {
         when(planManager.getPlan()).thenReturn(completePlan);
         suppressReviveManager = new SuppressReviveManager(
                 stateStore,
+                configStore,
                 driver,
                 eventBus,
                 Arrays.asList(planManager));
@@ -79,6 +84,7 @@ public class SuppressReviveManagerTest {
         when(planManager.getPlan()).thenReturn(inprogressPlan);
         suppressReviveManager = new SuppressReviveManager(
                 stateStore,
+                configStore,
                 driver,
                 eventBus,
                 Arrays.asList(planManager));
@@ -134,6 +140,7 @@ public class SuppressReviveManagerTest {
     private SuppressReviveManager getSuppressReviveManager(PlanManager planManager) {
         return new SuppressReviveManager(
                 stateStore,
+                configStore,
                 driver,
                 eventBus,
                 Arrays.asList(planManager),

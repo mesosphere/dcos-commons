@@ -179,10 +179,10 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
 
-        Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
-        failedTasks = failedTasks.stream()
-                .filter(taskInfo -> recoverableTaskNames.contains(taskInfo.getName()))
-                .collect(Collectors.toList());
+        Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(
+                stateStore,
+                configStore,
+                recoverableTaskNames);
         logger.info("Found tasks needing recovery: {}", getTaskNames(failedTasks));
 
         List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
