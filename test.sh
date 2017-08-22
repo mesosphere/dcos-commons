@@ -160,5 +160,7 @@ docker run --rm \
     -v $(pwd):/build \
     -v $ssh_path:/ssh/key \
     -w /build \
+    -t \
+    -i \
     mesosphere/dcos-commons:latest \
     bash test-runner.sh
