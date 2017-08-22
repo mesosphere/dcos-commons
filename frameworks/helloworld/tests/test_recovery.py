@@ -75,12 +75,13 @@ def test_pod_restart():
     assert old_agent == new_agent
 
 
+@pytest.mark.sanity
 @pytest.mark.recovery
 @sdk_utils.dcos_1_9_or_higher
 def test_pods_restart_graceful_shutdown():
     world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world-0')
 
-    stdout = cmd.run_cli('hello-world pods restart world-0')
+    stdout = sdk_cmd.run_cli('hello-world pods restart world-0')
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
@@ -88,18 +89,18 @@ def test_pods_restart_graceful_shutdown():
     assert jsonobj['tasks'][0] == 'world-0-server'
 
     sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
-    check_running()
+    config.check_running()
 
     # ensure the SIGTERM was sent via the "all clean" message in the world
     # service's signal trap/handler, BUT not the shell command, indicated
     # by "echo".
-    stdout = cmd.run_cli(
+    stdout = sdk_cmd.run_cli(
         "task log --completed --lines=1000 {}".format(world_ids[0]))
     clean_msg = None
     for s in stdout.split('\n'):
         if s.find('echo') < 0 and s.find('all clean') >= 0:
             clean_msg = s
-    if KILL_GRACE_PERIOD <= 0:
+    if WORLD_KILL_GRACE_PERIOD <= 0:
         assert clean_msg == None
     else:
         assert clean_msg != None
