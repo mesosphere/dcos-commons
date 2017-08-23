@@ -6,6 +6,7 @@ from typing import List
 
 import dcos.http
 import pytest
+import requests
 import shakedown
 
 import sdk_cmd
@@ -25,57 +26,17 @@ from tests.config import (
     run_backup_and_restore
 )
 
-def get_cqlsh_tls_rc_config(
-        certfile='/mnt/mesos/sandbox/ca-bundle.crt',
-        hostname=DEFAULT_NODE_ADDRESS,
-        port=DEFAULT_NODE_PORT
-    ):
+
+@pytest.fixture(scope='module')
+def dcos_ca_bundle():
     """
-    Returns a content of `cqlshrc` configuration file with provided hostname,
-    port and certfile location. The configuration can be used for connecting
-    to cassandra over a TLS connection.
+    Retrieve DC/OS CA bundle and returns the content.
     """
-    return textwrap.dedent("""
-        [cql]
-        ; Substitute for the version of Cassandra you are connecting to.
-        version = 3.4.0
-
-        [connection]
-        hostname = {hostname}
-        port = {port}
-        factory = cqlshlib.ssl.ssl_transport_factory
-
-        [ssl]
-        certfile = {certfile}
-        ; Note: If validate = true then the certificate name must match the machine's hostname
-        validate = true
-        ; If using client authentication (require_client_auth = true in cassandra.yaml) you'll also need to point to your uesrkey and usercert.
-        ; SSL client authentication is only supported via cqlsh on C* 2.1 and greater.
-        ; This is disabled by default on all Instaclustr-managed clusters.
-        ; userkey = /path/to/userkey.pem
-        ; usercert = /path/to/usercert.pem
-        """.format(
-            hostname=hostname,
-            port=port,
-            certfile=certfile
-        ))
-
-
-def get_ca_bundle():
-    """
-    Retrieve DC/OS CA bundle
-    """
-    ca_path, err, rc = shakedown.run_dcos_command('config show core.ssl_verify')
-    assert not rc, "Cannot get core.ssl_verify: {}".format(err)
-
-    try:
-        with open(ca_path.strip(), 'rb') as ca_file:
-            print(ca_file)
-            return ca_file.read().decode('ascii')
-    except OSError:
-        pass
-
-    # TODO if file can't be read try to fetch from the [cluster-url]/ca/dcos-ca.crt
+    url = shakedown.dcos_url_path('ca/dcos-ca.crt')
+    resp = dcos.http.request('get', url)
+    cert = resp.content.decode('ascii')
+    assert cert is not None
+    return cert
 
 
 @pytest.fixture(scope='module')
@@ -120,7 +81,43 @@ def cassandra_service_tls(service_account):
     sdk_install.uninstall(PACKAGE_NAME)
 
 
-def get_write_data_job():
+def get_cqlsh_tls_rc_config(
+        certfile='/mnt/mesos/sandbox/ca-bundle.crt',
+        hostname=DEFAULT_NODE_ADDRESS,
+        port=DEFAULT_NODE_PORT
+    ):
+    """
+    Returns a content of `cqlshrc` configuration file with provided hostname,
+    port and certfile location. The configuration can be used for connecting
+    to cassandra over a TLS connection.
+    """
+    return textwrap.dedent("""
+        [cql]
+        ; Substitute for the version of Cassandra you are connecting to.
+        version = 3.4.0
+
+        [connection]
+        hostname = {hostname}
+        port = {port}
+        factory = cqlshlib.ssl.ssl_transport_factory
+
+        [ssl]
+        certfile = {certfile}
+        ; Note: If validate = true then the certificate name must match the machine's hostname
+        validate = true
+        ; If using client authentication (require_client_auth = true in cassandra.yaml) you'll also need to point to your uesrkey and usercert.
+        ; SSL client authentication is only supported via cqlsh on C* 2.1 and greater.
+        ; This is disabled by default on all Instaclustr-managed clusters.
+        ; userkey = /path/to/userkey.pem
+        ; usercert = /path/to/usercert.pem
+        """.format(
+            hostname=hostname,
+            port=port,
+            certfile=certfile
+        ))
+
+
+def get_write_data_job(dcos_ca_bundle: str):
     query = ' '.join([
         "CREATE KEYSPACE testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
         "USE testspace1;",
@@ -132,29 +129,35 @@ def get_write_data_job():
         "CREATE TABLE testtable2 (key varchar, value varchar, PRIMARY KEY(key));",
         "INSERT INTO testspace2.testtable2(key, value) VALUES('testkey2', 'testvalue2');"])
     return _get_cqlsh_job_over_tls(
-        'write-data', [_get_cqlsh_for_query(query)])
+        'write-data',
+        [_get_cqlsh_for_query(query)],
+        dcos_ca_bundle=dcos_ca_bundle,
+    )
 
 
-def get_verify_data_job():
+def get_verify_data_job(dcos_ca_bundle: str):
     commands = [
         '{command} | grep testkey1'.format(command=_get_cqlsh_for_query('SELECT * FROM testspace1.testtable1;')),
         '{command} | grep testkey2'.format(command=_get_cqlsh_for_query('SELECT * FROM testspace2.testtable2;')),
     ]
     return _get_cqlsh_job_over_tls(
-        'verify-data', commands)
+        'verify-data', commands, dcos_ca_bundle=dcos_ca_bundle)
 
 
-def get_delete_data_job():
+def get_delete_data_job(dcos_ca_bundle: str):
     query = ' '.join([
         'TRUNCATE testspace1.testtable1;',
         'TRUNCATE testspace2.testtable2;',
         'DROP KEYSPACE testspace1;',
         'DROP KEYSPACE testspace2;'])
     return _get_cqlsh_job_over_tls(
-        'delete-data', [_get_cqlsh_for_query(query)])
+        'delete-data',
+        [_get_cqlsh_for_query(query)],
+        dcos_ca_bundle=dcos_ca_bundle,
+    )
 
 
-def get_verify_deletion_job():
+def get_verify_deletion_job(dcos_ca_bundle: str):
     commands = [
         '{command} | grep "0 rows"'.format(
             command=_get_cqlsh_for_query('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';')),
@@ -162,10 +165,13 @@ def get_verify_deletion_job():
             command=_get_cqlsh_for_query('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';')),
     ]
     return _get_cqlsh_job_over_tls(
-        'delete-data', commands)
+        'delete-data', commands, dcos_ca_bundle=dcos_ca_bundle)
 
 
-def _get_cqlsh_job_over_tls(name: str, commands: List[str]):
+def _get_cqlsh_job_over_tls(
+        name: str,
+        commands: List[str],
+        dcos_ca_bundle: str=None):
     """
     Creates a DC/OS job with `cqlsh` utility that will be ready to run commands
     over a TLS connection.
@@ -185,7 +191,7 @@ def _get_cqlsh_job_over_tls(name: str, commands: List[str]):
             'docker': { 'image': 'cassandra:3.0.13' },
             'env': {
                 'CQLSHRC_FILE': get_cqlsh_tls_rc_config(),
-                'CA_BUNDLE': get_ca_bundle(),
+                'CA_BUNDLE': dcos_ca_bundle,
             },
             'cpus': 1,
             'mem': 512,
@@ -208,17 +214,17 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_tls_connection(cassandra_service_tls):
+def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
     """
     with sdk_jobs.InstallJobContext([
-            get_write_data_job(),
-            get_verify_data_job(),
-            get_delete_data_job()]):
+            get_write_data_job(dcos_ca_bundle),
+            get_verify_data_job(dcos_ca_bundle),
+            get_delete_data_job(dcos_ca_bundle)]):
 
-        sdk_jobs.run_job(get_write_data_job())
-        sdk_jobs.run_job(get_verify_data_job())
+        sdk_jobs.run_job(get_write_data_job(dcos_ca_bundle))
+        sdk_jobs.run_job(get_verify_data_job(dcos_ca_bundle))
 
         key_id = os.getenv('AWS_ACCESS_KEY_ID')
         if not key_id:
@@ -236,16 +242,15 @@ def test_tls_connection(cassandra_service_tls):
         sdk_plan.start_plan(PACKAGE_NAME, 'backup-s3', parameters=plan_parameters)
         sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'backup-s3')
 
-        sdk_jobs.run_job(get_delete_data_job())
+        sdk_jobs.run_job(get_delete_data_job(dcos_ca_bundle))
 
         # Run backup plan, uploading snapshots and schema to the cloudddd
         sdk_plan.start_plan(PACKAGE_NAME, 'restore-s3', parameters=plan_parameters)
         sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'restore-s3')
 
     with sdk_jobs.InstallJobContext([
-            get_write_data_job(),
-            get_verify_data_job(),
-            get_delete_data_job()]):
+            get_verify_data_job(dcos_ca_bundle),
+            get_delete_data_job(dcos_ca_bundle)]):
 
-        sdk_jobs.run_job(get_verify_data_job())
-        sdk_jobs.run_job(get_delete_data_job())
+        sdk_jobs.run_job(get_verify_data_job(dcos_ca_bundle))
+        sdk_jobs.run_job(get_delete_data_job(dcos_ca_bundle))
