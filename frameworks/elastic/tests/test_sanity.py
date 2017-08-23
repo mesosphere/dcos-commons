@@ -30,7 +30,8 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+            additional_options={"service": {"name": FOLDERED_SERVICE_NAME},
+                                "ingest_nodes": {"count": 1}})
 
         yield  # let the test session execute
     finally:
@@ -52,7 +53,7 @@ def default_populated_index():
     config.create_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"}, service_name=FOLDERED_SERVICE_NAME)
 
 
-@pytest.mark.sanity
+@pytest.mark.focus
 @pytest.mark.smoke
 def test_service_health():
     assert shakedown.service_healthy(FOLDERED_SERVICE_NAME)
