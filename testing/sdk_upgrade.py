@@ -188,6 +188,7 @@ def soak_upgrade_downgrade(
         running_task_count,
         install_options={},
         timeout_seconds=25*60):
+    cmd.run_cli("package install --cli {} --yes".format(universe_package_name))
     version = 'stub-universe'
     print('Upgrading to test version: {} => {} {}'.format(universe_package_name, test_package_name, version))
     _upgrade_or_downgrade(
