@@ -39,9 +39,9 @@ def test_upgrade(
         test_version_options = additional_options
 
     # make sure BOTH are uninstalled...
-    install.uninstall(service_name, package_name=universe_package_name)
+    install.uninstall(universe_package_name, service_name)
     if universe_package_name is not test_package_name:
-        install.uninstall(service_name, package_name=test_package_name)
+        install.uninstall(test_package_name, service_name)
 
     test_version = _get_pkg_version(test_package_name)
     log.info('Found test version: {}'.format(test_version))
@@ -60,8 +60,8 @@ def test_upgrade(
         # Keep the service name the same throughout the test
         install.install(
             universe_package_name,
+            service_name,
             running_task_count,
-            service_name=service_name,
             additional_options=additional_options,
             timeout_seconds=timeout_seconds,
             wait_for_deployment=wait_for_deployment)
@@ -144,7 +144,7 @@ def test_downgrade(
     else:
         log.info('Skipping reinstall of test version {}={}, uninstalling universe version {}={}'.format(
             test_package_name, test_version, universe_package_name, universe_version))
-        install.uninstall(service_name, package_name=universe_package_name)
+        install.uninstall(universe_package_name, service_name)
 
 
 # (1) Installs Universe version of framework (after uninstalling any test version).
@@ -239,8 +239,8 @@ def _upgrade_or_downgrade(
         marathon.destroy_app(service_name)
         install.install(
             to_package_name,
+            service_name,
             running_task_count,
-            service_name=service_name,
             additional_options=additional_options,
             timeout_seconds=timeout_seconds,
             package_version=to_package_version)
