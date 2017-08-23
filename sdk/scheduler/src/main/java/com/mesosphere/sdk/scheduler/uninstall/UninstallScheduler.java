@@ -1,49 +1,37 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 
 /**
  * This scheduler uninstalls the framework and releases all of its resources.
  */
 public class UninstallScheduler extends AbstractScheduler {
 
-    private static final String TASK_KILL_PHASE = "task-kill-phase";
-    private static final String RESOURCE_PHASE = "resource-phase";
-    private static final String DEREGISTER_PHASE = "deregister-phase";
-    private static final String TLS_CLEANUP_PHASE = "tls-cleanup-phase";
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
-    protected final int port;
-    protected final Optional<SecretsClient> secretsClient;
-    protected final String serviceName;
-    private final Plan uninstallPlan;
-    private final ConfigStore<ServiceSpec> configStore;
-    private final SchedulerFlags schedulerFlags;
-    PlanManager uninstallPlanManager;
-    private TaskKiller taskKiller;
+
+    private final UninstallPlanBuilder uninstallPlanBuilder;
+    private final PlanManager uninstallPlanManager;
+    private final SchedulerApiServer schedulerApiServer;
+
+    // Initialized when registration completes (and when we have the SchedulerDriver):
     private OfferAccepter offerAccepter;
-    private SchedulerApiServer schedulerApiServer;
 
     /**
      * Creates a new UninstallScheduler based on the provided API port and initialization timeout,
@@ -53,107 +41,28 @@ public class UninstallScheduler extends AbstractScheduler {
      */
     public UninstallScheduler(
             String serviceName,
-            int port,
-            Duration apiServerInitTimeout,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
             Optional<SecretsClient> secretsClient) {
         super(stateStore, configStore);
-        this.port = port;
-        this.configStore = configStore;
-        this.schedulerFlags = schedulerFlags;
-        this.secretsClient = secretsClient;
-        this.serviceName = serviceName;
-        this.uninstallPlan = getPlan();
-        this.uninstallPlanManager = new DefaultPlanManager(uninstallPlan);
+        this.uninstallPlanBuilder =
+                new UninstallPlanBuilder(serviceName, stateStore, configStore, schedulerFlags, secretsClient);
+        this.uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
         LOGGER.info("Initializing plans resource...");
-        PlansResource plansResource = new PlansResource(Collections.singletonList(uninstallPlanManager));
-        Collection<Object> apiResources = Collections.singletonList(plansResource);
-        schedulerApiServer = new SchedulerApiServer(port, apiResources, apiServerInitTimeout);
+        this.schedulerApiServer = new SchedulerApiServer(
+                schedulerFlags.getApiServerPort(),
+                Collections.singletonList(new PlansResource(Collections.singletonList(uninstallPlanManager))),
+                schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
     }
 
     public UninstallScheduler(
             String serviceName,
-            int port,
-            Duration apiServerInitTimeout,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags) {
-        this(serviceName, port, apiServerInitTimeout, stateStore, configStore, schedulerFlags, Optional.empty());
-    }
-
-    private Plan getPlan() {
-        // If there is no framework ID, wipe ZK and return a COMPLETE plan
-        if (!stateStore.fetchFrameworkId().isPresent()) {
-            LOGGER.info("There is no framework ID so clear service in StateStore and return a COMPLETE plan");
-            stateStore.clearAllData();
-            return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
-        }
-
-        List<Phase> phases = new ArrayList<>();
-
-        // First, we kill all the tasks, so that we may release their reserved resources.
-        List<Step> taskKillSteps = stateStore.fetchTasks().stream()
-                .map(Protos.TaskInfo::getTaskId)
-                .map(taskID -> new TaskKillStep(taskID))
-                .collect(Collectors.toList());
-        Phase taskKillPhase = new DefaultPhase(TASK_KILL_PHASE, taskKillSteps, new ParallelStrategy<>(),
-                Collections.emptyList());
-        phases.add(taskKillPhase);
-
-        // Given this scenario:
-        // - Task 1: resource A, resource B
-        // - Task 2: resource A, resource C
-        // Create one UninstallStep per unique Resource, including Executor resources.
-        // We filter to unique Resource Id's, because Executor level resources are tracked
-        // on multiple Tasks. So in this scenario we should have 3 uninstall steps around resources A, B, and C.
-
-        // Filter the tasks to those that have actually created resources.
-        // If a task has failed its initial launch, it will have a status of TASK_ERROR
-        // and its TaskInfo will labeled as permanently failed.
-        List<Protos.TaskID> tasksInErrorState = stateStore.fetchStatuses()
-                .stream()
-                .filter(taskStatus -> taskStatus.getState() == Protos.TaskState.TASK_ERROR)
-                .map(Protos.TaskStatus::getTaskId)
-                .collect(Collectors.toList());
-
-        List<Protos.TaskInfo> tasksNotFailedAndErrored = stateStore.fetchTasks()
-                .stream()
-                .filter(taskInfo -> !(FailureUtils.isPermanentlyFailed(taskInfo)
-                        && tasksInErrorState.contains(taskInfo.getTaskId())))
-                .collect(Collectors.toList());
-
-        List<Protos.Resource> allResources = ResourceUtils.getAllResources(tasksNotFailedAndErrored);
-        List<Step> resourceSteps = ResourceUtils.getResourceIds(allResources).stream()
-                .map(resourceId -> new ResourceCleanupStep(resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ?
-                        Status.COMPLETE : Status.PENDING))
-                .collect(Collectors.toList());
-
-        Phase resourcePhase = new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(),
-                Collections.emptyList());
-        phases.add(resourcePhase);
-
-        if (secretsClient.isPresent()) {
-            Step tlsCleanupStep = new TLSCleanupStep(
-                    Status.PENDING,
-                    secretsClient.get(),
-                    SecretNameGenerator.getNamespaceFromEnvironment(serviceName, schedulerFlags));
-            List<Step> tlsCleanupSteps = Collections.singletonList(tlsCleanupStep);
-            Phase tlsCleanupPhase = new DefaultPhase(TLS_CLEANUP_PHASE, tlsCleanupSteps, new SerialStrategy<>(),
-                    Collections.emptyList());
-            phases.add(tlsCleanupPhase);
-        }
-
-        // We don't have access to the SchedulerDriver yet, so that gets set later
-        Step deregisterStep = new DeregisterStep(stateStore);
-        List<Step> deregisterSteps = Collections.singletonList(deregisterStep);
-        Phase deregisterPhase = new DefaultPhase(DEREGISTER_PHASE, deregisterSteps, new SerialStrategy<>(),
-                Collections.emptyList());
-        phases.add(deregisterPhase);
-
-        return new DefaultPlan(Constants.DEPLOY_PLAN_NAME, phases);
+        this(serviceName, stateStore, configStore, schedulerFlags, Optional.empty());
     }
 
     @Override
@@ -169,31 +78,10 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private void initializeGlobals(SchedulerDriver driver) {
         LOGGER.info("Initializing globals...");
-        taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore), driver);
-        // Add the task killer to the task kill steps.
-        uninstallPlan.getChildren().stream()
-                .filter(phase -> phase.getName().equals(TASK_KILL_PHASE))
-                .findFirst()
-                .get()
-                .getChildren()
-                .forEach(step -> ((TaskKillStep) step).setTaskKiller(taskKiller));
-
-        // Attach the resource phase to the uninstall recorder.
-        Phase resourcePhase = uninstallPlan.getChildren().stream()
-                .filter(phase -> phase.getName().equals(RESOURCE_PHASE))
-                .findFirst()
-                .get();
-        UninstallRecorder uninstallRecorder = new UninstallRecorder(stateStore, resourcePhase);
-        offerAccepter = new OfferAccepter(Collections.singletonList(uninstallRecorder));
-
-        // Set the driver on the DeregisterStep
-        ((DeregisterStep) uninstallPlan.getChildren()
-                .stream()
-                .filter(phase -> phase.getName().equals(DEREGISTER_PHASE))
-                .findFirst()
-                .get()
-                .getChildren()
-                .get(0)).setSchedulerDriver(driver);
+        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep in the Plan.
+        uninstallPlanBuilder.registered(driver);
+        offerAccepter = new OfferAccepter(Collections.singletonList(
+                new UninstallRecorder(stateStore, uninstallPlanBuilder.getResourceSteps())));
     }
 
     public boolean apiServerReady() {
@@ -218,11 +106,8 @@ public class UninstallScheduler extends AbstractScheduler {
                 new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
                         .resourceOffers(driver, localOffers));
 
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(
-                localOffers,
-                offersWithReservedResources);
-
         // Decline remaining offers.
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
         OfferUtils.declineOffers(driver, unusedOffers);
     }
 
@@ -233,10 +118,11 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        LOGGER.info("Received status update for taskId={} state={} message='{}'",
+        LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
                 status.getTaskId().getValue(),
                 status.getState().toString(),
-                status.getMessage());
+                status.getMessage(),
+                TextFormat.shortDebugString(status));
 
         eventBus.post(status);
 
@@ -244,8 +130,14 @@ public class UninstallScheduler extends AbstractScheduler {
             stateStore.storeStatus(status);
             reconciler.update(status);
         } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
+            LOGGER.warn(String.format("Failed to handle TaskStatus received from Mesos. "
+                    + "This may be expected if Mesos sent stale status information: %s",
+                    TextFormat.shortDebugString(status)), e);
         }
+    }
+
+    @VisibleForTesting
+    Plan getPlan() {
+        return uninstallPlanManager.getPlan();
     }
 }
