@@ -7,7 +7,7 @@ BUILD_DIR=$FRAMEWORK_DIR/build/distributions
 # grab TEMPLATE_x vars for use in universe template:
 source $FRAMEWORK_DIR/versions.sh
 
-../../tools/build_framework.sh \
+$FRAMEWORK_DIR/../../tools/build_framework.sh \
     $FRAMEWORK_DIR \
     --artifact "$BUILD_DIR/executor.zip" \
     --artifact "$BUILD_DIR/$(basename $FRAMEWORK_DIR)-scheduler.zip" \

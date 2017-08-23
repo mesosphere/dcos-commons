@@ -56,7 +56,7 @@ for framework in $FRAMEWORK_LIST; do
     /build/tools/dcos_login.py
 
     echo "Starting test for $framework at "`date`
-    py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
+    PYTHONUNBUFFERED=1 py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
     echo "Finished test for $framework at "`date`
 done
 

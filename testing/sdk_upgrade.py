@@ -71,7 +71,7 @@ def test_upgrade(
             shakedown.remove_package_repo('Universe')
             _add_last_repo('Universe', universe_url, universe_version, test_package_name)
 
-    log.info('Upgrading to test version: {}={}'.format(test_package_name, test_version))
+    log.info('Upgrading {} to {}={}'.format(universe_package_name, test_package_name, test_version))
     _upgrade_or_downgrade(
         universe_package_name,
         test_package_name,
@@ -234,8 +234,8 @@ def _upgrade_or_downgrade(
         additional_options,
         timeout_seconds):
     task_ids = tasks.get_task_ids(service_name, '')
-    if shakedown.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
-        # Marathon upgrade flow
+    if shakedown.dcos_version_less_than("1.10") or shakedown.ee_version() is None or from_package_name != to_package_name:
+        log.info('Using marathon upgrade flow to upgrade {} => {} {}'.format(from_package_name, to_package_name, to_package_version))
         marathon.destroy_app(service_name)
         install.install(
             to_package_name,
@@ -245,23 +245,16 @@ def _upgrade_or_downgrade(
             timeout_seconds=timeout_seconds,
             package_version=to_package_version)
     else:
-        # CLI upgrade flow
-        if from_package_name != to_package_name:
-            # cosmos doesn't support upgrades across package names.
-            raise 'Unable to perform cosmos upgrade across different package names: from={} to={}'.format(
-                from_package_name, to_package_name)
+        log.info('Using CLI upgrade flow to upgrade {} => {} {}'.format(from_package_name, to_package_name, to_package_version))
         if additional_options:
             with tempfile.NamedTemporaryFile() as opts_f:
-                opts_f.write(json.dumps(additional_options))
-                cmd.svc_cli(
-                    to_package_name,
-                    'update start --package-version={} --options={}'.format(to_package_version, opts_f.name),
-                    service_name=service_name)
+                opts_f.write(json.dumps(additional_options).encode('utf-8'))
+                opts_f.flush() # ensure json content is available for the CLI
+                cmd.run_cli(
+                    '{} --name={} update start --package-version={} --options={}'.format(to_package_name, service_name, to_package_version, opts_f.name))
         else:
-            cmd.svc_cli(
-                to_package_name,
-                'update start --package-version={}'.format(to_package_version),
-                service_name=service_name)
+            cmd.run_cli(
+                '{} --name={} update start --package-version={}'.format(to_package_name, service_name, to_package_version))
     log.info('Checking that all tasks have restarted')
     tasks.check_tasks_updated(service_name, '', task_ids)
 
