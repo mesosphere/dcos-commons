@@ -21,16 +21,7 @@ BROKER_TLS_ENDPOINT = 'broker-tls'
 
 
 @pytest.fixture(scope='module')
-def dcos_security_cli():
-    """
-    Installs the dcos enterprise cli.
-    """
-
-    sdk_cmd.run_cli("package install --yes dcos-enterprise-cli")
-
-
-@pytest.fixture(scope='module')
-def service_account(dcos_security_cli):
+def service_account():
     """
     Creates service account with `hello-world` name and yields the name.
     """
@@ -55,6 +46,9 @@ def kafka_service_tls(service_account):
             "service": {
                 "service_account": service_account,
                 "service_account_secret": service_account,
+                # Legacy values
+                "principal": service_account,
+                "secret_name": service_account,
                 "tls": True
             }
         }
