@@ -91,6 +91,18 @@ public class TaskUtils {
     }
 
     /**
+     * Returns all the {@link TaskSpec} that have TLS configuration.
+     *
+     * @return A list of the task specs.
+     */
+    public static List<TaskSpec> getTasksWithTLS(PodInstanceRequirement podInstanceRequirement) {
+        return podInstanceRequirement.getPodInstance().getPod().getTasks()
+                .stream()
+                .filter(taskSpec -> !taskSpec.getTransportEncryption().isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Returns the TaskInfos associated with a PodInstance if its ever been launched.  The list will be empty if the
      * PodInstance has never been launched.
      *
@@ -232,6 +244,14 @@ public class TaskUtils {
         Optional<DiscoverySpec> newDiscoverySpec = newTaskSpec.getDiscovery();
         if (!Objects.equals(oldDiscoverySpec, newDiscoverySpec)) {
             LOGGER.debug("DiscoverySpecs '{}' and '{}' are different.", oldDiscoverySpec, newDiscoverySpec);
+            return true;
+        }
+
+        int oldTaskKillGracePeriodSeconds = oldTaskSpec.getTaskKillGracePeriodSeconds();
+        int newTaskKillGracePeriodSeconds = newTaskSpec.getTaskKillGracePeriodSeconds();
+        if (oldTaskKillGracePeriodSeconds != newTaskKillGracePeriodSeconds) {
+            LOGGER.debug("TaskKillGracePeriodSeconds '{}' and '{}' are different.",
+                    oldTaskKillGracePeriodSeconds, newTaskKillGracePeriodSeconds);
             return true;
         }
 

@@ -4,16 +4,31 @@ import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.api.ResponseUtils.*;
@@ -55,9 +70,16 @@ public class PlansResource extends PrettyJsonResource {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (planManagerOptional.isPresent()) {
             Plan plan = planManagerOptional.get().getPlan();
+
+            Response.Status response = Response.Status.ACCEPTED;
+            if (plan.hasErrors()) {
+                response = Response.Status.EXPECTATION_FAILED;
+            } else if (plan.isComplete()) {
+                response = Response.Status.OK;
+            }
             return jsonResponseBean(
                     PlanInfo.forPlan(plan),
-                    plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
+                    response);
         } else {
             return elementNotFoundResponse();
         }
@@ -95,6 +117,8 @@ public class PlansResource extends PrettyJsonResource {
     /**
      * Idempotently stops a plan.  If a plan is in progress, it is interrupted and the plan is reset such that all
      * elements are pending.  If a plan is already stopped, it has no effect.
+     *
+     * @see interruptCommand for the distinctions between Stop and Interrupt actions.
      */
     @POST
     @Path("/plans/{planName}/stop")
@@ -128,14 +152,14 @@ public class PlansResource extends PrettyJsonResource {
 
             boolean allInProgress = phases.stream()
                     .filter(phz -> phz.isInProgress())
-                    .count()  == phases.size();
-            
+                    .count() == phases.size();
+
             boolean allComplete = phases.stream()
-                .filter(phz -> phz.isComplete()).count() == phases.size();
+                    .filter(phz -> phz.isComplete()).count() == phases.size();
 
             if (allInProgress || allComplete) {
                 return alreadyReportedResponse();
-            } 
+            }
 
             phases.forEach(ParentElement::proceed);
         } else {
@@ -149,6 +173,20 @@ public class PlansResource extends PrettyJsonResource {
         return jsonOkResponse(getCommandResult("continue"));
     }
 
+    /**
+     * Interrupts (Pauses) a plan or if specified a phase within a plan.  If a plan/phase is in progress, it
+     * is interrupted and the plan/phase is reset such that it is pending.  If the plan/phase is already in
+     * a non-interruptable state (interrupted or complete), the response will indicate as such.
+     *
+     * An interrupted Phase is not immediately halted, but sets the interrupted bit to ensure that subsequent
+     * requests to process will not proceed. @see Interruptible .
+     *
+     * Interrupt differs from stop in the following ways:
+     * A) Interrupt can be issued for a specific phase or for all phases within a plan.  Stop can only be
+     *    issued for a plan. 
+     * B) Interrupt updates the underlying Phase/Step state. Stop not only updates the underlying state, but
+     *    also restarts the Plan.
+     */
     @POST
     @Path("/plans/{planName}/interrupt")
     public Response interruptCommand(
@@ -160,17 +198,17 @@ public class PlansResource extends PrettyJsonResource {
         }
 
         if (phase != null) {
-            List<Phase> phases = getPhases(planManagerOptional.get(), phase);   
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
                 return elementNotFoundResponse();
             }
 
             boolean allInterrupted = phases.stream()
-                .filter(phz -> phz.isInterrupted()).count() == phases.size();
-            
+                    .filter(phz -> phz.isInterrupted()).count() == phases.size();
+
             boolean allComplete = phases.stream()
-                .filter(phz -> phz.isComplete()).count() == phases.size();
-            
+                    .filter(phz -> phz.isComplete()).count() == phases.size();
+
             if (allInterrupted || allComplete) {
                 return alreadyReportedResponse();
             }

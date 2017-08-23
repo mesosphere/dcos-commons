@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.scheduler.Observable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -11,8 +10,6 @@ import java.util.Optional;
  * tasks to perform, such as launching a Task, updating a Task, or reconciling Mesos state with
  * Framework state. A Step may be in one of five states: PENDING, PREPARED, STARTING, COMPLETE, or ERROR.
  *
- * A {@link Step} is an {@link Observable}, and will notify its observers when its state changes.
- * <p>
  * See {@link Plan} docs for more background.
  */
 public interface Step extends Element, Interruptible {

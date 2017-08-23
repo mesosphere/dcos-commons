@@ -40,6 +40,9 @@ class AWSPublisher(object):
         self._input_dir_path = input_dir_path
 
         self._aws_region = os.environ.get('AWS_UPLOAD_REGION', '')
+        self._universe_url_prefix = os.environ.get(
+            'UNIVERSE_URL_PREFIX',
+            'https://universe-converter.mesosphere.com/transform?url=')
         s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')
         s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
         dir_name = '{}-{}'.format(
@@ -152,8 +155,12 @@ class AWSPublisher(object):
             self._github_updater.update('error', err)
             raise
 
-        # print universe url early
-        universe_url = self._upload_artifact(universe_path, content_type=builder.content_type())
+        # upload universe package definition first and get its URL
+        universe_url = self._universe_url_prefix + self._upload_artifact(
+            universe_path,
+            content_type='application/vnd.dcos.universe.repo+json;charset=utf-8')
+        logger.info('---')
+        logger.info('STUB UNIVERSE: {}'.format(universe_url))
         logger.info('---')
         logger.info('Uploading {} artifacts:'.format(len(self._artifact_paths)))
 

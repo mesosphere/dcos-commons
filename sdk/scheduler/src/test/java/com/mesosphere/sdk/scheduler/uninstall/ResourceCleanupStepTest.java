@@ -14,21 +14,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-public class UninstallStepTest extends DefaultCapabilitiesTestSuite {
+public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
     private static final String RESOURCE_ID = "resource id";
     private static final String DIFFERENT_RESOURCE_ID = "nope";
-    private UninstallStep uninstallStep;
+    private ResourceCleanupStep resourceCleanupStep;
 
     @Before
     public void beforeEach() throws Exception {
-        uninstallStep = new UninstallStep(RESOURCE_ID, Status.PENDING);
+        resourceCleanupStep = new ResourceCleanupStep(RESOURCE_ID, Status.PENDING);
     }
 
     @Test
     public void testStart() throws Exception {
-        assert uninstallStep.getStatus().equals(Status.PENDING);
-        assert uninstallStep.start().equals(Optional.empty());
-        assert uninstallStep.getStatus().equals(Status.PREPARED);
+        assert resourceCleanupStep.getStatus().equals(Status.PENDING);
+        assert resourceCleanupStep.start().equals(Optional.empty());
+        assert resourceCleanupStep.getStatus().equals(Status.PREPARED);
     }
 
     @Test
@@ -39,9 +39,9 @@ public class UninstallStepTest extends DefaultCapabilitiesTestSuite {
                         RESOURCE_ID,
                         TestConstants.ROLE,
                         TestConstants.PRINCIPAL));
-        uninstallStep.start();
-        uninstallStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
-        assert uninstallStep.getStatus().equals(Status.COMPLETE);
+        resourceCleanupStep.start();
+        resourceCleanupStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
+        assert resourceCleanupStep.getStatus().equals(Status.COMPLETE);
     }
 
     @Test
@@ -52,9 +52,9 @@ public class UninstallStepTest extends DefaultCapabilitiesTestSuite {
                         DIFFERENT_RESOURCE_ID,
                         TestConstants.ROLE,
                         TestConstants.PRINCIPAL));
-        uninstallStep.start();
-        uninstallStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
-        assert uninstallStep.getStatus().equals(Status.PREPARED);
+        resourceCleanupStep.start();
+        resourceCleanupStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
+        assert resourceCleanupStep.getStatus().equals(Status.PREPARED);
     }
 
     @Test
@@ -62,18 +62,18 @@ public class UninstallStepTest extends DefaultCapabilitiesTestSuite {
         OfferRecommendation rec1 = new CreateOfferRecommendation(null, ResourceTestUtils.getExpectedRootVolume(999.0));
         OfferRecommendation rec2 = new UnreserveOfferRecommendation(null,
                 ResourceTestUtils.getExpectedScalar("cpus", 1.0, RESOURCE_ID, TestConstants.ROLE, TestConstants.PRINCIPAL));
-        uninstallStep.start();
-        uninstallStep.updateOfferStatus(Arrays.asList(rec1, rec2));
-        assert uninstallStep.getStatus().equals(Status.COMPLETE);
+        resourceCleanupStep.start();
+        resourceCleanupStep.updateOfferStatus(Arrays.asList(rec1, rec2));
+        assert resourceCleanupStep.getStatus().equals(Status.COMPLETE);
     }
 
     @Test
     public void testGetAsset() throws Exception {
-        assert uninstallStep.getAsset().equals(Optional.empty());
+        assert resourceCleanupStep.getAsset().equals(Optional.empty());
     }
 
     @Test
     public void testGetErrors() throws Exception {
-        assert uninstallStep.getErrors().equals(Collections.emptyList());
+        assert resourceCleanupStep.getErrors().equals(Collections.emptyList());
     }
 }

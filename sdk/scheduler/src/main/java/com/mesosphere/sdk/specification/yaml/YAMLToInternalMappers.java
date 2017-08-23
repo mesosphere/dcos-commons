@@ -188,7 +188,8 @@ public class YAMLToInternalMappers {
                 .count(rawPod.getCount())
                 .type(podName)
                 .user(user)
-                .preReservedRole(rawPod.getPreReservedRole());
+                .preReservedRole(rawPod.getPreReservedRole())
+                .sharePidNamespace(rawPod.getSharePidNamespace());
 
         // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
         // functionality (CNI or otherwise) will land in the pod-level only.
@@ -228,7 +229,6 @@ public class YAMLToInternalMappers {
             builder.image(containerInfoProvider.getImage())
                     .networks(networks)
                     .rlimits(rlimits);
-
         }
 
         // Collect the resourceSets (if given)
@@ -370,6 +370,8 @@ public class YAMLToInternalMappers {
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
+                .name(taskName)
+                .taskKillGracePeriodSeconds(rawTask.getTaskKillGracePeriodSeconds())
                 .setTransportEncryption(transportEncryption)
                 .name(taskName);
 

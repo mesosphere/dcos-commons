@@ -26,13 +26,12 @@ public class DefaultSecretsClient implements SecretsClient {
     /**
      * URL path prefix for secret store.
      */
-    public static final String STORE_PREFIX = "secret/%s/";
+    private static final String STORE_PREFIX = "secret/%s/";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private URL baseUrl;
     private String store;
     private Executor httpExecutor;
-
-    private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public DefaultSecretsClient(URL baseUrl, String store, Executor executor) {
         this.baseUrl = URLUtils.addPathUnchecked(baseUrl, String.format(STORE_PREFIX, store));

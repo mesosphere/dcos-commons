@@ -56,10 +56,10 @@ func (cmd *describeHandler) handleDescribe(a *kingpin.Application, e *kingpin.Pa
 	return nil
 }
 
-// HandleDescribe adds the describe subcommand to the passed in kingpin.Application.
-func HandleDescribe(app *kingpin.Application) {
+// HandleDescribeSection adds the describe subcommand to the passed in kingpin.Application.
+func HandleDescribeSection(app *kingpin.Application) {
 	cmd := &describeHandler{}
-	app.Command("describe", "View the package configuration for this DC/OS service").Action(cmd.handleDescribe)
+	app.Command("describe", "View the configuration for this service").Action(cmd.handleDescribe)
 }
 
 type updateHandler struct {
@@ -67,6 +67,7 @@ type updateHandler struct {
 	OptionsFile    string
 	PackageVersion string
 	ViewStatus     bool
+	Replace        bool
 }
 
 type updateRequest struct {
@@ -130,9 +131,9 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 	return string(responseJSON["marathonDeploymentId"].(string)), nil
 }
 
-func doUpdate(optionsFile, packageVersion string) {
+func doUpdate(optionsFile, packageVersion string, replace bool) {
 	// TODO: figure out KingPin's error handling
-	request := updateRequest{AppID: config.ServiceName, Replace: false}
+	request := updateRequest{AppID: config.ServiceName, Replace: replace}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
 		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
 		return
@@ -165,7 +166,7 @@ func doUpdate(optionsFile, packageVersion string) {
 
 func (cmd *updateHandler) UpdateConfiguration(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	config.Command = c.SelectedCommand.FullCommand()
-	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
+	doUpdate(cmd.OptionsFile, cmd.PackageVersion, cmd.Replace)
 	return nil
 }
 
@@ -177,6 +178,7 @@ func HandleUpdateSection(app *kingpin.Application) {
 	start := update.Command("start", "Launches an update operation").Action(cmd.UpdateConfiguration)
 	start.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&cmd.OptionsFile)
 	start.Flag("package-version", "The desired package version").StringVar(&cmd.PackageVersion)
+	start.Flag("replace", "Replace the existing configuration in whole. Otherwise, the existing configuration and options are merged.").BoolVar(&cmd.Replace)
 
 	planCmd := &planHandler{}
 
@@ -196,4 +198,6 @@ func HandleUpdateSection(app *kingpin.Application) {
 
 	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&planCmd.RawJSON)
+	// ensure plan name is passed
+	status.Flag("plan", "Name of the plan to launch").Default("deploy").Hidden().StringVar(&planCmd.PlanName)
 }

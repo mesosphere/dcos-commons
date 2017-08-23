@@ -75,3 +75,7 @@ In the example below, the broker with id `0` will be replaced on new machine as 
 
     $ dcos kafka broker replace 0
 
+# Extending the Kill Grace Period
+
+If the Kafka brokers are not completing the clean shutdown within the configured
+`brokers.kill_grace_period` (Kill Grace Period), extend the Kill Grace Period, see Managing - Extend Kill Grace Period.

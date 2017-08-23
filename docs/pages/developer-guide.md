@@ -155,7 +155,7 @@ pods:
     * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
 
     * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#defining-a-target-configuration) section. This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
-    
+
     * **user** This is the account used when running the processes on the host.  The recommended default is `nobody`.
 
 * **Pods**: A pod is simply a set of tasks.
@@ -1089,8 +1089,6 @@ A **.truststore** is a JKS file that contains the DC/OS root CA certificate stor
 
 The password **`notsecure`** that protects both JKS files (containing an end-entity certificate with private key and root CA certificate) has been selected because most Java tools and libraries require a password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers or tasks can access TLS artifacts provisioned by a scheduler.
 
-**Imporant note:** The DC/OS 1.10 secrets store doesn't provide support for storing binary data. To overcome this limitation, the `keystore` and `truststore` files are Base64 encoded before they are added to the secrets store. Files are mounted into a task container with additional `base64` file name suffix - `*.keystore.base64` and `*.truststore.base64`. There is a `bootstrap` utility helper that automatically decodes files in `$MESOS_SANDBOX` with `*.keystore.base64` and `*.truststore.base64` extension and stores them in a sandbox directory with expected `*.keystore` and `*.truststore` names. **Decoded files aren't stored using in-memory file system and are stored on a disk even after task finishes until the sandbox is removed by an operator or Mesos GC.**
-
 ## Installation requirements
 
 To enable TLS support a `Mesosphere DC/OS Enterprise` cluster must be installed in `permissive` or `strict` security mode.
@@ -1148,7 +1146,7 @@ The most basic set of features present in the YAML representation of the `Servic
 
 Each pod runs inside a single container. The `ServiceSpec` specifies the following:
   * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://dcos.io/docs/latest/deploying-services/containerizers/ucr/).
-  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the `dcos` overlay network.
+  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. One example of a supported virtual network is the `dcos` overlay network.
   * The `rlimits` field allows you to set POSIX resource limits for every task that runs inside the container.
 
 The example `ServiceSpec` below specifies:
@@ -1157,7 +1155,7 @@ The example `ServiceSpec` below specifies:
   * That the pod should join the `dcos` virtual network.
 
 
-In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` overlay network:
+In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` virtual network:
 
 ```yaml
 name: "hello-world"
@@ -1181,8 +1179,8 @@ pods:
 
 For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 
-**Overlay networks**
-The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
+**Virtual networks**
+The SDK supports having pods join virtual neworks (including the `dcos` overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
 
 ### Placement Rules
 

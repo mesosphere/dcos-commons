@@ -67,7 +67,9 @@ You can customize the port that Apache Cassandra listens on for Thrift RPC reque
 *   **In DC/OS CLI options.json**: `rpc_port`: integer (default: `9160`)
 *   **DC/OS web interface**: `TASKCFG_ALL_CASSANDRA_RPC_PORT`: `integer`
 
-# Disk Type
+# Disks
+
+## Volume Type
 
 The service supports two volume types:
  - `ROOT` volumes are effectively an isolated directory on the root volume, sharing IO/spindles with the rest of the host system.
@@ -79,6 +81,10 @@ To configure the disk type:
 *   **In DC/OS CLI options.json**: `disk_type`: string (default: `ROOT`)
 *   **DC/OS web interface**: `CASSANDRA_DISK_TYPE`: `string`
 
+## Disk Scheduler
+
+It is [recommended](http://docs.datastax.com/en/landing_page/doc/landing_page/recommendedSettings.html#recommendedSettings__optimizing-ssds) that you pre-configure your storage hosts to use the deadline IO scheduler in production environments.  
+
 # Placement Constraints
 
 Placement constraints allow you to customize where Apache Cassandra nodes are deployed in the DC/OS cluster. Placement constraints support all [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, use `hostname:UNIQUE`.
@@ -86,14 +92,14 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 *   **In DC/OS CLI options.json**: `placement_constraint`: string (default: `""`)
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
 
-# Overlay networks
+# Virtual networks
 
-Cassandra supports deployment on the `dcos` overlay network, a virtual network on DC/OS that allows each node to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
+Cassandra supports deployment on virtual networks on DC/OS (including the `dcos` overlay network) allowing each node to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
 ```json
 {
     "service": {
-        "virtual_network": true
+        "virtual_network_enabled": true
     }
 }
 ```
-By default two nodes will not be placed on the same agent, however multiple Cassandra clusters can share an agent. As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on the overlay network, it cannot be updated to use the host network.
+By default two nodes will not be placed on the same agent, however multiple Cassandra clusters can share an agent. As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.

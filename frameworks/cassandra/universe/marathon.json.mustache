@@ -14,26 +14,26 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
-  {{#service.secret_name}}
+  {{#service.service_account_secret}}
   "secrets": {
     "serviceCredential": {
-      "source": "{{service.secret_name}}"
+      "source": "{{service.service_account_secret}}"
     }
   },
-  {{/service.secret_name}}
+  {{/service.service_account_secret}}
   "env": {
     "SERVICE_NAME": "{{service.name}}",
     "SERVICE_USER": "{{service.user}}",
-    "SERVICE_PRINCIPAL": "{{service.principal}}",
+    "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "CASSANDRA_VERSION": "3.0.13",
+    "CASSANDRA_VERSION": "3.0.14",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
-    {{#service.secret_name}}
+    {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
-    {{/service.secret_name}}
+    {{/service.service_account_secret}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
@@ -49,11 +49,11 @@
     "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
     "CASSANDRA_HEAP_GC": "{{nodes.heap.gc}}",
     "PLACEMENT_CONSTRAINT": "{{nodes.placement_constraint}}",
-    {{#service.virtual_networks}}
+    {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    "VIRTUAL_NETWORK_NAME": "{{nodes.virtual_network}}",
-    "CNI_PLUGIN_LABELS": "{{nodes.cni_plugin_labels}}",
-    {{/service.virtual_networks}}
+    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
+    {{/service.virtual_network_enabled}}
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",

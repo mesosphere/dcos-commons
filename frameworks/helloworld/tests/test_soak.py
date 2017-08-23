@@ -2,16 +2,14 @@ import logging
 import os
 
 import pytest
+import shakedown
 
 import sdk_cmd
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-from tests.config import (
-    PACKAGE_NAME,
-    DEFAULT_TASK_COUNT
-)
+from tests import config
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +28,7 @@ if "NUM_WORLD" in os.environ:
 
 @pytest.mark.soak_upgrade
 def test_soak_upgrade_downgrade():
-    sdk_upgrade.soak_upgrade_downgrade(PACKAGE_NAME, PACKAGE_NAME, PACKAGE_NAME, DEFAULT_TASK_COUNT)
+    sdk_upgrade.soak_upgrade_downgrade(config.PACKAGE_NAME, config.PACKAGE_NAME, config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.soak_secrets_update
@@ -40,8 +38,8 @@ def test_soak_secrets_update():
     secret_content_alternative = "hello-world-secret-data-alternative"
     test_soak_secrets_framework_alive()
 
-    sdk_cmd.run_cli("package install --cli dcos-enterprise-cli")
-    sdk_cmd.run_cli("package install --cli hello-world")
+    sdk_cmd.run_cli("package install --cli dcos-enterprise-cli --yes")
+    sdk_cmd.run_cli("package install --cli hello-world --yes")
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret1".format(secret_content_alternative))
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret2".format(secret_content_alternative))
     sdk_cmd.run_cli("security secrets update --value={} secrets/secret3".format(secret_content_alternative))

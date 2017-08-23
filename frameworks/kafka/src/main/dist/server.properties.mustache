@@ -27,9 +27,46 @@ broker.id={{POD_INSTANCE_INDEX}}
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
+{{^KAFKA_ENABLE_TLS}}
 listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
+port={{KAFKA_BROKER_PORT}}
+{{/KAFKA_ENABLE_TLS}}
 
-# Hostname and port the broker will advertise to producers and consumers. If not set, 
+{{#KAFKA_ENABLE_TLS}}
+############################# TLS Settings #############################
+{{#KAFKA_ALLOW_PLAINTEXT}}
+listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}},SSL://:{{KAFKA_BROKER_PORT_TLS}}
+{{/KAFKA_ALLOW_PLAINTEXT}}
+{{^KAFKA_ALLOW_PLAINTEXT}}
+listeners=SSL://:{{KAFKA_BROKER_PORT_TLS}}
+{{/KAFKA_ALLOW_PLAINTEXT}}
+
+ssl.keystore.location={{MESOS_SANDBOX}}/broker.keystore
+ssl.keystore.password=notsecure
+ssl.key.password=notsecure
+
+ssl.truststore.location={{MESOS_SANDBOX}}/broker.truststore
+ssl.truststore.password=notsecure
+
+ssl.enabled.protocols=TLSv1.2
+
+security.inter.broker.protocol=SSL
+{{#KAFKA_ALLOW_PLAINTEXT}}
+advertised.listeners=PLAINTEXT://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT}},SSL://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT_TLS}}
+{{/KAFKA_ALLOW_PLAINTEXT}}
+{{^KAFKA_ALLOW_PLAINTEXT}}
+advertised.listeners=SSL://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT_TLS}}
+{{/KAFKA_ALLOW_PLAINTEXT}}
+
+{{#KAFKA_ALLOW_PLAINTEXT}}
+port={{KAFKA_BROKER_PORT}}
+{{/KAFKA_ALLOW_PLAINTEXT}}
+{{^KAFKA_ALLOW_PLAINTEXT}}
+port={{KAFKA_BROKER_PORT_TLS}}
+{{/KAFKA_ALLOW_PLAINTEXT}}
+{{/KAFKA_ENABLE_TLS}}
+
+# Hostname and port the broker will advertise to producers and consumers. If not set,
 # it uses the value for "listeners" if configured.  Otherwise, it will use the value
 # returned from java.net.InetAddress.getCanonicalHostName().
 #advertised.listeners=PLAINTEXT://your.host.name:9092
@@ -126,8 +163,6 @@ external.kafka.statsd.metrics.exclude_regex=
 {{#KAFKA_ADVERTISE_HOST}}
 advertised.host.name={{MESOS_CONTAINER_IP}}
 {{/KAFKA_ADVERTISE_HOST}}
-
-port={{KAFKA_BROKER_PORT}}
 
 auto.create.topics.enable={{KAFKA_AUTO_CREATE_TOPICS_ENABLE}}
 auto.leader.rebalance.enable={{KAFKA_AUTO_LEADER_REBALANCE_ENABLE}}
