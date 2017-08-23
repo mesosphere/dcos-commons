@@ -1,23 +1,14 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.OperationRecorder;
-import com.mesosphere.sdk.offer.ResourceBuilder;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.UninstallRecommendation;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
@@ -60,12 +51,11 @@ public class UninstallRecorder implements OperationRecorder {
         List<Protos.TaskInfo> tasksToUpdate = stateStore.fetchTasks().stream()
                 .filter(taskSpec -> containsResource(taskSpec, resource))
                 .collect(Collectors.toList());
-        logger.info("Resource {} found in {} task(s): {}",
-                resource.getName(),
-                tasksToUpdate.size(),
-                tasksToUpdate.stream()
-                        .map(taskInfo -> taskInfo.getName())
-                        .collect(Collectors.toList()));
+        logger.info("Resource {} found in {} task(s).", resource.getName(), tasksToUpdate.size());
+        tasksToUpdate.forEach(taskInfo ->
+                logger.info("Resource {} found in task: {}",
+                        resource.getName(),
+                        TextFormat.shortDebugString(taskInfo)));
         if (!tasksToUpdate.isEmpty()) {
             stateStore.storeTasks(updateResources(resource, tasksToUpdate));
 
