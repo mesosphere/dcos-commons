@@ -16,8 +16,8 @@ def configure_package(configure_security):
         sdk_install.uninstall(PACKAGE_NAME)
         sdk_install.install(
             PACKAGE_NAME,
-            2,
-            additional_options={ "service": { "spec_file": "examples/enable-disable.yml" } })
+            6,
+            additional_options={ "service": { "spec_file": "examples/enable-disable.yml" }, "hello": { "count": 3 } } )
 
         yield # let the test session execute
     finally:
@@ -28,10 +28,10 @@ def configure_package(configure_security):
 def test_disable():
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     sdk_plan.recovery_plan_is_empty(PACKAGE_NAME)
-    sdk_tasks.check_running(PACKAGE_NAME, 2)
+    sdk_tasks.check_running(PACKAGE_NAME, 6)
     set_test_boolean('false')
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-    sdk_tasks.check_running(PACKAGE_NAME, 1)
+    sdk_tasks.check_running(PACKAGE_NAME, 3)
     sdk_plan.recovery_plan_is_empty(PACKAGE_NAME)
 
 
@@ -39,10 +39,10 @@ def test_disable():
 def test_enable():
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
     sdk_plan.recovery_plan_is_empty(PACKAGE_NAME)
-    sdk_tasks.check_running(PACKAGE_NAME, 1)
+    sdk_tasks.check_running(PACKAGE_NAME, 3)
     set_test_boolean('true')
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
-    sdk_tasks.check_running(PACKAGE_NAME, 2)
+    sdk_tasks.check_running(PACKAGE_NAME, 6)
     sdk_plan.recovery_plan_is_empty(PACKAGE_NAME)
 
 
