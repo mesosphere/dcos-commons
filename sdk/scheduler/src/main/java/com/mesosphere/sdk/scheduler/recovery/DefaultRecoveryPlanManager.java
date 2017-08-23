@@ -185,10 +185,14 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 recoverableTaskNames);
         logger.info("Found tasks needing recovery: {}", getTaskNames(failedTasks));
 
+        List<Protos.TaskInfo> allLaunchedTasks = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> stateStore.fetchStatus(taskInfo.getName()).isPresent())
+                .collect(Collectors.toList());
+
         List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
                 configStore,
                 failedTasks,
-                stateStore.fetchTasks());
+                allLaunchedTasks);
         if (!failedPods.isEmpty()) {
             logger.info("All failed pods: {}", getPodNames(failedPods));
         }
