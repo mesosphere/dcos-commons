@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.dcos.secrets.SecretsException;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -18,14 +19,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * A {@link TLSCleanupStep} removes all provisioned {@link TLSArtifacts} from secrets service in a given
- * namespace.
+ * A {@link TLSCleanupStep} removes all provisioned {@link TLSArtifacts} from secrets service in a given namespace.
  */
 public class TLSCleanupStep extends AbstractStep {
 
+    private static final Pattern PATTERN = createSecretNamePattern();
+
     private final SecretsClient secretsClient;
     private final String namespace;
-    private final Pattern pattern;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -36,34 +37,30 @@ public class TLSCleanupStep extends AbstractStep {
         super("tls-cleanup", status);
         this.secretsClient = secretsClient;
         this.namespace = namespace;
-        this.pattern = createSecretNamePattern();
     }
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        logger.info("Cleaning up TLS resources...");
+        logger.info("Cleaning up TLS resources in namespace {}...", namespace);
 
         try {
-            Collection<String> secretsToCleanCandidates = secretsClient.list(namespace);
-
-            Collection<String> secretsPathsToClean = secretsToCleanCandidates
-                    .stream()
-                    .filter(secretPath -> pattern.matcher(secretPath).matches())
+            Collection<String> secretPathsToClean = secretsClient.list(namespace).stream()
+                    .filter(secretPath -> PATTERN.matcher(secretPath).matches())
                     .collect(Collectors.toList());
 
-            if (secretsPathsToClean.size() > 0) {
-                logger.info(String.format("Paths to clean: "));
-                for (String path : secretsPathsToClean) {
-                    secretsClient.delete(namespace + "/" + path);
-                    logger.info(String.format("Secret removed: '%s'", path));
-                }
+            if (secretPathsToClean.isEmpty()) {
+                logger.info("No TLS resources to clean up.");
             } else {
-                logger.info("No TLS resources to clean up...");
+                logger.info("{} paths to clean in namespace {}:", secretPathsToClean.size(), namespace);
+                for (String path : secretPathsToClean) {
+                    logger.info("Removing secret: '{}'", path);
+                    secretsClient.delete(namespace + "/" + path);
+                }
             }
 
             setStatus(Status.COMPLETE);
         } catch (SecretsException | IOException e) {
-            logger.error(String.valueOf(e));
+            logger.error(String.format("Failed to clean up secrets in namespace %s", namespace), e);
             setStatus(Status.ERROR);
         }
 
@@ -73,9 +70,8 @@ public class TLSCleanupStep extends AbstractStep {
     /**
      * Creates a regex pattern that matches possible {@link TLSArtifacts} paths in secrets store namespaced
      * to existing service.
-     * @return Pattern
      */
-    private Pattern createSecretNamePattern() {
+    private static Pattern createSecretNamePattern() {
         List<String> possibleSecretNames = Arrays.asList(
                 SecretNameGenerator.SECRET_NAME_CERTIFICATE,
                 SecretNameGenerator.SECRET_NAME_PRIVATE_KEY,
@@ -112,5 +108,6 @@ public class TLSCleanupStep extends AbstractStep {
 
     @Override
     public void update(Protos.TaskStatus status) {
+        logger.debug("Step {} ignoring irrelevant TaskStatus: {}", getName(), TextFormat.shortDebugString(status));
     }
 }

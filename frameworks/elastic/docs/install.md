@@ -7,7 +7,7 @@ enterprise: 'no'
 
 # Default Installation
 
-To start a basic cluster with three master nodes, two data nodes, one ingest node, and one coordinator node, run the following command on the DC/OS CLI:
+To start a basic cluster with three master nodes, two data nodes, and one coordinator node, run the following command on the DC/OS CLI:
 
 ```bash
 $ dcos package install elastic

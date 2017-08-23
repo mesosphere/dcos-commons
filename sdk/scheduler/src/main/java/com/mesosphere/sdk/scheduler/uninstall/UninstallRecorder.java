@@ -1,11 +1,12 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
-import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
@@ -27,11 +28,11 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 public class UninstallRecorder implements OperationRecorder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
-    private final Phase resourcePhase;
+    private final Collection<Step> resourceSteps;
 
-    UninstallRecorder(StateStore stateStore, Phase resourcePhase) {
+    UninstallRecorder(StateStore stateStore, Collection<Step> resourceSteps) {
         this.stateStore = stateStore;
-        this.resourcePhase = resourcePhase;
+        this.resourceSteps = resourceSteps;
     }
 
     private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
@@ -53,19 +54,24 @@ public class UninstallRecorder implements OperationRecorder {
         // each offerRec ought to be tied to a resource with an ID
         UninstallRecommendation uninstallRecommendation = (UninstallRecommendation) offerRecommendation;
         Protos.Resource resource = uninstallRecommendation.getResource();
-        logger.info("Marking resource as uninstalled: {}", resource);
+        logger.info("Marking resource as uninstalled: {}", TextFormat.shortDebugString(resource));
 
         // Find the tasks referencing the resource in this OfferRecommendation
         List<Protos.TaskInfo> tasksToUpdate = stateStore.fetchTasks().stream()
                 .filter(taskSpec -> containsResource(taskSpec, resource))
                 .collect(Collectors.toList());
-        logger.info("Resource found in tasks: {}", tasksToUpdate);
+        logger.info("Resource {} found in {} task(s): {}",
+                resource.getName(),
+                tasksToUpdate.size(),
+                tasksToUpdate.stream()
+                        .map(taskInfo -> taskInfo.getName())
+                        .collect(Collectors.toList()));
         if (!tasksToUpdate.isEmpty()) {
             stateStore.storeTasks(updateResources(resource, tasksToUpdate));
 
             // broadcast uninstallRecommendation to each UninstallStep in resource phase
             List<OfferRecommendation> uninstallRecommendations = Collections.singletonList(uninstallRecommendation);
-            resourcePhase.getChildren().forEach(step -> step.updateOfferStatus(uninstallRecommendations));
+            resourceSteps.forEach(step -> step.updateOfferStatus(uninstallRecommendations));
         }
     }
 

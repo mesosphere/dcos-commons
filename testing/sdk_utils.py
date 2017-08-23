@@ -1,3 +1,4 @@
+import functools
 import logging
 
 import dcos
@@ -24,7 +25,7 @@ def list_reserved_resources():
 def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if shakedown.dcos_version_less_than("1.10"):
+    if dcos_version_less_than("1.10"):
         return service_name
     return "/test/integration/" + service_name
 
@@ -32,16 +33,20 @@ def get_foldered_name(service_name):
 def get_zk_path(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if shakedown.dcos_version_less_than("1.10"):
+    if dcos_version_less_than("1.10"):
         return service_name
     return "test__integration__" + service_name
 
 
+@functools.lru_cache()
+def dcos_version_less_than(version):
+    return shakedown.dcos_version_less_than("1.10")
+
+
 # WARNING: Any file that uses these must also "import shakedown" in the same file.
 dcos_1_9_or_higher = pytest.mark.skipif(
-    'shakedown.dcos_version_less_than("1.9")',
+    'sdk_utils.dcos_version_less_than("1.9")',
     reason="Feature only supported in DC/OS 1.9 and up")
 dcos_1_10_or_higher = pytest.mark.skipif(
-    'shakedown.dcos_version_less_than("1.10")',
+    'sdk_utils.dcos_version_less_than("1.10")',
     reason="Feature only supported in DC/OS 1.10 and up")
-

@@ -132,7 +132,6 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 }
 
 func doUpdate(optionsFile, packageVersion string, replace bool) {
-	// TODO: figure out KingPin's error handling
 	request := updateRequest{AppID: config.ServiceName, Replace: replace}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
 		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
@@ -144,12 +143,12 @@ func doUpdate(optionsFile, packageVersion string, replace bool) {
 	if len(optionsFile) > 0 {
 		fileBytes, err := ioutil.ReadFile(optionsFile)
 		if err != nil {
-			client.PrintMessage("Failed to load specified options file %s: %s", optionsFile, err)
+			client.PrintMessageAndExit("Failed to load specified options file %s: %s", optionsFile, err)
 			return
 		}
 		optionsJSON, err := client.UnmarshalJSON(fileBytes)
 		if err != nil {
-			client.PrintMessage("Failed to parse JSON in specified options file %s: %s", optionsFile, err)
+			client.PrintMessageAndExit("Failed to parse JSON in specified options file %s: %s\nContent (%d bytes): %s", optionsFile, err, len(fileBytes), string(fileBytes))
 			return
 		}
 		request.OptionsJSON = optionsJSON
@@ -158,6 +157,7 @@ func doUpdate(optionsFile, packageVersion string, replace bool) {
 	responseBytes, err := client.HTTPCosmosPostJSON("update", string(requestContent))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
+		return
 	}
 	_, err = client.UnmarshalJSON(responseBytes)
 	checkError(err, responseBytes)
