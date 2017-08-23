@@ -316,7 +316,7 @@ You can reference the secret as a file if your service needs to read secrets fro
 * SSL certificates.
 * Configuration files with sensitive data.
 
-The content of a secret is copied and made available within the pod. Refer to [Developer Guide] (developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
+The content of a secret is copied and made available within the pod. Refer to [Developer Guide](developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 e both.
 
 **Note:** Secrets are available only in Enterprise DC/OS 1.0 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
