@@ -28,6 +28,7 @@ if "NUM_WORLD" in os.environ:
 
 @pytest.mark.soak_upgrade
 def test_soak_upgrade_downgrade():
+    sdk_cmd.run_cli("package install --cli hello-world --yes")
     sdk_upgrade.soak_upgrade_downgrade(config.PACKAGE_NAME, config.PACKAGE_NAME, config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT)
 
 
