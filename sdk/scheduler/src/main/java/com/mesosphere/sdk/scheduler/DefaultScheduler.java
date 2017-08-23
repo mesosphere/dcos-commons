@@ -585,10 +585,22 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     private void killUnneededTasks(Set<String> taskToDeployNames) {
-        Set<Protos.TaskID> taskIds = stateStore.fetchTasks().stream()
+        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIds = taskInfos.stream()
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
+
+        // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+                .map(taskInfo -> taskInfo.toBuilder())
+                .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
+                .collect(Collectors.toSet());
+
+        cleanedTaskInfos.forEach(taskInfo -> stateStore.clearTask(taskInfo.getName()));
+        stateStore.storeTasks(cleanedTaskInfos);
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
