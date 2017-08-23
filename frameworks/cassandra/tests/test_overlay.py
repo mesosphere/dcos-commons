@@ -9,16 +9,12 @@ import sdk_utils
 import shakedown
 from tests import config
 
-WRITE_DATA_JOB = config.get_write_data_job()
-VERIFY_DATA_JOB = config.get_verify_data_job()
-DELETE_DATA_JOB = config.get_delete_data_job()
-VERIFY_DELETION_JOB = config.get_verify_deletion_job()
-TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
+    test_jobs = []
     try:
+        test_jobs = config.get_all_jobs()
         sdk_install.uninstall(config.PACKAGE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -26,14 +22,14 @@ def configure_package(configure_security):
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
-        for job in TEST_JOBS:
+        for job in test_jobs:
             sdk_jobs.install_job(job, tmp_dir=tmp_dir)
 
         yield # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME)
 
-        for job in TEST_JOBS:
+        for job in test_jobs:
             sdk_jobs.remove_job(job)
 
 
@@ -61,8 +57,14 @@ def test_functionality():
 
     # populate 'testspace1' for test, then delete afterwards:
     with sdk_jobs.RunJobContext(
-        before_jobs=[WRITE_DATA_JOB, VERIFY_DATA_JOB],
-        after_jobs=[DELETE_DATA_JOB, VERIFY_DELETION_JOB]):
+            before_jobs=[
+                config.get_write_data_job(),
+                config.get_verify_data_job()
+            ],
+            after_jobs=[
+                config.get_delete_data_job(),
+                config.get_verify_deletion_job()
+            ]):
 
         sdk_plan.start_plan(config.PACKAGE_NAME, 'cleanup', parameters=parameters)
         sdk_plan.wait_for_completed_plan(config.PACKAGE_NAME, 'cleanup')
