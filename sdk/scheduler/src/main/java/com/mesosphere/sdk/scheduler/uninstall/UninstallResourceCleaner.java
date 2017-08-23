@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceCleaner;
 import com.mesosphere.sdk.offer.ResourceUtils;
-
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
@@ -31,7 +31,9 @@ public class UninstallResourceCleaner implements ResourceCleaner {
         List<Resource> resources = offer.getResourcesList().stream()
                 .filter(resource -> ResourceUtils.getResourceId(resource).isPresent())
                 .collect(Collectors.toList());
-        logger.info("Reserved resources to be unreserved: {}", resources);
+        resources.forEach(
+                resource ->
+                        logger.info("Reserved resource to be unreserved: {}", TextFormat.shortDebugString(resource)));
         return resources;
     }
 
@@ -47,7 +49,10 @@ public class UninstallResourceCleaner implements ResourceCleaner {
         List<Resource> resources = offer.getResourcesList().stream()
                 .filter(resource -> resource.hasDisk() && resource.getDisk().hasPersistence())
                 .collect(Collectors.toList());
-        logger.info("Persistent volumes to be destroyed and unreserved: {}", resources);
+        resources.forEach(
+                resource ->
+                        logger.info("Persistent volume to be destroyed and unreserved: {}",
+                                TextFormat.shortDebugString(resource)));
         return resources;
     }
 }

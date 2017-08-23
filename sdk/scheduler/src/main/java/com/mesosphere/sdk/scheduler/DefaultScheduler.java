@@ -717,12 +717,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     protected void processOfferSet(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
-        LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
-        for (int i = 0; i < localOffers.size(); ++i) {
-            LOGGER.info("  {}: {}",
-                    i + 1,
-                    TextFormat.shortDebugString(localOffers.get(i)));
-        }
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
