@@ -827,38 +827,14 @@ Agent 3: X B
 
 <h2 id="virtual-networks">Virtual networks</h2>
 
-<p>The SDK allows pods to join virtual networks, with the <code class="highlighter-rouge">dcos</code> virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:</p>
-
-<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
-  <span class="s">pod-on-virtual-network</span><span class="pi">:</span>
-    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
-    <span class="c1"># join the 'dcos' virtual network</span>
-    <span class="s">networks</span><span class="pi">:</span>
-      <span class="s">dcos</span><span class="pi">:</span>
-    <span class="s">tasks</span><span class="pi">:</span>
-      <span class="s">...</span>
-  <span class="s">pod-on-host</span><span class="pi">:</span>
-    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
-    <span class="s">tasks</span><span class="pi">:</span>
-      <span class="s">...</span>
-</code></pre>
-</div>
+<p>The SDK allows pods to join virtual networks, with the <code class="highlighter-rouge">dcos</code> virtual network available by defualt. You can specify that a pod should join the virtual network by using the <code class="highlighter-rouge">networks</code> keyword in your YAML definition. Refer to <a href="developer-guide.md">Developers Guide</a> for more information about how to define virtual networks in your service.</p>
 
 <p>When a pod is on a virtual network such as the <code class="highlighter-rouge">dcos</code>:</p>
 <ul>
   <li>Every pod gets its own IP address and its own array of ports.</li>
   <li>Pods do not use the ports on the host machine.</li>
   <li>Pod IP addresses can be resolved with the DNS: <code class="highlighter-rouge">&lt;task_name&gt;.&lt;service_name&gt;.autoip.dcos.thisdcos.directory</code>.</li>
-</ul>
-
-<p>Specifying that pods join a virtual network has the following indirect effects:</p>
-<ul>
-  <li>The <code class="highlighter-rouge">ports</code> resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
-    <ul>
-      <li>This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.</li>
-    </ul>
-  </li>
-  <li>A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.</li>
+  <li>You can also pass labels while invoking CNI plugins. Refer to <a href="developer.md">Developers Guide</a> for more information about adding CNI labels.</li>
 </ul>
 
 <h2 id="secrets">Secrets</h2>
