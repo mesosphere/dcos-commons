@@ -3,8 +3,6 @@ import pytest
 import sdk_install
 from tests import config
 
-log = logging.getLogger(__name__)
-
 # This file tests installing the elastic framework with the new default of 0 ingest nodes.
 # We can't test it in `test_sanity.py` because the upgrade test in `configure_package` won't work,
 # as the v1.0.8-5.2.2 package does not allow 0 ingest nodes due to the JSON restriction in `config.json` where

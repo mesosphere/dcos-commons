@@ -17,9 +17,9 @@ BROKER_TLS_ENDPOINT = 'broker-tls'
 @pytest.fixture(scope='module')
 def service_account():
     """
-    Creates service account with `hello-world` name and yields the name.
+    Creates service account and yields the name.
     """
-    name = 'kafka'
+    name = config.SERVICE_NAME
     sdk_security.create_service_account(
         service_account_name=name, service_account_secret=name)
     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
@@ -36,7 +36,6 @@ def kafka_service_tls(service_account):
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,
-        service_name=service_account,
         additional_options={
             "service": {
                 "service_account": service_account,

@@ -14,7 +14,7 @@ EPHEMERAL_TOPIC_NAME = 'topic_2'
 def broker_count_check(count, service_name=config.SERVICE_NAME):
     def fun():
         try:
-            if len(sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list')) == count:
+            if len(sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)) == count:
                 return True
         except:
             pass

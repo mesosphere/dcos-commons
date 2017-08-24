@@ -37,9 +37,8 @@ def configure_package(configure_security):
         else:
             sdk_upgrade.test_upgrade(
                 config.PACKAGE_NAME,
-                config.PACKAGE_NAME,
+                FOLDERED_SERVICE_NAME,
                 config.DEFAULT_BROKER_COUNT,
-                service_name=FOLDERED_SERVICE_NAME,
                 additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
 
         yield # let the test session execute

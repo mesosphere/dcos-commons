@@ -21,15 +21,11 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
-
-        service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
-
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
-            config.PACKAGE_NAME,
+            FOLDERED_SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options=service_config)
+            additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}})
 
         yield  # let the test session execute
     finally:

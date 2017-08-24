@@ -21,9 +21,8 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
-            config.PACKAGE_NAME,
+            config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            service_name=config.get_foldered_service_name(),
             additional_options={"service": {"name": config.get_foldered_service_name()} })
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')

@@ -38,9 +38,9 @@ DISCOVERY_TASK_PREFIX = 'discovery-prefix'
 @pytest.fixture(scope='module')
 def service_account():
     """
-    Creates service account with `hello-world` name and yields the name.
+    Creates service account and yields the name.
     """
-    name = 'hello-world'
+    name = config.SERVICE_NAME
     sdk_security.create_service_account(
         service_account_name=name, service_account_secret=name)
     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
