@@ -311,51 +311,20 @@ Specifying that pods join a virtual network has the following indirect effects:
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
-
-The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
-
 You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
 * Kerberos keytabs or other credential files.
 * SSL certificates.
 * Configuration files with sensitive data.
 
-For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-svc/SecretPath1`, as shown below.
+The content of a secret is copied and made available within the pod. Refer to [Developer Guide](developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
+e both.
 
-```yaml
-name: secret-svc/instance1
-pods:
-  pod-with-secret:
-    count: {{COUNT}}
-    # add secret file to pod's sandbox
-    secrets:
-      secret_name1:
-        secret: secret-svc/Secret_Path1
-        env-key: Secret_Environment_Key
-        file: data/somePath/Secret_FilePath1
-      secret_name2:
-        secret: secret-svc/instance1/Secret_Path2
-        file: data/somePath/Secret_FilePath2
-      secret_name3:
-        secret: secret-svc/Secret_Path3
-        env-key: Secret_Environment_Key2
-    tasks:
-      ....
-```
+**Note:** Secrets are available only in Enterprise DC/OS 1.0 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
-
-`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when the executor exits. The secret content is copied securely by Mesos if it is referenced in the pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
-
-**Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
 ### Authorization for Secrets
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
-
-For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
-
-On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
 
 | Secret                               | Service ID                          | Can service access secret? |
@@ -375,30 +344,6 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
-
-Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
-  * Supported: `etc/keys/Secret_FilePath1`
-  * Not supported: `/etc/keys/Secret_FilePath1`
-
-```yaml
-name: secret-svc/instance2
-pods:
-  pod-with-image:
-    count: {{COUNT}}
-    container:
-      image-name: ubuntu:14.04
-    user: nobody
-    secrets:
-      secret_name4:
-        secret: secret-svc/Secret_Path1
-        env-key: Secret_Environment_Key
-        file: etc/keys/Secret_FilePath1
-      secret_name5:
-        secret: secret-svc/instance1/Secret_Path2
-        file: data/keys/keyset/Secret_FilePath2
-    tasks:
-      ....
-```
 
 
 ## Placement Constraints

@@ -11,10 +11,6 @@ import sdk_tasks as tasks
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME_LABEL = 'DCOS_PACKAGE_NAME'
-PACKAGE_METADATA_LABEL = 'DCOS_PACKAGE_METADATA'
-PACKAGE_DEF_LABEL = 'DCOS_PACKAGE_DEFINITION'
-
 # Installs a universe version, then upgrades it to a test version
 #
 # (1) Installs Universe version of framework (after uninstalling any test version).
@@ -192,6 +188,7 @@ def soak_upgrade_downgrade(
         running_task_count,
         install_options={},
         timeout_seconds=25*60):
+    cmd.run_cli("package install --cli {} --yes".format(universe_package_name))
     version = 'stub-universe'
     print('Upgrading to test version: {} => {} {}'.format(universe_package_name, test_package_name, version))
     _upgrade_or_downgrade(
