@@ -599,8 +599,12 @@ public class DefaultScheduler extends AbstractScheduler {
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
                 .collect(Collectors.toSet());
 
-        cleanedTaskInfos.forEach(taskInfo -> stateStore.clearTask(taskInfo.getName()));
-        stateStore.storeTasks(cleanedTaskInfos);
+        // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
+        // event of an untimely scheduler crash
+        for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
+            stateStore.clearTask(taskInfo.getName());
+            stateStore.storeTasks(Arrays.asList(taskInfo));
+        }
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
