@@ -345,6 +345,22 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
 
+### Binary Secrets
+
+When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64 encoded as specified in RFC 4648. You can use standard `base64` utility.
+
+``` 
+$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded 
+```
+
+Give the secret basename prefixed with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
+
+``` 
+$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
+```
+
+When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets in SDK-based services.
+
 
 ## Placement Constraints
 
