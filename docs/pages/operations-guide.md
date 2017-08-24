@@ -350,12 +350,9 @@ $  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
 ```
 
 `base64` command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping via  `-w 0` argument.  Here is a sample base64 command in Linux.
-
 ``` 
 $  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded 
 ```
-
-
 
 Give the secret basename prefixed with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
 
