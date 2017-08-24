@@ -8,16 +8,19 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-source $TOOLS_DIR/init_paths.sh
-
 if [ -z "$GOPATH" -o -z "$(which go)" ]; then
   echo "Missing GOPATH environment variable or 'go' executable. Please configure a Go build environment."
   exit 1
 fi
 
+REPO_ROOT_DIR=$(dirname "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )")
+
 ORG_PATH=${ORG_PATH:=github.com/mesosphere}
 GOPATH_ORG="$GOPATH/src/$ORG_PATH"
+
+REPO_NAME=${REPO_NAME:=dcos-commons}
 GOPATH_EXE_DIR="$GOPATH_ORG/$REPO_NAME/$1"
+
 if [ $2 = "windows" ]; then
     EXE_FILENAME=$(basename $1).exe # dcos-kafka.exe
 else
