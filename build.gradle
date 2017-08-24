@@ -54,9 +54,6 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
-            url "https://repository.apache.org/content/groups/snapshots/"
-        }
-        maven {
             url "http://downloads.mesosphere.com/maven/"
         }
         maven {
@@ -120,7 +117,7 @@ allprojects {
 }
 
 ext {
-    mesosVer = '1.4.0-SNAPSHOT'
+    mesosVer = '1.4.0-rc1'
 }
 
 subprojects {
