@@ -18,6 +18,9 @@
     "ELASTICSEARCH_URL": "{{kibana.elasticsearch_url}}",
     "KIBANA_USER": "{{kibana.user}}",
     "KIBANA_PASSWORD": "{{kibana.password}}"
+    {{#service.tls}}
+    "TASKCFG_ALL_ELASTIC_ENABLE_TLS": "{{service.tls}}",
+    {{/service.tls}}
   },
   "uris": [
     "{{resource.assets.uris.kibana-tar-gz}}",

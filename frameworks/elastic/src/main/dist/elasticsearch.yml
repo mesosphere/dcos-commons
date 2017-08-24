@@ -7,7 +7,7 @@ network.bind_host:
   - {{MESOS_CONTAINER_IP}}
   - _local_
 network.publish_host:
-  - {{MESOS_CONTAINER_IP}}
+  - {{TASK_NAME}}.{{FRAMEWORK_HOST}}
   - _local_
 cluster.name: {{CLUSTER_NAME}}
 node.name: {{TASK_NAME}}
@@ -25,3 +25,16 @@ gateway.expected_master_nodes: 3
 gateway.expected_data_nodes: {{DATA_NODE_COUNT}}
 gateway.recover_after_master_nodes: 3
 gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}}
+{{#ELASTIC_ENABLE_TLS}}
+# https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#ssl-tls-settings
+xpack.security.enabled: true
+xpack.ssl.key: {{MESOS_SANDBOX}}/node.key
+xpack.ssl.certificate: {{MESOS_SANDBOX}}/node.crt
+xpack.ssl.certificate_authorities: [ "{{MESOS_SANDBOX}}/node.ca" ]
+xpack.ssl.client_authentication: optional
+# Node to node encryption
+xpack.security.transport.ssl.enabled: true
+# Client encryption
+xpack.security.http.ssl.enabled: true
+xpack.security.http.ssl.client_authentication: none
+{{/ELASTIC_ENABLE_TLS}}
