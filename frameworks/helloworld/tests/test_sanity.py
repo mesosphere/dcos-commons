@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 
@@ -126,8 +125,7 @@ def test_bump_hello_nodes():
 
 @pytest.mark.sanity
 def test_pod_list():
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod list')
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod list', json=True)
     assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
@@ -145,8 +143,7 @@ def test_pod_list():
 
 @pytest.mark.sanity
 def test_pod_status_all():
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status')
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status', json=True)
     assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
     for k, v in jsonobj.items():
         assert re.match('(hello|world)-[0-9]+', k)
@@ -160,8 +157,7 @@ def test_pod_status_all():
 
 @pytest.mark.sanity
 def test_pod_status_one():
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status hello-0')
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status hello-0', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 3
@@ -172,8 +168,7 @@ def test_pod_status_one():
 
 @pytest.mark.sanity
 def test_pod_info():
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod info hello-1')
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod info hello-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2

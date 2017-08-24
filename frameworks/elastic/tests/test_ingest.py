@@ -1,7 +1,7 @@
 import pytest
 
 import sdk_install
-from tests.config import *
+from tests import config
 
 log = logging.getLogger(__name__)
 
@@ -16,30 +16,30 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(PACKAGE_NAME)
-        sdk_install.install(PACKAGE_NAME, NO_INGEST_TASK_COUNT)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    sdk_tasks.check_running(PACKAGE_NAME, NO_INGEST_TASK_COUNT)
-    wait_for_expected_nodes_to_exist(task_count=NO_INGEST_TASK_COUNT)
+    sdk_tasks.check_running(config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
+    wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
 
 
 @pytest.mark.sanity
 def test_service_health():
-    assert shakedown.service_healthy(PACKAGE_NAME)
+    assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_zero_to_one_ingest():
-    config = sdk_marathon.get_config(PACKAGE_NAME)
-    config['env']['INGEST_NODE_COUNT'] = "1"
-    sdk_marathon.update_app(PACKAGE_NAME, config)
-    sdk_tasks.check_running(PACKAGE_NAME, DEFAULT_TASK_COUNT)
-    wait_for_expected_nodes_to_exist(task_count=DEFAULT_TASK_COUNT)
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
+    marathon_config['env']['INGEST_NODE_COUNT'] = "1"
+    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    wait_for_expected_nodes_to_exist(task_count=config.DEFAULT_TASK_COUNT)

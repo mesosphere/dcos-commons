@@ -70,7 +70,7 @@ def test_pods_restart_graceful_shutdown():
 
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pods restart world-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart world-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
     assert len(jsonobj['tasks']) == 1

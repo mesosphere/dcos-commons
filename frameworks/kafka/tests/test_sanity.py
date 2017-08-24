@@ -100,13 +100,16 @@ def test_custom_zookeeper():
     sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, '{}-'.format(config.DEFAULT_POD_TYPE), broker_ids)
     sdk_plan.wait_for_completed_deployment(FOLDERED_SERVICE_NAME)
 
+    # wait for brokers to finish registering
+    test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=service_name)
+
     zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'endpoints zookeeper')
     assert zookeeper.rstrip('\n') == zk_path
 
     # topic created earlier against default zk should no longer be present:
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'topic list', json=True) == []
-
     # tests from here continue with the custom ZK path...
+
 
 # --------- Broker -------------
 
@@ -141,7 +144,7 @@ def test_pods_restart():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_pods_replace():
+def test_pod_replace():
     test_utils.replace_broker_pod(FOLDERED_SERVICE_NAME)
 
 
@@ -271,7 +274,6 @@ def test_plan_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
 
 
-
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_state_cli():
@@ -285,6 +287,7 @@ def test_pod_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod info {}-0'.format(config.DEFAULT_POD_TYPE), print_output=False) # noisy output
+
 
 @pytest.mark.sanity
 @pytest.mark.metrics

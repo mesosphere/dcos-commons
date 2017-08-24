@@ -34,6 +34,7 @@ def service_account():
 def kafka_service_tls(service_account):
     sdk_install.install(
         config.PACKAGE_NAME,
+        config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,
         service_name=service_account,
         additional_options={
@@ -48,14 +49,14 @@ def kafka_service_tls(service_account):
         }
     )
 
-    sdk_plan.wait_for_completed_deployment(config.PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     # Wait for service health check to pass
-    shakedown.service_healthy(config.PACKAGE_NAME)
+    shakedown.service_healthy(config.SERVICE_NAME)
 
     yield service_account
 
-    sdk_install.uninstall(config.PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.tls
@@ -63,7 +64,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
 def test_tls_endpoints(kafka_service_tls):
-    endpoints = sdk_networks.get_and_test_endpoints("", config.PACKAGE_NAME, 2)
+    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     assert BROKER_TLS_ENDPOINT in endpoints
 
     # Test that broker-tls endpoint is available

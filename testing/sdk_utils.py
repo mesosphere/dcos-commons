@@ -31,12 +31,8 @@ def get_foldered_name(service_name):
 
 
 def get_zk_path(service_name):
-    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
-    # group names
-    prefix = 'dcos-service-'
-    if dcos_version_less_than("1.10"):
-        return prefix + service_name
-    return prefix + 'test__integration__' + service_name
+    # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'
+    return 'dcos-service-{}'.format(service_name.lstrip('/').replace('/', '__'))
 
 
 @functools.lru_cache()
