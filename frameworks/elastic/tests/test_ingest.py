@@ -4,6 +4,7 @@ import sdk_install
 import sdk_marathon
 import sdk_tasks
 from tests import config
+import shakedown
 
 # This file tests installing the elastic framework with the new default of 0 ingest nodes.
 # We can't test it in `test_sanity.py` because the upgrade test in `configure_package` won't work,
