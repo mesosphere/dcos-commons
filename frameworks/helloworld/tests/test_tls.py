@@ -253,8 +253,8 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['DISCOVERY_TASK_PREFIX'] = DISCOVERY_TASK_PREFIX + '-new'
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
-
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'discovery', original_tasks)
+    sdk_tasks.check_running(config.SERVICE_NAME, 4)
     new_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
     assert task_id != new_task_id
 

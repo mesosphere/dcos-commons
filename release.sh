@@ -88,7 +88,6 @@ else
 fi
 
 # Build and upload Java library to Maven repo:
-./build.sh
 ./gradlew publish
 
 # Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
