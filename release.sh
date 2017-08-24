@@ -88,7 +88,6 @@ else
 fi
 
 # Build and upload Java library to Maven repo:
-./build.sh
 ./gradlew publish
 
 # Scripts below expect an S3_BUCKET env var. To be supplied by Jenkins.
