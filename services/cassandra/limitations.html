@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -313,13 +313,23 @@
 </ul>
 <h1>Cassandra: Limitations</h1>
 <div id="content">
-<ul>
-  <li>Data Center Name</li>
-</ul>
+<h2 id="rack-aware-placement">Rack-Aware Placement</h2>
+
+<p>Apache Cassandra’s Rack-Aware Replication is not supported at this time.</p>
+
+<h2 id="security">Security</h2>
+
+<p>Apache Cassandra’s native TLS, authentication, and authorization features are not supported at this time.</p>
+
+<h2 id="virtual-networks">Virtual networks</h2>
+
+<p>When the DC/OS Cassandra Service is deployed on a virtual network, the service may not be switched to host networking without a full re-installation. The same is true for attempting to switch from host to virtual networking.</p>
+
+<h2 id="data-center-name">Data Center Name</h2>
 
 <p>Data Center Name:</p>
 
-<p>The name of the data center cannot be changed after Cassandra installation. <code class="highlighter-rouge">service.data_center</code> and <code class="highlighter-rouge">service.rack</code> options are not allowed to be modified once Cassandra is installed.</p>
+<p>The name of the data center cannot be changed after installation. <code class="highlighter-rouge">service.data_center</code> and <code class="highlighter-rouge">service.rack</code> options are not allowed to be modified once Cassandra is installed.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>"service": {
 ……

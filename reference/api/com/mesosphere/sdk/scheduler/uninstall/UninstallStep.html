@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -98,15 +98,10 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">com.mesosphere.sdk.scheduler.DefaultObservable</a></li>
-<li>
-<ul class="inheritance">
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">com.mesosphere.sdk.scheduler.plan.AbstractStep</a></li>
 <li>
 <ul class="inheritance">
 <li>com.mesosphere.sdk.scheduler.uninstall.UninstallStep</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -117,13 +112,18 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dd>
+</dl>
+<dl>
+<dt>Direct Known Subclasses:</dt>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TaskKillStep</a></dd>
 </dl>
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">UninstallStep</span>
+<pre>public abstract class <span class="typeNameLabel">UninstallStep</span>
 extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></pre>
-<div class="block">Step which implements the uninstalling of a particular persistent volume or resource.</div>
+<div class="block">Common parent for all uninstall steps. Uninstall steps do not fully interact
+ with the mesos offer cycle and as such have stubs for most AbstractStep methods.</div>
 </li>
 </ul>
 </div>
@@ -172,10 +172,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#UninstallStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">UninstallStep</a></span>(java.lang.String&nbsp;resourceId,
-             <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</code>
-<div class="block">Creates a new instance with the provided <code>resourceId</code> and initial <code>status</code>.</div>
-</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#UninstallStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">UninstallStep</a></span>(java.lang.String&nbsp;name,
+             <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -209,18 +207,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#start--">start</a></span>()</code>
-<div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
-</td>
-</tr>
-<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Provides the Element with a recent <code>TaskStatus</code> update which was received from Mesos.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
 <div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
@@ -236,13 +228,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#equals-java.lang.Object-">equals</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#forceComplete--">forceComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getStatus--">getStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#hashCode--">hashCode</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#interrupt--">interrupt</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#isInterrupted--">isInterrupted</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#proceed--">proceed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#restart--">restart</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#setStatus-com.mesosphere.sdk.scheduler.plan.Status-">setStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html#toString--">toString</a></code></li>
 </ul>
 <ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.DefaultObservable">
-<!--   -->
-</a>
-<h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">DefaultObservable</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html#notifyObservers--">notifyObservers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html#subscribe-com.mesosphere.sdk.scheduler.Observer-">subscribe</a></code></li>
-</ul>
-<ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
 </a>
@@ -254,7 +239,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--">start</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Element">
@@ -262,13 +247,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
 <code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
-<!--   -->
-</a>
-<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#notifyObservers--">notifyObservers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#subscribe-com.mesosphere.sdk.scheduler.Observer-">subscribe</a></code></li>
 </ul>
 </li>
 </ul>
@@ -290,9 +268,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <ul class="blockListLast">
 <li class="blockList">
 <h4>UninstallStep</h4>
-<pre>public&nbsp;UninstallStep(java.lang.String&nbsp;resourceId,
+<pre>public&nbsp;UninstallStep(java.lang.String&nbsp;name,
                      <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</pre>
-<div class="block">Creates a new instance with the provided <code>resourceId</code> and initial <code>status</code>.</div>
 </li>
 </ul>
 </li>
@@ -303,25 +280,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="start--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>start</h4>
-<pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;start()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--">Step</a></code></span></div>
-<div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>. Returns an
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, or an empty Optional if obtaining/updating resource requirements are not
- applicable to the Step. This will continue to be called for as long as <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--"><code>Element.isPending()</code></a> returns
- true.</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>#updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
-      the {@link PodInstanceRequirement}</code></dd>
-</dl>
-</li>
-</ul>
 <a name="getPodInstanceRequirement--">
 <!--   -->
 </a>

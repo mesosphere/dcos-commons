@@ -98,17 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">com.mesosphere.sdk.scheduler.DefaultObservable</a></li>
-<li>
-<ul class="inheritance">
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler">com.mesosphere.sdk.scheduler.ChainedObserver</a></li>
-<li>
-<ul class="inheritance">
 <li>com.mesosphere.sdk.scheduler.plan.DefaultPlan</li>
-</ul>
-</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -117,17 +107,15 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/Observer.html" title="interface in com.mesosphere.sdk.scheduler">Observer</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a>&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan">Phase</a>&gt;, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a>&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan">Phase</a>&gt;, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></dd>
 </dl>
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">DefaultPlan</span>
-extends <a href="../../../../../com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler">ChainedObserver</a>
+extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></pre>
 <div class="block">An ordered list of <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s, composed into a <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>. It may
- optionally contain a List of errors associated with the phase.
-
- A <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlan.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>DefaultPlan</code></a> is an <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler"><code>Observable</code></a> and will forward updates from its <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s.</div>
+ optionally contain a List of errors associated with the phase.</div>
 </li>
 </ul>
 </div>
@@ -234,20 +222,6 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" 
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.ChainedObserver">
-<!--   -->
-</a>
-<h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler">ChainedObserver</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/ChainedObserver.html#update-com.mesosphere.sdk.scheduler.Observable-">update</a></code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.DefaultObservable">
-<!--   -->
-</a>
-<h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">DefaultObservable</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html#notifyObservers--">notifyObservers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html#subscribe-com.mesosphere.sdk.scheduler.Observer-">subscribe</a></code></li>
-</ul>
-<ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
 </a>
@@ -274,13 +248,6 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" 
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
 <code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
-<!--   -->
-</a>
-<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#notifyObservers--">notifyObservers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#subscribe-com.mesosphere.sdk.scheduler.Observer-">subscribe</a></code></li>
 </ul>
 </li>
 </ul>

@@ -81,18 +81,6 @@
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></td>
-<td class="colLast">
-<div class="block">Observable.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/Observer.html" title="interface in com.mesosphere.sdk.scheduler">Observer</a></td>
-<td class="colLast">
-<div class="block">Observer.</div>
-</td>
-</tr>
-<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></td>
 <td class="colLast">
 <div class="block">This interface should be implemented to allow components to request the killing of Mesos Tasks.</div>
@@ -114,18 +102,6 @@
 <td class="colLast">
 <div class="block">Abstract <code>Scheduler</code> that provides some default behaviors around Mesos lifecycle events such as
  getting registered, reregistered, disconnected, etc.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/ChainedObserver.html" title="class in com.mesosphere.sdk.scheduler">ChainedObserver</a></td>
-<td class="colLast">
-<div class="block">Both an Observer and Observable.</div>
-</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultObservable.html" title="class in com.mesosphere.sdk.scheduler">DefaultObservable</a></td>
-<td class="colLast">
-<div class="block">Implementation of the Observable interface.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -183,6 +159,12 @@
 <div class="block">This class provides utilities common to the construction and operation of Mesos Schedulers.</div>
 </td>
 </tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></td>
+<td class="colLast">
+<div class="block">This class monitors all plans and suppresses or revives offers when appropriate.</div>
+</td>
+</tr>
 </tbody>
 </table>
 </li>
@@ -198,6 +180,12 @@
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.Type.html" title="enum in com.mesosphere.sdk.scheduler">SchedulerFlags.FlagException.Type</a></td>
 <td class="colLast">
 <div class="block">A machine-accessible error type.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SuppressReviveManager.State.html" title="enum in com.mesosphere.sdk.scheduler">SuppressReviveManager.State</a></td>
+<td class="colLast">
+<div class="block">The states of the suppress/revive state machine.</div>
 </td>
 </tr>
 </tbody>

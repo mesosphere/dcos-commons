@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#fields.inherited.from.class.com.mesosphere.sdk.scheduler.AbstractScheduler">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -127,35 +127,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <!--   -->
 </a>
 <h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>protected int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#port">port</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>protected java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#secretsClient">secretsClient</a></span></code>&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>protected java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#serviceName">serviceName</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>(package private) <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#uninstallPlanManager">uninstallPlanManager</a></span></code>&nbsp;</td>
-</tr>
-</table>
 <ul class="blockList">
 <li class="blockList"><a name="fields.inherited.from.class.com.mesosphere.sdk.scheduler.AbstractScheduler">
 <!--   -->
 </a>
 <h3>Fields inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#driver">driver</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reconciler">reconciler</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#configStore">configStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#driver">driver</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#eventBus">eventBus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reconciler">reconciler</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></code></li>
 </ul>
 </li>
 </ul>
@@ -171,17 +148,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-java.lang.String-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-">UninstallScheduler</a></span>(java.lang.String&nbsp;serviceName,
-                  int&nbsp;port,
-                  java.time.Duration&nbsp;apiServerInitTimeout,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-java.lang.String-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-">UninstallScheduler</a></span>(java.lang.String&nbsp;serviceName,
                   <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                   <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-java.lang.String-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Optional-">UninstallScheduler</a></span>(java.lang.String&nbsp;serviceName,
-                  int&nbsp;port,
-                  java.time.Duration&nbsp;apiServerInitTimeout,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-java.lang.String-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Optional-">UninstallScheduler</a></span>(java.lang.String&nbsp;serviceName,
                   <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                   <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
@@ -210,18 +183,22 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#apiServerReady--">apiServerReady</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#initialize-SchedulerDriver-">initialize</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
+<td class="colFirst"><code>(package private) <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlan--">getPlan</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#postRegister--">postRegister</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>protected java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processOfferSet-java.util.List-">processOfferSet</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#initialize-SchedulerDriver-">initialize</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processOfferSet-java.util.List-">processOfferSet</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#statusUpdate-SchedulerDriver-Protos.TaskStatus-">statusUpdate</a></span>(SchedulerDriver&nbsp;driver,
             Protos.TaskStatus&nbsp;status)</code>&nbsp;</td>
@@ -232,7 +209,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disconnected-SchedulerDriver-">disconnected</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#error-SchedulerDriver-java.lang.String-">error</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executorLost-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-int-">executorLost</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkMessage-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-byte:A-">frameworkMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerRescinded-SchedulerDriver-Protos.OfferID-">offerRescinded</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registered-SchedulerDriver-Protos.FrameworkID-Protos.MasterInfo-">registered</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reregistered-SchedulerDriver-Protos.MasterInfo-">reregistered</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#resourceOffers-SchedulerDriver-java.util.List-">resourceOffers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#slaveLost-SchedulerDriver-Protos.SlaveID-">slaveLost</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#suppressOrRevive-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">suppressOrRevive</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disconnected-SchedulerDriver-">disconnected</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#error-SchedulerDriver-java.lang.String-">error</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executorLost-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-int-">executorLost</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkMessage-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-byte:A-">frameworkMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerRescinded-SchedulerDriver-Protos.OfferID-">offerRescinded</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#postRegister--">postRegister</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registered-SchedulerDriver-Protos.FrameworkID-Protos.MasterInfo-">registered</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reregistered-SchedulerDriver-Protos.MasterInfo-">reregistered</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#resourceOffers-SchedulerDriver-java.util.List-">resourceOffers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#slaveLost-SchedulerDriver-Protos.SlaveID-">slaveLost</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -249,65 +226,19 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="port">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>port</h4>
-<pre>protected final&nbsp;int port</pre>
-</li>
-</ul>
-<a name="secretsClient">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>secretsClient</h4>
-<pre>protected final&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a>&gt; secretsClient</pre>
-</li>
-</ul>
-<a name="serviceName">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>serviceName</h4>
-<pre>protected final&nbsp;java.lang.String serviceName</pre>
-</li>
-</ul>
-<a name="uninstallPlanManager">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>uninstallPlanManager</h4>
-<pre><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a> uninstallPlanManager</pre>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="UninstallScheduler-java.lang.String-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Optional-">
+<a name="UninstallScheduler-java.lang.String-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>UninstallScheduler</h4>
 <pre>public&nbsp;UninstallScheduler(java.lang.String&nbsp;serviceName,
-                          int&nbsp;port,
-                          java.time.Duration&nbsp;apiServerInitTimeout,
                           <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                           <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
@@ -318,15 +249,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
  the framework deregisters itself and cleans up its state in Zookeeper.</div>
 </li>
 </ul>
-<a name="UninstallScheduler-java.lang.String-int-java.time.Duration-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-">
+<a name="UninstallScheduler-java.lang.String-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerFlags-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>UninstallScheduler</h4>
 <pre>public&nbsp;UninstallScheduler(java.lang.String&nbsp;serviceName,
-                          int&nbsp;port,
-                          java.time.Duration&nbsp;apiServerInitTimeout,
                           <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                           <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</pre>
@@ -382,6 +311,19 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 </dl>
 </li>
 </ul>
+<a name="getPlanManagers--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPlanManagers</h4>
+<pre>protected&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getPlanManagers()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanManagers--">getPlanManagers</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+</dl>
+</li>
+</ul>
 <a name="statusUpdate-SchedulerDriver-Protos.TaskStatus-">
 <!--   -->
 </a>
@@ -392,17 +334,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
                          Protos.TaskStatus&nbsp;status)</pre>
 </li>
 </ul>
-<a name="postRegister--">
+<a name="getPlan--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>postRegister</h4>
-<pre>protected&nbsp;void&nbsp;postRegister()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#postRegister--">postRegister</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
-</dl>
+<h4>getPlan</h4>
+<pre><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;getPlan()</pre>
 </li>
 </ul>
 </li>
@@ -458,13 +396,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li><a href="#fields.inherited.from.class.com.mesosphere.sdk.scheduler.AbstractScheduler">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

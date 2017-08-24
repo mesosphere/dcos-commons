@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="./tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="./tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -369,6 +369,10 @@
   <li><a href="#service-discovery" id="markdown-toc-service-discovery">Service Discovery</a>    <ul>
       <li><a href="#mesos-dns" id="markdown-toc-mesos-dns"><a href="https://github.com/mesosphere/mesos-dns">Mesos-DNS</a></a></li>
       <li><a href="#vip" id="markdown-toc-vip"><a href="https://github.com/dcos/minuteman">VIP</a></a></li>
+    </ul>
+  </li>
+  <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a>    <ul>
+      <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
     </ul>
   </li>
   <li><a href="#tls" id="markdown-toc-tls">TLS</a>    <ul>
@@ -1411,6 +1415,156 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </code></pre>
 </div>
 
+<h1 id="secrets">Secrets</h1>
+
+<p>Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.</p>
+
+<p><strong>Note:</strong> The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). <a href="https://docs.mesosphere.com/1.9/security/secrets/">Learn more about the secrets store</a>.</p>
+
+<p>The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.</p>
+
+<p>You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:</p>
+<ul>
+  <li>Kerberos keytabs or other credential files.</li>
+  <li>SSL certificates.</li>
+  <li>Configuration files with sensitive data.</li>
+</ul>
+
+<p>For the following example, a file with path <code class="highlighter-rouge">data/somePath/Secret_FilePath1</code> relative to the sandbox will be created. Also, the value of the environment variable <code class="highlighter-rouge">Secret_Environment_Key1</code> will be set to the content of this secret. Secrets are referenced with a path, i.e. <code class="highlighter-rouge">secret-svc/SecretPath1</code>, as shown below.</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-svc/instance1</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">pod-with-secret</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
+    <span class="c1"># add secret file to pod's sandbox</span>
+    <span class="s">secrets</span><span class="pi">:</span>
+      <span class="s">secret_name1</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/Secret_Path1</span>
+        <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">data/somePath/Secret_FilePath1</span>
+      <span class="s">secret_name2</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/instance1/Secret_Path2</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">data/somePath/Secret_FilePath2</span>
+      <span class="s">secret_name3</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/Secret_Path3</span>
+        <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key2</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">....</span>
+</code></pre>
+</div>
+
+<p>All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.</p>
+
+<p><code class="highlighter-rouge">env-key</code> or <code class="highlighter-rouge">file</code> can be left empty. The secret file is a tmpfs file; it disappears when the executor exits. The secret content is copied securely by Mesos if it is referenced in the pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.</p>
+
+<p><strong>Note:</strong> Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.</p>
+
+<p>Refer to <a href="tutorials/secrets-tutorial.md">Secrets Tutorial</a> for an 
+SDK-based example service using DC/OS secrets.</p>
+
+<h3 id="authorization-for-secrets">Authorization for Secrets</h3>
+
+<p>The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. <em>Only</em> services that are under the same namespace can read the content of the secret.</p>
+
+<p>For the example given above, the secret with path <code class="highlighter-rouge">secret-svc/Secret_Path1</code> can only be accessed by a services with ID <code class="highlighter-rouge">/secret-svc</code> or any service with  ID under <code class="highlighter-rouge">/secret-svc/</code>. Servicess with IDs <code class="highlighter-rouge">/secret-serv/dev1</code> and <code class="highlighter-rouge">/secret-svc/instance2/dev2</code> all have access to this secret, because they are under <code class="highlighter-rouge">/secret-svc/</code>.</p>
+
+<p>On the other hand, the secret with path <code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code> cannot be accessed by a service with ID <code class="highlighter-rouge">/secret-svc</code> because it is not <em>under</em> this secret’s namespace, which is <code class="highlighter-rouge">/secret-svc/instance1</code>. <code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code> can be accessed by a service with ID <code class="highlighter-rouge">/secret-svc/instance1</code> or any service with ID under <code class="highlighter-rouge">/secret-svc/instance1/</code>, for example <code class="highlighter-rouge">/secret-svc/instance1/dev3</code> and <code class="highlighter-rouge">/secret-svc/instance1/someDir/dev4</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Secret</th>
+      <th>Service ID</th>
+      <th>Can service access secret?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/user</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/user/dev1</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/dev1</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance2/dev2</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/Secret_Path1</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/a/b/c/dev3</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/dev1</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance2/dev3</code></td>
+      <td>No</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance1</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance1/dev3</code></td>
+      <td>Yes</td>
+    </tr>
+    <tr>
+      <td><code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code></td>
+      <td><code class="highlighter-rouge">/secret-svc/instance1/someDir/dev3</code></td>
+      <td>Yes</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Note:</strong> Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.</p>
+
+<p>Below is a valid secret definition with a Docker <code class="highlighter-rouge">image-name</code>. The <code class="highlighter-rouge">$MESOS_SANDBOX/etc/keys</code> and <code class="highlighter-rouge">$MESOS_SANDBOX/data/keys/keyset</code> directories will be created if they do not exist.</p>
+<ul>
+  <li>Supported: <code class="highlighter-rouge">etc/keys/Secret_FilePath1</code></li>
+  <li>Not supported: <code class="highlighter-rouge">/etc/keys/Secret_FilePath1</code></li>
+</ul>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s">secret-svc/instance2</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">pod-with-image</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
+    <span class="s">container</span><span class="pi">:</span>
+      <span class="s">image-name</span><span class="pi">:</span> <span class="s">ubuntu:14.04</span>
+    <span class="s">user</span><span class="pi">:</span> <span class="s">nobody</span>
+    <span class="s">secrets</span><span class="pi">:</span>
+      <span class="s">secret_name4</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/Secret_Path1</span>
+        <span class="s">env-key</span><span class="pi">:</span> <span class="s">Secret_Environment_Key</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">etc/keys/Secret_FilePath1</span>
+      <span class="s">secret_name5</span><span class="pi">:</span>
+        <span class="s">secret</span><span class="pi">:</span> <span class="s">secret-svc/instance1/Secret_Path2</span>
+        <span class="s">file</span><span class="pi">:</span> <span class="s">data/keys/keyset/Secret_FilePath2</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">....</span>
+</code></pre>
+</div>
+
 <h1 id="tls">TLS</h1>
 
 <p><strong>This feature works only on Mesosphere DC/OS Enterprise and is not supported on DC/OS Open.</strong></p>
@@ -1561,8 +1715,6 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 
 <p>The password <strong><code class="highlighter-rouge">notsecure</code></strong> that protects both JKS files (containing an end-entity certificate with private key and root CA certificate) has been selected because most Java tools and libraries require a password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers or tasks can access TLS artifacts provisioned by a scheduler.</p>
 
-<p><strong>Imporant note:</strong> The DC/OS 1.10 secrets store doesn’t provide support for storing binary data. To overcome this limitation, the <code class="highlighter-rouge">keystore</code> and <code class="highlighter-rouge">truststore</code> files are Base64 encoded before they are added to the secrets store. Files are mounted into a task container with additional <code class="highlighter-rouge">base64</code> file name suffix - <code class="highlighter-rouge">*.keystore.base64</code> and <code class="highlighter-rouge">*.truststore.base64</code>. There is a <code class="highlighter-rouge">bootstrap</code> utility helper that automatically decodes files in <code class="highlighter-rouge">$MESOS_SANDBOX</code> with <code class="highlighter-rouge">*.keystore.base64</code> and <code class="highlighter-rouge">*.truststore.base64</code> extension and stores them in a sandbox directory with expected <code class="highlighter-rouge">*.keystore</code> and <code class="highlighter-rouge">*.truststore</code> names. <strong>Decoded files aren’t stored using in-memory file system and are stored on a disk even after task finishes until the sandbox is removed by an operator or Mesos GC.</strong></p>
-
 <h2 id="installation-requirements">Installation requirements</h2>
 
 <p>To enable TLS support a <code class="highlighter-rouge">Mesosphere DC/OS Enterprise</code> cluster must be installed in <code class="highlighter-rouge">permissive</code> or <code class="highlighter-rouge">strict</code> security mode.</p>
@@ -1631,7 +1783,7 @@ installed the
 <p>Each pod runs inside a single container. The <code class="highlighter-rouge">ServiceSpec</code> specifies the following:</p>
 <ul>
   <li>We can specify the <code class="highlighter-rouge">image</code> that we want to use, for example, a Docker image. The image is run in the Mesos <a href="https://dcos.io/docs/latest/deploying-services/containerizers/ucr/">Universal Container Runtime</a>.</li>
-  <li>The <code class="highlighter-rouge">networks</code> field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the <code class="highlighter-rouge">dcos</code> overlay network.</li>
+  <li>The <code class="highlighter-rouge">networks</code> field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. One example of a supported virtual network is the <code class="highlighter-rouge">dcos</code> overlay network.</li>
   <li>The <code class="highlighter-rouge">rlimits</code> field allows you to set POSIX resource limits for every task that runs inside the container.</li>
 </ul>
 
@@ -1642,7 +1794,7 @@ installed the
   <li>That the pod should join the <code class="highlighter-rouge">dcos</code> virtual network.</li>
 </ul>
 
-<p>In the example below, we’re specifying that we want to run the <code class="highlighter-rouge">ubuntu</code> image, the soft limit for number of open file descriptors for any task in the “hello” pod is set to 1024, the hard limit to 2048 and we’re specifying that the pod joins the <code class="highlighter-rouge">dcos</code> overlay network:</p>
+<p>In the example below, we’re specifying that we want to run the <code class="highlighter-rouge">ubuntu</code> image, the soft limit for number of open file descriptors for any task in the “hello” pod is set to 1024, the hard limit to 2048 and we’re specifying that the pod joins the <code class="highlighter-rouge">dcos</code> virtual network:</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -1666,8 +1818,8 @@ installed the
 
 <p>For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md">the Mesos documentation on rlimits</a>.</p>
 
-<p><strong>Overlay networks</strong>
-The SDK supports having pods join the <code class="highlighter-rouge">dcos</code> overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. <strong>Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the <code class="highlighter-rouge">dcos</code> overlay to the host network or vice-versa</strong>. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
+<p><strong>Virtual networks</strong>
+The SDK supports having pods join virtual neworks (including the <code class="highlighter-rouge">dcos</code> overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. <strong>Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa</strong>. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
 
 <h3 id="placement-rules">Placement Rules</h3>
 

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -152,12 +152,17 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html"
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>(package private) java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html#getPodInstance-Protos.TaskInfo-">getPodInstance</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html#record-com.mesosphere.sdk.offer.OfferRecommendation-">record</a></span>(<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&nbsp;offerRecommendation)</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>(package private) void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html#updateTaskResourcesWithinResourceSet-Protos.TaskInfo-">updateTaskResourcesWithinResourceSet</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html#updateTaskResourcesWithinResourceSet-com.mesosphere.sdk.specification.PodInstance-Protos.TaskInfo-">updateTaskResourcesWithinResourceSet</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
+                                    Protos.TaskInfo&nbsp;taskInfo)</code>
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares
  their resource-set is launched.</div>
 </td>
@@ -218,21 +223,34 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html"
 </dl>
 </li>
 </ul>
-<a name="updateTaskResourcesWithinResourceSet-Protos.TaskInfo-">
+<a name="getPodInstance-Protos.TaskInfo-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPodInstance</h4>
+<pre>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&gt;&nbsp;getPodInstance(Protos.TaskInfo&nbsp;taskInfo)
+                                        throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="updateTaskResourcesWithinResourceSet-com.mesosphere.sdk.specification.PodInstance-Protos.TaskInfo-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>updateTaskResourcesWithinResourceSet</h4>
-<pre>void&nbsp;updateTaskResourcesWithinResourceSet(Protos.TaskInfo&nbsp;taskInfo)
-                                   throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<pre>void&nbsp;updateTaskResourcesWithinResourceSet(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
+                                          Protos.TaskInfo&nbsp;taskInfo)</pre>
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares
  their resource-set is launched.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>podInstance</code> - the parent pod associated with the task being launched</dd>
 <dd><code>taskInfo</code> - the task being launched</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code> - is thrown on a failure to read meta-data from the TaskInfo</dd>
 </dl>
 </li>
 </ul>

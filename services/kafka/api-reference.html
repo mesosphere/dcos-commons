@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -583,7 +583,7 @@ POST /service/kafka/v1/topics?replication=3&amp;name=topic1&amp;partitions=3 HTT
 
 <h2 id="view-topic-offsets">View Topic Offsets</h2>
 
-<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell">described in the Kafka documentation</a>.</p>
+<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as [described in the Kafka documentation][15].</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic offsets topic1 --time=last
 [
@@ -756,125 +756,37 @@ GET /service/kafka/v1/configurations HTTP/1.1
 
 <p>This configuration shows a default per-broker memory allocation of 2048 (configured via the <code class="highlighter-rouge">BROKER_MEM</code> parameter):</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config describe 319ebe89-42e2-40e2-9169-8568e2421023
-
-{
-    "brokerConfiguration": {
-        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
-        "cpus": 1,
-        "disk": 5000,
-        "diskType": "ROOT",
-        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
-        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
-        "mem": 2048, // &lt;&lt;--
-        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
-    },
-    "kafkaConfiguration": {
-        [...]
-    },
-    "serviceConfiguration": {
-        "count": 3,
-        "name": "kafka",
-        "phaseStrategy": "INSTALL",
-        "placementStrategy": "NODE",
-        "principal": "kafka-principal",
-        "role": "kafka-role",
-        "user": ""
-    }
-}
-
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
-GET /service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023 HTTP/1.1
-
-{
-    "brokerConfiguration": {
-        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
-        "cpus": 1,
-        "disk": 5000,
-        "diskType": "ROOT",
-        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
-        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
-        "mem": 2048, // &lt;&lt;--
-        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
-    },
-    "kafkaConfiguration": {
-        [...]
-    },
-    "serviceConfiguration": {
-        "count": 3,
-        "name": "kafka",
-        "phaseStrategy": "INSTALL",
-        "placementStrategy": "NODE",
-        "principal": "kafka-principal",
-        "role": "kafka-role",
-        "user": ""
-    }
-}
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
 </code></pre>
 </div>
+
+<p>Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
+is provided in Appendix A.</p>
+
+<p>The equivalent DC/OS API resource request follows:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
+</code></pre>
+</div>
+
+<p>The CLI output for viewing a specific configuration matches the API output.</p>
 
 <h2 id="describe-target-configuration">Describe Target Configuration</h2>
 
 <p>The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as <code class="highlighter-rouge">BROKER_MEM</code>):</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config target
-
-{
-    "brokerConfiguration": {
-        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
-        "cpus": 1,
-        "disk": 5000,
-        "diskType": "ROOT",
-        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
-        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
-        "mem": 4096, // &lt;&lt;--
-        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
-    },
-    "kafkaConfiguration": {
-        [...]
-    },
-    "serviceConfiguration": {
-        "count": 3,
-        "name": "kafka",
-        "phaseStrategy": "INSTALL",
-        "placementStrategy": "NODE",
-        "principal": "kafka-principal",
-        "role": "kafka-role",
-        "user": ""
-    }
-}
-
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/target"
-GET /service/kafka/v1/configurations/target HTTP/1.1
-
-{
-    "brokerConfiguration": {
-        "containerHookUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/container-hook-0.2.5.tgz",
-        "cpus": 1,
-        "disk": 5000,
-        "diskType": "ROOT",
-        "javaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/jre-8u72-linux-x64.tar.gz",
-        "kafkaUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/kafka_2.10-0.9.0.1.tgz",
-        "mem": 4096, // &lt;&lt;--
-        "overriderUri": "https://s3.amazonaws.com/downloads.mesosphere.io/kafka/assets/0.2.5-0.9.0.1/overrider.zip"
-    },
-    "kafkaConfiguration": {
-        [...]
-    },
-    "serviceConfiguration": {
-        "count": 3,
-        "name": "kafka",
-        "phaseStrategy": "INSTALL",
-        "placementStrategy": "NODE",
-        "principal": "kafka-principal",
-        "role": "kafka-role",
-        "user": ""
-    }
-}
 </code></pre>
 </div>
+
+<p>Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
+is provided in Appendix A.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/target"
+</code></pre>
+</div>
+
+<p>The CLI output for viewing a specific configuration matches the API output.</p>
 
 <h1 id="config-updates">Config Updates</h1>
 
@@ -998,9 +910,263 @@ $ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/
 
 <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka interrupt
 $ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/interrupt"
+
+
+[15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
 </code></pre>
 </div>
 
+<h1 id="appendix-a---configuration-resource">Appendix A - Configuration Resource</h1>
+
+<p>The following is an example of the configuration resource:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"api-port"</span><span class="p">:</span><span class="w"> </span><span class="mi">16962</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"web-url"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"zookeeper"</span><span class="p">:</span><span class="w"> </span><span class="s2">"master.mesos:2181"</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"pod-specs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nobody"</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"image"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"networks"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+      </span><span class="nt">"rlimits"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+      </span><span class="nt">"uris"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.2.1.tgz"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"https://infinity-artifacts.s3.amazonaws.com/autodelete7d/kafka/20170714-084852-rmq3POwXq1PqNImH/bootstrap.zip"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"https://infinity-artifacts.s3.amazonaws.com/autodelete7d/kafka/20170714-084852-rmq3POwXq1PqNImH/executor.zip"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-1.10-1.4-63e0814.tar.gz"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"http://downloads.mesosphere.com/kafka/assets/kafka-statsd-metrics2-0.5.3.jar"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"http://downloads.mesosphere.com/kafka/assets/java-dogstatsd-client-2.3.jar"</span><span class="w">
+      </span><span class="p">],</span><span class="w">
+      </span><span class="nt">"task-specs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker"</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"goal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RUNNING"</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"resource-set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker-resource-set"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"resource-specifications"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DefaultResourceSpec"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cpus"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SCALAR"</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="w">
+                  </span><span class="p">},</span><span class="w">
+                  </span><span class="nt">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"envKey"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+              </span><span class="p">},</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DefaultResourceSpec"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mem"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SCALAR"</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">2048.0</span><span class="w">
+                  </span><span class="p">},</span><span class="w">
+                  </span><span class="nt">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"envKey"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+              </span><span class="p">},</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NamedVIPSpec"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RANGES"</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"range"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                      </span><span class="p">{</span><span class="w">
+                        </span><span class="nt">"begin"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+                        </span><span class="nt">"end"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
+                      </span><span class="p">}</span><span class="w">
+                    </span><span class="p">]</span><span class="w">
+                  </span><span class="p">},</span><span class="w">
+                  </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"env-key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"KAFKA_BROKER_PORT"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"port-name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"visibility"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EXTERNAL"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"vip-name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"vip-port"</span><span class="p">:</span><span class="w"> </span><span class="mi">9092</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"networkNames"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+                </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ports"</span><span class="w">
+              </span><span class="p">}</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="nt">"volume-specifications"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+              </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DefaultVolumeSpec"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ROOT"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"container-path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-broker-data"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"disk"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SCALAR"</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">5000.0</span><span class="w">
+                  </span><span class="p">},</span><span class="w">
+                  </span><span class="nt">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+                  </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"envKey"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DISK_SIZE"</span><span class="w">
+              </span><span class="p">}</span><span class="w">
+            </span><span class="p">],</span><span class="w">
+            </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="nt">"command-spec"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mv -v *statsd*.jar $MESOS_SANDBOX/kafka_2.11-0.10.2.1/libs/ &amp;&amp; ./bootstrap -resolve=false &amp;&amp; exec $MESOS_SANDBOX/kafka_2.11-0.10.2.1/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.2.1/config/server.properties\n"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"environment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+              </span><span class="nt">"KAFKA_ADVERTISE_HOST"</span><span class="p">:</span><span class="w"> </span><span class="s2">"set"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_AUTO_CREATE_TOPICS_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_AUTO_LEADER_REBALANCE_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_BACKGROUND_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_COMPRESSION_TYPE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"producer"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_CONNECTIONS_MAX_IDLE_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"600000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_CONTROLLED_SHUTDOWN_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_CONTROLLED_SHUTDOWN_MAX_RETRIES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_CONTROLLED_SHUTDOWN_RETRY_BACKOFF_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_CONTROLLER_SOCKET_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_DEFAULT_REPLICATION_FACTOR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_DELETE_TOPIC_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"false"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_DISK_PATH"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-broker-data"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_FETCH_PURGATORY_PURGE_INTERVAL_REQUESTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_HEAP_OPTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-Xms512M -Xmx512M"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_INTER_BROKER_PROTOCOL_VERSION"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0.0"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LEADER_IMBALANCE_CHECK_INTERVAL_SECONDS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LEADER_IMBALANCE_PER_BROKER_PERCENTAGE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_BACKOFF_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"15000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_DEDUPE_BUFFER_SIZE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"134217728"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_DELETE_RETENTION_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"86400000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_IO_BUFFER_LOAD_FACTOR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.9"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_IO_BUFFER_SIZE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"524288"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_IO_MAX_BYTES_PER_SECOND"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.7976931348623157E308"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_MIN_CLEANABLE_RATIO"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.5"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANER_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_CLEANUP_POLICY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"delete"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_FLUSH_INTERVAL_MESSAGES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_FLUSH_OFFSET_CHECKPOINT_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"60000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_FLUSH_SCHEDULER_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_INDEX_INTERVAL_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4096"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_INDEX_SIZE_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10485760"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_MESSAGE_FORMAT_VERSION"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_PREALLOCATE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"false"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_RETENTION_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_RETENTION_HOURS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"168"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_ROLL_HOURS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"168"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_ROLL_JITTER_HOURS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_SEGMENT_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1073741824"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_LOG_SEGMENT_DELETE_DELAY_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"60000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_MAX_CONNECTIONS_PER_IP"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2147483647"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_MAX_CONNECTIONS_PER_IP_OVERRIDES"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_MESSAGE_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000012"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_METRICS_NUM_SAMPLES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_METRICS_REPORTERS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.airbnb.kafka.kafka08.StatsdMetricsReporter"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_METRICS_SAMPLE_WINDOW_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_MIN_INSYNC_REPLICAS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_NUM_IO_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_NUM_NETWORK_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_NUM_PARTITIONS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_NUM_RECOVERY_THREADS_PER_DATA_DIR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_NUM_REPLICA_FETCHERS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_COMMIT_REQUIRED_ACKS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_COMMIT_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_LOAD_BUFFER_SIZE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5242880"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_RETENTION_CHECK_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"600000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_RETENTION_MINUTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1440"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_TOPIC_COMPRESSION_CODEC"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"50"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSETS_TOPIC_SEGMENT_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"104857600"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_OFFSET_METADATA_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4096"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_PRODUCER_PURGATORY_PURGE_INTERVAL_REQUESTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_QUEUED_MAX_REQUESTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"500"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_QUOTA_CONSUMER_DEFAULT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_QUOTA_PRODUCER_DEFAULT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_QUOTA_WINDOW_NUM"</span><span class="p">:</span><span class="w"> </span><span class="s2">"11"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_QUOTA_WINDOW_SIZE_SECONDS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_FETCH_BACKOFF_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_FETCH_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1048576"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_FETCH_MIN_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_FETCH_WAIT_MAX_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"500"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_HIGH_WATERMARK_CHECKPOINT_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_LAG_TIME_MAX_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_SOCKET_RECEIVE_BUFFER_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"65536"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REPLICA_SOCKET_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_REQUEST_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_RESERVED_BROKER_MAX_ID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_SOCKET_RECEIVE_BUFFER_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"102400"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_SOCKET_REQUEST_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"104857600"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_SOCKET_SEND_BUFFER_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"102400"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_ZOOKEEPER_SYNC_TIME_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2000"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"KAFKA_ZOOKEEPER_URI"</span><span class="p">:</span><span class="w"> </span><span class="s2">"master.mesos:2181/dcos-service-kafka"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"METRIC_REPORTERS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.airbnb.kafka.kafka09.StatsdMetricsReporter"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="nt">"health-check-spec"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"readiness-check-spec"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"# since the server is just started, the starting and started log lines\n# should be present in the server.log file, independent of whether or\n# not the server.log file is being logrotated.\n# \n# Example log lines follow:\n## starting:\n# [2017-06-14 22:20:54,260] INFO starting (kafka.server.KafkaServer)\n## started:\n# [2017-06-14 22:20:55,464] INFO [Kafka Server 1], started (kafka.server.KafkaServer)\n\nkafka_dir=$(ls -d kafka_* |head -n 1)\nkafka_server_log_file=${kafka_dir}/logs/server.log\nstarting_date_s=$(awk '/.*starting.*\\(kafka.server.KafkaServer\\)/{gsub(\"[[]\", \"\", $1);gsub(\"[]]\", \"\", $2); print $1\"T\"$2}' $kafka_server_log_file |tail -n 1)\nstarting_date=$(date -d $starting_date_s +%s)\nstarted_date_s=$(awk '/.*started.*\\(kafka.server.KafkaServer\\)/{gsub(\"[[]\", \"\", $1);gsub(\"[]]\", \"\", $2); print $1\"T\"$2}' $kafka_server_log_file |tail -n 1)\nstarted_date=$(date -d $started_date_s +%s)\n[ ! -z $started_date_s ] &amp;&amp; \\\n    [ ! -z $starting_date_s ] &amp;&amp; \\\n    [ $starting_date -le $started_date ]\nis_ready=$?\nexit $is_ready\n"</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"delay"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"interval"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+            </span><span class="nt">"timeout"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="nt">"config-files"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="w">
+              </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"server-properties"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"relative-path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka_2.11-0.10.2.1/config/server.properties"</span><span class="p">,</span><span class="w">
+              </span><span class="nt">"template-content"</span><span class="p">:</span><span class="w"> </span><span class="s2">"# Licensed to the Apache Software Foundation (ASF) under one or more\n# contributor license agreements.  See the NOTICE file distributed with\n# this work for additional information regarding copyright ownership.\n# The ASF licenses this file to You under the Apache License, Version 2.0\n# (the \"License\"); you may not use this file except in compliance with\n# the License.  You may obtain a copy of the License at\n#\n#    http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n# see kafka.server.KafkaConfig for additional details and defaults\n\n############################# Server Basics #############################\n\n# The id of the broker. This must be set to a unique integer for each broker.\nbroker.id=\n\n############################# Socket Server Settings #############################\n\n# The address the socket server listens on. It will get the value returned from \n# java.net.InetAddress.getCanonicalHostName() if not configured.\n#   FORMAT:\n#     listeners = security_protocol://host_name:port\n#   EXAMPLE:\n#     listeners = PLAINTEXT://your.host.name:9092\nlisteners=PLAINTEXT://:\n\n# Hostname and port the broker will advertise to producers and consumers. If not set, \n# it uses the value for \"listeners\" if configured.  Otherwise, it will use the value\n# returned from java.net.InetAddress.getCanonicalHostName().\n#advertised.listeners=PLAINTEXT://your.host.name:9092\n\n# The number of threads handling network requests\nnum.network.threads=\n\n# The number of threads doing disk I/O\nnum.io.threads=\n\n# The send buffer (SO_SNDBUF) used by the socket server\nsocket.send.buffer.bytes=\n\n# The receive buffer (SO_RCVBUF) used by the socket server\nsocket.receive.buffer.bytes=\n\n# The maximum size of a request that the socket server will accept (protection against OOM)\nsocket.request.max.bytes=\n\n\n############################# Log Basics #############################\n\n# A comma seperated list of directories under which to store log files\nlog.dirs=/broker-\n\n# The default number of log partitions per topic. More partitions allow greater\n# parallelism for consumption, but this will also result in more files across\n# the brokers.\nnum.partitions=\n\n# The number of threads per data directory to be used for log recovery at startup and flushing at shutdown.\n# This value is recommended to be increased for installations with data dirs located in RAID array.\nnum.recovery.threads.per.data.dir=\n\n############################# Log Flush Policy #############################\n\n# Messages are immediately written to the filesystem but by default we only fsync() to sync\n# the OS cache lazily. The following configurations control the flush of data to disk.\n# There are a few important trade-offs here:\n#    1. Durability: Unflushed data may be lost if you are not using replication.\n#    2. Latency: Very large flush intervals may lead to latency spikes when the flush does occur as there will be a lot of data to flush.\n#    3. Throughput: The flush is generally the most expensive operation, and a small flush interval may lead to exceessive seeks.\n# The settings below allow one to configure the flush policy to flush data after a period of time or\n# every N messages (or both). This can be done globally and overridden on a per-topic basis.\n\n# The number of messages to accept before forcing a flush of data to disk\nlog.flush.interval.messages=\n\n# The maximum amount of time a message can sit in a log before we force a flush\n#log.flush.interval.ms=1000\n\n############################# Log Retention Policy #############################\n\n# The following configurations control the disposal of log segments. The policy can\n# be set to delete segments after a period of time, or after a given size has accumulated.\n# A segment will be deleted whenever *either* of these criteria are met. Deletion always happens\n# from the end of the log.\n\n# The minimum age of a log file to be eligible for deletion\nlog.retention.hours=\n\n# A size-based retention policy for logs. Segments are pruned from the log as long as the remaining\n# segments don't drop below log.retention.bytes.\nlog.retention.bytes=\n\n# The maximum size of a log segment file. When this size is reached a new log segment will be created.\nlog.segment.bytes=\n\n# The interval at which log segments are checked to see if they can be deleted according\n# to the retention policies\nlog.retention.check.interval.ms=\n\n############################# Zookeeper #############################\n\n# Zookeeper connection string (see zookeeper docs for details).\n# This is a comma separated host:port pairs, each corresponding to a zk\n# server. e.g. \"127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002\".\n# You can also append an optional chroot string to the urls to specify the\n# root directory for all kafka znodes.\nzookeeper.connect=\n\n# Timeout in ms for connecting to zookeeper\nzookeeper.connection.timeout.ms=6000\n\n\n########################### Addition Parameters ########################\n\nexternal.kafka.statsd.port=\nexternal.kafka.statsd.host=\nexternal.kafka.statsd.reporter.enabled=true\nexternal.kafka.statsd.tag.enabled=true\nexternal.kafka.statsd.metrics.exclude_regex=\n\n\n# TODO this is wrong when overlay network is enabled\nadvertised.host.name=\n\n\nport=\n\nauto.create.topics.enable=\nauto.leader.rebalance.enable=\n\nbackground.threads=\n\ncompression.type=\n\nconnections.max.idle.ms=\n\ncontrolled.shutdown.enable=\ncontrolled.shutdown.max.retries=\ncontrolled.shutdown.retry.backoff.ms=\ncontroller.socket.timeout.ms=\n\ndefault.replication.factor=\n\ndelete.topic.enable=\n\nfetch.purgatory.purge.interval.requests=\n\ngroup.max.session.timeout.ms=\ngroup.min.session.timeout.ms=\n\ninter.broker.protocol.version=\n\nleader.imbalance.check.interval.seconds=\nleader.imbalance.per.broker.percentage=\n\nlog.cleaner.backoff.ms=\nlog.cleaner.dedupe.buffer.size=\nlog.cleaner.delete.retention.ms=\nlog.cleaner.enable=\nlog.cleaner.io.buffer.load.factor=\nlog.cleaner.io.buffer.size=\nlog.cleaner.io.max.bytes.per.second=\nlog.cleaner.min.cleanable.ratio=\nlog.cleaner.threads=\nlog.cleanup.policy=\n\nlog.flush.offset.checkpoint.interval.ms=\nlog.flush.scheduler.interval.ms=\n\nlog.index.interval.bytes=\nlog.index.size.max.bytes=\n\nlog.message.format.version=\n\nlog.preallocate=\n\nlog.roll.hours=\nlog.roll.jitter.hours=\n\nlog.segment.delete.delay.ms=\n\nmax.connections.per.ip.overrides=\nmax.connections.per.ip=\n\nmessage.max.bytes=\n\nkafka.metrics.reporters=\nmetric.reporters=\nmetrics.num.samples=\nmetrics.sample.window.ms=\n\nmin.insync.replicas=\n\nnum.replica.fetchers=\n\noffset.metadata.max.bytes=\noffsets.commit.required.acks=\noffsets.commit.timeout.ms=\noffsets.load.buffer.size=\noffsets.retention.check.interval.ms=\noffsets.retention.minutes=\noffsets.topic.compression.codec=\noffsets.topic.num.partitions=\noffsets.topic.replication.factor=\noffsets.topic.segment.bytes=\n\nproducer.purgatory.purge.interval.requests=\n\nqueued.max.requests=\nquota.consumer.default=\nquota.producer.default=\nquota.window.num=\nquota.window.size.seconds=\n\nreplica.fetch.backoff.ms=\nreplica.fetch.max.bytes=\nreplica.fetch.min.bytes=\nreplica.fetch.wait.max.ms=\nreplica.high.watermark.checkpoint.interval.ms=\nreplica.lag.time.max.ms=\nreplica.socket.receive.buffer.bytes=\nreplica.socket.timeout.ms=\n\nrequest.timeout.ms=\n\nreserved.broker.max.id=\n\nunclean.leader.election.enable=\n\nzookeeper.session.timeout.ms=\nzookeeper.sync.time.ms=\n\n########################################################################\n"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+          </span><span class="p">],</span><span class="w">
+          </span><span class="nt">"discovery-spec"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"task-kill-grace-period-seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">],</span><span class="w">
+      </span><span class="nt">"placement-rule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MaxPerHostnameRule"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"max"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"task-filter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nt">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RegexMatcher"</span><span class="p">,</span><span class="w">
+          </span><span class="nt">"pattern"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-.*"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nt">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+      </span><span class="nt">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
+      </span><span class="nt">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"replacement-failure-policy"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
 
 </div>
 </div>

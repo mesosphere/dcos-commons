@@ -98,21 +98,16 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <dl>
-<dt>All Superinterfaces:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></dd>
-</dl>
-<dl>
 <dt>All Known Subinterfaces:</dt>
 <dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a>&lt;C&gt;, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan">Phase</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlan.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlan</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlan.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlan</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TaskKillStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dd>
 </dl>
 <hr>
 <br>
-<pre>public interface <span class="typeNameLabel">Element</span>
-extends <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></pre>
+<pre>public interface <span class="typeNameLabel">Element</span></pre>
 <div class="block">An Element is a generic component in a tree of elements.  It is the basic unit for the description of Plans used to
  launch Mesos Tasks. <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>s, @{link Phase}s and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s are all implementations of Elements.  Elements
  have Strategies (see: <a href="../../../../../com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="interface in com.mesosphere.sdk.scheduler.plan.strategy"><code>Strategy</code></a> associated with them which describe when child elements should be presented as
@@ -239,13 +234,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" ti
 </td>
 </tr>
 </table>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
-<!--   -->
-</a>
-<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#notifyObservers--">notifyObservers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#subscribe-com.mesosphere.sdk.scheduler.Observer-">subscribe</a></code></li>
-</ul>
 </li>
 </ul>
 </li>

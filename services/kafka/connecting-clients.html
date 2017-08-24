@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -385,6 +385,8 @@ export auth_token=uSeR_t0k3n
   }</p>
 
 <p>This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. <a href="https://docs.mesosphere.com/1.9/networking/">Learn more about load balancing and VIPs in DC/OS</a>.</p>
+
+<p>When <a href="https://docs.mesosphere.com/service-docs/kafka/configure/#tls">the TLS</a> is enabled you can request details for <code class="highlighter-rouge">broker-tls</code> port. To verify a TLS connection from a client the <a href="https://docs.mesosphere.com/1.9/networking/tls-ssl/get-cert/">DC/OS trust bundle with a CA certificate</a> is required.</p>
 
 <h1 id="configuring-the-kafka-client-library">Configuring the Kafka Client Library</h1>
 

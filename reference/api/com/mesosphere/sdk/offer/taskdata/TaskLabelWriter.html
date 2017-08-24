@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -149,85 +149,73 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#clearPermanentlyFailed--">clearPermanentlyFailed</a></span>()</code>
-<div class="block">Ensures that the task is not identified as permanently failed.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#clearTransient--">clearTransient</a></span>()</code>
-<div class="block">Ensures that the task is not identified as a transient task.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>protected java.util.Optional&lt;HealthCheck&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#getReadinessCheck--">getReadinessCheck</a></span>()</code>
 <div class="block">Returns the embedded readiness check, or an empty Optional if no readiness check is configured.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setGoalState-com.mesosphere.sdk.specification.GoalState-">setGoalState</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState)</code>
 <div class="block">Sets a label on a TaskInfo indicating the Task's <a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a>, e.g.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setHostname-Offer-">setHostname</a></span>(Offer&nbsp;launchOffer)</code>
 <div class="block">Stores the agent hostname from the provided <code>Offer</code>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setIndex-int-">setIndex</a></span>(int&nbsp;index)</code>
 <div class="block">Assigns the pod instance index to the provided task.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setOfferAttributes-Offer-">setOfferAttributes</a></span>(Offer&nbsp;launchOffer)</code>
 <div class="block">Stores the <code>Attribute</code>s from the provided <code>Offer</code>.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setPermanentlyFailed--">setPermanentlyFailed</a></span>()</code>
 <div class="block">Ensures that the task is identified as permanently failed.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setReadinessCheck-HealthCheck-">setReadinessCheck</a></span>(HealthCheck&nbsp;readinessCheck)</code>
 <div class="block">Stores an encoded version of the <code>HealthCheck</code> as a readiness check.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setReadinessCheckEnvvar-java.lang.String-java.lang.String-">setReadinessCheckEnvvar</a></span>(java.lang.String&nbsp;key,
                        java.lang.String&nbsp;value)</code>
 <div class="block">Updates the stored readiness check, if any, to have the provided environment variable.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setTargetConfiguration-java.util.UUID-">setTargetConfiguration</a></span>(java.util.UUID&nbsp;targetConfigurationId)</code>
 <div class="block">Sets a <code>Label</code> indicating the target configuration.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setTransient--">setTransient</a></span>()</code>
 <div class="block">Ensures that the task is identified as a transient task.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setType-java.lang.String-">setType</a></span>(java.lang.String&nbsp;taskType)</code>
 <div class="block">Stores the provided task type string.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>Labels</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#toProto--">toProto</a></span>()</code>
 <div class="block">Returns a protobuf representation of all contained label entries.</div>
@@ -296,17 +284,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setTransient</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;setTransient()</pre>
-<div class="block">Ensures that the task is identified as a transient task.</div>
-</li>
-</ul>
-<a name="clearTransient--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>clearTransient</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;clearTransient()</pre>
-<div class="block">Ensures that the task is not identified as a transient task.</div>
+<div class="block">Ensures that the task is identified as a transient task. This is a "task" which is never launched, only passed to
+ Mesos as a way to capture some resources. This is used for e.g. reserving space to run sidecar tasks.</div>
 </li>
 </ul>
 <a name="setPermanentlyFailed--">
@@ -316,17 +295,9 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setPermanentlyFailed</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;setPermanentlyFailed()</pre>
-<div class="block">Ensures that the task is identified as permanently failed.</div>
-</li>
-</ul>
-<a name="clearPermanentlyFailed--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>clearPermanentlyFailed</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;clearPermanentlyFailed()</pre>
-<div class="block">Ensures that the task is not identified as permanently failed.</div>
+<div class="block">Ensures that the task is identified as permanently failed. This is intentionally stored in the TaskInfo as it
+ will be automatically overwritten when the TaskInfo is replaced. As such it will automatically be "cleared" when
+ the TaskInfo is regenerated in the offer cycle.</div>
 </li>
 </ul>
 <a name="setType-java.lang.String-">

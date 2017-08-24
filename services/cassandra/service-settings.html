@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -358,8 +358,8 @@
   <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BACKUP_RESTORE_STRATEGY</code>: <code class="highlighter-rouge">string</code></li>
 </ul>
 
-<h1 id="overlay-networks">Overlay networks</h1>
-<p>The Cassandra service can be run on the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the <a href="/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. For the Cassandra service, using the overlay network means that nodes no longer use reserved port resources on the Mesos agents.  This means that nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarantee that the ports on the agents containing the reserved resources for Cassandra will be available, therefore we do not allow a service to change from the overlay network to the host network. <strong>Once the service is deployed on the overlay network it must remain on the overlay network</strong>. The only way to move your data to Cassandra on the host network is through a migration.</p>
+<h1 id="virtual-networks">Virtual networks</h1>
+<p>The Cassandra service can be run on a virtual network such as the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the <a href="/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. For the Cassandra service, using a virtual network means that nodes no longer use reserved port resources on the Mesos agents.  This allows nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarantee that the ports on the agents containing the reserved resources for Cassandra will be available, therefore we do not allow a service to change from a virtual network to the host network. <strong>Once the service is deployed on a virtual network it must remain on that virtual network</strong>. The only way to move your data to Cassandra on the host network is through a migration.</p>
 
 </div>
 </div>

@@ -99,11 +99,11 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Superinterfaces:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a></dd>
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TaskKillStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dd>
 </dl>
 <hr>
 <br>
@@ -113,8 +113,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
  tasks to perform, such as launching a Task, updating a Task, or reconciling Mesos state with
  Framework state. A Step may be in one of five states: PENDING, PREPARED, STARTING, COMPLETE, or ERROR.
 
- A <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> is an <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler"><code>Observable</code></a>, and will notify its observers when its state changes.
- <p>
  See <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a> docs for more background.</div>
 </li>
 </ul>
@@ -197,13 +195,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
 <code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#forceComplete--">forceComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getId--">getId</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getName--">getName</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getStatus--">getStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#restart--">restart</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#update-TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.Observable">
-<!--   -->
-</a>
-<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html" title="interface in com.mesosphere.sdk.scheduler">Observable</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#notifyObservers--">notifyObservers</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/Observable.html#subscribe-com.mesosphere.sdk.scheduler.Observer-">subscribe</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Interruptible">

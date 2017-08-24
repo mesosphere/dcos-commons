@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9};
+var methods = {"i0":9,"i1":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -74,13 +74,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -116,23 +116,6 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- ======== CONSTRUCTOR SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.summary">
-<!--   -->
-</a>
-<h3>Constructor Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
-<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colOne" scope="col">Constructor and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#FailureUtils--">FailureUtils</a></span>()</code>&nbsp;</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -146,36 +129,16 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#clearFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">clearFailed</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-           <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>(package private) static Protos.TaskInfo</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#clearFailed-Protos.TaskInfo-">clearFailed</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
-<div class="block">Remove the permanently failed label, if any, from the TaskInfo.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#isLabeledAsFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">isLabeledAsFailed</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                 <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#isLabeledAsFailed-Protos.TaskInfo-">isLabeledAsFailed</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#isPermanentlyFailed-Protos.TaskInfo-">isPermanentlyFailed</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
 <div class="block">Check if a Task has been marked as permanently failed.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#markFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">markFailed</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-          <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code>static Protos.TaskInfo</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#markFailed-Protos.TaskInfo-">markFailed</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
-<div class="block">Mark a task as permanently failed.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#setPermanentlyFailed-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-">setPermanentlyFailed</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                    <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
+<div class="block">Marks all tasks associated with this pod as failed.</div>
 </td>
 </tr>
 </table>
@@ -194,36 +157,19 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ========= CONSTRUCTOR DETAIL ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.detail">
-<!--   -->
-</a>
-<h3>Constructor Detail</h3>
-<a name="FailureUtils--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>FailureUtils</h4>
-<pre>public&nbsp;FailureUtils()</pre>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ============ METHOD DETAIL ========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.detail">
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="isLabeledAsFailed-Protos.TaskInfo-">
+<a name="isPermanentlyFailed-Protos.TaskInfo-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>isLabeledAsFailed</h4>
-<pre>public static&nbsp;boolean&nbsp;isLabeledAsFailed(Protos.TaskInfo&nbsp;taskInfo)</pre>
+<h4>isPermanentlyFailed</h4>
+<pre>public static&nbsp;boolean&nbsp;isPermanentlyFailed(Protos.TaskInfo&nbsp;taskInfo)</pre>
 <div class="block">Check if a Task has been marked as permanently failed.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -233,60 +179,21 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="isLabeledAsFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isLabeledAsFailed</h4>
-<pre>public static&nbsp;boolean&nbsp;isLabeledAsFailed(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                                        <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-</li>
-</ul>
-<a name="markFailed-Protos.TaskInfo-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>markFailed</h4>
-<pre>public static&nbsp;Protos.TaskInfo&nbsp;markFailed(Protos.TaskInfo&nbsp;taskInfo)</pre>
-<div class="block">Mark a task as permanently failed.  This new marked Task should be persistently stored.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>taskInfo</code> - The Task to be marked.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The marked TaskInfo which may be a copy of the original TaskInfo.</dd>
-</dl>
-</li>
-</ul>
-<a name="markFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>markFailed</h4>
-<pre>public static&nbsp;void&nbsp;markFailed(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                              <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-</li>
-</ul>
-<a name="clearFailed-Protos.TaskInfo-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>clearFailed</h4>
-<pre>static&nbsp;Protos.TaskInfo&nbsp;clearFailed(Protos.TaskInfo&nbsp;taskInfo)</pre>
-<div class="block">Remove the permanently failed label, if any, from the TaskInfo.</div>
-</li>
-</ul>
-<a name="clearFailed-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">
+<a name="setPermanentlyFailed-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>clearFailed</h4>
-<pre>public static&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;clearFailed(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                                                                <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<h4>setPermanentlyFailed</h4>
+<pre>public static&nbsp;void&nbsp;setPermanentlyFailed(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                        <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</pre>
+<div class="block">Marks all tasks associated with this pod as failed.
+ This setting will effectively be automatically cleared when the pod is redeployed.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>stateStore</code> - the state storage where any updated tasks will be stored</dd>
+<dd><code>podInstance</code> - the pod whose tasks will be marked as failed</dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -343,13 +250,13 @@ extends java.lang.Object</pre>
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>

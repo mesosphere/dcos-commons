@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":9,"i12":9,"i13":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":9,"i13":9,"i14":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -114,7 +114,9 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">DefaultTaskSpec</span>
 extends java.lang.Object
 implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></pre>
-<div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>.</div>
+<div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>.
+
+ If you add or modify fields you must update the equals method. (technically TaskUtils.areDifferent()).</div>
 </li>
 </ul>
 </div>
@@ -142,6 +144,25 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 </table>
 </li>
 </ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -154,7 +175,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.util.Collection-">DefaultTaskSpec</a></span>(java.lang.String&nbsp;name,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.lang.Integer-java.util.Collection-">DefaultTaskSpec</a></span>(java.lang.String&nbsp;name,
                <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState,
                <a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>&nbsp;resourceSet,
                <a href="../../../../com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification">CommandSpec</a>&nbsp;commandSpec,
@@ -162,6 +183,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
                <a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a>&nbsp;readinessCheckSpec,
                java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a>&gt;&nbsp;configFiles,
                <a href="../../../../com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification">DiscoverySpec</a>&nbsp;discoverySpec,
+               java.lang.Integer&nbsp;taskKillGracePeriodSeconds,
                java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;&nbsp;transportEncryption)</code>&nbsp;</td>
 </tr>
 </table>
@@ -216,22 +238,26 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getResourceSet--">getResourceSet</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
+<td class="colFirst"><code>java.lang.Integer</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTaskKillGracePeriodSeconds--">getTaskKillGracePeriodSeconds</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTransportEncryption--">getTransportEncryption</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#newBuilder-com.mesosphere.sdk.specification.TaskSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -258,13 +284,34 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a name="TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</h4>
+<pre>public static final&nbsp;int TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.specification.DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.util.Collection-">
+<a name="DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.lang.Integer-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -278,6 +325,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
                        <a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a>&nbsp;readinessCheckSpec,
                        java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a>&gt;&nbsp;configFiles,
                        <a href="../../../../com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification">DiscoverySpec</a>&nbsp;discoverySpec,
+                       java.lang.Integer&nbsp;taskKillGracePeriodSeconds,
                        java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;&nbsp;transportEncryption)</pre>
 </li>
 </ul>
@@ -411,6 +459,19 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 </dl>
 </li>
 </ul>
+<a name="getTaskKillGracePeriodSeconds--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskKillGracePeriodSeconds</h4>
+<pre>public&nbsp;java.lang.Integer&nbsp;getTaskKillGracePeriodSeconds()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getTaskKillGracePeriodSeconds--">getTaskKillGracePeriodSeconds</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></code></dd>
+</dl>
+</li>
+</ul>
 <a name="getTransportEncryption--">
 <!--   -->
 </a>
@@ -516,13 +577,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

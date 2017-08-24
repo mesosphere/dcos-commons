@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -197,6 +197,13 @@ extends java.lang.Object</pre>
  chained together.</div>
 </td>
 </tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#taskKillGracePeriodSeconds-java.lang.Integer-">taskKillGracePeriodSeconds</a></span>(java.lang.Integer&nbsp;taskKillGracePeriodSeconds)</code>
+<div class="block">Sets the <code>taskKillGracePeriodSeconds</code> and returns a reference to this Builder so that methods
+ can be chained together.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -343,6 +350,23 @@ extends java.lang.Object</pre>
 <dd><code>discoverySpec</code> - The <a href="../../../../com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification"><code>DiscoverySpec</code></a> to set</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a reference to this Builder</dd>
+</dl>
+</li>
+</ul>
+<a name="taskKillGracePeriodSeconds-java.lang.Integer-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>taskKillGracePeriodSeconds</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a>&nbsp;taskKillGracePeriodSeconds(java.lang.Integer&nbsp;taskKillGracePeriodSeconds)</pre>
+<div class="block">Sets the <code>taskKillGracePeriodSeconds</code> and returns a reference to this Builder so that methods
+ can be chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>taskKillGracePeriodSeconds</code> - The number of seconds to await the service to cleanly (gracefully)
+ shutdown following a SIGTERM signal. If the value is null or zero (0), the underlying service will be
+ sent a SIGKILL immediately.</dd>
 </dl>
 </li>
 </ul>

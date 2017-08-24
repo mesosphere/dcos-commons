@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -524,16 +524,16 @@ dcos package install hdfs --options=hdfs1.json
 </code></pre>
 </div>
 
-<h2 id="overlay-networks">Overlay networks</h2>
-<p>HDFS supports deployment on the <code class="highlighter-rouge">dcos</code> overlay network, a virtual network on DC/OS that allows each container to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:</p>
+<h2 id="virtual-networks">Virtual networks</h2>
+<p>HDFS supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:</p>
 <div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"virtual_network"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+        </span><span class="nt">"virtual_network_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
     </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 </div>
-<p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on the overlay network, it cannot be updated to use the host network.</p>
+<p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
 
 </div>
 </div>

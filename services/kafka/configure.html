@@ -186,11 +186,11 @@
       
       
       
-      <li><a href="../../tutorials/automatic-repair.html">Automatic Repair</a></li>
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -480,7 +480,7 @@ GET &lt;dcos_url&gt;/service/kafka/v1/plan HTTP/1.1
   ],
   "errors": [],
   "status": "IN_PROGRESS"
-}   
+}
 </code></pre>
 </div>
 
@@ -497,6 +497,7 @@ PUT &lt;dcos_url&gt;/service/kafka/v1/interrupt HTTP/1.1
 
 <p><strong>Note:</strong> The interrupt command can’t stop a step that is <code class="highlighter-rouge">InProgress</code>, but it will stop the change on the subsequent steps.</p>
 
+<p><a name="configuration-options"></a></p>
 <h1 id="configuration-options">Configuration Options</h1>
 
 <p>The following describes the most commonly used features of the Kafka service and how to configure them via the DC/OS CLI and from the DC/OS web interface. View the <a href="https://github.com/mesosphere/universe/tree/1-7ea/repo/packages/K/kafka/6">default <code class="highlighter-rouge">config.json</code> in DC/OS Universe</a> to see all possible configuration options.</p>
@@ -509,6 +510,31 @@ PUT &lt;dcos_url&gt;/service/kafka/v1/interrupt HTTP/1.1
   <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">name</code>: string (default: <code class="highlighter-rouge">kafka</code>)</li>
   <li><strong>DC/OS web interface</strong>: The service name cannot be changed after the cluster has started.</li>
 </ul>
+
+<h2 id="kill-grace-period">Kill Grace Period</h2>
+
+<p>The kiill grace period is the number of seconds each broker has to cleanly shut
+down in response to SIGTERM. If a broker exceeds this time, it will be killed.
+Use the <code class="highlighter-rouge">brokers.kill_grace_period</code> configuration option to set a kill grace period.</p>
+
+<p>The graceful shutdown feature is especially important for large-scale deployments.
+Use the graceful shutdown configuraiton option to provide the broker sufficient
+time during shutdown. This ensure that all in-memory data is flushed to disk and
+all state is replicated. When a broker has sufficient time to shut down, the
+subsequent restart will be nearly as fast as the first startup. This is a large
+contributor to the Kafka service’s high availability.</p>
+
+<p>You can observe the graceful shutdown feature via the following log entries:</p>
+
+<ol>
+  <li>The task launch log line contains <code class="highlighter-rouge">kill_policy { grace_period { nanoseconds: 30000000000 } }</code>.</li>
+  <li>The task graceful shutdown log line contains SIGTERM as well as the grace time granted.</li>
+  <li>The underlying Kafka logging of shutdown operations includes a stream of subsystem shutdowns prior to the overarching system
+shutdown indicated by the entry <code class="highlighter-rouge">[Kafka Server 1], shut down completed (kafka.server.KafkaServer)</code>.</li>
+  <li>The presence (or not) of a SIGKILL log line indicating that the underlying Kafka broker did not shutdown cleanly within the
+allotted grace period.</li>
+  <li>The task status update marked by <code class="highlighter-rouge">TASK_KILLED</code>, indicating the end of the shutdown activity.</li>
+</ol>
 
 <h2 id="broker-count">Broker Count</h2>
 
@@ -526,6 +552,17 @@ PUT &lt;dcos_url&gt;/service/kafka/v1/interrupt HTTP/1.1
 <ul>
   <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">broker-port</code>: integer (default: <code class="highlighter-rouge">9092</code>)</li>
   <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BROKER_PORT</code>: <code class="highlighter-rouge">integer</code></li>
+</ul>
+
+<h3 id="tls-broker-port">TLS Broker Port</h3>
+
+<p>Configure the port number that brokers listen on with a TLS connection. The default value is <code class="highlighter-rouge">9093</code>. Same rules apply as for <a href="#broker-port">Broker Port</a>.</p>
+
+<p>This setting requires <a href="#tls">TLS</a> to be enabled, otherwise it is ignored.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">broker-port_tls</code>: integer (default: <code class="highlighter-rouge">9093</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BROKER_PORT_TLS</code>: <code class="highlighter-rouge">integer</code></li>
 </ul>
 
 <h2 id="configure-broker-placement-strategy-">Configure Broker Placement Strategy <!-- replace this with a discussion of PLACEMENT_CONSTRAINTS? --></h2>
@@ -631,6 +668,65 @@ To configure it:</p>
 </div>
 
 <p>This configuration option cannot be changed after installation.</p>
+
+<h2 id="tls">TLS</h2>
+
+<p>It is possible to expose Kafka over a secure TLS connection.</p>
+
+<p><strong>DC/OS CLI options.json</strong>:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"tls"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Once the TLS is enabled, Kafka will use secure TLS connections for inter-node communication. Additional TLS port named <code class="highlighter-rouge">broker-tls</code> will be available for clients connecting to the service. Only the <a href="https://www.ietf.org/rfc/rfc5246.txt"><code class="highlighter-rouge">TLS version 1.2</code></a> is supported. The non-TLS <code class="highlighter-rouge">broker</code> port will still be available.</p>
+
+<p>Enabling the TLS is possible only in <code class="highlighter-rouge">permissive</code> or <code class="highlighter-rouge">strict</code> cluster security modes. Both modes <strong>require</strong> a <a href="https://docs.mesosphere.com/service-docs/kafka/kafka-auth/">service account</a>. Additionally, the service account <strong>must have</strong> the <code class="highlighter-rouge">dcos:superuser</code> permission. If the permission is missing the Kafka scheduler will not abe able to provision the TLS artifacts.</p>
+
+<p>There is a performance impact with TLS connections that should be considered:</p>
+
+<ul>
+  <li>
+    <p>the initial TLS handshake</p>
+  </li>
+  <li>
+    <p>encryption and decryption of messages sent over the socket</p>
+  </li>
+</ul>
+
+<p>It is possible to use the Kafka CLI utility to test the performance impact of TLS by comparing the output of following commands:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>export KAFKA_TOPIC_NAME=tls-test
+export KAFKA_MSG_COUNT=100000
+dcos kafka topic create ${KAFKA_TOPIC_NAME}
+
+# Test no TLS
+dcos kafka topic producer_test ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
+
+# Test TLS
+dcos kafka topic producer_test_tls ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
+</code></pre>
+</div>
+
+<p>For more information about the TLS in the SDK see <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#tls">the TLS documentation</a>.</p>
+
+<h3 id="tls-and-plaintext">TLS and plaintext</h3>
+
+<p>It is possible to keep both TLS and plaintext ports opened at the same time and have clients accessing both of them. To keep the plaintext port open use the following TLS configuration:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"tls"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"tls_allow_plaintext"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>The plaintext port will be disabled by default when the TLS is enabled.</p>
 
 <h2 id="recovery-and-health-checks">Recovery and Health Checks</h2>
 
