@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
@@ -65,7 +64,11 @@ public class NamedVIPSpec extends PortSpec {
 
     @Override
     public String toString() {
-        return ReflectionToStringBuilder.toString(this);
+        return String.format("%s, vip-name: %s, vip-port: %s, protocol: %s",
+                super.toString(),
+                getVipName(),
+                getVipPort(),
+                getProtocol());
     }
 
     @Override

@@ -581,10 +581,22 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     private void killUnneededTasks(Set<String> taskToDeployNames) {
-        Set<Protos.TaskID> taskIds = stateStore.fetchTasks().stream()
+        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIds = taskInfos.stream()
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
+
+        // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+                .map(taskInfo -> taskInfo.toBuilder())
+                .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
+                .collect(Collectors.toSet());
+
+        cleanedTaskInfos.forEach(taskInfo -> stateStore.clearTask(taskInfo.getName()));
+        stateStore.storeTasks(cleanedTaskInfos);
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
@@ -707,12 +719,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     protected void processOfferSet(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
-        LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
-        for (int i = 0; i < localOffers.size(); ++i) {
-            LOGGER.info("  {}: {}",
-                    i + 1,
-                    TextFormat.shortDebugString(localOffers.get(i)));
-        }
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
