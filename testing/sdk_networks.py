@@ -39,10 +39,7 @@ def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_
     or
     $ dcos <service> endpoints <endpoint_to_get>
     Checks that there is the correct number of endpoints"""
-
-    endpoints, _, rc = sdk_cmd.svc_cli(package_name, service_name, "endpoints {}".format(endpoint_to_get))
-    assert rc == 0, "Failed to get endpoints on overlay network"
-    endpoints = json.loads(endpoints)
+    endpoints = sdk_cmd.svc_cli(package_name, service_name, "endpoints {}".format(endpoint_to_get), json=True)
     assert len(endpoints) == correct_count, "Wrong number of endpoints, got {} should be {}" \
         .format(len(endpoints), correct_count)
     return endpoints

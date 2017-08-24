@@ -10,10 +10,6 @@ import sdk_utils
 
 from tests import config
 
-from tests.test_utils import (
-    service_cli
-)
-
 # Name of the broker TLS vip
 BROKER_TLS_ENDPOINT = 'broker-tls'
 
@@ -77,9 +73,7 @@ def test_tls_endpoints(kafka_service_tls):
     assert BROKER_TLS_ENDPOINT in endpoints
 
     # Test that broker-tls endpoint is available
-    endpoint_tls = service_cli(
-        'endpoints {name}'.format(name=BROKER_TLS_ENDPOINT)
-    )
+    endpoint_tls = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints {name}'.format(name=BROKER_TLS_ENDPOINT), json=True)
     assert len(endpoint_tls['dns']) == config.DEFAULT_BROKER_COUNT
 
 
@@ -88,15 +82,15 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
 def test_producer_over_tls(kafka_service_tls):
-    service_cli('topic create {}'.format(config.DEFAULT_TOPIC_NAME))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
 
-    topic_info = service_cli('topic describe {}'.format(config.DEFAULT_TOPIC_NAME))
+    topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic describe {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
-    # Warm up TLS connections
-    write_info = service_cli('topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, 10))
-
+    # Write twice: Warm up TLS connections
     num_messages = 10
-    write_info = service_cli('topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages))
+    write_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
+
+    write_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
     assert len(write_info) == 1
     assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))

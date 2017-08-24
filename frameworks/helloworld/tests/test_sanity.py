@@ -177,7 +177,7 @@ def test_pod_info():
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
-    assert task['info']['name'] == 'world-1-server'
+    assert task['info']['name'] == 'hello-1-server'
     assert task['info']['taskId']['value'] == task['status']['taskId']['value']
     assert task['status']['state'] == 'TASK_RUNNING'
 

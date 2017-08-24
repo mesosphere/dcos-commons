@@ -97,7 +97,7 @@ def test_integrity_on_name_node_failure():
     if active_name_node == "name-1-node":
         predicted_active_name_node = "name-0-node"
 
-    config.wait_for_failover_to_complete(predicted_active_name_node)
+    wait_for_failover_to_complete(predicted_active_name_node)
 
     config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_2_NAME)
     config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_2_NAME)

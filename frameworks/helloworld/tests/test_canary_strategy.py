@@ -41,7 +41,7 @@ def configure_package(configure_security):
 def test_canary_init():
     def fn():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True)
-    assert shakedown.wait_for(fn, noisy=True) == []
+    assert shakedown.wait_for(fn, noisy=True, timeout_seconds=10 * 60) == []
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)
