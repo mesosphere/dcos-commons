@@ -147,7 +147,7 @@ def _upgrade_or_downgrade(
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
-        cmd.run_cli('package describe {}'.format(package_name))).group(1)
+        cmd.run_cli('package describe {}'.format(package_name), print_output=False)).group(1)
 
 
 # Default repo is the one at index=0.

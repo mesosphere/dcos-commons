@@ -1,6 +1,8 @@
 import pytest
 
 import sdk_install
+import sdk_marathon
+import sdk_tasks
 from tests import config
 
 # This file tests installing the elastic framework with the new default of 0 ingest nodes.
@@ -25,7 +27,7 @@ def configure_package(configure_security):
 @pytest.fixture(autouse=True)
 def pre_test_setup():
     sdk_tasks.check_running(config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
-    wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
 
 
 @pytest.mark.sanity
@@ -40,4 +42,4 @@ def test_zero_to_one_ingest():
     marathon_config['env']['INGEST_NODE_COUNT'] = "1"
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
-    wait_for_expected_nodes_to_exist(task_count=config.DEFAULT_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist()
