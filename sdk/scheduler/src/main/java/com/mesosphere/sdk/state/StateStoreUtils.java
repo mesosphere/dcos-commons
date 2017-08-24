@@ -181,16 +181,17 @@ public class StateStoreUtils {
             if (statusOptional.isPresent()) {
                 Protos.TaskStatus status = statusOptional.get();
                 if (!status.getTaskId().equals(task.getTaskId())) {
-                    LOGGER.warn("Found StateStore status inconsistency: task.taskId={}, taskStatus.taskId={}",
-                            task.getTaskId(), status.getTaskId());
+                    LOGGER.warn(
+                            "Found StateStore status inconsistency for task {}: task.taskId={}, taskStatus.taskId={}",
+                            task.getName(), task.getTaskId(), status.getTaskId());
                     repairedTasks.add(task.toBuilder().setTaskId(status.getTaskId()).build());
-                    if (!status.getTaskId().getValue().equals("")) {
-                        repairedStatuses.put(task.getName(),
-                                status.toBuilder().setState(Protos.TaskState.TASK_FAILED).build());
-                    }
+                    repairedStatuses.put(
+                            task.getName(), status.toBuilder().setState(Protos.TaskState.TASK_FAILED).build());
                 }
             } else {
-                LOGGER.warn("Found StateStore status inconsistency: task.taskId={}", task.getTaskId());
+                LOGGER.warn(
+                        "Found StateStore status inconsistency for task {}: task.taskId={}, no status",
+                        task.getName(), task.getTaskId());
                 Protos.TaskStatus status = Protos.TaskStatus.newBuilder()
                         .setTaskId(task.getTaskId())
                         .setState(Protos.TaskState.TASK_FAILED)
@@ -201,7 +202,8 @@ public class StateStoreUtils {
         }
 
         stateStore.storeTasks(repairedTasks);
-        repairedStatuses.entrySet()
+        repairedStatuses.entrySet().stream()
+                .filter(statusEntry -> !statusEntry.getValue().getTaskId().getValue().equals(""))
                 .forEach(statusEntry -> stateStore.storeStatus(statusEntry.getKey(), statusEntry.getValue()));
     }
 
