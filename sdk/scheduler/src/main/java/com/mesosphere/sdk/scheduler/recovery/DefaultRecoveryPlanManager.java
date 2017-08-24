@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.ChainedObserver;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import com.mesosphere.sdk.scheduler.Observable;
 
 /**
  * {@link DefaultRecoveryPlanManager} enables monitoring and management of recovery plan.
@@ -27,7 +25,7 @@ import com.mesosphere.sdk.scheduler.Observable;
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
-public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanManager {
+public class DefaultRecoveryPlanManager implements PlanManager {
     public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
     public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -77,7 +75,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     protected void setPlan(Plan plan) {
         synchronized (planLock) {
             this.plan = plan;
-            this.plan.subscribe(this);
             List<String> stepNames = plan.getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
                     .map(step -> step.getName())
@@ -112,7 +109,6 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         synchronized (planLock) {
             getPlan().update(status);
         }
-        notifyObservers();
     }
 
     protected void updatePlan(Collection<PodInstanceRequirement> dirtyAssets) {
@@ -146,16 +142,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
                 }
             }
 
-            Plan plan = createPlan(defaultRequirements, phases);
-
-            // Subscribe to state changes in recovery steps
-            List<Step> steps = plan.getChildren().stream()
-                    .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> step instanceof DefaultRecoveryStep)
-                    .collect(Collectors.toList());
-            steps.forEach(step -> ((DefaultRecoveryStep) step).subscribe(this));
-
-            setPlan(plan);
+            setPlan(createPlan(defaultRequirements, phases));
         }
     }
 
@@ -192,16 +179,20 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
 
-        Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore);
-        failedTasks = failedTasks.stream()
-                .filter(taskInfo -> recoverableTaskNames.contains(taskInfo.getName()))
-                .collect(Collectors.toList());
+        Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(
+                stateStore,
+                configStore,
+                recoverableTaskNames);
         logger.info("Found tasks needing recovery: {}", getTaskNames(failedTasks));
+
+        List<Protos.TaskInfo> allLaunchedTasks = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> stateStore.fetchStatus(taskInfo.getName()).isPresent())
+                .collect(Collectors.toList());
 
         List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
                 configStore,
                 failedTasks,
-                stateStore.fetchTasks());
+                allLaunchedTasks);
         if (!failedPods.isEmpty()) {
             logger.info("All failed pods: {}", getPodNames(failedPods));
         }
@@ -308,12 +299,7 @@ public class DefaultRecoveryPlanManager extends ChainedObserver implements PlanM
         return dirtyAssets;
     }
 
-    @Override
-    public void update(Observable obj) {
-        notifyObservers();
-    }
-
-    private static List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
+    private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
         return taskInfos.stream()
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());

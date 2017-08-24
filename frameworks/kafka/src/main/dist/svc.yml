@@ -24,6 +24,7 @@ pods:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
+          {{^TASKCFG_ALL_KAFKA_ENABLE_TLS}}
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
@@ -31,6 +32,25 @@ pods:
             vip:
               prefix: broker
               port: 9092
+          {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+          {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+          {{#TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT}}
+          broker:
+            port: {{BROKER_PORT}}
+            env-key: KAFKA_BROKER_PORT
+            advertise: true
+            vip:
+              prefix: broker
+              port: 9092
+          {{/TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT}}
+          broker-tls:
+            port: {{BROKER_PORT_TLS}}
+            env-key: KAFKA_BROKER_PORT_TLS
+            advertise: true
+            vip:
+              prefix: broker-tls
+              port: 9093
+          {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
@@ -53,7 +73,7 @@ pods:
             # since the server is just started, the starting and started log lines
             # should be present in the server.log file, independent of whether or
             # not the server.log file is being logrotated.
-            # 
+            #
             # Example log lines follow:
             ## starting:
             # [2017-06-14 22:20:54,260] INFO starting (kafka.server.KafkaServer)
@@ -74,6 +94,12 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
+        {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        transport-encryption:
+          - name: broker
+            type: KEYSTORE
+        {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
     strategy: serial

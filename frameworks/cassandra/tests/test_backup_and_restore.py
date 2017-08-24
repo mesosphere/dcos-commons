@@ -1,43 +1,40 @@
 import os
-import pytest
 import tempfile
 import uuid
 
-from tests.config import *
+import pytest
 import sdk_install
 import sdk_jobs
 import sdk_utils
+from tests import config
 
-WRITE_DATA_JOB = get_write_data_job(node_address=FOLDERED_NODE_ADDRESS)
-VERIFY_DATA_JOB = get_verify_data_job(node_address=FOLDERED_NODE_ADDRESS)
-DELETE_DATA_JOB = get_delete_data_job(node_address=FOLDERED_NODE_ADDRESS)
-VERIFY_DELETION_JOB = get_verify_deletion_job(node_address=FOLDERED_NODE_ADDRESS)
-TEST_JOBS = [WRITE_DATA_JOB, VERIFY_DATA_JOB, DELETE_DATA_JOB, VERIFY_DELETION_JOB]
 
 no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
         reason="backup/restore doesn't work in strict as user needs to be root")
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
+    test_jobs = []
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        sdk_install.uninstall(config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
         # user=root because Azure CLI needs to run in root...
         sdk_install.install(
-            PACKAGE_NAME,
-            DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": { "name": FOLDERED_SERVICE_NAME, "user": "root" } })
+            config.PACKAGE_NAME,
+            config.DEFAULT_TASK_COUNT,
+            service_name=config.get_foldered_service_name(),
+            additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root" } })
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
-        for job in TEST_JOBS:
+        for job in test_jobs:
             sdk_jobs.install_job(job, tmp_dir=tmp_dir)
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=PACKAGE_NAME)
+        sdk_install.uninstall(config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
 
         # remove job definitions from metronome
-        for job in TEST_JOBS:
+        for job in test_jobs:
             sdk_jobs.remove_job(job)
 
 # To disable these tests in local runs where you may lack the necessary credentials,
@@ -62,11 +59,11 @@ def test_backup_and_restore_to_azure():
     }
 
     run_backup_and_restore(
-        FOLDERED_SERVICE_NAME,
+        config.get_foldered_service_name(),
         'backup-azure',
         'restore-azure',
         plan_parameters,
-        FOLDERED_NODE_ADDRESS)
+        config.get_foldered_node_address())
 
 
 @pytest.mark.aws
@@ -84,9 +81,9 @@ def test_backup_and_restore_to_s3():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    run_backup_and_restore(
-        FOLDERED_SERVICE_NAME,
+    config.run_backup_and_restore(
+        config.get_foldered_service_name(),
         'backup-s3',
         'restore-s3',
         plan_parameters,
-        FOLDERED_NODE_ADDRESS)
+        config.get_foldered_node_address())

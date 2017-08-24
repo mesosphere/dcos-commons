@@ -68,8 +68,8 @@ No matter how big or small the cluster is, there will always be exactly 3 master
 
 - 3 master-only nodes
 - 2 data-only nodes
-- 1 ingest-only node
-- 1 coordinator node
+- 1 coordinator-only node
+- 0 ingest-only node
 
 The master/data/ingest/coordinator nodes are set up to only perform their one role. That is, master nodes do not store data, and ingest nodes do not store cluster state.
 

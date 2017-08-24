@@ -276,6 +276,7 @@ public class PodInfoBuilder {
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
     }
@@ -492,6 +493,28 @@ public class PodInfoBuilder {
         }
     }
 
+    private static void setTaskKillGracePeriod(
+            Protos.TaskInfo.Builder taskInfoBuilder,
+            TaskSpec taskSpec) throws InvalidRequirementException {
+        Integer taskKillGracePeriodSeconds = taskSpec.getTaskKillGracePeriodSeconds();
+        if (taskKillGracePeriodSeconds == null) {
+            taskKillGracePeriodSeconds = 0;
+        } else if (taskKillGracePeriodSeconds < 0) {
+            throw new InvalidRequirementException(String.format(
+                        "kill-grace-period must be zero or a positive integer, received: %d",
+                        taskKillGracePeriodSeconds));
+        }
+        long taskKillGracePeriodNanoseconds = 1000000000L * taskKillGracePeriodSeconds;
+        Protos.DurationInfo taskKillGracePeriodDuration = Protos.DurationInfo.newBuilder()
+            .setNanoseconds(taskKillGracePeriodNanoseconds)
+            .build();
+
+        Protos.KillPolicy.Builder killPolicyBuilder = Protos.KillPolicy.newBuilder()
+            .setGracePeriod(taskKillGracePeriodDuration);
+
+        taskInfoBuilder.setKillPolicy(killPolicyBuilder.build());
+    }
+
     private static String getConfigTemplateDownloadPath(ConfigFileSpec config) {
         // Name is unique.
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
@@ -512,6 +535,10 @@ public class PodInfoBuilder {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
+
+        if (isTaskContainer) {
+            containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
+        }
 
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()

@@ -50,6 +50,7 @@ pods:
           size: {{MASTER_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
+          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
           DATA_ENABLED: false
@@ -60,13 +61,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -118,6 +112,7 @@ pods:
           size: {{DATA_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
+          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: true
@@ -128,13 +123,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -186,6 +174,7 @@ pods:
           size: {{INGEST_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
+          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: false
@@ -196,13 +185,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -254,6 +236,7 @@ pods:
           size: {{COORDINATOR_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
+          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: false
           DATA_ENABLED: false
@@ -264,13 +247,6 @@ pods:
           elasticsearch:
             template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
             dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5

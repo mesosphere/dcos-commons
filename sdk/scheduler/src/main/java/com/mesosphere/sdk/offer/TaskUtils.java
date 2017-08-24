@@ -68,7 +68,7 @@ public class TaskUtils {
      * @return A list of the appropriate task names.
      */
     public static List<String> getTaskNames(PodInstance podInstance, Collection<String> tasksToLaunch) {
-        LOGGER.info("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
+        LOGGER.debug("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
         return podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
@@ -86,6 +86,18 @@ public class TaskUtils {
         serviceSpec.getPods().forEach(pod -> tasks.addAll(pod.getTasks()));
 
         return tasks.stream()
+                .filter(taskSpec -> !taskSpec.getTransportEncryption().isEmpty())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns all the {@link TaskSpec} that have TLS configuration.
+     *
+     * @return A list of the task specs.
+     */
+    public static List<TaskSpec> getTasksWithTLS(PodInstanceRequirement podInstanceRequirement) {
+        return podInstanceRequirement.getPodInstance().getPod().getTasks()
+                .stream()
                 .filter(taskSpec -> !taskSpec.getTransportEncryption().isEmpty())
                 .collect(Collectors.toList());
     }
@@ -232,6 +244,14 @@ public class TaskUtils {
         Optional<DiscoverySpec> newDiscoverySpec = newTaskSpec.getDiscovery();
         if (!Objects.equals(oldDiscoverySpec, newDiscoverySpec)) {
             LOGGER.debug("DiscoverySpecs '{}' and '{}' are different.", oldDiscoverySpec, newDiscoverySpec);
+            return true;
+        }
+
+        int oldTaskKillGracePeriodSeconds = oldTaskSpec.getTaskKillGracePeriodSeconds();
+        int newTaskKillGracePeriodSeconds = newTaskSpec.getTaskKillGracePeriodSeconds();
+        if (oldTaskKillGracePeriodSeconds != newTaskKillGracePeriodSeconds) {
+            LOGGER.debug("TaskKillGracePeriodSeconds '{}' and '{}' are different.",
+                    oldTaskKillGracePeriodSeconds, newTaskKillGracePeriodSeconds);
             return true;
         }
 

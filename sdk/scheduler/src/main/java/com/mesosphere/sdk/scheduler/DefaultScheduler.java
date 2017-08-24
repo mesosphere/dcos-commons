@@ -46,14 +46,13 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler extends AbstractScheduler implements Observer {
+public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final Collection<Plan> plans;
-    protected final ConfigStore<ServiceSpec> configStore;
     final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
     private final ConfigurationUpdater.UpdateResult updateResult;
@@ -553,13 +552,12 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
             ConfigurationUpdater.UpdateResult updateResult) {
-        super(stateStore);
+        super(stateStore, configStore);
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
         this.plans = plans;
-        this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
@@ -583,15 +581,26 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializeResources();
         initializeApiServer();
         killUnneededTasks(getLaunchableTasks());
-        planCoordinator.subscribe(this);
         LOGGER.info("Done initializing.");
     }
 
     private void killUnneededTasks(Set<String> taskToDeployNames) {
-        Set<Protos.TaskID> taskIds = stateStore.fetchTasks().stream()
+        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIds = taskInfos.stream()
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
+
+        // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+                .map(taskInfo -> taskInfo.toBuilder())
+                .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
+                .collect(Collectors.toSet());
+
+        cleanedTaskInfos.forEach(taskInfo -> stateStore.clearTask(taskInfo.getName()));
+        stateStore.storeTasks(cleanedTaskInfos);
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
@@ -712,18 +721,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    /**
-     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
-     * or revive offers should be made.
-     */
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive(planCoordinator);
-            completeDeploy();
-        }
-    }
-
     private void completeDeploy() {
         if (!planCoordinator.hasOperations()) {
             StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult.getDeploymentType());
@@ -732,12 +729,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
     protected void processOfferSet(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
-        LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
-        for (int i = 0; i < localOffers.size(); ++i) {
-            LOGGER.info("  {}: {}",
-                    i + 1,
-                    TextFormat.shortDebugString(localOffers.get(i)));
-        }
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
@@ -776,6 +767,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         OfferUtils.declineOffers(driver, unusedOffers);
     }
 
+    @Override
+    protected Collection<PlanManager> getPlanManagers() {
+        return planCoordinator.getPlanManagers();
+    }
+
     public boolean apiServerReady() {
         return schedulerApiServer.ready();
     }
@@ -787,6 +783,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 status.getState().toString(),
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
+
+        eventBus.post(status);
 
         // Store status, then pass status to PlanManager => Plan => Steps
         try {
@@ -806,11 +804,6 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                                 "Last status: {}",
                         taskName, TextFormat.shortDebugString(lastStatus.get()));
                 taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
-            }
-
-            if (StateStoreUtils.isSuppressed(stateStore)
-                    && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
-                revive();
             }
 
             // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
@@ -833,19 +826,11 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                     + "This may be expected if Mesos sent stale status information: " + status, e);
         }
+
     }
 
     @VisibleForTesting
     Set<String> getLaunchableTasks() {
-        return plans.stream()
-                .flatMap(plan -> plan.getChildren().stream())
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .flatMap(podInstanceRequirement ->
-                        TaskUtils.getTaskNames(
-                                podInstanceRequirement.getPodInstance(),
-                                podInstanceRequirement.getTasksToLaunch()).stream())
-                .collect(Collectors.toSet());
+        return PlanUtils.getLaunchableTasks(plans);
     }
 }

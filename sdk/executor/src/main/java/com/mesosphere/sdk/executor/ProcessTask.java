@@ -26,8 +26,8 @@ public class ProcessTask implements ExecutorTask {
 
     private boolean exitOnTermination;
 
-    // TODO(mohit): Remove this when KillPolicy is available.
-    private static final Duration TERMINATE_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration noGracePeriod = Duration.ZERO;
+    private final Duration taskKillGracePeriod;
 
     public static ProcessTask create(ExecutorDriver executorDriver, Protos.TaskInfo taskInfo) {
         return create(executorDriver, taskInfo, true);
@@ -62,6 +62,19 @@ public class ProcessTask implements ExecutorTask {
         this.taskInfo = taskInfo;
         this.processBuilder = processBuilder;
         this.exitOnTermination = exitOnTermination;
+        this.taskKillGracePeriod = getTaskKillGracePeriod(taskInfo);
+    }
+
+    private Duration getTaskKillGracePeriod(Protos.TaskInfo taskInfo) {
+        if (!taskInfo.hasKillPolicy()) {
+            return noGracePeriod;
+        }
+        Protos.KillPolicy killPolicy = taskInfo.getKillPolicy();
+        if (!killPolicy.hasGracePeriod()) {
+            return noGracePeriod;
+        }
+        Protos.DurationInfo gracePeriod = killPolicy.getGracePeriod();
+        return Duration.ofNanos(gracePeriod.getNanoseconds());
     }
 
     public void preStart() {
@@ -71,7 +84,6 @@ public class ProcessTask implements ExecutorTask {
     @Override
     public void run() {
         try {
-
             preStart();
 
             LOGGER.info("Executing command: {}", processBuilder.command());
@@ -159,17 +171,9 @@ public class ProcessTask implements ExecutorTask {
 
     @Override
     public void stop(Future<?> future) {
-        if (process != null) {
-            LOGGER.info("Terminating process: task = {}", taskInfo);
-
-            if (terminate(TERMINATE_TIMEOUT)) {
-                LOGGER.info("Terminated process: task = {}", taskInfo.getTaskId());
-            } else {
-                LOGGER.warn("Failed to terminate process: task = {}",
-                        taskInfo.getTaskId());
-                LOGGER.info("Killing process task = {}", taskInfo.getTaskId());
-                kill();
-            }
+        if ((process != null) &&
+                (!terminate(this.taskKillGracePeriod))) {
+            kill();
         }
     }
 
@@ -189,7 +193,7 @@ public class ProcessTask implements ExecutorTask {
 
     protected void sigTerm() {
         if (isAlive()) {
-            LOGGER.info("Sending SIGTERM");
+            LOGGER.info("Sending SIGTERM, awaiting a grace period of {}ms", this.taskKillGracePeriod.toMillis());
             process.destroy();
         }
     }
@@ -212,19 +216,32 @@ public class ProcessTask implements ExecutorTask {
     }
 
     public boolean terminate(Duration timeout) {
+        if (timeout == null || timeout.toMillis() == 0L) {
+            return false;
+        }
+
+        LOGGER.info("Terminating process: task = {}", taskInfo);
         LOGGER.info("Terminating process");
         if (waitInit() && isAlive()) {
             sigTerm();
         }
-        return waitExit(timeout);
+        boolean isExited = waitExit(timeout);
+        if (isExited) {
+            LOGGER.info("Terminated process: task = {}", taskInfo.getTaskId());
+        } else {
+            LOGGER.warn("Failed to terminate process: task = {}", taskInfo.getTaskId());
+        }
+        return isExited;
     }
 
     public int kill() {
+        LOGGER.info("Killing process task = {}", taskInfo.getTaskId());
         LOGGER.info("Killing process: name = {}", taskInfo.getName());
         if (waitInit() && isAlive()) {
             sigKill();
         }
-        return waitExit();
+        int exitCode = waitExit();
+        return exitCode;
     }
 
     private int waitExit() {

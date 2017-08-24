@@ -14,18 +14,21 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
-  {{#service.secret_name}}
+  {{#service.service_account_secret}}
   "secrets": {
     "serviceCredential": {
-      "source": "{{service.secret_name}}"
+      "source": "{{service.service_account_secret}}"
     }
   },
-  {{/service.secret_name}}
+  {{/service.service_account_secret}}
   "env": {
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
+    {{#brokers.kill_grace_period}}
+    "BROKER_KILL_GRACE_PERIOD": "{{brokers.kill_grace_period}}",
+    {{/brokers.kill_grace_period}}
     "CMD_PREFIX": "{{service.cmd_prefix}}",
     "SECRET_NAME": "{{service.secret_name}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
@@ -49,17 +52,25 @@
     "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
 
-    {{#service.secret_name}}
+    {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
-    {{/service.secret_name}}
+    {{/service.service_account_secret}}
 
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
+
+    {{#service.tls}}
+    "BROKER_PORT_TLS": "{{brokers.port_tls}}",
+    "TASKCFG_ALL_KAFKA_ENABLE_TLS": "{{service.tls}}",
+    {{#service.tls_allow_plaintext}}
+    "TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
+    {{/service.tls_allow_plaintext}}
+    {{/service.tls}}
 
     "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.11.0.0",

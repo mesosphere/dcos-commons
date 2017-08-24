@@ -1,22 +1,22 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -29,18 +29,25 @@ import java.util.stream.Collectors;
 public abstract class AbstractScheduler implements Scheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScheduler.class);
+    private SuppressReviveManager suppressReviveManager;
+
     protected final StateStore stateStore;
+    protected final ConfigStore<ServiceSpec> configStore;
     // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     protected final OfferQueue offerQueue = new OfferQueue();
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
+    protected final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
-    private Object suppressReviveLock = new Object();
+    /**
+     * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
+     */
+    protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * Executor for processing offers off the queue in {@code processOffers()}.
@@ -50,8 +57,9 @@ public abstract class AbstractScheduler implements Scheduler {
     /**
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
-    protected AbstractScheduler(StateStore stateStore) {
+    protected AbstractScheduler(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
         this.stateStore = stateStore;
+        this.configStore = configStore;
         processOffers();
     }
 
@@ -90,7 +98,14 @@ public abstract class AbstractScheduler implements Scheduler {
             while (true) {
                 // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
+                LOGGER.info("Processing {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
+                for (int i = 0; i < offers.size(); ++i) {
+                    LOGGER.info("  {}: {}",
+                            i + 1,
+                            TextFormat.shortDebugString(offers.get(i)));
+                }
                 processOfferSet(offers);
+                offers.forEach(offer -> eventBus.post(offer));
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
                             offers.stream()
@@ -103,7 +118,6 @@ public abstract class AbstractScheduler implements Scheduler {
         });
     }
 
-    protected abstract void processOfferSet(List<Protos.Offer> offers);
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
@@ -141,10 +155,6 @@ public abstract class AbstractScheduler implements Scheduler {
             }
         }
     }
-
-    protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
-
-    protected abstract boolean apiServerReady();
 
     /**
      * All offers must have been presented to resourceOffers() before calling this.  This call will block until all
@@ -211,50 +221,26 @@ public abstract class AbstractScheduler implements Scheduler {
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
-    protected void suppressOrRevive(PlanCoordinator planCoordinator) {
-        synchronized (suppressReviveLock) {
-            if (planCoordinator.hasOperations()) {
-                if (StateStoreUtils.isSuppressed(stateStore)) {
-                    revive();
-                } else {
-                    LOGGER.info("Already revived.");
-                }
-            } else {
-                if (StateStoreUtils.isSuppressed(stateStore)) {
-                    LOGGER.info("Already suppressed.");
-                } else {
-                    suppress();
-                }
-            }
-        }
-    }
-
-    void suppress() {
-        setOfferMode(true);
-    }
-
-    void revive() {
-        setOfferMode(false);
-    }
-
-    private void setOfferMode(boolean suppressed) {
-        synchronized (suppressReviveLock) {
-            if (suppressed) {
-                LOGGER.info("Suppressing offers.");
-                driver.suppressOffers();
-                StateStoreUtils.setSuppressed(stateStore, true);
-            } else {
-                LOGGER.info("Reviving offers.");
-                driver.reviveOffers();
-                StateStoreUtils.setSuppressed(stateStore, false);
-            }
-        }
-    }
-
     protected void postRegister() {
         reconciler.start();
         reconciler.reconcile(driver);
-        revive();
+        if (suppressReviveManager == null) {
+            suppressReviveManager = new SuppressReviveManager(
+                    stateStore,
+                    configStore,
+                    driver,
+                    eventBus,
+                    getPlanManagers());
+        }
+
+        suppressReviveManager.start();
     }
 
+    protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
+
+    protected abstract boolean apiServerReady();
+
+    protected abstract void processOfferSet(List<Protos.Offer> offers);
+
+    protected abstract Collection<PlanManager> getPlanManagers();
 }

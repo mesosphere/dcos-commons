@@ -21,3 +21,7 @@ node.data: {{DATA_ENABLED}}
 node.ingest: {{INGEST_ENABLED}}
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
+gateway.expected_master_nodes: 3
+gateway.expected_data_nodes: {{DATA_NODE_COUNT}}
+gateway.recover_after_master_nodes: 3
+gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}}
