@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Kafka: Upgrade Kafka from 0.10.2.x to 0.11.0.0</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../style/Dropdown.css" />
+<script src="../../style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+#markdown-toc ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../..">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../..">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="../../operations-guide.html">SDK Operations Guide</a></li>
+      
+      
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Reference</span>
+    <ul>
+      
+      <li><a href="../../reference/api">Javadoc Reference</a></li>
+      <li><a href="../../reference/swagger-api">REST APIs</a></li>
+      <li><a href="../../reference/yaml-reference.html">YAML Reference</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
+          
+          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade Kafka from 0.10.2.x to 0.11.0.0</a></li>
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: Upgrade Kafka from 0.10.2.x to 0.11.0.0</h1>
+<div id="content">
+<p>This document explains how to upgrade the DC/OS Apache Kafka service from version <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code> to <code class="highlighter-rouge">2.0.0-0.11.0.0</code>.</p>
+
+<ul>
+  <li>
+    <p>Refer to the Kafka <a href="https://kafka.apache.org/documentation/#upgrade">upgrade</a> documentation for more information.</p>
+  </li>
+  <li>
+    <p>Information about the new message format in 0.11.0.0 is available <a href="https://kafka.apache.org/documentation/#upgrade_11_message_format">here</a>.</p>
+  </li>
+  <li>
+    <p>0.11.0.0 clients can communicate with older brokers, such as 0.10.2.x brokers. But Kafka 0.11.0.0 introduces idempotent and transactional capabilities. 0.11.0.0 clients are required for these new features.</p>
+  </li>
+</ul>
+
+<h1 id="overview">Overview</h1>
+
+<p>This is an overview of the rolling upgrade process. The process for upgrading Kafka with DC/OS is documented in detail below.</p>
+
+<ol>
+  <li>Upgrade your package to the latest version of DC/OS Kafka service:
+    <ul>
+      <li>Upgrade Kafka software to <code class="highlighter-rouge">0.11.0.0</code>.</li>
+      <li>Do not update protocol and log versions yet.</li>
+      <li>Restart the brokers one at a time.</li>
+      <li>Wait until the entire cluster is upgraded.</li>
+    </ul>
+  </li>
+  <li>Change <code class="highlighter-rouge">inter.broker.protocol.version</code> to <code class="highlighter-rouge">0.11.0.0</code>:
+    <ul>
+      <li>In the <code class="highlighter-rouge">server.properties</code> file, change <code class="highlighter-rouge">inter.broker.protocol.version</code> to <code class="highlighter-rouge">0.11.0.0</code>.</li>
+      <li>Do not change log.message.format.version yet.</li>
+      <li>Restart the brokers one by one for the new protocol version to take affect.</li>
+    </ul>
+  </li>
+  <li>Change <code class="highlighter-rouge">log.message.format.version</code> to <code class="highlighter-rouge">0.11.0</code>:
+    <ul>
+      <li>In the <code class="highlighter-rouge">server.properties</code> files, change <code class="highlighter-rouge">log.message.format.version</code> to <code class="highlighter-rouge">0.11.0</code>.</li>
+      <li>Restart the brokers one by one for the new log format version to take affect.</li>
+    </ul>
+  </li>
+</ol>
+
+<h1 id="detailed-upgrade-instructions">Detailed upgrade instructions</h1>
+
+<p>The new DC/OS Kafka package <code class="highlighter-rouge">2.0.0-0.11.0.0</code> (with Kafka version 0.11.0.0) that we will be upgrading to has the following default settings:</p>
+
+<ul>
+  <li>Kafka Version = 0.11.0.0</li>
+  <li>inter.broker.protocol.version = 0.11.0.0</li>
+  <li>log.message.format.version = 0.11.0</li>
+</ul>
+
+<p>The beta DC/OS Kafka package <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code> (with Kafka 0.10.2.x) has the following configuration:</p>
+
+<ul>
+  <li>Kafka Version = 0.10.2.1</li>
+  <li>inter.broker.protocol.version = 0.10.0.0</li>
+  <li>log.message.format.version = 0.10.0</li>
+</ul>
+
+<p>Here, we assume that you already have a DC/OS Kafka service running, installed with the beta package version <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code> (with Kafka 0.10.2.x). In order to guarantee no downtime during the upgrade process, follow the steps below.</p>
+
+<h4 id="step-1">Step 1</h4>
+
+<p>First, make a note of the existing protocol and log versions. Upgrade your service to the new package version <code class="highlighter-rouge">2.0.0-0.11.0.0</code> (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following <code class="highlighter-rouge">options.json</code> file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"inter.broker.protocol.version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"log.message.format.version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Now, upgrade to the package <code class="highlighter-rouge">2.0.0-0.11.0.0</code> that provides the new code, Kafka 0.11.0.0.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka update start --options=options.json --package-version=2.0.0-0.11.0.0
+</code></pre>
+</div>
+
+<p>Since we updated with a customized options file, the protocol and log version are overwritten and not updated to the new package’s default settings. The existing protocol and log version are specifically set in <code class="highlighter-rouge">options.json</code>.</p>
+
+<p>The Kafka service will be upgraded to the version 0.11.0.0. The brokers will now be upgraded and restarted serially. <code class="highlighter-rouge">serial</code> is the default deployment plan strategy.</p>
+
+<p><strong>Note</strong>: The goal in using customized options during package upgrade is to keep the protocol and log versions the same. In the following steps, we will change protocol and log versions one at a time.</p>
+
+<h4 id="step-2">Step 2</h4>
+
+<p>Next, update the protocol version manually. Only change the value of <code class="highlighter-rouge">inter.broker.protocol.version</code> in the <code class="highlighter-rouge">options.json</code> file, and then perform an update operation. The brokers will be restarted one at a time with the new <code class="highlighter-rouge">server.properties</code> file with protocol version set to <code class="highlighter-rouge">0.11.0.0</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"inter.broker.protocol.version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.11.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"log.message.format.version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+   
+</span><span class="err">$</span><span class="w"> </span><span class="err">dcos</span><span class="w"> </span><span class="err">kafka</span><span class="w"> </span><span class="err">update</span><span class="w"> </span><span class="err">start</span><span class="w"> </span><span class="err">--options=options.json</span><span class="w"> 
+</span></code></pre>
+</div>
+
+<h4 id="step-3">Step 3</h4>
+
+<p>Once you verify that all brokers are restarted, update the log version. Change the log version to <code class="highlighter-rouge">0.11.0</code> and perform another update operation.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"inter.broker.protocol.version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.11.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"log.message.format.version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.11.0"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+   
+</span><span class="err">$</span><span class="w"> </span><span class="err">dcos</span><span class="w"> </span><span class="err">kafka</span><span class="w"> </span><span class="err">update</span><span class="w"> </span><span class="err">start</span><span class="w"> </span><span class="err">--options=options.json</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>The new service will be running Kafka 0.11.0.0 with two customized options (<code class="highlighter-rouge">inter.broker.protocol.version</code> and <code class="highlighter-rouge">log.message.format.version</code>).</p>
+
+<p>Since protocol and log versions have been updated with new protocol and log formats, you can not directly roll back to the previous package version.</p>
+
+<p><strong>Note</strong>: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package version <code class="highlighter-rouge">2.0.0-0.11.0.0</code> . Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.</p>
+
+
+</div>
+</div>
+</body>
+
+</html>
