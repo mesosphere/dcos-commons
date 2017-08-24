@@ -71,7 +71,7 @@ def get_rotating_task_log_lines(task_id: str, task_file: str):
         lines = get_task_logs_for_id(task_id, filename)
         if not lines:
             return
-        yield lines
+        yield filename, lines
 
 
 def is_test_failure(request):
@@ -90,7 +90,7 @@ def get_task_logs_on_failure(request):
     if is_test_failure(request):
         for task_id in get_task_ids():
             for task_file in ('stderr', 'stdout'):
-                for log_lines in get_rotating_task_log_lines(task_id, task_file):
-                    log_name = '{}_{}_{}.log'.format(request.node.name, task_id, task_file)
+                for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
+                    log_name = '{}_{}_{}.log'.format(request.node.name, task_id, log_filename)
                     with open(log_name, 'w') as f:
                         f.write(log_lines)
