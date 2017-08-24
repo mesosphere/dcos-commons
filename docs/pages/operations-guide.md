@@ -280,32 +280,14 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Virtual networks
 
-The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
-
-```yaml
-pods:
-  pod-on-virtual-network:
-    count: {{COUNT}}
-    # join the 'dcos' virtual network
-    networks:
-      dcos:
-    tasks:
-      ...
-  pod-on-host:
-    count: {{COUNT}}
-    tasks:
-      ...
-```
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by using the `networks` keyword in your YAML definition. Refer to [Developers Guide](developer-guide.md) for more information about how to define virtual networks in your service.
 
 When a pod is on a virtual network such as the `dcos`:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
+  * You can also pass labels while invoking CNI plugins. Refer to [Developers Guide](developer.md) for more information about adding CNI labels.
 
-Specifying that pods join a virtual network has the following indirect effects:
-  * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
-    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
-  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
 
 ## Secrets
 
