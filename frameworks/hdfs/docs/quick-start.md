@@ -82,7 +82,6 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Navigate to the Hadoop installation directory and list the contents.
 
     ```bash
-    cd hadoop-2.6.4
     ./bin/hdfs dfs -ls /
     ```
 
