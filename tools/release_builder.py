@@ -4,6 +4,7 @@ import base64
 import collections
 import difflib
 import http.client
+import io
 import json
 import logging
 import os
@@ -72,14 +73,16 @@ class UniverseReleaseBuilder(object):
             return ret
 
     def _unpack_stub_universe_zip(self, scratchdir, stub_universe_file):
-        zipin = zipfile.ZipFile(stub_universe_file, 'r')
+        '''Unpacks a universe-2.x format stub-universe.zip file.
+        This format is deprecated in favor of universe-3.x+ json files.'''
+        zipin = zipfile.ZipFile(io.BytesIO(stub_universe_file.read()), 'r')
         badfile = zipin.testzip()
         if badfile:
             raise Exception('Failed to unpack {} in downloaded {}'.format(
                 badfile, self._stub_universe_url))
         zipin.extractall(scratchdir)
         # check for (and return) path to stub-universe-pkgname/repo/packages/P/pkgname/0/:
-        pkgdir_path = os.path.join(
+        pkgdir = os.path.join(
             scratchdir,
             'stub-universe-{}'.format(self._pkg_name),
             'repo',
@@ -87,10 +90,10 @@ class UniverseReleaseBuilder(object):
             self._pkg_name[0].upper(),
             self._pkg_name,
             '0')
-        if not os.path.isdir(pkgdir_path):
+        if not os.path.isdir(pkgdir):
             raise Exception('Didn\'t find expected path {} after unzipping {}'.format(
-                pkgdir_path, self._stub_universe_url))
-        return pkgdir_path
+                pkgdir, self._stub_universe_url))
+        return pkgdir
 
     def _unpack_stub_universe_json(self, scratchdir, stub_universe_file):
         stub_universe_json = json.loads(stub_universe_file.read().decode('utf-8'), object_pairs_hook=collections.OrderedDict)
