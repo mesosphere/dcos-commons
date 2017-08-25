@@ -26,7 +26,7 @@ row_cache_size_in_mb: {{CASSANDRA_ROW_CACHE_SIZE_IN_MB}}
 row_cache_save_period: {{CASSANDRA_ROW_CACHE_SAVE_PERIOD}}
 commitlog_sync_period_in_ms: {{CASSANDRA_COMMITLOG_SYNC_PERIOD_IN_MS}}
 commitlog_segment_size_in_mb: {{CASSANDRA_COMMITLOG_SEGMENT_SIZE_IN_MB}}
-commitlog_total_space_in_mb: {{CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB
+commitlog_total_space_in_mb: {{CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB}}
 concurrent_reads: {{CASSANDRA_CONCURRENT_READS}}
 concurrent_writes: {{CASSANDRA_CONCURRENT_WRITES}}
 concurrent_counter_writes: {{CASSANDRA_CONCURRENT_COUNTER_WRITES}}
