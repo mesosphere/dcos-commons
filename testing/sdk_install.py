@@ -137,7 +137,7 @@ def _uninstall(
                 role=role,
                 service_account=service_account,
                 zk=zk,
-                auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False)[0].strip()))
+                auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()))
 
         finish = time.time()
 

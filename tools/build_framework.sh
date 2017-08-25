@@ -95,12 +95,12 @@ fi
 
 echo "Building $FRAMEWORK_NAME in $FRAMEWORK_DIR:"
 if [ -n "$BOOTSTRAP_DIR" ]; then
-    echo "- Bootstrap: $BOOTSTRAP_DIR (and bootstrap.zip artifacts)"
+    echo "- Bootstrap: $BOOTSTRAP_DIR"
 else
     echo "- Bootstrap: disabled"
 fi
 if [ -n "$CLI_DIR" ]; then
-    echo "- CLI:       $CLI_DIR (and CLI artifacts)"
+    echo "- CLI:       $CLI_DIR"
 else
     echo "- CLI:       disabled"
 fi

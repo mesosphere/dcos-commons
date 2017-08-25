@@ -90,12 +90,11 @@ go build -o $NATIVE_FILENAME
 # 'shasum' is available on OSX as well as (most?) Linuxes:
 NATIVE_SHA1SUM=$(shasum $NATIVE_FILENAME | awk '{print $1}')
 
-if [ -f $NATIVE_SHA1SUM_FILENAME -a -f $EXE_FILENAME -a "$NATIVE_SHA1SUM" = "$(cat $NATIVE_SHA1SUM_FILENAME)" ]; then
+if [ -f $NATIVE_SHA1SUM_FILENAME -a -f $EXE_FILENAME -a "$NATIVE_SHA1SUM" = "$(cat $NATIVE_SHA1SUM_FILENAME 2>&1)" ]; then
     # build output hasn't changed. skip.
-    echo "Skipping build of $EXE_FILENAME: Up to date"
+    echo "$EXE_FILENAME: Up to date, skipping build"
 else
     # build output is missing, or native build changed. build.
-    echo "Building $EXE_FILENAME"
     echo $NATIVE_SHA1SUM > $NATIVE_SHA1SUM_FILENAME
 
     # available GOOS/GOARCH permutations are listed at:
