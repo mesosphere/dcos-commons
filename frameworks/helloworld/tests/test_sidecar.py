@@ -54,7 +54,6 @@ def test_sidecar_parameterized():
 
 
 @pytest.mark.sanity
-@pytest.mark.elezar
 def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
     # 2. Restart the scheduler.
