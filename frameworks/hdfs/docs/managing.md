@@ -1083,13 +1083,13 @@ Result:
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos beta-hdfs --name=<service-name> pod info <node-id>
+$ dcos beta-hdfs --name=<service-name> pod status <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos beta-hdfs pod info journal-0
+$ dcos beta-hdfs pod status journal-0
 ```
 
 ```json
