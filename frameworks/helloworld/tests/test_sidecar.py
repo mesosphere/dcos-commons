@@ -79,7 +79,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
 
         return output == expected_output
 
-    shakedown.wait_for(is_sidecar_toxic_started, timeout_seconds=5 * 60)
+    shakedown.wait_for(is_sidecar_toxic_started, timeout_seconds=10 * 60)
 
     # Restart the scheduler and wait for it to come up.
     sdk_marathon.restart_app(config.PACKAGE_NAME)
