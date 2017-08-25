@@ -6,6 +6,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
