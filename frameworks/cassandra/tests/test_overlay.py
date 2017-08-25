@@ -79,6 +79,6 @@ def test_functionality():
 def test_endpoints():
     endpoints = sdk_networks.get_and_test_endpoints("", config.PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "native-client"
     assert "native-client" in endpoints, "Cassandra endpoints should contain only 'native-client', got {}".format(endpoints)
-    endpoints = sdk_networks.get_and_test_endpoints("native-client", config.PACKAGE_NAME, 3)
+    endpoints = sdk_networks.get_and_test_endpoints("native-client", config.PACKAGE_NAME, 2)
     assert "address" in endpoints, "Endpoints missing address key"
     sdk_networks.check_endpoints_on_overlay(endpoints)
