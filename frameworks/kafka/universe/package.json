@@ -1,6 +1,6 @@
 {
   "packagingVersion": "4.0",
-  "minDcosReleaseVersion": "1.8",
+  "minDcosReleaseVersion": "1.9",
   "name": "kafka",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
