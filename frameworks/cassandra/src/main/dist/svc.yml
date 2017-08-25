@@ -186,7 +186,6 @@ pods:
       restore-snapshot:
         goal: FINISHED
         cmd: >
-                set -ex ;
                 ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
@@ -199,7 +198,6 @@ pods:
                             --truststore-password notsecure \
                             --ssl-protocol TLSv1.2 \
                             --ssl-ciphers TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA \
-                            -v \
                 {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
@@ -209,11 +207,11 @@ pods:
 
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
         configs:
           cassandra:
             template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
         transport-encryption:
           - name: node
             type: KEYSTORE

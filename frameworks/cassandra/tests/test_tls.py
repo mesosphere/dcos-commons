@@ -23,7 +23,7 @@ from tests.config import (
     DEFAULT_NODE_PORT,
     DEFAULT_TASK_COUNT,
     PACKAGE_NAME,
-    run_backup_and_restore
+    _get_test_job
 )
 
 
@@ -76,7 +76,7 @@ def cassandra_service_tls(service_account):
     # Wait for service health check to pass
     shakedown.service_healthy(PACKAGE_NAME)
 
-    yield service_account
+    yield
 
     sdk_install.uninstall(PACKAGE_NAME)
 
@@ -127,7 +127,8 @@ def get_write_data_job(dcos_ca_bundle: str):
         "CREATE KEYSPACE testspace2 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
         "USE testspace2;",
         "CREATE TABLE testtable2 (key varchar, value varchar, PRIMARY KEY(key));",
-        "INSERT INTO testspace2.testtable2(key, value) VALUES('testkey2', 'testvalue2');"])
+        "INSERT INTO testspace2.testtable2(key, value) VALUES('testkey2', 'testvalue2');",
+    ])
     return _get_cqlsh_job_over_tls(
         'write-data',
         [_get_cqlsh_for_query(query)],
@@ -183,21 +184,10 @@ def _get_cqlsh_job_over_tls(
     commands_with_tls_prepare.extend(commands)
     cmd = ' && '.join(commands_with_tls_prepare)
 
-    job = {
-        'description': 'Integration test job: ' + name,
-        'id': 'test.cassandra.' + name,
-        'run': {
-            'cmd': cmd,
-            'docker': { 'image': 'cassandra:3.0.13' },
-            'env': {
-                'CQLSHRC_FILE': get_cqlsh_tls_rc_config(),
-                'CA_BUNDLE': dcos_ca_bundle,
-            },
-            'cpus': 1,
-            'mem': 512,
-            'user': 'nobody',
-            'restart': { 'policy': 'NEVER' }
-        }
+    job = _get_test_job(name=name, cmd=cmd)
+    job['run']['env'] = {
+        'CQLSHRC_FILE': get_cqlsh_tls_rc_config(),
+        'CA_BUNDLE': dcos_ca_bundle,
     }
     return job
 
@@ -211,9 +201,9 @@ def _get_cqlsh_for_query(query: str):
         query=query)
 
 
-@pytest.mark.tls
+@pytest.mark.aws
 @pytest.mark.sanity
-@pytest.mark.smoke
+@pytest.mark.tls
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.

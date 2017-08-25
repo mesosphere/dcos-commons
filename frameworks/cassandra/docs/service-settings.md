@@ -48,33 +48,36 @@ The Cassandra service can be run on a virtual network such as the DC/OS overlay 
 
 # TLS
 
-It is possible to launch the Cassandra service over a TLS encrypted connection. Enabling TLS will switch Cassandra inter-node communication to TLS connections between all the cassandra nodes. The Cassandra will be still available on the same configured client port (default: `9042`).
+The Cassandra service can be launched with TLS encryption. Enabling TLS will use TLS connections for inter-node communication between all the Cassandra nodes. Cassandra will be still available on the same configured client port (default: `9042`).
 
-Enabling the TLS is possible only in `permissive` or `strict` cluster security modes. Both modes **require** a [service account](https://docs.mesosphere.com/service-docs/cassandra/cass-auth/). Additionally, the service account **must have** the `dcos:superuser` permission. If the permission is missing the Cassandra scheduler will not abe able to provision the TLS artifacts.
+Enabling TLS is possible only in `permissive` and `strict` cluster security modes. Both modes require a [service account](https://docs.mesosphere.com/service-docs/cassandra/cass-auth/). Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.
 
 *   **In DC/OS CLI options.json**: `tls`: boolean (default: `false`)
 *   **DC/OS web interface**: `TASKCFG_ALL_CASSANDRA_ENABLE_TLS`: `boolean`
 
-To enable both TLS and non-TLS connections turn on the `tls_allow_plaintext` option. This option is disabled by default, so when TLS is enabled, the non-TLS connections would get refused.
+To enable support for both TLS encrypted and non-TLS plaintext connections set the `tls_allow_plaintext` option to `true`. This option is disabled by default, so when the TLS is enabled, the non-encrypted connections would get refused.
 
 *   **In DC/OS CLI options.json**: `tls_allow_plaintext`: boolean (default: `false`)
 *   **DC/OS web interface**: `TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT`: `boolean`
 
 ## Clients
 
-Clients connecting to the Cassandra are required to use [the DC/OS CA bundle](https://docs.mesosphere.com/1.10/networking/tls-ssl/get-cert/) to verify the TLS connections.
+Clients connecting to the Cassandra service are required to use [the DC/OS CA bundle](https://docs.mesosphere.com/1.10/networking/tls-ssl/get-cert/) to verify the TLS connections.
 
 ## cqlsh
 
-The `cqlsh` TLS can be configured by [`cqlshrc`](https://github.com/apache/cassandra/blob/652d9f64f14d8375a8412561271a7abf27722f20/conf/cqlshrc.sample#L103) file. Connecting over TLS requires passing the `--ssl` flag.
+TLS can be configured for `cqlsh` in the [ssl section](https://github.com/apache/cassandra/blob/652d9f64f14d8375a8412561271a7abf27722f20/conf/cqlshrc.sample#L103) of the `cqlshrc` file. Connecting over TLS requires passing the `--ssl` flag.
 
-```
+```sh
 cqlsh --ssl [node-name] 9042
 ```
 
 ## TLS version and ciphers
 
-Only the [`TLS version 1.2`](https://www.ietf.org/rfc/rfc5246.txt) is supported with following cipher suites:
+Only [`TLS version 1.2`](https://www.ietf.org/rfc/rfc5246.txt) is supported with the following cipher suites:
 
+* `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`
 * `TLS_RSA_WITH_AES_128_CBC_SHA256`
 * `TLS_RSA_WITH_AES_128_CBC_SHA`
+
+For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
