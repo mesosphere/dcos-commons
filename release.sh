@@ -98,4 +98,4 @@ sdk/bootstrap/build.sh # produces sdk/bootstrap/bootstrap.zip
 S3_DIR=s3://downloads.mesosphere.io/dcos-commons/artifacts/$SDK_VERSION
 echo "Uploading bootstrap.zip and executor.zip to $S3_DIR"
 aws s3 cp --acl public-read sdk/bootstrap/bootstrap.zip $S3_DIR/bootstrap.zip 1>&2
-aws s3 cp --acl public-read sdk/executor/build/distributions/executor.zip sdk/executor/build/distributions/executor.zip 1>&2
+aws s3 cp --acl public-read sdk/executor/build/distributions/executor.zip $S3_DIR/executor.zip 1>&2
