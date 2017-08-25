@@ -13,7 +13,7 @@
         "user": {
           "description": "The linux user used to run the scheduler and all executors.",
           "type": "string",
-          "default": "nobody"
+          "default": "root"
         },
         "service_account": {
           "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
