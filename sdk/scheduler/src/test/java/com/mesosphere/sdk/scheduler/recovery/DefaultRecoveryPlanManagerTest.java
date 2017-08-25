@@ -143,7 +143,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         launchConstrainer.setCanLaunch(false);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         recoveryManager.update(status);
         Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
 
@@ -175,7 +175,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 Protos.TaskState.TASK_FAILED);
 
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
@@ -203,7 +203,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(step.getName()).thenReturn("different-name");
@@ -224,7 +224,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(false);
         stateStore.storeTasks(infos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
@@ -255,7 +255,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(taskInfo);
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
 
@@ -295,7 +295,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(taskInfo);
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
@@ -329,7 +329,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(failedTaskInfo);
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(infos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
@@ -367,18 +367,18 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(runningStatus);
+        stateStore.storeStatus(taskInfo.getName(), runningStatus);
         recoveryManager.update(runningStatus);
         assertEquals(0, recoveryManager.getPlan().getChildren().size());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
     }
@@ -398,25 +398,25 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(runningStatus);
+        stateStore.storeStatus(taskInfo.getName(), runningStatus);
         recoveryManager.update(runningStatus);
         assertEquals(0, recoveryManager.getPlan().getChildren().size());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(runningStatus);
+        stateStore.storeStatus(taskInfo.getName(), runningStatus);
         recoveryManager.update(runningStatus);
         recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());

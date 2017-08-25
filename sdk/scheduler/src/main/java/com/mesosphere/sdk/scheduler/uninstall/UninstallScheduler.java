@@ -10,6 +10,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
@@ -127,7 +128,7 @@ public class UninstallScheduler extends AbstractScheduler {
         eventBus.post(status);
 
         try {
-            stateStore.storeStatus(status);
+            stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
             reconciler.update(status);
         } catch (Exception e) {
             LOGGER.warn(String.format("Failed to handle TaskStatus received from Mesos. "
