@@ -87,15 +87,15 @@ else
     fi
 fi
 
-# Build and upload Java library to Maven repo:
+# Build bootstrap.zip and executor.zip before attempting to upload anything:
+sdk/bootstrap/build.sh # produces sdk/bootstrap/bootstrap.zip
+./gradlew :executor:distZip # produces sdk/executor/build/distributions/executor.zip
+
+# Build and upload Java library to Maven repo (in prod S3):
 ./gradlew publish
 
-# Scripts below expect an S3_BUCKET env var. To be supplied by Jenkins.
-
-# INFINITY-1208: Disable build and publish for now as it requires changes coming in
-# the self-hosted branch. 3-27-17 bwood
-# ./tools/build_publishable.sh
-# ./tools/release_artifacts.sh
-
-# Note: We *don't* run /tools/release.sh here, and instead have CI run it manually.
-# This ensures that builds against different tags don't step on each other.
+# Upload built bootstrap.zip and executor.zip to directory in prod S3:
+S3_DIR=s3://downloads.mesosphere.io/dcos-commons/artifacts/$SDK_VERSION
+echo "Uploading bootstrap.zip and executor.zip to $S3_DIR"
+aws s3 cp --acl public-read sdk/bootstrap/bootstrap.zip $S3_DIR/bootstrap.zip 1>&2
+aws s3 cp --acl public-read sdk/executor/build/distributions/executor.zip sdk/executor/build/distributions/executor.zip 1>&2
