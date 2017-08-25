@@ -54,12 +54,16 @@ public class CuratorLocker {
                 "Duplicate service named '%s', or recently restarted instance of '%s'?",
                 lockPath, serviceName, serviceName);
         try {
-            for (int i = 0; i < LOCK_ATTEMPTS; ++i) {
+            // Start at 1 for pretty display of "1/3" through "3/3":
+            for (int attempt = 1; attempt < LOCK_ATTEMPTS + 1; ++attempt) {
                 if (curatorMutex.acquire(10, getWaitTimeUnit())) {
+                    LOGGER.info("{}/{} Lock acquired.", attempt, LOCK_ATTEMPTS);
                     this.curatorMutex = curatorMutex;
-                    return; // success!
+                    return;
                 }
-                LOGGER.error("{}/{} {} Retrying lock...", i + 1, LOCK_ATTEMPTS, failureLogMsg);
+                if (attempt < LOCK_ATTEMPTS) {
+                    LOGGER.error("{}/{} {} Retrying lock...", attempt, LOCK_ATTEMPTS, failureLogMsg);
+                }
             }
             LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
         } catch (Exception ex) {
