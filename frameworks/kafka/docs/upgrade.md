@@ -87,7 +87,6 @@ Next, update the protocol version manually. Only change the value of `inter.brok
         }
     }
     
-   
     $ dcos kafka update start --options=options.json 
     
 ##### Step 3    
@@ -101,8 +100,7 @@ Once you verify that all brokers are restarted, update the log version. Change t
             "log.message.format.version": "0.11.0"
         }
     }
-    
-   
+     
     $ dcos kafka update start --options=options.json 
     
 The new service will be running Kafka 0.11.0.0 with two customized options (`inter.broker.protocol.version` and `log.message.format.version`). 
@@ -150,6 +148,5 @@ If you are **upgrading your existing service** in strict mode, from `1.1.16-0.10
             "log.message.format.version": "0.10.0"
         }
     }
-     
-     
-    $ docs kafka update start  --options=options.json --package-version=2.0.0-0.11.0.0
+       
+   $ docs kafka update start  --options=options.json --package-version=2.0.0-0.11.0.0
