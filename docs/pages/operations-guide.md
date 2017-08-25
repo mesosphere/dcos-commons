@@ -293,12 +293,7 @@ When a pod is on a virtual network such as the `dcos`:
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
-* Kerberos keytabs or other credential files.
-* SSL certificates.
-* Configuration files with sensitive data.
-
-The content of a secret is copied and made available within the pod. Refer to [Developer Guide](developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
+The content of a secret is copied and made available within the pod.  The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to [Developer Guide](developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 e both.
 
 **Note:** Secrets are available only in Enterprise DC/OS 1.0 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
@@ -326,6 +321,29 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
+
+### Binary Secrets
+
+When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64-encoded as specified in RFC 4648. 
+
+You can use standard `base64` command line utility. Take a look at the following example that is using BSD `base64` command.
+``` 
+$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded 
+```
+
+`base64` command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping via  `-w 0` argument.  Here is a sample base64 command in Linux.
+``` 
+$  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded 
+```
+
+Give the secret basename prefixed with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
+
+``` 
+$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
+```
+
+When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret 
+only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets). 
 
 
 ## Placement Constraints
