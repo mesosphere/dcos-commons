@@ -1241,7 +1241,7 @@
 <div class="block">This scheduler when provided with a ServiceSpec will deploy the service and recover from encountered faults
  when possible.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Map-java.util.Optional-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, Map&lt;String, EndpointProducer&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;, ConfigurationUpdater.UpdateResult)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-java.util.Collection-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Map-java.util.Optional-">DefaultScheduler(ServiceSpec, SchedulerFlags, Collection&lt;Object&gt;, Collection&lt;Plan&gt;, StateStore, ConfigStore&lt;ServiceSpec&gt;, Map&lt;String, EndpointProducer&gt;, Optional&lt;RecoveryPlanOverriderFactory&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Creates a new DefaultScheduler.</div>
 </dd>
@@ -3334,11 +3334,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilders--">getTaskBuilders()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getTaskInfo-com.mesosphere.sdk.state.StateStore-TaskStatus-">getTaskInfo(StateStore, TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>
-<div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
- TaskInfo.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getTaskInfoPath-java.lang.String-">getTaskInfoPath(String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTaskKillGracePeriodSeconds--">getTaskKillGracePeriodSeconds()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
@@ -3349,6 +3344,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskName--">getTaskName()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#getTaskName-com.mesosphere.sdk.state.StateStore-Protos.TaskStatus-">getTaskName(StateStore, Protos.TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dd>
+<div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
+ TaskInfo.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#getTaskNames-com.mesosphere.sdk.specification.PodInstance-">getTaskNames(PodInstance)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
 <div class="block">Returns all the Task names for a PodInstance.</div>
@@ -5365,6 +5365,10 @@
 <dd>
 <div class="block">"/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#repairTaskIDs-com.mesosphere.sdk.state.StateStore-">repairTaskIDs(StateStore)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dd>
+<div class="block">TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#replaceDotsWithDashes-java.lang.String-">replaceDotsWithDashes(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
 <dd>
 <div class="block">"hello.kafka" => "hello-kafka".</div>
@@ -6238,7 +6242,7 @@
 <dd>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeStatus-Protos.TaskStatus-">storeStatus(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-">storeStatus(String, Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </dd>
@@ -6246,7 +6250,7 @@
 <dd>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">storeTaskStatusAsProperty(StateStore, String, TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-Protos.TaskStatus-">storeTaskStatusAsProperty(StateStore, String, Protos.TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
 <dd>
 <div class="block">Stores a TaskStatus as a Property in the provided state store.</div>
 </dd>

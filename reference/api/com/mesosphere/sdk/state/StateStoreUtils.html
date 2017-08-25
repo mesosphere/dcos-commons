@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -134,7 +134,7 @@ extends java.lang.Object</pre>
                     java.lang.String&nbsp;propertyName)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>static java.util.Collection&lt;TaskInfo&gt;</code></td>
+<td class="colFirst"><code>static java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchPodTasks-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-">fetchPodTasks</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
 <div class="block">Returns all <code>TaskInfo</code>s associated with the provided <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>, or an empty list if none were
@@ -149,14 +149,14 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>static java.util.Collection&lt;TaskInfo&gt;</code></td>
+<td class="colFirst"><code>static java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">fetchTasksNeedingRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>static java.util.Collection&lt;TaskInfo&gt;</code></td>
+<td class="colFirst"><code>static java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Set-">fetchTasksNeedingRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                          java.util.Set&lt;java.lang.String&gt;&nbsp;launchableTaskNames)</code>
@@ -171,15 +171,15 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i6" class="altColor">
-<td class="colFirst"><code>static TaskInfo</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskInfo-com.mesosphere.sdk.state.StateStore-TaskStatus-">getTaskInfo</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-           TaskStatus&nbsp;taskStatus)</code>
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskName-com.mesosphere.sdk.state.StateStore-Protos.TaskStatus-">getTaskName</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+           Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
  TaskInfo.</div>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
-<td class="colFirst"><code>static java.util.Optional&lt;TaskStatus&gt;</code></td>
+<td class="colFirst"><code>static java.util.Optional&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskStatusFromProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">getTaskStatusFromProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
@@ -199,30 +199,36 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i10" class="altColor">
+<td class="colFirst"><code>(package private) static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#repairTaskIDs-com.mesosphere.sdk.state.StateStore-">repairTaskIDs</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">setLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                           <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;updateResultDeploymentType)</code>
 <div class="block">Sets the last completed update type.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              boolean&nbsp;isSuppressed)</code>
 <div class="block">Sets a 'suppressed' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setUninstalling-com.mesosphere.sdk.state.StateStore-">setUninstalling</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">storeTaskStatusAsProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-Protos.TaskStatus-">storeTaskStatusAsProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          java.lang.String&nbsp;taskName,
-                         TaskStatus&nbsp;taskStatus)</code>
+                         Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Stores a TaskStatus as a Property in the provided state store.</div>
 </td>
 </tr>
@@ -265,10 +271,10 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTasksNeedingRecovery</h4>
-<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                                                       <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
-                                                                       java.util.Set&lt;java.lang.String&gt;&nbsp;launchableTaskNames)
-                                                                throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<pre>public static&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                                                              <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                                                                              java.util.Set&lt;java.lang.String&gt;&nbsp;launchableTaskNames)
+                                                                       throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery and in the list of
  launchable Tasks.</div>
 <dl>
@@ -285,9 +291,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchTasksNeedingRecovery</h4>
-<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                                                       <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)
-                                                                throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<pre>public static&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                                                              <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)
+                                                                       throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -303,9 +309,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>fetchPodTasks</h4>
-<pre>public static&nbsp;java.util.Collection&lt;TaskInfo&gt;&nbsp;fetchPodTasks(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                                           <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)
-                                                    throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public static&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchPodTasks(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                                                  <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)
+                                                           throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Returns all <code>TaskInfo</code>s associated with the provided <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>, or an empty list if none were
  found.</div>
 <dl>
@@ -314,24 +320,48 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="getTaskInfo-com.mesosphere.sdk.state.StateStore-TaskStatus-">
+<a name="getTaskName-com.mesosphere.sdk.state.StateStore-Protos.TaskStatus-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getTaskInfo</h4>
-<pre>public static&nbsp;TaskInfo&nbsp;getTaskInfo(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                   TaskStatus&nbsp;taskStatus)
-                            throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<h4>getTaskName</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;getTaskName(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                           Protos.TaskStatus&nbsp;taskStatus)
+                                    throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
  TaskInfo.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>The singular TaskInfo if it is present</dd>
+<dd>The singular <code>Protos.TaskInfo</code> if it is present</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if no corresponding TaskInfo is found.</dd>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if multiple corresponding TaskInfo's are found.</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if zero or multiple corresponding <code>Protos.TaskInfo</code>s are found</dd>
 </dl>
+</li>
+</ul>
+<a name="repairTaskIDs-com.mesosphere.sdk.state.StateStore-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>repairTaskIDs</h4>
+<pre>static&nbsp;void&nbsp;repairTaskIDs(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<div class="block">TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.
+ It is therefore possible for the states across these elements to become out of sync.  While the scheduler process
+ is up they remain in sync.  This method produces an initial synchronized state.
+
+ For example:
+ <ol>
+ <li>TaskInfo(name=foo, id=1) is written</li>
+ <li>TaskStatus(name=foo, id=1, status=RUNNING) is written</li>
+ <li>Task foo is reconfigured/relaunched</li>
+ <li>TaskInfo(name=foo, id=2) is written</li>
+ <li>Scheduler is restarted before new TaskStatus is written</li>
+ <li>Scheduler comes back and sees TaskInfo(name=foo, id=2) and TaskStatus(name=foo, id=1, status=RUNNING)</li>
+ </ol>
+
+ Note that this ID mismatch would specifically cause problems with calls against
+ <code>#getTaskName(StateStore, TaskStatus)</code> which requires that the ids align.</div>
 </li>
 </ul>
 <a name="isSuppressed-com.mesosphere.sdk.state.StateStore-">
@@ -395,7 +425,7 @@ extends java.lang.Object</pre>
                                               java.lang.String&nbsp;propertyName)</pre>
 </li>
 </ul>
-<a name="storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-TaskStatus-">
+<a name="storeTaskStatusAsProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-Protos.TaskStatus-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -403,7 +433,7 @@ extends java.lang.Object</pre>
 <h4>storeTaskStatusAsProperty</h4>
 <pre>public static&nbsp;void&nbsp;storeTaskStatusAsProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                              java.lang.String&nbsp;taskName,
-                                             TaskStatus&nbsp;taskStatus)
+                                             Protos.TaskStatus&nbsp;taskStatus)
                                       throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores a TaskStatus as a Property in the provided state store.</div>
 <dl>
@@ -418,8 +448,8 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskStatusFromProperty</h4>
-<pre>public static&nbsp;java.util.Optional&lt;TaskStatus&gt;&nbsp;getTaskStatusFromProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                                                       java.lang.String&nbsp;taskName)</pre>
+<pre>public static&nbsp;java.util.Optional&lt;Protos.TaskStatus&gt;&nbsp;getTaskStatusFromProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                                                              java.lang.String&nbsp;taskName)</pre>
 <div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
  task name.</div>
 </li>

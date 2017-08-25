@@ -296,7 +296,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i18" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-Protos.TaskStatus-">storeStatus</a></span>(Protos.TaskStatus&nbsp;status)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-">storeStatus</a></span>(java.lang.String&nbsp;taskName,
+           Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </td>
 </tr>
@@ -447,13 +448,14 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="storeStatus-Protos.TaskStatus-">
+<a name="storeStatus-java.lang.String-Protos.TaskStatus-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>storeStatus</h4>
-<pre>public&nbsp;void&nbsp;storeStatus(Protos.TaskStatus&nbsp;status)
+<pre>public&nbsp;void&nbsp;storeStatus(java.lang.String&nbsp;taskName,
+                        Protos.TaskStatus&nbsp;status)
                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores the TaskStatus of a particular Task. The <code>TaskInfo</code> for this exact task MUST have already been
  written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by <a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-"><code>CommonIdUtils.toTaskId(String)</code></a>.</div>
@@ -462,10 +464,7 @@ extends java.lang.Object</pre>
 <dd><code>status</code> - The status to be stored, which meets the above requirements</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
-                             TaskInfo wasn't stored first
-
- TODO(nickbp): this function should accept the TaskInfo name instead of fetching it internally.
-               in all but one case, the caller already has the name.</dd>
+                             TaskInfo wasn't stored first</dd>
 </dl>
 </li>
 </ul>
