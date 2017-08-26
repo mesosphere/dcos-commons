@@ -6,38 +6,7 @@ import org.junit.Test;
 public class ServiceSpecTest extends BaseServiceSpecTest {
 
     public ServiceSpecTest() {
-        super(
-                "FRAMEWORK_NAME", "hello-world",
-                "EXECUTOR_URI", "",
-                "LIBMESOS_URI", "",
-                "PORT_API", "8080",
-
-                "SLEEP_DURATION", "1000",
-                "HELLO_COUNT", "2",
-                "HELLO_PORT", "4444",
-                "HELLO_VIP_NAME", "helloworld",
-                "HELLO_VIP_PORT", "9999",
-                "HELLO_CPUS", "0.1",
-                "HELLO_MEM", "512",
-                "HELLO_DISK", "5000",
-
-                "WORLD_COUNT", "3",
-                "WORLD_CPUS", "0.2",
-                "WORLD_MEM", "1024",
-                "WORLD_FAILS", "3",
-                "WORLD_DISK", "5000",
-
-                "HELLO_SECRET1", "hello-world/secret1",
-                "HELLO_SECRET2", "hello-world/secret2",
-                "WORLD_SECRET1", "hello-world/secret1",
-                "WORLD_SECRET2", "hello-world/secret2",
-                "WORLD_SECRET3", "hello-world/secret3",
-
-                "KEYSTORE_APP_VERSION", "0.1-SNAPSHOT",
-                "NGINX_CONTAINER_VERSION", "0.1",
-
-                "BOOTSTRAP_URI", "http://example.com/bootstrap.zip",
-                "JAVA_URI", "http://example.com/java.zip");
+        super();
     }
 
     @Test

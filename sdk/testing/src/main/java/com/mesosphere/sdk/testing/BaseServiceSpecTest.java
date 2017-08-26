@@ -13,7 +13,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.junit.Assert;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -21,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,18 +46,12 @@ public class BaseServiceSpecTest {
         when(mockFlags.getServiceAccountUid()).thenReturn(TestConstants.PRINCIPAL);
     }
 
-    protected BaseServiceSpecTest(Map<String, String> envVars) {
-        this.envVars.putAll(envVars);
+    protected BaseServiceSpecTest() {
+        this(Collections.emptyMap());
     }
 
-    /**
-     * Invoke as: {@code super("key1", "val1", "key2", "val2", ...)}.
-     */
-    protected BaseServiceSpecTest(String... keyVals) {
-        Assert.assertTrue("keyVals.length must be a multiple of two for key=>val mapping", keyVals.length % 2 == 0);
-        for (int i = 0; i < keyVals.length; i += 2) {
-            this.envVars.put(keyVals[i], keyVals[i + 1]);
-        }
+    protected BaseServiceSpecTest(Map<String, Object> config) {
+        this.envVars.putAll(ConfigRenderer.renderConfig(config));
     }
 
     protected RawServiceSpec getRawServiceSpec(String fileName) throws Exception {
