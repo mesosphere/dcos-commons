@@ -73,14 +73,14 @@ export REPO_NAME=$(basename $REPO_ROOT_DIR) # default to name of REPO_ROOT_DIR
 # optional customizable names/paths:
 FRAMEWORK_NAME=${FRAMEWORK_NAME:=$(basename $FRAMEWORK_DIR)}
 BOOTSTRAP_DIR=${BOOTSTRAP_DIR:=${REPO_ROOT_DIR}/sdk/bootstrap}
-CLI_DIR=${CLI_DIR:=${FRAMEWORK_DIR}/cli}
+CLI_DIR=${CLI_DIR:=$(ls -d ${FRAMEWORK_DIR}/cli/dcos-*)}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
 
 
 # Used below in-order, but here for cli-only
 build_cli() {
     # CLI (Go):
-    # /home/user/dcos-commons/frameworks/helloworld/cli => frameworks/helloworld/cli
+    # /home/user/dcos-commons/frameworks/project/cli/dcos-project => frameworks/project/cli/dcos-project
     REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
     $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-${FRAMEWORK_NAME}-linux linux
     $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-${FRAMEWORK_NAME}-darwin darwin
