@@ -119,7 +119,7 @@ def test_max_per_hostname():
     }
 
     sdk_install.install(config.PACKAGE_NAME, num_private_agents * 5, additional_options=options)
-    ensure_count_per_agent(hello_count=2, world_count=3)
+    ensure_max_count_per_agent(hello_count=2, world_count=3)
 
 
 @pytest.mark.sanity
@@ -141,7 +141,7 @@ def test_rr_by_hostname():
     }
 
     sdk_install.install(config.PACKAGE_NAME, num_private_agents * 4, additional_options=options)
-    ensure_count_per_agent(hello_count=2, world_count=2)
+    ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
 @pytest.mark.sanity
@@ -166,7 +166,7 @@ def test_cluster():
     ensure_count_per_agent(hello_count=num_private_agents, world_count=0)
 
 
-def ensure_count_per_agent(hello_count, world_count):
+def get_hello_world_agent_sets():
     all_tasks = shakedown.get_service_tasks(config.PACKAGE_NAME)
     hello_agents = []
     world_agents = []
@@ -177,9 +177,35 @@ def ensure_count_per_agent(hello_count, world_count):
             world_agents.append(task['slave_id'])
         else:
             assert False, "Unknown task: " + task['name']
+    return hello_agents, world_agents
+
+
+def ensure_count_per_agent(hello_count, world_count):
+    hello_agents, world_agents = get_hello_world_agent_sets()
     assert len(hello_agents) == len(set(hello_agents)) * hello_count
     assert len(world_agents) == len(set(world_agents)) * world_count
 
+
+def groupby_count(a):
+    h = {}
+    for i in a:
+        if i not in h:
+            h[i] = 0
+        else:
+            h[i] += 1
+    return h
+
+
+def assert_max_count(counts, max_count):
+    assert not any(counts[i] > max_count for i in counts)
+
+
+def ensure_max_count_per_agent(hello_count, world_count):
+    hello_agents, world_agents = get_hello_world_agent_sets()
+    hello_agent_counts = groupby_count(hello_agents)
+    world_agent_counts = groupby_count(world_agents)
+    assert_max_count(hello_agent_counts, hello_count)
+    assert_max_count(world_agent_counts, world_count)
 
 @pytest.mark.sanity
 @pytest.mark.recovery
