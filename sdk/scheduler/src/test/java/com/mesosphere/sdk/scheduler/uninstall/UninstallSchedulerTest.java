@@ -134,7 +134,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Arrays.asList(TASK_A, TASK_B));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        stateStore.storeStatus(TASK_B_STATUS_ERROR);
+        stateStore.storeStatus(TASK_B.getName(), TASK_B_STATUS_ERROR);
         uninstallScheduler = new TestScheduler(TestConstants.SERVICE_NAME, stateStore, mockConfigStore, true);
         uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
 

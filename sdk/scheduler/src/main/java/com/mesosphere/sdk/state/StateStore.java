@@ -8,18 +8,12 @@ import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskState;
-import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A {@code StateStore} stores the state of a service, including tasks' TaskInfo and TaskStatus objects. Each
@@ -84,7 +78,7 @@ public class StateStore {
                     currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
         }
 
-        repairStateStore();
+        StateStoreUtils.repairTaskIDs(this);
     }
 
     // Framework ID
@@ -178,14 +172,9 @@ public class StateStore {
      * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
      *                             TaskInfo wasn't stored first
-     *
-     * TODO(nickbp): this function should accept the TaskInfo name instead of fetching it internally.
-     *               in all but one case, the caller already has the name.
      */
-    public void storeStatus(Protos.TaskStatus status) throws StateStoreException {
-        String taskName = StateStoreUtils.getTaskInfo(this, status).getName();
+    public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
         Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
-
         if (currentStatusOptional.isPresent()
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
                 && TaskUtils.isTerminal(currentStatusOptional.get())) {
@@ -482,47 +471,6 @@ public class StateStore {
 
     protected static String getTaskPath(String taskName) {
         return PersisterUtils.join(TASKS_ROOT_NAME, taskName);
-    }
-
-    /**
-     * TaskInfo and TaskStatus objects referring to the same Task name are not written to Zookeeper atomically.
-     * It is therefore possible for the TaskIDs contained within these elements to become out of sync.  While
-     * the scheduler process is up they remain in sync.  This method guarantees produces an initial synchronized
-     * state.
-     */
-    @SuppressFBWarnings("UC_USELESS_OBJECT")
-    private void repairStateStore() {
-        // Findbugs thinks this isn't used, but it is used in the forEach call at the bottom of this method.
-        List<TaskStatus> repairedStatuses = new ArrayList<>();
-        List<TaskInfo> repairedTasks = new ArrayList<>();
-
-        for (TaskInfo task : fetchTasks()) {
-            Optional<TaskStatus> statusOptional = fetchStatus(task.getName());
-
-            if (statusOptional.isPresent()) {
-                TaskStatus status = statusOptional.get();
-                if (!status.getTaskId().equals(task.getTaskId())) {
-                    logger.warn("Found StateStore status inconsistency: task.taskId={}, taskStatus.taskId={}",
-                            task.getTaskId(), status.getTaskId());
-                    repairedTasks.add(task.toBuilder().setTaskId(status.getTaskId()).build());
-                    repairedStatuses.add(status.toBuilder().setState(TaskState.TASK_FAILED).build());
-                }
-            } else {
-                logger.warn("Found StateStore status inconsistency: task.taskId={}", task.getTaskId());
-                TaskStatus status = TaskStatus.newBuilder()
-                        .setTaskId(task.getTaskId())
-                        .setState(TaskState.TASK_FAILED)
-                        .setMessage("Assuming failure for inconsistent TaskIDs")
-                        .build();
-                repairedStatuses.add(status);
-            }
-        }
-
-        storeTasks(repairedTasks);
-        repairedStatuses = repairedStatuses.stream()
-                .filter(status -> !status.getTaskId().getValue().equals(""))
-                .collect(Collectors.toList());
-        repairedStatuses.forEach(taskStatus -> storeStatus(taskStatus));
     }
 
     private static void validateKey(String key) throws StateStoreException {

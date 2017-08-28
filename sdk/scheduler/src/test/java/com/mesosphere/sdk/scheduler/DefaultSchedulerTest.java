@@ -1076,11 +1076,7 @@ public class DefaultSchedulerTest {
                     defaultScheduler.stateStore,
                     defaultScheduler.configStore,
                     defaultScheduler.customEndpointProducers,
-                    defaultScheduler.recoveryPlanOverriderFactory,
-                    new ConfigurationUpdater.UpdateResult(
-                            UUID.randomUUID(),
-                            ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,
-                            Collections.emptyList()));
+                    defaultScheduler.recoveryPlanOverriderFactory);
             this.apiServerReady = apiServerReady;
         }
 

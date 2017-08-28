@@ -16,9 +16,9 @@ DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 
-def _get_test_job(name, cmd, restart_policy='NEVER'):
+def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
     return {
-        'description': 'Integration test job: ' + name,
+        'description': '{} with restart policy {}'.format(name, restart_policy),
         'id': 'test.cassandra.' + name,
         'run': {
             'cmd': cmd,
