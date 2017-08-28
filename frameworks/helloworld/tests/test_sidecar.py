@@ -63,6 +63,10 @@ class ToxicSidecarCheck:
     """
     @staticmethod
     def get_cmd_output_pair():
+        """
+        In DC/OS prior to version 1.10, task exec does not run the command in the MESOS_SANDBOX directory and this
+        causes the check of the file contents to fail. Here we simply rely on the existence of the file.
+        """
         if sdk_utils.dcos_version_less_than("1.10"):
             cmd = "task ls hello-0-server hello-container-path/toxic-output"
             output = ""
