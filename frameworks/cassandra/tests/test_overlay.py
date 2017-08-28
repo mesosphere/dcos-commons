@@ -78,9 +78,9 @@ def test_functionality():
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints():
-    # tests that the correct number of endpoints are found, should just be "node":
+    # tests that the correct number of endpoints are found, should just be "native-client":
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)
-    assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "node", 3)
+    assert "native-client" in endpoints, "Cassandra endpoints should contain only 'native-client', got {}".format(endpoints)
+    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 3)
     assert "address" in endpoints, "Endpoints missing address key"
     sdk_networks.check_endpoints_on_overlay(endpoints)
