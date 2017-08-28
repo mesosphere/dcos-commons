@@ -12,7 +12,7 @@ import sdk_cmd
 log = logging.getLogger(__name__)
 
 
-def get_metrics(service_name, package_name, task_name):
+def get_metrics(package_name, service_name, task_name):
     """Return a list of metrics datapoints.
 
     Keyword arguments:
@@ -46,12 +46,21 @@ def get_metrics(service_name, package_name, task_name):
     raw_pod_info = sdk_cmd.run_cli("{} --name={} pod info {}".format(
         package_name, service_name, pod_name)
     )
-    pod_info = json.loads(raw_pod_info)[0]  # json blob wrapped in a list
-    container = pod_info["status"]["containerStatus"]["containerId"]["value"]
+    pod_info = json.loads(raw_pod_info)
+    task_info = None
+    for task in pod_info:
+        if task["info"]["name"] == task_name:
+            task_info = task
+            break
 
-    #for container in json.loads(containers_response.text):
+    if not task_info:
+        return []
+
+    container_id = task_info["status"]["containerStatus"]["containerId"]["value"]
+
+    #for container_id in json.loads(containers_response.text):
     app_url = "{}/system/v1/agent/{}/metrics/v0/containers/{}/app".format(
-        shakedown.dcos_url(), agent_id, container)
+        shakedown.dcos_url(), agent_id, container_id)
     app_response = sdk_cmd.request("GET", app_url, retry=False)
     if app_response.ok is None:
         raise("Failed to get metrics from container")
@@ -64,10 +73,10 @@ def get_metrics(service_name, package_name, task_name):
     raise Exception("No metrics found")
 
 
-def wait_for_any_metrics(service_name, package_name, task_name, timeout):
+def wait_for_any_metrics(package_name, service_name, task_name, timeout):
     def metrics_exist():
         log.info("verifying metrics exist for {}".format(service_name))
-        service_metrics = get_metrics(service_name, package_name, task_name)
+        service_metrics = get_metrics(package_name, service_name, task_name)
         # there are 2 generic metrics that are always emitted
         return len(service_metrics) > 2
 

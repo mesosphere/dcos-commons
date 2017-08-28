@@ -403,8 +403,8 @@ def test_modify_app_config_rollback():
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(
-        config.FOLDERED_SERVICE_NAME,
         config.PACKAGE_NAME,
+        config.FOLDERED_SERVICE_NAME,
         "journal-0-node",
         config.DEFAULT_HDFS_TIMEOUT
     )

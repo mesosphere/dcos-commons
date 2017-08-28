@@ -94,8 +94,8 @@ def test_repair_cleanup_plans_complete():
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(
-        config.get_foldered_service_name(),
         config.PACKAGE_NAME,
+        config.get_foldered_service_name(),
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT
     )
