@@ -48,9 +48,9 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(config.get_foldered_service_name())))
+    endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints native-client'.format(config.get_foldered_service_name())))
     assert endpoints['dns'][0] == sdk_hosts.autoip_host(config.get_foldered_service_name(), 'node-0-server', 9042)
-    assert endpoints['vip'] == sdk_hosts.vip_host(config.get_foldered_service_name(), 'node', 9042)
+    assert not 'vip' in endpoints
 
 
 @pytest.mark.sanity
