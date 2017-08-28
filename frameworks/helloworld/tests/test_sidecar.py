@@ -6,6 +6,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_utils
 import shakedown
 from tests import config
 
@@ -53,6 +54,32 @@ def test_sidecar_parameterized():
     run_plan('sidecar-parameterized', {'PLAN_PARAMETER': 'parameterized'})
 
 
+class ToxicSidecarCheck:
+    """
+    Since the sidecar task fails too quickly, we check for the contents of
+    the file generated in hello-container-path/toxic-output instead
+
+    Note that we only check the output of hello-0.
+    """
+    @staticmethod
+    def get_cmd_output_pair():
+        if sdk_utils.dcos_version_less_than("1.10"):
+            cmd = "task ls hello-0-server hello-container-path/toxic-output"
+            output = ""
+        else:
+            cmd = "task exec hello-0-server cat hello-container-path/toxic-output"
+            output = "I'm addicted to you / Don't you know that you're toxic?"
+
+        return cmd, output
+
+    def __call__(self):
+        cmd, expected_output = self.get_cmd_output_pair()
+        output = sdk_cmd.run_cli(cmd).strip()
+        logging.info("Checking for toxic output returned: %s", output)
+
+        return output == expected_output
+
+
 @pytest.mark.sanity
 def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
@@ -64,22 +91,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     log.info(recovery_plan)
     sdk_plan.start_plan(config.PACKAGE_NAME, 'sidecar-toxic')
 
-    def is_sidecar_toxic_started():
-        """
-        Since the sidecar task fails too quickly, we check for the contents of
-        the file generated in hello-container-path/toxic-output instead
-
-        Note that we only check the output of hello-0.
-        """
-        cmd = "task exec hello-0-server cat hello-container-path/toxic-output"
-        expected_output = "I'm addicted to you / Don't you know that you're toxic?"
-
-        output = sdk_cmd.run_cli(cmd).strip()
-        logging.info("Checking for toxic output returned: %s", output)
-
-        return output == expected_output
-
-    shakedown.wait_for(is_sidecar_toxic_started, timeout_seconds=10 * 60)
+    shakedown.wait_for(ToxicSidecarCheck(), timeout_seconds=10 * 60)
 
     # Restart the scheduler and wait for it to come up.
     sdk_marathon.restart_app(config.PACKAGE_NAME)
