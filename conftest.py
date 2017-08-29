@@ -9,6 +9,9 @@ import os
 import subprocess
 
 import pytest
+import requests
+import sdk_security
+import sdk_utils
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 
@@ -74,23 +77,32 @@ def get_rotating_task_log_lines(task_id: str, task_file: str):
         yield filename, lines
 
 
-def is_test_failure(request):
-    for report in ('rep_setup', 'rep_call', 'rep_teardown'):
-        if not hasattr(request.node, report):
-            continue
-        if not getattr(request.node, report).failed:
-            continue
-        return True
-    return False
-
-
 @pytest.fixture(autouse=True)
 def get_task_logs_on_failure(request):
     yield
-    if is_test_failure(request):
+    if sdk_utils.is_test_failure(request):
         for task_id in get_task_ids():
             for task_file in ('stderr', 'stdout'):
                 for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
                     log_name = '{}_{}_{}.log'.format(request.node.name, task_id, log_filename)
                     with open(log_name, 'w') as f:
                         f.write(log_lines)
+
+
+@pytest.fixture(autouse=True)
+def get_mesos_state_on_failure(request):
+    yield
+    if sdk_utils.is_test_failure(request):
+        dcosurl, headers = sdk_security.get_dcos_credentials()
+        state_json_endpoint = '{}/mesos/state.json'.format(dcosurl)
+        r = requests.get(state_json_endpoint, headers=headers, verify=False)
+        if r.status_code == 200:
+            log_name = '{}_state.json'.format(request.node.name)
+            with open(log_name, 'w') as f:
+                f.write(r.text)
+        slaves_endpoint = '{}/mesos/slaves'.format(dcosurl)
+        r = requests.get(slaves_endpoint, headers=headers, verify=False)
+        if r.status_code == 200:
+            log_name = '{}_slaves.json'.format(request.node.name)
+            with open(log_name, 'w') as f:
+                f.write(r.text)
