@@ -168,7 +168,7 @@ After you execute the continue operation, the plan will look like this:
       ],
       "errors": [],
       "status": "IN_PROGRESS"
-    }   
+    }
 
 
 
@@ -183,6 +183,7 @@ If you enter `continue` a second time, the rest of the plan will be executed wit
 
 **Note:** The interrupt command can’t stop a step that is `InProgress`, but it will stop the change on the subsequent steps.
 
+<a name="configuration-options"></a>
 # Configuration Options
 
 The following describes the most commonly used features of the Kafka service and how to configure them via the DC/OS CLI and from the DC/OS web interface. View the [default `config.json` in DC/OS Universe][11] to see all possible configuration options.
@@ -193,6 +194,29 @@ The name of this Kafka instance in DC/OS. This is an option that cannot be chang
 
 *   **In DC/OS CLI options.json**: `name`: string (default: `kafka`)
 *   **DC/OS web interface**: The service name cannot be changed after the cluster has started.
+
+## Kill Grace Period
+
+The kiill grace period is the number of seconds each broker has to cleanly shut
+down in response to SIGTERM. If a broker exceeds this time, it will be killed.
+Use the `brokers.kill_grace_period` configuration option to set a kill grace period.
+
+The graceful shutdown feature is especially important for large-scale deployments.
+Use the graceful shutdown configuraiton option to provide the broker sufficient
+time during shutdown. This ensure that all in-memory data is flushed to disk and
+all state is replicated. When a broker has sufficient time to shut down, the
+subsequent restart will be nearly as fast as the first startup. This is a large
+contributor to the Kafka service's high availability.
+
+You can observe the graceful shutdown feature via the following log entries:
+
+1. The task launch log line contains `kill_policy { grace_period { nanoseconds: 30000000000 } }`.
+1. The task graceful shutdown log line contains SIGTERM as well as the grace time granted.
+1. The underlying Kafka logging of shutdown operations includes a stream of subsystem shutdowns prior to the overarching system
+   shutdown indicated by the entry `[Kafka Server 1], shut down completed (kafka.server.KafkaServer)`.
+1. The presence (or not) of a SIGKILL log line indicating that the underlying Kafka broker did not shutdown cleanly within the
+   allotted grace period.
+1. The task status update marked by `TASK_KILLED`, indicating the end of the shutdown activity.
 
 ## Broker Count
 
@@ -207,6 +231,15 @@ Configure the port number that the brokers listen on. If the port is set to a pa
 
 *   **In DC/OS CLI options.json**: `broker-port`: integer (default: `9092`)
 *   **DC/OS web interface**: `BROKER_PORT`: `integer`
+
+### TLS Broker Port
+
+Configure the port number that brokers listen on with a TLS connection. The default value is `9093`. Same rules apply as for [Broker Port](#broker-port).
+
+This setting requires [TLS](#tls) to be enabled, otherwise it is ignored.
+
+*   **In DC/OS CLI options.json**: `broker-port_tls`: integer (default: `9093`)
+*   **DC/OS web interface**: `BROKER_PORT_TLS`: `integer`
 
 ## Configure Broker Placement Strategy <!-- replace this with a discussion of PLACEMENT_CONSTRAINTS? -->
 
@@ -293,6 +326,60 @@ To configure it:
 ```
 
 This configuration option cannot be changed after installation.
+
+## TLS
+
+It is possible to expose Kafka over a secure TLS connection.
+
+**DC/OS CLI options.json**:
+```
+{
+    "service": {
+        "tls": true
+    }
+}
+```
+
+Once the TLS is enabled, Kafka will use secure TLS connections for inter-node communication. Additional TLS port named `broker-tls` will be available for clients connecting to the service. Only the [`TLS version 1.2`](https://www.ietf.org/rfc/rfc5246.txt) is supported. The non-TLS `broker` port will still be available.
+
+Enabling the TLS is possible only in `permissive` or `strict` cluster security modes. Both modes **require** a [service account](https://docs.mesosphere.com/service-docs/kafka/kafka-auth/). Additionally, the service account **must have** the `dcos:superuser` permission. If the permission is missing the Kafka scheduler will not abe able to provision the TLS artifacts.
+
+There is a performance impact with TLS connections that should be considered:
+
+* the initial TLS handshake
+
+* encryption and decryption of messages sent over the socket
+
+It is possible to use the Kafka CLI utility to test the performance impact of TLS by comparing the output of following commands:
+
+```
+export KAFKA_TOPIC_NAME=tls-test
+export KAFKA_MSG_COUNT=100000
+dcos kafka topic create ${KAFKA_TOPIC_NAME}
+
+# Test no TLS
+dcos kafka topic producer_test ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
+
+# Test TLS
+dcos kafka topic producer_test_tls ${KAFKA_TOPIC_NAME} ${KAFKA_MSG_COUNT}
+```
+
+For more information about the TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
+
+### TLS and plaintext
+
+It is possible to keep both TLS and plaintext ports opened at the same time and have clients accessing both of them. To keep the plaintext port open use the following TLS configuration:
+
+```
+{
+    "service": {
+        "tls": true,
+        "tls_allow_plaintext": true
+    }
+}
+```
+
+The plaintext port will be disabled by default when the TLS is enabled.
 
 ## Recovery and Health Checks
 

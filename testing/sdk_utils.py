@@ -1,3 +1,4 @@
+import functools
 import logging
 
 import dcos
@@ -5,12 +6,6 @@ import shakedown
 import pytest
 
 log = logging.getLogger(__name__)
-
-
-def gc_frameworks():
-    '''Reclaims private agent disk space consumed by Mesos but not yet garbage collected'''
-    for host in shakedown.get_private_agents():
-        shakedown.run_command(host, "sudo rm -rf /var/lib/mesos/slave/slaves/*/frameworks/*")
 
 
 def list_reserved_resources():
@@ -30,20 +25,42 @@ def list_reserved_resources():
 def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if shakedown.dcos_version_less_than("1.10"):
+    if dcos_version_less_than("1.10"):
         return service_name
     return "/test/integration/" + service_name
+
 
 def get_zk_path(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if shakedown.dcos_version_less_than("1.10"):
+    if dcos_version_less_than("1.10"):
         return service_name
     return "test__integration__" + service_name
 
 
-dcos_1_9_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.9")',
-                                        reason="Feature only supported in DC/OS 1.9 and up")
-dcos_1_10_or_higher = pytest.mark.skipif('shakedown.dcos_version_less_than("1.10")',
-                                         reason="Feature only supported in DC/OS 1.10 and up")
+@functools.lru_cache()
+def dcos_version_less_than(version):
+    return shakedown.dcos_version_less_than("1.10")
 
+
+def is_test_failure(pytest_request):
+    '''Determine if the test run failed using the request object from pytest.
+    The reports being evaluated are set in conftest.py:pytest_runtest_makereport()
+    https://docs.pytest.org/en/latest/builtin.html#_pytest.fixtures.FixtureRequest
+    '''
+    for report in ('rep_setup', 'rep_call', 'rep_teardown'):
+        if not hasattr(pytest_request.node, report):
+            continue
+        if not getattr(pytest_request.node, report).failed:
+            continue
+        return True
+    return False
+
+
+# WARNING: Any file that uses these must also "import shakedown" in the same file.
+dcos_1_9_or_higher = pytest.mark.skipif(
+    'sdk_utils.dcos_version_less_than("1.9")',
+    reason="Feature only supported in DC/OS 1.9 and up")
+dcos_1_10_or_higher = pytest.mark.skipif(
+    'sdk_utils.dcos_version_less_than("1.10")',
+    reason="Feature only supported in DC/OS 1.10 and up")

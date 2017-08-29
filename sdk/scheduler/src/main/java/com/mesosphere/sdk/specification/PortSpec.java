@@ -3,7 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -14,16 +13,15 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * This class represents a single port, with associated environment name.
  */
 public class PortSpec extends DefaultResourceSpec {
+    private final String envKey;
     @NotNull
     @Size(min = 1)
     private final String portName;
-    private final String envKey;
     @NotNull
     private final DiscoveryInfo.Visibility visibility;
     private final Collection<String> networkNames;
@@ -38,9 +36,9 @@ public class PortSpec extends DefaultResourceSpec {
             @JsonProperty("port-name") String portName,
             @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
             @JsonProperty("network-names") Collection<String> networkNames) {
-        super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal, envKey);
-        this.portName = portName;
+        super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal);
         this.envKey = envKey;
+        this.portName = portName;
         if (visibility == null) {
             // TODO(nickbp): Remove this compatibility fallback after October 2017
             // Older SDK versions only have a visibility setting for VIPs, not ports. Default to visible.
@@ -60,7 +58,7 @@ public class PortSpec extends DefaultResourceSpec {
                 portSpec.getRole(),
                 portSpec.getPreReservedRole(),
                 portSpec.getPrincipal(),
-                portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
+                portSpec.getEnvKey(),
                 portSpec.getPortName(),
                 portSpec.getVisibility(),
                 portSpec.getNetworkNames());
@@ -69,12 +67,6 @@ public class PortSpec extends DefaultResourceSpec {
     @JsonProperty("port-name")
     public String getPortName() {
         return portName;
-    }
-
-    @JsonProperty("env-key")
-    @Override
-    public Optional<String> getEnvKey() {
-        return Optional.ofNullable(envKey);
     }
 
     @JsonProperty("visibility")
@@ -87,6 +79,11 @@ public class PortSpec extends DefaultResourceSpec {
         return networkNames;
     }
 
+    @JsonProperty("env-key")
+    public String getEnvKey() {
+        return envKey;
+    }
+
     @JsonIgnore
     public long getPort() {
         return getValue().getRanges().getRange(0).getBegin();
@@ -94,17 +91,12 @@ public class PortSpec extends DefaultResourceSpec {
 
     @Override
     public String toString() {
-        return String.format(
-                "name: %s, portName: %s, networkNames: %s, value: %s," +
-                        " role: %s, preReservedRole: %s, principal: %s, envKey: %s",
-                getName(),
+        return String.format("%s, port-name: %s, network-names: %s, env-key: %s, visibility: %s",
+                super.toString(),
                 getPortName(),
                 getNetworkNames(),
-                TextFormat.shortDebugString(getValue()),
-                getRole(),
-                getPreReservedRole(),
-                getPrincipal(),
-                getEnvKey());
+                getEnvKey(),
+                getVisibility());
     }
 
     @Override

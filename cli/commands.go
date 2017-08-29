@@ -37,7 +37,8 @@ func GetArguments() []string {
 // all of the standard subcommands of the CLI.
 func HandleDefaultSections(app *kingpin.Application) {
 	commands.HandleConfigSection(app)
-	commands.HandleDescribe(app)
+	commands.HandleDebugSection(app)
+	commands.HandleDescribeSection(app)
 	commands.HandleEndpointsSection(app)
 	commands.HandlePlanSection(app)
 	commands.HandlePodSection(app)

@@ -8,6 +8,8 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 import javax.validation.Valid;
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collection;
@@ -16,8 +18,13 @@ import java.util.Optional;
 
 /**
  * Default implementation of a {@link TaskSpec}.
+ *
+ * If you add or modify fields you must update the equals method. (technically TaskUtils.areDifferent()).
  */
 public class DefaultTaskSpec implements TaskSpec {
+    // TODO: paegun using a reflection-based generator test for difference (not equal) or a different method of
+    // determining difference should be explored.
+    
     @NotNull
     @Size(min = 1)
     private final String name;
@@ -44,6 +51,17 @@ public class DefaultTaskSpec implements TaskSpec {
     @Valid
     private final Collection<ConfigFileSpec> configFiles;
 
+    @DecimalMin("0")
+    @DecimalMax("1209600") //<< two weeks (product spec)
+    private final int taskKillGracePeriodSeconds;
+
+    // The default of 0s for task kill grace period is based on upgrade path,
+    // matching the previous default for SDK services launched w/ DC/OS 10.9.
+    public static final int TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT = 0;
+
+    @Valid
+    private Collection<TransportEncryptionSpec> transportEncryption;
+
     @JsonCreator
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
@@ -53,7 +71,9 @@ public class DefaultTaskSpec implements TaskSpec {
             @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
             @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
             @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
-            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec) {
+            @JsonProperty("discovery-spec") DiscoverySpec discoverySpec,
+            @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
+            @JsonProperty("transport-encryption") Collection<TransportEncryptionSpec> transportEncryption) {
         this.name = name;
         this.goalState = goalState;
         this.resourceSet = resourceSet;
@@ -62,6 +82,10 @@ public class DefaultTaskSpec implements TaskSpec {
         this.readinessCheckSpec = readinessCheckSpec;
         this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
         this.discoverySpec = discoverySpec;
+        this.taskKillGracePeriodSeconds = (taskKillGracePeriodSeconds != null)
+            ? taskKillGracePeriodSeconds
+            : TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT;
+        this.transportEncryption = (transportEncryption != null) ? transportEncryption : Collections.emptyList();
     }
 
     private DefaultTaskSpec(Builder builder) {
@@ -73,7 +97,9 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.healthCheckSpec,
                 builder.readinessCheckSpec,
                 builder.configFiles,
-                builder.discoverySpec);
+                builder.discoverySpec,
+                builder.taskKillGracePeriodSeconds,
+                builder.transportEncryption);
     }
 
     public static Builder newBuilder() {
@@ -91,6 +117,8 @@ public class DefaultTaskSpec implements TaskSpec {
         builder.readinessCheckSpec = copy.getReadinessCheck().orElse(null);
         builder.configFiles = copy.getConfigFiles();
         builder.discoverySpec = copy.getDiscovery().orElse(null);
+        builder.taskKillGracePeriodSeconds = copy.getTaskKillGracePeriodSeconds();
+        builder.transportEncryption = copy.getTransportEncryption();
         return builder;
     }
 
@@ -135,6 +163,16 @@ public class DefaultTaskSpec implements TaskSpec {
     }
 
     @Override
+    public Integer getTaskKillGracePeriodSeconds() {
+        return taskKillGracePeriodSeconds;
+    }
+
+    @Override
+    public Collection<TransportEncryptionSpec> getTransportEncryption() {
+        return transportEncryption;
+    }
+
+    @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
@@ -165,6 +203,8 @@ public class DefaultTaskSpec implements TaskSpec {
         private ReadinessCheckSpec readinessCheckSpec;
         private Collection<ConfigFileSpec> configFiles;
         private DiscoverySpec discoverySpec;
+        private Integer taskKillGracePeriodSeconds;
+        private Collection<TransportEncryptionSpec> transportEncryption;
 
         private Builder() {
         }
@@ -258,6 +298,19 @@ public class DefaultTaskSpec implements TaskSpec {
         }
 
         /**
+         * Sets the {@code taskKillGracePeriodSeconds} and returns a reference to this Builder so that methods
+         * can be chained together.
+         *
+         * @param taskKillGracePeriodSeconds The number of seconds to await the service to cleanly (gracefully)
+         * shutdown following a SIGTERM signal. If the value is null or zero (0), the underlying service will be
+         * sent a SIGKILL immediately.
+         */
+        public Builder taskKillGracePeriodSeconds(Integer taskKillGracePeriodSeconds) {
+            this.taskKillGracePeriodSeconds = taskKillGracePeriodSeconds;
+            return this;
+        }
+
+        /**
          * Returns a {@code DefaultTaskSpec} built from the parameters previously set.
          *
          * @return a {@code DefaultTaskSpec} built with parameters of this {@code DefaultTaskSpec.Builder}
@@ -266,6 +319,18 @@ public class DefaultTaskSpec implements TaskSpec {
             DefaultTaskSpec defaultTaskSpec = new DefaultTaskSpec(this);
             ValidationUtils.validate(defaultTaskSpec);
             return defaultTaskSpec;
+        }
+
+        /**
+         * Sets the {@code transportEncryption} and returns a reference to this Builder so that methods can be
+         * chained together.
+         *
+         * @param transportEncryption The {@link TransportEncryptionSpec} to set
+         * @return a reference to this Builder
+         */
+        public Builder setTransportEncryption(Collection<TransportEncryptionSpec> transportEncryption) {
+            this.transportEncryption = transportEncryption;
+            return this;
         }
     }
 }

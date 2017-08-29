@@ -4,8 +4,15 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
+import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.auth.TokenProvider;
+import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -13,6 +20,8 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
@@ -72,17 +81,14 @@ public class DefaultService implements Service {
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
-        Collection<PodSpec> pods = serviceSpec.getPods();
-        for (PodSpec pod : pods) {
-            for (TaskSpec taskSpec : pod.getTasks()) {
-                for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
-                    if (resourceSpec.getName().equals("gpus") && resourceSpec.getValue().getScalar().getValue() >= 1) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        boolean usesGpus = serviceSpec.getPods().stream()
+                .flatMap(podSpec -> podSpec.getTasks().stream())
+                .flatMap(taskSpec -> taskSpec.getResourceSet().getResources().stream())
+                .anyMatch(resourceSpec -> resourceSpec.getName().equals("gpus")
+                        && resourceSpec.getValue().getScalar().getValue() >= 1);
+        // control automatic opt-in to scarce resources (GPUs) here. If the framework specifies GPU resources >= 1
+        // then we opt-in to scarce resource, otherwise follow the default policy (which as of 8/3/17 was to opt-out)
+        return usesGpus || DcosConstants.DEFAULT_GPU_POLICY;
     }
 
     private void initService() {
@@ -96,12 +102,30 @@ public class DefaultService implements Service {
                 StateStoreUtils.setUninstalling(stateStore);
             }
 
+            Optional<SecretsClient> secretsClient = Optional.empty();
+            if (!TaskUtils.getTasksWithTLS(getServiceSpec()).isEmpty()) {
+                try {
+                    TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(
+                            schedulerBuilder.getSchedulerFlags());
+                    Executor executor = Executor.newInstance(
+                            new DcosHttpClientBuilder()
+                                    .setTokenProvider(tokenProvider)
+                                    .setRedirectStrategy(new LaxRedirectStrategy())
+                                    .build());
+                    secretsClient = Optional.of(new DefaultSecretsClient(executor));
+                } catch (Exception e) {
+                    LOGGER.error("Failed to create a secrets store client, " +
+                            "TLS artifacts possibly won't be cleaned up from secrets store", e);
+                }
+            }
+
             LOGGER.info("Launching UninstallScheduler...");
             this.scheduler = new UninstallScheduler(
-                    schedulerBuilder.getSchedulerFlags().getApiServerPort(),
-                    schedulerBuilder.getSchedulerFlags().getApiServerInitTimeout(),
+                    schedulerBuilder.getServiceSpec().getName(),
                     stateStore,
-                    schedulerBuilder.getConfigStore());
+                    schedulerBuilder.getConfigStore(),
+                    schedulerBuilder.getSchedulerFlags(),
+                    secretsClient);
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -143,8 +167,12 @@ public class DefaultService implements Service {
         Protos.Status status = new SchedulerDriverFactory()
                 .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
                 .run();
-        // TODO(nickbp): Exit scheduler process here?
         LOGGER.error("Scheduler driver exited with status: {}", status);
+        // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
+        // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
+        if (status != Protos.Status.DRIVER_STOPPED) {
+            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+        }
     }
 
     private boolean allButStateStoreUninstalled() {

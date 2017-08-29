@@ -83,7 +83,8 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
-        Assert.assertFalse(DefaultService.serviceSpecRequestsGpuResources(serviceSpec));
+        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec) ==
+                DcosConstants.DEFAULT_GPU_POLICY);
         validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
 
@@ -125,17 +126,17 @@ public class DefaultServiceSpecTest {
         PortSpec portSpec = (PortSpec) portsResources.get(0);
         Assert.assertEquals("name1", portSpec.getPortName());
         Assert.assertEquals(8080, portSpec.getPort());
-        Assert.assertEquals("key1", portSpec.getEnvKey().get());
+        Assert.assertEquals("key1", portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(1);
         Assert.assertEquals("name2", portSpec.getPortName());
         Assert.assertEquals(8088, portSpec.getPort());
-        Assert.assertFalse(portSpec.getEnvKey().isPresent());
+        Assert.assertEquals(null, portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(2);
         Assert.assertEquals("name3", portSpec.getPortName());
         Assert.assertEquals(8089, portSpec.getPort());
-        Assert.assertFalse(portSpec.getEnvKey().isPresent());
+        Assert.assertEquals(null, portSpec.getEnvKey());
     }
 
     @Test
@@ -181,7 +182,7 @@ public class DefaultServiceSpecTest {
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains(
-                    "Duplicate port/endpoint names across different tasks: [across-pods, across-tasks, in-resource-set]"));
+                    "Service has duplicate advertised ports across tasks: [across-pods, across-tasks, in-resource-set]"));
         }
     }
 
@@ -248,6 +249,47 @@ public class DefaultServiceSpecTest {
         Assert.assertTrue(networkSpec.getPortMappings().get(4040)== 8080);
         Assert.assertTrue(networkSpec.getPortMappings().get(4041) == 8081);
         validateServiceSpec("valid-automatic-cni-port-forwarding.yml", DcosConstants.DEFAULT_GPU_POLICY);
+    }
+
+    @Test
+    public void validTaskKillGracePeriodSeconds() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-task-kill-grace-period-seconds.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+
+        Assert.assertNotEquals(15, DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT);
+        int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
+        Assert.assertEquals(15, taskKillGracePeriodSeconds);
+    }
+
+    @Test
+    public void validTaskKillGracePeriodSecondsReasonableDefault() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+
+        int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
+        Assert.assertEquals(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT, taskKillGracePeriodSeconds);
+    }
+
+    @Test
+    public void invalidTaskKillGracePeriodSeconds() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-kill-grace-period-seconds.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        try {
+            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertTrue(constraintViolations.size() > 0);
+        }
+    }
+
+    private int getTaskKillGracePeriodSeconds(DefaultServiceSpec serviceSpec) {
+        return serviceSpec.getPods().get(0).getTasks().get(0).getTaskKillGracePeriodSeconds();
     }
 
     @Test

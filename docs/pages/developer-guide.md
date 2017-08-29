@@ -136,6 +136,7 @@ name: "hello-world"
 scheduler:
   principal: "hello-world-principal"
   api-port: {{PORT_API}}
+  user: {{SERVICE_USER}}
 pods:
   hello-world-pod:
     count: 1
@@ -154,6 +155,8 @@ pods:
     * **principal**: This is the Mesos principal used when registering the framework. In secure Enterprise clusters, this principal must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
 
     * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#defining-a-target-configuration) section. This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
+
+    * **user** This is the account used when running the processes on the host.  The recommended default is `nobody`.
 
 * **Pods**: A pod is simply a set of tasks.
 
@@ -917,8 +920,8 @@ pods:
         memory: 256
         ports:
             http:
-                protocol: tcp
                 port: 8080
+                advertise: true
                 vip:
                     prefix: server-lb
                     port: 80
@@ -935,6 +938,317 @@ In the example above, a server task can be accessed through the address:
 ```
 server-lb.hello-world.l4lb.thisdcos.directory:80
 ```
+
+
+## Virtual networks
+
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
+
+```yaml
+pods:
+  pod-on-virtual-network:
+    count: {{COUNT}}
+    # join the 'dcos' virtual network
+    networks:
+      dcos:
+    tasks:
+      ...
+  pod-on-host:
+    count: {{COUNT}}
+    tasks:
+      ...
+```
+
+You can also pass arguments when invoking CNI plugins, by adding labels in your virtual network definition. These labels are are free-form key-value pairs that are passed in the format of `key0:value0,key1:value1`. Refer to [Mesos CNI Configuration](http://mesos.apache.org/documentation/latest/cni/#mesos-meta-data-to-cni-plugins) for more information about CNI labels. Here is a sample YAML definition with labels:
+
+```yaml
+pods:
+  pod-on-virtual-network:
+    count: {{COUNT}}
+    # join the 'dcos' virtual network
+    networks:
+      dcos:
+        labels: "key0:val0, key1:val1"
+    tasks:
+      ...
+  pod-on-host:
+    count: {{COUNT}}
+    tasks:
+      ...
+```
+
+When a pod is on a virtual network such as the `dcos`:
+  * Every pod gets its own IP address and its own array of ports.
+  * Pods do not use the ports on the host machine.
+  * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
+  * You can pass network labels to CNI plugins.
+
+Specifying that pods join a virtual network has the following indirect effects:
+  * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
+    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
+  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
+  
+  
+# Secrets
+
+Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
+
+**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+
+The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
+
+You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
+* Kerberos keytabs or other credential files.
+* SSL certificates.
+* Configuration files with sensitive data.
+
+For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-svc/SecretPath1`, as shown below.
+
+```yaml
+name: secret-svc/instance1
+pods:
+  pod-with-secret:
+    count: {{COUNT}}
+    # add secret file to pod's sandbox
+    secrets:
+      secret_name1:
+        secret: secret-svc/Secret_Path1
+        env-key: Secret_Environment_Key
+        file: data/somePath/Secret_FilePath1
+      secret_name2:
+        secret: secret-svc/instance1/Secret_Path2
+        file: data/somePath/Secret_FilePath2
+      secret_name3:
+        secret: secret-svc/Secret_Path3
+        env-key: Secret_Environment_Key2
+    tasks:
+      ....
+```
+
+All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
+
+`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when the executor exits. The secret content is copied securely by Mesos if it is referenced in the pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
+
+**Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
+
+Refer to [Secrets Tutorial](tutorials/secrets-tutorial.md) for an 
+SDK-based example service using DC/OS secrets.
+
+### Authorization for Secrets
+
+The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
+
+For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
+
+On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
+
+
+| Secret                               | Service ID                          | Can service access secret? |
+|--------------------------------------|-------------------------------------|----------------------------|
+| `secret-svc/Secret_Path1`            | `/user`                             | No                         |
+| `secret-svc/Secret_Path1`            | `/user/dev1`                        | No                         |
+| `secret-svc/Secret_Path1`            | `/secret-svc`                       | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/dev1`                  | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/instance2/dev2`        | Yes                        |
+| `secret-svc/Secret_Path1`            | `/secret-svc/a/b/c/dev3`            | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/dev1`                  | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance2/dev3`        | No                         |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1`             | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/dev3`        | Yes                        |
+| `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/someDir/dev3`| Yes                        |
+
+
+
+**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
+
+Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
+  * Supported: `etc/keys/Secret_FilePath1`
+  * Not supported: `/etc/keys/Secret_FilePath1`
+
+```yaml
+name: secret-svc/instance2
+pods:
+  pod-with-image:
+    count: {{COUNT}}
+    container:
+      image-name: ubuntu:14.04
+    user: nobody
+    secrets:
+      secret_name4:
+        secret: secret-svc/Secret_Path1
+        env-key: Secret_Environment_Key
+        file: etc/keys/Secret_FilePath1
+      secret_name5:
+        secret: secret-svc/instance1/Secret_Path2
+        file: data/keys/keyset/Secret_FilePath2
+    tasks:
+      ....
+```
+
+
+# TLS
+
+**This feature works only on Mesosphere DC/OS Enterprise and is not supported on DC/OS Open.**
+
+The SDK provides an automated way of provisioning X.509 certificates and private keys for tasks. These TLS artifacts can be consumed by tasks to create encrypted TLS connections.
+
+One or more TLS artifacts can be requested by adding the `transport-encryption` key to the `task` level YAML definition.
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "./service-with-tls --private-key=server.key --certificate=server.crt --ca-bundle=server.ca"
+        cpus: 0.2
+        memory: 256
+        transport-encryption:
+          - name: server
+            type: TLS
+        ports:
+            http:
+                port: 8080
+                vip:
+                    prefix: server-lb
+                    port: 80
+```
+
+Every item under `transport-encryption` must have a unique `name`. The `type` field defines the serialization format with which the private key and certificate will be delivered into the task sandbox. Currently, there are two supported formats - `TLS` and `KEYSTORE`. Each item will result in a unique private key and the corresponding certificate.
+
+The TLS artifacts within a single task will be unique for a task instance and won't be shared across all instances of the pod task. Different tasks can request TLS artficats with the same name, but each task will get unique private key and certificate, and they won't get shared across different tasks.
+
+In the above example, the `$MESOS_SANDBOX` directory would contain following files:
+
+```
+$MESOS_SANDBOX/
+               ...
+               server.key
+               server.crt
+               server.ca
+               ...
+```
+
+Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PEM format (if applicable, this file also includes corresponding intermediate CA certificates). The `server.key` contains the private key corresponding to the end-entity certificate, in the PKCS#8 PEM format. The file `server.ca` contains the root CA certificate in the OpenSSL PEM format.
+
+## Provisioning
+
+TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](operations-guide.html#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
+
+The scheduler will generate and store TLS artfiacts for both possible formats (`TLS`, `KEYSTORE`). Changing the format will not create a new private key.
+
+Generated artifacts are stored as secrets with the following naming scheme:
+
+```
+[DCOS_SPACE]/[hash]__[pod-index-taskname]__[transport-encryption-name]__[artifact-type]
+```
+
+The `[hash]` represents a `SHA1` hash of all Subject Alternative Names that the certificate contains concatenated by `;` character. This hash will change every time if operator changes ports `vip` or `discovery` task configuration. See the [certificate details](#x509.certificate) section.
+
+Example of secrets that would get created based on YAML configuration above:
+
+```
+hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__certificate
+hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__private-key
+hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__root-ca-certificate
+hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__keystore
+hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__truststore
+```
+
+### Lifetime of secrets containing the TLS artifacts
+
+When a `transport-encryption` item is removed from the service configuration (i.e. YAML file), it is **not** removed from the secret store. If the same `transport-encryption` configuration is added back to the service configuration, the existing TLS artifact will be used.
+
+The `UninstallScheduler` responsible for cleaning up service installation will try to remove all TLS artifact secrets previously provisioned by the scheduler.
+
+### Task artifacts access
+
+Each task that requests one or more TLS artifacts will get artifacts delivered to the task sandbox directory (`$MESOS_SANDBOX`) as a file-based secret. This feature ensures that data aren't stored on disk and are held only in memory on the virtual filesystem. The secret appears as a normal file that can be used by an application. A task will only get TLS artifacts that are declared in the service configuration file.
+
+## Private key and certificate details
+
+The scheduler provisions the *private key* and `X.509` *certificate* and exposes them to the task in various serialization formats.
+
+### Private key
+
+The private key is generated by using Java [`KeyPairGenerator`](https://docs.oracle.com/javase/7/docs/api/java/security/KeyPairGenerator.html) initialized with `RSA` algorithm. The `RSA` key is generated with `2048` bit size based on [NIST recommnedations](https://www.keylength.com/en/4/).
+
+### X.509 certificate
+
+An `X.509` end-entity certificate corresponding to the private key is generated with the help of the [DC/OS certificate authority](https://docs.mesosphere.com/1.9/networking/tls-ssl/ca-api/) by sending it a certificate signing request (CSR, built from the public key). The returned end-entity certificate is signed with the private key corresponding to the signing CA certificate that the DC/OS CA is configured with. That signing CA certificate can either be a root CA certificate automatically created during DC/OS cluster installation or a user-provided (custom) CA certificate.
+
+A certificate has the following subject information:
+
+```
+CN=[pod-index-task].[service-name]
+O=Mesosphere, Inc
+L=San Francisco
+ST=CA
+C=US
+```
+
+Additional X.509 `Subject Alternative Names`, based on the pod `discovery` and `vip` confiagurations, are encoded into the certificate. If no `discovery` or port exposed over VIP is configured, the single the certificate comes with a single SAN.
+
+```
+DNSName([pod-index-task].[service-name].autoip.dcos.thisdcos.directory)
+```
+
+Each VIP-exposed port creates in a new SAN entry:
+
+```
+DNSName([port-0-vip-prefix].[service-name].l4lb.thisdcos.directory)
+DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
+```
+
+Providing a custom `prefix` under the `discovery` replaces the default SAN `DNSName([pod-index-task].[service-name].autoip.dcos.thisdcos.directory)` with the configured name and pod index, i.e.:
+
+```
+DNSName([discovery-prefix-index].[service-name].autoip.dcos.thisdcos.directory)
+```
+
+This certificate configuration allows the client to run proper TLS hostname verification when the task is accessed by one of the [internal DNS names](https://docs.mesosphere.com/1.9/networking/dns-overview/).
+
+Each certificate is valid for **10 years**.
+
+### Artifacts format
+
+TLS artifacts can be provided to a task in two different formats:
+
+#### PEM
+
+Standard [PEM encoded](https://en.wikipedia.org/wiki/Privacy-enhanced_Electronic_Mail) certificate, private key and root CA certificate. Based on a file extension name it is possible to tell which artifact is in the file.
+
+A certificate file with **.crt** extension contains an end-entity certificate with optional chain of certificates leading to the root CA certificate. The root CA certificate is not part of end-entity certificate file.
+
+A **.key** file contains the PEM encoded private key.
+
+A file with **.crt** extension contains the root CA certificate without the certificate chain.
+
+#### Java Keystore
+
+The [Java Keystore (JKS)](https://en.wikipedia.org/wiki/Keystore) is a repository of various certificates and private keys. When a private key and certificate is requested, a task will get 2 JKS format files.
+
+A **.keystore** is a JKS file that contains a private key with an end-entity certificate and a complete certificate chain, including the root CA certificate. The certificate is stored under the alias name **`default`**. The keystore and key are protected by the password **`notsecure`**.
+
+A **.truststore** is a JKS file that contains the DC/OS root CA certificate stored as a trust certificate. The certificte is stored under alias **`dcos-root`**. The keystore is protected by **`notsecure`** password.
+
+The password **`notsecure`** that protects both JKS files (containing an end-entity certificate with private key and root CA certificate) has been selected because most Java tools and libraries require a password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers or tasks can access TLS artifacts provisioned by a scheduler.
+
+## Installation requirements
+
+To enable TLS support a `Mesosphere DC/OS Enterprise` cluster must be installed in `permissive` or `strict` security mode.
+
+A scheduler must run with a `service account` that has permission to access:
+
+- `DC/OS CA` - requires `full` permission to [`dcos:adminrouter:ops:ca:rw`](https://docs.mesosphere.com/1.9/security/perms-reference/#admin-router) resource
+
+- Secrets store - requires `full` permission [`dcos:secrets:default:<service-name>/`](https://docs.mesosphere.com/1.9/security/perms-reference/#secrets) and `full` permission on `dcos:secrets:list:default:<service-name>`
+
+  The secrets store authorizer supports only permissions on explicit secrets paths. Since SDK provisions many secrets for TLS artifacts it is necessary to give a `service account` broad `dcos:superuser`.
+
+  This is a known limitation and it will get addressed in the future releases of the DC/OS.
 
 # Testing
 
@@ -979,7 +1293,7 @@ The most basic set of features present in the YAML representation of the `Servic
 
 Each pod runs inside a single container. The `ServiceSpec` specifies the following:
   * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://dcos.io/docs/latest/deploying-services/containerizers/ucr/).
-  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. The only supported network at present is the `dcos` overlay network.
+  * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. One example of a supported virtual network is the `dcos` overlay network.
   * The `rlimits` field allows you to set POSIX resource limits for every task that runs inside the container.
 
 The example `ServiceSpec` below specifies:
@@ -988,7 +1302,7 @@ The example `ServiceSpec` below specifies:
   * That the pod should join the `dcos` virtual network.
 
 
-In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` overlay network:
+In the example below, we're specifying that we want to run the `ubuntu` image, the soft limit for number of open file descriptors for any task in the "hello" pod is set to 1024, the hard limit to 2048 and we're specifying that the pod joins the `dcos` virtual network:
 
 ```yaml
 name: "hello-world"
@@ -1012,8 +1326,8 @@ pods:
 
 For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
 
-**Overlay networks**
-The SDK supports having pods join the `dcos` overlay network. For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins an overlay network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on the overlay network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the overlay network, we do not allow a pod to be moved from the `dcos` overlay to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
+**Virtual networks**
+The SDK supports having pods join virtual neworks (including the `dcos` overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
 
 ### Placement Rules
 

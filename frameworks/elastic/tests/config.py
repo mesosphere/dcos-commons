@@ -16,6 +16,9 @@ PACKAGE_NAME = 'elastic'
 KIBANA_PACKAGE_NAME = 'kibana'
 
 DEFAULT_TASK_COUNT = 7
+# task count without ingest node
+NO_INGEST_TASK_COUNT = DEFAULT_TASK_COUNT - 1
+
 DEFAULT_ELASTIC_TIMEOUT = 10 * 60
 DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
@@ -74,15 +77,15 @@ def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAM
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
-def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME):
+def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME, task_count=DEFAULT_TASK_COUNT):
     curl_api = _curl_api(service_name, "GET")
     def expected_nodes():
         result = _get_elasticsearch_cluster_health(curl_api)
         if result is None:
             return False
         node_count = result["number_of_nodes"]
-        log.info('Waiting for {} healthy nodes, got {}'.format(DEFAULT_TASK_COUNT, node_count))
-        return node_count == DEFAULT_TASK_COUNT
+        log.info('Waiting for {} healthy nodes, got {}'.format(task_count, node_count))
+        return node_count == task_count
 
     return shakedown.wait_for(expected_nodes, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 

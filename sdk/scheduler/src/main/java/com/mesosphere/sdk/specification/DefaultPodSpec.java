@@ -49,6 +49,8 @@ public class DefaultPodSpec implements PodSpec {
     @Valid
     private Collection<SecretSpec> secrets;
     private String preReservedRole;
+    @NotNull
+    private Boolean sharePidNamespace;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -63,7 +65,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("placement-rule") PlacementRule placementRule,
             @JsonProperty("volumes") Collection<VolumeSpec> volumes,
             @JsonProperty("pre-reserved-role") String preReservedRole,
-            @JsonProperty("secrets") Collection<SecretSpec> secrets) {
+            @JsonProperty("secrets") Collection<SecretSpec> secrets,
+            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace) {
         this(
                 new Builder(Optional.empty()) // Assume that Executor URI is already present
                         .type(type)
@@ -77,7 +80,8 @@ public class DefaultPodSpec implements PodSpec {
                         .placementRule(placementRule)
                         .volumes(volumes)
                         .preReservedRole(preReservedRole)
-                        .secrets(secrets));
+                        .secrets(secrets)
+                        .sharePidNamespace(sharePidNamespace));
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -93,6 +97,7 @@ public class DefaultPodSpec implements PodSpec {
         this.uris = builder.uris;
         this.user = builder.user;
         this.volumes = builder.volumes;
+        this.sharePidNamespace = builder.sharePidNamespace;
         ValidationUtils.validate(this);
     }
 
@@ -114,6 +119,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.uris = copy.getUris();
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
+        builder.sharePidNamespace = copy.getSharePidNamespace();
         return builder;
     }
 
@@ -178,6 +184,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Boolean getSharePidNamespace() {
+        return sharePidNamespace;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -210,6 +221,7 @@ public class DefaultPodSpec implements PodSpec {
         private List<TaskSpec> tasks = new ArrayList<>();
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
+        private Boolean sharePidNamespace = false;
 
         private Builder(Optional<String> executorUri) {
             this.executorUri = executorUri;
@@ -409,6 +421,18 @@ public class DefaultPodSpec implements PodSpec {
                 this.secrets = secrets;
             }
 
+            return this;
+        }
+
+        /**
+         * Sets whether tasks in this pod share a pid namespace and returns a reference to this Builder so that the
+         * methods can be chained together.
+         *
+         * @param sharePidNamespace whether tasks in this pod share a pid namespace
+         * @return a reference to this Builder
+         */
+        public Builder sharePidNamespace(Boolean sharePidNamespace) {
+            this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
             return this;
         }
 

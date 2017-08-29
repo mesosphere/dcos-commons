@@ -100,8 +100,7 @@ public class ResourceTestUtils {
                 containerPath,
                 role,
                 Constants.ANY_ROLE,
-                principal,
-                ""); // env-key isn't used
+                principal);
         return ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.of(resourceId),

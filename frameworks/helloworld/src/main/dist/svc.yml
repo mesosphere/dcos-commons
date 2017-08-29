@@ -31,10 +31,25 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: >
-               echo world1 >> world-container-path1/output &&
-               echo world2 >> world-container-path2/output &&
-               sleep $SLEEP_DURATION
+        cmd: |
+               # for graceful shutdown
+               #  trap SIGTERM and mock a cleanup timeframe
+               terminated () {
+                 echo "$(date) received SIGTERM, zzz for 3 ..."
+                 sleep 3
+                 echo "$(date) ... all clean, peace out"
+                 exit 0
+               }
+               trap terminated SIGTERM
+               echo "$(date) trapping SIGTERM, watch here for the signal..."
+
+               echo 'world1' >>world-container-path1/output &&
+               echo 'world2' >>world-container-path2/output &&
+               # instead of running for a short duration (equal to SLEEP_DURATION), run infinitely
+               # to allow for testing of SIGTERM..grace..SIGKILL
+               while true; do
+                 sleep 0.1
+               done
         cpus: {{WORLD_CPUS}}
         memory: {{WORLD_MEM}}
         volumes:
@@ -49,7 +64,11 @@ pods:
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:
-          cmd: BYTES="$(wc -c world-container-path2/output | awk '{print $1;}')" && [ $BYTES -gt 0 ]
+          # wordcount (wc) will report an error if the file does not exist, which effectively is zero (0) bytes
+          # so send the error to /dev/null, BUT also zero-left-pad the variable BYTES to ensure that it is zero
+          # on empty for comparison sake.
+          cmd: BYTES="$(wc -c world-container-path2/output 2>/dev/null| awk '{print $1;}')" && [ 0$BYTES -gt 0 ]
           interval: 5
           delay: 0
           timeout: 10
+        kill-grace-period: {{WORLD_KILL_GRACE_PERIOD}}

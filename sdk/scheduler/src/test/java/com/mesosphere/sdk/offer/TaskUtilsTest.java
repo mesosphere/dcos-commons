@@ -1,17 +1,20 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultResourceSet;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.*;
 
 import javax.validation.ValidationException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.UUID;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * This class tests the TaskUtils class.
@@ -183,6 +186,62 @@ public class TaskUtilsTest {
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
+    @Test
+    public void testAreDifferentTaskSpecificationsVIP() {
+        Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.RANGES);
+        portValueBuilder.getRangesBuilder().addRangeBuilder()
+                .setBegin(80)
+                .setEnd(80);
+
+        ResourceSet oldResourceSet = mock(ResourceSet.class);
+        ResourceSet newResourceSet = mock(ResourceSet.class);
+
+        ResourceSpec oldVip = new NamedVIPSpec(
+                portValueBuilder.build(),
+                TestConstants.ROLE,
+                TestConstants.PRE_RESERVED_ROLE,
+                TestConstants.PRINCIPAL,
+                "env-key",
+                "port-name",
+                "protocol",
+                TestConstants.PORT_VISIBILITY,
+                TestConstants.VIP_NAME,
+                TestConstants.VIP_PORT,
+                Arrays.asList("network-name"));
+
+        ResourceSpec newVip = new NamedVIPSpec(
+                portValueBuilder.build(),
+                TestConstants.ROLE,
+                TestConstants.PRE_RESERVED_ROLE,
+                TestConstants.PRINCIPAL,
+                "env-key",
+                "port-name",
+                "protocol",
+                TestConstants.PORT_VISIBILITY,
+                TestConstants.VIP_NAME + "-different", // Different vip name
+                TestConstants.VIP_PORT,
+                Arrays.asList("network-name"));
+
+        when(oldResourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+        when(oldResourceSet.getResources()).thenReturn(Arrays.asList(oldVip)); // Old VIP
+        when(oldResourceSet.getVolumes()).thenReturn(Collections.emptyList());
+
+        when(newResourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
+        when(newResourceSet.getResources()).thenReturn(Arrays.asList(newVip)); // New VIP
+        when(newResourceSet.getVolumes()).thenReturn(Collections.emptyList());
+
+        TaskSpec oldTaskSpecification = DefaultTaskSpec.newBuilder(TestPodFactory.getTaskSpec())
+                .resourceSet(oldResourceSet)
+                .build();
+
+        TaskSpec newTaskSpecification = DefaultTaskSpec.newBuilder(TestPodFactory.getTaskSpec())
+                .resourceSet(newResourceSet)
+                .build();
+
+        Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
+    }
+
     @Test(expected=ValidationException.class)
     public void testConfigsSamePathFailsValidation() {
         TestPodFactory.getTaskSpec(
@@ -212,5 +271,25 @@ public class TaskUtilsTest {
                 .setState(Protos.TaskState.TASK_LOST)
                 .build();
         Assert.assertTrue(TaskUtils.isRecoveryNeeded(taskStatus));
+    }
+
+    @Test
+    public void testGetTasksWithTLS() {
+        TransportEncryptionSpec transportEncryptionSpec = new DefaultTransportEncryptionSpec.Builder()
+                .name("test")
+                .build();
+
+        TaskSpec taskWithTls = TestPodFactory.getTaskSpec("has-tls", "abc");
+        taskWithTls = DefaultTaskSpec.newBuilder(taskWithTls)
+                .setTransportEncryption(Collections.singletonList(transportEncryptionSpec))
+                .build();
+        TaskSpec taskWithoutTls = TestPodFactory.getTaskSpec("no-tls", "abc");
+
+        PodSpec podSpec = TestPodFactory.getPodSpec("test", "user", 1, Arrays.asList(taskWithoutTls, taskWithTls));
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 1);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("has-tls", "no-tls")).build();
+
+        Assert.assertEquals(Arrays.asList(taskWithTls), TaskUtils.getTasksWithTLS(podInstanceRequirement));
     }
 }

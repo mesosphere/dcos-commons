@@ -13,19 +13,17 @@ log = logging.getLogger(__name__)
 
 PACKAGE_NAME = 'cassandra'
 DEFAULT_TASK_COUNT = 3
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 DEFAULT_CASSANDRA_TIMEOUT = 600
 # Soak artifact scripts may override the service name to test
 SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or PACKAGE_NAME
 
 DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(PACKAGE_NAME, 'node-0-server'))
-FOLDERED_NODE_ADDRESS = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server')
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 
-def _get_test_job(name, cmd, restart_policy='NEVER'):
+def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
     return {
-        'description': 'Integration test job: ' + name,
+        'description': '{} with restart policy {}'.format(name, restart_policy),
         'id': 'test.cassandra.' + name,
         'run': {
             'cmd': cmd,
@@ -36,6 +34,14 @@ def _get_test_job(name, cmd, restart_policy='NEVER'):
             'restart': { 'policy': restart_policy }
         }
     }
+
+
+def get_foldered_service_name():
+    return sdk_utils.get_foldered_name(PACKAGE_NAME)
+
+
+def get_foldered_node_address():
+    return sdk_hosts.autoip_host(get_foldered_service_name(), 'node-0-server')
 
 
 def get_delete_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
@@ -81,6 +87,14 @@ def get_write_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE
     return _get_test_job(
         'write-data',
         'cqlsh --cqlversion=3.4.0 -e "{}" {} {}'.format(cql, node_address, node_port))
+
+
+def get_all_jobs(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    write_data_job = get_write_data_job(node_address)
+    verify_data_job = get_verify_data_job(node_address)
+    delete_data_job = get_delete_data_job(node_address)
+    verify_deletion_job = get_verify_deletion_job(node_address)
+    return [write_data_job, verify_data_job, delete_data_job, verify_deletion_job]
 
 
 def run_backup_and_restore(

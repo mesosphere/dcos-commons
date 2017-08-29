@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -38,8 +37,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             String containerPath,
             String role,
             String preReservedRole,
-            String principal,
-            String envKey) {
+            String principal) {
         this(
                 type,
                 containerPath,
@@ -47,8 +45,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 scalarValue(diskSize),
                 role,
                 preReservedRole,
-                principal,
-                envKey);
+                principal);
     }
 
     @JsonCreator
@@ -59,9 +56,8 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("pre-reserved-role") String preReservedRole,
-            @JsonProperty("principal")  String principal,
-            @JsonProperty("env-key")  String envKey) {
-        super(name, value, role, preReservedRole, principal, envKey);
+            @JsonProperty("principal")  String principal) {
+        super(name, value, role, preReservedRole, principal);
         this.type = type;
         this.containerPath = containerPath;
 
@@ -96,12 +92,9 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     @Override
     public String toString() {
-        return String.format(
-                "name: '%s', value: '%s', type: '%s', role: '%s', principal: '%s'",
-                getName(),
-                TextFormat.shortDebugString(getValue()),
+        return String.format("%s, type: '%s', container-path: '%s'",
+                super.toString(),
                 getType(),
-                getRole(),
-                getPrincipal());
+                getContainerPath());
     }
 }

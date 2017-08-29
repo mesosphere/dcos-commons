@@ -1,6 +1,6 @@
 {
-  "packagingVersion": "3.0",
-  "minDcosReleaseVersion": "1.8",
+  "packagingVersion": "4.0",
+  "minDcosReleaseVersion": "1.9",
   "name": "cassandra",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",

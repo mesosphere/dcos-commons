@@ -12,6 +12,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -45,17 +46,15 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler extends AbstractScheduler implements Observer {
+public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     protected final ServiceSpec serviceSpec;
     protected final SchedulerFlags schedulerFlags;
     protected final Collection<Plan> plans;
-    protected final ConfigStore<ServiceSpec> configStore;
     final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
-    private final ConfigurationUpdater.UpdateResult updateResult;
     protected Map<String, EndpointProducer> customEndpointProducers;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -337,7 +336,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
 
             // Update/validate config as needed to reflect the new service spec:
             Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
-            configValidators.addAll(defaultConfigValidators());
+            configValidators.addAll(defaultConfigValidators(getSchedulerFlags()));
             configValidators.addAll(customConfigValidators);
 
             final ConfigurationUpdater.UpdateResult configUpdateResult =
@@ -375,8 +374,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                     stateStore,
                     configStore,
                     endpointProducers,
-                    Optional.ofNullable(recoveryPlanOverriderFactory),
-                    configUpdateResult);
+                    Optional.ofNullable(recoveryPlanOverriderFactory));
         }
 
         /**
@@ -458,7 +456,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
      * Returns the default configuration validators used by {@link DefaultScheduler} instances. Additional custom
      * validators may be added to this list using {@link Builder#setCustomConfigValidators(Collection)}.
      */
-    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators() {
+    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators(SchedulerFlags flags) {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new ServiceNameCannotContainDoubleUnderscores(),
@@ -466,7 +464,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
                 new TaskVolumesCannotChange(),
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
-                new UserCannotChange());
+                new UserCannotChange(),
+                new TLSRequiresServiceAccount(flags));
     }
 
     /**
@@ -549,19 +548,16 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
-            ConfigurationUpdater.UpdateResult updateResult) {
-        super(stateStore);
+            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
+        super(stateStore, configStore);
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
         this.plans = plans;
-        this.configStore = configStore;
         this.customEndpointProducers = customEndpointProducers;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
-        this.updateResult = updateResult;
     }
 
 
@@ -580,8 +576,33 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         initializePlanCoordinator();
         initializeResources();
         initializeApiServer();
-        planCoordinator.subscribe(this);
+        killUnneededTasks(getLaunchableTasks());
         LOGGER.info("Done initializing.");
+    }
+
+    private void killUnneededTasks(Set<String> taskToDeployNames) {
+        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIds = taskInfos.stream()
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
+        // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+                .map(taskInfo -> taskInfo.toBuilder())
+                .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
+                .collect(Collectors.toSet());
+
+        // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
+        // event of an untimely scheduler crash
+        for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
+            stateStore.clearTask(taskInfo.getName());
+            stateStore.storeTasks(Arrays.asList(taskInfo));
+        }
+
+        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
 
     private Collection<PlanManager> getOtherPlanManagers() {
@@ -654,6 +675,7 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         this.recoveryPlanManager = new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
+                getLaunchableTasks(),
                 launchConstrainer,
                 failureMonitor,
                 overrideRecoveryPlanManagers);
@@ -699,32 +721,8 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         }
     }
 
-    /**
-     * Receive updates from plan element state changes.  In particular on plan state changes a decision to suppress
-     * or revive offers should be made.
-     */
-    @Override
-    public void update(Observable observable) {
-        if (observable == planCoordinator) {
-            suppressOrRevive();
-            completeDeploy();
-        }
-    }
-
-    private void completeDeploy() {
-        if (!planCoordinator.hasOperations()) {
-            StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult.getDeploymentType());
-        }
-    }
-
     protected void processOfferSet(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
-        LOGGER.info("Processing {} {}:", localOffers.size(), localOffers.size() == 1 ? "offer" : "offers");
-        for (int i = 0; i < localOffers.size(); ++i) {
-            LOGGER.info("  {}: {}",
-                    i + 1,
-                    TextFormat.shortDebugString(localOffers.get(i)));
-        }
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
@@ -763,67 +761,70 @@ public class DefaultScheduler extends AbstractScheduler implements Observer {
         OfferUtils.declineOffers(driver, unusedOffers);
     }
 
+    @Override
+    protected Collection<PlanManager> getPlanManagers() {
+        return planCoordinator.getPlanManagers();
+    }
+
     public boolean apiServerReady() {
         return schedulerApiServer.ready();
     }
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        statusExecutor.execute(() -> {
-            LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
-                    status.getTaskId().getValue(),
-                    status.getState().toString(),
-                    status.getMessage(),
-                    TextFormat.shortDebugString(status));
+        LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
+                status.getTaskId().getValue(),
+                status.getState().toString(),
+                status.getMessage(),
+                TextFormat.shortDebugString(status));
 
-            // Store status, then pass status to PlanManager => Plan => Steps
-            try {
-                stateStore.storeStatus(status);
-                planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
-                reconciler.update(status);
+        eventBus.post(status);
 
-                if (StateStoreUtils.isSuppressed(stateStore)
-                        && !StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).isEmpty()) {
-                    revive();
-                }
+        // Store status, then pass status to PlanManager => Plan => Steps
+        try {
+            String taskName = StateStoreUtils.getTaskName(stateStore, status);
+            Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
-                // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
-                // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
-                // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
-                // on TASK_RUNNINGs
-                if (status.hasContainerStatus() &&
-                        status.getContainerStatus().getNetworkInfosCount() > 0 &&
-                        status.getContainerStatus().getNetworkInfosList().stream()
-                                .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-                    // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
-                    // TaskInfo exists.
-                    try {
-                        Protos.TaskInfo taskInfo = StateStoreUtils.getTaskInfo(stateStore, status);
-                        StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskInfo.getName(), status);
-                    } catch (StateStoreException e) {
-                        LOGGER.warn("Unable to store network info for status update: " + status, e);
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                        + "This may be expected if Mesos sent stale status information: " + status, e);
+            stateStore.storeStatus(taskName, status);
+            planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
+            reconciler.update(status);
+
+            if (lastStatus.isPresent() &&
+                    AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
+                    TaskUtils.isRecoveryNeeded(status)) {
+                // The initial launch of this task failed. Give up and try again with a clean slate.
+                LOGGER.warn(
+                        "Task {} appears to have failed its initial launch. Marking pod for permanent recovery. " +
+                                "Last status: {}",
+                        taskName, TextFormat.shortDebugString(lastStatus.get()));
+                taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
             }
-        });
+
+            // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
+            // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
+            // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
+            // on TASK_RUNNINGs
+            if (status.hasContainerStatus() &&
+                    status.getContainerStatus().getNetworkInfosCount() > 0 &&
+                    status.getContainerStatus().getNetworkInfosList().stream()
+                            .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+                // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
+                // TaskInfo exists.
+                try {
+                    StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
+                } catch (StateStoreException e) {
+                    LOGGER.warn("Unable to store network info for status update: " + status, e);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                    + "This may be expected if Mesos sent stale status information: " + status, e);
+        }
+
     }
 
-    private void suppressOrRevive() {
-        if (planCoordinator.hasOperations()) {
-            if (StateStoreUtils.isSuppressed(stateStore)) {
-                revive();
-            } else {
-                LOGGER.info("Already revived.");
-            }
-        } else {
-            if (StateStoreUtils.isSuppressed(stateStore)) {
-                LOGGER.info("Already suppressed.");
-            } else {
-                suppress();
-            }
-        }
+    @VisibleForTesting
+    Set<String> getLaunchableTasks() {
+        return PlanUtils.getLaunchableTasks(plans);
     }
 }

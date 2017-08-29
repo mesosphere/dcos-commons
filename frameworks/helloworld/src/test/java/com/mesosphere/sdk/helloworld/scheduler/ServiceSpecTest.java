@@ -31,7 +31,13 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "HELLO_SECRET2", "hello-world/secret2",
                 "WORLD_SECRET1", "hello-world/secret1",
                 "WORLD_SECRET2", "hello-world/secret2",
-                "WORLD_SECRET3", "hello-world/secret3");
+                "WORLD_SECRET3", "hello-world/secret3",
+
+                "KEYSTORE_APP_VERSION", "0.1-SNAPSHOT",
+                "NGINX_CONTAINER_VERSION", "0.1",
+
+                "BOOTSTRAP_URI", "http://example.com/bootstrap.zip",
+                "JAVA_URI", "http://example.com/java.zip");
     }
 
     @Test
@@ -92,5 +98,10 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     @Test
     public void testMultiStepPlan() throws Exception {
         testYaml("examples/multistep_plan.yml");
+    }
+
+    @Test
+    public void testTLS() throws Exception {
+        testYaml("examples/tls.yml");
     }
 }

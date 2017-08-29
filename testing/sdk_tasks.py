@@ -5,10 +5,12 @@ import dcos.errors
 import sdk_plan
 import shakedown
 
+DEFAULT_TIMEOUT_SECONDS = 30 * 60
+
 log = logging.getLogger(__name__)
 
 
-def check_running(service_name, expected_task_count, timeout_seconds=15 * 60):
+def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     def fn():
         try:
             tasks = shakedown.get_service_tasks(service_name)
@@ -38,7 +40,7 @@ def get_task_ids(service_name, task_prefix):
     return [t['id'] for t in matching_tasks]
 
 
-def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=15 * 60):
+def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     def fn():
         try:
             task_ids = get_task_ids(service_name, prefix)
@@ -68,7 +70,7 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated:{}".format(task_sets)
 
 
-def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=15 * 60):
+def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     exit_status = 0
     def fn():
         command = (

@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.mesos.Protos.TaskStatus;
-import com.mesosphere.sdk.scheduler.Observable;
-import com.mesosphere.sdk.scheduler.Observer;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 
 import java.util.Collection;
@@ -12,9 +10,8 @@ import java.util.Set;
  * PlanManager is the management interface for {@link Plan}s.  Its main purpose is to apply {@link Strategy} objects to
  * {@link Element}s.
  *
- * A {@link PlanManager} is an {@link Observable}.  It notifies its observers when its {@link Plan} state changes.
  */
-public interface PlanManager extends Observer, Observable {
+public interface PlanManager {
     /**
      * @return the Plan being managed by this instance
      */

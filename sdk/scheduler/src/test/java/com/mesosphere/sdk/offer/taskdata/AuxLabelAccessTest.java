@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -60,6 +61,26 @@ public class AuxLabelAccessTest {
         EndpointUtils.VipInfo vip = vips.iterator().next();
         assertEquals("vip", vip.getVipName());
         assertEquals(5, vip.getVipPort());
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testSetInitialLaunchFailsNotStaging() {
+        Protos.TaskStatus.Builder statusBuilder = Protos.TaskStatus.newBuilder()
+                .setState(Protos.TaskState.TASK_ERROR);
+        statusBuilder.getTaskIdBuilder().setValue("task");
+
+        AuxLabelAccess.setInitialLaunch(statusBuilder);
+    }
+
+    @Test
+    public void testGetSetInitialLaunch() {
+        Protos.TaskStatus.Builder statusBuilder = Protos.TaskStatus.newBuilder()
+                .setState(Protos.TaskState.TASK_STAGING);
+        statusBuilder.getTaskIdBuilder().setValue("task");
+
+        assertFalse(AuxLabelAccess.isInitialLaunch(statusBuilder.build()));
+        AuxLabelAccess.setInitialLaunch(statusBuilder);
+        assertTrue(AuxLabelAccess.isInitialLaunch(statusBuilder.build()));
     }
 
     @Test

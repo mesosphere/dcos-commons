@@ -9,7 +9,7 @@ pods:
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS}}
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     image: {{CASSANDRA_DOCKER_IMAGE}}
     volume:
@@ -32,13 +32,14 @@ pods:
             port: {{TASKCFG_ALL_CASSANDRA_STORAGE_PORT}}
           ssl:
             port: {{TASKCFG_ALL_CASSANDRA_SSL_STORAGE_PORT}}
-          node:
+          native-client:
             port: {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
-            vip:
-              prefix: node
-              port: 9042
-          rpc:
+            advertise: true
+          {{#TASKCFG_ALL_CASSANDRA_START_RPC}}
+          thrift-client:
             port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
+            advertise: true
+          {{/TASKCFG_ALL_CASSANDRA_START_RPC}}
       sidecar-resources:
         cpus: 1
         memory: 1024

@@ -27,24 +27,21 @@ public class TaskVolumesCannotChangeTest {
             "some_path",
             "role",
             "*",
-            "principal",
-            "VOLUME");
+            "principal");
     private static final VolumeSpec VOLUME2 = new DefaultVolumeSpec(
             DISK_SIZE_MB + 3,
             VolumeSpec.Type.MOUNT,
             "some_path",
             "role",
             "*",
-            "principal",
-            "VOLUME");
+            "principal");
     private static final VolumeSpec VOLUME3 = new DefaultVolumeSpec(
             DISK_SIZE_MB,
             VolumeSpec.Type.ROOT,
             "some_path",
             "role",
             "*",
-            "principal",
-            "VOLUME");
+            "principal");
 
     @Mock private PodSpec mockPodSpec1;
     @Mock private PodSpec mockPodSpec2;
