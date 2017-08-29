@@ -31,14 +31,14 @@ def configure_package(configure_security):
                 FOLDERED_SERVICE_NAME,
                 config.DEFAULT_TASK_COUNT,
                 additional_options={"service": {"name": FOLDERED_SERVICE_NAME}},
-                timeout_seconds=30*60)
+                timeout_seconds=30 * 60)
         else:
             sdk_upgrade.test_upgrade(
                 config.PACKAGE_NAME,
                 FOLDERED_SERVICE_NAME,
                 config.DEFAULT_TASK_COUNT,
                 additional_options={"service": {"name": FOLDERED_SERVICE_NAME}},
-                timeout_seconds=30*60)
+                timeout_seconds=30 * 60)
 
         yield  # let the test session execute
     finally:
@@ -47,18 +47,23 @@ def configure_package(configure_security):
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    config.check_healthy(service_name=FOLDERED_SERVICE_NAME)
+    pass
+    #config.check_healthy(service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    core_site = etree.fromstring(sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'endpoints core-site.xml'))
+    core_site = etree.fromstring(sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+        'endpoints core-site.xml'))
     check_properties(core_site, {
         'ha.zookeeper.parent-znode': '/{}/hadoop-ha'.format(sdk_utils.get_zk_path(FOLDERED_SERVICE_NAME))
     })
 
-    hdfs_site = etree.fromstring(sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'endpoints hdfs-site.xml'))
+    hdfs_site = etree.fromstring(sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+        'endpoints hdfs-site.xml'))
     expect = {
         'dfs.namenode.shared.edits.dir': 'qjournal://{}/hdfs'.format(';'.join([
             sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'journal-{}-node'.format(i), 8485) for i in range(3)])),
@@ -137,7 +142,9 @@ def test_kill_all_journalnodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     for journal_pod in config.get_pod_type_instances("journal", FOLDERED_SERVICE_NAME):
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart {}'.format(journal_pod))
+        sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+            'pod restart {}'.format(journal_pod))
 
     config.expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -154,7 +161,9 @@ def test_kill_all_namenodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     for name_pod in config.get_pod_type_instances("name", FOLDERED_SERVICE_NAME):
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart {}'.format(name_pod))
+        sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+            'pod restart {}'.format(name_pod))
 
     config.expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -171,7 +180,9 @@ def test_kill_all_datanodes():
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
     for data_pod in config.get_pod_type_instances("data", FOLDERED_SERVICE_NAME):
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod restart {}'.format(data_pod))
+        sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+            'pod restart {}'.format(data_pod))
 
     config.expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 
@@ -328,9 +339,14 @@ def test_modify_app_config_rollback():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
+@pytest.mark.local
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "journal-0-node", config.DEFAULT_HDFS_TIMEOUT)
+    sdk_metrics.wait_for_any_metrics(
+        config.PACKAGE_NAME,
+        FOLDERED_SERVICE_NAME,
+        "journal-0-node",
+        config.DEFAULT_HDFS_TIMEOUT)
 
 
 def replace_name_node(index):
@@ -340,7 +356,9 @@ def replace_name_node(index):
     journal_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'journal')
     data_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'data')
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace {}'.format(name_node_name))
+    sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+        'pod replace {}'.format(name_node_name))
 
     config.expect_recovery(service_name=FOLDERED_SERVICE_NAME)
 

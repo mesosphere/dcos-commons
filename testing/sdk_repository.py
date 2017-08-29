@@ -24,7 +24,8 @@ def add_universe_repos():
     for url in stub_universe_urls.split():
         print('url: {}'.format(url))
         package_name = 'testpkg-'
-        package_name += ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
+        package_name += ''.join(random.choice(string.ascii_lowercase +
+                                              string.digits) for _ in range(8))
         stub_urls[package_name] = url
 
     # clean up any duplicate repositories
