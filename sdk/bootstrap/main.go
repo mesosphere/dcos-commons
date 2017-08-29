@@ -336,31 +336,13 @@ func isFile(path string) (bool, error) {
 	return false, nil
 }
 
-func GetLocalIPold() string {
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ""
-	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return ""
-}
-
-func GetLocalIP() (addr string, err error) {
+func getContainerIPAddress() (string, error) {
 	ip, err := ContainerIP()
-
 	if err != nil {
-		return ip.String(), err
+		return "", err
 	}
 
-	addr = ip.String()
-	return ip.String(), err
+	return ip.String(), nil
 }
 
 // main
@@ -368,20 +350,29 @@ func GetLocalIP() (addr string, err error) {
 func main() {
 	args := parseArgs()
 
-	pod_ip, err := GetLocalIP()
+	log.Printf("Looking up container IP address...")
+	containerIP, err := getContainerIPAddress()
 	if err != nil {
-		log.Fatalf("Cannot find the container's IP address: ", err)
+		log.Fatalf("Cannot look up container's IP address: %s", err)
 	}
-
-	err = os.Setenv("LIBPROCESS_IP", pod_ip)
-	err = os.Setenv("MESOS_CONTAINER_IP", pod_ip)
+	log.Printf("Container IP address was found to be: %s", containerIP)
+	// Set both LIBPROCESS_IP and MESOS_CONTAINER_IP so that SDK developers
+	// can consume either seamlessly.
+	log.Printf("Overwriting %s and %s...", libprocessIP, mesosContainerIP)
+	log.Printf("Overwriting %s from %s => %s", libprocessIP, os.Getenv(libprocessIP), containerIP)
+	err = os.Setenv(libprocessIP, containerIP)
 	if err != nil {
-		log.Fatalf("Failed to SET new LIBPROCESS_IP: ", err)
+		log.Fatalf("Failed to SET new %s: %v", libprocessIP, err)
+	}
+	log.Printf("Overwriting %s from %s => %s", mesosContainerIP, os.Getenv(mesosContainerIP), containerIP)
+	err = os.Setenv(mesosContainerIP, containerIP)
+	if err != nil {
+		log.Fatalf("Failed to SET new %s: %v", mesosContainerIP, err)
 	}
 
 	if args.getTaskIp {
-		log.Printf("Printing new task IP: %s", pod_ip)
-		fmt.Printf("%s", pod_ip)
+		log.Printf("Printing container IP: %s", containerIP)
+		fmt.Printf("%s", containerIP)
 		os.Exit(0)
 	}
 
@@ -405,6 +396,6 @@ func main() {
 		installDCOSCertIntoJRE()
 	}
 
-	log.Printf("Local IP --> %s", pod_ip)
+	log.Printf("Local IP --> %s", containerIP)
 	log.Printf("SDK Bootstrap successful.")
 }
