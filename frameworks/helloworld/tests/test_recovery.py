@@ -83,7 +83,7 @@ def test_pods_restart_graceful_shutdown():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'world-0-server'
 
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world', world_ids)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'world-0', world_ids)
     config.check_running()
 
     # ensure the SIGTERM was sent via the "all clean" message in the world
@@ -95,7 +95,7 @@ def test_pods_restart_graceful_shutdown():
     for s in stdout.split('\n'):
         if s.find('echo') < 0 and s.find('all clean') >= 0:
             clean_msg = s
-    
+
     assert clean_msg != None
 
 
