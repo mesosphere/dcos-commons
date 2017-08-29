@@ -1,4 +1,6 @@
+import json
 import logging
+
 import pytest
 import sdk_repository
 import sdk_security
@@ -24,10 +26,12 @@ def get_cassandra_plans_on_failure(request):
         if rc:
             log.error('Unable to fetch cassandra plan list: {}'.format(err))
             return
-        for plan_name in plans:
+        planlist = json.loads(plans)
+        for plan_name in planlist:
             plan, err, rc = shakedown.run_dcos_command('cassandra plan show {}'.format(plan_name))
             if rc:
                 log.error('Unable to fetch cassandra plan for {}: {}'.format(plan_name, err))
                 continue
-            with open('{}.plan'.format(plan_name), 'w') as f:
+            plan_filename = '{}_{}_plan.log'.format(request.node.name, plan_name)
+            with open(plan_filename, 'w') as f:
                 f.write(plan)

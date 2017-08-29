@@ -31,7 +31,7 @@ def get_task_ids(user: str=None):
     """ This function uses dcos task WITHOUT the JSON options because
     that can return the wrong user for schedulers
     """
-    tasks = subprocess.check_output(['dcos', 'task']).decode().split('\n')
+    tasks = subprocess.check_output(['dcos', 'task', '--completed']).decode().split('\n')
     for task_str in tasks[1:]: # First line is the header line
         task = task_str.split()
         if len(task) < 5:
@@ -41,14 +41,17 @@ def get_task_ids(user: str=None):
 
 
 def get_task_logs_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000):
-    try:
-        task_logs = subprocess.check_output([
-            'dcos', 'task', 'log', task_id, '--lines', str(lines), task_file
-        ]).decode()
-        return task_logs
-    except subprocess.CalledProcessError as e:
-        log.exception('Failed to get {} task log for task_id={}'.format(task_file, task_id))
+    result = subprocess.run(
+        ['dcos', 'task', 'log', task_id, '--completed', '--lines', str(lines), task_file],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode:
+        errmessage = result.stderr.decode()
+        if not errmessage.startswith('No files exist. Exiting.'):
+            log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, errmessage))
         return None
+    return result.stdout.decode()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -57,14 +60,20 @@ def pytest_runtest_makereport(item, call):
     See: https://docs.pytest.org/en/latest/example/simple.html\
     #making-test-result-information-available-in-fixtures
     """
-    # execute all other hooks to obtain the report object
+    # execute all other hooks to obtain the report object, then a report
+    # attribute for each phase of a call, which can be "setup", "call", "teardown"
+    # Subsequent fixtures can get the reports off of the request object like:
+    # `request.rep_setup.failed`.
     outcome = yield
     rep = outcome.get_result()
-
-    # set a report attribute for each phase of a call, which can
-    # be "setup", "call", "teardown"
-
     setattr(item, "rep_" + rep.when, rep)
+
+    # Handle failures. Must be done here and not in a fixture in order to
+    # properly handle post-yield fixture teardown failures.
+    if rep.failed:
+        log.error('Test {} failed in {} phase, dumping state'.format(item.name, rep.when))
+        get_task_logs_on_failure(item.name)
+        get_mesos_state_on_failure(item.name)
 
 
 def get_rotating_task_log_lines(task_id: str, task_file: str):
@@ -77,32 +86,26 @@ def get_rotating_task_log_lines(task_id: str, task_file: str):
         yield filename, lines
 
 
-@pytest.fixture(autouse=True)
-def get_task_logs_on_failure(request):
-    yield
-    if sdk_utils.is_test_failure(request):
-        for task_id in get_task_ids():
-            for task_file in ('stderr', 'stdout'):
-                for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
-                    log_name = '{}_{}_{}.log'.format(request.node.name, task_id, log_filename)
-                    with open(log_name, 'w') as f:
-                        f.write(log_lines)
+def get_task_logs_on_failure(test_name: str):
+    for task_id in get_task_ids():
+        for task_file in ('stderr', 'stdout'):
+            for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
+                log_name = '{}_{}_{}.log'.format(test_name, task_id, log_filename)
+                with open(log_name, 'w') as f:
+                    f.write(log_lines)
 
 
-@pytest.fixture(autouse=True)
-def get_mesos_state_on_failure(request):
-    yield
-    if sdk_utils.is_test_failure(request):
-        dcosurl, headers = sdk_security.get_dcos_credentials()
-        state_json_endpoint = '{}/mesos/state.json'.format(dcosurl)
-        r = requests.get(state_json_endpoint, headers=headers, verify=False)
-        if r.status_code == 200:
-            log_name = '{}_state.json'.format(request.node.name)
-            with open(log_name, 'w') as f:
-                f.write(r.text)
-        slaves_endpoint = '{}/mesos/slaves'.format(dcosurl)
-        r = requests.get(slaves_endpoint, headers=headers, verify=False)
-        if r.status_code == 200:
-            log_name = '{}_slaves.json'.format(request.node.name)
-            with open(log_name, 'w') as f:
-                f.write(r.text)
+def get_mesos_state_on_failure(test_name: str):
+    dcosurl, headers = sdk_security.get_dcos_credentials()
+    state_json_endpoint = '{}/mesos/state.json'.format(dcosurl)
+    r = requests.get(state_json_endpoint, headers=headers, verify=False)
+    if r.status_code == 200:
+        log_name = '{}_state.json'.format(test_name)
+        with open(log_name, 'w') as f:
+            f.write(r.text)
+    slaves_endpoint = '{}/mesos/slaves'.format(dcosurl)
+    r = requests.get(slaves_endpoint, headers=headers, verify=False)
+    if r.status_code == 200:
+        log_name = '{}_slaves.json'.format(test_name)
+        with open(log_name, 'w') as f:
+            f.write(r.text)
