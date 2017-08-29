@@ -1653,6 +1653,73 @@ Example HDFS configuration:</p>
 
 <!-- END DUPLICATE BLOCK -->
 
+<h1 id="replacing-journal-nodes">Replacing Journal Nodes</h1>
+<p>The following section describes how to perform a <code class="highlighter-rouge">replace</code> of a Journal Node. This guide uses Journal Node 0 to
+refer to the unhealthy Journal Node as it’s the replaced Journal Node.</p>
+
+<h2 id="replace-command">Replace Command</h2>
+
+<p>Replace the Journal Node via:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs pod replace journal-0
+</code></pre>
+</div>
+
+<h2 id="detecting-an-unhealthy-journal-node-after-replace">Detecting an unhealthy Journal Node after <code class="highlighter-rouge">replace</code></h2>
+
+<p>Once the replaced Journal Node is up and running, you should see the following in the <code class="highlighter-rouge">stderr</code> log:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>org.apache.hadoop.hdfs.qjournal.protocol.JournalNotFormattedException: Journal Storage Directory
+</code></pre>
+</div>
+
+<p>This indicates this Journal Node is unhealthy.</p>
+
+<h2 id="determining-a-healthy-journal-node">Determining a healthy Journal Node</h2>
+
+<p>From the non-replaced Journal Nodes, confirm that a Journal Node is healthy:</p>
+<ul>
+  <li>Inspect the <code class="highlighter-rouge">stderr</code> log and check for absence of errors.</li>
+  <li>In <code class="highlighter-rouge">journal-data/hdfs/current</code>, check for:
+    <ul>
+      <li>consecutive <code class="highlighter-rouge">edits_xxxxx-edits_xxxxx</code> files with timestamps between each differing by ~2 minutes.</li>
+      <li>An <code class="highlighter-rouge">edits_inprogess_</code> file modified within the past 2 minutes.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Once identified, make a note of which Journal Node is healthy.</p>
+
+<h2 id="fixing-the-unhealthy-journal-node">Fixing the unhealthy Journal Node</h2>
+
+<ol>
+  <li>SSH into the sandbox of the unhealthy Journal Node via
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos task exec -it journal-0 /bin/bash
+</code></pre>
+    </div>
+  </li>
+  <li>In this sandbox, create the directory <code class="highlighter-rouge">journal-data/hdfs/current</code>:
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>mkdir -p journal-data/hdfs/current
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>From the healthy Journal Node identified previously, copy the contents of the <code class="highlighter-rouge">VERSION</code> file into <code class="highlighter-rouge">journal-data/hdfs/current/VERSION</code>.</p>
+  </li>
+  <li>
+    <p>On the unhealthy Journal Node, create a file with the same path as the <code class="highlighter-rouge">VERSION</code> file on the healthy Journal Node:
+<code class="highlighter-rouge">journal-data/hdfs/current/VERSION</code>. Paste the copied contents into this file.</p>
+  </li>
+  <li>Restart the unhealthy Journal Node via:
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pod restart journal-0
+</code></pre>
+    </div>
+  </li>
+  <li>Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the <code class="highlighter-rouge">stderr</code> log. You should see:
+    <div class="highlighter-rouge"><pre class="highlight"><code>INFO namenode.FileJournalManager: Finalizing edits file
+</code></pre>
+    </div>
+  </li>
+</ol>
+
 </div>
 </div>
 </body>
