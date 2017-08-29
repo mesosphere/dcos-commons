@@ -26,9 +26,18 @@ if "NUM_WORLD" in os.environ:
     NUM_WORLD = int(os.environ["NUM_WORLD"])
 
 
-@pytest.mark.soak_upgrade
+@pytest.mark.soak_upgrade_downgrade
 def test_soak_upgrade_downgrade():
     sdk_upgrade.soak_upgrade_downgrade(config.PACKAGE_NAME, config.PACKAGE_NAME, config.PACKAGE_NAME, config.DEFAULT_TASK_COUNT)
+
+
+@pytest.mark.soak_upgrade_if_newer_version_available
+def test_soak_upgrade_if_newer_version_available():
+    sdk_upgrade.soak_upgrade_if_newer_version_available(
+        to_package_name=config.PACKAGE_NAME,
+        from_package_name=config.PACKAGE_NAME,
+        service_name=config.PACKAGE_NAME,
+        running_task_count=config.DEFAULT_TASK_COUNT)
 
 
 @pytest.mark.soak_secrets_update
