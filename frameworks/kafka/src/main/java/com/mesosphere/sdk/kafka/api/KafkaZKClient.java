@@ -29,8 +29,8 @@ public class KafkaZKClient {
     private static final String IDS_PATH = "/brokers/ids";
     private static final String TOPICS_PATH = "/brokers/topics";
 
-    private final String PROTOCOL_NAME_PLAINTEXT = "PLAINTEXT";
-    private final String PROTOCOL_NAME_TLS = "SSL";
+    private static final String PROTOCOL_NAME_PLAINTEXT = "PLAINTEXT";
+    private static final String PROTOCOL_NAME_TLS = "SSL";
 
     private final CuratorFramework zkClient;
 

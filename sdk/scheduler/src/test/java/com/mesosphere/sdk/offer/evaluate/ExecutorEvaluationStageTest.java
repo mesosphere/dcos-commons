@@ -31,6 +31,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
+                taskInfo.getName(),
                 Protos.TaskStatus.newBuilder()
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .setTaskId(taskInfo.getTaskId())
@@ -71,6 +72,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
+                taskInfo.getName(),
                 Protos.TaskStatus.newBuilder()
                         .setState(Protos.TaskState.TASK_RUNNING)
                         .setTaskId(taskInfo.getTaskId())
@@ -112,6 +114,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
+                taskInfo.getName(),
                 Protos.TaskStatus.newBuilder()
                         .setState(Protos.TaskState.TASK_RUNNING)
                         .setTaskId(taskInfo.getTaskId())
@@ -157,6 +160,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
         Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
         stateStore.storeStatus(
+                taskInfo.getName(),
                 Protos.TaskStatus.newBuilder()
                         .setState(Protos.TaskState.TASK_RUNNING)
                         .setTaskId(taskInfo.getTaskId())

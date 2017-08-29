@@ -55,7 +55,6 @@ public class DefaultScheduler extends AbstractScheduler {
     protected final Collection<Plan> plans;
     final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
-    private final ConfigurationUpdater.UpdateResult updateResult;
     protected Map<String, EndpointProducer> customEndpointProducers;
     protected TaskFailureListener taskFailureListener;
     protected TaskKiller taskKiller;
@@ -375,8 +374,7 @@ public class DefaultScheduler extends AbstractScheduler {
                     stateStore,
                     configStore,
                     endpointProducers,
-                    Optional.ofNullable(recoveryPlanOverriderFactory),
-                    configUpdateResult);
+                    Optional.ofNullable(recoveryPlanOverriderFactory));
         }
 
         /**
@@ -550,8 +548,7 @@ public class DefaultScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
-            ConfigurationUpdater.UpdateResult updateResult) {
+            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
         super(stateStore, configStore);
         this.serviceSpec = serviceSpec;
         this.schedulerFlags = schedulerFlags;
@@ -561,7 +558,6 @@ public class DefaultScheduler extends AbstractScheduler {
         this.customEndpointProducers = customEndpointProducers;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
-        this.updateResult = updateResult;
     }
 
 
@@ -599,8 +595,12 @@ public class DefaultScheduler extends AbstractScheduler {
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
                 .collect(Collectors.toSet());
 
-        cleanedTaskInfos.forEach(taskInfo -> stateStore.clearTask(taskInfo.getName()));
-        stateStore.storeTasks(cleanedTaskInfos);
+        // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
+        // event of an untimely scheduler crash
+        for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
+            stateStore.clearTask(taskInfo.getName());
+            stateStore.storeTasks(Arrays.asList(taskInfo));
+        }
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
@@ -721,12 +721,6 @@ public class DefaultScheduler extends AbstractScheduler {
         }
     }
 
-    private void completeDeploy() {
-        if (!planCoordinator.hasOperations()) {
-            StateStoreUtils.setLastCompletedUpdateType(stateStore, updateResult.getDeploymentType());
-        }
-    }
-
     protected void processOfferSet(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
 
@@ -788,10 +782,10 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Store status, then pass status to PlanManager => Plan => Steps
         try {
-            String taskName = StateStoreUtils.getTaskInfo(stateStore, status).getName();
+            String taskName = StateStoreUtils.getTaskName(stateStore, status);
             Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
-            stateStore.storeStatus(status);
+            stateStore.storeStatus(taskName, status);
             planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
             reconciler.update(status);
 

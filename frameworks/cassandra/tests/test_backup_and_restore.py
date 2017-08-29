@@ -58,7 +58,7 @@ def test_backup_and_restore_to_azure():
         'CASSANDRA_KEYSPACES': '"testspace1 testspace2"',
     }
 
-    run_backup_and_restore(
+    config.run_backup_and_restore(
         config.get_foldered_service_name(),
         'backup-azure',
         'restore-azure',

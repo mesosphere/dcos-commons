@@ -26,7 +26,8 @@ def request(method, url, retry=True, log_args=True, **kwargs):
 
 
 def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
-    (stdout, stderr, ret) = shakedown.run_dcos_command(cmd, print_output=print_output)
+    (stdout, stderr, ret) = shakedown.run_dcos_command(
+        cmd, print_output=print_output)
     if ret != 0:
         err = 'Got error code {} when running command "dcos {}":\nstdout: "{}"\nstderr: "{}"'.format(
             ret, cmd, stdout, stderr)
