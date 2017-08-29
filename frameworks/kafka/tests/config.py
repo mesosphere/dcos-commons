@@ -9,3 +9,8 @@ DEFAULT_POD_TYPE = 'kafka'
 DEFAULT_TASK_NAME = 'broker'
 DEFAULT_KAFKA_TIMEOUT = 10 * 60
 DEFAULT_TOPIC_NAME = 'topic1'
+EXPECTED_METRICS = [
+    "kafka.network.RequestMetrics.ResponseQueueTimeMs.max",
+    "kafka.socket-server-metrics.io-ratio",
+    "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95"
+]

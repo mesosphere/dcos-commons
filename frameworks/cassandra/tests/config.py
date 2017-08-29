@@ -15,8 +15,15 @@ SERVICE_NAME = 'cassandra'
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
 
-DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
+DEFAULT_NODE_ADDRESS = os.getenv(
+    'CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
+
+EXPECTED_METRICS = [
+    "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
+    "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
+    "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory"
+]
 
 
 def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
@@ -25,11 +32,11 @@ def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
         'id': 'test.cassandra.' + name,
         'run': {
             'cmd': cmd,
-            'docker': { 'image': 'cassandra:3.0.13' },
+            'docker': {'image': 'cassandra:3.0.13'},
             'cpus': 1,
             'mem': 512,
             'user': 'nobody',
-            'restart': { 'policy': restart_policy }
+            'restart': {'policy': restart_policy}
         }
     }
 
@@ -104,7 +111,8 @@ def run_backup_and_restore(
     write_data_job = get_write_data_job(node_address=job_node_address)
     verify_data_job = get_verify_data_job(node_address=job_node_address)
     delete_data_job = get_delete_data_job(node_address=job_node_address)
-    verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
+    verify_deletion_job = get_verify_deletion_job(
+        node_address=job_node_address)
 
     # Write data to Cassandra with a metronome job, then verify it was written
     # Note: Write job will fail if data already exists

@@ -1,6 +1,11 @@
 '''
 Utilities relating to verifying the metrics functionality as reported
 by the DC/OS metrics component.
+
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
+************************************************************************
 '''
 import json
 import logging
@@ -16,6 +21,7 @@ def get_metrics(package_name, service_name, task_name):
     """Return a list of metrics datapoints.
 
     Keyword arguments:
+    package_name -- the name of the package the service is using
     service_name -- the name of the service to get metrics for
     task_name -- the name of the task whose agent to run metrics commands from
     """
@@ -30,18 +36,6 @@ def get_metrics(package_name, service_name, task_name):
     agent_id = task_to_check['slave_id']
     executor_id = task_to_check['executor_id']
 
-    # TODO: uncomment the following block of comments when the /containers endpoint reports the correct container IDs
-    # and remove the code following the comments that gets the correct container ID via 'pod info'
-    ## Fetch the list of containers for the agent
-    #containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
-    #containers_response = sdk_cmd.request("GET", containers_url, retry=False)
-    #if containers_response.ok is None:
-    #    log.info("Unable to fetch containers list")
-    #    raise Exception("Unable to fetch containers list: {}".format(containers_url))
-
-    # instead of receiving the pod name in this function's parameter list, extract
-    # the name of the pod from the task name to not break the code when the
-    # above comment-block is uncommented
     pod_name = '-'.join(task_name.split("-")[:2])
     pod_info = sdk_cmd.svc_cli(package_name, service_name, "pod info {}".format(pod_name), json=True)
     task_info = None
@@ -53,15 +47,33 @@ def get_metrics(package_name, service_name, task_name):
     if not task_info:
         return []
 
-    container_id = task_info["status"]["containerStatus"]["containerId"]["value"]
+    task_container_id = task_info["status"]["containerStatus"]["containerId"]["value"]
 
-    #for container_id in json.loads(containers_response.text):
+    # Not related to functionality but consuming this
+    # endpoint to verify downstream integrity
+    containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(
+        shakedown.dcos_url(), agent_id)
+    containers_response = sdk_cmd.request("GET", containers_url, retry=False)
+    if containers_response.ok is None:
+        log.info("Unable to fetch containers list")
+        raise Exception(
+            "Unable to fetch containers list: {}".format(containers_url))
+    reported_container_ids = json.loads(containers_response.text)
+
+    container_id_reported = False
+    for container_id in reported_container_ids:
+        if container_id == task_container_id:
+            container_id_reported = True
+
+    if not container_id_reported:
+        raise ValueError("The metrics /container endpoint returned {}, expecting {} to be returned as well".format(
+            reported_container_ids, task_container_id))
+
     app_url = "{}/system/v1/agent/{}/metrics/v0/containers/{}/app".format(
-        shakedown.dcos_url(), agent_id, container_id)
+        shakedown.dcos_url(), agent_id, task_container_id)
     app_response = sdk_cmd.request("GET", app_url, retry=False)
     if app_response.ok is None:
-        raise("Failed to get metrics from container")
-        #continue
+        raise ValueError("Failed to get metrics from container")
 
     app_json = json.loads(app_response.text)
     if app_json['dimensions']['executor_id'] == executor_id:
@@ -70,11 +82,53 @@ def get_metrics(package_name, service_name, task_name):
     raise Exception("No metrics found")
 
 
-def wait_for_any_metrics(package_name, service_name, task_name, timeout):
-    def metrics_exist():
-        log.info("verifying metrics exist for {}".format(service_name))
-        service_metrics = get_metrics(package_name, service_name, task_name)
-        # there are 2 generic metrics that are always emitted
-        return len(service_metrics) > 2
+def extract_metric_names(service_name, service_metrics):
+    metric_names = [metric["name"] for metric in service_metrics]
 
-    shakedown.wait_for(metrics_exist, timeout)
+    # HDFS metric names need sanitation as they're dynamic.
+    # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
+    # This is consistent across all HDFS metric names.
+    if "hdfs" in service_name:
+        metric_names = ['-'.join(metric_name.split(".")[1:])
+                        for metric_name in metric_names]
+
+    return set(metric_names)
+
+
+def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics):
+    """Checks that the service is emitting the expected metrics.
+    The assumption is that if the expected metrics are being emitted then so 
+    are the rest of the metrics.
+
+    Arguments:
+    package_name -- the name of the package the service is using
+    service_name -- the name of the service to get metrics for
+    task_name -- the name of the task whose agent to run metrics commands from
+    expected_metrics -- a list of metric names to expect the service to emit
+    """
+    def expected_metrics_exist():
+        try:
+            log.info("verifying metrics exist for {}".format(service_name))
+            service_metrics = get_metrics(
+                package_name, service_name, task_name)
+            emitted_metric_names = extract_metric_names(
+                service_name, service_metrics)
+            metrics_exist = True
+            for metric in expected_metrics:
+                if metric not in emitted_metric_names:
+                    metrics_exist = False
+                    log.error("Metric {} is not being emitted by {}".format(
+                              metric, service_name
+                              ))
+                    # don't short-circuit to log if multiple metrics are missing
+
+            if not metrics_exist:
+                log.info("Metrics emitted: {},\nMetrics expected: {}".format(
+                    service_metrics, expected_metrics
+                ))
+            return metrics_exist
+        except Exception as e:
+            log.error("Caught exception trying to get metrics: {}".format(e))
+            return False
+
+    shakedown.wait_for(expected_metrics_exist, timeout)

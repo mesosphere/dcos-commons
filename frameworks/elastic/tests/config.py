@@ -26,6 +26,12 @@ DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
+EXPECTED_METRICS = [
+    "elasticsearch.elastic.node.data-0-node.fs.total.total_in_bytes",
+    "elasticsearch.elastic.node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
+    "elasticsearch.elastic.node.data-0-node.jvm.threads.count"
+]
+
 ENDPOINT_TYPES = (
     'coordinator-http', 'coordinator-transport',
     'data-http', 'data-transport',
@@ -61,66 +67,79 @@ def as_json(fn):
 def check_kibana_adminrouter_integration(path):
     dcos_token = shakedown.dcos_acs_token()
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
+<< << << < HEAD
         dcos_token, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
+
+
+== == == =
+        DCOS_TOKEN, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
+
+>> >>>> > 9de226416... Verify service - specific metrics are being reported
     def fun():
-        exit_status, output = shakedown.run_command_on_master(curl_cmd)
+        exit_status, output=shakedown.run_command_on_master(curl_cmd)
         return output and "HTTP/1.1 200" in output
 
-    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_KIBANA_TIMEOUT, noisy=True)
+    return shakedown.wait_for(fun, timeout_seconds = DEFAULT_KIBANA_TIMEOUT, noisy = True)
 
 
-def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
+def check_elasticsearch_index_health(index_name, color, service_name = SERVICE_NAME):
+    curl_api=_curl_api(service_name, "GET")
+
     def fun():
-        result = _get_elasticsearch_index_health(curl_api, index_name)
+        result=_get_elasticsearch_index_health(curl_api, index_name)
         return result and result["status"] == color
 
-    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+    return shakedown.wait_for(fun, timeout_seconds = DEFAULT_ELASTIC_TIMEOUT)
 
 
-def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
-    curl_api = _curl_api(service_name, "GET")
+def wait_for_expected_nodes_to_exist(service_name = SERVICE_NAME, task_count = DEFAULT_TASK_COUNT):
+    curl_api=_curl_api(service_name, "GET")
+
     def expected_nodes():
-        result = _get_elasticsearch_cluster_health(curl_api)
+        result=_get_elasticsearch_cluster_health(curl_api)
         if result is None:
             return False
-        node_count = result["number_of_nodes"]
-        log.info('Waiting for {} healthy nodes, got {}'.format(task_count, node_count))
+        node_count=result["number_of_nodes"]
+        log.info('Waiting for {} healthy nodes, got {}'.format(
+            task_count, node_count))
         return node_count == task_count
 
-    return shakedown.wait_for(expected_nodes, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+    return shakedown.wait_for(expected_nodes, timeout_seconds = DEFAULT_ELASTIC_TIMEOUT)
 
 
-def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
+def check_plugin_installed(plugin_name, service_name = SERVICE_NAME):
+    curl_api=_curl_api(service_name, "GET")
+
     def fun():
-        result = _get_hosts_with_plugin(curl_api, plugin_name)
+        result=_get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and len(result) == DEFAULT_TASK_COUNT
 
-    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+    return shakedown.wait_for(fun, timeout_seconds = DEFAULT_ELASTIC_TIMEOUT)
 
 
-def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
+def check_plugin_uninstalled(plugin_name, service_name = SERVICE_NAME):
+    curl_api=_curl_api(service_name, "GET")
+
     def fun():
-        result = _get_hosts_with_plugin(curl_api, plugin_name)
+        result=_get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and result == []
 
-    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+    return shakedown.wait_for(fun, timeout_seconds = DEFAULT_ELASTIC_TIMEOUT)
 
 
 def _get_hosts_with_plugin(curl_api, plugin_name):
-    exit_status, output = shakedown.run_command_on_master("{}/_cat/plugins'".format(curl_api))
+    exit_status, output=shakedown.run_command_on_master(
+        "{}/_cat/plugins'".format(curl_api))
     if exit_status:
         return [host for host in output.split("\n") if plugin_name in host]
     else:
         return None
 
 
-def get_elasticsearch_master(service_name=SERVICE_NAME):
+def get_elasticsearch_master(service_name = SERVICE_NAME):
     # just in case, re-fetch the _curl_api in case the elasticsearch master is moved:
     def get_master():
-        exit_status, output = shakedown.run_command_on_master(
+        exit_status, output=shakedown.run_command_on_master(
             "{}/_cat/master'".format(_curl_api(service_name, "GET")))
         if exit_status and len(output.split()) > 0:
             return output.split()[-1]
@@ -130,8 +149,8 @@ def get_elasticsearch_master(service_name=SERVICE_NAME):
     return shakedown.wait_for(get_master)
 
 
-def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
-    query = {
+def verify_commercial_api_status(is_enabled, service_name = SERVICE_NAME):
+    query={
         "query": {
             "match": {
                 "name": "*"
@@ -181,13 +200,15 @@ def verify_xpack_license(service_name=SERVICE_NAME):
 
 @as_json
 def _get_elasticsearch_index_health(curl_api, index_name):
-    exit_status, output = shakedown.run_command_on_master("{}/_cluster/health/{}'".format(curl_api, index_name))
+    exit_status, output = shakedown.run_command_on_master(
+        "{}/_cluster/health/{}'".format(curl_api, index_name))
     return output
 
 
 @as_json
 def _get_elasticsearch_cluster_health(curl_api):
-    exit_status, output = shakedown.run_command_on_master("{}/_cluster/health'".format(curl_api))
+    exit_status, output = shakedown.run_command_on_master(
+        "{}/_cluster/health'".format(curl_api))
     return output
 
 
@@ -242,12 +263,14 @@ def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME):
 
 
 def _curl_api(service_name, method, role="master"):
-    host = "http://" + sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    host = "http://" + sdk_hosts.autoip_host(
+        service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
     return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):
-    dns = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'endpoints master-http', json=True, print_output=False)['dns']
+    dns = sdk_cmd.svc_cli(PACKAGE_NAME, service_name,
+                          'endpoints master-http', json=True, print_output=False)['dns']
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
     #   "master-1-node.elastic.[...]:1025",

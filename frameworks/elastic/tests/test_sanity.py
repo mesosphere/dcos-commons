@@ -88,11 +88,12 @@ def test_indexing(default_populated_index):
 @pytest.mark.metrics
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    sdk_metrics.wait_for_any_metrics(
+    sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "data-0-node",
-        config.DEFAULT_ELASTIC_TIMEOUT
+        config.DEFAULT_ELASTIC_TIMEOUT,
+        config.EXPECTED_METRICS
     )
 
 
