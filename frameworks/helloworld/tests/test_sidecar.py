@@ -1,9 +1,13 @@
 import logging
 
 import pytest
+
+import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_utils
+import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -50,6 +54,36 @@ def test_sidecar_parameterized():
     run_plan('sidecar-parameterized', {'PLAN_PARAMETER': 'parameterized'})
 
 
+class ToxicSidecarCheck:
+    """
+    Since the sidecar task fails too quickly, we check for the contents of
+    the file generated in hello-container-path/toxic-output instead
+
+    Note that we only check the output of hello-0.
+    """
+    @staticmethod
+    def get_cmd_output_pair():
+        """
+        In DC/OS prior to version 1.10, task exec does not run the command in the MESOS_SANDBOX directory and this
+        causes the check of the file contents to fail. Here we simply rely on the existence of the file.
+        """
+        if sdk_utils.dcos_version_less_than("1.10"):
+            cmd = "task ls hello-0-server hello-container-path/toxic-output"
+            output = ""
+        else:
+            cmd = "task exec hello-0-server cat hello-container-path/toxic-output"
+            output = "I'm addicted to you / Don't you know that you're toxic?"
+
+        return cmd, output
+
+    def __call__(self):
+        cmd, expected_output = self.get_cmd_output_pair()
+        output = sdk_cmd.run_cli(cmd).strip()
+        logging.info("Checking for toxic output returned: %s", output)
+
+        return output == expected_output
+
+
 @pytest.mark.sanity
 def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
@@ -60,8 +94,8 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     assert(len(recovery_plan['phases']) == 0)
     log.info(recovery_plan)
     sdk_plan.start_plan(config.PACKAGE_NAME, 'sidecar-toxic')
-    # Wait for the bad sidecar plan to be starting.
-    sdk_plan.wait_for_starting_plan(config.PACKAGE_NAME, 'sidecar-toxic')
+
+    shakedown.wait_for(ToxicSidecarCheck(), timeout_seconds=10 * 60)
 
     # Restart the scheduler and wait for it to come up.
     sdk_marathon.restart_app(config.PACKAGE_NAME)
