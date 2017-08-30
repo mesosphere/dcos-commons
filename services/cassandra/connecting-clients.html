@@ -337,7 +337,7 @@
   </li>
 </ul>
 
-<p>The DC/OS Apache Cassandra Service currently exposes only the <code class="highlighter-rouge">node</code> endpoint type, which shows the locations for all Cassandra nodes in the cluster. To see node addresses, run <code class="highlighter-rouge">dcos beta-cassandra endpoints node</code>. A typical response will look like the following:</p>
+<p>By default, the DC/OS Apache Cassandra Service exposes only the <code class="highlighter-rouge">native-client</code> endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a <code class="highlighter-rouge">thrift-client</code> endpoint will also be listed. To see node addresses for use by native clients, such as <code class="highlighter-rouge">cqlsh</code>, run <code class="highlighter-rouge">dcos beta-cassandra endpoints native-client</code>. A typical response will look like the following:</p>
 
 <div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="nt">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
@@ -349,13 +349,12 @@
     </span><span class="s2">"node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span><span class="w">
-  </span><span class="p">],</span><span class="w">
-  </span><span class="nt">"vip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.cassandra.l4lb.thisdcos.directory:9042"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 </div>
 
-<p>In general, the <code class="highlighter-rouge">.autoip.dcos.thisdcos.directory</code> endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs, or set up a proxy service that acts as a frontend to your DC/OS Apache Cassandra instance. For development and testing purposes, you can use <a href="https://docs.mesosphere.com/latest/administration/access-node/tunnel/">DC/OS Tunnel</a> to access services from outside the cluster, but this option is not suitable for production use.</p>
+<p>In general, the <code class="highlighter-rouge">.autoip.dcos.thisdcos.directory</code> endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use the direct IPs or set up a proxy service that acts as a frontend to your DC/OS Apache Cassandra instance. If you use the IPs, keep in mind that they may change if nodes are moved between machines, whereas the <code class="highlighter-rouge">.autoip.dcos.thisdcos.directory</code> hosts will follow the nodes. For development and testing purposes, you can use <a href="https://docs.mesosphere.com/latest/administration/access-node/tunnel/">DC/OS Tunnel</a> to access services from outside the cluster, but this option is not suitable for production use.</p>
 
 <h1 id="connecting-clients-to-endpoints">Connecting Clients to Endpoints</h1>
 
