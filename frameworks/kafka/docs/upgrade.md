@@ -55,7 +55,15 @@ Here, we assume that you already have a DC/OS Kafka service running, installed w
 
 #### Step 1
 
-First, make a note of the existing protocol and log versions. Upgrade your service to the new package version `2.0.0-0.11.0.0` (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
+First, install new cli for DC/OS Kafka.
+
+```
+dcos package install kafka --package-version=2.0.0-0.11.0 --cli
+```
+
+#### Step 2
+
+Make a note of the existing protocol and log versions. Upgrade your service to the new package version `2.0.0-0.11.0.0` (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
    
     $ cat option.json
     {
@@ -75,7 +83,7 @@ The Kafka service will be upgraded to the version 0.11.0.0. The brokers will now
 
 **Note**: The goal in using customized options during package upgrade is to keep the protocol and log versions the same. In the following steps, we will change protocol and log versions one at a time.
 
-#### Step 2
+#### Step 3
 
 Next, update the protocol version manually. Only change the value of `inter.broker.protocol.version` in the `options.json` file, and then perform an update operation. The brokers will be restarted one at a time with the new `server.properties` file with protocol version set to `0.11.0.0`. 
     
@@ -89,7 +97,7 @@ Next, update the protocol version manually. Only change the value of `inter.brok
     
     $ dcos kafka update start --options=options.json 
     
-#### Step 3    
+#### Step 4    
     
 Once you verify that all brokers are restarted, update the log version. Change the log version to `0.11.0` and perform another update operation. 
      
@@ -137,8 +145,8 @@ If you are performing a fresh installation of Kafka `2.0.0-0.11.0.0` on a strict
 
 ### Upgrade to Kafka `2.0.0-0.11.0.0` from `1.1.16-0.10.1.0-beta`
 
-If you are upgrading your existing service running in strict mode, from `1.1.16-0.10.1.0-beta` to version `2.0.0-0.11.0.0`, set `service_account` and `service_account_secret` in your options.  Add service_account and service_account_secret options only in Step 1 in [Upgrade Instructions](#upgrade-kafka-from-0.10.2.x-to-0.11.0.0
-). Step 2 and Step 3 will be same. Modify Step 1 as follows if you are upgrading in strict mode.
+If you are upgrading your existing service running in strict mode, from `1.1.16-0.10.1.0-beta` to version `2.0.0-0.11.0.0`, set `service_account` and `service_account_secret` in your options.  Add service_account and service_account_secret options only in Step 2 in [Upgrade Instructions](#upgrade-kafka-from-0.10.2.x-to-0.11.0.0
+). Step 1, 3 and 4 will be same. Modify Step 2 as follows if you are upgrading in strict mode.
  
 
     $ cat option.json
