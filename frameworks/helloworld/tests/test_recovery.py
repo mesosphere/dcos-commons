@@ -30,7 +30,7 @@ def test_kill_hello_node():
     hello_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-0')
     sdk_tasks.kill_task_with_pattern(
         'hello', 'hello-0-server.hello-world.mesos')
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello-0', hello_ids)
 
     config.check_running()
 
@@ -51,7 +51,7 @@ def test_pod_restart():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
 
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello-0', hello_ids)
     config.check_running()
 
     # check agent didn't move:
@@ -96,7 +96,7 @@ def test_pods_restart_graceful_shutdown():
         if s.find('echo') < 0 and s.find('all clean') >= 0:
             clean_msg = s
 
-    assert clean_msg != None
+    assert clean_msg is not None
 
 
 @pytest.mark.sanity
@@ -105,8 +105,8 @@ def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'world-0')
 
     # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
-    #stdout = sdk_cmd.run_cli('hello-world pod info world-0')
-    #old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
+    # stdout = sdk_cmd.run_cli('hello-world pod info world-0')
+    # old_agent = json.loads(stdout)[0]['info']['slaveId']['value']
 
     jsonobj = json.loads(sdk_cmd.run_cli('hello-world pod replace world-0'))
     assert len(jsonobj) == 2
@@ -118,8 +118,8 @@ def test_pod_replace():
     config.check_running()
 
     # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
-    #stdout = sdk_cmd.run_cli('hello-world pod info world-0')
-    #new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
+    # stdout = sdk_cmd.run_cli('hello-world pod info world-0')
+    # new_agent = json.loads(stdout)[0]['info']['slaveId']['value']
     # assert old_agent != new_agent
 
 
