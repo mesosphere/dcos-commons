@@ -15,6 +15,10 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs()
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -81,6 +85,5 @@ def test_endpoints():
     # tests that the correct number of endpoints are found, should just be "native-client":
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)
     assert "native-client" in endpoints, "Cassandra endpoints should contain only 'native-client', got {}".format(endpoints)
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 3)
-    assert "address" in endpoints, "Endpoints missing address key"
+    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 2)
     sdk_networks.check_endpoints_on_overlay(endpoints)

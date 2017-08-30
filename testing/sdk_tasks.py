@@ -48,8 +48,12 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
             log.info('Failed to get task ids for service {}'.format(service_name))
             task_ids = []
 
-        log.info('Waiting for tasks starting with "{}" to be updated:\n- Old tasks: {}\n- Current tasks: {}'.format(
-            prefix, sorted(old_task_ids), sorted(task_ids)))
+        prefix_clause = ''
+        if prefix:
+            prefix_clause = ' starting with "{}"'.format(prefix)
+        log.info('Waiting for {} tasks{} to have updated ids:\n- Old tasks: {}\n- Current tasks: {}'.format(
+            len(old_task_ids), prefix_clause, sorted(old_task_ids), sorted(task_ids)))
+
         all_updated = True
         for id in task_ids:
             if id in old_task_ids:

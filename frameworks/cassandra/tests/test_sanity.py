@@ -18,6 +18,10 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
@@ -74,13 +78,13 @@ def test_repair_cleanup_plans_complete():
                     node_address=config.get_foldered_node_address())
             ]):
 
-        sdk_plan.start_plan(config.get_foldered_service_name(),
-                            'cleanup', parameters=parameters)
+        sdk_plan.start_plan(
+            config.get_foldered_service_name(), 'cleanup', parameters=parameters)
         sdk_plan.wait_for_completed_plan(
             config.get_foldered_service_name(), 'cleanup')
 
-        sdk_plan.start_plan(config.get_foldered_service_name(),
-                            'repair', parameters=parameters)
+        sdk_plan.start_plan(
+            config.get_foldered_service_name(), 'repair', parameters=parameters)
         sdk_plan.wait_for_completed_plan(
             config.get_foldered_service_name(), 'repair')
 

@@ -8,6 +8,7 @@ BUILD_DIR=$FRAMEWORK_DIR/build/distributions
 source $FRAMEWORK_DIR/versions.sh
 
 $FRAMEWORK_DIR/../../tools/build_framework.sh \
+    beta-elastic \
     $FRAMEWORK_DIR \
     --artifact "$BUILD_DIR/executor.zip" \
     --artifact "$BUILD_DIR/$(basename $FRAMEWORK_DIR)-scheduler.zip" \

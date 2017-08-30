@@ -18,23 +18,23 @@
     "binaries": {
       "darwin": {
         "x86-64": {
-          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-darwin}}" } ],
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-darwin}}" } ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-hello-world-darwin"
+          "url": "{{artifact-dir}}/dcos-service-cli-darwin"
         }
       },
       "linux": {
         "x86-64": {
-          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-hello-world-linux}}" } ],
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-linux}}" } ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-hello-world-linux"
+          "url": "{{artifact-dir}}/dcos-service-cli-linux"
         }
       },
       "windows": {
         "x86-64": {
-          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-hello-world.exe}}" } ],
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-service-cli.exe}}" } ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-hello-world.exe"
+          "url": "{{artifact-dir}}/dcos-service-cli.exe"
         }
       }
     }

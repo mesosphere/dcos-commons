@@ -4,10 +4,12 @@ import re
 import shakedown
 import tempfile
 
-import sdk_cmd as cmd
-import sdk_install as install
-import sdk_marathon as marathon
-import sdk_tasks as tasks
+import sdk_api
+import sdk_cmd
+import sdk_install
+import sdk_marathon
+import sdk_plan
+import sdk_tasks
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ def test_upgrade(
     if test_version_additional_options is None:
         test_version_additional_options = additional_options
 
-    install.uninstall(package_name, service_name)
+    sdk_install.uninstall(package_name, service_name)
 
     test_version = _get_pkg_version(package_name)
     log.info('Found test version: {}'.format(test_version))
@@ -43,8 +45,7 @@ def test_upgrade(
         universe_version = _get_pkg_version(package_name)
 
         log.info('Installing Universe version: {}={}'.format(package_name, universe_version))
-        # Keep the service name the same throughout the test
-        install.install(
+        sdk_install.install(
             package_name,
             service_name,
             running_task_count,
@@ -64,7 +65,8 @@ def test_upgrade(
         service_name,
         running_task_count,
         test_version_additional_options,
-        timeout_seconds)
+        timeout_seconds,
+        wait_for_deployment)
 
 
 # In the soak cluster, we assume that the Universe version of the framework is already installed.
@@ -78,32 +80,35 @@ def soak_upgrade_downgrade(
         service_name,
         running_task_count,
         additional_options={},
-        timeout_seconds=25*60):
-    cmd.run_cli("package install --cli {} --yes".format(universe_package_name))
+        timeout_seconds=25*60,
+        wait_for_deployment=True):
+    sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
     version = 'stub-universe'
-    print('Upgrading to test version: {} => {} {}'.format(universe_package_name, test_package_name, version))
+    print('Upgrading to test version: {} {}'.format(package_name, version))
     _upgrade_or_downgrade(
         package_name,
         version,
         service_name,
         running_task_count,
-        install_options,
-        timeout_seconds)
+        additional_options,
+        timeout_seconds,
+        wait_for_deployment)
 
     # Default Universe is at --index=0
-    version = _get_pkg_version(universe_package_name)
-    print('Downgrading to Universe version: {} => {} {}'.format(test_package_name, universe_package_name, version))
+    version = _get_pkg_version(package_name)
+    print('Downgrading to Universe version: {} {}'.format(package_name, version))
     _upgrade_or_downgrade(
         package_name,
         version,
         service_name,
         running_task_count,
-        install_options,
-        timeout_seconds)
+        additional_options,
+        timeout_seconds,
+        wait_for_deployment)
 
 
 def _get_universe_url():
-    repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
+    repositories = json.loads(sdk_cmd.run_cli('package repo list --json'))['repositories']
     for repo in repositories:
         if repo['name'] == 'Universe':
             log.info("Found Universe URL: {}".format(repo['uri']))
@@ -117,37 +122,60 @@ def _upgrade_or_downgrade(
         service_name,
         running_task_count,
         additional_options,
-        timeout_seconds):
-    task_ids = tasks.get_task_ids(service_name, '')
+        timeout_seconds,
+        wait_for_deployment):
+    task_ids = sdk_tasks.get_task_ids(service_name, '')
     if shakedown.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
         log.info('Using marathon upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
-        marathon.destroy_app(service_name)
-        install.install(
+        sdk_marathon.destroy_app(service_name)
+        sdk_install.install(
             package_name,
             service_name,
             running_task_count,
             additional_options=additional_options,
+            package_version=to_package_version,
             timeout_seconds=timeout_seconds,
-            package_version=to_package_version)
+            wait_for_deployment=wait_for_deployment)
     else:
         log.info('Using CLI upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
         if additional_options:
             with tempfile.NamedTemporaryFile() as opts_f:
                 opts_f.write(json.dumps(additional_options).encode('utf-8'))
-                opts_f.flush() # ensure json content is available for the CLI
-                cmd.run_cli(
-                    '{} --name={} update start --package-version={} --options={}'.format(package_name, service_name, to_package_version, opts_f.name))
+                opts_f.flush() # ensure json content is available for the CLI to read below
+                sdk_cmd.svc_cli(
+                    package_name, service_name,
+                    'update start --package-version={} --options={}'.format(to_package_version, opts_f.name))
         else:
-            cmd.run_cli(
-                '{} --name={} update start --package-version={}'.format(package_name, service_name, to_package_version))
-    log.info('Checking that all tasks have restarted')
-    tasks.check_tasks_updated(service_name, '', task_ids)
+            sdk_cmd.svc_cli(
+                package_name, service_name,
+                'update start --package-version={}'.format(to_package_version))
+
+    if wait_for_deployment:
+        log.info('Checking that all tasks have restarted')
+        sdk_tasks.check_tasks_updated(service_name, '', task_ids)
+
+        # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
+        # total task count via FINISHED tasks, without actually completing deployment
+        log.info("Waiting for {}/{} to finish deployment plan...".format(
+            package_name, service_name))
+        sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+
+        # given the above wait for plan completion, here we just wait up to 5 minutes
+        if shakedown.dcos_version_less_than("1.9"):
+            log.info("Skipping `is_suppressed` check for %s/%s as this is only suppored starting in version 1.9",
+                     package_name, service_name)
+        else:
+            log.info("Waiting for %s/%s to be suppressed...", package_name, service_name)
+            shakedown.wait_for(
+                lambda: sdk_api.is_suppressed(service_name),
+                noisy=True,
+                timeout_seconds=5 * 60)
 
 
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
-        cmd.run_cli('package describe {}'.format(package_name), print_output=False)).group(1)
+        sdk_cmd.run_cli('package describe {}'.format(package_name), print_output=False)).group(1)
 
 
 # Default repo is the one at index=0.

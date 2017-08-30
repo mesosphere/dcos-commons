@@ -9,9 +9,8 @@ usage() {
 }
 
 # SYNTAX FOR AUTHORS OF BUILD.SH:
-#   build_framework.sh </abs/path/framework> [aws|local] [--cli-only] [--artifact 'path1' --artifact 'path2' ...]
+#   build_framework.sh <framework-name> </abs/path/framework> [aws|local] [--cli-only] [--artifact 'path1' --artifact 'path2' ...]
 # Optional envvars:
-#   FRAMEWORK_NAME: name of the service to be built (default: directory name of /abs/path/framework)
 #   REPO_ROOT_DIR: path to root of source repository (default: parent directory of this file)
 #   REPO_NAME: name of the source repository (default: directory name of REPO_ROOT_DIR)
 #   BOOTSTRAP_DIR: path to bootstrap tool, or an empty string to disable bootstrap build (default: <REPO_ROOT_DIR>/sdk/bootstrap)
@@ -19,14 +18,18 @@ usage() {
 #   UNIVERSE_DIR: path to universe packaging (default: </absolute/framework/path>/universe/)
 
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     usage
     exit 1
 fi
 
-# required arg:
+# required args:
+FRAMEWORK_NAME=$1
+shift
 FRAMEWORK_DIR=$1
 shift
+
+echo "Building $FRAMEWORK_NAME in $FRAMEWORK_DIR:"
 
 # optional args:
 cli_only=
@@ -71,7 +74,6 @@ export REPO_ROOT_DIR=${REPO_ROOT_DIR:=$(dirname $TOOLS_DIR)} # default to parent
 export REPO_NAME=$(basename $REPO_ROOT_DIR) # default to name of REPO_ROOT_DIR
 
 # optional customizable names/paths:
-FRAMEWORK_NAME=${FRAMEWORK_NAME:=$(basename $FRAMEWORK_DIR)}
 BOOTSTRAP_DIR=${BOOTSTRAP_DIR:=${REPO_ROOT_DIR}/sdk/bootstrap}
 CLI_DIR=${CLI_DIR:=$(ls -d ${FRAMEWORK_DIR}/cli/dcos-*)}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
@@ -82,9 +84,9 @@ build_cli() {
     # CLI (Go):
     # /home/user/dcos-commons/frameworks/project/cli/dcos-project => frameworks/project/cli/dcos-project
     REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
-    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-${FRAMEWORK_NAME}-linux linux
-    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-${FRAMEWORK_NAME}-darwin darwin
-    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-${FRAMEWORK_NAME}.exe windows
+    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-service-cli-linux linux
+    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-service-cli-darwin darwin
+    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-service-cli.exe windows
 }
 
 if [ x"$cli_only" = xtrue ]; then
@@ -92,8 +94,6 @@ if [ x"$cli_only" = xtrue ]; then
     exit
 fi
 
-
-echo "Building $FRAMEWORK_NAME in $FRAMEWORK_DIR:"
 if [ -n "$BOOTSTRAP_DIR" ]; then
     echo "- Bootstrap: $BOOTSTRAP_DIR"
 else
@@ -132,7 +132,7 @@ fi
 CLI_ARTIFACTS=""
 if [ -n "$CLI_DIR" ]; then
     build_cli
-    CLI_ARTIFACTS="${CLI_DIR}/dcos-*-linux ${CLI_DIR}/dcos-*-darwin ${CLI_DIR}/dcos-*.exe"
+    CLI_ARTIFACTS="${CLI_DIR}/dcos-service-cli-linux ${CLI_DIR}/dcos-service-cli-darwin ${CLI_DIR}/dcos-service-cli.exe"
 fi
 
 case "$publish_method" in

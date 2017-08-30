@@ -16,6 +16,10 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         # user=root because Azure CLI needs to run in root...
         sdk_install.install(

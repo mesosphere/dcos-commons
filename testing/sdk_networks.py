@@ -59,8 +59,8 @@ def check_endpoints_on_overlay(endpoints):
         "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
 
     for dns in endpoints["dns"]:
-        assert "autoip.dcos.thisdcos.directory" in dns, "DNS {} is incorrect should have autoip.dcos.thisdcos." \
-                                                        "directory".format(dns)
+        assert "autoip.dcos.thisdcos.directory" in dns, \
+            "DNS {} is incorrect should have autoip.dcos.thisdcos.directory".format(dns)
 
 
 def get_framework_srv_records(package_name):
