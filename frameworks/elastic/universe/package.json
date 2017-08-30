@@ -1,7 +1,9 @@
 {
   "packagingVersion": "4.0",
+  "upgradesFrom": ["1.0.15-5.5.1-beta"],
+  "downgradesTo": ["1.0.15-5.5.1-beta"],
   "minDcosReleaseVersion": "1.9",
-  "name": "elastic",
+  "name": "beta-elastic",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
   "description": "Elasticsearch 5, and optionally X-Pack",

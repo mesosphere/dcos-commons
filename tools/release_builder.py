@@ -140,6 +140,7 @@ class UniverseReleaseBuilder(object):
 
         return pkgdir
 
+
     def _download_unpack_stub_universe(self, scratchdir):
         '''Returns the path to the package directory in the stub universe.'''
         stub_universe_file = urllib.request.urlopen(self._stub_universe_url)
@@ -170,32 +171,18 @@ class UniverseReleaseBuilder(object):
                 newfile.write(new_content)
 
 
-    def _update_package_get_artifact_source_urls(self, pkgdir):
+    def _get_and_update_artifact_urls(self, pkgdir):
         '''Rewrites all artifact urls in pkgdir to
         self.release_artifact_http_dir.  Returns the original urls.
 
         '''
-        # replace package.json:version (smart replace)
-        path = os.path.join(pkgdir, 'package.json')
-        logger.info('[1/2] Setting version={} in {}'.format(self._pkg_version, path))
-        with open(path, 'r') as orig_file:
-            orig_content = orig_file.read()
-            content_json = json.loads(orig_content)
-            content_json['version'] = self._pkg_version
-            if 'minDcosReleaseVersion' not in content_json:
-                raise Exception('minDcosReleaseVersion must be specified in package.json: {}'.format(content_json))
-            # dumps() adds trailing space, fix that:
-            new_content_lines = json.dumps(content_json, indent=2, sort_keys=True).split('\n')
-            new_content = '\n'.join([line.rstrip() for line in new_content_lines]) + '\n'
-            logger.info(new_content)
-            # don't bother showing diff, things get rearranged..
-            self._update_file_content(path, orig_content, new_content, showdiff=False)
-
         # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
         logger.info('[2/2] Replacing artifact prefix {} with {}'.format(
             original_artifact_prefix, self._release_artifact_http_dir))
         original_artifact_urls = []
+        # find all URLs, across all json files, which match the directory of the stub universe file:
+        # TODO(nickbp): once command.json is finally gone, this could just check resource.json.
         for filename in os.listdir(pkgdir):
             path = os.path.join(pkgdir, filename)
             with open(path, 'r') as orig_file:
@@ -418,40 +405,68 @@ class UniverseReleaseBuilder(object):
             json.dump(resource_json, f, indent=4, sort_keys=True)
 
 
-    def _add_beta_attributes(self, pkgdir):
-        if not self._beta_release:
-            return pkgdir
-
-        # Add the beta prefix to package.json
+    def _set_version_and_beta_attributes(self, pkgdir):
+        '''Updates the package definition to contain the desired version string,
+        and updates the package to reflect any beta or non-beta status as necessary.
+        Returns the directory containing the updated package.
+        '''
+        logger.info('[1/2] Setting version={}, beta={} in {}'.format(
+            self._pkg_version, self._beta_release, path))
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
             package_json = json.load(f, object_pairs_hook=collections.OrderedDict)
 
-        package_json['selected'] = False
-        package_json['name'] = 'beta-' + package_json['name']
+        # If package is being marked beta, clear 'selected' regardless of any name changes
+        if self._beta_release:
+            package_json['selected'] = False
 
+        # Determine package version and package name depending on current vs target state
+        package_name = package_json['name']
+        new_package_name = None
+        package_version = self._pkg_version
+        if self._beta_release:
+            # Insert 'beta-' prefix into name, and '-beta' suffix into version, as needed
+            if not package_name.startswith('beta-'):
+                new_package_name = 'beta-' + package_name
+            if not package_version.endswith('-beta'):
+                package_version = package_version + '-beta'
+        else:
+            # Remove 'beta-' prefix from name, and '-beta' suffix from version, as needed
+            if package_name.startswith('beta-'):
+                new_package_name = package_name[5:]
+            if package_version.endswith('-beta'):
+                package_version = package_version[:-5]
+
+        package_json['version'] = package_version
+        if new_package_name is not None:
+            package_json['name'] = new_package_name
+            self._pkg_name = new_package_name
+
+        # Update package.json with changes to name and/or 'selected' bit
         with open(package_file_name, 'w') as f:
             json.dump(package_json, f, indent=4)
 
-        self._pkg_name = package_json['name']
+        if new_package_name is None:
+            # No rename, so just return existing dir with any package.json updates
+            return pkgdir
 
-        # Rename the directory structure
+        # Update the directory structure to reflect the new name
+        # example parts: ['foo', 'bar', 'M', 'my-package', '0']
         parts = pkgdir.split('/')
-        parts[-2] = 'beta-' + parts[-2]
-        parts[-3] = 'B'
-        beta_pkg_dir = '/'.join(parts)
-        shutil.copytree(pkgdir, beta_pkg_dir)
+        parts[-2] = new_package_name
+        parts[-3] = new_package_name[0].upper()
+        rename_pkgdir = '/'.join(parts)
+        shutil.copytree(pkgdir, rename_pkgdir)
         shutil.rmtree(pkgdir)
-        return beta_pkg_dir
+        return rename_pkgdir
 
 
     def release_package(self):
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         pkgdir = self._download_unpack_stub_universe(scratchdir)
-        if self._beta_release:
-            pkgdir = self._add_beta_attributes(pkgdir)
+        pkgdir = self._set_version_and_beta_attributes(pkgdir)
 
-        original_artifact_urls = self._update_package_get_artifact_source_urls(pkgdir)
+        original_artifact_urls = self._get_and_update_artifact_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
         if self._release_docker_image:
             orig_docker_image = self._original_docker_image(pkgdir)

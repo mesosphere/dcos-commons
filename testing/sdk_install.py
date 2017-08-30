@@ -11,6 +11,7 @@ import time
 from retrying import retry
 
 import sdk_api
+import sdk_cmd
 import sdk_plan
 import sdk_utils
 
@@ -22,8 +23,8 @@ TIMEOUT_SECONDS = 15 * 60
 @retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
 def retried_shakedown_install(
         package_name,
-        package_version,
         service_name,
+        package_version,
         merged_options,
         timeout_seconds,
         expected_running_tasks):
@@ -39,14 +40,12 @@ def retried_shakedown_install(
 
 def install(
         package_name,
+        service_name,
         expected_running_tasks,
-        service_name=None,
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
         wait_for_deployment=True):
-    if not service_name:
-        service_name = package_name
     start = time.time()
     merged_options = get_package_options(additional_options)
 
@@ -56,8 +55,8 @@ def install(
     # 1. Install package, wait for tasks, wait for marathon deployment
     retried_shakedown_install(
         package_name,
-        package_version,
         service_name,
+        package_version,
         merged_options,
         timeout_seconds,
         expected_running_tasks)
@@ -87,28 +86,27 @@ def install(
 
 
 @retry(stop_max_attempt_number=5, wait_fixed=5000, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
-def uninstall(service_name,
-              package_name=None,
-              role=None,
-              service_account=None,
-              zk=None):
-    _uninstall(service_name,
-               package_name,
-               role,
-               service_account,
-               zk)
+def uninstall(
+        package_name,
+        service_name,
+        role=None,
+        service_account=None,
+        zk=None):
+    _uninstall(
+        package_name,
+        service_name,
+        role,
+        service_account,
+        zk)
 
 
 def _uninstall(
+        package_name,
         service_name,
-        package_name=None,
         role=None,
         service_account=None,
         zk=None):
     start = time.time()
-
-    if package_name is None:
-        package_name = service_name
 
     if shakedown.dcos_version_less_than("1.10"):
         log.info('Uninstalling/janitoring {}'.format(service_name))
@@ -139,8 +137,7 @@ def _uninstall(
                 role=role,
                 service_account=service_account,
                 zk=zk,
-                auth=shakedown.run_dcos_command(
-                    'config show core.dcos_acs_token')[0].strip()))
+                auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()))
 
         finish = time.time()
 
