@@ -110,7 +110,7 @@ Since protocol and log versions have been updated with new protocol and log form
 **Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package version `2.0.0-0.11.0.0` . Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.
 
     
-##  Upgrade in Strict Mode
+##  Upgrade in Strict Mode from `1.1.16-0.10.1.0-beta`
 
 If you are upgrading to the DC/OS Apache Kafka package `2.0.0-0.11.0.0`  on a DC/OS cluster running in [strict security mode](https://docs.mesosphere.com/1.9/security/#security-modes), you must specify service account details during the package update process. Service account credentials enable your service to authenticate to a DC/OS cluster in strict mode.
 
@@ -135,7 +135,7 @@ If you are performing a fresh installation of Kafka `2.0.0-0.11.0.0` on a strict
 **Note:** The syntax for specifying service account details has changed from the previous version. The `principal` and `secret_name` parameters have changed to `service_account` and `service_account_secret`. If you are upgrading your service from package version `1.1.16-0.10.1.0-beta`, you will need to specify service account details in a JSON options file.
 
 
-### Upgrade to Kafka `2.0.0-0.11.0.0`
+### Upgrade to Kafka `2.0.0-0.11.0.0` from `1.1.16-0.10.1.0-beta`
 
 If you are upgrading your existing service running in strict mode, from `1.1.16-0.10.1.0-beta` to version `2.0.0-0.11.0.0`, set `service_account` and `service_account_secret` in your options.  Add service_account and service_account_secret options only in Step 1 in [Upgrade Instructions](#upgrade-kafka-from-0.10.2.x-to-0.11.0.0
 ). Step 2 and Step 3 will be same. Modify Step 1 as follows if you are upgrading in strict mode.
