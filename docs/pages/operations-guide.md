@@ -393,9 +393,9 @@ In DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACL
 
 Steps:
 
-1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. <!-- add more details -->
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
 1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
-1. Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **CLOSE**. <!-- check this -->
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
    ```
    dcos:adminrouter:service:marathon full				
@@ -415,7 +415,7 @@ Steps:
 ### Interacting with your foldered service
 
 - Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
-- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/kafka/v1/endpoints`. <!-- check this -->
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/kafka/v1/endpoints`.
 
 # Common operations
 
