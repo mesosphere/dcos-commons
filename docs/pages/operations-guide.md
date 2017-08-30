@@ -856,6 +856,78 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
     -z dcos-service-$MY_SERVICE_NAME"
 ```
 
+## Plan Operations
+### List
+Show all plans for this service.
+
+```bash
+dcos kakfa plan list
+```
+
+### Status
+Display the status of the plan with the provided plan name.
+
+```bash
+dcos kafka plan status deploy
+```
+
+**Note:** The `--json` flag, though not default, is helpful in extracting phase UUIDs. Using the UUID instead of name for a
+phase is a more ensures that the request, ie to pause or force-complete, is exactly the phase intended.
+
+### Start
+Start the plan with the provided name and any optional plan arguments.
+
+```bash
+dcos kafka plan start deploy
+```
+
+### Stop
+Stop the running plan with the provided name.
+
+```bash
+dcos kafka plan stop deploy
+```
+
+Plan Pause differs from Plan Stop in the following ways:
+* Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
+* Pause updates the underlying Phase/Step state. Stop not only updates the underlying state, but also restarts the plan.
+
+### Pause
+Pause the plan, or a specific phase in that plan with the provided phase name (or UUID).
+
+```bash
+dcos kafka plan pause deploy 97e70976-505f-4689-abd2-6286c4499091
+```
+
+**NOTE:** The UUID above is an example. Use the Plan Status command with the `--json` flag to extract a valid UUID.
+
+Plan Pause differs from Plan Stop in the following ways:
+* Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
+* Pause updates the underlying Phase/Step state. Stop not only updated the underlying state, but also restarts the plan.
+
+### Resume
+Resume the plan, or a specific phase in that plan, with the provided phase name (or UUID).
+
+```bash
+dcos kafka plan resume deploy 97e70976-505f-4689-abd2-6286c4499091
+```
+
+### Force-Restart
+Restart the plan with the provided name, or a specific phase in the plan, with the provided nam, or a specific step in a
+phase of the plan with the provided step name.
+
+```bash
+dcos kafka plan force-restart deploy
+```
+
+### Force-Complete
+Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due
+to observed failure or due to known required manual preparation that was not performed.
+
+```bash
+dcos kafka plan force-complete deploy
+```
+
 # Diagnostic Tools
 
 DC/OS clusters provide several tools for diagnosing problems with services running in the cluster. In addition, the SDK has its own endpoints that describe what the Scheduler is doing at any given time.
