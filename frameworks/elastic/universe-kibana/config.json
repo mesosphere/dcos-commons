@@ -14,11 +14,6 @@
           "description": "The user that runs the Kibana services and owns the Mesos sandbox.",
           "type": "string",
           "default": "nobody"
-        },
-        "tls": {
-          "description": "Enable TLS support (requires Enterprise DC/OS running in strict or permissive security mode).",
-          "type": "boolean",
-          "default": false
         }
       },
       "required": [
@@ -40,6 +35,11 @@
           "description": "The URL of the Elasticsearch cluster to use for all your queries.",
           "type": "string",
           "default": "http://coordinator.elastic.l4lb.thisdcos.directory:9200"
+        },
+        "elasticsearch_tls": {
+          "description": "Elasticsearch runs with SDK TLS. (Enable when Elastic was launched with TLS support, requires X-Pack plugin)",
+          "type": "boolean",
+          "default": false
         },
         "user": {
           "description": "kibana username to use for X-Pack authentication, if enabled",
