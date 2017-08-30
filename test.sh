@@ -55,7 +55,7 @@ fi
 
 if [ -z "$CLUSTER_URL" ]; then
     echo "CLUSTER_URL not set. Trying to determine attached cluster"
-    CLUSTER_URL=$(dcos cluster list --attached --json | grep "url" | sed -e 's/.*"url": "\(.*\)".*/\1/')
+    CLUSTER_URL=$(dcos cluster list --attached --json | grep "url" | sed -e 's/.*"url": "\(http.*\)".*/\1/')
     if [ -z "$CLUSTER_URL" ]; then
         echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
         exit 1
