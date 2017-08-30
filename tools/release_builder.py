@@ -410,11 +410,10 @@ class UniverseReleaseBuilder(object):
         and updates the package to reflect any beta or non-beta status as necessary.
         Returns the directory containing the updated package.
         '''
-        logger.info('[1/2] Setting version={}, beta={} in {}'.format(
-            self._pkg_version, self._beta_release, path))
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
             package_json = json.load(f, object_pairs_hook=collections.OrderedDict)
+        orig_package_json = package_json.copy()
 
         # If package is being marked beta, clear 'selected' regardless of any name changes
         if self._beta_release:
@@ -441,6 +440,11 @@ class UniverseReleaseBuilder(object):
         if new_package_name is not None:
             package_json['name'] = new_package_name
             self._pkg_name = new_package_name
+
+        logger.info('[1/2] Updated package.json:')
+        logger.info('\n'.join(difflib.ndiff(
+            json.dumps(orig_package_json, indent=4).split('\n'),
+            json.dumps(package_json, indent=4).split('\n'))))
 
         # Update package.json with changes to name and/or 'selected' bit
         with open(package_file_name, 'w') as f:
