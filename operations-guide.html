@@ -402,6 +402,17 @@
           <li><a href="#older-versions" id="markdown-toc-older-versions">Older versions</a></li>
         </ul>
       </li>
+      <li><a href="#plan-operations" id="markdown-toc-plan-operations">Plan Operations</a>        <ul>
+          <li><a href="#list" id="markdown-toc-list">List</a></li>
+          <li><a href="#status" id="markdown-toc-status">Status</a></li>
+          <li><a href="#start" id="markdown-toc-start">Start</a></li>
+          <li><a href="#stop" id="markdown-toc-stop">Stop</a></li>
+          <li><a href="#pause-1" id="markdown-toc-pause-1">Pause</a></li>
+          <li><a href="#resume-1" id="markdown-toc-resume-1">Resume</a></li>
+          <li><a href="#force-restart-1" id="markdown-toc-force-restart-1">Force-Restart</a></li>
+          <li><a href="#force-complete-1" id="markdown-toc-force-complete-1">Force-Complete</a></li>
+        </ul>
+      </li>
     </ul>
   </li>
   <li><a href="#diagnostic-tools" id="markdown-toc-diagnostic-tools">Diagnostic Tools</a>    <ul>
@@ -1493,6 +1504,82 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
     -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
     -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
     -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
+</code></pre>
+</div>
+
+<h2 id="plan-operations">Plan Operations</h2>
+<h3 id="list">List</h3>
+<p>Show all plans for this service.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kakfa plan list
+</code></pre>
+</div>
+
+<h3 id="status">Status</h3>
+<p>Display the status of the plan with the provided plan name.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan status deploy
+</code></pre>
+</div>
+
+<p><strong>Note:</strong> The <code class="highlighter-rouge">--json</code> flag, though not default, is helpful in extracting phase UUIDs. Using the UUID instead of name for a
+phase is a more ensures that the request, ie to pause or force-complete, is exactly the phase intended.</p>
+
+<h3 id="start">Start</h3>
+<p>Start the plan with the provided name and any optional plan arguments.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan start deploy
+</code></pre>
+</div>
+
+<h3 id="stop">Stop</h3>
+<p>Stop the running plan with the provided name.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan stop deploy
+</code></pre>
+</div>
+
+<p>Plan Pause differs from Plan Stop in the following ways:</p>
+<ul>
+  <li>Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.</li>
+  <li>Pause updates the underlying Phase/Step state. Stop not only updates the underlying state, but also restarts the plan.</li>
+</ul>
+
+<h3 id="pause-1">Pause</h3>
+<p>Pause the plan, or a specific phase in that plan with the provided phase name (or UUID).</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan pause deploy 97e70976-505f-4689-abd2-6286c4499091
+</code></pre>
+</div>
+
+<p><strong>NOTE:</strong> The UUID above is an example. Use the Plan Status command with the <code class="highlighter-rouge">--json</code> flag to extract a valid UUID.</p>
+
+<p>Plan Pause differs from Plan Stop in the following ways:</p>
+<ul>
+  <li>Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.</li>
+  <li>Pause updates the underlying Phase/Step state. Stop not only updated the underlying state, but also restarts the plan.</li>
+</ul>
+
+<h3 id="resume-1">Resume</h3>
+<p>Resume the plan, or a specific phase in that plan, with the provided phase name (or UUID).</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan resume deploy 97e70976-505f-4689-abd2-6286c4499091
+</code></pre>
+</div>
+
+<h3 id="force-restart-1">Force-Restart</h3>
+<p>Restart the plan with the provided name, or a specific phase in the plan, with the provided nam, or a specific step in a
+phase of the plan with the provided step name.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan force-restart deploy
+</code></pre>
+</div>
+
+<h3 id="force-complete-1">Force-Complete</h3>
+<p>Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due
+to observed failure or due to known required manual preparation that was not performed.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos kafka plan force-complete deploy
 </code></pre>
 </div>
 
