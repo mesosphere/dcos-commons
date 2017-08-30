@@ -53,7 +53,7 @@ The beta DC/OS Kafka package `1.1.16-0.10.1.0-beta` (with Kafka version 0.10.2.x
 
 Here, we assume that you already have a DC/OS Kafka service running, installed with the beta package version `1.1.16-0.10.1.0-beta` (with Kafka 0.10.2.x). In order to guarantee no downtime during the upgrade process, follow the steps below.  
 
-##### Step 1
+#### Step 1
 
 First, make a note of the existing protocol and log versions. Upgrade your service to the new package version `2.0.0-0.11.0.0` (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
    
@@ -75,7 +75,7 @@ The Kafka service will be upgraded to the version 0.11.0.0. The brokers will now
 
 **Note**: The goal in using customized options during package upgrade is to keep the protocol and log versions the same. In the following steps, we will change protocol and log versions one at a time.
 
-##### Step 2
+#### Step 2
 
 Next, update the protocol version manually. Only change the value of `inter.broker.protocol.version` in the `options.json` file, and then perform an update operation. The brokers will be restarted one at a time with the new `server.properties` file with protocol version set to `0.11.0.0`. 
     
@@ -89,7 +89,7 @@ Next, update the protocol version manually. Only change the value of `inter.brok
     
     $ dcos kafka update start --options=options.json 
     
-##### Step 3    
+#### Step 3    
     
 Once you verify that all brokers are restarted, update the log version. Change the log version to `0.11.0` and perform another update operation. 
      
@@ -117,8 +117,9 @@ If you are upgrading to the DC/OS Apache Kafka package `2.0.0-0.11.0.0`  on a DC
 
 You can provide service account details in a JSON options file or via the DC/OS GUI.
 
+### New Installation
 
-If you are **installing from scratch** in strict mode, add the following parameter to your options JSON file in order to  provide your service account details.
+If you are performing a fresh installation of Kafka `2.0.0-0.11.0.0` on a strict mode cluster, add the following parameter to your options JSON file in order to  provide your service account details.
 
 
     $ cat options.json
@@ -133,8 +134,11 @@ If you are **installing from scratch** in strict mode, add the following paramet
 
 **Note:** The syntax for specifying service account details has changed from the previous version. The `principal` and `secret_name` parameters have changed to `service_account` and `service_account_secret`. If you are upgrading your service from package version `1.1.16-0.10.1.0-beta`, you will need to specify service account details in a JSON options file.
 
-If you are **upgrading your existing service** in strict mode, from `1.1.16-0.10.1.0-beta` to the this new version `2.0.0-0.11.0.0`, set `service_account` and `service_account_secret` in your options.  Add service_account and service_account_secret options only in Step 1 in [Upgrade Instructions](#upgrade-kafka-from-0.10.2.x-to-0.11.0.0
-). Step 2 and Step 3 will be same. Modify Step 1 as follows if you are upgrading in `strict mode`.
+
+### Upgrade to Kafka `2.0.0-0.11.0.0`
+
+If you are upgrading your existing service running in strict mode, from `1.1.16-0.10.1.0-beta` to version `2.0.0-0.11.0.0`, set `service_account` and `service_account_secret` in your options.  Add service_account and service_account_secret options only in Step 1 in [Upgrade Instructions](#upgrade-kafka-from-0.10.2.x-to-0.11.0.0
+). Step 2 and Step 3 will be same. Modify Step 1 as follows if you are upgrading in strict mode.
  
 
     $ cat option.json
