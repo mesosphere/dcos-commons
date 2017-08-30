@@ -79,40 +79,44 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     HDFS_SERVICE_NAME=<hdfs-name> ./configure-hdfs.sh
     ```
 
-1.  Navigate to the Hadoop installation directory and list the contents.
+1.  List the contents.
 
     ```bash
-    cd hadoop-2.6.4
     ./bin/hdfs dfs -ls /
     ```
 
-    The output should resemble:
+    The output should be empty.
+
+1.  Create a file on HDFS.
 
     ```bash
-    Found 22 items
-    -rwxr-xr-x   1 root  root           0 2017-06-15 18:23 /.dockerenv
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /bin
-    drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /boot
-    -rw-rw-r--   1 root  root         364 2016-08-25 01:01 /configure-hdfs.sh
-    drwxr-xr-x   - root  root         380 2017-06-15 18:23 /dev
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /etc
-    drwxr-xr-x   - 10021 10021       4096 2017-06-15 18:23 /hadoop-2.6.4
-    drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /home
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib64
-    drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /media
-    drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /mnt
-    drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /opt
-    dr-xr-xr-x   - root  root           0 2017-06-15 18:23 /proc
-    drwx------   - root  root        4096 2017-06-15 18:23 /root
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /run
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /sbin
-    drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /srv
-    dr-xr-xr-x   - root  root           0 2017-06-15 16:11 /sys
-    drwxrwxrwt   - root  root        4096 2017-06-15 18:23 /tmp
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /usr
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /var
+    echo "Test" | ./bin/hdfs dfs -put - /test.txt
     ```
+
+1.  List the contents again.
+
+    ```bash
+    ./bin/hdfs dfs -ls /
+    ```
+
+    The output should now resemble:
+
+    ```bash
+    Found 1 items
+    -rw-r--r--   3 root supergroup          5 2017-08-25 17:41 /test.txt
+    ```
+
+1.  Read the file to ensure data integrity.
+
+    ```bash
+    ./bin/hdfs dfs -cat /test.txt
+    ```
+
+    The output should resemble:
+    ```bash
+    Test
+    ```
+
 
 1.  To configure other clients, return to the DC/OS CLI and retrieve the `hdfs-site.xml` and `core-site.xml` files. Use these XML files to configure client nodes of the HDFS cluster.
 
