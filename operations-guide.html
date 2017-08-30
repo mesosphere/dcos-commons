@@ -360,6 +360,10 @@
           <li><a href="#updating-placement-constraints" id="markdown-toc-updating-placement-constraints">Updating placement constraints</a></li>
         </ul>
       </li>
+      <li><a href="#integration-with-dcos-access-controls" id="markdown-toc-integration-with-dcos-access-controls">Integration with DC/OS access controls</a>        <ul>
+          <li><a href="#interacting-with-your-foldered-service" id="markdown-toc-interacting-with-your-foldered-service">Interacting with your foldered service</a></li>
+        </ul>
+      </li>
     </ul>
   </li>
   <li><a href="#common-operations" id="markdown-toc-common-operations">Common operations</a>    <ul>
@@ -936,12 +940,12 @@ e both.</p>
 <p>When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64-encoded as specified in RFC 4648.</p>
 
 <p>You can use standard <code class="highlighter-rouge">base64</code> command line utility. Take a look at the following example that is using BSD <code class="highlighter-rouge">base64</code> command.</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded 
+<div class="highlighter-rouge"><pre class="highlight"><code>$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
 </code></pre>
 </div>
 
 <p><code class="highlighter-rouge">base64</code> command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping via  <code class="highlighter-rouge">-w 0</code> argument.  Here is a sample base64 command in Linux.</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$  base64 -w 0 -i krb5.keytab &gt; kerb5.keytab.base64-encoded 
+<div class="highlighter-rouge"><pre class="highlight"><code>$  base64 -w 0 -i krb5.keytab &gt; kerb5.keytab.base64-encoded
 </code></pre>
 </div>
 
@@ -951,7 +955,7 @@ e both.</p>
 </code></pre>
 </div>
 
-<p>When you reference the <code class="highlighter-rouge">__dcos_base64__mysecret</code> secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to <a href="developer-guide.md">Developer Guide</a> for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret 
+<p>When you reference the <code class="highlighter-rouge">__dcos_base64__mysecret</code> secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to <a href="developer-guide.md">Developer Guide</a> for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
 only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).</p>
 
 <h2 id="placement-constraints">Placement Constraints</h2>
@@ -1002,6 +1006,46 @@ only as a file such that it will be autoatically decoded and made available as a
 </ol>
 
 <p>The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You’ll need to consult the documentation for the service in question, but in theory they should all understand the same set of <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators</a>.</p>
+
+<h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
+
+<p>In DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/kafka</code> and <code class="highlighter-rouge">production/kafka</code>.</p>
+
+<p>Steps:</p>
+
+<ol>
+  <li>In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click <strong>Organization</strong> &gt; <strong>Groups</strong> &gt; <strong>+</strong> or <strong>Organization</strong> &gt; <strong>Users</strong> &gt; <strong>+</strong>. If you create a group, you must also create a user and add them to the group.</li>
+  <li>
+    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.
+Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos:adminrouter:service:marathon full				
+dcos:service:marathon:marathon:services:/testing full
+dcos:adminrouter:ops:mesos full
+dcos:adminrouter:ops:slave full
+</code></pre>
+    </div>
+  </li>
+  <li>Install a service (in this example, Kafka) into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-kafka</strong>.</li>
+  <li>
+    <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/kafka</code>, then deploy.</p>
+
+    <p>The slashes in your service name are interpreted as folders. You are deploying Kafka in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
+  </li>
+</ol>
+
+<p><strong>Important:</strong></p>
+<ul>
+  <li>Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.</li>
+  <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
+</ul>
+
+<h3 id="interacting-with-your-foldered-service">Interacting with your foldered service</h3>
+
+<ul>
+  <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
+  <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/kafka/v1/endpoints</code>.</li>
+</ul>
 
 <h1 id="common-operations">Common operations</h1>
 
