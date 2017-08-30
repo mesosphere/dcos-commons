@@ -89,7 +89,7 @@ def extract_metric_names(service_name, service_metrics):
     # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
     # This is consistent across all HDFS metric names.
     if "hdfs" in service_name:
-        metric_names = ['-'.join(metric_name.split(".")[1:])
+        metric_names = ['.'.join(metric_name.split(".")[1:])
                         for metric_name in metric_names]
 
     return set(metric_names)
