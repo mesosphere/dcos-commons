@@ -447,7 +447,7 @@ $ dcos kafka update start --options=options.json
 
 <p><strong>Note</strong>: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package version <code class="highlighter-rouge">2.0.0-0.11.0.0</code> . Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.</p>
 
-<h2 id="upgrade-in-strict-mode">Upgrade in Strict Mode</h2>
+<h2 id="upgrade-in-strict-mode-from-1116-01010-beta">Upgrade in Strict Mode from <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code></h2>
 
 <p>If you are upgrading to the DC/OS Apache Kafka package <code class="highlighter-rouge">2.0.0-0.11.0.0</code>  on a DC/OS cluster running in <a href="https://docs.mesosphere.com/1.9/security/#security-modes">strict security mode</a>, you must specify service account details during the package update process. Service account credentials enable your service to authenticate to a DC/OS cluster in strict mode.</p>
 
@@ -471,7 +471,7 @@ $ docs package install  kafka --options=options.json ` --package-version=2.0.0-0
 
 <p><strong>Note:</strong> The syntax for specifying service account details has changed from the previous version. The <code class="highlighter-rouge">principal</code> and <code class="highlighter-rouge">secret_name</code> parameters have changed to <code class="highlighter-rouge">service_account</code> and <code class="highlighter-rouge">service_account_secret</code>. If you are upgrading your service from package version <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code>, you will need to specify service account details in a JSON options file.</p>
 
-<h3 id="upgrade-to-kafka-200-01100">Upgrade to Kafka <code class="highlighter-rouge">2.0.0-0.11.0.0</code></h3>
+<h3 id="upgrade-to-kafka-200-01100-from-1116-01010-beta">Upgrade to Kafka <code class="highlighter-rouge">2.0.0-0.11.0.0</code> from <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code></h3>
 
 <p>If you are upgrading your existing service running in strict mode, from <code class="highlighter-rouge">1.1.16-0.10.1.0-beta</code> to version <code class="highlighter-rouge">2.0.0-0.11.0.0</code>, set <code class="highlighter-rouge">service_account</code> and <code class="highlighter-rouge">service_account_secret</code> in your options.  Add service_account and service_account_secret options only in Step 1 in <a href="#upgrade-kafka-from-0.10.2.x-to-0.11.0.0">Upgrade Instructions</a>. Step 2 and Step 3 will be same. Modify Step 1 as follows if you are upgrading in strict mode.</p>
 
