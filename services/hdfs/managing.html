@@ -1414,13 +1414,13 @@ dcos package install --cli beta-hdfs
 <h3 id="node-status">Node Status</h3>
 <p>Similarly, the status for any node may also be queried.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>&lt;service-name&gt; pod status &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>For example:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs pod info journal-0
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs pod status journal-0
 </code></pre>
 </div>
 

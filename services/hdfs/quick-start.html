@@ -418,38 +418,44 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
     </div>
   </li>
   <li>
-    <p>Navigate to the Hadoop installation directory and list the contents.</p>
+    <p>List the contents.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">cd </span>hadoop-2.6.4
-./bin/hdfs dfs -ls /
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>./bin/hdfs dfs -ls /
+</code></pre>
+    </div>
+
+    <p>The output should be empty.</p>
+  </li>
+  <li>
+    <p>Create a file on HDFS.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"Test"</span> | ./bin/hdfs dfs -put - /test.txt
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>List the contents again.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>./bin/hdfs dfs -ls /
+</code></pre>
+    </div>
+
+    <p>The output should now resemble:</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>Found 1 items
+-rw-r--r--   3 root supergroup          5 2017-08-25 17:41 /test.txt
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Read the file to ensure data integrity.</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>./bin/hdfs dfs -cat /test.txt
 </code></pre>
     </div>
 
     <p>The output should resemble:</p>
-
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>Found 22 items
--rwxr-xr-x   1 root  root           0 2017-06-15 18:23 /.dockerenv
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /bin
-drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /boot
--rw-rw-r--   1 root  root         364 2016-08-25 01:01 /configure-hdfs.sh
-drwxr-xr-x   - root  root         380 2017-06-15 18:23 /dev
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /etc
-drwxr-xr-x   - 10021 10021       4096 2017-06-15 18:23 /hadoop-2.6.4
-drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /home
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib64
-drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /media
-drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /mnt
-drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /opt
-dr-xr-xr-x   - root  root           0 2017-06-15 18:23 /proc
-drwx------   - root  root        4096 2017-06-15 18:23 /root
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /run
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /sbin
-drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /srv
-dr-xr-xr-x   - root  root           0 2017-06-15 16:11 /sys
-drwxrwxrwt   - root  root        4096 2017-06-15 18:23 /tmp
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /usr
-drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /var
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>Test
 </code></pre>
     </div>
   </li>
