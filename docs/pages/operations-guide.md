@@ -324,26 +324,26 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 ### Binary Secrets
 
-When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64-encoded as specified in RFC 4648. 
+When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64-encoded as specified in RFC 4648.
 
 You can use standard `base64` command line utility. Take a look at the following example that is using BSD `base64` command.
-``` 
-$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded 
+```
+$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
 ```
 
 `base64` command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping via  `-w 0` argument.  Here is a sample base64 command in Linux.
-``` 
-$  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded 
+```
+$  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded
 ```
 
 Give the secret basename prefixed with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
 
-``` 
+```
 $  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
 ```
 
-When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret 
-only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets). 
+When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
+only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
 
 
 ## Placement Constraints
@@ -386,6 +386,36 @@ Given the above configuration, let's assume `10.0.10.8` is being decommissioned 
 1. Wait for `data-1` to be up and healthy before continuing with any other replacement operations.
 
 The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You'll need to consult the documentation for the service in question, but in theory they should all understand the same set of [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html).
+
+## Integration with DC/OS access controls
+
+In DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/kafka` and `production/kafka`.
+
+Steps:
+
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
+1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
+
+   ```
+   dcos:adminrouter:service:marathon full				
+   dcos:service:marathon:marathon:services:/testing full
+   dcos:adminrouter:ops:mesos full
+   dcos:adminrouter:ops:slave full
+   ```
+1. Install a service (in this example, Kafka) into a folder called `test`. Go to **Catalog**, then search for **beta-kafka**.
+1. Click **CONFIGURE** and change the service name to `/testing/kafka`, then deploy.
+
+   The slashes in your service name are interpreted as folders. You are deploying Kafka in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+
+**Important:**
+- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
+- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
+
+### Interacting with your foldered service
+
+- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/kafka/v1/endpoints`.
 
 # Common operations
 
