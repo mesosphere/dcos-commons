@@ -281,4 +281,5 @@ def _add_last_repo(repo_name, repo_url, prev_version, default_repo_package_name)
 
 
 def _wait_for_new_default_version(prev_version, default_repo_package_name):
-    shakedown.wait_for(lambda: _get_pkg_version(default_repo_package_name) != prev_version, noisy=True)
+    shakedown.wait_for(lambda: _get_pkg_version(default_repo_package_name) != prev_version, noisy=True,
+        sleep_seconds=10, ignore_exceptions=False)

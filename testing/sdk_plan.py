@@ -25,7 +25,7 @@ def get_plan(service_name, plan):
             return output.json()
         except:
             return False
-    return shakedown.wait_for(fn)
+    return shakedown.wait_for(fn, sleep_seconds=10, ignore_exceptions=False)
 
 
 def start_plan(service_name, plan, parameters=None):
@@ -93,7 +93,8 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
             return plan
         else:
             return False
-    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
@@ -106,7 +107,8 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
             return plan
         else:
             return False
-    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
@@ -119,7 +121,8 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
             return plan
         else:
             return False
-    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 def recovery_plan_is_empty(service_name):

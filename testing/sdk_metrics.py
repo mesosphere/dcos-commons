@@ -80,4 +80,4 @@ def wait_for_any_metrics(package_name, service_name, task_name, timeout):
         # there are 2 generic metrics that are always emitted
         return len(service_metrics) > 2
 
-    shakedown.wait_for(metrics_exist, timeout)
+    shakedown.wait_for(metrics_exist, timeout_seconds=timeout, sleep_seconds=10, ignore_exceptions=False)

@@ -44,7 +44,7 @@ def test_deploy():
         return False
 
     try:
-        shakedown.wait_for(lambda: fn(), timeout_seconds=wait_time)
+        shakedown.wait_for(lambda: fn(), timeout_seconds=wait_time, sleep_seconds=10, ignore_exceptions=False)
     except shakedown.TimeoutExpired:
         log.info('Timeout reached as expected')
 

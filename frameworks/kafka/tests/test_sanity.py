@@ -60,7 +60,7 @@ def test_endpoints_address():
         if len(ret['address']) == config.DEFAULT_BROKER_COUNT:
             return ret
         return False
-    endpoints = shakedown.wait_for(fun)
+    endpoints = shakedown.wait_for(fun, sleep_seconds=10, ignore_exceptions=False)
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == config.DEFAULT_BROKER_COUNT
@@ -364,4 +364,4 @@ def test_suppress():
         response.raise_for_status()
         return response.text == "true"
 
-    shakedown.wait_for(fun)
+    shakedown.wait_for(fun, sleep_seconds=10, ignore_exceptions=False)
