@@ -1,4 +1,5 @@
 import pytest
+import sdk_hosts
 import sdk_install
 import sdk_networks
 import sdk_tasks
@@ -19,6 +20,8 @@ def configure_package(configure_security):
         yield # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
+
 
 
 @pytest.fixture(autouse=True)
@@ -84,3 +87,16 @@ def test_endpoints_on_overlay():
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
         specific_endpoint = sdk_networks.get_and_test_endpoints(endpoint, config.PACKAGE_NAME, 3)
         sdk_networks.check_endpoints_on_overlay(specific_endpoint)
+
+
+@pytest.mark.focus
+@pytest.mark.sanity
+@pytest.mark.overlay
+@sdk_utils.dcos_1_9_or_higher
+def test_kibana():
+    url = "http://" + sdk_hosts.vip_host(config.PACKAGE_NAME, "coordinator", 9200)
+    options = {"kibana": {"elasticsearch_url": url}}
+    options.update(sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json=options)
+    shakedown.deployment_wait(app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
+    config.check_kibana_adminrouter_integration("service/{}/".format(config.KIBANA_PACKAGE_NAME))
