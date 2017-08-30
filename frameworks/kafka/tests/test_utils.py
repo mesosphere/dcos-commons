@@ -30,7 +30,7 @@ def broker_count_check(count, service_name=config.SERVICE_NAME):
             pass
         return False
 
-    shakedown.wait_for(fun)
+    shakedown.wait_for(fun, sleep_seconds=10, ignore_exceptions=False)
 
 
 def restart_broker_pods(service_name=config.SERVICE_NAME):

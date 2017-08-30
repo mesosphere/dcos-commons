@@ -62,7 +62,8 @@ def get_name_node_status(svc_name, name_node):
 
         return output.strip()
 
-    return shakedown.wait_for(lambda: get_status(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+    return shakedown.wait_for(lambda: get_status(), timeout_seconds=DEFAULT_HDFS_TIMEOUT,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 def run_hdfs_command(svc_name, command):

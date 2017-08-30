@@ -80,7 +80,9 @@ def install(
             shakedown.wait_for(
                 lambda: sdk_api.is_suppressed(service_name),
                 noisy=True,
-                timeout_seconds=5 * 60)
+                timeout_seconds=5 * 60,
+                sleep_seconds=10,
+                ignore_exceptions=False)
 
     log.info('Installed {}/{} after {}'.format(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))

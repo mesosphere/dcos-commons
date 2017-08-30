@@ -114,4 +114,5 @@ def wait_for_failover_to_complete(namenode):
         status = config.get_name_node_status(config.PACKAGE_NAME, namenode)
         return status == "active"
 
-    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=config.DEFAULT_HDFS_TIMEOUT)
+    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=config.DEFAULT_HDFS_TIMEOUT,
+        sleep_seconds=10, ignore_exceptions=False)

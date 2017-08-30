@@ -95,7 +95,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     log.info(recovery_plan)
     sdk_plan.start_plan(config.PACKAGE_NAME, 'sidecar-toxic')
 
-    shakedown.wait_for(ToxicSidecarCheck(), timeout_seconds=10 * 60)
+    shakedown.wait_for(ToxicSidecarCheck(), timeout_seconds=10 * 60, sleep_seconds=10, ignore_exceptions=False)
 
     # Restart the scheduler and wait for it to come up.
     sdk_marathon.restart_app(config.PACKAGE_NAME)

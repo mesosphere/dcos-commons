@@ -31,7 +31,8 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
             sorted(other_tasks)))
         return len(running_task_names) >= expected_task_count
 
-    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
+    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 def get_task_ids(service_name, task_prefix):
@@ -58,7 +59,8 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
             all_updated = False
         return all_updated
 
-    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
+    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
@@ -85,7 +87,8 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         return exit_status
 
     # might not be able to connect to the agent on first try so we repeat until we can
-    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
+    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
     if exit_status != 0:
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))

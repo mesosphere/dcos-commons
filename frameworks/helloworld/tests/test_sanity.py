@@ -189,7 +189,8 @@ def test_state_properties_get():
         stdout = sdk_cmd.run_cli('hello-world --name={} state properties'.format(FOLDERED_SERVICE_NAME))
         return len(json.loads(stdout)) > 0
 
-    shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30)
+    shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30,
+        sleep_seconds=10, ignore_exceptions=False)
 
     stdout = sdk_cmd.run_cli('hello-world --name={} state properties'.format(FOLDERED_SERVICE_NAME))
     jsonobj = json.loads(stdout)
@@ -232,7 +233,8 @@ def test_state_refresh_disable_cache():
                 return True
         return False
 
-    shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
+    shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.,
+        sleep_seconds=10, ignore_exceptions=False)
 
     marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
     del marathon_config['env']['DISABLE_STATE_CACHE']
@@ -246,7 +248,8 @@ def test_state_refresh_disable_cache():
     def check_cache_refresh():
         return sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
 
-    stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.)
+    stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.,
+        sleep_seconds=10, ignore_exceptions=False)
     assert "Received cmd: refresh" in stdout
 
 
@@ -281,7 +284,7 @@ def test_lock():
         timestamp = marathon_client.get_app(FOLDERED_SERVICE_NAME).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
 
-    shakedown.wait_for(lambda: fn())
+    shakedown.wait_for(lambda: fn(), sleep_seconds=10, ignore_exceptions=False)
 
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)

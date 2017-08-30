@@ -73,7 +73,8 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
         if len(runs) > 0:
             return runs[0]['id']
         return ''
-    run_id = shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
+    run_id = shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
     def fun():
         # catch errors from CLI: ensure that the only error raised is our own:
@@ -93,7 +94,8 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
         if raise_on_failure and run_id in failed_ids:
             raise Exception('Job {} with id {} has failed, exiting early'.format(job_name, run_id))
         return run_id in successful_ids
-    shakedown.wait_for(fun, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
+    shakedown.wait_for(fun, noisy=True, timeout_seconds=timeout_seconds,
+        sleep_seconds=10, ignore_exceptions=False)
 
     return run_id
 

@@ -41,7 +41,7 @@ def configure_package(configure_security):
 def test_canary_init():
     def fn():
         return sdk_cmd.run_cli('hello-world pod list')
-    assert json.loads(shakedown.wait_for(fn, noisy=True)) == []
+    assert json.loads(shakedown.wait_for(fn, noisy=True, sleep_seconds=10, ignore_exceptions=False)) == []
 
     pl = sdk_plan.wait_for_plan_status(config.PACKAGE_NAME, 'deploy', 'WAITING')
     log.info(pl)

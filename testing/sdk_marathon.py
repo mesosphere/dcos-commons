@@ -12,7 +12,7 @@ def get_config(app_name):
     # Be permissive of flakes when fetching the app content:
     def fn():
         return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
-    config = shakedown.wait_for(lambda: fn()).json()['app']
+    config = shakedown.wait_for(lambda: fn(), sleep_seconds=10, ignore_exceptions=False).json()['app']
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to

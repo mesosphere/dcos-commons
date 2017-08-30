@@ -55,7 +55,8 @@ def test_indexing(default_populated_index):
         observed_name = doc["_source"]["name"]
         return observed_name == "Loren"
 
-    return shakedown.wait_for(fun, timeout_seconds=config.DEFAULT_ELASTIC_TIMEOUT)
+    return shakedown.wait_for(fun, timeout_seconds=config.DEFAULT_ELASTIC_TIMEOUT,
+        sleep_seconds=10, ignore_exceptions=False)
 
 
 @pytest.mark.sanity
