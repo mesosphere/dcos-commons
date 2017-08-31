@@ -185,7 +185,13 @@ public class DeploymentStep extends AbstractStep {
             String taskId = entry.getKey().getValue();
             Status status = entry.getValue().getStatus();
             logger.info("TaskId: {} has status: {}", taskId, status);
-            if (!status.equals(Status.COMPLETE)) {
+            // Temporary hack to prove the issue. This doesn't seem like a great
+            // way, or the right place, to detect this state transition.
+            if (status.equals(Status.PENDING)) {
+                if (super.getStatus().equals(Status.STARTING)) {
+                    return status;
+                }
+            } else if (!status.equals(Status.COMPLETE)) {
                 // Keep and log current status
                 return super.getStatus();
             }
