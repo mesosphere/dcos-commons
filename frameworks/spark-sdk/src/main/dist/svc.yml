@@ -1,0 +1,32 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  executor:
+    # Notes from SparkSubmit.scala L150
+    # * Submit the application using the provided parameters.
+    # *
+    # * This runs in two steps. First, we prepare the launch environment by setting up
+    # * the appropriate classpath, system properties, and application arguments for
+    # * running the child main class based on the cluster manager and the deploy mode.
+    # * Second, we use this launch environment to invoke the main method of the child
+    # * main class.
+    count: {{NODE_COUNT}}
+    placement: {{NODE_PLACEMENT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: "/opt/spark/dist/./bin/spark-class org.apache.spark.executor.CoarseGrainedExecutorBackend --driver-url spark://CoarseGrainedScheduler@10.0.0.194:46725 --executor-id 1 --hostname 10.0.3.243 --cores 1 --app-id 067aa22f-fd6b-4465-a48c-c12b3aceb97c-0005-driver-20170830202206-0002"
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+        volume:
+          path: "spark-sdk-container-path"
+          type: {{NODE_DISK_TYPE}}
+          size: {{NODE_DISK}}
+        env:
