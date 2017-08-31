@@ -109,7 +109,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=5000,
-        stop_max_delay=timeout_seconds=1000,
+        stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: res is False)
     def fn():
         plan = get_plan(service_name, plan_name)
