@@ -8,6 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 import logging
 
 import dcos.errors
+import retrying
 import sdk_plan
 import shakedown
 
@@ -17,6 +18,10 @@ log = logging.getLogger(__name__)
 
 
 def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    @retrying.retry(
+        wait_fixed=5000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: res is False)
     def fn():
         try:
             tasks = shakedown.get_service_tasks(service_name)
@@ -37,7 +42,7 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
             sorted(other_tasks)))
         return len(running_task_names) >= expected_task_count
 
-    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
+    fn()
 
 
 def get_task_ids(service_name, task_prefix):
@@ -50,6 +55,10 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
     # TODO: strongly consider merging the use of checking that tasks have been replaced (this method)
     # and checking that the deploy/upgrade/repair plan has completed. Each serves a part in the bigger
     # atomic test, that the plan completed properly where properly includes that no old tasks remain.
+    @retrying.retry(
+        wait_fixed=5000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: res is False)
     def fn():
         try:
             task_ids = get_task_ids(service_name, prefix)
@@ -85,7 +94,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
             old_remaining_set,
             newly_launched_set))
 
-    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
+    fn()
 
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
@@ -99,6 +108,11 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
 
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     exit_status = 0
+
+    @retrying.retry(
+        wait_fixed=5000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: res is False or res is 0)
     def fn():
         command = (
             "sudo kill -9 "
@@ -112,7 +126,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         return exit_status
 
     # might not be able to connect to the agent on first try so we repeat until we can
-    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
+    fn()
 
     if exit_status != 0:
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))

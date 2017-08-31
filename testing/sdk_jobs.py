@@ -12,6 +12,7 @@ import re
 import tempfile
 import traceback
 
+import retrying
 import shakedown
 
 import sdk_cmd
@@ -72,11 +73,27 @@ class InstallJobContext(object):
 def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
-    # start job run, get run ID to be polled against:
-    run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
+    sdk_cmd.run_cli('job run {}'.format(job_name))
 
-    # wait for run to succeed, throw if run fails:
-    def fun():
+    @retrying.retry(
+        wait_fixed=10000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_exception=lambda ex: False,
+        retry_on_result=lambda res: not res)
+    def wait_for_run_id():
+        runs = json.loads(sdk_cmd.run_cli('job show runs {} --json'.format(job_name)))
+        if len(runs) > 0:
+            return runs[0]['id']
+        return ''
+
+    run_id = wait_for_run_id()
+
+    @retrying.retry(
+        wait_fixed=10000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_exception=lambda ex: False,
+        retry_on_result=lambda res: not res)
+    def wait_for_successful_history():
         # catch errors from CLI: ensure that the only error raised is our own:
         try:
             runs = json.loads(sdk_cmd.run_cli(
@@ -94,7 +111,8 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
         if raise_on_failure and run_id in failed_ids:
             raise Exception('Job {} with id {} has failed, exiting early'.format(job_name, run_id))
         return run_id in successful_ids
-    shakedown.wait_for(fun, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
+
+    wait_for_successful_history()
 
     return run_id
 

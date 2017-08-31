@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 '''
 import logging
 
+import retrying
 import shakedown
 
 import sdk_cmd
@@ -14,11 +15,16 @@ import sdk_cmd
 log = logging.getLogger(__name__)
 
 
+@retrying.retry(
+    wait_fixed=10000,
+    stop_max_delay=120000)
+def wait_for_app(app_name):
+    return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
+
+
 def get_config(app_name):
     # Be permissive of flakes when fetching the app content:
-    def fn():
-        return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
-    config = shakedown.wait_for(lambda: fn()).json()['app']
+    config = wait_for_app(app_name).json()['app']
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to

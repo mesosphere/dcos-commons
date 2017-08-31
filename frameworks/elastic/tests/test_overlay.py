@@ -1,4 +1,5 @@
 import pytest
+import retrying
 import sdk_install
 import sdk_networks
 import sdk_tasks
@@ -48,16 +49,16 @@ def test_service_health():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
+@retrying.retry(
+    wait_fixed=10000,
+    stop_max_delay=config.DEFAULT_ELASTIC_TIMEOUT*1000)
 def test_indexing(default_populated_index):
-    def fun():
-        indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
-        observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
-        assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(observed_count)
-        doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
-        observed_name = doc["_source"]["name"]
-        return observed_name == "Loren"
-
-    return shakedown.wait_for(fun, timeout_seconds=config.DEFAULT_ELASTIC_TIMEOUT)
+    indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
+    observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
+    assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(observed_count)
+    doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
+    observed_name = doc["_source"]["name"]
+    assert observed_name == "Loren"
 
 
 @pytest.mark.sanity

@@ -10,6 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 
+import retrying
 import shakedown
 
 import sdk_cmd
@@ -119,3 +120,16 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
             return False
 
     shakedown.wait_for(check_for_service_metrics, timeout)
+
+
+def wait_for_any_metrics(package_name, service_name, task_name, timeout):
+    @retrying.retry(
+        wait_fixed=5000,
+        stop_max_delay=timeout*1000)
+    def wait_for_metrics_to_exist():
+        log.info("verifying metrics exist for {}".format(service_name))
+        service_metrics = get_metrics(package_name, service_name, task_name)
+        # there are 2 generic metrics that are always emitted
+        assert len(service_metrics) > 2
+
+    wait_for_metrics_to_exist()
