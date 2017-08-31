@@ -21,6 +21,7 @@ import org.apache.mesos.Protos;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -294,7 +295,7 @@ public class YAMLToInternalMappers {
 
         Collection<URI> podUris = new ArrayList<>();
         for (String uriStr : rawPod.getUris()) {
-            podUris.add(new URI(uriStr));
+            podUris.addAll(getUris(uriStr));
         }
         builder.uris(podUris);
 
@@ -304,6 +305,27 @@ public class YAMLToInternalMappers {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Converts a comma separated list of URIs to URI objects.
+     */
+    @VisibleForTesting
+    static Collection<URI> getUris(String uriStr) throws URISyntaxException {
+        // Separate comma separated list
+        List<String> uriStrs = Arrays.stream(uriStr.split(","))
+                .map(u -> u.trim())
+                .collect(Collectors.toList());
+
+        Collection<URI> uris = new ArrayList<>();
+        for (String uri : uriStrs) {
+            if (StringUtils.isBlank(uri)) {
+                throw new URISyntaxException(uri, "Blank input string for URI construction detected.");
+            }
+            uris.add(new URI(uri));
+        }
+
+        return uris;
     }
 
     private static TaskSpec convertTask(
