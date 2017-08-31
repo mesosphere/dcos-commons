@@ -117,7 +117,7 @@ Sample JSON options file named `kibana-tls.json`:
 {
     "kibana": {
         "xpack_enabled": true,
-        "elasticsearch_url": "http://coordinator.elastic.l4lb.thisdcos.directory:9200",
+        "elasticsearch_url": "https://coordinator.elastic.l4lb.thisdcos.directory:9200",
         "elasticsearch_tls": true
         ...
     }

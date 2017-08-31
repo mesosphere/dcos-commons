@@ -47,6 +47,9 @@ DEFAULT_SETTINGS_MAPPINGS = {
                 "role": {"type": "keyword"}}}}}
 
 
+ELASTIC_TLS_ENABLED = False
+
+
 def as_json(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -245,8 +248,10 @@ def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME):
 
 
 def _curl_api(service_name, method, role="master"):
-    host = "http://" + sdk_hosts.autoip_host(
-        service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    host = 'http://'
+    if ELASTIC_TLS_ENABLED:
+        host = 'https://'
+    host = host + sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
     return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 
