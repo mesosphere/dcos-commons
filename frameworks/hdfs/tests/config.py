@@ -58,7 +58,8 @@ def get_active_name_node(service_name):
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000)
+    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+    retry_on_results=lambda res: not res)
 def get_name_node_status(service_name, name_node):
     rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
     if not rc:

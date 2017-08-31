@@ -219,9 +219,9 @@ def wait_for_refresh_cache_fails_409conflict():
     """
     try:
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME, 'state refresh_cache')
-    except Exception as e:
-        if "failed: 409 Conflict" in e.args[0]:
+            config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state refresh_cache')
+    except Exception as ex:
+        if "failed: 409 Conflict" in ex.args[0]:
             return True
     return False
 

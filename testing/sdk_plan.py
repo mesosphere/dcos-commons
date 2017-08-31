@@ -94,7 +94,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         wait_fixed=5000,
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: res is False)
-    def fn():
+    def wait_for_status():
         plan = get_plan(service_name, plan_name)
         log.info('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
@@ -103,7 +103,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         else:
             return False
 
-    return fn()
+    return wait_for_status()
 
 
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
