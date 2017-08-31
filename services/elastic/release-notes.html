@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Upgrade</title>
+<title>Elastic: Release Notes</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -323,26 +323,64 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Upgrade</h1>
+<h1>Elastic: Release Notes</h1>
 <div id="content">
-<h1 id="overview">Overview</h1>
-<p>We support upgrade/rollback between adjacent versions only. Concretely, to upgrade from version 2 to version 4, you must upgrade from 2 -&gt; 3, then from 3 -&gt;4.</p>
+<h2 id="version-elastic-200-551">Version elastic-2.0.0-5.5.1</h2>
 
-<h1 id="upgrade-instructions">Upgrade Instructions</h1>
+<h3 id="improvements">Improvements</h3>
+<ul>
+  <li>Default to 0 ingest nodes.</li>
+  <li>Automatic management of gateway settings.</li>
+  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.30.0">dcos-commons 0.30.0</a>.</li>
+</ul>
 
-<ol>
-  <li>In the DC/OS web interface, destroy the Elastic instance to be updated. (This will not kill Elasticsearch node tasks).</li>
-  <li>Verify that you no longer see the Elastic instance in the DC/OS web interface.</li>
-  <li>From the DC/OS CLI, install the N+1 version of Elastic (where N is your current version) with any customizations you require in a JSON options file:</li>
-</ol>
+<h3 id="bug-fixes">Bug Fixes</h3>
+<ul>
+  <li>Numerous fixes and enhancements to service reliability.</li>
+</ul>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install elastic --options<span class="o">=</span>/path/to/options.json
-</code></pre>
-</div>
+<h2 id="version-1015-551-beta">Version 1.0.15-5.5.1-beta</h2>
 
-<p>The command above will trigger the install of the new Elastic version. You can follow the upgrade progress by making a REST request identical to the one used to follow the progress of a configuration upgrade. See the Configuring section for more information.</p>
+<h3 id="improvements-1">Improvements</h3>
+<ul>
+  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.20.1">dcos-commons 0.20.1</a></li>
+  <li>Upgrade to Elastic 5.5.1</li>
+</ul>
 
-<p>Note: The upgrade process will cause all of your Elastic node processes to restart.</p>
+<h2 id="version-1014-541-beta">Version 1.0.14-5.4.1-beta</h2>
+
+<h3 id="new-features">New Features</h3>
+<ul>
+  <li>Installation in folders is supported</li>
+  <li>Use of a CNI network is supported</li>
+</ul>
+
+<h3 id="improvements-2">Improvements</h3>
+<ul>
+  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.20.0">dcos-commons 0.20.0</a></li>
+  <li>Upgrade to Elastic 5.5.0</li>
+  <li>Default user is now <code class="highlighter-rouge">nobody</code></li>
+  <li>Allow configuration of scheduler log level</li>
+  <li>Kibana’s cpu and memory are now configurable</li>
+</ul>
+
+<h3 id="bug-fixes-1">Bug Fixes</h3>
+<ul>
+  <li>Stop downloading Statsd zip file twice</li>
+</ul>
+
+<h2 id="version-1013-541-beta">Version 1.0.13-5.4.1-beta</h2>
+
+<h3 id="new-features-1">New Features</h3>
+<ul>
+  <li>Enabled Elastic framework to work in offline/airgapped cluster (#1091)</li>
+</ul>
+
+<h3 id="upgrades">Upgrades</h3>
+<ul>
+  <li>Upgraded to Elasticsearch and Kibana 5.4.1.</li>
+  <li>Upgraded to dcos-commons-0.18.0.</li>
+</ul>
 
 </div>
 </div>
