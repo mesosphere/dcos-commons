@@ -102,7 +102,7 @@ def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
 
 
 @retrying.retry(
-    wait_fixed=10000
+    wait_fixed=10000,
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000)
 def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
