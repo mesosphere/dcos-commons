@@ -1,4 +1,3 @@
-import json
 import logging
 
 import pytest
@@ -15,31 +14,29 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.PACKAGE_NAME)
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
         log.info("Ensure elasticsearch and kibana are uninstalled...")
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME,
-                              package_name=config.PACKAGE_NAME)
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
         sdk_upgrade.test_upgrade(
-            "beta-{}".format(config.PACKAGE_NAME),
             config.PACKAGE_NAME,
+            FOLDERED_SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options={"service": {"name": FOLDERED_SERVICE_NAME},
-                                "ingest_nodes": {"count": 1}})
+            additional_options={
+                "service": {"name": FOLDERED_SERVICE_NAME},
+                "ingest_nodes": {"count": 1} })
 
         yield  # let the test session execute
     finally:
         log.info("Clean up elasticsearch and kibana...")
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME,
-                              package_name=config.PACKAGE_NAME)
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
 
 @pytest.fixture(autouse=True)
@@ -68,13 +65,12 @@ def test_service_health():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
-        endpoints = json.loads(cmd.run_cli(
-            'elastic --name={} endpoints {}'.format(FOLDERED_SERVICE_NAME, endpoint)))
-        host = endpoint.split('-')[0]  # 'coordinator-http' => 'coordinator'
-        assert endpoints['dns'][0].startswith(
-            sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, host + '-0-node'))
-        assert endpoints['vip'].startswith(
-            sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, host))
+        endpoints = cmd.svc_cli(
+            config.PACKAGE_NAME, FOLDERED_SERVICE_NAME,
+            'endpoints {}'.format(endpoint), json=True)
+        host = endpoint.split('-')[0] # 'coordinator-http' => 'coordinator'
+        assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, host + '-0-node'))
+        assert endpoints['vip'].startswith(sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, host))
 
 
 @pytest.mark.sanity
@@ -116,7 +112,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.check_kibana_adminrouter_integration(
         "service/{}/".format(config.KIBANA_PACKAGE_NAME))
     log.info("Uninstall kibana with X-Pack disabled")
-    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
+    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
     log.info("\n***** Set/verify X-Pack enabled in elasticsearch")
     config.enable_xpack(service_name=FOLDERED_SERVICE_NAME)
@@ -146,7 +142,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.check_kibana_adminrouter_integration(
         "service/{}/login".format(config.KIBANA_PACKAGE_NAME))
     log.info("\n***** Uninstall kibana with X-Pack enabled")
-    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
+    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
     log.info("\n***** Disable X-Pack in elasticsearch.")
     config.disable_xpack(service_name=FOLDERED_SERVICE_NAME)
@@ -190,10 +186,8 @@ def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
     master_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'master-0')
-    cmd.run_cli(
-        'elastic --name={} pod replace master-0'.format(FOLDERED_SERVICE_NAME))
-    sdk_tasks.check_tasks_updated(
-        FOLDERED_SERVICE_NAME, 'master-0', master_ids)
+    cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod replace master-0')
+    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'master-0', master_ids)
     # pre_test_setup will verify that the cluster becomes healthy again.
 
 

@@ -15,9 +15,14 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs()
-        sdk_install.uninstall(config.PACKAGE_NAME)
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
+            config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
@@ -27,7 +32,7 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -38,7 +43,7 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_service_overlay_health():
-    shakedown.service_healthy(config.PACKAGE_NAME)
+    shakedown.service_healthy(config.SERVICE_NAME)
     node_tasks = (
         "node-0-server",
         "node-1-server",
@@ -66,19 +71,19 @@ def test_functionality():
                 config.get_verify_deletion_job()
             ]):
 
-        sdk_plan.start_plan(config.PACKAGE_NAME, 'cleanup', parameters=parameters)
-        sdk_plan.wait_for_completed_plan(config.PACKAGE_NAME, 'cleanup')
+        sdk_plan.start_plan(config.SERVICE_NAME, 'cleanup', parameters=parameters)
+        sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'cleanup')
 
-        sdk_plan.start_plan(config.PACKAGE_NAME, 'repair', parameters=parameters)
-        sdk_plan.wait_for_completed_plan(config.PACKAGE_NAME, 'repair')
+        sdk_plan.start_plan(config.SERVICE_NAME, 'repair', parameters=parameters)
+        sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'repair')
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints():
-    endpoints = sdk_networks.get_and_test_endpoints("", config.PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "native-client"
+    # tests that the correct number of endpoints are found, should just be "native-client":
+    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)
     assert "native-client" in endpoints, "Cassandra endpoints should contain only 'native-client', got {}".format(endpoints)
-    endpoints = sdk_networks.get_and_test_endpoints("native-client", config.PACKAGE_NAME, 2)
-    assert "address" in endpoints, "Endpoints missing address key"
+    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 2)
     sdk_networks.check_endpoints_on_overlay(endpoints)

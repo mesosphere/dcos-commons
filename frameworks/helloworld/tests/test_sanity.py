@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 
@@ -13,7 +12,7 @@ import sdk_utils
 import shakedown
 from tests import config
 
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.PACKAGE_NAME)
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 log = logging.getLogger(__name__)
 
@@ -21,20 +20,16 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
-
-        service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
-
+        sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
-            config.PACKAGE_NAME,
+            FOLDERED_SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options=service_config)
+            additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}})
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
 
 def close_enough(val0, val1):
@@ -54,21 +49,21 @@ def test_install():
 def test_mesos_v1_api():
     # Install Hello World using the v1 api.
     # Then, clean up afterwards.
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,
+        FOLDERED_SERVICE_NAME,
         config.DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "mesos_api_version": "V1"}}
     )
     config.check_running(FOLDERED_SERVICE_NAME)
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME)
 
     # reinstall the v0 version for the following tests
     sdk_install.install(
         config.PACKAGE_NAME,
+        FOLDERED_SERVICE_NAME,
         config.DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
         additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
 
 
@@ -126,8 +121,7 @@ def test_bump_hello_nodes():
 
 @pytest.mark.sanity
 def test_pod_list():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod list'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod list', json=True)
     assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
@@ -145,8 +139,7 @@ def test_pod_list():
 
 @pytest.mark.sanity
 def test_pod_status_all():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod status'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status', json=True)
     assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
     for k, v in jsonobj.items():
         assert re.match('(hello|world)-[0-9]+', k)
@@ -160,8 +153,7 @@ def test_pod_status_all():
 
 @pytest.mark.sanity
 def test_pod_status_one():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod status hello-0'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod status hello-0', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 3
@@ -172,12 +164,11 @@ def test_pod_status_one():
 
 @pytest.mark.sanity
 def test_pod_info():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod info world-1'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'pod info hello-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
-    assert task['info']['name'] == 'world-1-server'
+    assert task['info']['name'] == 'hello-1-server'
     assert task['info']['taskId']['value'] == task['status']['taskId']['value']
     assert task['status']['state'] == 'TASK_RUNNING'
 
@@ -186,13 +177,12 @@ def test_pod_info():
 def test_state_properties_get():
     # 'suppressed' could be missing if the scheduler recently started, loop for a bit just in case:
     def check_for_nonempty_properties():
-        stdout = sdk_cmd.run_cli('hello-world --name={} state properties'.format(FOLDERED_SERVICE_NAME))
-        return len(json.loads(stdout)) > 0
+        jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state properties', json=True)
+        return len(jsonobj) > 0
 
     shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30)
 
-    stdout = sdk_cmd.run_cli('hello-world --name={} state properties'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state properties', json=True)
     assert len(jsonobj) == 6
     # alphabetical ordering:
     assert jsonobj[0] == "hello-0-server:task-status"
@@ -202,7 +192,7 @@ def test_state_properties_get():
     assert jsonobj[4] == "world-0-server:task-status"
     assert jsonobj[5] == "world-1-server:task-status"
 
-    stdout = sdk_cmd.run_cli('hello-world --name={} state property suppressed'.format(FOLDERED_SERVICE_NAME))
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state property suppressed')
     assert stdout == "true\n"
 
 
@@ -213,7 +203,7 @@ def test_state_refresh_disable_cache():
     task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, '')
 
     # caching enabled by default:
-    stdout = sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state refresh_cache')
     assert "Received cmd: refresh" in stdout
 
     marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
@@ -226,7 +216,7 @@ def test_state_refresh_disable_cache():
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     def check_cache_refresh_fails_409conflict():
         try:
-            sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
+            sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state refresh_cache')
         except Exception as e:
             if "failed: 409 Conflict" in e.args[0]:
                 return True
@@ -244,7 +234,7 @@ def test_state_refresh_disable_cache():
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
-        return sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
+        return sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state refresh_cache')
 
     stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.)
     assert "Received cmd: refresh" in stdout

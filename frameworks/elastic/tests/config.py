@@ -12,7 +12,9 @@ import sdk_tasks
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'elastic'
+PACKAGE_NAME = 'beta-elastic'
+SERVICE_NAME = 'elastic'
+
 KIBANA_PACKAGE_NAME = 'kibana'
 
 DEFAULT_TASK_COUNT = 7
@@ -68,7 +70,7 @@ def check_kibana_adminrouter_integration(path):
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_KIBANA_TIMEOUT, noisy=True)
 
 
-def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAME):
+def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
     def fun():
         result = _get_elasticsearch_index_health(curl_api, index_name)
@@ -77,7 +79,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAM
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
-def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME, task_count=DEFAULT_TASK_COUNT):
+def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     curl_api = _curl_api(service_name, "GET")
     def expected_nodes():
         result = _get_elasticsearch_cluster_health(curl_api)
@@ -90,7 +92,7 @@ def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME, task_count=DEFAU
     return shakedown.wait_for(expected_nodes, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
-def check_plugin_installed(plugin_name, service_name=PACKAGE_NAME):
+def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
     def fun():
         result = _get_hosts_with_plugin(curl_api, plugin_name)
@@ -99,7 +101,7 @@ def check_plugin_installed(plugin_name, service_name=PACKAGE_NAME):
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
-def check_plugin_uninstalled(plugin_name, service_name=PACKAGE_NAME):
+def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
     def fun():
         result = _get_hosts_with_plugin(curl_api, plugin_name)
@@ -116,7 +118,7 @@ def _get_hosts_with_plugin(curl_api, plugin_name):
         return None
 
 
-def get_elasticsearch_master(service_name=PACKAGE_NAME):
+def get_elasticsearch_master(service_name=SERVICE_NAME):
     # just in case, re-fetch the _curl_api in case the elasticsearch master is moved:
     def get_master():
         exit_status, output = shakedown.run_command_on_master(
@@ -129,7 +131,7 @@ def get_elasticsearch_master(service_name=PACKAGE_NAME):
     return shakedown.wait_for(get_master)
 
 
-def verify_commercial_api_status(is_enabled, service_name=PACKAGE_NAME):
+def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     query = {
         "query": {
             "match": {
@@ -157,11 +159,11 @@ def verify_commercial_api_status(is_enabled, service_name=PACKAGE_NAME):
         assert response["status"] == 400
 
 
-def enable_xpack(service_name=PACKAGE_NAME):
+def enable_xpack(service_name=SERVICE_NAME):
     _set_xpack(service_name, "true")
 
 
-def disable_xpack(service_name=PACKAGE_NAME):
+def disable_xpack(service_name=SERVICE_NAME):
     _set_xpack(service_name, "false")
 
 
@@ -173,7 +175,7 @@ def _set_xpack(service_name, is_enabled):
     sdk_tasks.check_running(service_name, DEFAULT_TASK_COUNT)
 
 
-def verify_xpack_license(service_name=PACKAGE_NAME):
+def verify_xpack_license(service_name=SERVICE_NAME):
     xpack_license = get_xpack_license(service_name)
     assert xpack_license["license"]["status"] == "active"
 
@@ -191,42 +193,42 @@ def _get_elasticsearch_cluster_health(curl_api):
 
 
 @as_json
-def get_elasticsearch_indices_stats(index_name, service_name=PACKAGE_NAME):
+def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/_stats'".format(_curl_api(service_name, "GET"), index_name))
     return output
 
 
 @as_json
-def create_index(index_name, params, service_name=PACKAGE_NAME):
+def create_index(index_name, params, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}' -d '{}'".format(_curl_api(service_name, "PUT"), index_name, json.dumps(params)))
     return output
 
 
 @as_json
-def graph_api(index_name, query, service_name=PACKAGE_NAME):
+def graph_api(index_name, query, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/_graph/explore' -d '{}'".format(_curl_api(service_name, "POST"), index_name, json.dumps(query)))
     return output
 
 
 @as_json
-def get_xpack_license(service_name=PACKAGE_NAME):
+def get_xpack_license(service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/_xpack/license'".format(_curl_api(service_name, "GET")))
     return output
 
 
 @as_json
-def delete_index(index_name, service_name=PACKAGE_NAME):
+def delete_index(index_name, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}'".format(_curl_api(service_name, "DELETE"), index_name))
     return output
 
 
 @as_json
-def create_document(index_name, index_type, doc_id, params, service_name=PACKAGE_NAME):
+def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/{}/{}?refresh=wait_for' -d '{}'".format(
             _curl_api(service_name, "PUT"), index_name, index_type, doc_id, json.dumps(params)))
@@ -234,7 +236,7 @@ def create_document(index_name, index_type, doc_id, params, service_name=PACKAGE
 
 
 @as_json
-def get_document(index_name, index_type, doc_id, service_name=PACKAGE_NAME):
+def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/{}/{}'".format(_curl_api(service_name, "GET"), index_name, index_type, doc_id))
     return output
@@ -246,10 +248,8 @@ def _curl_api(service_name, method, role="master"):
 
 
 def _master_zero_http_port(service_name):
-    dns = json.loads(sdk_cmd.run_cli(
-        '{} --name={} endpoints master-http'.format(PACKAGE_NAME, service_name),
-        print_output=False))['dns']
-    # 'dns' array will initially look something like this in CCM: [
+    dns = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'endpoints master-http', json=True, print_output=False)['dns']
+    # 'dns' array will look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
     #   "master-1-node.elastic.[...]:1025",
     #   "master-2-node.elastic.[...]:1025"

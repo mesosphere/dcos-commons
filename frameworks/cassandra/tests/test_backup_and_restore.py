@@ -5,7 +5,6 @@ import uuid
 import pytest
 import sdk_install
 import sdk_jobs
-import sdk_utils
 from tests import config
 
 
@@ -17,12 +16,16 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
-        sdk_install.uninstall(config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         # user=root because Azure CLI needs to run in root...
         sdk_install.install(
             config.PACKAGE_NAME,
+            config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            service_name=config.get_foldered_service_name(),
             additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root" } })
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
@@ -31,7 +34,7 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         # remove job definitions from metronome
         for job in test_jobs:
