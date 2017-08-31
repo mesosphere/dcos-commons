@@ -40,7 +40,7 @@ for framework in $FRAMEWORK_LIST; do
 
     if [ -z "$STUB_UNIVERSE_URL" ]; then
         echo "Starting build for $framework at "`date`
-        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/$framework-universe-url
+        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/${framework}-universe-url
         ${FRAMEWORK_DIR}/build.sh aws
         if [ ! -f "$UNIVERSE_URL_PATH" ]; then
             echo "Missing universe URL file: $UNIVERSE_URL_PATH"

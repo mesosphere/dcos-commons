@@ -43,10 +43,7 @@ def get_metrics(package_name, service_name, task_name):
     # the name of the pod from the task name to not break the code when the
     # above comment-block is uncommented
     pod_name = '-'.join(task_name.split("-")[:2])
-    raw_pod_info = sdk_cmd.run_cli("{} --name={} pod info {}".format(
-        package_name, service_name, pod_name)
-    )
-    pod_info = json.loads(raw_pod_info)
+    pod_info = sdk_cmd.svc_cli(package_name, service_name, "pod info {}".format(pod_name), json=True)
     task_info = None
     for task in pod_info:
         if task["info"]["name"] == task_name:

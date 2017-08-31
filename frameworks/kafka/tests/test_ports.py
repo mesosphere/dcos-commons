@@ -1,9 +1,10 @@
 import pytest
+
+import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_utils as utils
-from tests import config, test_utils
+from tests import config
 
 STATIC_PORT_OPTIONS_DICT = {"brokers": {"port": 9092}}
 DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
@@ -12,30 +13,30 @@ DYNAMIC_PORT_OPTIONS_DICT = {"brokers": {"port": 0}}
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.SERVICE_NAME, config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(config.SERVICE_NAME, config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 def test_dynamic_port_comes_online():
     sdk_install.install(
         config.PACKAGE_NAME,
+        config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,
-        service_name=config.SERVICE_NAME,
         additional_options=DYNAMIC_PORT_OPTIONS_DICT)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
-    sdk_install.uninstall(config.SERVICE_NAME, config.PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 def test_static_port_comes_online():
     sdk_install.install(
         config.PACKAGE_NAME,
+        config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,
-        service_name=config.SERVICE_NAME,
         additional_options=STATIC_PORT_OPTIONS_DICT)
 
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
@@ -51,10 +52,10 @@ def test_port_static_to_static_port():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
 
     for broker_id in range(config.DEFAULT_BROKER_COUNT):
-        result = test_utils.service_cli('broker get {}'.format(broker_id))
+        result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'broker get {}'.format(broker_id), json=True)
         assert result['port'] == 9092
 
-    result = test_utils.service_cli('endpoints broker')
+    result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints broker', json=True)
     assert len(result['address']) == config.DEFAULT_BROKER_COUNT
     assert len(result['dns']) == config.DEFAULT_BROKER_COUNT
 
@@ -70,7 +71,7 @@ def test_port_static_to_static_port():
     # all tasks are running
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
 
-    result = test_utils.service_cli('endpoints broker')
+    result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints broker', json=True)
     assert len(result['address']) == config.DEFAULT_BROKER_COUNT
     assert len(result['dns']) == config.DEFAULT_BROKER_COUNT
 
@@ -95,10 +96,10 @@ def test_port_static_to_dynamic_port():
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
 
     for broker_id in range(config.DEFAULT_BROKER_COUNT):
-        result = test_utils.service_cli('broker get {}'.format(broker_id))
+        result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'broker get {}'.format(broker_id), json=True)
         assert result['port'] != 9092
 
-    result = test_utils.service_cli('endpoints broker')
+    result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints broker', json=True)
     assert len(result['address']) == config.DEFAULT_BROKER_COUNT
     assert len(result['dns']) == config.DEFAULT_BROKER_COUNT
 
@@ -137,10 +138,10 @@ def test_can_adjust_config_from_dynamic_to_static_port():
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
 
     for broker_id in range(config.DEFAULT_BROKER_COUNT):
-        result = test_utils.service_cli('broker get {}'.format(broker_id))
+        result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'broker get {}'.format(broker_id), json=True)
         assert result['port'] == 9092
 
-    result = test_utils.service_cli('endpoints broker')
+    result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints broker', json=True)
     assert len(result['address']) == config.DEFAULT_BROKER_COUNT
     assert len(result['dns']) == config.DEFAULT_BROKER_COUNT
 

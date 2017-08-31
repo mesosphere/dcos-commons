@@ -18,24 +18,21 @@ def list_reserved_resources():
         reserved_resources = slave['reserved_resources']
         if reserved_resources == {}:
             continue
-        msg = "on slaveid=%s hostname=%s reserved resources: %s"
+        msg = 'on slaveid=%s hostname=%s reserved resources: %s'
         log.info(msg % (slave['id'], slave['hostname'], reserved_resources))
 
 
 def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if dcos_version_less_than("1.10"):
+    if dcos_version_less_than('1.10'):
         return service_name
-    return "/test/integration/" + service_name
+    return '/test/integration/' + service_name
 
 
 def get_zk_path(service_name):
-    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
-    # group names
-    if dcos_version_less_than("1.10"):
-        return service_name
-    return "test__integration__" + service_name
+    # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'
+    return 'dcos-service-{}'.format(service_name.lstrip('/').replace('/', '__'))
 
 
 @functools.lru_cache()

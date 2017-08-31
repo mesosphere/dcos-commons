@@ -1,4 +1,3 @@
-import json
 import tempfile
 
 import pytest
@@ -18,15 +17,16 @@ from tests import config
 def configure_package(configure_security):
     test_jobs = []
     try:
-        test_jobs = config.get_all_jobs(
-            node_address=config.get_foldered_node_address())
-        sdk_install.uninstall(
-            config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         sdk_upgrade.test_upgrade(
-            "beta-{}".format(config.PACKAGE_NAME),
             config.PACKAGE_NAME,
+            config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            service_name=config.get_foldered_service_name(),
             additional_options={"service": {"name": config.get_foldered_service_name()}})
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
@@ -35,8 +35,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(
-            config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -51,8 +50,9 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = json.loads(cmd.run_cli(
-        'cassandra --name={} endpoints native-client'.format(config.get_foldered_service_name())))
+    endpoints = cmd.svc_cli(
+        config.PACKAGE_NAME, config.get_foldered_service_name(),
+        'endpoints native-client', json=True)
     assert endpoints['dns'][0] == sdk_hosts.autoip_host(
         config.get_foldered_service_name(), 'node-0-server', 9042)
     assert not 'vip' in endpoints
@@ -78,13 +78,13 @@ def test_repair_cleanup_plans_complete():
                     node_address=config.get_foldered_node_address())
             ]):
 
-        sdk_plan.start_plan(config.get_foldered_service_name(),
-                            'cleanup', parameters=parameters)
+        sdk_plan.start_plan(
+            config.get_foldered_service_name(), 'cleanup', parameters=parameters)
         sdk_plan.wait_for_completed_plan(
             config.get_foldered_service_name(), 'cleanup')
 
-        sdk_plan.start_plan(config.get_foldered_service_name(),
-                            'repair', parameters=parameters)
+        sdk_plan.start_plan(
+            config.get_foldered_service_name(), 'repair', parameters=parameters)
         sdk_plan.wait_for_completed_plan(
             config.get_foldered_service_name(), 'repair')
 
