@@ -1,16 +1,13 @@
 package com.mesosphere.sdk.template.scheduler;
 
-import com.mesosphere.sdk.testing.BaseServiceSpecTest;
 import org.junit.Test;
 
-public class ServiceSpecTest extends BaseServiceSpecTest {
+import com.mesosphere.sdk.testing.ServiceSpecTestUtils;
 
-    public ServiceSpecTest() {
-        super();
-    }
+public class ServiceSpecTest {
 
     @Test
-    public void testYmlBase() throws Exception {
-        testYaml("svc.yml");
+    public void testSpec() throws Exception {
+        ServiceSpecTestUtils.test();
     }
 }

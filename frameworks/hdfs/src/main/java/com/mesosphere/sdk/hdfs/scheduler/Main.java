@@ -20,8 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,18 +37,19 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
-
-            new DefaultService(getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
+            new DefaultService(getBuilder(new File(args[0]))).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
         }
     }
 
-    private static DefaultScheduler.Builder getBuilder(RawServiceSpec rawServiceSpec)
+    private static DefaultScheduler.Builder getBuilder(File pathToYamlSpecification)
             throws Exception {
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
+        File configDir = pathToYamlSpecification.getParentFile();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .build();
@@ -59,20 +58,18 @@ public class Main {
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec);
         return builder
-                .setEndpointProducer(HDFS_SITE_XML,
-                        EndpointProducer.constant(renderTemplate(HDFS_SITE_XML, serviceSpec.getName())))
-                .setEndpointProducer(CORE_SITE_XML,
-                        EndpointProducer.constant(renderTemplate(CORE_SITE_XML, serviceSpec.getName())));
+                .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
+                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
+                .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())));
     }
 
-    private static String renderTemplate(String filename, String serviceName) {
-        String pathStr = System.getProperty("user.dir") + "/hdfs-scheduler/" + filename;
-        Path path = Paths.get(pathStr);
+    private static String renderTemplate(File configFile, String serviceName) {
         byte[] bytes;
         try {
-            bytes = Files.readAllBytes(path);
+            bytes = Files.readAllBytes(configFile.toPath());
         } catch (IOException e) {
-            String error = String.format("Failed to render %s", pathStr);
+            String error = String.format("Failed to read %s", configFile.getAbsolutePath());
             LOGGER.error(error, e);
             return error;
         }
@@ -86,7 +83,8 @@ public class Main {
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
-        return TemplateUtils.applyEnvToMustache(pathStr, fileStr, env, TemplateUtils.MissingBehavior.EXCEPTION);
+        return TemplateUtils.applyEnvToMustache(
+                configFile.getName(), fileStr, env, TemplateUtils.MissingBehavior.EXCEPTION);
     }
 
 

@@ -59,8 +59,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -121,8 +121,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -183,8 +183,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5
@@ -245,8 +245,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
           interval: 5

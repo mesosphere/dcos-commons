@@ -11,37 +11,45 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.testing.BaseServiceSpecTest;
+import com.mesosphere.sdk.testing.ServiceRenderUtils;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * This class tests Cassandra's custom replacement of nodes.
  */
-public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
+public class CassandraRecoveryPlanOverriderTest {
+    private final RawServiceSpec rawSpec;
+    private final ServiceSpec serviceSpec;
+
     private CassandraRecoveryPlanOverrider planOverrider;
     private StateStore stateStore;
 
-    public CassandraRecoveryPlanOverriderTest() {
-        super();
+    public CassandraRecoveryPlanOverriderTest() throws Exception {
+        Map<String, String> schedulerEnvironment = ServiceRenderUtils.renderSchedulerEnvironment(Collections.emptyMap());
+        File specFile = ServiceRenderUtils.getDistFile("svc.yml");
+        rawSpec = ServiceRenderUtils.getRawServiceSpec(specFile, schedulerEnvironment);
+        serviceSpec = ServiceRenderUtils.getServiceSpec(rawSpec, schedulerEnvironment, specFile.getParentFile());
     }
 
     @Before
     public void beforeEach() throws Exception {
-        super.beforeEach();
         stateStore = new StateStore(new MemPersister());
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(getServiceSpec()),
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec),
                 new MemPersister());
-        UUID targetConfig = configStore.store(getServiceSpec());
+        UUID targetConfig = configStore.store(serviceSpec);
         configStore.setTargetConfig(targetConfig);
-        planOverrider = new CassandraRecoveryPlanOverrider(stateStore, getReplacePlan(stateStore, configStore));
+        planOverrider = new CassandraRecoveryPlanOverrider(stateStore, getReplacePlan(configStore));
     }
 
     @Test
@@ -104,14 +112,6 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
                 .build();
     }
 
-    private ServiceSpec getServiceSpec() throws Exception {
-        return getServiceSpec("svc.yml");
-    }
-
-    private RawServiceSpec getRawServiceSpec() throws Exception {
-        return getRawServiceSpec("svc.yml");
-    }
-
     private PodInstanceRequirement getRestartPodInstanceRequirement(int nodeIndex) throws Exception {
         return getPodInstanceRequirement(nodeIndex, RecoveryType.TRANSIENT);
     }
@@ -121,18 +121,15 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
     }
 
     private PodInstanceRequirement getPodInstanceRequirement(int nodeIndex, RecoveryType recoveryType) throws Exception {
-        PodSpec podSpec = getServiceSpec().getPods().get(0);
+        PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, nodeIndex);
         return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("server"))
                 .recoveryType(recoveryType)
                 .build();
     }
 
-    private Plan getReplacePlan(StateStore stateStore, ConfigStore<ServiceSpec> configStore) throws Exception {
-        final String REPLACE_PLAN_NAME = "replace";
-        return new DefaultPlanGenerator(configStore, stateStore).generate(
-                getRawServiceSpec().getPlans().get(REPLACE_PLAN_NAME),
-                REPLACE_PLAN_NAME,
-                getServiceSpec().getPods());
+    private Plan getReplacePlan(ConfigStore<ServiceSpec> configStore) throws Exception {
+        return new DefaultPlanGenerator(configStore, stateStore)
+                .generate(rawSpec.getPlans().get("replace"), "replace", serviceSpec.getPods());
     }
 }

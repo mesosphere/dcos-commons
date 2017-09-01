@@ -35,12 +35,12 @@ public class RawServiceSpec {
             YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
         }
 
-        private final String yamlTemplate;
+        private final File pathToYamlTemplate;
         private Map<String, String> env;
 
-        private Builder(String yamlTemplate, Map<String, String> env) {
-            this.yamlTemplate = yamlTemplate;
-            this.env = env;
+        private Builder(File pathToYamlTemplate) {
+            this.pathToYamlTemplate = pathToYamlTemplate;
+            this.env = System.getenv();
         }
 
         /**
@@ -60,8 +60,11 @@ public class RawServiceSpec {
             // We allow missing values. For example, the service principal may be left empty, in which case we use a
             // reasonable default principal.
             String yamlWithEnv = TemplateUtils.applyEnvToMustache(
-                    "rawServiceSpec", yamlTemplate, env, TemplateUtils.MissingBehavior.EMPTY_STRING);
-            LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
+                    pathToYamlTemplate.getName(),
+                    FileUtils.readFileToString(pathToYamlTemplate, StandardCharsets.UTF_8),
+                    env,
+                    TemplateUtils.MissingBehavior.EMPTY_STRING);
+            LOGGER.info("Rendered ServiceSpec from {}:\n{}", pathToYamlTemplate.getAbsolutePath(), yamlWithEnv);
             if (!TemplateUtils.isMustacheFullyRendered(yamlWithEnv)) {
                 throw new IllegalStateException("YAML contains unsubstitued variables.");
             }
@@ -76,11 +79,7 @@ public class RawServiceSpec {
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
 
     public static Builder newBuilder(File pathToYamlTemplate) throws IOException {
-        return newBuilder(FileUtils.readFileToString(pathToYamlTemplate, StandardCharsets.UTF_8));
-    }
-
-    public static Builder newBuilder(String yamlTemplate) {
-        return new Builder(yamlTemplate, System.getenv());
+        return new Builder(pathToYamlTemplate);
     }
 
     @JsonCreator

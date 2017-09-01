@@ -36,9 +36,15 @@ public class YAMLToInternalMappers {
      * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
      */
     @VisibleForTesting
-    public static class FileReader {
-        public String read(String path) throws IOException {
-            return FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
+    public static class ConfigTemplateReader {
+        private final File templateDir;
+
+        public ConfigTemplateReader(File templateDir) {
+            this.templateDir = templateDir;
+        }
+
+        public String read(String templateFileName) throws IOException {
+            return FileUtils.readFileToString(new File(templateDir, templateFileName), StandardCharsets.UTF_8);
         }
     }
 
@@ -46,14 +52,14 @@ public class YAMLToInternalMappers {
      * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
      *
      * @param rawServiceSpec the raw service specification representing a YAML file
-     * @param fileReader the file reader to be used for reading template files, allowing overrides for testing
+     * @param configTemplateReader the file reader to be used for reading template files, allowing overrides for testing
      * @throws Exception if the conversion fails
      */
     public static DefaultServiceSpec convertServiceSpec(
             RawServiceSpec rawServiceSpec,
             SchedulerFlags schedulerFlags,
             TaskEnvRouter taskEnvRouter,
-            FileReader fileReader) throws Exception {
+            ConfigTemplateReader configTemplateReader) throws Exception {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
         verifyDistinctEndpointNames(rawServiceSpec.getPods().values());
 
@@ -77,7 +83,7 @@ public class YAMLToInternalMappers {
             RawPod rawPod = entry.getValue();
             pods.add(convertPod(
                     rawPod,
-                    fileReader,
+                    configTemplateReader,
                     podName,
                     taskEnvRouter.getConfig(podName),
                     getRole(rawPod.getPreReservedRole(), role),
@@ -177,7 +183,7 @@ public class YAMLToInternalMappers {
 
     private static PodSpec convertPod(
             RawPod rawPod,
-            FileReader fileReader,
+            ConfigTemplateReader configTemplateReader,
             String podName,
             Map<String, String> additionalEnv,
             String role,
@@ -281,7 +287,7 @@ public class YAMLToInternalMappers {
         for (Map.Entry<String, RawTask> entry : rawPod.getTasks().entrySet()) {
             taskSpecs.add(convertTask(
                     entry.getValue(),
-                    fileReader,
+                    configTemplateReader,
                     entry.getKey(),
                     additionalEnv,
                     resourceSets,
@@ -308,14 +314,14 @@ public class YAMLToInternalMappers {
 
     private static TaskSpec convertTask(
             RawTask rawTask,
-            FileReader fileReader,
+            ConfigTemplateReader configTemplateReader,
             String taskName,
             Map<String, String> additionalEnv,
             Collection<ResourceSet> resourceSets,
             String role,
             String preReservedRole,
             String principal,
-            Collection<String> networkNames) throws Exception {
+            Collection<String> networkNames) throws IOException {
 
         DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(additionalEnv)
                 .environment(rawTask.getEnv())
@@ -327,7 +333,7 @@ public class YAMLToInternalMappers {
                 configFiles.add(new DefaultConfigFileSpec(
                         configEntry.getKey(),
                         configEntry.getValue().getDest(),
-                        fileReader.read(configEntry.getValue().getTemplate())));
+                        configTemplateReader.read(configEntry.getValue().getTemplate())));
             }
         }
 

@@ -60,19 +60,19 @@ pods:
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
+            template: cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
           jvm:
-            template: {{CONFIG_TEMPLATE_PATH}}/jvm_{{CASSANDRA_HEAP_GC}}.options
+            template: jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
           metrics:
-            template: {{CONFIG_TEMPLATE_PATH}}/metrics-reporter-config.yaml
+            template: metrics-reporter-config.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
           rack:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra-rackdc.properties
+            template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
           s3:
-            template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
+            template: s3config.json
             dest: s3config.json
         readiness-check:
           cmd: >

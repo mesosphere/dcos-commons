@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.cassandra.scheduler;
+package com.mesosphere.sdk.elastic.scheduler;
 
 import org.junit.Test;
 

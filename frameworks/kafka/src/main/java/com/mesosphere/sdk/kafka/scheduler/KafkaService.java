@@ -44,7 +44,7 @@ public class KafkaService extends DefaultService {
         LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
 
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
                         .setAllPodsEnv(KAFKA_ZK_URI_ENV, kafkaZookeeperUri)
                         .build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
