@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Kafka: Limitations</title>
+<title>Cassandra: Release Notes</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -325,27 +325,78 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Kafka: Limitations</h1>
+<h1>Cassandra: Release Notes</h1>
 <div id="content">
-<h2 id="configurations">Configurations</h2>
+<h2 id="version-1032-3014-beta">Version 1.0.32-3.0.14-beta</h2>
 
-<p>The “disk” configuration value is denominated in MB. We recommend you set the configuration value <code class="highlighter-rouge">log_retention_bytes</code> to a value smaller than the indicated “disk” configuration. See the Configuring section for instructions for customizing these values.</p>
+<h3 id="improvements">Improvements</h3>
+<ul>
+  <li>Documentation updates to production guidelines.</li>
+  <li>Update Cassandra to 3.0.14.</li>
+  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.30.0">dcos-commons 0.30.0</a>.</li>
+</ul>
 
-<h2 id="managing-configurations-outside-of-the-service">Managing Configurations Outside of the Service</h2>
+<h3 id="bug-fixes">Bug Fixes</h3>
+<ul>
+  <li>Numerous fixes and enhancements to service reliability.</li>
+</ul>
 
-<p>The Kafka service’s core responsibility is to deploy and maintain the deployment of a Kafka cluster whose configuration has been specified. In order to do this, the service assumes that it has ownership of broker configuration. If an end-user makes modifications to individual brokers through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. If a broker crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band. If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.</p>
+<h2 id="version-1031-3013-beta">Version 1.0.31-3.0.13-beta</h2>
 
-<h2 id="brokers">Brokers</h2>
+<h3 id="new-features">New Features</h3>
+<ul>
+  <li>Installation in folders is supported</li>
+  <li>Use of a CNI network is supported</li>
+</ul>
 
-<p>The number of deployable brokers is constrained by two factors. First, brokers have specified required resources, so brokers may not be placed if the DC/OS cluster lacks the requisite resources. Second, the specified “PLACEMENT_STRATEGY” environment variable may affect how many brokers can be created in a Kafka cluster. By default the value is “ANY,” so brokers are placed anywhere and are only constrained by the resources of the cluster. A second option is “NODE.” In this case only one broker may be placed on a given DC/OS agent.</p>
+<h3 id="improvements-1">Improvements</h3>
+<ul>
+  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.20.1">dcos-commons 0.20.1</a></li>
+  <li>Default user is now <code class="highlighter-rouge">nobody</code></li>
+  <li>Allow configuration of scheduler log level</li>
+  <li>Automate seed node replacement</li>
+</ul>
 
-<h2 id="security">Security</h2>
+<h3 id="bug-fixes-1">Bug Fixes</h3>
+<ul>
+  <li>Datacenter configuration is correctly supported</li>
+</ul>
 
-<p>The security features introduced in Apache Kafka 0.9 are not supported at this time.</p>
+<h3 id="upgrade">Upgrade</h3>
+<ul>
+  <li>This version may only be upgraded from <code class="highlighter-rouge">1.0.30-3.0.13-beta</code>.  This is a one way upgrade.  Downgrading is not supported.  Interruption or partial upgrade is also not supported.  Upgrade must proceed to completion to ensure availability and retention of data.</li>
+</ul>
 
-<h2 id="virtual-networks">Virtual networks</h2>
+<h2 id="version-1030-3013-beta">Version 1.0.30-3.0.13-beta</h2>
 
-<p>When Kafka is deployed on a virtual network such as the <code class="highlighter-rouge">dcos</code> overlay network, the configuration cannot be updated to use the host network.</p>
+<h3 id="bug-fixes-2">Bug Fixes</h3>
+<ul>
+  <li>Fix airgapped cluster support in Cassandra (C* docker image &amp; tar.gz) #1170</li>
+</ul>
+
+<h3 id="0192">0.19.2</h3>
+<ul>
+  <li>CLI commands relating to service update/upgrade #1084</li>
+  <li>Log an error if a service requiring secrets is used on a DC/OS cluster which doesn’t support them #1180</li>
+  <li>Fixes to spec handling for later upgrade compatibility #1164</li>
+</ul>
+
+<h3 id="0191">0.19.1</h3>
+<ul>
+  <li>Workaround for DC/OS strict mode clusters, which currently don’t support multi-role #1154</li>
+</ul>
+
+<h3 id="0190">0.19.0</h3>
+<ul>
+  <li>Large offer evaluation refactor and follow-up fixes #1097 #1124</li>
+  <li>Initial Resource Refinement support #1114 #1139</li>
+  <li>Fixed backwards compatibility around PortsSpec vs PortSpec: Older installs using PortsSpec will be automatically converted to PortSpec #1122</li>
+  <li>Treat COMPLETE + STARTING as IN_PROGRESS, not STARTING #1095</li>
+  <li>Store Task IPs in ZK properties #1089</li>
+  <li>RangeAlgorithms -&gt; RangeUtils #1123</li>
+  <li>Small improvements to offer logging #1128</li>
+  <li>IP fetch support in bootstrap #1127</li>
+</ul>
 
 </div>
 </div>
