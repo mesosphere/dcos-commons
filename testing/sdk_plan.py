@@ -28,7 +28,8 @@ def get_recovery_plan(service_name):
 
 @retrying.retry(
     wait_fixed=5000,
-    stop_max_delay=120000)
+    stop_max_delay=120000,
+    retry_on_result=lambda res: not res)
 def get_plan(service_name, plan):
     return sdk_api.get(service_name, '/v1/plans/{}'.format(plan)).json()
 

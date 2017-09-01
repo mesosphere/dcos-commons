@@ -61,7 +61,8 @@ def as_json(fn):
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=DEFAULT_KIBANA_TIMEOUT*1000)
+    stop_max_delay=DEFAULT_KIBANA_TIMEOUT*1000,
+    retry_on_result=lambda res: res is False)
 def check_kibana_adminrouter_integration(path):
     dcos_token = shakedown.dcos_acs_token()
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
@@ -72,7 +73,8 @@ def check_kibana_adminrouter_integration(path):
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000)
+    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    retry_on_result=lambda res: res is False)
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
     result = _get_elasticsearch_index_health(curl_api, index_name)
@@ -81,7 +83,8 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000)
+    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    retry_on_result=lambda res: res is False)
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     curl_api = _curl_api(service_name, "GET")
     result = _get_elasticsearch_cluster_health(curl_api)
@@ -94,7 +97,8 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000)
+    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    retry_on_result=lambda res: res is False)
 def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
     result = _get_hosts_with_plugin(curl_api, plugin_name)
@@ -103,7 +107,8 @@ def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000)
+    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    retry_on_result=lambda res: res is False)
 def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
     result = _get_hosts_with_plugin(curl_api, plugin_name)
@@ -120,7 +125,8 @@ def _get_hosts_with_plugin(curl_api, plugin_name):
 
 @retrying.retry(
     wait_fixed=10000,
-    stop_max_delay=120*1000)
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: res is False)
 def get_elasticsearch_master(service_name=SERVICE_NAME):
     # just in case, re-fetch the _curl_api in case the elasticsearch master is moved:
     exit_status, output = shakedown.run_command_on_master(
