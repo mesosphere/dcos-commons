@@ -19,8 +19,7 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         log.info("Ensure elasticsearch and kibana are uninstalled...")
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME,
-                              config.KIBANA_PACKAGE_NAME)
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME,
                               sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
@@ -35,18 +34,15 @@ def configure_package(configure_security):
         yield  # let the test session execute
     finally:
         log.info("Clean up elasticsearch and kibana...")
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME,
-                              config.KIBANA_PACKAGE_NAME)
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME,
                               sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    sdk_tasks.check_running(sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), config.DEFAULT_TASK_COUNT)
-    config.wait_for_expected_nodes_to_exist(
-        service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_tasks.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME), config.DEFAULT_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.fixture
@@ -64,8 +60,7 @@ def default_populated_index():
 @pytest.mark.focus
 @pytest.mark.smoke
 def test_service_health():
-    assert shakedown.service_healthy(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.sanity
@@ -112,8 +107,7 @@ def test_metrics():
 @pytest.mark.timeout(60 * 60)
 def test_xpack_toggle_with_kibana(default_populated_index):
     log.info("\n***** Verify X-Pack disabled by default in elasticsearch")
-    config.verify_commercial_api_status(
-        False, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.verify_commercial_api_status(False, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
     log.info("\n***** Test kibana with X-Pack disabled...")
     shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
@@ -126,16 +120,12 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.check_kibana_adminrouter_integration(
         "service/{}/".format(config.KIBANA_PACKAGE_NAME))
     log.info("Uninstall kibana with X-Pack disabled")
-    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME,
-                          config.KIBANA_PACKAGE_NAME)
+    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
     log.info("\n***** Set/verify X-Pack enabled in elasticsearch")
-    config.enable_xpack(
-        service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
-    config.verify_commercial_api_status(
-        True, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
-    config.verify_xpack_license(
-        service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.enable_xpack(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.verify_commercial_api_status(True, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.verify_xpack_license(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
     log.info("\n***** Write some data while enabled, disable X-Pack, and verify we can still read what we wrote.")
     config.create_document(
@@ -153,22 +143,16 @@ def test_xpack_toggle_with_kibana(default_populated_index):
             "xpack_enabled": True
         }})
     log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
-    log.info(
-        "to complete due to a configured HTTP health check. (typical: 12 minutes)")
-    shakedown.deployment_wait(
-        app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
-    config.check_kibana_adminrouter_integration(
-        "service/{}/login".format(config.KIBANA_PACKAGE_NAME))
+    log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
+    shakedown.deployment_wait(app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
+    config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
     log.info("\n***** Uninstall kibana with X-Pack enabled")
-    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME,
-                          config.KIBANA_PACKAGE_NAME)
+    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
     log.info("\n***** Disable X-Pack in elasticsearch.")
-    config.disable_xpack(
-        service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.disable_xpack(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
     log.info("\n***** Verify we can still read what we wrote when X-Pack was enabled.")
-    config.verify_commercial_api_status(
-        False, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.verify_commercial_api_status(False, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
     doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 2,
                               service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
     assert doc["_source"]["name"] == "X-Pack"
@@ -206,12 +190,9 @@ def test_master_reelection():
 def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
-    master_ids = sdk_tasks.get_task_ids(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'master-0')
-    cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), 'pod replace master-0')
-    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), 'master-0', master_ids)
+    master_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'master-0')
+    cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace master-0')
+    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'master-0', master_ids)
     # pre_test_setup will verify that the cluster becomes healthy again.
 
 
@@ -219,28 +200,21 @@ def test_master_node_replace():
 @pytest.mark.sanity
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
-    marathon_config = sdk_marathon.get_config(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    marathon_config = sdk_marathon.get_config(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
-    sdk_marathon.update_app(sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), marathon_config)
-    config.check_plugin_installed(
-        plugin_name, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_marathon.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), marathon_config)
+    config.check_plugin_installed(plugin_name, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    marathon_config = sdk_marathon.get_config(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    marathon_config = sdk_marathon.get_config(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = ""
-    sdk_marathon.update_app(sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), marathon_config)
-    config.check_plugin_uninstalled(
-        plugin_name, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_marathon.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), marathon_config)
+    config.check_plugin_uninstalled(plugin_name, service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
-    initial_task_ids = sdk_tasks.get_task_ids(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), "master")
+    initial_task_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), "master")
     shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(
         sdk_utils.get_foldered_name(config.SERVICE_NAME)), "elastic.scheduler.Main")
     sdk_tasks.check_tasks_not_updated(
@@ -251,16 +225,12 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 @pytest.mark.sanity
 def test_bump_node_counts():
     # Run this test last, as it changes the task count
-    marathon_config = sdk_marathon.get_config(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    marathon_config = sdk_marathon.get_config(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
     marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
     ingest_nodes = int(marathon_config['env']['INGEST_NODE_COUNT'])
     marathon_config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
     coordinator_nodes = int(marathon_config['env']['COORDINATOR_NODE_COUNT'])
-    marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(
-        coordinator_nodes + 1)
-    sdk_marathon.update_app(sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), marathon_config)
-    sdk_tasks.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME),
-                            config.DEFAULT_TASK_COUNT + 3)
+    marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
+    sdk_marathon.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), marathon_config)
+    sdk_tasks.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME), config.DEFAULT_TASK_COUNT + 3)

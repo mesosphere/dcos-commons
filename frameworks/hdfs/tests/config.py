@@ -26,8 +26,7 @@ EXPECTED_METRICS = [
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
-    write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(
-        content_to_write, filename)
+    write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
     rc, _ = run_hdfs_command(service_name, write_command)
     # rc being True is effectively it being 0...
     return rc
@@ -46,8 +45,7 @@ def delete_data_from_hdfs(service_name, filename):
 
 
 def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | ./bin/hdfs dfs -put /{}".format(
-        TEST_CONTENT_LARGE_SOURCE, filename)
+    write_command = "wget {} -qO- | ./bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
     rc, output = run_hdfs_command(service_name, write_command)
     return rc
 
@@ -66,8 +64,7 @@ def get_active_name_node(service_name):
 
 def get_name_node_status(service_name, name_node):
     def get_status():
-        rc, output = run_hdfs_command(
-            service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
+        rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
         if not rc:
             return rc
 
@@ -88,12 +85,10 @@ def run_hdfs_command(service_name, command):
 
 
 def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):
-    sdk_plan.wait_for_completed_deployment(
-        service_name, timeout_seconds=25 * 60)
+    sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds=25 * 60)
     if recovery_expected:
         # TODO(elezar): See INFINITY-2109 where we need to better handle recovery health checks
-        sdk_plan.wait_for_kicked_off_recovery(
-            service_name, timeout_seconds=25 * 60)
+        sdk_plan.wait_for_kicked_off_recovery(service_name, timeout_seconds=25 * 60)
     sdk_plan.wait_for_completed_recovery(service_name, timeout_seconds=25 * 60)
     sdk_tasks.check_running(service_name, count)
 
@@ -101,11 +96,9 @@ def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=Fals
 def expect_recovery(service_name):
     # TODO(elezar, nima) check_healthy also check for complete deployment, and this should not
     # affect the state of recovery.
-    check_healthy(service_name=service_name,
-                  count=DEFAULT_TASK_COUNT, recovery_expected=True)
+    check_healthy(service_name=service_name, count=DEFAULT_TASK_COUNT, recovery_expected=True)
 
 
 def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
-    pod_types = sdk_cmd.svc_cli(
-        PACKAGE_NAME, service_name, 'pod list', json=True)
+    pod_types = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'pod list', json=True)
     return [pod_type for pod_type in pod_types if pod_type.startswith(pod_type_prefix)]

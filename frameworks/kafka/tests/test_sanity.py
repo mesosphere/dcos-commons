@@ -78,8 +78,7 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     zookeeper = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'endpoints zookeeper')
+        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'endpoints zookeeper')
     assert zookeeper.rstrip('\n') == 'master.mesos:2181/{}'.format(sdk_utils.get_zk_path(
         sdk_utils.get_foldered_name(config.SERVICE_NAME)))
 
@@ -98,8 +97,7 @@ def test_custom_zookeeper():
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
         'topic list', json=True) == [config.DEFAULT_TOPIC_NAME]
 
-    marathon_config = sdk_marathon.get_config(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    marathon_config = sdk_marathon.get_config(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     # should be using default path when this envvar is empty/unset:
     assert marathon_config['env']['KAFKA_ZOOKEEPER_URI'] == ''
 
@@ -107,13 +105,11 @@ def test_custom_zookeeper():
     zk_path = 'master.mesos:2181/{}/CUSTOMPATH'.format(sdk_utils.get_zk_path(
         sdk_utils.get_foldered_name(config.SERVICE_NAME)))
     marathon_config['env']['KAFKA_ZOOKEEPER_URI'] = zk_path
-    sdk_marathon.update_app(sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), marathon_config)
+    sdk_marathon.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), marathon_config)
 
     sdk_tasks.check_tasks_updated(
         sdk_utils.get_foldered_name(config.SERVICE_NAME), '{}-'.format(config.DEFAULT_POD_TYPE), broker_ids)
-    sdk_plan.wait_for_completed_deployment(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_plan.wait_for_completed_deployment(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
@@ -139,8 +135,7 @@ def test_custom_zookeeper():
 def test_broker_list():
     brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME,
                               sdk_utils.get_foldered_name(config.SERVICE_NAME), 'broker list', json=True)
-    assert set(brokers) == set([str(i)
-                                for i in range(config.DEFAULT_BROKER_COUNT)])
+    assert set(brokers) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
 
 
 @pytest.mark.smoke
@@ -164,15 +159,13 @@ def test_broker_invalid():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_restart():
-    test_utils.restart_broker_pods(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    test_utils.restart_broker_pods(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pod_replace():
-    test_utils.replace_broker_pod(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    test_utils.replace_broker_pod(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 # --------- Topics -------------
@@ -220,8 +213,7 @@ def test_topic_offsets_increase_with_writes():
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
         'topic producer_test {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
     assert len(write_info) == 1
-    assert write_info['message'].startswith(
-        'Output: {} records sent'.format(num_messages))
+    assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
 
     offset_info = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
@@ -243,10 +235,8 @@ def test_decreasing_topic_partitions_fails():
         'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1), json=True)
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith(
-        'Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -256,10 +246,8 @@ def test_setting_topic_partitions_to_same_value_fails():
         'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT), json=True)
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith(
-        'Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -269,10 +257,8 @@ def test_increasing_topic_partitions_succeeds():
         'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1), json=True)
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith(
-        'Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' not in partition_info['message'])
+    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert ('The number of partitions for a topic can only be increased' not in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -301,8 +287,7 @@ def test_no_unavailable_partitions_exist():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_help_cli():
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(
-        config.SERVICE_NAME), 'help')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'help')
 
 
 @pytest.mark.smoke
