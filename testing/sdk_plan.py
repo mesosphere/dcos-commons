@@ -92,10 +92,10 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         statuses = status
 
     @retrying.retry(
-        wait_fixed=5000,
+        wait_fixed=1000,  # some plans are short; use high-res polling
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: res is False)
-    def wait_for_status():
+    def wait_for_plan():
         plan = get_plan(service_name, plan_name)
         log.info('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
@@ -104,15 +104,15 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         else:
             return False
 
-    return wait_for_status()
+    return wait_for_plan()
 
 
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
-        wait_fixed=5000,
+        wait_fixed=1000,  # some phases are short; use high-res polling
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: res is False)
-    def fn():
+    def wait_for_phase():
         plan = get_plan(service_name, plan_name)
         phase = get_phase(plan, phase_name)
         log.info('Waiting for {}.{} phase to have {} status:\n{}'.format(
@@ -122,15 +122,15 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
         else:
             return False
 
-    return fn()
+    return wait_for_phase()
 
 
 def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
-        wait_fixed=5000,
+        wait_fixed=1000,  # some steps are short; use high-res polling
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: res is False)
-    def fn():
+    def wait_for_step():
         plan = get_plan(service_name, plan_name)
         step = get_step(get_phase(plan, phase_name), step_name)
         log.info('Waiting for {}.{}.{} step to have {} status:\n{}'.format(
@@ -140,7 +140,7 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
         else:
             return False
 
-    return fn()
+    return wait_for_step()
 
 
 def recovery_plan_is_empty(service_name):
