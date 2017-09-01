@@ -91,9 +91,12 @@
     <span>Reference</span>
     <ul>
       {% comment %}List all the reference pages.{% endcomment %}
+      {% assign sorted_pages = site.pages | sort:"menu_order" %}
+      {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "reference" %}
+      <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
+      {% endif %}{% endfor %}
       <li><a href="{{ rootdir }}/reference/api">Javadoc Reference</a></li>
       <li><a href="{{ rootdir }}/reference/swagger-api">REST APIs</a></li>
-      <li><a href="{{ rootdir }}/reference/yaml-reference.html">YAML Reference</a></li>
     </ul>
   </li>
   <li>
