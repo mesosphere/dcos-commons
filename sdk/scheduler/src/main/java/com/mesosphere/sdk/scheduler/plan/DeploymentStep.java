@@ -181,23 +181,17 @@ public class DeploymentStep extends AbstractStep {
             return Status.PENDING;
         }
 
+        Set<Status> statuses = new HashSet<>();
         for (Map.Entry<Protos.TaskID, TaskStatusPair> entry : tasks.entrySet()) {
             String taskId = entry.getKey().getValue();
             Status status = entry.getValue().getStatus();
             logger.info("TaskId: {} has status: {}", taskId, status);
-            // Temporary hack to prove the issue. This doesn't seem like a great
-            // way, or the right place, to detect this state transition.
-            if (status.equals(Status.PENDING)) {
-                if (super.getStatus().equals(Status.STARTING)) {
-                    return status;
-                }
-            } else if (!status.equals(Status.COMPLETE)) {
-                // Keep and log current status
-                return super.getStatus();
-            }
+
+            statuses.add(status);
         }
 
-        return Status.COMPLETE;
+
+        return Collections.min(statuses);
     }
 
     private static class TaskStatusPair {
