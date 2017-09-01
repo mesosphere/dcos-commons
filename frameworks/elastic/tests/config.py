@@ -26,8 +26,6 @@ DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
-DCOS_TOKEN = shakedown.run_dcos_command('config show core.dcos_acs_token')[0].strip()
-
 ENDPOINT_TYPES = (
     'coordinator-http', 'coordinator-transport',
     'data-http', 'data-transport',
@@ -61,8 +59,9 @@ def as_json(fn):
 
 
 def check_kibana_adminrouter_integration(path):
+    dcos_token = shakedown.dcos_acs_token()
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
-        DCOS_TOKEN, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
+        dcos_token, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
     def fun():
         exit_status, output = shakedown.run_command_on_master(curl_cmd)
         return output and "HTTP/1.1 200" in output
