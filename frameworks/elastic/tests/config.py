@@ -27,9 +27,9 @@ DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
 EXPECTED_METRICS = [
-    "elasticsearch.service_name.node.data-0-node.fs.total.total_in_bytes",
-    "elasticsearch.service_name.node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
-    "elasticsearch.service_name.node.data-0-node.jvm.threads.count"
+    "node.data-0-node.fs.total.total_in_bytes",
+    "node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
+    "node.data-0-node.jvm.threads.count"
 ]
 
 ENDPOINT_TYPES = (

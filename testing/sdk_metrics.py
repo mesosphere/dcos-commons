@@ -37,7 +37,8 @@ def get_metrics(package_name, service_name, task_name):
     executor_id = task_to_check['executor_id']
 
     pod_name = '-'.join(task_name.split("-")[:2])
-    pod_info = sdk_cmd.svc_cli(package_name, service_name, "pod info {}".format(pod_name), json=True)
+    pod_info = sdk_cmd.svc_cli(
+        package_name, service_name, "pod info {}".format(pod_name), json=True)
     task_info = None
     for task in pod_info:
         if task["info"]["name"] == task_name:
@@ -90,6 +91,14 @@ def extract_metric_names(service_name, service_metrics):
     # This is consistent across all HDFS metric names.
     if "hdfs" in service_name:
         metric_names = ['.'.join(metric_name.split(".")[1:])
+                        for metric_name in metric_names]
+
+    # Elastic metrics are also dynamic and based on the service name
+    # For eg: elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
+    # To prevent this from breaking we drop the service name from the metric name
+    # => data-0-node.thread_pool.listener.completed
+    if "elastic" in service_name:
+        metric_names = ['.'.join(metric_name.split('.')[2:])
                         for metric_name in metric_names]
 
     return set(metric_names)
