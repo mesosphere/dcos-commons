@@ -27,7 +27,8 @@ function usage()
     echo "-k passed to pytest directly [default NONE]"
     echo "-p PATH to cluster SSH key [default ${ssh_path}]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
-    echo "Cluster must be created and \$CLUSTER_URL set"
+    echo "Cluster must be created and \$CLUSTER_URL set."
+    echo "    If it is not set, the currently attached cluster will be used"
     echo "AWS credentials must exist in the variables:"
     echo "      \$AWS_ACCESS_KEY_ID"
     echo "      \$AWS_SECRET_ACCESS_KEY"
@@ -53,8 +54,14 @@ fi
 
 
 if [ -z "$CLUSTER_URL" ]; then
-    echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
-    exit 1
+    echo "CLUSTER_URL not set. Trying to determine attached cluster"
+    CLUSTER_URL=$(dcos cluster list --attached --json | grep "url" | sed -e 's/.*"url": "\(http.*\)".*/\1/')
+    if [ -z "$CLUSTER_URL" ]; then
+        echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
+        exit 1
+    else
+        echo "Using CLUSTER_URL=$CLUSTER_URL"
+    fi
 fi
 
 if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
