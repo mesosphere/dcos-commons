@@ -3,13 +3,13 @@ package com.mesosphere.sdk.api;
 import java.util.Arrays;
 import java.util.UUID;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
-import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -26,14 +26,15 @@ import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
  *
  * @param <T> The configuration type which is being stored by the framework.
  */
+@Singleton
 @Path("/v1/configurations")
-public class ConfigResource<T extends Configuration> extends PrettyJsonResource {
+public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ConfigStore<T> configStore;
+    private final T configStore;
 
-    public ConfigResource(ConfigStore<T> configStore) {
+    public ConfigResource(T configStore) {
         this.configStore = configStore;
     }
 
