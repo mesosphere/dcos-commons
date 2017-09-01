@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
 type responseCheck func(response *http.Response, body []byte) error
@@ -26,6 +28,13 @@ func CheckHTTPResponse(response *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read response data from %s %s query: %s",
 			response.Request.Method, response.Request.URL, err)
+	}
+	if config.Verbose {
+		if response.ContentLength > 0 {
+			PrintMessage("Response (%d byte payload): %s\n%s", response.ContentLength, response.Status, body)
+		} else {
+			PrintMessage("Response: %s", response.Status)
+		}
 	}
 	if customCheck != nil {
 		err := customCheck(response, body)

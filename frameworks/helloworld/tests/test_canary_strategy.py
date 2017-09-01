@@ -1,4 +1,3 @@
-import json
 import logging
 
 import pytest
@@ -20,10 +19,11 @@ pytestmark = sdk_utils.dcos_1_9_or_higher
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         # due to canary: no tasks should launch, and suppressed shouldn't be set
         sdk_install.install(
             config.PACKAGE_NAME,
+            config.SERVICE_NAME,
             0,
             additional_options={
                 'service': {'spec_file': 'examples/canary.yml'},
@@ -34,16 +34,18 @@ def configure_package(configure_security):
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 def test_canary_init():
     def fn():
-        return sdk_cmd.run_cli('hello-world pod list')
-    assert json.loads(shakedown.wait_for(fn, noisy=True)) == []
+        # check for empty list internally rather than returning empty list.
+        # otherwise shakedown.wait_for() will keep going...
+        return sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == []
+    assert shakedown.wait_for(fn, noisy=True, timeout_seconds=10 * 60)
 
-    pl = sdk_plan.wait_for_plan_status(config.PACKAGE_NAME, 'deploy', 'WAITING')
+    pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -71,15 +73,15 @@ def test_canary_init():
 
 @pytest.mark.sanity
 def test_canary_first():
-    sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy hello-deploy')
 
     expected_tasks = ['hello-0']
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
     # do not use service_plan always
     # when here, plan should always return properly
-    pl = sdk_plan.wait_for_completed_step(config.PACKAGE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]')
+    pl = sdk_plan.wait_for_completed_step(config.SERVICE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -107,43 +109,43 @@ def test_canary_first():
 
 @pytest.mark.sanity
 def test_canary_plan_continue_noop():
-    sdk_cmd.run_cli('hello-world plan continue deploy')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy')
 
     # the plan doesn't have the waiting bit set, so telling it to continue should be a no-op
     # (the plan is currently just in WAITING for display purposes)
     expected_tasks = ['hello-0']
     try:
-        sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks) + 1, timeout_seconds=30)
+        sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks) + 1, timeout_seconds=30)
         assert False, "Shouldn't have deployed a second task"
     except AssertionError as arg:
         raise arg
     except:
         pass # expected
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
 
 @pytest.mark.sanity
 def test_canary_second():
-    sdk_cmd.run_cli('hello-world plan continue deploy world-deploy')
-    sdk_plan.wait_for_step_status(config.PACKAGE_NAME, 'deploy', 'world-deploy', 'world-0:[server]', 'PENDING')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy world-deploy')
+    sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'world-deploy', 'world-0:[server]', 'PENDING')
 
     # because the plan strategy is serial, the second phase just clears a wait bit without
     # proceeding to launch anything:
     expected_tasks = ['hello-0']
     try:
-        sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks) + 1, timeout_seconds=30)
+        sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks) + 1, timeout_seconds=30)
         assert False, "Shouldn't have deployed a second task"
     except AssertionError as arg:
         raise arg
     except:
         pass # expected
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
-    pl = sdk_plan.get_deployment_plan(config.PACKAGE_NAME)
+    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -171,15 +173,15 @@ def test_canary_second():
 
 @pytest.mark.sanity
 def test_canary_third():
-    sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy hello-deploy')
 
     expected_tasks = [
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0']
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
-    pl = sdk_plan.wait_for_completed_phase(config.PACKAGE_NAME, 'deploy', 'hello-deploy')
+    pl = sdk_plan.wait_for_completed_phase(config.SERVICE_NAME, 'deploy', 'hello-deploy')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -207,15 +209,15 @@ def test_canary_third():
 
 @pytest.mark.sanity
 def test_canary_fourth():
-    sdk_cmd.run_cli('hello-world plan continue deploy world-deploy')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy world-deploy')
 
     expected_tasks = [
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0', 'world-1', 'world-2', 'world-3']
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
-    pl = sdk_plan.wait_for_completed_plan(config.PACKAGE_NAME, 'deploy')
+    pl = sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'deploy')
     log.info(pl)
 
     assert pl['status'] == 'COMPLETE'
@@ -243,22 +245,22 @@ def test_canary_fourth():
 
 @pytest.mark.sanity
 def test_increase_count():
-    sdk_marathon.bump_task_count_config(config.PACKAGE_NAME, 'HELLO_COUNT')
+    sdk_marathon.bump_task_count_config(config.SERVICE_NAME, 'HELLO_COUNT')
 
     expected_tasks = [
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0', 'world-1', 'world-2', 'world-3']
     try:
-        sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks) + 1, timeout_seconds=60)
+        sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks) + 1, timeout_seconds=60)
         assert False, "Should not start task now"
     except AssertionError as arg:
         raise arg
     except:
         pass # expected to fail
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
-    pl = sdk_plan.wait_for_plan_status(config.PACKAGE_NAME, 'deploy', 'WAITING')
+    pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -284,15 +286,15 @@ def test_increase_count():
     assert steps[2]['status'] == 'COMPLETE'
     assert steps[3]['status'] == 'COMPLETE'
 
-    sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy hello-deploy')
 
     expected_tasks = [
         'hello-0', 'hello-1', 'hello-2', 'hello-3', 'hello-4',
         'world-0', 'world-1', 'world-2', 'world-3']
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 
-    pl = sdk_plan.wait_for_plan_status(config.PACKAGE_NAME, 'deploy', 'COMPLETE')
+    pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE')
     log.info(pl)
 
     assert pl['status'] == 'COMPLETE'
@@ -321,10 +323,10 @@ def test_increase_count():
 
 @pytest.mark.sanity
 def test_increase_cpu():
-    hello_0_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-0-server')
-    sdk_marathon.bump_cpu_count_config(config.PACKAGE_NAME, 'HELLO_CPUS')
+    hello_0_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0-server')
+    sdk_marathon.bump_cpu_count_config(config.SERVICE_NAME, 'HELLO_CPUS')
 
-    pl = sdk_plan.wait_for_plan_status(config.PACKAGE_NAME, 'deploy', 'WAITING')
+    pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -354,16 +356,16 @@ def test_increase_cpu():
     expected_tasks = [
         'hello-0', 'hello-1', 'hello-2', 'hello-3', 'hello-4',
         'world-0', 'world-1', 'world-2', 'world-3']
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
-    assert json.loads(sdk_cmd.run_cli('hello-world pod list')) == expected_tasks
-    assert hello_0_ids == sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-0-server')
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert hello_0_ids == sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0-server')
 
-    sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy hello-deploy')
 
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello-0-server', hello_0_ids)
-    sdk_tasks.check_running(config.PACKAGE_NAME, len(expected_tasks))
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0-server', hello_0_ids)
+    sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    pl = sdk_plan.wait_for_step_status(config.PACKAGE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]', 'COMPLETE')
+    pl = sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]', 'COMPLETE')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -389,11 +391,11 @@ def test_increase_cpu():
     assert steps[2]['status'] == 'COMPLETE'
     assert steps[3]['status'] == 'COMPLETE'
 
-    hello_1_ids = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'hello-1-server')
-    sdk_cmd.run_cli('hello-world plan continue deploy hello-deploy')
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'hello-1-server', hello_1_ids)
+    hello_1_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-1-server')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy hello-deploy')
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-1-server', hello_1_ids)
 
-    pl = sdk_plan.wait_for_completed_deployment(config.PACKAGE_NAME)
+    pl = sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     log.info(pl)
 
     assert pl['status'] == 'COMPLETE'

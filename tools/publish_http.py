@@ -230,8 +230,9 @@ def main(argv):
     logger.info('''###
 Package:         {}
 Template path:   {}
-Artifacts:       {}
-###'''.format(package_name, package_dir_path, ', '.join(artifact_paths)))
+Artifacts:
+{}
+###'''.format(package_name, package_dir_path, '\n'.join(['- {}'.format(path) for path in artifact_paths])))
 
     publisher = HTTPPublisher(package_name, package_dir_path, artifact_paths)
     http_url_root = publisher.launch_http()

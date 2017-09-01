@@ -29,7 +29,6 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 }
 
 func describe() {
-	// TODO: figure out KingPin's error handling
 	requestContent, err := json.Marshal(describeRequest{config.ServiceName})
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -78,7 +77,6 @@ type updateRequest struct {
 }
 
 func printPackageVersions() {
-	// TODO: figure out KingPin's error handling
 	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
 	responseBytes, err := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	if err != nil {

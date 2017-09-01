@@ -27,11 +27,7 @@ def install_job(job_dict, tmp_dir=None):
     with open(out_filename, 'w') as f:
         f.write(job_str)
 
-    try:
-        _remove_job_by_name(job_name)
-    except:
-        log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
-            job_name, traceback.format_exc()))
+    _remove_job_by_name(job_name)
     sdk_cmd.run_cli('job add {}'.format(out_filename))
 
 
@@ -40,8 +36,12 @@ def remove_job(job_dict):
 
 
 def _remove_job_by_name(job_name):
-    # force bit ensures that fail-looping jobs (with restart.policy=ON_FAILURE) are consistently removed:
-    sdk_cmd.run_cli('job remove {} --stop-current-job-runs'.format(job_name), print_output=False)
+    try:
+        # --stop-current-job-runs ensures that fail-looping jobs (with restart.policy=ON_FAILURE) are consistently removed.
+        sdk_cmd.run_cli('job remove {} --stop-current-job-runs'.format(job_name), print_output=False)
+    except:
+        log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
+            job_name, traceback.format_exc()))
 
 
 class InstallJobContext(object):
