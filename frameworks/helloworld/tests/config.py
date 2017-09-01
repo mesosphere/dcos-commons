@@ -1,6 +1,8 @@
 import functools
+
 import sdk_marathon
 import sdk_tasks
+import shakedown
 
 PACKAGE_NAME = 'hello-world'
 SERVICE_NAME = PACKAGE_NAME
