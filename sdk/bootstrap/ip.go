@@ -14,17 +14,28 @@ var mesosContainerIP = "MESOS_CONTAINER_IP"
 func ContainerIP() (net.IP, error) {
 	// First, try MESOS_CONTAINER_IP (DC/OS 1.10+, when running the default executor)
 	ip, err := validateIP(mesosContainerIP)
-	if ip != nil || err != nil {
+	if ip != nil {
 		return ip, err
 	}
 
 	// Fall through to LIBPROCESS_IP (< DC/OS 1.10, custom executor)
 	ip, err = validateIP(libprocessIP)
-	if ip != nil || err != nil {
+	if ip != nil {
 		return ip, err
 	}
 
-	return nil, fmt.Errorf("Neither MESOS_CONTAINER_IP nor LIBPROCESS_IP is set. Cannot determine IP.")
+	// LIBPROCESS_IP is empty or is set to 0.0.0.0 or ::
+	hostName, err := os.Hostname()
+	if err != nil {
+		return nil, fmt.Errorf("Can't get hostName: %s", err)
+	}
+
+	ipAddr, err := net.ResolveIPAddr("ip", hostName)
+	if err != nil {
+		return nil, fmt.Errorf("Can't get IP address: %s", err)
+	}
+
+	return ipAddr.IP, nil
 }
 
 func validateIP(envvar string) (net.IP, error) {
