@@ -9,8 +9,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
         super(
                 "FRAMEWORK_NAME", "kafka",
                 "CONFIG_TEMPLATE_PATH", "frameworks/kafka",
-                "KAFKA_URI", "some_uri",
-                "BOOTSTRAP_URI", "another_uri",
                 "PLACEMENT_CONSTRAINTS","",
                 "PHASE_STRATEGY","serial",
                 "KAFKA_VERSION_PATH","somepath",
@@ -22,7 +20,14 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "BROKER_DISK_TYPE", "ROOT",
                 "BROKER_DISK_PATH", "path",
                 "PORT_BROKER_PORT", "9999",
-                "BROKER_PORT", "0");
+                "BROKER_PORT", "0",
+                "KAFKA_URI", "http://kafka.uri",
+                "KAFKA_JAVA_URI", "http://kafka-java.uri",
+                "BOOTSTRAP_URI", "http://bootstrap.uri",
+                "EXECUTOR_URI", "http://executor.uri",
+                "LIBMESOS_URI", "http://libmesos.uri",
+                "KAFKA_STATSD_URI", "http://kafka-statsd.uri",
+                "CLIENT_STATSD_URI", "http://client-statsd.uri");
     }
 
     @Test

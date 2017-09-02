@@ -30,6 +30,7 @@ public class CassandraRecoveryPlanOverriderTest extends BaseServiceSpecTest {
 
     public CassandraRecoveryPlanOverriderTest() {
         super(
+                "CASSANDRA_JAVA_URI", "http://cassandra-java.uri",
                 "EXECUTOR_URI", "http://executor.uri",
                 "BOOTSTRAP_URI", "http://bootstrap.uri",
                 "SCHEDULER_URI", "http://scheduler.uri",

@@ -8,8 +8,6 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public ServiceSpecTest() {
         super(
                 "FRAMEWORK_NAME", "hello-world",
-                "EXECUTOR_URI", "",
-                "LIBMESOS_URI", "",
                 "PORT_API", "8080",
 
                 "SLEEP_DURATION", "1000",
@@ -37,7 +35,8 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "NGINX_CONTAINER_VERSION", "0.1",
 
                 "BOOTSTRAP_URI", "http://example.com/bootstrap.zip",
-                "JAVA_URI", "http://example.com/java.zip");
+                "JAVA_URI", "http://example.com/java.zip",
+                "KEYSTORE_APP_URI", "http://keystore-app.uri");
     }
 
     @Test
