@@ -349,12 +349,17 @@ def test_pod_cli():
 @pytest.mark.metrics
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
+    expected_metrics = [
+        "kafka.network.RequestMetrics.ResponseQueueTimeMs.max",
+        "kafka.socket-server-metrics.io-ratio",
+        "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95"
+    ]
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,
-        config.EXPECTED_METRICS
+        expected_metrics
     )
 
 

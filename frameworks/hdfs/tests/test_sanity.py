@@ -351,12 +351,18 @@ def test_modify_app_config_rollback():
 @pytest.mark.metrics
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
+    expected_metrics = [
+        "JournalNode.jvm.JvmMetrics.ThreadsRunnable",
+        "null.rpc.rpc.RpcQueueTimeNumOps",
+        "null.metricssystem.MetricsSystem.PublishAvgTime"
+    ]
+
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "journal-0-node",
         config.DEFAULT_HDFS_TIMEOUT,
-        config.EXPECTED_METRICS
+        expected_metrics
     )
 
 

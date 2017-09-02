@@ -26,12 +26,6 @@ DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
-EXPECTED_METRICS = [
-    "node.data-0-node.fs.total.total_in_bytes",
-    "node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
-    "node.data-0-node.jvm.threads.count"
-]
-
 ENDPOINT_TYPES = (
     'coordinator-http', 'coordinator-transport',
     'data-http', 'data-transport',

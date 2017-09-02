@@ -18,12 +18,6 @@ TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 
-EXPECTED_METRICS = [
-    "JournalNode.jvm.JvmMetrics.ThreadsRunnable",
-    "null.rpc.rpc.RpcQueueTimeNumOps",
-    "null.metricssystem.MetricsSystem.PublishAvgTime"
-]
-
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
     write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)

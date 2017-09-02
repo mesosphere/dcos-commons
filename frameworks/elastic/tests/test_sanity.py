@@ -92,8 +92,12 @@ def test_indexing(default_populated_index):
 @pytest.mark.metrics
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    expected_metrics = [metric.replace("service_name", FOLDERED_SERVICE_NAME)
-                        for metric in config.EXPECTED_METRICS]
+    expected_metrics = [
+        "node.data-0-node.fs.total.total_in_bytes",
+        "node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
+        "node.data-0-node.jvm.threads.count"
+    ]
+
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
