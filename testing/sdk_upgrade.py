@@ -1,3 +1,9 @@
+'''
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import json
 import logging
 import re

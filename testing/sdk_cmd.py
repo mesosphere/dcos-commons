@@ -1,4 +1,10 @@
-'''Utilities relating to running commands and HTTP requests'''
+'''Utilities relating to running commands and HTTP requests
+
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import json as jsonlib
 import logging
 

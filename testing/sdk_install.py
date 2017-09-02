@@ -1,5 +1,10 @@
-'''Utilities relating to installing services'''
+'''Utilities relating to installing services
 
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import collections
 import logging
 
