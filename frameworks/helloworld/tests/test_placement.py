@@ -13,8 +13,6 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-num_private_agents = len(shakedown.get_private_agents())
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -43,7 +41,8 @@ def test_rack_not_found():
     }
 
     # scheduler should fail to deploy, don't wait for it to complete:
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options, wait_for_deployment=False)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
+        additional_options=options, wait_for_deployment=False)
     try:
         sdk_tasks.check_running(config.SERVICE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"
@@ -82,21 +81,22 @@ def test_hostname_unique():
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": num_private_agents,
+            "count": config.get_num_private_agents(),
             "placement": "hostname:UNIQUE"
         },
         "world": {
-            "count": num_private_agents,
+            "count": config.get_num_private_agents(),
             "placement": "hostname:UNIQUE"
         }
     }
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, num_private_agents * 2, additional_options=options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
+        config.get_num_private_agents() * 2, additional_options=options)
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
-    sdk_tasks.check_running(config.SERVICE_NAME, num_private_agents * 2 - 1, timeout_seconds=10)
-    sdk_tasks.check_running(config.SERVICE_NAME, num_private_agents * 2)
+    sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
+    sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
 
@@ -109,16 +109,17 @@ def test_max_per_hostname():
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": num_private_agents * 2,
+            "count": config.get_num_private_agents() * 2,
             "placement": "hostname:MAX_PER:2"
         },
         "world": {
-            "count": num_private_agents * 3,
+            "count": config.get_num_private_agents() * 3,
             "placement": "hostname:MAX_PER:3"
         }
     }
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, num_private_agents * 5, additional_options=options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
+        config.get_num_private_agents() * 5, additional_options=options)
     ensure_max_count_per_agent(hello_count=2, world_count=3)
 
 
@@ -131,16 +132,17 @@ def test_rr_by_hostname():
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": num_private_agents * 2,
-            "placement": "hostname:GROUP_BY:{}".format(num_private_agents)
+            "count": config.get_num_private_agents() * 2,
+            "placement": "hostname:GROUP_BY:{}".format(config.get_num_private_agents())
         },
         "world": {
-            "count": num_private_agents * 2,
-            "placement": "hostname:GROUP_BY:{}".format(num_private_agents)
+            "count": config.get_num_private_agents() * 2,
+            "placement": "hostname:GROUP_BY:{}".format(config.get_num_private_agents())
         }
     }
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, num_private_agents * 4, additional_options=options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
+        config.get_num_private_agents() * 4, additional_options=options)
     ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
@@ -154,7 +156,7 @@ def test_cluster():
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
-            "count": num_private_agents,
+            "count": config.get_num_private_agents(),
             "placement": "hostname:CLUSTER:{}".format(some_agent)
         },
         "world": {
@@ -162,8 +164,9 @@ def test_cluster():
         }
     }
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, num_private_agents, additional_options=options)
-    ensure_count_per_agent(hello_count=num_private_agents, world_count=0)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
+        config.get_num_private_agents(), additional_options=options)
+    ensure_count_per_agent(hello_count=config.get_num_private_agents(), world_count=0)
 
 
 def get_hello_world_agent_sets():
