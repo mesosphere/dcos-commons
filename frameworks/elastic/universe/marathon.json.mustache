@@ -52,6 +52,10 @@
 
     {{#service.tls}}
     "TASKCFG_ALL_ELASTIC_ENABLE_TLS": "{{service.tls}}",
+    "ELASTICSEARCH_HEALTH_PROTOCOL": "https",
+    {{/service.tls}}
+    {{^service.tls}}
+    "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
     {{/service.tls}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",

@@ -84,7 +84,7 @@ As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/
 
 The Elastic service can be launched with TLS encryption. Enabling TLS will switch all internal communication between Elastic nodes to encrypted connections.
 
-Enabling TLS is possible only in `permissive` and `strict` cluster security modes. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Elastic scheduler will not abe able to provision TLS artifacts.
+Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Elastic scheduler will not abe able to provision TLS artifacts.
 
 Installing Elastic with TLS support requires enabling the [X-Pack](x-pack.md).
 
@@ -110,7 +110,7 @@ Clients connecting to the Elastic service are required to use [the DC/OS CA bund
 
 ### Kibana
 
-When the Elastic service is deployed on DC/OS with TLS support the Kibana, acting as a Elastic client, must be configured to verify TLS with the DC/OS CA bundle. To install the DC/OS CA bundle launch the Kibana with following configuration.
+When the Elastic service is deployed on DC/OS with TLS support Kibana, acting as an Elastic client, must be configured to verify TLS with the DC/OS CA bundle. To install the DC/OS CA bundle launch Kibana with the following configuration.
 
 Sample JSON options file named `kibana-tls.json`:
 ```json
@@ -118,10 +118,10 @@ Sample JSON options file named `kibana-tls.json`:
     "kibana": {
         "xpack_enabled": true,
         "elasticsearch_url": "https://coordinator.elastic.l4lb.thisdcos.directory:9200",
-        "elasticsearch_tls": true
-        ...
+        "elasticsearch_tls": true,
+        "...": "..."
     }
 }
 ```
 
-Similarly to Elastic, the Kibana requires [X-Pack](x-pack.md) to be installed. Kibana package itself doesn't support exposing itself over TLS connection.
+Similarly to Elastic, Kibana requires [X-Pack](x-pack.md) to be installed. The Kibana package itself doesn't support exposing itself over a TLS connection.

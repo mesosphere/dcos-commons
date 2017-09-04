@@ -37,7 +37,7 @@
           "default": "http://coordinator.elastic.l4lb.thisdcos.directory:9200"
         },
         "elasticsearch_tls": {
-          "description": "Elasticsearch runs with SDK TLS. (Enable when Elastic was launched with TLS support, requires X-Pack plugin)",
+          "description": "Enable TLS encryption for communicating with Elastic (required when Elastic has TLS support enabled, requires the X-Pack plugin).",
           "type": "boolean",
           "default": false
         },
