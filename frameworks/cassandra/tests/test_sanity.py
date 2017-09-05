@@ -101,10 +101,14 @@ def test_metrics():
         "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
         "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory"
     ]
+
+    def expected_metrics_exist(emitted_metrics):
+        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT,
-        expected_metrics
+        expected_metrics_exist
     )

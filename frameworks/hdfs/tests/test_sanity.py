@@ -357,12 +357,19 @@ def test_metrics():
         "null.metricssystem.MetricsSystem.PublishAvgTime"
     ]
 
+    def expected_metrics_exist(emitted_metrics):
+        # HDFS metric names need sanitation as they're dynamic.
+        # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
+        # This is consistent across all HDFS metric names.
+        metric_names = set(['.'.join(metric_name.split(".")[1:]) for metric_name in emitted_metrics])
+        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "journal-0-node",
         config.DEFAULT_HDFS_TIMEOUT,
-        expected_metrics
+        expected_metrics_exist
     )
 
 

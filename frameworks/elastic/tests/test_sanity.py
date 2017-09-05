@@ -1,7 +1,7 @@
 import logging
 
 import pytest
-import sdk_cmd as cmd
+import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
@@ -67,7 +67,7 @@ def test_service_health():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
-        endpoints = cmd.svc_cli(
+        endpoints = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, sdk_utils.get_foldered_name(
                 config.SERVICE_NAME),
             'endpoints {}'.format(endpoint), json=True)
@@ -98,12 +98,20 @@ def test_metrics():
         "node.data-0-node.jvm.threads.count"
     ]
 
+    def expected_metrics_exist(emitted_metrics):
+        # Elastic metrics are also dynamic and based on the service name# For eg:
+        # elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
+        # To prevent this from breaking we drop the service name from the metric name
+        # => data-0-node.thread_pool.listener.completed
+        metric_names = ['.'.join(metric_name.split('.')[2:]) for metric_name in emitted_metrics]
+        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "data-0-node",
         config.DEFAULT_ELASTIC_TIMEOUT,
-        expected_metrics
+        expected_metrics_exist
     )
 
 
@@ -195,7 +203,7 @@ def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
     master_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'master-0')
-    cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace master-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace master-0')
     sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'master-0', master_ids)
     # pre_test_setup will verify that the cluster becomes healthy again.
 

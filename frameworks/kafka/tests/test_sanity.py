@@ -354,12 +354,16 @@ def test_metrics():
         "kafka.socket-server-metrics.io-ratio",
         "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95"
     ]
+
+    def expected_metrics_exist(emitted_metrics):
+        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,
-        expected_metrics
+        expected_metrics_exist
     )
 
 

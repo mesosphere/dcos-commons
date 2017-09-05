@@ -83,28 +83,22 @@ def get_metrics(package_name, service_name, task_name):
     raise Exception("No metrics found")
 
 
-def extract_metric_names(service_name, service_metrics):
-    metric_names = [metric["name"] for metric in service_metrics]
+def check_metrics_presence(emitted_metrics, expected_metrics):
+    metrics_exist = True
+    for metric in expected_metrics:
+        if metric not in emitted_metrics:
+            metrics_exist = False
+            log.error("Metric {} is not being emitted by {}".format(metric, service_name))
+            # don't short-circuit to log if multiple metrics are missing
 
-    # HDFS metric names need sanitation as they're dynamic.
-    # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
-    # This is consistent across all HDFS metric names.
-    if "hdfs" in service_name:
-        metric_names = ['.'.join(metric_name.split(".")[1:])
-                        for metric_name in metric_names]
+    if not metrics_exist:
+        log.info("Metrics emitted: {},\nMetrics expected: {}".format(service_metrics, expected_metrics))
 
-    # Elastic metrics are also dynamic and based on the service name
-    # For eg: elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
-    # To prevent this from breaking we drop the service name from the metric name
-    # => data-0-node.thread_pool.listener.completed
-    if "elastic" in service_name:
-        metric_names = ['.'.join(metric_name.split('.')[2:])
-                        for metric_name in metric_names]
-
-    return set(metric_names)
+    log.info("Expected metrics exist: {}".format(metrics_exist))
+    return metrics_exist
 
 
-def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics):
+def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics_exist):
     """Checks that the service is emitting the expected metrics.
     The assumption is that if the expected metrics are being emitted then so 
     are the rest of the metrics.
@@ -113,31 +107,17 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     package_name -- the name of the package the service is using
     service_name -- the name of the service to get metrics for
     task_name -- the name of the task whose agent to run metrics commands from
-    expected_metrics -- a list of metric names to expect the service to emit
+    expected_metrics_exist -- serivce-specific callback that checks for service-specific metrics
     """
-    def expected_metrics_exist():
+    def check_for_service_metrics():
         try:
             log.info("verifying metrics exist for {}".format(service_name))
-            service_metrics = get_metrics(
-                package_name, service_name, task_name)
-            emitted_metric_names = extract_metric_names(
-                service_name, service_metrics)
-            metrics_exist = True
-            for metric in expected_metrics:
-                if metric not in emitted_metric_names:
-                    metrics_exist = False
-                    log.error("Metric {} is not being emitted by {}".format(
-                              metric, service_name
-                              ))
-                    # don't short-circuit to log if multiple metrics are missing
+            service_metrics = get_metrics(package_name, service_name, task_name)
+            emitted_metric_names = [metric["name"] for metric in service_metrics]
+            return expected_metrics_exist(emitted_metric_names)
 
-            if not metrics_exist:
-                log.info("Metrics emitted: {},\nMetrics expected: {}".format(
-                    service_metrics, expected_metrics
-                ))
-            return metrics_exist
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))
             return False
 
-    shakedown.wait_for(expected_metrics_exist, timeout)
+    shakedown.wait_for(check_for_service_metrics, timeout)
