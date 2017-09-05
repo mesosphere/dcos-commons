@@ -22,7 +22,7 @@ def service_account():
     name = SERVICE_NAME
     sdk_security.create_service_account(
         service_account_name=name, service_account_secret=name)
-     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
     yield name
@@ -60,14 +60,14 @@ def elastic_service_tls(service_account):
 
 @pytest.mark.tls
 @pytest.mark.smoke
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 def test_healthy(elastic_service_tls):
     assert shakedown.service_healthy(SERVICE_NAME)
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 def test_crud_over_tls(elastic_service_tls):
     config.create_index(
         config.DEFAULT_INDEX_NAME,

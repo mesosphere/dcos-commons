@@ -94,7 +94,7 @@ def test_repair_cleanup_plans_complete():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     expected_metrics = [
         "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",

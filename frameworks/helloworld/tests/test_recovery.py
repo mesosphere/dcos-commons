@@ -57,7 +57,7 @@ def test_pod_restart():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_pods_restart_graceful_shutdown():
     options = {
         "world": {

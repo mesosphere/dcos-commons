@@ -1,7 +1,6 @@
 import pytest
 import sdk_install
 import sdk_utils
-import shakedown  # required by @sdk_utils.dcos_X_Y_or_higher
 from tests import config
 
 @pytest.fixture(scope='module', autouse=True)
@@ -23,6 +22,6 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 def test_install():
     config.check_running(config.SERVICE_NAME)
