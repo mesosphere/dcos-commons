@@ -4,7 +4,7 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-This document explains how to upgrade the DC/OS Apache Kafka service from version `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta`. Upgrading an existing DC/OS Apache Kafka service in `strict mode` requires special attention. Refer to [Upgrade in Strict Mode](#upgrade-in-strict-mode) for more information.
+This document explains how to upgrade the DC/OS Apache Kafka service from version `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta`. Upgrading an existing Kafka service on a [strict security mode cluster](https://docs.mesosphere.com/1.9/security/#security-modes) requires an extra step. Refer to [Upgrade in Strict Mode](#upgrade-in-strict-mode) for more information.
 
 ##  Upgrade beta-kafka from 0.10.2.x to 0.11.0.0
 
@@ -38,7 +38,7 @@ This is an overview of the rolling upgrade process. The process for upgrading Ka
 
 ### Detailed upgrade instructions
 
-The new DC/OS Kafka package `1.1.27-0.11.0-beta` (with Kafka version 0.11.0.0) that we will be upgrading to has the following default settings:
+The new DC/OS Kafka package `1.1.27-0.11.0-beta` (with Kafka version 0.11.0.0) has the following default settings:
 
 * Kafka Version = 0.11.0.0
 * inter.broker.protocol.version = 0.11.0.0
@@ -51,11 +51,11 @@ The beta DC/OS Kafka package `1.1.26-0.10.1.0-beta` (with Kafka version 0.10.2.x
 * log.message.format.version = 0.10.0
 
 
-Here, we assume that you already have a DC/OS Kafka service running, installed with the beta package version `1.1.26-0.10.1.0-beta` (with Kafka 0.10.2.x). In order to guarantee no downtime during the upgrade process, follow the steps below.  
+Here, we assume you already have beta DC/OS Kafka version 1.1.26-0.10.1.0-beta (with Kafka 0.10.2.x) installed. In order to guarantee no downtime during the upgrade process, follow the steps below.  
 
 #### Step 1
 
-First, make a note of the existing protocol and log versions. Upgrade your service to the new package version `1.1.27-0.11.0-beta` (with Kafka 0.11.0.0), but keep the existig protocol and log versions same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
+First, make a note of the existing protocol and log versions. Upgrade your service to the new package version `1.1.27-0.11.0-beta` (with Kafka 0.11.0.0), but keep the existig protocol and log versions the same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
    
     $ cat option.json
     {
@@ -65,7 +65,7 @@ First, make a note of the existing protocol and log versions. Upgrade your servi
         }
     }
 
-Now, upgrade to the package `1.1.27-0.11.0-beta` that provides the new code, Kafka 0.11.0.0. 
+Now, upgrade to package `1.1.27-0.11.0-beta`, which provides the new code, Kafka 0.11.0.0.
 
     $ dcos beta-kafka update start --options=options.json --package-version=1.1.27-0.11.0-beta
 
@@ -107,7 +107,7 @@ The new service will be running Kafka 0.11.0.0 with two customized options (`int
 
 Since protocol and log versions have been updated with new protocol and log formats, you can not directly roll back to the previous package version.
 
-**Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package version `1.1.27-0.11.0-beta` . Pay attention to these customized options for further package upgrades since they will be preserved unless overwritten explicitly.
+**Note**: Default settings for protocol and log versions are overwritten with these customized options (steps 1 through 3), even though  their values are same as the defaults of the new package version `1.1.27-0.11.0-beta` . Pay attention to these customized options for further package upgrades, since they will be preserved unless overwritten explicitly.
 
     
 ##  Upgrade in Strict Mode from `1.1.26-0.10.1.0-beta`
