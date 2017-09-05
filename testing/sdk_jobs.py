@@ -1,5 +1,10 @@
-'''Utilities relating to creation and verification of Metronome jobs'''
+'''Utilities relating to creation and verification of Metronome jobs
 
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import json
 import logging
 import os

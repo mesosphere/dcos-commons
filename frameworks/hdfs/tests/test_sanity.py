@@ -20,7 +20,8 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
+        sdk_install.uninstall(config.PACKAGE_NAME,
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
         if shakedown.dcos_version_less_than("1.9"):
             # HDFS upgrade in 1.8 is not supported.
@@ -40,13 +41,13 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
+        sdk_install.uninstall(config.PACKAGE_NAME,
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    pass
-    #config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.sanity
@@ -96,7 +97,8 @@ def test_kill_journal_node():
     name_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name')
     data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data')
 
-    sdk_tasks.kill_task_with_pattern('journalnode', sdk_hosts.system_host(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'journal-0-node'))
+    sdk_tasks.kill_task_with_pattern('journalnode', sdk_hosts.system_host(
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'journal-0-node'))
     config.expect_recovery(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
     sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name', name_ids)
@@ -111,7 +113,7 @@ def test_kill_name_node():
     data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data')
 
     sdk_tasks.kill_task_with_pattern('namenode',
-        sdk_hosts.system_host(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name-0-node'))
+                                     sdk_hosts.system_host(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name-0-node'))
     config.expect_recovery(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
     sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'journal', journal_ids)
@@ -126,7 +128,7 @@ def test_kill_data_node():
     name_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name')
 
     sdk_tasks.kill_task_with_pattern('datanode',
-        sdk_hosts.system_host(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data-0-node'))
+                                     sdk_hosts.system_host(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data-0-node'))
     config.expect_recovery(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
     sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data', data_ids)
     sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'journal', journal_ids)
@@ -344,14 +346,28 @@ def test_modify_app_config_rollback():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@pytest.mark.local
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    sdk_metrics.wait_for_any_metrics(
+    expected_metrics = [
+        "JournalNode.jvm.JvmMetrics.ThreadsRunnable",
+        "null.rpc.rpc.RpcQueueTimeNumOps",
+        "null.metricssystem.MetricsSystem.PublishAvgTime"
+    ]
+
+    def expected_metrics_exist(emitted_metrics):
+        # HDFS metric names need sanitation as they're dynamic.
+        # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
+        # This is consistent across all HDFS metric names.
+        metric_names = set(['.'.join(metric_name.split(".")[1:]) for metric_name in emitted_metrics])
+        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+
+    sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "journal-0-node",
-        config.DEFAULT_HDFS_TIMEOUT)
+        config.DEFAULT_HDFS_TIMEOUT,
+        expected_metrics_exist
+    )
 
 
 def replace_name_node(index):
