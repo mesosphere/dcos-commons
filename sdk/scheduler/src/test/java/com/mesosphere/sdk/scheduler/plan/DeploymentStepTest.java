@@ -48,15 +48,36 @@ public class DeploymentStepTest {
         Map<Protos.TaskID, DeploymentStep.TaskStatusPair> tasks = new HashMap<>();
         Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
 
-        // 3 PENDING tasks
+        // 1 PREPARED and 1 ERROR and 1 COMPLETE tasks
         tasks = new HashMap<>();
         tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
+                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.ERROR));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        Assert.assertEquals(Status.ERROR, getPendingStep().getStatus(tasks));
+
+
+        // 1 PREPARED and 2 PENDING tasks
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
         tasks.put(CommonIdUtils.toTaskId("test2"),
                 new DeploymentStep.TaskStatusPair(null, Status.PENDING));
         tasks.put(CommonIdUtils.toTaskId("test3"),
                 new DeploymentStep.TaskStatusPair(null, Status.PENDING));
         Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+
+        // 2 PREPARED and 1 STARTING tasks
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
+        Assert.assertEquals(Status.PREPARED, getPendingStep().getStatus(tasks));
 
         // 1 PENDING and 2 STARTING tasks
         tasks = new HashMap<>();
@@ -87,6 +108,17 @@ public class DeploymentStepTest {
         tasks.put(CommonIdUtils.toTaskId("test3"),
                 new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
         Assert.assertEquals(Status.COMPLETE, getPendingStep().getStatus(tasks));
+
+        // 2 COMPLETE and 1 IN_PROGRESS tasks (yes, IN_PROGRESS is not a valid status for a task
+        // but this is just testing the fallback logic).
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.IN_PROGRESS));
+        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
     }
 
     @Test

@@ -198,7 +198,26 @@ public class DeploymentStep extends AbstractStep {
         // 1 PENDING, 2 STARTING => PENDING
         // 2 STARTING, 1 COMPLETE => STARTING
         // 3 COMPLETE => COMPLETE
-        return statuses.stream().min(Comparator.comparing(Status::getOrder)).get();
+        if (statuses.contains(Status.ERROR)) {
+            return Status.ERROR;
+        } else if (statuses.contains(Status.PENDING)) {
+            return Status.PENDING;
+        } else if (statuses.contains(Status.PREPARED)) {
+            return Status.PREPARED;
+        } else if (statuses.contains(Status.STARTING)) {
+            return Status.STARTING;
+        } else if (statuses.contains(Status.COMPLETE)) {
+            // All statuses are complete
+            if (statuses.size() == 1) {
+                return Status.COMPLETE;
+            }
+        }
+
+        // If we don't explicitly handle the new status,
+        // we will simply return the previous status.
+        logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
+                "Falling back to current step status: {}", statuses, super.getStatus());
+        return super.getStatus();
     }
 
     @VisibleForTesting
