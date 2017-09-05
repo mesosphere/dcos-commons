@@ -24,7 +24,7 @@ public enum Status {
     /**
      * Execution experienced an error.
      */
-    ERROR(0),
+    ERROR,
 
     /**
      * Execution has been interrupted.
@@ -33,28 +33,28 @@ public enum Status {
      * Status is NEVER set to WAITING. Do not compare whether it is WAITING or not. 
      * Use isInterrupted() call, interrupt is a separate state internally.
      */
-    WAITING(1),
+    WAITING,
 
     /**
      * Execution is waiting for suitable offers.
      */
-    PENDING(2),
+    PENDING,
 
     /**
      * The Element has been evaluated, and any Tasks relevant to it have been killed if necessary.
      */
-    PREPARED(3),
+    PREPARED,
 
     /**
      * Execution has performed {@link org.apache.mesos.Protos.Offer.Operation}s and is waiting to determine the success
      * of those Operations.
      */
-    STARTING(4),
+    STARTING,
 
     /**
      * Execution has completed.
      */
-    COMPLETE(5),
+    COMPLETE,
 
     //TODO: make enum implement an interface, forbid step status to be set to WAITING or IN_PROGRESS
     /**
@@ -63,20 +63,7 @@ public enum Status {
      *
      * This value is only returned and never set to a variable.
      */
-    IN_PROGRESS(7);
-
-    /**
-     * Note, this field is currently ONLY consumed by
-     */
-    private final int order;
-
-    Status(final int order) {
-        this.order = order;
-    }
-
-    public int getOrder() {
-        return order;
-    }
+    IN_PROGRESS;
 
     /**
      * Status is in one of the running states.
