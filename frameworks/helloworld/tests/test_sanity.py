@@ -191,7 +191,7 @@ def wait_for_nonempty_properties():
     """'suppressed' could be missing if the scheduler recently started,
     loop for a bit just in case
     """
-        jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME, 'state properties', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME, 'state properties', json=True)
     assert len(jsonobj) > 0
 
 
