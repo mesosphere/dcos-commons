@@ -64,8 +64,8 @@ First, install new cli for DC/OS Kafka version `1.1.27-0.11.0-beta`.
     $ cat option.json
     {
         "kafka": {
-            "inter.broker.protocol.version": "0.10.0.0",
-            "log.message.format.version": "0.10.0"
+            "inter_broker_protocol_version": "0.10.0.0",
+            "log_message_format_version": "0.10.0"
         }
     }
 
