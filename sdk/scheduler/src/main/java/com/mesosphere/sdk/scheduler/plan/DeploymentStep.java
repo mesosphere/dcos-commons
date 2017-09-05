@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -176,7 +177,8 @@ public class DeploymentStep extends AbstractStep {
         }
     }
 
-    private Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
+    @VisibleForTesting
+    Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
         if (tasks.isEmpty()) {
             return Status.PENDING;
         }
@@ -190,11 +192,11 @@ public class DeploymentStep extends AbstractStep {
             statuses.add(status);
         }
 
-
-        return Collections.min(statuses);
+        return statuses.stream().min(Comparator.comparing(Status::getOrder)).get();
     }
 
-    private static class TaskStatusPair {
+    @VisibleForTesting
+    static class TaskStatusPair {
         private final Protos.TaskInfo taskInfo;
         private final Status status;
 

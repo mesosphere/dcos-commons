@@ -13,9 +13,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 import static org.mockito.Mockito.when;
 
@@ -42,6 +40,53 @@ public class DeploymentStepTest {
         when(podInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
         taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
         taskID = CommonIdUtils.toTaskId(taskName);
+    }
+
+    @Test
+    public void testGetStatusReturnsMinimumState() {
+        // No tasks
+        Map<Protos.TaskID, DeploymentStep.TaskStatusPair> tasks = new HashMap<>();
+        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+
+        // 3 PENDING tasks
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
+        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+
+        // 1 PENDING and 2 STARTING tasks
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
+        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+
+        // 2 STARTING and 1 COMPLETE task
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        Assert.assertEquals(Status.STARTING, getPendingStep().getStatus(tasks));
+
+        // 3 COMPLETE tasks
+        tasks = new HashMap<>();
+        tasks.put(CommonIdUtils.toTaskId("test1"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        tasks.put(CommonIdUtils.toTaskId("test2"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        tasks.put(CommonIdUtils.toTaskId("test3"),
+                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
+        Assert.assertEquals(Status.COMPLETE, getPendingStep().getStatus(tasks));
     }
 
     @Test
@@ -114,7 +159,7 @@ public class DeploymentStepTest {
         Assert.assertEquals(endStatus, step.getStatus());
     }
 
-    private Step getPendingStep() {
+    private DeploymentStep getPendingStep() {
         return new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
