@@ -206,11 +206,8 @@ public class DeploymentStep extends AbstractStep {
             return Status.PREPARED;
         } else if (statuses.contains(Status.STARTING)) {
             return Status.STARTING;
-        } else if (statuses.contains(Status.COMPLETE)) {
-            // All statuses are complete
-            if (statuses.size() == 1) {
-                return Status.COMPLETE;
-            }
+        } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
+            return Status.COMPLETE;
         }
 
         // If we don't explicitly handle the new status,
