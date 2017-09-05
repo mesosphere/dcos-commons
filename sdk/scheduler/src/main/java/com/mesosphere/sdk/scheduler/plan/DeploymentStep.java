@@ -192,6 +192,12 @@ public class DeploymentStep extends AbstractStep {
             statuses.add(status);
         }
 
+        // A DeploymentStep should have the "least" status of its consituent tasks.
+        // We can rely on the order of Status as returned by its getOrder method.
+        // For example:
+        // 1 PENDING, 2 STARTING => PENDING
+        // 2 STARTING, 1 COMPLETE => STARTING
+        // 3 COMPLETE => COMPLETE
         return statuses.stream().min(Comparator.comparing(Status::getOrder)).get();
     }
 
