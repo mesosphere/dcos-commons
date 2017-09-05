@@ -395,13 +395,19 @@
 
 <h4 id="step-1">Step 1</h4>
 
-<p>First, make a note of the existing protocol and log versions. Upgrade your service to the new package version <code class="highlighter-rouge">1.1.27-0.11.0-beta</code> (with Kafka 0.11.0.0), but keep the existig protocol and log versions the same by applying customized package update options. The following <code class="highlighter-rouge">options.json</code> file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.</p>
+<p>First, install new cli for DC/OS Kafka version <code class="highlighter-rouge">1.1.27-0.11.0-beta</code>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos package install beta-kafka --package-version=1.1.27-0.11.0-beta --cli
+</code></pre>
+</div>
+
+<p>Make a note of the existing protocol and log versions. Upgrade your service to the new package version <code class="highlighter-rouge">1.1.27-0.11.0-beta</code> (with Kafka 0.11.0.0), but keep the existig protocol and log versions the same by applying customized package update options. The following <code class="highlighter-rouge">options.json</code> file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>$ cat option.json
 {
     "kafka": {
-        "inter.broker.protocol.version": "0.10.0.0",
-        "log.message.format.version": "0.10.0"
+        "inter_broker_protocol_version": "0.10.0.0",
+        "log_message_format_version": "0.10.0"
     }
 }
 </code></pre>
@@ -409,7 +415,7 @@
 
 <p>Now, upgrade to package <code class="highlighter-rouge">1.1.27-0.11.0-beta</code>, which provides the new code, Kafka 0.11.0.0.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-kafka update start --options=options.json --package-version=1.1.27-0.11.0-beta
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-kafka update start --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka
 </code></pre>
 </div>
 
@@ -431,7 +437,7 @@
     }
 }
 
-$ dcos beta-kafka update start --options=options.json 
+$ dcos beta-kafka update start --options=options.json  --name=kafka
 </code></pre>
 </div>
 
@@ -447,7 +453,7 @@ $ dcos beta-kafka update start --options=options.json
     }
 }
  
-$ dcos beta-kafka update start --options=options.json 
+$ dcos beta-kafka update start --options=options.json --name=kafka
 </code></pre>
 </div>
 
@@ -475,7 +481,7 @@ $ dcos beta-kafka update start --options=options.json
     }
 }
 
-$ docs package install  beta-kafka --options=options.json ` --package-version=1.1.27-0.11.0-beta
+$ docs package install  beta-kafka --options=options.json ` --package-version=1.1.27-0.11.0-beta --name=kafka
 </code></pre>
 </div>
 
@@ -499,7 +505,7 @@ $ docs package install  beta-kafka --options=options.json ` --package-version=1.
 </code></pre>
 </div>
 
-<p>$ docs beta-kafka update start  –options=options.json –package-version=1.1.27-0.11.0-beta</p>
+<p>$ docs beta-kafka update start  –options=options.json –package-version=1.1.27-0.11.0-beta –name=kafka</p>
 
 </div>
 </div>
