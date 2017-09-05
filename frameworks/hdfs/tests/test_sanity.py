@@ -150,8 +150,7 @@ def test_kill_all_journalnodes():
 
     for journal_pod in config.get_pod_type_instances("journal", sdk_utils.get_foldered_name(config.SERVICE_NAME)):
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, sdk_utils.get_foldered_name(
-                config.SERVICE_NAME),
+            config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
             'pod restart {}'.format(journal_pod))
 
     config.expect_recovery(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
@@ -170,8 +169,7 @@ def test_kill_all_namenodes():
 
     for name_pod in config.get_pod_type_instances("name", sdk_utils.get_foldered_name(config.SERVICE_NAME)):
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, sdk_utils.get_foldered_name(
-                config.SERVICE_NAME),
+            config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
             'pod restart {}'.format(name_pod))
 
     config.expect_recovery(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
@@ -190,8 +188,7 @@ def test_kill_all_datanodes():
 
     for data_pod in config.get_pod_type_instances("data", sdk_utils.get_foldered_name(config.SERVICE_NAME)):
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, sdk_utils.get_foldered_name(
-                config.SERVICE_NAME),
+            config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
             'pod restart {}'.format(data_pod))
 
     config.expect_recovery(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))

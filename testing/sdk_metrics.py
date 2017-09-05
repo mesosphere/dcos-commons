@@ -37,8 +37,7 @@ def get_metrics(package_name, service_name, task_name):
     executor_id = task_to_check['executor_id']
 
     pod_name = '-'.join(task_name.split("-")[:2])
-    pod_info = sdk_cmd.svc_cli(
-        package_name, service_name, "pod info {}".format(pod_name), json=True)
+    pod_info = sdk_cmd.svc_cli(package_name, service_name, "pod info {}".format(pod_name), json=True)
     task_info = None
     for task in pod_info:
         if task["info"]["name"] == task_name:
@@ -52,8 +51,7 @@ def get_metrics(package_name, service_name, task_name):
 
     # Not related to functionality but consuming this
     # endpoint to verify downstream integrity
-    containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(
-        shakedown.dcos_url(), agent_id)
+    containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
     containers_response = sdk_cmd.request("GET", containers_url, retry=False)
     if containers_response.ok is None:
         log.info("Unable to fetch containers list")

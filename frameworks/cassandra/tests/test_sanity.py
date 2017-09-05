@@ -103,7 +103,7 @@ def test_metrics():
     ]
 
     def expected_metrics_exist(emitted_metrics):
-        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+        return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,

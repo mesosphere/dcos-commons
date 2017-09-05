@@ -45,8 +45,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME,
-                              sdk_utils.get_foldered_name(config.SERVICE_NAME))
+        sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 # --------- Endpoints -------------
@@ -143,8 +142,7 @@ def test_broker_list():
 def test_broker_invalid():
     try:
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, sdk_utils.get_foldered_name(
-                config.SERVICE_NAME),
+            config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
             'broker get {}'.format(config.DEFAULT_BROKER_COUNT + 1), json=True)
         assert False, "Should have failed"
     except AssertionError as arg:
@@ -356,7 +354,7 @@ def test_metrics():
     ]
 
     def expected_metrics_exist(emitted_metrics):
-        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+        return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
