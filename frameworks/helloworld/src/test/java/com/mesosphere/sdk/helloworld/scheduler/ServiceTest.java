@@ -2,83 +2,81 @@ package com.mesosphere.sdk.helloworld.scheduler;
 
 import org.junit.Test;
 
-import com.mesosphere.sdk.testing.ServiceRenderUtils;
-import com.mesosphere.sdk.testing.ServiceSpecTestBuilder;
-import com.mesosphere.sdk.testing.ServiceSpecTestUtils;
+import com.mesosphere.sdk.testing.ServiceTestBuilder;
 
-public class ServiceSpecTest {
+public class ServiceTest {
 
     @Test
     public void testSpecBase() throws Exception {
-        ServiceSpecTestUtils.test("svc.yml");
+        new ServiceTestBuilder().render();
     }
 
     @Test
     public void testSpecSimple() throws Exception {
-        ServiceSpecTestUtils.test("examples/simple.yml");
+        new ServiceTestBuilder("examples/simple.yml").render();
     }
 
     @Test
     public void testSpecPlan() throws Exception {
-        ServiceSpecTestUtils.test("examples/plan.yml");
+        new ServiceTestBuilder("examples/plan.yml").render();
     }
 
     @Test
     public void testSpecSidecar() throws Exception {
-        ServiceSpecTestUtils.test("examples/sidecar.yml");
+        new ServiceTestBuilder("examples/sidecar.yml").render();
     }
 
     @Test
     public void testSpecTaskcfg() throws Exception {
-        ServiceSpecTestUtils.test("examples/taskcfg.yml");
+        new ServiceTestBuilder("examples/taskcfg.yml").render();
     }
 
     @Test
     public void testSpecUri() throws Exception {
-        ServiceSpecTestUtils.test("examples/uri.yml");
+        new ServiceTestBuilder("examples/uri.yml").render();
     }
 
     @Test
     public void testSpecWebUrl() throws Exception {
-        ServiceSpecTestUtils.test("examples/web-url.yml");
+        new ServiceTestBuilder("examples/web-url.yml").render();
     }
 
     @Test
     public void testGpuResource() throws Exception {
-        ServiceSpecTestUtils.test("examples/gpu_resource.yml");
+        new ServiceTestBuilder("examples/gpu_resource.yml").render();
     }
 
     @Test
     public void testOverlayNetworks() throws Exception {
-        ServiceSpecTestUtils.test("examples/overlay.yml");
+        new ServiceTestBuilder("examples/overlay.yml").render();
     }
 
     @Test
     public void testSecrets() throws Exception {
         // This yml file expects some additional envvars which aren't in the default marathon.json.mustache,
         // so we need to provide them manually:
-        new ServiceSpecTestBuilder(ServiceRenderUtils.getDistFile("examples/secrets.yml"))
+        new ServiceTestBuilder("examples/secrets.yml")
                 .setCustomEnv(
                         "HELLO_SECRET1", "hello-world/secret1",
                         "HELLO_SECRET2", "hello-world/secret2",
                         "WORLD_SECRET1", "hello-world/secret1",
                         "WORLD_SECRET2", "hello-world/secret2",
                         "WORLD_SECRET3", "hello-world/secret3")
-                .test();
+                .render();
     }
 
     @Test
     public void testPreReservedRole() throws Exception {
-        ServiceSpecTestUtils.test("examples/pre-reserved.yml");
+        new ServiceTestBuilder("examples/pre-reserved.yml").render();
     }
 
     @Test
     public void testMultiStepPlan() throws Exception {
-        ServiceSpecTestUtils.test("examples/multistep_plan.yml");
+        new ServiceTestBuilder("examples/multistep_plan.yml").render();
     }
 
     @Test
     public void testTLS() throws Exception {
-        ServiceSpecTestUtils.test("examples/tls.yml");
+        new ServiceTestBuilder("examples/tls.yml").render();
     }
 }

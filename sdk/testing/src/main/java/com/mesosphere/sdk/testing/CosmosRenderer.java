@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.testing;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -14,24 +13,18 @@ import java.util.TreeMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.mustachejava.DefaultMustacheFactory;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
- * Utilities which handle rendering service specifications starting from their Universe packaging, simulating what
- * Cosmos and Marathon would do for a running service.
+ * Reads a service's Universe packaging configuration, and uses that to generate the resulting Scheduler environment.
+ * This effectively is a mock of what Cosmos and Marathon would do for a service as it's installed in a real cluster.
  */
-public class ServiceRenderUtils {
+public class CosmosRenderer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceRenderUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CosmosRenderer.class);
 
     /**
      * Universe template values that are injected by SDK tooling. We inject test values here.
@@ -44,7 +37,7 @@ public class ServiceRenderUtils {
         RESOURCE_TEMPLATE_PARAMS.put("artifact-dir", "https://test-url/artifacts");
     }
 
-    private ServiceRenderUtils() {
+    private CosmosRenderer() {
         // do not instantiate
     }
 
@@ -53,12 +46,14 @@ public class ServiceRenderUtils {
      * that the service's universe packaging is valid, by exercising config.json, resource.json, and
      * marathon.json.mustache.
      *
-     * @param customOptions map of any custom config settings as would be passed via an {@code options.json} file when
-     *     installing the service, or an empty map to use defaults defined in the service's {@code config.json}
+     * @param customPackageOptions map of any custom config settings as would be passed via an {@code options.json} file
+     *     when installing the service, or an empty map to use defaults defined in the service's {@code config.json}
+     * @param customEnv map of any custom scheduler env overrides to be injected into the result
      * @return Scheduler environment variables resulting from the provided options
      */
-    public static Map<String, String> renderSchedulerEnvironment(Map<String, Object> customOptions) {
-        Map<String, Object> config = new HashMap<>();
+    public static Map<String, String> renderSchedulerEnvironment(
+            Map<String, Object> customPackageOptions, Map<String, String> customEnv) {
+        Map<String, Object> config = new TreeMap<>(); // for ordered output in logs
         // Get default values from config.json
         flattenPropertyTree("", new JSONObject(readFile("universe/config.json")), config);
 
@@ -68,59 +63,18 @@ public class ServiceRenderUtils {
         flattenTree("resource", resourceJson, config);
 
         // Override any of the above with the caller's manually-configured settings.
-        config.putAll(customOptions);
+        config.putAll(customPackageOptions);
+        LOGGER.info("Generated package config with {} override{}: {}",
+                customPackageOptions.size(), customPackageOptions.size() == 1 ? "" : "s", config);
 
         // Render marathon.json and get scheduler env content:
-        Map<String, String> env = getMarathonAppEnvironment(
-                renderMustache("marathon.json.mustache", readFile("universe/marathon.json.mustache"), config));
-        LOGGER.info("Rendered Scheduler environment: {}", env);
+        Map<String, String> env = new TreeMap<>(); // for ordered output in logs
+        env.putAll(getMarathonAppEnvironment(
+                renderMustache("marathon.json.mustache", readFile("universe/marathon.json.mustache"), config)));
+        env.putAll(customEnv);
+        LOGGER.info("Rendered Scheduler environment with {} override{}: {}",
+                customEnv.size(), customEnv.size() == 1 ? "" : "s", env);
         return env;
-    }
-
-    /**
-     * Returns a {@link File} object for a provided filename or relative path within the service's {@code src/main/dist}
-     * directory.
-     */
-    public static File getDistFile(String specFilePath) {
-        return new File(System.getProperty("user.dir") + "/src/main/dist/" + specFilePath);
-    }
-
-    /**
-     * Renders and returns a {@link RawServiceSpec} for a given Service Specification YAML file against the provided
-     * {@code schedulerEnvironment}.
-     *
-     * @param specFile path to the Service Specification YAML file to be rendered
-     * @param schedulerEnvironment the simulated scheduler environment, see {@link #renderSchedulerEnvironment(Map)}
-     */
-    public static RawServiceSpec getRawServiceSpec(File specFile, Map<String, String> schedulerEnvironment)
-            throws Exception {
-        LOGGER.info("Creating RawServiceSpec from YAML file: {}", specFile.getAbsolutePath());
-        return RawServiceSpec.newBuilder(specFile)
-                .setEnv(schedulerEnvironment)
-                .build();
-    }
-
-    /**
-     * Renders and returns a {@link ServiceSpec} for a given {@link RawServiceSpec} and Scheduler environment.
-     *
-     * @param rawServiceSpec the raw ServiceSpec representing the object model of a Service Specification YAML file
-     * @param schedulerEnvironment the simulated scheduler environment, see {@link #renderSchedulerEnvironment(Map)}
-     */
-    public static ServiceSpec getServiceSpec(
-            RawServiceSpec rawServiceSpec, Map<String, String> schedulerEnvironment, File configDir) throws Exception {
-        return DefaultServiceSpec.newGenerator(
-                rawServiceSpec, getMockFlags(), schedulerEnvironment, configDir).build();
-    }
-
-    /**
-     * Returns a feasible {@link SchedulerFlags} to be used when exercising Scheduler construction.
-     */
-    static SchedulerFlags getMockFlags() {
-        SchedulerFlags mockFlags = Mockito.mock(SchedulerFlags.class);
-        Mockito.when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
-        Mockito.when(mockFlags.getApiServerPort()).thenReturn(8080);
-        Mockito.when(mockFlags.getServiceAccountUid()).thenReturn(TestConstants.PRINCIPAL);
-        return mockFlags;
     }
 
     /**
@@ -177,7 +131,7 @@ public class ServiceRenderUtils {
      */
     private static Map<String, String> getMarathonAppEnvironment(String marathonJsonContent) {
         JSONObject marathonJson = new JSONObject(marathonJsonContent);
-        Map<String, String> env = new TreeMap<>();
+        Map<String, String> env = new HashMap<>();
 
         if (marathonJson.has("env")) {
             JSONObject marathonEnvJson = marathonJson.getJSONObject("env");

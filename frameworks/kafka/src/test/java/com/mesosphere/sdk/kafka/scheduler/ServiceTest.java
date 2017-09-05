@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.kafka.scheduler;
 
-import com.mesosphere.sdk.testing.ServiceSpecTestUtils;
-
 import org.junit.Test;
 
-public class ServiceSpecTest {
+import com.mesosphere.sdk.testing.ServiceTestBuilder;
+
+public class ServiceTest {
 
     @Test
     public void testSpec() throws Exception {
-        ServiceSpecTestUtils.test();
+        new ServiceTestBuilder().render();
     }
 }

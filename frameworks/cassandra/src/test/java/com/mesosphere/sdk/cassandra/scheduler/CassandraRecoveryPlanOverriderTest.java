@@ -11,16 +11,15 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.testing.ServiceRenderUtils;
+import com.mesosphere.sdk.testing.ServiceTestBuilder;
+import com.mesosphere.sdk.testing.ServiceTestResult;
+
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,10 +34,9 @@ public class CassandraRecoveryPlanOverriderTest {
     private StateStore stateStore;
 
     public CassandraRecoveryPlanOverriderTest() throws Exception {
-        Map<String, String> schedulerEnvironment = ServiceRenderUtils.renderSchedulerEnvironment(Collections.emptyMap());
-        File specFile = ServiceRenderUtils.getDistFile("svc.yml");
-        rawSpec = ServiceRenderUtils.getRawServiceSpec(specFile, schedulerEnvironment);
-        serviceSpec = ServiceRenderUtils.getServiceSpec(rawSpec, schedulerEnvironment, specFile.getParentFile());
+        ServiceTestResult result = new ServiceTestBuilder().render();
+        rawSpec = result.getRawServiceSpec();
+        serviceSpec = result.getServiceSpec();
     }
 
     @Before
