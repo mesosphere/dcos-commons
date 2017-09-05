@@ -1,8 +1,8 @@
 {
   "packagingVersion": "4.0",
-  "minDcosReleaseVersion": "1.9",
   "upgradesFrom": ["*"],
   "downgradesTo": ["*"],
+  "minDcosReleaseVersion": "1.9",
   "name": "hello-world",
   "version":  "{{package-version}}",
   "maintainer": "support@mesosphere.io",

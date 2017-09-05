@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 
@@ -13,7 +12,6 @@ import sdk_utils
 import shakedown
 from tests import config
 
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(config.PACKAGE_NAME)
 
 log = logging.getLogger(__name__)
 
@@ -21,20 +19,16 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
-
-        service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
-
+        sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
-            config.PACKAGE_NAME,
+            sdk_utils.get_foldered_name(config.SERVICE_NAME),
             config.DEFAULT_TASK_COUNT,
-            service_name=FOLDERED_SERVICE_NAME,
-            additional_options=service_config)
+            additional_options={"service": {"name": sdk_utils.get_foldered_name(config.SERVICE_NAME), "user": "root"}})
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 def close_enough(val0, val1):
@@ -45,7 +39,7 @@ def close_enough(val0, val1):
 
 @pytest.mark.smoke
 def test_install():
-    config.check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 # Note: presently the mesos v1 api does _not_ work in strict mode.
@@ -54,39 +48,40 @@ def test_install():
 def test_mesos_v1_api():
     # Install Hello World using the v1 api.
     # Then, clean up afterwards.
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
     sdk_install.install(
         config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
         config.DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": {"name": FOLDERED_SERVICE_NAME, "mesos_api_version": "V1"}}
+        additional_options={"service":
+            {"name": sdk_utils.get_foldered_name(config.SERVICE_NAME), "mesos_api_version": "V1"}}
     )
-    config.check_running(FOLDERED_SERVICE_NAME)
-    sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
     # reinstall the v0 version for the following tests
     sdk_install.install(
         config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
         config.DEFAULT_TASK_COUNT,
-        service_name=FOLDERED_SERVICE_NAME,
-        additional_options={"service": {"name": FOLDERED_SERVICE_NAME}})
+        additional_options={"service": {"name": sdk_utils.get_foldered_name(config.SERVICE_NAME)}})
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_cpus():
-    config.check_running(FOLDERED_SERVICE_NAME)
-    hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    hello_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'hello')
     log.info('hello ids: ' + str(hello_ids))
 
-    updated_cpus = config.bump_hello_cpus(FOLDERED_SERVICE_NAME)
+    updated_cpus = config.bump_hello_cpus(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
-    config.check_running(FOLDERED_SERVICE_NAME)
+    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'hello', hello_ids)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    all_tasks = shakedown.get_service_tasks(FOLDERED_SERVICE_NAME)
+    all_tasks = shakedown.get_service_tasks(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
-    assert len(running_tasks) == config.hello_task_count(FOLDERED_SERVICE_NAME)
+    assert len(running_tasks) == config.hello_task_count(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
 
@@ -94,18 +89,18 @@ def test_bump_hello_cpus():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_world_cpus():
-    config.check_running(FOLDERED_SERVICE_NAME)
-    world_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'world')
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    world_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'world')
     log.info('world ids: ' + str(world_ids))
 
-    updated_cpus = config.bump_world_cpus(FOLDERED_SERVICE_NAME)
+    updated_cpus = config.bump_world_cpus(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    sdk_tasks.check_tasks_updated(FOLDERED_SERVICE_NAME, 'world', world_ids)
-    config.check_running(FOLDERED_SERVICE_NAME)
+    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'world', world_ids)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    all_tasks = shakedown.get_service_tasks(FOLDERED_SERVICE_NAME)
+    all_tasks = shakedown.get_service_tasks(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
-    assert len(running_tasks) == config.world_task_count(FOLDERED_SERVICE_NAME)
+    assert len(running_tasks) == config.world_task_count(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)
 
@@ -113,22 +108,22 @@ def test_bump_world_cpus():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_nodes():
-    config.check_running(FOLDERED_SERVICE_NAME)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    hello_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, 'hello')
+    hello_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'hello')
     log.info('hello ids: ' + str(hello_ids))
 
-    sdk_marathon.bump_task_count_config(FOLDERED_SERVICE_NAME, 'HELLO_COUNT')
+    sdk_marathon.bump_task_count_config(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'HELLO_COUNT')
 
-    config.check_running(FOLDERED_SERVICE_NAME)
-    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, 'hello', hello_ids)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'hello', hello_ids)
 
 
 @pytest.mark.sanity
 def test_pod_list():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod list'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
-    assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod list', json=True)
+    assert len(jsonobj) == config.configured_task_count(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
     first_world = -1
@@ -145,9 +140,9 @@ def test_pod_list():
 
 @pytest.mark.sanity
 def test_pod_status_all():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod status'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
-    assert len(jsonobj) == config.configured_task_count(FOLDERED_SERVICE_NAME)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status', json=True)
+    assert len(jsonobj) == config.configured_task_count(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     for k, v in jsonobj.items():
         assert re.match('(hello|world)-[0-9]+', k)
         assert len(v) == 1
@@ -160,8 +155,8 @@ def test_pod_status_all():
 
 @pytest.mark.sanity
 def test_pod_status_one():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod status hello-0'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status hello-0', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 3
@@ -172,12 +167,12 @@ def test_pod_status_one():
 
 @pytest.mark.sanity
 def test_pod_info():
-    stdout = sdk_cmd.run_cli('hello-world --name={} pod info world-1'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info hello-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
-    assert task['info']['name'] == 'world-1-server'
+    assert task['info']['name'] == 'hello-1-server'
     assert task['info']['taskId']['value'] == task['status']['taskId']['value']
     assert task['status']['state'] == 'TASK_RUNNING'
 
@@ -186,13 +181,14 @@ def test_pod_info():
 def test_state_properties_get():
     # 'suppressed' could be missing if the scheduler recently started, loop for a bit just in case:
     def check_for_nonempty_properties():
-        stdout = sdk_cmd.run_cli('hello-world --name={} state properties'.format(FOLDERED_SERVICE_NAME))
-        return len(json.loads(stdout)) > 0
+        jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+            sdk_utils.get_foldered_name(config.SERVICE_NAME), 'state properties', json=True)
+        return len(jsonobj) > 0
 
     shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30)
 
-    stdout = sdk_cmd.run_cli('hello-world --name={} state properties'.format(FOLDERED_SERVICE_NAME))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'state properties', json=True)
     assert len(jsonobj) == 6
     # alphabetical ordering:
     assert jsonobj[0] == "hello-0-server:task-status"
@@ -202,31 +198,34 @@ def test_state_properties_get():
     assert jsonobj[4] == "world-0-server:task-status"
     assert jsonobj[5] == "world-1-server:task-status"
 
-    stdout = sdk_cmd.run_cli('hello-world --name={} state property suppressed'.format(FOLDERED_SERVICE_NAME))
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'state property suppressed')
     assert stdout == "true\n"
 
 
 @pytest.mark.sanity
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
-    config.check_running(FOLDERED_SERVICE_NAME)
-    task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, '')
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    task_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), '')
 
     # caching enabled by default:
-    stdout = sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'state refresh_cache')
     assert "Received cmd: refresh" in stdout
 
-    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    marathon_config = sdk_marathon.get_config(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     marathon_config['env']['DISABLE_STATE_CACHE'] = 'any-text-here'
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), marathon_config)
 
-    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
-    config.check_running(FOLDERED_SERVICE_NAME)
+    sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), '', task_ids)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     def check_cache_refresh_fails_409conflict():
         try:
-            sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
+            sdk_cmd.svc_cli(config.PACKAGE_NAME,
+                sdk_utils.get_foldered_name(config.SERVICE_NAME), 'state refresh_cache')
         except Exception as e:
             if "failed: 409 Conflict" in e.args[0]:
                 return True
@@ -234,17 +233,18 @@ def test_state_refresh_disable_cache():
 
     shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
 
-    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
+    marathon_config = sdk_marathon.get_config(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     del marathon_config['env']['DISABLE_STATE_CACHE']
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), marathon_config)
 
-    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', task_ids)
-    config.check_running(FOLDERED_SERVICE_NAME)
+    sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), '', task_ids)
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     shakedown.deployment_wait()  # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     def check_cache_refresh():
-        return sdk_cmd.run_cli('hello-world --name={} state refresh_cache'.format(FOLDERED_SERVICE_NAME))
+        return sdk_cmd.svc_cli(config.PACKAGE_NAME,
+            sdk_utils.get_foldered_name(config.SERVICE_NAME), 'state refresh_cache')
 
     stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.)
     assert "Received cmd: refresh" in stdout
@@ -261,24 +261,25 @@ def test_lock():
     marathon_client = dcos.marathon.create_client()
 
     # Get ZK state from running framework
-    zk_path = "dcos-service-{}/ConfigTarget".format(FOLDERED_SERVICE_NAME)
+    zk_path = "dcos-service-{}/ConfigTarget".format(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     zk_config_old = shakedown.get_zk_node_data(zk_path)
 
     # Get marathon app
-    app = marathon_client.get_app(FOLDERED_SERVICE_NAME)
+    app = marathon_client.get_app(sdk_utils.get_foldered_name(config.SERVICE_NAME))
     old_timestamp = app.get("lastTaskFailure", {}).get("timestamp", None)
 
     # Scale to 2 instances
     labels = app["labels"]
     original_labels = labels.copy()
     labels.pop("MARATHON_SINGLE_INSTANCE_APP")
-    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": labels})
+    marathon_client.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), {"labels": labels})
     shakedown.deployment_wait()
-    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"instances": 2})
+    marathon_client.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME), {"instances": 2})
 
     # Wait for second scheduler to fail
     def fn():
-        timestamp = marathon_client.get_app(FOLDERED_SERVICE_NAME).get("lastTaskFailure", {}).get("timestamp", None)
+        timestamp = marathon_client.get_app(sdk_utils.get_foldered_name(config.SERVICE_NAME)).get(
+            "lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
 
     shakedown.wait_for(lambda: fn())
@@ -288,5 +289,6 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
-    marathon_client.update_app(FOLDERED_SERVICE_NAME, {"labels": original_labels, "instances": 1}, force=True)
+    marathon_client.update_app(sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        {"labels": original_labels, "instances": 1}, force=True)
     shakedown.deployment_wait()

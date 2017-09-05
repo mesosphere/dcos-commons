@@ -1,10 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This is a separate build script for Kibana. It creates a stub Universe for the Kibana package and optionally
 # publishes it to S3 or a local artifact server.
 set -e
-
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-start.png >/dev/null 2>&1
 
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $FRAMEWORK_DIR/versions.sh
@@ -34,6 +31,3 @@ esac
 if [ -n "$PUBLISH_SCRIPT" ]; then
     $PUBLISH_SCRIPT kibana ${UNIVERSE_DIR}
 fi
-
-# capture anonymous metrics for reporting
-curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1
