@@ -197,7 +197,7 @@ The name of this Kafka instance in DC/OS. This is an option that cannot be chang
 
 ## Kill Grace Period
 
-The kiill grace period is the number of seconds each broker has to cleanly shut
+The kill grace period is the number of seconds each broker has to cleanly shut
 down in response to SIGTERM. If a broker exceeds this time, it will be killed.
 Use the `brokers.kill_grace_period` configuration option to set a kill grace period.
 
