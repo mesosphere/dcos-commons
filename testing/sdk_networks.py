@@ -1,6 +1,7 @@
 import json
 
 import shakedown
+import sdk_cmd
 
 
 ENABLE_VIRTUAL_NETWORKS_OPTIONS = {'service': {'virtual_network_enabled': True}}
@@ -32,16 +33,13 @@ def check_task_network(task_name, expected_network_name="dcos"):
                         .format(task=task_name, status=status)
 
 
-def get_and_test_endpoints(endpoint_to_get, package_name, correct_count):
+def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_count):
     """Gets the endpoints for a service or the specified 'endpoint_to_get' similar to running
     $ docs <service> endpoints
     or
     $ dcos <service> endpoints <endpoint_to_get>
     Checks that there is the correct number of endpoints"""
-
-    endpoints, _, rc = shakedown.run_dcos_command("{} endpoints {}".format(package_name, endpoint_to_get))
-    assert rc == 0, "Failed to get endpoints on overlay network"
-    endpoints = json.loads(endpoints)
+    endpoints = sdk_cmd.svc_cli(package_name, service_name, "endpoints {}".format(endpoint_to_get), json=True)
     assert len(endpoints) == correct_count, "Wrong number of endpoints, got {} should be {}" \
         .format(len(endpoints), correct_count)
     return endpoints
@@ -61,8 +59,8 @@ def check_endpoints_on_overlay(endpoints):
         "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
 
     for dns in endpoints["dns"]:
-        assert "autoip.dcos.thisdcos.directory" in dns, "DNS {} is incorrect should have autoip.dcos.thisdcos." \
-                                                        "directory".format(dns)
+        assert "autoip.dcos.thisdcos.directory" in dns, \
+            "DNS {} is incorrect should have autoip.dcos.thisdcos.directory".format(dns)
 
 
 def get_framework_srv_records(package_name):

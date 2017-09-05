@@ -304,7 +304,7 @@ DC/OS Apache Kafka does not natively support any backup or restore functionality
 
 ## Accessing Logs
 
-You can find logs for the scheduler and all service pods on the the DC/OS web interface.
+You can find logs for the scheduler and all service pods on the DC/OS web interface.
 
 - Scheduler logs are useful for determining why a pod isn't being launched (this is under the purview of the scheduler).
 - Pod logs are useful for examining problems in the service itself.

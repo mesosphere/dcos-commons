@@ -5,6 +5,7 @@ import random
 import string
 
 import shakedown
+import sdk_cmd
 
 log = logging.getLogger(__name__)
 
@@ -28,19 +29,16 @@ def add_universe_repos():
         stub_urls[package_name] = url
 
     # clean up any duplicate repositories
-    current_universes, _, _ = shakedown.run_dcos_command(
-        'package repo list --json')
+    current_universes = sdk_cmd.run_cli('package repo list --json')
     for repo in json.loads(current_universes)['repositories']:
         if repo['uri'] in stub_urls.values():
             log.info('Removing duplicate stub URL: {}'.format(repo['uri']))
-            remove_package_cmd = 'package repo remove {}'.format(repo['name'])
-            shakedown.run_dcos_command(remove_package_cmd)
+            sdk_cmd.run_cli('package repo remove {}'.format(repo['name']))
 
     # add the needed universe repositories
     for name, url in stub_urls.items():
         log.info('Adding stub URL: {}'.format(url))
-        add_package_cmd = 'package repo add --index=0 {} {}'.format(name, url)
-        shakedown.run_dcos_command(add_package_cmd)
+        sdk_cmd.run_cli('package repo add --index=0 {} {}'.format(name, url))
 
     log.info('Finished adding universe repos')
 
@@ -53,11 +51,13 @@ def remove_universe_repos(stub_urls):
     # clear out the added universe repositores at testing end
     for name, url in stub_urls.items():
         log.info('Removing stub URL: {}'.format(url))
-        remove_package_cmd = 'package repo remove {}'.format(name)
-        out, err, rc = shakedown.run_dcos_command(remove_package_cmd)
-        if err and err.endswith('is not present in the list'):
-            # tried to remove something that wasn't there, move on.
-            pass
+        out, err, rc = shakedown.run_dcos_command('package repo remove {}'.format(name))
+        if err:
+            if err.endswith('is not present in the list'):
+                # tried to remove something that wasn't there, move on.
+                pass
+            else:
+                raise 'Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(out, err)
 
     log.info('Finished removing universe repos')
 

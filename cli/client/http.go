@@ -178,9 +178,6 @@ func HTTPQuery(request *http.Request) *http.Response {
 			PrintMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
 		}
 	}
-	if config.Verbose {
-		PrintMessage("Response: %s (%d bytes)", response.Status, response.ContentLength)
-	}
 	return response
 }
 
@@ -242,12 +239,6 @@ func CreateURL(baseURL, urlPath, urlQuery string) *url.URL {
 
 // CreateHTTPURLRequest creates a HTTP url request
 func CreateHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
-	if config.Verbose {
-		PrintMessage("HTTP Query: %s %s", method, url)
-		if len(payload) != 0 {
-			PrintMessage("  Payload: %s", payload)
-		}
-	}
 	request, err := http.NewRequest(method, url.String(), bytes.NewReader([]byte(payload)))
 	if err != nil {
 		PrintMessageAndExit("Failed to create HTTP %s request for %s: %s", method, url, err)
@@ -265,6 +256,13 @@ func CreateHTTPURLRequest(method string, url *url.URL, payload, accept, contentT
 	}
 	if len(contentType) != 0 {
 		request.Header.Set("Content-Type", contentType)
+	}
+	if config.Verbose {
+		if len(payload) > 0 {
+			PrintMessage("HTTP Query (%d byte payload): %s %s\n%s", len(payload), method, url, payload)
+		} else {
+			PrintMessage("HTTP Query: %s %s", method, url)
+		}
 	}
 	return request
 }

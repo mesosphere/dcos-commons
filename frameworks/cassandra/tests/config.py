@@ -11,13 +11,16 @@ import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'cassandra'
+PACKAGE_NAME = 'beta-cassandra'
+
+SERVICE_NAME = 'cassandra'
+
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
 # Soak artifact scripts may override the service name to test
 SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or PACKAGE_NAME
 
-DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(PACKAGE_NAME, 'node-0-server'))
+DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 
@@ -37,7 +40,7 @@ def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
 
 
 def get_foldered_service_name():
-    return sdk_utils.get_foldered_name(PACKAGE_NAME)
+    return sdk_utils.get_foldered_name(SERVICE_NAME)
 
 
 def get_foldered_node_address():
