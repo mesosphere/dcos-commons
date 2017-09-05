@@ -8,6 +8,13 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
+# Check to see if we should use gsed or sed
+SED=$([ "$(uname)" == "Darwin" ] && echo "$(which gsed)" || echo "$(which sed)")
+if [ -z "$SED" ]; then
+    echo "Please install GNU sed by running brew install gnu-sed"
+    exit 1
+fi
+
 URL=$1
 FILE=`basename $URL`
 REPLACE=""
@@ -36,6 +43,10 @@ echo "Removing extra config files..."
 
 `rm /tmp/$UNPACKED_FILE/conf/cassandra-rackdc.properties`
 `rm /tmp/$UNPACKED_FILE/conf/cassandra-topology.properties`
+
+echo "Modifying cassandra-env.sh"
+
+$SED -i "s/\(^JMX_PORT=.*\)/#DISABLED FOR DC\/OS:\n#\1/g" "/tmp/$UNPACKED_FILE/conf"/cassandra-env.sh
 
 echo "Generating binary..."
 

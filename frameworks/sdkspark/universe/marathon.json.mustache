@@ -47,8 +47,7 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.service_account_secret}}
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "SPARK_CONTAINER": "{{resource.assets.container.spark}}"
-
+    "SPARK_DOCKER_IMAGE": "{{resource.assets.container.docker.spark}}"
 },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

@@ -1,13 +1,15 @@
 {
   "assets": {
+    "container": {
+      "docker": {
+        "spark": "artrand/spark"
+      }
+    },
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/sdkspark-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
-    },
-    "container": {
-      "spark": "artrand/spark"
     }
   },
   "images": {

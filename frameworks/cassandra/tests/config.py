@@ -11,7 +11,6 @@ import sdk_utils
 PACKAGE_NAME = 'beta-cassandra'
 
 SERVICE_NAME = 'cassandra'
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600

@@ -5,7 +5,7 @@ scheduler:
 pods:
   executor:
     count: {{NODE_COUNT}}
-    image: {{SPARK_CONTAINER}}
+    image: {{SPARK_DOCKER_IMAGE}}
     placement: {{NODE_PLACEMENT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:

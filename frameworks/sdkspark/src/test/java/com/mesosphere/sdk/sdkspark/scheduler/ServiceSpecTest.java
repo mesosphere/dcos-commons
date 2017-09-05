@@ -11,7 +11,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "LIBMESOS_URI", "",
                 "PORT_API", "8080",
                 "FRAMEWORK_NAME", "sdkspark",
-                "SPARK_CONTAINER", "artrand/spark",
+                "SPARK_DOCKER_IMAGE", "artrand/spark",
                 "NODE_COUNT", "2",
                 "NODE_CPUS", "0.1",
                 "NODE_MEM", "512",
