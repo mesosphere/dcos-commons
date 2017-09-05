@@ -1,0 +1,4 @@
+PACKAGE_NAME = 'sdkspark'
+SERVICE_NAME = 'sdkspark'
+DEFAULT_TASK_COUNT = 1
+

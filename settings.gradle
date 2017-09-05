@@ -33,5 +33,5 @@ project(":frameworks/cassandra").name = "cassandra"
 include 'frameworks/helloworld/tests/tls/keystore'
 project(":frameworks/helloworld/tests/tls/keystore").name = 'keystore-app'
 
-include 'frameworks/spark-sdk'
-project(":frameworks/spark-sdk").name = "spark-sdk"
+include 'frameworks/sdkspark'
+project(":frameworks/sdkspark").name = "sdkspark"

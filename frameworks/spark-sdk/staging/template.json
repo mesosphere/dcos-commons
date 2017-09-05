@@ -1,8 +1,0 @@
-{
-  "service": {
-    "principal": "spark-sdk-principal",
-    "secret_name": "spark-sdk/spark-sdk-secret",
-    "user": "nobody",
-    "virtual_network": true
-  }
-}
