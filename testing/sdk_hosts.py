@@ -1,5 +1,10 @@
-'''Utilities relating to mapping tasks and services to hostnames'''
+'''Utilities relating to mapping tasks and services to hostnames
 
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 
 SYSTEM_HOST_SUFFIX = 'mesos'
 AUTOIP_HOST_SUFFIX = 'autoip.dcos.thisdcos.directory'

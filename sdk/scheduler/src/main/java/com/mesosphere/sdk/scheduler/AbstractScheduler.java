@@ -98,7 +98,7 @@ public abstract class AbstractScheduler implements Scheduler {
             while (true) {
                 // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
-                LOGGER.info("Processing {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
+                LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
                 for (int i = 0; i < offers.size(); ++i) {
                     LOGGER.info("  {}: {}",
                             i + 1,
@@ -112,7 +112,10 @@ public abstract class AbstractScheduler implements Scheduler {
                                     .map(offer -> offer.getId())
                                     .collect(Collectors.toList()));
 
-                    LOGGER.info("Offers in progress: {}", offersInProgress.stream().collect(Collectors.toList()));
+                    LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
+                            offers.size(),
+                            offers.size() == 1 ? "" : "s",
+                            offersInProgress.stream().collect(Collectors.toList()));
                 }
             }
         });
@@ -122,7 +125,8 @@ public abstract class AbstractScheduler implements Scheduler {
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
         if (!apiServerReady()) {
-            LOGGER.info("Waiting for API Server to start ...");
+            LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
+                    offers.size(), offers.size() == 1 ? "" : "s");
             OfferUtils.declineOffers(driver, offers);
             return;
         }
@@ -133,7 +137,8 @@ public abstract class AbstractScheduler implements Scheduler {
         // http://mesos.apache.org/documentation/latest/reconciliation/
         reconciler.reconcile(driver);
         if (!reconciler.isReconciled()) {
-            LOGGER.info("Waiting for task reconciliation to complete...");
+            LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
+                    offers.size(), offers.size() == 1 ? "" : "s");
             OfferUtils.declineOffers(driver, offers);
             return;
         }
@@ -143,6 +148,11 @@ public abstract class AbstractScheduler implements Scheduler {
                     offers.stream()
                             .map(offer -> offer.getId())
                             .collect(Collectors.toList()));
+
+            LOGGER.info("Enqueuing {} offer{}. Updated offers in progress: {}",
+                    offers.size(),
+                    offers.size() == 1 ? "" : "s",
+                    offersInProgress.stream().collect(Collectors.toList()));
         }
 
         for (Protos.Offer offer : offers) {
@@ -159,7 +169,8 @@ public abstract class AbstractScheduler implements Scheduler {
     /**
      * All offers must have been presented to resourceOffers() before calling this.  This call will block until all
      * offers have been processed.
-     * @throws InterruptedException
+     *
+     * @throws InterruptedException if waiting for offers to be processed is interrupted
      */
     @VisibleForTesting
     public void awaitOffersProcessed() throws InterruptedException {
@@ -171,7 +182,7 @@ public abstract class AbstractScheduler implements Scheduler {
                 }
             }
 
-            LOGGER.warn("Offers to be processed {} is non empty, sleeping for 500ms ...", offersInProgress);
+            LOGGER.warn("Offers in progress {} is non empty, sleeping for 500ms ...", offersInProgress);
             Thread.sleep(500);
         }
     }
@@ -189,16 +200,15 @@ public abstract class AbstractScheduler implements Scheduler {
     }
 
     @Override
-    public void frameworkMessage(SchedulerDriver driver,
-                                 Protos.ExecutorID executorId,
-                                 Protos.SlaveID slaveId,
-                                 byte[] data) {
-        LOGGER.error("Received a Framework Message, but don't know how to process it");
+    public void frameworkMessage(
+            SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, byte[] data) {
+        LOGGER.error("Received a {} byte Framework Message from Executor {}, but don't know how to process it",
+                data.length, executorId.getValue());
     }
 
     @Override
     public void disconnected(SchedulerDriver driver) {
-        LOGGER.error("Disconnected from Master.");
+        LOGGER.error("Disconnected from Master, shutting down.");
         SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
@@ -209,15 +219,14 @@ public abstract class AbstractScheduler implements Scheduler {
     }
 
     @Override
-    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID slaveId, int status) {
+    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
-        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), slaveId.getValue());
+        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), agentId.getValue());
     }
 
     @Override
     public void error(SchedulerDriver driver, String message) {
-        LOGGER.error("SchedulerDriver failed with message: " + message);
-
+        LOGGER.error("SchedulerDriver returned an error, shutting down: {}", message);
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 

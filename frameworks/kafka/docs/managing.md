@@ -1,7 +1,6 @@
 ---
 post_title: Managing
 menu_order: 50
-feature_maturity: preview
 enterprise: 'no'
 ---
 # Updating Configuration
@@ -9,7 +8,7 @@ You can make changes to the service after it has been launched. Configuration ma
 
 After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `_NODEPOD_-0`, then `_NODEPOD_-1`, and so on.
 
-Nodes are configured with a "Readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
+Nodes are configured with a "readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
 
 Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
@@ -46,7 +45,7 @@ Make any configuration changes to this `options.json` file.
 
 If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
 
-<strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
+**Note:** You must specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
 #### Recreating `options.json` (optional)
 
@@ -108,14 +107,14 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 1. Visit <dcos-url> to access the DC/OS web interface.
-1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
+1. Navigate to `Services` and click on the service to be configured (default `beta-kafka`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config beta-kafka` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config beta-kafka` in the CLI, or browse the Beta Kafka install dialog in the DC/OS web interface.
 
 # Add a Broker
 
@@ -191,14 +190,14 @@ $ dcos beta-kafka update package-versions
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
-```bash
-$ dcos package uninstall --cli beta-kafka
-$ dcos package install --cli beta-kafka --package-version="1.1.6-5.0.7"
-```
+   ```bash
+   $ dcos package uninstall --cli beta-kafka
+   $ dcos package install --cli beta-kafka --package-version="1.1.6-5.0.7"
+   ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Kafka Service to version `1.1.6-5.0.7`:
-```bash
-$ dcos beta-kafka update start --package-version="1.1.6-5.0.7"
-```
+   ```bash
+   $ dcos beta-kafka update start --package-version="1.1.6-5.0.7"
+   ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 ```bash

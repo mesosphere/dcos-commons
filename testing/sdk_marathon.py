@@ -1,4 +1,10 @@
-'''Utilities relating to interaction with Marathon'''
+'''Utilities relating to interaction with Marathon
+
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import logging
 
 import shakedown

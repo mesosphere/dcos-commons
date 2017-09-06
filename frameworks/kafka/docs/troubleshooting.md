@@ -1,7 +1,6 @@
 ---
 post_title: Troubleshooting
 menu_order: 70
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -33,7 +32,7 @@ GET /service/kafka/v1/plan HTTP/1.1
             ]
         },
         {
-            
+
             "id": "226a780e-132f-4fea-b584-7712b07cf357",
             "name": "Update to: 72cecf77-dbc5-4ae6-8f91-c88702b9a6a8",
             "steps": [
@@ -59,7 +58,7 @@ GET /service/kafka/v1/plan HTTP/1.1
             "status": "COMPLETE"
         }
     ],
-    
+
     <b>"errors": [
         "Validation error on field \"BROKER_COUNT\": Decreasing this value (from 3 to 2) is not supported."
     ],</b>

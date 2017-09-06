@@ -1,7 +1,6 @@
 ---
 post_title: API Reference
 menu_order: 60
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -64,16 +63,11 @@ The same information can be retrieved through the DC/OS CLI:
       ],
     }
 
-
 # Broker Operations
-
-## Add Broker
-
-Increase the `BROKER_COUNT` value via Marathon. This should be rolled as in any other configuration update.
 
 ## List All Brokers
 
-    $ dcos kafka --name=kafka broker list
+$ dcos beta-kafka --name=kafka broker list
     {
         "brokers": [
             "0",
@@ -94,42 +88,27 @@ Increase the `BROKER_COUNT` value via Marathon. This should be rolled as in any 
         ]
     }
 
+## View a Single Broker
 
-## Restart Single Broker
+    $ dcos beta-kafka --name="c-kafka" broker get <id>
 
-Restarts the broker in-place.
-
-    $ dcos kafka --name=kafka broker restart 0
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
-
-
-    $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0"
-    PUT /service/kafka/v1/brokers/0 HTTP/1.1
-
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
-
-
-## Replace Single Broker
-
-Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.
-
-    $ dcos kafka --name=kafka broker replace 0
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
+    {
+      "listener_security_protocol_map": {
+        "PLAINTEXT": "PLAINTEXT"
+      },
+      "endpoints": [
+        "PLAINTEXT://10.0.2.194:1025"
+      ],
+      "jmx_port": -1,
+      "port": 1025,
+      "host": "10.0.2.194",
+      "version": 4,
+      "timestamp": "1504644309011"
+    }
 
 
-    $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0?replace=true"
-    PUT /service/kafka/v1/brokers/0 HTTP/1.1
-
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
-
+    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/<id>"
+    GET /service/kafka/v1/brokers/<id> HTTP/1.1
 
 # Topic Operations
 
@@ -569,15 +548,14 @@ These operations are only applicable when `PHASE_STRATEGY` is set to `STAGE`, th
 
 ### Continue
 
-    $ dcos kafka --name=kafka continue
+    $ dcos kafka --name=kafka plan continue
     $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/continue"
 
 
 ### Interrupt
 
-    $ dcos kafka --name=kafka interrupt
+    $ dcos kafka --name=kafka plan interrupt
     $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/interrupt"
-
 
     [15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
 

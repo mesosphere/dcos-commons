@@ -1,14 +1,14 @@
 package com.mesosphere.sdk.config.validate;
 
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.*;
+import java.util.Optional;
 
 import static org.mockito.Mockito.when;
 
@@ -19,11 +19,18 @@ public class ServiceNameCannotContainDoubleUnderscoresTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new ServiceNameCannotContainDoubleUnderscores();
 
     // Avoid spec validator hell by just using a mock object:
-    @Mock private ServiceSpec mockServiceSpec;
+    @Mock
+    private ServiceSpec mockServiceSpec;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+    }
+
+    @Test
+    public void testTripleUnderscores() throws InvalidRequirementException {
+        when(mockServiceSpec.getName()).thenReturn("svc___1");
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.empty(), mockServiceSpec).size());
     }
 
     @Test

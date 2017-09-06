@@ -4,6 +4,7 @@ import pytest
 import os
 import re
 import time
+import json
 
 import sdk_cmd
 import sdk_install
@@ -13,7 +14,7 @@ import sdk_utils
 
 from tests import config
 
-BROKERS_KILL_GRACE_PERIOD = int(os.environ.get('BROKER_KILL_GRACE_PERIOD', 30))
+BROKER_KILL_GRACE_PERIOD = int(os.environ.get('BROKER_KILL_GRACE_PERIOD', 30))
 EXPECTED_KAFKA_STARTUP_SECONDS = os.environ.get('KAFKA_EXPECTED_STARTUP', 30)
 EXPECTED_DCOS_STARTUP_SECONDS = os.environ.get('DCOS_EXPECTED_STARTUP', 30)
 STARTUP_POLL_DELAY_SECONDS = os.environ.get('STARTUP_LOG_POLL_DELAY', 2)
@@ -39,6 +40,7 @@ def teardown_module(module):
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.paegun
 @pytest.mark.availability
 @pytest.mark.soak_availability
 @sdk_utils.dcos_1_9_or_higher
