@@ -28,20 +28,18 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.fixture(autouse=True)
-def pre_test_setup():
-    sdk_tasks.check_running(config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
-    config.wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
-
-
 @pytest.mark.sanity
 def test_service_health():
+    sdk_tasks.check_running(config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
     assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_zero_to_one_ingest():
+    sdk_tasks.check_running(config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['INGEST_NODE_COUNT'] = "1"
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
@@ -52,6 +50,8 @@ def test_zero_to_one_ingest():
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_ingest_node_replace():
+    sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist()
     ingest_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'ingest-0')
     cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace ingest-0')
     sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'ingest-0', ingest_ids)
