@@ -52,8 +52,8 @@ def test_zero_to_one_ingest():
 def test_ingest_node_replace():
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
     config.wait_for_expected_nodes_to_exist()
-    ingest_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'ingest-0')
-    cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace ingest-0')
-    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'ingest-0', ingest_ids)
+    ingest_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'ingest-0')
+    cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace ingest-0')
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'ingest-0', ingest_ids)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
     config.wait_for_expected_nodes_to_exist()
