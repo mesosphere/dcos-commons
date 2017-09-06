@@ -133,7 +133,7 @@ If you are performing a fresh installation of Kafka `1.1.27-0.11.0-beta` on a st
         }
     }
 
-    $ docs package install  beta-kafka --options=options.json ` --package-version=1.1.27-0.11.0-beta --name=kafka
+    $ docs package install  beta-kafka --options=options.json ` --package-version=1.1.27-0.11.0-beta 
 
 **Note:** The syntax for specifying service account details has changed from the previous version. The `principal` and `secret_name` parameters have changed to `service_account` and `service_account_secret`. If you are upgrading your service from package version `1.1.26-0.10.1.0-beta`, you will need to specify service account details in a JSON options file.
 
@@ -151,9 +151,9 @@ If you are upgrading your existing service running in strict mode, from `1.1.26-
             "service_account_secret": "this_is_your_sa_secret_path"
         },
         "kafka": {
-            "inter_broker_protocol_version": "0.11.0.0",
+            "inter_broker_protocol_version": "0.10.0.0",
             "log_message_format_version": "0.10.0"
         }
     }
-
-   $ docs beta-kafka update start  --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka
+       
+    $ docs beta-kafka update start  --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka
