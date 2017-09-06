@@ -85,7 +85,8 @@
         "count": {
           "type": "integer",
           "description": "The number of Cassandra nodes in the cluster.",
-          "default": 3
+          "default": 3,
+          "minimum": 3
         },
         "cpus": {
           "type": "number",
