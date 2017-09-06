@@ -66,7 +66,7 @@ def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
-        endpoints = cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints {}'.format(endpoint), json=True)
+        endpoints = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints {}'.format(endpoint), json=True)
         host = endpoint.split('-')[0] # 'coordinator-http' => 'coordinator'
         assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(foldered_name, host + '-0-node'))
         assert endpoints['vip'].startswith(sdk_hosts.vip_host(foldered_name, host))
@@ -187,7 +187,7 @@ def test_master_node_replace():
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
     master_ids = sdk_tasks.get_task_ids(foldered_name, 'master-0')
-    cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace master-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace master-0')
     sdk_tasks.check_tasks_updated(foldered_name, 'master-0', master_ids)
     # pre_test_setup will verify that the cluster becomes healthy again.
 

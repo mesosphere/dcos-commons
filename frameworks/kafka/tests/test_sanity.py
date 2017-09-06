@@ -23,7 +23,7 @@ EPHEMERAL_TOPIC_NAME = 'topic_2'
 def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
         if shakedown.dcos_version_less_than("1.9"):
             # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
@@ -45,7 +45,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
 # --------- Endpoints -------------
