@@ -229,7 +229,7 @@ Artifacts:       {}
 ###'''.format(package_name, package_version, package_dir_path, upload_dir_url, ','.join(artifact_paths)))
 
     package_info = Package(package_name, package_version)
-    package_path = UniversePackageBuilder(package_info, upload_dir_url, artifact_paths).build_package()
+    package_path = UniversePackageBuilder(package_info, package_dir_path, upload_dir_url, artifact_paths).build_package()
     if not package_path:
         return -1
     logger.info('---')
