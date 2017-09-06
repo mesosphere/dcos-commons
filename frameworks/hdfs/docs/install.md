@@ -27,14 +27,14 @@ The default installation may not be sufficient for a production deployment, but 
 Once you have installed Beta-HDFS, install the CLI.
 
 ```bash
-dcos package install beta-hdfs --cli
+dcos package install hdfs --cli
 ```
 
 # Service Settings
 
 ## Service Name
 
-Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `beta-hdfs`.
+Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `hdfs`.
 
 ## Custom Installation
 

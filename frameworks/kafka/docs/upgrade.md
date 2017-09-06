@@ -5,7 +5,7 @@ enterprise: 'no'
 
 This document explains how to upgrade the DC/OS Apache Kafka service from version `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta` in DC/OS 1.10. Upgrading an existing Kafka service on a [strict security mode cluster](https://docs.mesosphere.com/1.9/security/#security-modes) requires an extra step. Refer to [Upgrade in Strict Mode](#upgrade-in-strict-mode) for more information.
 
-##  Upgrade beta-kafka from 0.10.2.x to 0.11.0.0 in DC/OS 1.10
+##  Upgrade kafka from 0.10.2.x to 0.11.0.0 in DC/OS 1.10
 
 
 This section explains how to upgrade the DC/OS Apache Kafka service from Kafka 0.10.2.x to Kafka 0.11.0.0 in DC/OS 1.10.
@@ -56,7 +56,7 @@ Here, we assume you already have beta DC/OS Kafka version 1.1.26-0.10.1.0-beta (
 
 First, install new cli for DC/OS Kafka version `1.1.27-0.11.0-beta`.
 
-    dcos package install beta-kafka --package-version=1.1.27-0.11.0-beta --cli
+    dcos package install kafka --package-version=1.1.27-0.11.0-beta --cli
 
  Make a note of the existing protocol and log versions. Upgrade your service to the new package version `1.1.27-0.11.0-beta` (with Kafka 0.11.0.0), but keep the existig protocol and log versions the same by applying customized package update options. The following `options.json` file shows how protocol and log versions can be customized. Here, we assume that existing service uses 0.10.0 protocol/log versions. If you have changed protocol and log to another 0.10.x version, set them in options JSON file.
 
@@ -70,7 +70,7 @@ First, install new cli for DC/OS Kafka version `1.1.27-0.11.0-beta`.
 
 Now, upgrade to package `1.1.27-0.11.0-beta`, which provides the new code, Kafka 0.11.0.0.
 
-    $ dcos beta-kafka update start --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka
+    $ dcos kafka update start --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka
 
 Since we updated with a customized options file, the protocol and log version are overwritten and not updated to the new package's default settings. The existing protocol and log version are specifically set in `options.json`.
 
@@ -90,7 +90,7 @@ Next, update the protocol version manually. Only change the value of `inter.brok
         }
     }
 
-    $ dcos beta-kafka update start --options=options.json  --name=kafka
+    $ dcos kafka update start --options=options.json  --name=kafka
 
 #### Step 3    
 
@@ -104,7 +104,7 @@ Once you verify that all brokers are restarted, update the log version. Change t
         }
     }
 
-    $ dcos beta-kafka update start --options=options.json --name=kafka
+    $ dcos kafka update start --options=options.json --name=kafka
 
 The new service will be running Kafka 0.11.0.0 with two customized options (`inter.broker.protocol.version` and `log.message.format.version`).
 
@@ -133,12 +133,12 @@ If you are performing a fresh installation of Kafka `1.1.27-0.11.0-beta` on a st
         }
     }
 
-    $ docs package install  beta-kafka --options=options.json ` --package-version=1.1.27-0.11.0-beta 
+    $ docs package install  kafka --options=options.json ` --package-version=1.1.27-0.11.0-beta 
 
 **Note:** The syntax for specifying service account details has changed from the previous version. The `principal` and `secret_name` parameters have changed to `service_account` and `service_account_secret`. If you are upgrading your service from package version `1.1.26-0.10.1.0-beta`, you will need to specify service account details in a JSON options file.
 
 
-### Upgrade to beta-kafka `1.1.27-0.11.0-beta` from `1.1.26-0.10.1.0-beta` in DC/OS 1.10
+### Upgrade to kafka `1.1.27-0.11.0-beta` from `1.1.26-0.10.1.0-beta` in DC/OS 1.10
 
 If you are upgrading your existing service running in strict mode, from `1.1.26-0.10.1.0-beta` to version `1.1.27-0.11.0-beta`, set `service_account` and `service_account_secret` in your options.  Add service_account and service_account_secret options only in Step 1 in [Upgrade Instructions](#upgrade-kafka-from-0.10.2.x-to-0.11.0.0
 ). Step 2 and Step 3 will be same. Modify Step 1 as follows if you are upgrading in strict mode.
@@ -156,4 +156,4 @@ If you are upgrading your existing service running in strict mode, from `1.1.26-
         }
     }
        
-    $ docs beta-kafka update start  --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka
+    $ docs kafka update start  --options=options.json --package-version=1.1.27-0.11.0-beta --name=kafka

@@ -16,9 +16,9 @@ Applications interface with HDFS like they would any POSIX file system. However,
 Executed the following command from the DC/OS CLI to retrieve the `hdfs-site.xml` file that client applications can use to connect to the cluster.
 
 ```
-$ dcos beta-hdfs --name=<service-name> endpoints hdfs-site.xml
+$ dcos hdfs --name=<service-name> endpoints hdfs-site.xml
 ...
-$ dcos beta-hdfs --name=<service-name> endpoints core-site.xml
+$ dcos hdfs --name=<service-name> endpoints core-site.xml
 ...
 ```
 

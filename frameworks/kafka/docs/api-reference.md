@@ -67,7 +67,7 @@ The same information can be retrieved through the DC/OS CLI:
 
 ## List All Brokers
 
-$ dcos beta-kafka --name=kafka broker list
+$ dcos kafka --name=kafka broker list
     {
         "brokers": [
             "0",
@@ -90,7 +90,7 @@ $ dcos beta-kafka --name=kafka broker list
 
 ## View a Single Broker
 
-    $ dcos beta-kafka --name="c-kafka" broker get <id>
+    $ dcos kafka --name="c-kafka" broker get <id>
 
     {
       "listener_security_protocol_map": {
