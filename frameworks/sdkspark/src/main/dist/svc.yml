@@ -3,6 +3,37 @@ scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
+  coordinator:
+    count: 1
+    image: {{SPARK_DOCKER_IMAGE}}
+    placement: {{NODE_PLACEMENT}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    uris:
+      - {{SPARK_PI}}
+    tasks:
+      driver:
+        goal: FINISHED
+        cmd: >
+          ./bin/spark-submit --name TaskCoordinatorTest --master mesos://zk://master.mesos:2181/mesos
+          --driver-cores 1.0 --driver-memory 1024M --class org.apache.spark.examples.streaming.HdfsWordCount
+          --executor-memory 1G
+          --conf spark.driver.port=9000
+          --conf spark.cores.max=2
+          --conf "spark.ssl.noCertVerification=true" --conf "spark.app.name=TaskCoordinatorTest"
+          --conf "spark.mesos.executor.docker.forcePullImage=true" --conf "spark.driver.memory=1G"
+          --conf "spark.mesos.backend=sdk" --conf "spark.mesos.executor.docker.image=artrand/spark"
+          --conf "spark.driver.cores=1" --conf "spark.mesos.driver.labels=DCOS_SPACE:/spark"
+          --conf "spark.executor.memory=1G" $MESOS_SANDBOX/spark-examples_2.11-2.0.1.jar file:///mnt/mesos/sandbox/
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+        volume:
+          path: "spark-sdk-container-path"
+          type: {{NODE_DISK_TYPE}}
+          size: {{NODE_DISK}}
   executor:
     count: {{NODE_COUNT}}
     image: {{SPARK_DOCKER_IMAGE}}
@@ -13,12 +44,30 @@ pods:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
-      node:
-        goal: RUNNING
-        cmd: "/opt/spark/dist/./bin/spark-class org.apache.spark.executor.CoarseGrainedExecutorBackend && sleep 1000"
+      worker:
+        goal: FINISHED
+        cmd: >
+          $BOOTSTRAP -resolve-hosts coordinator-0-driver.sdkspark.mesos &&
+          /opt/spark/dist/./bin/spark-class org.apache.spark.executor.CoarseGrainedExecutorBackend
+          --driver-url spark://CoarseGrainedScheduler@coordinator-0-driver.sdkspark.mesos:9000
+          --executor-id $POD_INSTANCE_INDEX
+          --hostname $(hostname -i)
+          --cores {{NODE_CPUS}}
+          --app-id sdkdriver
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         volume:
           path: "spark-sdk-container-path"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
+
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      coordinator-deploy:
+        strategy: serial
+        pod: coordinator
+      executor-deploy:
+        strategy: serial
+        pod: executor

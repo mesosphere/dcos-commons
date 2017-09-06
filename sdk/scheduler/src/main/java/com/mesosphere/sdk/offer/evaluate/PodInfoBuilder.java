@@ -555,6 +555,7 @@ public class PodInfoBuilder {
         if (shouldAddImage) {
             containerInfo.getMesosBuilder().getImageBuilder()
                     .setType(Protos.Image.Type.DOCKER)
+                    .setCached(false)
                     .getDockerBuilder().setName(podSpec.getImage().get());
         }
 
