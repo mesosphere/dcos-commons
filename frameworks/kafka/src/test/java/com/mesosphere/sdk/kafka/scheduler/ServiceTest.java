@@ -8,6 +8,8 @@ public class ServiceTest {
 
     @Test
     public void testSpec() throws Exception {
-        new ServiceTestBuilder().render();
+        new ServiceTestBuilder()
+                .setPodEnv("kafka", "KAFKA_ZOOKEEPER_URI", "/path/to/zk") // set by our Main.java
+                .render();
     }
 }

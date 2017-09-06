@@ -137,7 +137,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -194,7 +195,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -251,7 +253,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -308,7 +311,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [

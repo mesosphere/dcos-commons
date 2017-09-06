@@ -1,19 +1,29 @@
 package com.mesosphere.sdk.testing;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
+import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -26,13 +36,27 @@ import com.mesosphere.sdk.testutils.TestConstants;
  * @see ServiceTestUtils for shortcuts in common usage scenarios
  */
 public class ServiceTestBuilder {
+    private static final Random RANDOM = new Random();
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTestBuilder.class);
+    /**
+     * Common environment variables that are injected into tasks automatically by the cluster.
+     * We inject test values when exercising config rendering
+     */
+    private static final Map<String, String> DCOS_TASK_ENVVARS;
+    static {
+        DCOS_TASK_ENVVARS = new HashMap<>();
+        DCOS_TASK_ENVVARS.put("MESOS_SANDBOX", "/path/to/mesos/sandbox");
+        DCOS_TASK_ENVVARS.put("MESOS_CONTAINER_IP", "999.987.654.321");
+        DCOS_TASK_ENVVARS.put("STATSD_UDP_HOST", "999.123.456.789");
+        DCOS_TASK_ENVVARS.put("STATSD_UDP_PORT", "99999");
+    }
 
     private final File specPath;
     private File configTemplateDir;
-    private final Map<String, Object> options;
+    private final Map<String, String> cosmosOptions;
+    private final Map<String, String> buildTemplateParams;
     private final Map<String, String> customSchedulerEnv;
+    private final Map<String, Map<String, String>> customPodEnvs;
 
     /**
      * Creates a new instance against the default {@code svc.yml} Service Specification YAML file.
@@ -53,33 +77,35 @@ public class ServiceTestBuilder {
     public ServiceTestBuilder(String specPath) {
         this.specPath = getDistFile(specPath);
         this.configTemplateDir = this.specPath.getParentFile();
-        this.options = new HashMap<>();
+        this.cosmosOptions = new HashMap<>();
+        this.buildTemplateParams = new HashMap<>();
         this.customSchedulerEnv = new HashMap<>();
-    }
-
-    /**
-     * Configures the test with a custom options as would be provided via an {@code options.json} file. If this is not
-     * invoked then the service defaults from {@code config.json} are used for the test.
-     *
-     * @param name the option name of the form {@code "section1.section2.section3.name"}
-     * @param value the option value, which may be e.g. a String, Integer, or Boolean
-     * @return {@code this}
-     */
-    public ServiceTestBuilder setOption(String name, Object value) {
-        this.options.put(name, value);
-        return this;
+        this.customPodEnvs = new HashMap<>();
     }
 
     /**
      * Configures the test with custom options as would be provided via an {@code options.json} file. If this is not
      * invoked then the service defaults from {@code config.json} are used for the test.
      *
-     * @param options map of any custom config settings as would be passed via an {@code options.json} file when
-     *     installing the service, or an empty map to use defaults defined in the service's {@code config.json}
+     * @param optionKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...), where the
+     *     keys should be in {@code section1.section2.section3.name} form as an {@code options.json} file would have
      * @return {@code this}
      */
-    public ServiceTestBuilder setOptions(Map<String, Object> options) {
-        this.options.putAll(options);
+    public ServiceTestBuilder setOptions(String... optionKeyVals) {
+        this.cosmosOptions.putAll(toMap(optionKeyVals));
+        return this;
+    }
+
+    /**
+     * Configures the test with custom template parameters to be applied against the Universe packaging, as would be
+     * provided via {@code TEMPLATE_X} envvars when building the service. These are applied onto {@code config.json}
+     * and {@code resource.json} for the test
+     *
+     * @param paramKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
+     * @return {@code this}
+     */
+    public ServiceTestBuilder setBuildTemplateParams(String... paramKeyVals) {
+        this.buildTemplateParams.putAll(toMap(paramKeyVals));
         return this;
     }
 
@@ -95,23 +121,35 @@ public class ServiceTestBuilder {
     }
 
     /**
-     * Configures the test with additional environment variables beyond those which would be included by the service's
-     * {@code marathon.json.mustache}. This may be useful for tests against custom Service Specification YAML files
-     * which reference envvars that aren't also present in the packaging's Marathon definition. These values will
-     * override any produced by the service's packaging.
+     * Configures the test with additional environment variables in the Scheduler beyond those which would be included
+     * by the service's {@code marathon.json.mustache}. This may be useful for tests against custom Service
+     * Specification YAML files which reference envvars that aren't also present in the packaging's Marathon definition.
+     * These values will override any produced by the service's packaging.
      *
-     * @param customEnvKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
+     * @param schedulerEnvKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
      * @return {@code this}
      */
-    public ServiceTestBuilder setCustomEnv(String... customEnvKeyVals) {
-        if (customEnvKeyVals.length % 2 != 0) {
-            throw new IllegalArgumentException(String.format(
-                    "Expected an even number of arguments [key, value, key, value, ...], got: %d",
-                    customEnvKeyVals.length));
+    public ServiceTestBuilder setSchedulerEnv(String... schedulerEnvKeyVals) {
+        this.customSchedulerEnv.putAll(toMap(schedulerEnvKeyVals));
+        return this;
+    }
+
+    /**
+     * Configures the test with additional environment variables in the specified Pod, beyond those which would be
+     * included by the Scheduler or by Mesos. This may be useful for services whose tasks configure environment
+     * variables before rendering config files via execution of {@code bootstrap}.
+     *
+     * @param podType the pod to set the environment against
+     * @param podEnvKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
+     * @return {@code this}
+     */
+    public ServiceTestBuilder setPodEnv(String podType, String... podEnvKeyVals) {
+        Map<String, String> podEnv = this.customPodEnvs.get(podType);
+        if (podEnv == null) {
+            podEnv = new HashMap<>();
+            this.customPodEnvs.put(podType, podEnv);
         }
-        for (int i = 0; i < customEnvKeyVals.length; i += 2) {
-            this.customSchedulerEnv.put(customEnvKeyVals[i], customEnvKeyVals[i + 1]);
-        }
+        podEnv.putAll(toMap(podEnvKeyVals));
         return this;
     }
 
@@ -139,8 +177,9 @@ public class ServiceTestBuilder {
         Capabilities.overrideCapabilities(mockCapabilities);
 
         Map<String, String> schedulerEnvironment =
-                CosmosRenderer.renderSchedulerEnvironment(options, customSchedulerEnv);
-        LOGGER.info("Creating RawServiceSpec from YAML file: {}", specPath.getAbsolutePath());
+                CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
+        schedulerEnvironment.putAll(customSchedulerEnv);
+
         // Test 1: Does RawServiceSpec render?
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(specPath)
                 .setEnv(schedulerEnvironment)
@@ -158,17 +197,62 @@ public class ServiceTestBuilder {
                 .setPlansFrom(rawServiceSpec)
                 .build();
 
-        // Test 4: Do per-task config templates render?
-        // TODO(nick): Exercise custom templates, using task env produced by:
-        // - TaskEnvRouter (TASKCFG_<foo>_*)
-        // - svc.yml's "env" list
-        // - what Mesos/Scheduler would automatically provide (FRAMEWORK_HOST, MESOS_SANDBOX, ...)
-        // - any custom values provided by the test (for any "export"s preceding config rendering in the cmd)
+        // Test 4: Can we render the per-task config templates without any missing values?
+        Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
 
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
 
-        return new ServiceTestResult(serviceSpec, rawServiceSpec, schedulerEnvironment);
+        return new ServiceTestResult(serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs);
+    }
+
+    private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(ServiceSpec serviceSpec) {
+        Collection<ServiceTestResult.TaskConfig> taskConfigs = new ArrayList<>();
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+            Map<String, String> customEnv = customPodEnvs.get(podSpec.getType());
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                Map<String, String> taskEnv = getTaskEnv(serviceSpec, podInstance, taskSpec);
+                if (customEnv != null) {
+                    taskEnv.putAll(customEnv);
+                }
+                for (ConfigFileSpec configFileSpec : taskSpec.getConfigFiles()) {
+                    // If your test is failing here: did you forget to include custom values via setPodEnv()?
+                    String content = TemplateUtils.renderMustacheThrowIfMissing(
+                            String.format("pod=%s task=%s config=%s",
+                                    podSpec.getType(), taskSpec.getName(), configFileSpec.getName()),
+                            configFileSpec.getTemplateContent(),
+                            taskEnv);
+                    taskConfigs.add(new ServiceTestResult.TaskConfig(
+                            podSpec.getType(), taskSpec.getName(), configFileSpec.getName(), content));
+                }
+            }
+        }
+        return taskConfigs;
+    }
+
+    private static Map<String, String> getTaskEnv(ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec) {
+        Map<String, String> taskEnv = new HashMap<>();
+        taskEnv.putAll(PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec));
+        taskEnv.putAll(DCOS_TASK_ENVVARS);
+        // Inject envvars for any ports with envvar advertisement configured:
+        for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
+            if (!(resourceSpec instanceof PortSpec)) {
+                continue;
+            }
+            PortSpec portSpec = (PortSpec) resourceSpec;
+            if (portSpec.getEnvKey() == null) {
+                continue;
+            }
+            long portVal = portSpec.getPort();
+            if (portVal == 0) {
+                // Default ephemeral port range on linux is 32768 through 60999. Let's simulate that.
+                // See: /proc/sys/net/ipv4/ip_local_port_range
+                portVal = RANDOM.nextInt(61000 - 32768 /* result: 0 thru 28231 */) + 32768;
+            }
+            taskEnv.put(portSpec.getEnvKey(), String.valueOf(portVal));
+        }
+        return taskEnv;
     }
 
     /**
@@ -177,5 +261,18 @@ public class ServiceTestBuilder {
      */
     public static File getDistFile(String specFilePath) {
         return new File(System.getProperty("user.dir") + "/src/main/dist/" + specFilePath);
+    }
+
+    private static Map<String, String> toMap(String... keyVals) {
+        Map<String, String> map = new HashMap<>();
+        if (keyVals.length % 2 != 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Expected an even number of arguments [key, value, key, value, ...], got: %d",
+                    keyVals.length));
+        }
+        for (int i = 0; i < keyVals.length; i += 2) {
+            map.put(keyVals[i], keyVals[i + 1]);
+        }
+        return map;
     }
 }

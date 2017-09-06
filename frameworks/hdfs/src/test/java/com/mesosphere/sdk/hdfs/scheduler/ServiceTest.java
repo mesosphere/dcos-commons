@@ -19,17 +19,23 @@ public class ServiceTest {
 
     @Test
     public void testSpec() throws Exception {
-        new ServiceTestBuilder().render();
+        // Our Main.java only defines SERVICE_ZK_ROOT in our name nodes.
+        // However, the test utilities are strict about missing template params so we set something for all pods:
+        new ServiceTestBuilder()
+                .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
+                .setPodEnv("data", "SERVICE_ZK_ROOT", "")
+                .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
+                .render();
     }
 
     @Test
     public void testRenderHdfsSiteXml() throws IOException {
-        renderEndpointTemplate(ServiceTestBuilder.getDistFile("hdfs-site.xml"));
+        renderEndpointTemplate(ServiceTestBuilder.getDistFile(Main.HDFS_SITE_XML));
     }
 
     @Test
     public void testRenderCoreSiteXml() throws IOException {
-        renderEndpointTemplate(ServiceTestBuilder.getDistFile("core-site.xml"));
+        renderEndpointTemplate(ServiceTestBuilder.getDistFile(Main.CORE_SITE_XML));
     }
 
     private void renderEndpointTemplate(File templateFile) throws IOException {
@@ -42,10 +48,9 @@ public class ServiceTest {
         // by HDFS' Main.java:
         taskEnv.put(EnvConstants.FRAMEWORK_HOST_TASKENV, "hdfs.on.some.cluster");
         taskEnv.put("MESOS_SANDBOX", "/mnt/sandbox");
-        taskEnv.put("SERVICE_ZK_ROOT", "/dcos-service-path__to__hdfs");
+        taskEnv.put(Main.SERVICE_ZK_ROOT_TASKENV, "/dcos-service-path__to__hdfs");
 
         // Validate by throwing if any values are missing:
-        TemplateUtils.applyEnvToMustache(
-                templateFile.getName(), fileStr, taskEnv, TemplateUtils.MissingBehavior.EXCEPTION);
+        TemplateUtils.renderMustacheThrowIfMissing(templateFile.getName(), fileStr, taskEnv);
     }
 }

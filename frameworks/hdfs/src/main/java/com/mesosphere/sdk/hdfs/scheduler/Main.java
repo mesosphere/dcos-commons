@@ -30,9 +30,10 @@ import java.util.Optional;
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-    private static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
-    private static final String HDFS_SITE_XML = "hdfs-site.xml";
-    private static final String CORE_SITE_XML = "core-site.xml";
+
+    static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
+    static final String HDFS_SITE_XML = "hdfs-site.xml";
+    static final String CORE_SITE_XML = "core-site.xml";
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
@@ -83,8 +84,7 @@ public class Main {
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
-        return TemplateUtils.applyEnvToMustache(
-                configFile.getName(), fileStr, env, TemplateUtils.MissingBehavior.EXCEPTION);
+        return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
     }
 
 

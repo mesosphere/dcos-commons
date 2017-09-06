@@ -56,7 +56,7 @@ public class ServiceTest {
         // This yml file expects some additional envvars which aren't in the default marathon.json.mustache,
         // so we need to provide them manually:
         new ServiceTestBuilder("examples/secrets.yml")
-                .setCustomEnv(
+                .setSchedulerEnv(
                         "HELLO_SECRET1", "hello-world/secret1",
                         "HELLO_SECRET2", "hello-world/secret2",
                         "WORLD_SECRET1", "hello-world/secret1",

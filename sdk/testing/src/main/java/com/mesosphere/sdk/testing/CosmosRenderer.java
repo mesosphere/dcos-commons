@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.testing;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,28 +11,30 @@ import java.util.TreeMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.github.mustachejava.DefaultMustacheFactory;
+import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 
 /**
  * Reads a service's Universe packaging configuration, and uses that to generate the resulting Scheduler environment.
- * This effectively is a mock of what Cosmos and Marathon would do for a service as it's installed in a real cluster.
+ * This emulates what Cosmos and Marathon would do for a service as it's installed in a real cluster.
  */
 public class CosmosRenderer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CosmosRenderer.class);
+    private static final Random RANDOM = new Random();
 
     /**
      * Universe template values that are injected by SDK tooling. We inject test values here.
      */
-    private static final Map<String, Object> RESOURCE_TEMPLATE_PARAMS;
+    private static final Map<String, String> RESOURCE_TEMPLATE_PARAMS;
     static {
         RESOURCE_TEMPLATE_PARAMS = new HashMap<>();
         RESOURCE_TEMPLATE_PARAMS.put("jre-url", "https://test-url/jre.tgz");
+        RESOURCE_TEMPLATE_PARAMS.put("jre-jce-unlimited-url", "https://test-url/jre-jce-unlimited.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("libmesos-bundle-url", "https://test-url/libmesos-bundle.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("artifact-dir", "https://test-url/artifacts");
+        RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli-darwin", "THIS_IS_A_SHA256");
+        RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli-linux", "THIS_IS_A_SHA256");
+        RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli.exe", "THIS_IS_A_SHA256");
     }
 
     private CosmosRenderer() {
@@ -47,45 +47,40 @@ public class CosmosRenderer {
      * marathon.json.mustache.
      *
      * @param customPackageOptions map of any custom config settings as would be passed via an {@code options.json} file
-     *     when installing the service, or an empty map to use defaults defined in the service's {@code config.json}
-     * @param customEnv map of any custom scheduler env overrides to be injected into the result
+     *     when installing the service. these are provided to {@code config.json}
+     * @param customBuildTemplateParams map of any custom template params that are normally provided as
+     *     {@code TEMPLATE_X} envvars when building the service at the commandline. these are provided to all universe
+     *     files (config.json, marathon.json.mustache, and resource.json)
      * @return Scheduler environment variables resulting from the provided options
      */
     public static Map<String, String> renderSchedulerEnvironment(
-            Map<String, Object> customPackageOptions, Map<String, String> customEnv) {
-        Map<String, Object> config = new TreeMap<>(); // for ordered output in logs
-        // Get default values from config.json
-        flattenPropertyTree("", new JSONObject(readFile("universe/config.json")), config);
+            Map<String, String> customPackageOptions, Map<String, String> customBuildTemplateParams) {
+        Map<String, String> config = new HashMap<>();
 
-        // Get "resource.*" content from resource.json:
-        JSONObject resourceJson = new JSONObject(
-                renderMustache("resource.json", readFile("universe/resource.json"), RESOURCE_TEMPLATE_PARAMS));
+        // Get default values from config.json (after doing any needed simulated build rendering):
+        // IF THIS FAILS IN YOUR TEST: Did you miss something in customBuildTemplateParams?
+        flattenPropertyTree(config, "", new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
+                "universe/config.json", readFile("universe/config.json"), customBuildTemplateParams)));
+
+        // Get "resource.*" content from resource.json (after doing any needed simulated build rendering):
+        Map<String, String> resourceParams = new HashMap<>();
+        resourceParams.putAll(RESOURCE_TEMPLATE_PARAMS);
+        resourceParams.putAll(customBuildTemplateParams);
+        // IF THIS FAILS IN YOUR TEST: Did you miss something in customBuildTemplateParams?
+        JSONObject resourceJson = new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
+                "universe/resource.json", readFile("universe/resource.json"), resourceParams));
         flattenTree("resource", resourceJson, config);
 
         // Override any of the above with the caller's manually-configured settings.
         config.putAll(customPackageOptions);
-        LOGGER.info("Generated package config with {} override{}: {}",
-                customPackageOptions.size(), customPackageOptions.size() == 1 ? "" : "s", config);
+        config.putAll(customBuildTemplateParams);
 
         // Render marathon.json and get scheduler env content:
         Map<String, String> env = new TreeMap<>(); // for ordered output in logs
-        env.putAll(getMarathonAppEnvironment(
-                renderMustache("marathon.json.mustache", readFile("universe/marathon.json.mustache"), config)));
-        env.putAll(customEnv);
-        LOGGER.info("Rendered Scheduler environment with {} override{}: {}",
-                customEnv.size(), customEnv.size() == 1 ? "" : "s", env);
+        // IF THIS FAILS IN YOUR TEST: Did you miss something in customPackageOptions or customBuildTemplateParams?
+        env.putAll(getMarathonAppEnvironment(TemplateUtils.renderMustacheThrowIfMissing(
+                "universe/marathon.json.mustache", readFile("universe/marathon.json.mustache"), config)));
         return env;
-    }
-
-    /**
-     * Renders the provided mustache template with the provided values, and returns the rendered result.
-     */
-    private static String renderMustache(String templateName, String templateContent, Map<String, Object> vals) {
-        StringWriter writer = new StringWriter();
-        new DefaultMustacheFactory()
-                .compile(new StringReader(templateContent), templateName)
-                .execute(writer, vals);
-        return writer.toString();
     }
 
     /**
@@ -94,34 +89,34 @@ public class CosmosRenderer {
      *
      * For example, {"a": {"b": {"c": "d"}} } => {"a.b.c": "d"}
      */
-    private static void flattenTree(String path, JSONObject node, Map<String, Object> config) {
+    private static void flattenTree(String path, JSONObject node, Map<String, String> config) {
         for (String key : node.keySet()) {
             Object val = node.get(key);
             String entryPath = path.isEmpty() ? key : String.format("%s.%s", path, key);
             if (val instanceof JSONObject) {
                 flattenTree(entryPath, (JSONObject) val, config); // RECURSE
-            } else if (val instanceof String) {
-                config.put(entryPath, val);
+            } else {
+                config.put(entryPath, val.toString());
             }
         }
     }
 
     /**
-     * Finds entries nested under 'properties' nodes and writes them to {@code config} under the provided path. Used for
-     * Universe config.json files.
+     * Finds entries nested under 'properties' nodes in the provided JSON {@code node} and writes them to {@code config}
+     * under the provided path. Used for Universe config.json files.
      *
      * For example, {"a": {"properties": {"b": {"default": "c"}, "d": {"properties": {"e": {"default": "f"}}}}}} =>
      * {"a.b": "c", "a.b.d.e": "f"}
      */
-    private static void flattenPropertyTree(String path, JSONObject node, Map<String, Object> config) {
+    private static void flattenPropertyTree(Map<String, String> config, String path, JSONObject node) {
         if (node.has("default")) {
-            config.put(path, node.get("default"));
+            config.put(path, node.get("default").toString());
         }
         if (node.has("type") && node.getString("type").equals("object") && node.has("properties")) {
             JSONObject props = node.getJSONObject("properties");
             for (String key : props.keySet()) {
                 String entryPath = path.isEmpty() ? key : String.format("%s.%s", path, key);
-                flattenPropertyTree(entryPath, props.getJSONObject(key), config); // RECURSE
+                flattenPropertyTree(config, entryPath, props.getJSONObject(key)); // RECURSE
             }
         }
     }
@@ -143,7 +138,6 @@ public class CosmosRenderer {
         // In addition to the 'env' entries, simulate the injected envvars produced by Marathon for any listed ports:
         if (marathonJson.has("portDefinitions")) {
             JSONArray portsJson = marathonJson.getJSONArray("portDefinitions");
-            Random random = new Random();
             for (int i = 0; i < portsJson.length(); ++i) {
                 JSONObject portJson = portsJson.getJSONObject(i);
                 // Determine a port value. Simulate a random ephemeral port if the value is 0.
@@ -151,7 +145,7 @@ public class CosmosRenderer {
                 if (portVal == 0) {
                     // Default ephemeral port range on linux is 32768 through 60999. Let's simulate that.
                     // See: /proc/sys/net/ipv4/ip_local_port_range
-                    portVal = random.nextInt(61000 - 32768 /* result: 0 thru 28231 */) + 32768;
+                    portVal = RANDOM.nextInt(61000 - 32768 /* result: 0 thru 28231 */) + 32768;
                 }
                 // Each port is advertised against its index (e.g. $PORTN), and against its name (e.g. $PORT_NAME).
                 String portStr = String.valueOf(portVal);

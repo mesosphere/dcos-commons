@@ -34,7 +34,9 @@ public class CassandraRecoveryPlanOverriderTest {
     private StateStore stateStore;
 
     public CassandraRecoveryPlanOverriderTest() throws Exception {
-        ServiceTestResult result = new ServiceTestBuilder().render();
+        ServiceTestResult result = new ServiceTestBuilder()
+                .setPodEnv("node", "LOCAL_SEEDS", "foo,bar")
+                .render();
         rawSpec = result.getRawServiceSpec();
         serviceSpec = result.getServiceSpec();
     }

@@ -10,7 +10,9 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -59,15 +61,14 @@ public class RawServiceSpec {
         public RawServiceSpec build() throws Exception {
             // We allow missing values. For example, the service principal may be left empty, in which case we use a
             // reasonable default principal.
-            String yamlWithEnv = TemplateUtils.applyEnvToMustache(
+            List<TemplateUtils.MissingValue> missingValues = new ArrayList<>();
+            String yamlWithEnv = TemplateUtils.renderMustache(
                     pathToYamlTemplate.getName(),
                     FileUtils.readFileToString(pathToYamlTemplate, StandardCharsets.UTF_8),
                     env,
-                    TemplateUtils.MissingBehavior.EMPTY_STRING);
-            LOGGER.info("Rendered ServiceSpec from {}:\n{}", pathToYamlTemplate.getAbsolutePath(), yamlWithEnv);
-            if (!TemplateUtils.isMustacheFullyRendered(yamlWithEnv)) {
-                throw new IllegalStateException("YAML contains unsubstitued variables.");
-            }
+                    missingValues);
+            LOGGER.info("Rendered ServiceSpec from {}:\nMissing template values: {}\n{}",
+                    pathToYamlTemplate.getAbsolutePath(), missingValues, yamlWithEnv);
             return YAML_MAPPER.readValue(yamlWithEnv.getBytes(StandardCharsets.UTF_8), RawServiceSpec.class);
         }
     }
