@@ -69,14 +69,19 @@ class PackageManager:
                 with open(tmp_filename, "r") as f:
                     packages = json.load(f)['packages']
             except Exception as e:
-                LOGGER.info("Retrieving packages with curl failed. %s", e)
+                LOGGER.error("Retrieving packages with curl failed. %s", e)
                 packages = []
 
         return packages
 
     def _get_packages_with_requests(self):
         """Use the requests module to get the packages from the universe"""
-        response = requests.get(self.universe_url, headers=self._headers)
-        response.raise_for_status()
+        try:
+            response = requests.get(self.universe_url, headers=self._headers)
+            response.raise_for_status()
+            packages = response.json()['packages']
+        except Exception as e:
+            LOGGER.error("Retrieving packages with requests failed. %s", e)
+            packages = []
 
-        return response.json()['packages']
+        return packages
