@@ -223,14 +223,14 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executorLost-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-int-">executorLost</a></span>(SchedulerDriver&nbsp;driver,
             Protos.ExecutorID&nbsp;executorId,
-            Protos.SlaveID&nbsp;slaveId,
+            Protos.SlaveID&nbsp;agentId,
             int&nbsp;status)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkMessage-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-byte:A-">frameworkMessage</a></span>(SchedulerDriver&nbsp;driver,
                 Protos.ExecutorID&nbsp;executorId,
-                Protos.SlaveID&nbsp;slaveId,
+                Protos.SlaveID&nbsp;agentId,
                 byte[]&nbsp;data)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
@@ -421,7 +421,7 @@ extends java.lang.Object</pre>
  offers have been processed.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.InterruptedException</code></dd>
+<dd><code>java.lang.InterruptedException</code> - if waiting for offers to be processed is interrupted</dd>
 </dl>
 </li>
 </ul>
@@ -453,7 +453,7 @@ extends java.lang.Object</pre>
 <h4>frameworkMessage</h4>
 <pre>public&nbsp;void&nbsp;frameworkMessage(SchedulerDriver&nbsp;driver,
                              Protos.ExecutorID&nbsp;executorId,
-                             Protos.SlaveID&nbsp;slaveId,
+                             Protos.SlaveID&nbsp;agentId,
                              byte[]&nbsp;data)</pre>
 </li>
 </ul>
@@ -484,7 +484,7 @@ extends java.lang.Object</pre>
 <h4>executorLost</h4>
 <pre>public&nbsp;void&nbsp;executorLost(SchedulerDriver&nbsp;driver,
                          Protos.ExecutorID&nbsp;executorId,
-                         Protos.SlaveID&nbsp;slaveId,
+                         Protos.SlaveID&nbsp;agentId,
                          int&nbsp;status)</pre>
 </li>
 </ul>
