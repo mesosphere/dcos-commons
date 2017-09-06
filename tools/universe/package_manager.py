@@ -33,7 +33,7 @@ class PackageManager:
 
     def get_packages(self):
         """Query the uninverse to get a list of packages"""
-        if self.__package_cache is None:
+        if not self.__package_cache:
             if not _HAS_REQUESTS:
                 LOGGER.info("Requests package not found. Using curl")
                 self.__package_cache = self._get_packages_with_curl()
