@@ -1,6 +1,6 @@
 {
   "packagingVersion": "4.0",
-  "upgradesFrom": ["*"],
+  "upgradesFrom": ["{{upgrades-from}}"],
   "downgradesTo": ["*"],
   "minDcosReleaseVersion": "1.9",
   "name": "hello-world",
