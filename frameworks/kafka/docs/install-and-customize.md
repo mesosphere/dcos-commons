@@ -1,7 +1,6 @@
 ---
 post_title: Install and Customize
 menu_order: 10
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -86,7 +85,7 @@ See [Configuration Options][6] for a list of fields that can be customized via a
 
 # Multiple Kafka cluster installation
 
-Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` is specified for each installation. For example:
+Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` be specified for each installation. For example:
 
     $ cat kafka1.json
     {

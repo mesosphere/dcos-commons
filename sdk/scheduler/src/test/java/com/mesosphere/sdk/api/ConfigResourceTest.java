@@ -25,7 +25,7 @@ public class ConfigResourceTest {
 
     @Mock private ConfigStore<StringConfiguration> mockConfigStore;
 
-    private ConfigResource<StringConfiguration> resource;
+    private ConfigResource<ConfigStore<StringConfiguration>> resource;
 
     @Before
     public void beforeAll() {

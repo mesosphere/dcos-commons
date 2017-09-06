@@ -258,13 +258,13 @@ public class DefaultScheduler extends AbstractScheduler {
          * @return a collection of plans
          */
         public Collection<Plan> getPlans(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
-            LOGGER.info("Getting plans");
-            Collection<Plan> plans;
+            final String plansType;
+            final Collection<Plan> plans;
             if (!manualPlans.isEmpty()) {
-                LOGGER.info("Using manual plans");
+                plansType = "manual";
                 plans = new ArrayList<>(manualPlans);
             } else if (!yamlPlans.isEmpty()) {
-                LOGGER.info("Using YAML plans");
+                plansType = "YAML";
                 // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
                 // may look at the old config and mistakenly think they're COMPLETE.
                 DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
@@ -272,10 +272,9 @@ public class DefaultScheduler extends AbstractScheduler {
                         .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                         .collect(Collectors.toList());
             } else {
-                LOGGER.info("Generating plans");
+                plansType = "generated";
                 try {
                     if (!configStore.list().isEmpty()) {
-                        LOGGER.info("Generating default deploy plan.");
                         plans = Arrays.asList(
                                 new DeployPlanFactory(
                                         new DefaultPhaseFactory(
@@ -285,23 +284,25 @@ public class DefaultScheduler extends AbstractScheduler {
                         plans = Collections.emptyList();
                     }
                 } catch (ConfigStoreException e) {
-                    LOGGER.error("Failed to generate a deploy plan.");
                     throw new IllegalStateException(e);
                 }
             }
 
-            LOGGER.info("Got plans: {}", plans.stream().map(plan -> plan.getName()).collect(Collectors.toList()));
+            LOGGER.info("Got {} {} plan{}: {}",
+                    plans.size(),
+                    plansType,
+                    plans.size() == 1 ? "" : "s",
+                    plans.stream().map(plan -> plan.getName()).collect(Collectors.toList()));
             return plans;
         }
 
         /**
-         * Detects whether or not the previous deployment's type was set or not and if not, sets it.
+         * Detects whether or not the previous deployment's type was set or not and if not, sets it in the state store.
          *
          * @param stateStore The stateStore to get last deployment type from.
          * @param configStore The configStore to get plans from.
          */
-        public void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
-            LOGGER.info("Fixing last deployment type");
+        private void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
             ConfigurationUpdater.UpdateResult.DeploymentType lastDeploymentType =
                     StateStoreUtils.getLastCompletedUpdateType(stateStore);
             if (lastDeploymentType.equals(ConfigurationUpdater.UpdateResult.DeploymentType.NONE)) {

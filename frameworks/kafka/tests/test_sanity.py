@@ -6,7 +6,7 @@ import dcos.http
 import pytest
 import sdk_cmd
 import sdk_hosts
-import sdk_install as install
+import sdk_install
 import sdk_marathon
 import sdk_metrics
 import sdk_plan
@@ -22,11 +22,12 @@ EPHEMERAL_TOPIC_NAME = 'topic_2'
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
+        sdk_install.uninstall(config.PACKAGE_NAME,
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
         if shakedown.dcos_version_less_than("1.9"):
             # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
-            install.install(
+            sdk_install.install(
                 config.PACKAGE_NAME,
                 sdk_utils.get_foldered_name(config.SERVICE_NAME),
                 config.DEFAULT_BROKER_COUNT,
@@ -40,11 +41,11 @@ def configure_package(configure_security):
 
         # wait for brokers to finish registering before starting tests
         test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-            service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+                                      service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
         yield  # let the test session execute
     finally:
-        install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
+        sdk_install.uninstall(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 # --------- Endpoints -------------
@@ -55,7 +56,8 @@ def configure_package(configure_security):
 def test_endpoints_address():
     def fun():
         ret = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
+            config.PACKAGE_NAME, sdk_utils.get_foldered_name(
+                config.SERVICE_NAME),
             'endpoints {}'.format(config.DEFAULT_TASK_NAME), json=True)
         if len(ret['address']) == config.DEFAULT_BROKER_COUNT:
             return ret
@@ -75,8 +77,7 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     zookeeper = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'endpoints zookeeper')
+        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'endpoints zookeeper')
     assert zookeeper.rstrip('\n') == 'master.mesos:2181/{}'.format(sdk_utils.get_zk_path(
         sdk_utils.get_foldered_name(config.SERVICE_NAME)))
 
@@ -111,7 +112,7 @@ def test_custom_zookeeper():
 
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-        service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+                                  service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
     zookeeper = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
@@ -120,7 +121,7 @@ def test_custom_zookeeper():
 
     # topic created earlier against default zk should no longer be present:
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'topic list', json=True) == []
+                           sdk_utils.get_foldered_name(config.SERVICE_NAME), 'topic list', json=True) == []
 
     # tests from here continue with the custom ZK path...
 
@@ -132,7 +133,7 @@ def test_custom_zookeeper():
 @pytest.mark.sanity
 def test_broker_list():
     brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'broker list', json=True)
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'broker list', json=True)
     assert set(brokers) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
 
 
@@ -210,8 +211,7 @@ def test_topic_offsets_increase_with_writes():
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
         'topic producer_test {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
     assert len(write_info) == 1
-    assert write_info['message'].startswith(
-        'Output: {} records sent'.format(num_messages))
+    assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
 
     offset_info = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
@@ -233,10 +233,8 @@ def test_decreasing_topic_partitions_fails():
         'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1), json=True)
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith(
-        'Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -246,10 +244,8 @@ def test_setting_topic_partitions_to_same_value_fails():
         'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT), json=True)
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith(
-        'Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -259,10 +255,8 @@ def test_increasing_topic_partitions_succeeds():
         'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1), json=True)
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith(
-        'Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' not in partition_info['message'])
+    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert ('The number of partitions for a topic can only be increased' not in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -298,65 +292,77 @@ def test_help_cli():
 @pytest.mark.sanity
 def test_config_cli():
     configs = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'config list', json=True)
-    assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'config list', json=True)
+    # refrain from breaking this test if earlier tests did a config update
+    assert len(configs) >= 1
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'config show {}'.format(configs[0]), print_output=False) # noisy output
+                           'config show {}'.format(configs[0]), print_output=False)  # noisy output
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'config target', json=True)
+                           'config target', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'config target_id', json=True)
+                           'config target_id', json=True)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_plan_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan list', json=True)
+                           'plan list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan show {}'.format(config.DEFAULT_PLAN_NAME))
+                           'plan show {}'.format(config.DEFAULT_PLAN_NAME))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan show --json {}'.format(config.DEFAULT_PLAN_NAME), json=True)
+                           'plan show --json {}'.format(config.DEFAULT_PLAN_NAME), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan show {} --json'.format(config.DEFAULT_PLAN_NAME), json=True)
+                           'plan show {} --json'.format(config.DEFAULT_PLAN_NAME), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan force-restart {}'.format(config.DEFAULT_PLAN_NAME))
+                           'plan force-restart {}'.format(config.DEFAULT_PLAN_NAME))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan interrupt {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+                           'plan interrupt {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+                           'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_state_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'state framework_id', json=True)
+                           'state framework_id', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'state properties', json=True)
+                           'state properties', json=True)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pod_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'pod list', json=True)
+                           'pod list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'pod status {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
+                           'pod status {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'pod info {}-0'.format(config.DEFAULT_POD_TYPE), print_output=False)  # noisy output
+                           'pod info {}-0'.format(config.DEFAULT_POD_TYPE), print_output=False)  # noisy output
 
 
 @pytest.mark.sanity
 @pytest.mark.metrics
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    sdk_metrics.wait_for_any_metrics(
+    expected_metrics = [
+        "kafka.network.RequestMetrics.ResponseQueueTimeMs.max",
+        "kafka.socket-server-metrics.io-ratio",
+        "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95"
+    ]
+
+    def expected_metrics_exist(emitted_metrics):
+        return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
+
+    sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "kafka-0-broker",
-        config.DEFAULT_KAFKA_TIMEOUT)
+        config.DEFAULT_KAFKA_TIMEOUT,
+        expected_metrics_exist
+    )
 
 
 # --------- Suppressed -------------

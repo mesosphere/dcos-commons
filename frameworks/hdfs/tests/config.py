@@ -71,7 +71,8 @@ def run_hdfs_command(service_name, command):
     """
     Execute the command using the Docker client
     """
-    full_command = 'docker run -e HDFS_SERVICE_NAME={} mesosphere/hdfs-client:2.6.4 /bin/bash -c "/configure-hdfs.sh && {}"'.format(service_name, command)
+    full_command = 'docker run -e HDFS_SERVICE_NAME={} mesosphere/hdfs-client:2.6.4 /bin/bash -c "/configure-hdfs.sh && {}"'.format(
+        service_name, command)
 
     rc, output = shakedown.run_command_on_master(full_command)
     return rc, output
