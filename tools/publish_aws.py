@@ -20,7 +20,7 @@ import sys
 import time
 
 import github_update
-import universe_builder
+import universe
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -145,7 +145,7 @@ class AWSPublisher(object):
 
     def upload(self):
         '''generates a unique directory, then uploads artifacts and a new stub universe to that directory'''
-        builder = universe_builder.UniversePackageBuilder(
+        builder = universe.UniversePackageBuilder(
             self._pkg_name, self._pkg_version,
             self._input_dir_path, self._http_directory, self._artifact_paths)
         try:

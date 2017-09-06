@@ -18,7 +18,7 @@ import subprocess
 import sys
 
 import github_update
-import universe_builder
+import universe
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -149,7 +149,7 @@ class HTTPPublisher(object):
 
         http_url_root = 'http://{}:{}'.format(self._http_host, port)
 
-        self._package_builder = universe_builder.UniversePackageBuilder(
+        self._package_builder = universe.UniversePackageBuilder(
             self._pkg_name, self._pkg_version,
             self._input_dir_path, http_url_root, self._artifact_paths)
 
