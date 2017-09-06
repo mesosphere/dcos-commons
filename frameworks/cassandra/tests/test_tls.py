@@ -204,6 +204,8 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
+@sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
