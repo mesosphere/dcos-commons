@@ -142,11 +142,11 @@ class AWSPublisher(object):
             'Uploaded stub universe and {} artifact{}'.format(num_artifacts, suffix),
             universe_url)
 
-
     def upload(self):
         '''generates a unique directory, then uploads artifacts and a new stub universe to that directory'''
+        package_info = universe.Package(self._pkg_name, self._pkg_version)
         builder = universe.UniversePackageBuilder(
-            self._pkg_name, self._pkg_version,
+            package_info,
             self._input_dir_path, self._http_directory, self._artifact_paths)
         try:
             universe_path = builder.build_package()

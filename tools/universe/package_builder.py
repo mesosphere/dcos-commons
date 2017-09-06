@@ -12,6 +12,7 @@ import re
 import sys
 import tempfile
 
+from .package import Package
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -35,15 +36,12 @@ _expected_package_filenames = [
 
 class UniversePackageBuilder(object):
 
-    def __init__(self, package_name, package_version, input_dir_path, upload_dir_url, artifact_paths):
-        self._pkg_name = package_name
-        self._pkg_version = package_version
+    def __init__(self, package, input_dir_path, upload_dir_url, artifact_paths):
+
+        self._package = package
         self._upload_dir_url = upload_dir_url
 
-        if not os.path.isdir(input_dir_path):
-            raise Exception(
-                'Provided package path is not a directory: {}'.format(input_dir_path))
-        self._input_dir_path = input_dir_path
+        self.set_input_dir_path(input_dir_path)
 
         self._artifact_file_paths = {}
         for artifact_path in artifact_paths:
@@ -58,8 +56,18 @@ class UniversePackageBuilder(object):
             self._artifact_file_paths[os.path.basename(
                 artifact_path)] = artifact_path
 
-    def _get_upgrades_from(self):
-        return "*"
+    def set_input_dir_path(self, input_dir_path):
+        """Validate and set the input directory path"""
+        if not os.path.isdir(input_dir_path):
+            raise Exception(
+                'Provided package path is not a directory: {}'.format(input_dir_path))
+
+        if not os.path.isfile(os.path.join(input_dir_path, _package_json_filename)):
+            raise Exception(
+                "Provided package path does not contain the expected package files: {}".format(input_dir_path)
+            )
+
+        self._input_dir_path = input_dir_path
 
     def _iterate_package_files(self):
         for package_filename in os.listdir(self._input_dir_path):
@@ -93,8 +101,8 @@ class UniversePackageBuilder(object):
         '''
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
         template_mapping = {
-            'package-version': self._pkg_version,
-            'upgrades-from': self._get_upgrades_from(),
+            'package-version': self._package.get_version(),
+            'upgrades-from': self._package.get_upgrades_from(),
             'artifact-dir': self._upload_dir_url,
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,
@@ -181,7 +189,7 @@ class UniversePackageBuilder(object):
                 filename, content)
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         jsonpath = os.path.join(
-            scratchdir, 'stub-universe-{}.json'.format(self._pkg_name))
+            scratchdir, 'stub-universe-{}.json'.format(self._package.get_name()))
         jsonfile = open(jsonpath, 'w')
         jsonfile.write(json.dumps(self._generate_packages_dict(
             updated_package_files), indent=2))
@@ -220,8 +228,8 @@ Upload base dir: {}
 Artifacts:       {}
 ###'''.format(package_name, package_version, package_dir_path, upload_dir_url, ','.join(artifact_paths)))
 
-    package_path = UniversePackageBuilder(
-        package_name, package_version, package_dir_path, upload_dir_url, artifact_paths).build_package()
+    package_info = Package(package_name, package_version)
+    package_path = UniversePackageBuilder(package_info, upload_dir_url, artifact_paths).build_package()
     if not package_path:
         return -1
     logger.info('---')
