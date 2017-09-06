@@ -27,14 +27,18 @@ class PackageManager:
                       "charset=utf-8;version=v{}".format(package_version),
         }
 
+        self.__package_cache = None
+
     def get_packages(self):
         """Query the uninverse to get a list of packages"""
+        if self.__package_cache is None:
+            if not _HAS_REQUESTS:
+                LOGGER.info("Requests package not found. Using curl")
+                self.__package_cache = self._get_packages_with_curl()
+            else:
+                self.__package_cache = self._get_packages_with_requests()
 
-        if not _HAS_REQUESTS:
-            LOGGER.info("Requestss package not found. Using curl")
-            return self._get_packages_with_curl()
-
-        return self._get_packages_with_requests()
+        return self.__package_cache
 
     def _get_packages_with_curl(self):
         """Use curl to download the packages from the universe"""
@@ -45,6 +49,7 @@ class PackageManager:
                    "--write-out",  "%{http_code}",
                    "--silent",
                    "-L",
+                   "--max-time", "5",
                    "-X", "GET",
                    "-o", tmp_filename, ]
             for k, header in self._headers.items():
@@ -52,14 +57,18 @@ class PackageManager:
 
             cmd.append(self.universe_url)
 
-            output = subprocess.check_output(cmd)
-            status_code = int(output)
+            try:
+                output = subprocess.check_output(cmd)
+                status_code = int(output)
 
-            if status_code != 200:
-                raise Exception("Curl returned status code %s", status_code)
+                if status_code != 200:
+                    raise Exception("Curl returned status code %s", status_code)
 
-            with open(tmp_filename, "r") as f:
-                packages = json.load(f)['packages']
+                with open(tmp_filename, "r") as f:
+                    packages = json.load(f)['packages']
+            except Exception as e:
+                LOGGER.info("Retrieving packages with curl failed. %s", e)
+                packages = []
 
         return packages
 
