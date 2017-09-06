@@ -21,12 +21,12 @@ The default DC/OS Apache Cassandra installation provides reasonable defaults for
 To start a basic test cluster, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing DC/OS Apache Cassandra on Enterprise DC/OS](https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/).
 
 ```shell
-dcos package install beta-cassandra
+dcos package install cassandra
 ```
 You can specify a custom configuration in an `options.json` file and pass it to `dcos package install` using the `--options` parameter.
 
 ```
-$ dcos package install beta-cassandra --options=<options>.json
+$ dcos package install cassandra --options=<options>.json
 ```
 
 It is recommended that this custom configuration is stored in source control.
@@ -37,6 +37,6 @@ For more information about building the `options.json` file, see the [DC/OS docu
 
 You can [install DC/OS Apache Cassandra from the DC/OS web interface](https://docs.mesosphere.com/1.9/usage/managing-services/install/). If you install DC/OS Apache Cassandra from the web interface, you must install the DC/OS Apache Cassandra CLI subcommands separately. From the DC/OS CLI, enter:
 ```bash
-dcos package install beta-cassandra --cli
+dcos package install cassandra --cli
 ```
 Choose `ADVANCED INSTALLATION` to perform a custom installation.
