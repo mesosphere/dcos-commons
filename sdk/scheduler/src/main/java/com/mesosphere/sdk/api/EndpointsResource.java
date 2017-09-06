@@ -130,7 +130,7 @@ public class EndpointsResource {
         Map<String, JSONObject> endpointsByName = new TreeMap<>();
         for (TaskInfo taskInfo : stateStore.fetchTasks()) {
             if (!taskInfo.hasDiscovery()) {
-                LOGGER.info("Task lacks any discovery information, no endpoints to report: {}",
+                LOGGER.debug("Task lacks any discovery information, no endpoints to report: {}",
                         taskInfo.getName());
                 continue;
             }
@@ -146,7 +146,7 @@ public class EndpointsResource {
             List<String> ipAddresses = reconcileIpAddresses(taskInfo.getName());
             for (Port port : discoveryInfo.getPorts().getPortsList()) {
                 if (port.getVisibility() != Constants.DISPLAYED_PORT_VISIBILITY) {
-                    LOGGER.info(
+                    LOGGER.debug(
                             "Port {} in task {} has {} visibility. {} is needed to be listed in endpoints.",
                             port.getName(), taskInfo.getName(), port.getVisibility(),
                             Constants.DISPLAYED_PORT_VISIBILITY);
@@ -221,7 +221,8 @@ public class EndpointsResource {
             String autoipHostPort,
             String ipHostPort) throws TaskException {
         if (Strings.isEmpty(taskInfoPort.getName())) {
-            // Older tasks may omit the port name in their DiscoveryInfo.
+            // Older tasks may omit the port name in their DiscoveryInfo. In practice this shouldn't happen because
+            // tasks that old should have been long updated/relaunched by the time this is invoked, but just in case...
             LOGGER.warn("Missing port name. Old task?: {}", TextFormat.shortDebugString(taskInfoPort));
             return;
         }
