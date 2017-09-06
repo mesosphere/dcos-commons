@@ -9,17 +9,18 @@ import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -32,6 +33,8 @@ import java.util.Optional;
 public class StateResource {
 
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
+    private static final String VERSION_FILE = "versionFile";
+    private static final String VERSION_FILE_ENCODING = "UTF-8";
 
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
@@ -90,6 +93,45 @@ public class StateResource {
             return ResponseUtils.jsonOkResponse(keyArray);
         } catch (StateStoreException ex) {
             logger.error("Failed to fetch list of property keys", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    @Path(VERSION_FILE)
+    @Produces(MediaType.TEXT_PLAIN)
+    @GET
+    public Response getVersionFile() {
+        try {
+            logger.info("Getting version file");
+            String versionFileContent =
+                    new String(stateStore.fetchProperty(VERSION_FILE), VERSION_FILE_ENCODING);
+            return ResponseUtils.plainOkResponse(versionFileContent);
+        } catch (StateStoreException e) {
+            logger.error("Failed to fetch the version file", e);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Cannot encode data: ", e);
+            return Response.serverError().build();
+        }
+    }
+
+    @Path(VERSION_FILE)
+    @PUT
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response putVersionFile(@FormDataParam("file") InputStream uploadedInputStream) {
+        try {
+            if (stateStore.hasProperty(VERSION_FILE)) {
+                logger.info("Version file already exists");
+                return Response.status(Response.Status.OK).build();
+            }
+            logger.info("Putting version file");
+            StringWriter stringWriter = new StringWriter();
+            IOUtils.copy(uploadedInputStream, stringWriter, VERSION_FILE_ENCODING);
+            stateStore.storeProperty(VERSION_FILE, stringWriter.toString().getBytes());
+            logger.debug(stringWriter.toString());
+            return Response.status(Response.Status.OK).build();
+        } catch (Exception e) {
+            logger.error("Failed to PUT version file", e);
             return Response.serverError().build();
         }
     }

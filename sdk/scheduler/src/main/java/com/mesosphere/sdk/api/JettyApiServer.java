@@ -4,6 +4,7 @@ import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import javax.ws.rs.core.UriBuilder;
@@ -22,7 +23,7 @@ public class JettyApiServer {
     private int port;
 
     public JettyApiServer(int port, Collection<Object> resources) {
-        ResourceConfig resourceConfig = new ResourceConfig();
+        ResourceConfig resourceConfig = new ResourceConfig(MultiPartFeature.class);
         for (Object resource : resources) {
             resourceConfig.register(resource);
         }

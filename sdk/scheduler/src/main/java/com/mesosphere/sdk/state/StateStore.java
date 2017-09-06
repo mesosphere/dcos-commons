@@ -452,6 +452,21 @@ public class StateStore {
     }
 
     /**
+     * Returns whether or not a given property exists.
+     */
+    public boolean hasProperty(String key) throws StateStoreException {
+        try {
+            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
+            logger.debug("Determining whether key: {} exists at path: {}", key, path);
+            // If the persister throws an exception if the path (i.e. key) doesn't exist.
+            persister.get(path);
+            return true;
+        } catch (PersisterException e) {
+            return false;
+        }
+    }
+
+    /**
      * Returns the underlying {@link Persister} object for direct access.
      * @return
      */
