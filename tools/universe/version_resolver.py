@@ -34,20 +34,15 @@ class Version:
 
 
 class VersionResolver:
-    def __init__(self, pm):
-        self._package_manger = pm
+    def __init__(self, package_manager):
+        self._package_manger = package_manager
 
     def get_package_versions(self, package_name):
         """Get all versions for a specified package"""
+
         packages = self._package_manger.get_packages()
 
-        package_versions = self._process_packages(packages, package_name)
-
-        return package_versions.get(package_name, [])
-
-    @staticmethod
-    def _process_packages(packages, package_name):
-        package_versions = {}
+        package_versions = []
 
         for package in packages:
             name = package['name']
@@ -55,14 +50,7 @@ class VersionResolver:
             if package_name != name:
                 continue
 
-            version = Version(package['releaseVersion'], package['version'])
-
-            if name in package_versions:
-                package_versions[name].append(version)
-            else:
-                package_versions[name] = [
-                    version,
-                ]
+            package_versions.append(Version(package['releaseVersion'], package['version']))
 
         return package_versions
 

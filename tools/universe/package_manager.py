@@ -17,8 +17,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PackageManager:
-
-    def __init__(self, universe_url="https://universe.mesosphere.com/repo", dcos_version="1.10", package_version="4"):
+    """A simple package manager for retrieving universe packages"""
+    def __init__(self, universe_url="https://universe.mesosphere.com/repo",
+                 dcos_version="1.10",
+                 package_version="4"):
 
         self.universe_url = "https://universe.mesosphere.com/repo"
         self._headers = {
