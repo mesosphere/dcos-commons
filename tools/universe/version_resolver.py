@@ -10,7 +10,7 @@ class Version:
     """Encapsulates the releases-package version pair."""
     def __init__(self, release_version, package_version):
         self.release_version = release_version
-        self.package_version = LooseVersion(package_version)
+        self.package_version = package_version
 
     def __eq__(self, other):
         if self.release_version != other.release_version:
