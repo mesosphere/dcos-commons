@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.sdkspark.scheduler;
 
+import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.testing.BaseServiceSpecTest;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ServiceSpecTest extends BaseServiceSpecTest {
@@ -12,12 +15,20 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "PORT_API", "8080",
                 "FRAMEWORK_NAME", "sdkspark",
                 "SPARK_DOCKER_IMAGE", "artrand/spark",
-                "NODE_COUNT", "2",
-                "NODE_CPUS", "0.1",
-                "NODE_MEM", "512",
-                "NODE_DISK", "5000",
-                "NODE_DISK_TYPE", "ROOT",
 
+
+                "EXECUTOR_COUNT", "2",
+                "EXECUTOR_CORES", "1",
+                "EXECUTOR_MEM", "512",
+                "EXECUTOR_DISK", "5000",
+                "EXECUTOR_DISK_TYPE", "ROOT",
+
+                "COORDINATOR_COUNT", "2",
+                "COORDINATOR_CORES", "1",
+                "COORDINATOR_MEM", "512",
+                "COORDINATOR_DISK", "5000",
+                "COORDINATOR_DISK_TYPE", "ROOT",
+                "SPARK_APP_URL", "http://someplace/mysparkapp.jar",
                 "SLEEP_DURATION", "1000");
     }
 
@@ -25,4 +36,12 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testYmlBase() throws Exception {
         testYaml("svc.yml");
     }
+
+    public void testSparkScheduler() throws Exception {
+        RawServiceSpec rawServiceSpec = getRawServiceSpec("svc.yml");
+        SchedulerFlags schedulerFlags = SchedulerFlags.fromMap(envVars);
+        SparkScheduler sparkScheduler = new SparkScheduler(rawServiceSpec, schedulerFlags);
+        Assert.assertNotNull(sparkScheduler);
+    }
+
 }

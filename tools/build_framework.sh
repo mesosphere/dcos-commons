@@ -111,9 +111,11 @@ echo "---"
 
 
 # Verify airgap (except for hello world)
-if [ $FRAMEWORK_NAME != "hello-world" ];
+if [ $FRAMEWORK_NAME != "hello-world" ] && [ $FRAMEWORK_NAME != "sdkspark" ];
 then
     ${TOOLS_DIR}/airgap_linter.py ${FRAMEWORK_DIR}
+else
+    echo "Skipping Airgap Linter"
 fi
 
 # Ensure executor build up to date

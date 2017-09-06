@@ -53,15 +53,35 @@
             "type": "string",
             "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
             "default": "INFO"
+          },
+          "main_class": {
+            "title": "Main class to run",
+            "description": "(REQUIRED) Main class to run in you Spark application",
+            "type": "string",
+            "default": "org.apache.spark.examples.SparkPi"
+          },
+          "spark_app_url": {
+            "title": "Spark application URL",
+            "description": "(REQUIRED) Main class to run in you Spark application",
+            "type": "string",
+            "default": "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/spark-examples_2.11-2.3.0-SNAPSHOT.jar"
+          },
+          "application_args": {
+            "title": "Arguments to pass to your Spark application",
+            "description": "Free form string of arguments",
+            "type": "string",
+            "default": "100"
           }
         },
         "required":[
           "name",
           "sleep",
-          "user"
+          "user",
+          "main_class",
+          "spark_app_url"
         ]
       },
-      "node": {
+      "executor": {
         "description": "Template pod configuration properties",
         "type": "object",
         "properties": {
@@ -69,7 +89,7 @@
             "title": "Node count",
             "description": "Number of Template pods to run",
             "type": "integer",
-            "default":1
+            "default":3
           },
           "placement_constraint": {
             "title": "Placement constraint",
@@ -77,7 +97,7 @@
             "type": "string",
             "default": ""
           },
-          "cpus": {
+          "cores": {
             "title": "CPU count",
             "description": "Template pod CPU requirements",
             "type": "number",
@@ -87,7 +107,7 @@
             "title": "Memory size (MB)",
             "description": "Template pod mem requirements (in MB)",
             "type": "integer",
-            "default":512
+            "default":1000
           },
           "disk": {
             "title": "Disk size (MB)",
@@ -107,7 +127,52 @@
         },
         "required":[
           "count",
-          "cpus",
+          "cores",
+          "mem",
+          "disk",
+          "disk_type"
+        ]
+      },
+      "coordinator": {
+        "description": "Template pod configuration properties",
+        "type": "object",
+        "properties": {
+          "placement_constraint": {
+            "title": "Placement constraint",
+            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "type": "string",
+            "default": ""
+          },
+          "cores": {
+            "title": "CPU count",
+            "description": "Template pod CPU requirements",
+            "type": "number",
+            "default":1
+          },
+          "mem": {
+            "title": "Memory size (MB)",
+            "description": "Template pod mem requirements (in MB)",
+            "type": "integer",
+            "default":1000
+          },
+          "disk": {
+            "title": "Disk size (MB)",
+            "description": "Template pod persistent disk requirements (in MB)",
+            "type": "integer",
+            "default":25
+          },
+          "disk_type": {
+            "title": "Disk type [ROOT, MOUNT]",
+            "description": "Mount volumes require preconfiguration in DC/OS",
+            "enum": [
+              "ROOT",
+              "MOUNT"
+            ],
+            "default": "ROOT"
+          }
+        },
+        "required":[
+          "cores",
           "mem",
           "disk",
           "disk_type"

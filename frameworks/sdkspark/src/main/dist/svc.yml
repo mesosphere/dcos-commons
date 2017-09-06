@@ -6,38 +6,45 @@ pods:
   coordinator:
     count: 1
     image: {{SPARK_DOCKER_IMAGE}}
-    placement: {{NODE_PLACEMENT}}
+    placement: {{COORDINATOR_PLACEMENT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
-      - {{SPARK_PI}}
+      - {{SPARK_APP_URL}}
     tasks:
       driver:
         goal: FINISHED
         cmd: >
-          ./bin/spark-submit --name TaskCoordinatorTest --master mesos://zk://master.mesos:2181/mesos
-          --driver-cores 1.0 --driver-memory 1024M --class org.apache.spark.examples.streaming.HdfsWordCount
-          --executor-memory 1G
+          ./bin/spark-submit --master mesos://zk://master.mesos:2181/mesos
+          --driver-cores {{COORDINATOR_CORES}}
+          --driver-memory {{COORDINATOR_MEM}}M
+          --class {{SPARK_MAIN_CLASS}}
+          --executor-memory {{EXECUTOR_MEM}}M
           --conf spark.driver.port=9000
-          --conf spark.cores.max=2
-          --conf "spark.ssl.noCertVerification=true" --conf "spark.app.name=TaskCoordinatorTest"
-          --conf "spark.mesos.executor.docker.forcePullImage=true" --conf "spark.driver.memory=1G"
-          --conf "spark.mesos.backend=sdk" --conf "spark.mesos.executor.docker.image=artrand/spark"
-          --conf "spark.driver.cores=1" --conf "spark.mesos.driver.labels=DCOS_SPACE:/spark"
-          --conf "spark.executor.memory=1G" $MESOS_SANDBOX/spark-examples_2.11-2.0.1.jar file:///mnt/mesos/sandbox/
-        cpus: {{NODE_CPUS}}
-        memory: {{NODE_MEM}}
+          --conf spark.ssl.noCertVerification=true
+          --conf spark.mesos.backend=sdk
+        cpus: {{COORDINATOR_CORES}}
+        env:
+          COORDINATOR_CORES: {{COORDINATOR_CORES}}
+          COORDINATOR_MEM: {{COORDINATOR_MEM}}
+          EXECUTOR_MEM: {{EXECUTOR_MEM}}
+          SPARK_APP_URL: {{SPARK_APP_URL}}
+          SPARK_MAIN_CLASS: {{SPARK_MAIN_CLASS}}
+          EXECUTOR_CORES: {{EXECUTOR_CORES}}
+          EXECUTOR_COUNT: {{EXECUTOR_COUNT}}
+          APPLICATION_ARGS: {{APPLICATION_ARGS}}
+        memory: {{COORDINATOR_MEM}}
         volume:
           path: "spark-sdk-container-path"
-          type: {{NODE_DISK_TYPE}}
-          size: {{NODE_DISK}}
+          type: {{COORDINATOR_DISK_TYPE}}
+          size: {{COORDINATOR_DISK}}
   executor:
-    count: {{NODE_COUNT}}
+    count: {{EXECUTOR_COUNT}}
     image: {{SPARK_DOCKER_IMAGE}}
-    placement: {{NODE_PLACEMENT}}
+    placement: {{EXECUTOR_PLACEMENT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
@@ -52,14 +59,16 @@ pods:
           --driver-url spark://CoarseGrainedScheduler@coordinator-0-driver.sdkspark.mesos:9000
           --executor-id $POD_INSTANCE_INDEX
           --hostname $(hostname -i)
-          --cores {{NODE_CPUS}}
+          --cores {{EXECUTOR_CORES}}
           --app-id sdkdriver
-        cpus: {{NODE_CPUS}}
-        memory: {{NODE_MEM}}
+        env:
+          EXECUTOR_CORES: {{EXECUTOR_CORES}}
+        cpus: {{EXECUTOR_CORES}}
+        memory: {{EXECUTOR_MEM}}
         volume:
           path: "spark-sdk-container-path"
-          type: {{NODE_DISK_TYPE}}
-          size: {{NODE_DISK}}
+          type: {{EXECUTOR_DISK_TYPE}}
+          size: {{EXECUTOR_DISK}}
 
 plans:
   deploy:
@@ -69,5 +78,5 @@ plans:
         strategy: serial
         pod: coordinator
       executor-deploy:
-        strategy: serial
+        strategy: parallel
         pod: executor

@@ -333,6 +333,16 @@ public class DefaultPodSpec implements PodSpec {
             return this;
         }
 
+        /**
+         * Adds the {@code uris} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param uri the {@code uri} to add
+         * @return a reference to this Builder
+         */
+        public Builder addUris(Collection<URI> uris) {
+            this.uris = uris;
+            return this;
+        }
 
         /**
          * Sets the {@code tasks} and returns a reference to this Builder so that the methods can be chained together.

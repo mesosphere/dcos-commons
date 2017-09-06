@@ -26,18 +26,28 @@
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
+    "SPARK_APP_URL": "{{service.spark_app_url}}",
+    "SPARK_MAIN_CLASS": "{{service.main_class}}",
+    "APPLICATION_ARGS": "{{service.application_args}}",
 
-    "NODE_COUNT": "{{node.count}}",
-    "NODE_PLACEMENT": "{{node.placement_constraint}}",
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
-    "NODE_CPUS": "{{node.cpus}}",
-    "NODE_MEM": "{{node.mem}}",
-    "NODE_DISK": "{{node.disk}}",
-    "NODE_DISK_TYPE": "{{node.disk_type}}",
+
+    "EXECUTOR_COUNT": "{{executor.count}}",
+    "EXECUTOR_PLACEMENT": "{{executor.placement_constraint}}",
+    "EXECUTOR_CORES": "{{executor.cores}}",
+    "EXECUTOR_MEM": "{{executor.mem}}",
+    "EXECUTOR_DISK": "{{executor.disk}}",
+    "EXECUTOR_DISK_TYPE": "{{executor.disk_type}}",
+
+    "COORDINATOR_PLACEMENT": "{{coordinator.placement_constraint}}",
+    "COORDINATOR_CORES": "{{coordinator.cores}}",
+    "COORDINATOR_MEM": "{{coordinator.mem}}",
+    "COORDINATOR_DISK": "{{coordinator.disk}}",
+    "COORDINATOR_DISK_TYPE": "{{coordinator.disk_type}}",
 
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
@@ -47,8 +57,7 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     {{/service.service_account_secret}}
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "SPARK_DOCKER_IMAGE": "{{resource.assets.container.docker.spark}}",
-    "SPARK_PI": "{{resource.assets.uris.sparkpi}}"
+    "SPARK_DOCKER_IMAGE": "{{resource.assets.container.docker.spark}}"
 },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

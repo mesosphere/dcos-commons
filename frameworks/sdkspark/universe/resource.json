@@ -9,8 +9,7 @@
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/sdkspark-scheduler.zip",
-      "executor-zip": "{{artifact-dir}}/executor.zip",
-      "sparkpi": "http://downloads.mesosphere.com/spark/assets/spark-examples_2.11-2.0.1.jar"
+      "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },
   "images": {

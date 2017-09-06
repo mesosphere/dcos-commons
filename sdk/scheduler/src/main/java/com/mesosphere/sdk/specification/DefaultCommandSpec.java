@@ -40,6 +40,10 @@ public class DefaultCommandSpec implements CommandSpec {
         return new Builder(envOverride);
     }
 
+    public static Builder newBuilder() {
+        return new Builder(Collections.emptyMap());
+    }
+
     public static Builder newBuilder(CommandSpec copy) {
         // Skip env override: Any overrides should already be merged into the CommandSpec's main env.
         Builder builder = newBuilder(Collections.emptyMap());
