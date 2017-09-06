@@ -3,18 +3,48 @@
 This module can be used to determine the latest version of a particular package
 in the Universe.
 """
-import requests
+from distutils.version import LooseVersion
+
+
+class Version:
+    """Encapsulates the releases-package version pair."""
+    def __init__(self, release_version, package_version):
+        self.release_version = release_version
+        self.package_version = LooseVersion(package_version)
+
+    def __eq__(self, other):
+        if self.release_version != other.release_version:
+            return False
+
+        return self.package_version == other.package_version
+
+    def __lt__(self, other):
+        if self.release_version < other.release_version:
+            return True
+
+        return self.package_version < other.package_version
+
+    def __gt__(self, other):
+        if self.release_version > other.release_version:
+            return True
+
+        return self.package_version > other.package_version
+
+    def __str__(self):
+        return str(self.package_version)
 
 
 class VersionResolver:
     def __init__(self, pm):
         self._package_manger = pm
 
-    def get_package_versions(self, package_name=None):
+    def get_package_versions(self, package_name):
         """Get all versions for a specified package"""
         packages = self._package_manger.get_packages()
 
-        return self._process_packages(packages, package_name)
+        package_versions = self._process_packages(packages, package_name)
+
+        return package_versions.get(package_name, [])
 
     @staticmethod
     def _process_packages(packages, package_name):
@@ -23,27 +53,24 @@ class VersionResolver:
         for package in packages:
             name = package['name']
 
-            if package_name is not None and package_name != name:
+            if package_name != name:
                 continue
 
-            version = package['version']
-
-            for k in package.keys():
-                print(k)
+            version = Version(package['releaseVersion'], package['version'])
 
             if name in package_versions:
                 package_versions[name].append(version)
             else:
-                package_versions[name] = [version, ]
+                package_versions[name] = [
+                    version,
+                ]
 
         return package_versions
 
+    def get_latest_version(self, package_name):
+        package_versions = self.get_package_versions(package_name)
 
-if __name__ == "__main__":
+        if package_versions:
+            return sorted(package_versions)[-1]
 
-    pm = package_manager.PackageManager()
-    vr = VersionResolver(pm)
-    package_name = 'beta-confluent-kafka'
-    versions = vr.get_package_versions(package_name=package_name)
-
-    print(versions)
+        return None
