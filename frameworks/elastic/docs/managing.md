@@ -29,11 +29,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli elastic`.
+  + You can install just the subcommand CLI by running `dcos package install --cli beta-elastic`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli elastic
-    dcos package install --cli elastic
+    dcos package uninstall --cli beta-elastic
+    dcos package install --cli beta-elastic
     ```
 
 ### Preparing configuration
@@ -41,7 +41,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
 
 ```bash
-$ dcos elastic describe > options.json
+$ dcos beta-elastic --name="elastic" describe > options.json
 ```
 
 Make any configuration changes to this `options.json` file.
@@ -95,7 +95,7 @@ $ less marathon.json.mustache
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
 ```bash
-$ dcos elastic update start --options=options.json
+$ dcos beta-elastic --name="elastic" update start --options=options.json
 ```
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
@@ -110,14 +110,14 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 1. Visit <dcos-url> to access the DC/OS web interface.
-1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
+1. Navigate to `Services` and click on the service to be configured (default `elastic`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config elastic` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config beta-elastic` in the CLI, or browse the Beta Elastic install dialog in the DC/OS web interface.
 
 # Add a Data/Ingest/Coordinator Node
 Increase the `DATA_NODE_COUNT`/`INGEST_NODE_COUNT`/`COORDINATOR_NODE_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
@@ -127,30 +127,30 @@ Increase the `DATA_NODE_COUNT`/`INGEST_NODE_COUNT`/`COORDINATOR_NODE_COUNT` valu
 Comprehensive information is available about every node.  To list all nodes:
 
 ```bash
-dcos elastic --name=<service-name> pod list
+dcos beta-elastic --name=<service-name> pod list
 ```
 
 To view information about a node, run the following command from the CLI.
 ```bash
-$ dcos elastic --name=<service-name> pod info <node-id>
+$ dcos beta-elastic --name=<service-name> pod info <node-id>
 ```
 
 For example:
 ```bash
-$ dcos elastic pod info master-0
+$ dcos beta-elastic --name=<service-name> pod info master-0
 ```
 
 ## Node Status
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos elastic --name=<service-name> pod info <node-id>
+$ dcos beta-elastic --name=<service-name> pod info <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos elastic pod info data-0
+$ dcos beta-elastic pod info data-0
 ```
 
 # Upgrading Service Version
@@ -165,24 +165,24 @@ The `update package-versions` command allows you to view the versions of a servi
 
 For example, run:
 ```bash
-$ dcos elastic update package-versions
+$ dcos beta-elastic update package-versions
 ```
 
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
 ```bash
-$ dcos package uninstall --cli elastic
-$ dcos package install --cli elastic --package-version="1.1.6-5.0.7"
+$ dcos package uninstall --cli beta-elastic
+$ dcos package install --cli beta-elastic --package-version="1.1.6-5.0.7"
 ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Elastic Service to version `1.1.6-5.0.7`:
 ```bash
-$ dcos elastic update start --package-version="1.1.6-5.0.7"
+$ dcos beta-elastic update start --package-version="1.1.6-5.0.7"
 ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 ```bash
-$ dcos elastic update start --options=options.json --package-version="1.1.6-5.0.7"
+$ dcos beta-elastic update start --options=options.json --package-version="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
@@ -202,7 +202,7 @@ Once the Scheduler has been restarted, it will begin a new deployment plan as in
 You can query the status of the update as follows:
 
 ```bash
-$ dcos elastic update status
+$ dcos beta-elastic update status
 ```
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
@@ -212,7 +212,7 @@ If the Scheduler is still restarting, DC/OS will not be able to route to it and 
 To pause an ongoing update, issue a pause command:
 
 ```bash
-$ dcos elastic update pause
+$ dcos beta-elastic update pause
 ```
 
 You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
@@ -222,7 +222,7 @@ You will receive an error message if the plan has already completed or has been 
 If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
 
 ```bash
-$ dcos elastic update resume
+$ dcos beta-elastic update resume
 ```
 
 You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
@@ -232,7 +232,7 @@ You will receive an error message if you attempt to `resume` a plan that is alre
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
 ```bash
-$ dcos elastic update force-complete service-phase service-0:[node]
+$ dcos beta-elastic update force-complete service-phase service-0:[node]
 ```
 
 ## Force Restart
@@ -241,17 +241,17 @@ Similar to force complete, you can also force a restart. This can either be done
 
 To restart the entire plan:
 ```bash
-$ dcos elastic update force-restart
+$ dcos beta-elastic update force-restart
 ```
 
 Or for all steps in a single phase:
 ```bash
-$ dcos elastic update force-restart service-phase
+$ dcos beta-elastic update force-restart service-phase
 ```
 
 Or for a specific step within a specific phase:
 ```bash
-$ dcos elastic update force-restart service-phase service-0:[node]
+$ dcos beta-elastic update force-restart service-phase service-0:[node]
 ```
 
 <!-- END DUPLICATE BLOCK -->
