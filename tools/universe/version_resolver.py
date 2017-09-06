@@ -3,7 +3,6 @@
 This module can be used to determine the latest version of a particular package
 in the Universe.
 """
-from distutils.version import LooseVersion
 
 
 class Version:
