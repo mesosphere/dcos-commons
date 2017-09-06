@@ -5,12 +5,12 @@
   "minDcosReleaseVersion": "1.9",
   "name": "cassandra-px",
   "version": "{{package-version}}",
-  "maintainer": "support@mesosphere.io",
+  "maintainer": "support@portworx.com",
   "description": "Apache Cassandra backed by Portworx volumes",
-  "selected": true,
+  "selected": false,
   "framework": true,
-  "tags": ["cassandra"],
+  "tags": ["cassandra", "portworx"],
   "preInstallNotes": "This DC/OS Service is currently a beta candidate undergoing testing as part of a formal beta test program.\n\nThere may be bugs, incomplete features, incorrect documentation, or other discrepancies.\n\nDefault configuration requires 3 agent nodes each with: 0.5 CPU | 4096 MB MEM | 1 10240 MB Disk\n\nContact Mesosphere before deploying this beta candidate service. Product support is available to approved participants in the beta test program.",
-  "postInstallNotes": "The DC/OS Apache Cassandra service is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
-  "postUninstallNotes": "The DC/OS Apache Cassandra service is being uninstalled.\n\nFor DC/OS versions from 1.10 no further action is required. For older DC/OS versions follow the instructions at {{documentation-path}}uninstall to remove any persistent state if required."
+  "postInstallNotes": "The DC/OS Apacke Cassandra service is being installed!\n\n\tDocumentation: https://docs.portworx.com/scheduler/mesosphere-dcos/cassandra.html",
+  "postUninstallNotes": "The DC/OS Apache Cassandra service is being uninstalled.\nPlease follow the instructions at https://docs.portworx.com/scheduler/mesosphere-dcos/framework_cleanup.html to remove any persistent state if required."
 }
