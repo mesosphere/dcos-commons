@@ -193,11 +193,9 @@ public class DeploymentStep extends AbstractStep {
         }
 
         // A DeploymentStep should have the "least" status of its consituent tasks.
-        // We can rely on the order of Status as returned by its getOrder method.
-        // For example:
-        // 1 PENDING, 2 STARTING => PENDING
-        // 2 STARTING, 1 COMPLETE => STARTING
-        // 3 COMPLETE => COMPLETE
+        // 1 PENDING task and 2 STARTING tasks => PENDING step state
+        // 2 STARTING tasks and 1 COMPLETE task=> STARTING step state
+        // 3 COMPLETE tasks => COMPLETE step state
         if (statuses.contains(Status.ERROR)) {
             return Status.ERROR;
         } else if (statuses.contains(Status.PENDING)) {
@@ -207,6 +205,8 @@ public class DeploymentStep extends AbstractStep {
         } else if (statuses.contains(Status.STARTING)) {
             return Status.STARTING;
         } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
+            // If the size of the set statuses == 1, then all tasks have the same status.
+            // In this case, the status COMPLETE.
             return Status.COMPLETE;
         }
 
