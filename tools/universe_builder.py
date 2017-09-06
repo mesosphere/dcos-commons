@@ -11,6 +11,7 @@ import os.path
 import re
 import sys
 import tempfile
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -90,7 +91,9 @@ class UniversePackageBuilder(object):
         '''
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
         template_mapping = {
+            'package-name': self._pkg_name,
             'package-version': self._pkg_version,
+            'package-build-time-ms': str(int(round(time.time() * 1000))),
             'artifact-dir': self._upload_dir_url,
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,

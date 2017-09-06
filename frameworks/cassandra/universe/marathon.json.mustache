@@ -22,6 +22,9 @@
   },
   {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_MS": "{{package-build-time-ms}}",
     "SERVICE_NAME": "{{service.name}}",
     "SERVICE_USER": "{{service.user}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
