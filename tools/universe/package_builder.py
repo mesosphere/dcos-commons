@@ -58,6 +58,9 @@ class UniversePackageBuilder(object):
             self._artifact_file_paths[os.path.basename(
                 artifact_path)] = artifact_path
 
+    def _get_upgrades_from(self):
+        return "*"
+
     def _iterate_package_files(self):
         for package_filename in os.listdir(self._input_dir_path):
             package_filepath = os.path.join(
@@ -91,6 +94,7 @@ class UniversePackageBuilder(object):
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
         template_mapping = {
             'package-version': self._pkg_version,
+            'upgrades-from': self._get_upgrades_from(),
             'artifact-dir': self._upload_dir_url,
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,
