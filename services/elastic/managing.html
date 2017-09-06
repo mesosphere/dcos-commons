@@ -349,10 +349,10 @@
   <li><a href="https://docs.mesosphere.com/latest/cli/install/">The DC/OS CLI</a> installed and available.</li>
   <li>The service’s subcommand available and installed on your local machine.
     <ul>
-      <li>You can install just the subcommand CLI by running <code class="highlighter-rouge">dcos package install --cli elastic</code>.</li>
+      <li>You can install just the subcommand CLI by running <code class="highlighter-rouge">dcos package install --cli beta-elastic</code>.</li>
       <li>If you are running an older version of the subcommand CLI that doesn’t have the <code class="highlighter-rouge">update</code> command, uninstall and reinstall your CLI.
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --cli elastic
-dcos package install --cli elastic
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --cli beta-elastic
+dcos package install --cli beta-elastic
 </code></pre>
         </div>
       </li>
@@ -364,7 +364,7 @@ dcos package install --cli elastic
 
 <p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic describe &gt; options.json
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic --name<span class="o">=</span><span class="s2">"elastic"</span> describe &gt; options.json
 </code></pre>
 </div>
 
@@ -429,7 +429,7 @@ dcos package install --cli elastic
 
 <p>Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated <code class="highlighter-rouge">options.json</code> file:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update start --options<span class="o">=</span>options.json
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic --name<span class="o">=</span><span class="s2">"elastic"</span> update start --options<span class="o">=</span>options.json
 </code></pre>
 </div>
 
@@ -446,7 +446,7 @@ dcos package install --cli elastic
 <p>To make configuration changes via scheduler environment updates, perform the following steps:</p>
 <ol>
   <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
-  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be configured (default <em><code class="highlighter-rouge">PKGNAME</code></em>).</li>
+  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be configured (default <code class="highlighter-rouge">elastic</code>).</li>
   <li>Click <code class="highlighter-rouge">Edit</code> in the upper right. On DC/OS 1.9.x, the <code class="highlighter-rouge">Edit</code> button is in a menu made up of three dots.</li>
   <li>Navigate to <code class="highlighter-rouge">Environment</code> (or <code class="highlighter-rouge">Environment variables</code>) and search for the option to be updated.</li>
   <li>Update the option value and click <code class="highlighter-rouge">Review and run</code> (or <code class="highlighter-rouge">Deploy changes</code>).</li>
@@ -454,7 +454,7 @@ dcos package install --cli elastic
   <li>If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.</li>
 </ol>
 
-<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config elastic</code> in the CLI, or browse the <em>SERVICE NAME</em> install dialog in the DC/OS web interface.</p>
+<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-elastic</code> in the CLI, or browse the Beta Elastic install dialog in the DC/OS web interface.</p>
 
 <h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
 <p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
@@ -463,30 +463,30 @@ dcos package install --cli elastic
 
 <p>Comprehensive information is available about every node.  To list all nodes:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pod list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-elastic --name<span class="o">=</span>&lt;service-name&gt; pod list
 </code></pre>
 </div>
 
 <p>To view information about a node, run the following command from the CLI.</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic --name<span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>For example:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pod info master-0
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic --name<span class="o">=</span>&lt;service-name&gt; pod info master-0
 </code></pre>
 </div>
 
 <h2 id="node-status">Node Status</h2>
 <p>Similarly, the status for any node may also be queried.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic --name<span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic --name<span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>For example:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic pod info data-0
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic pod info data-0
 </code></pre>
 </div>
 
@@ -501,7 +501,7 @@ dcos package install --cli elastic
 <p>The <code class="highlighter-rouge">update package-versions</code> command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).</p>
 
 <p>For example, run:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update package-versions
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update package-versions
 </code></pre>
 </div>
 
@@ -509,20 +509,20 @@ dcos package install --cli elastic
 
 <ol>
   <li>Before updating the service itself, update its CLI subcommand to the new version:
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package uninstall --cli elastic
-<span class="gp">$ </span>dcos package install --cli elastic --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package uninstall --cli beta-elastic
+<span class="gp">$ </span>dcos package install --cli beta-elastic --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre>
     </div>
   </li>
   <li>Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Elastic Service to version <code class="highlighter-rouge">1.1.6-5.0.7</code>:
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update start --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update start --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre>
     </div>
   </li>
 </ol>
 
 <p>If you are missing mandatory configuration parameters, the <code class="highlighter-rouge">update</code> command will return an error. To supply missing values, you can also provide an <code class="highlighter-rouge">options.json</code> file (see <a href="#updating-configuration">Updating configuration</a>):</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update start --options<span class="o">=</span>options.json --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update start --options<span class="o">=</span>options.json --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre>
 </div>
 
@@ -542,7 +542,7 @@ dcos package install --cli elastic
 
 <p>You can query the status of the update as follows:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update status
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update status
 </code></pre>
 </div>
 
@@ -552,7 +552,7 @@ dcos package install --cli elastic
 
 <p>To pause an ongoing update, issue a pause command:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update pause
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update pause
 </code></pre>
 </div>
 
@@ -562,7 +562,7 @@ dcos package install --cli elastic
 
 <p>If a plan is in a <code class="highlighter-rouge">WAITING</code> state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the <code class="highlighter-rouge">resume</code> command to continue the plan:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update resume
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update resume
 </code></pre>
 </div>
 
@@ -572,7 +572,7 @@ dcos package install --cli elastic
 
 <p>In order to manually “complete” a step (such that the Scheduler stops attempting to launch a task), you can issue a <code class="highlighter-rouge">force-complete</code> command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update force-complete service-phase service-0:[node]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update force-complete service-phase service-0:[node]
 </code></pre>
 </div>
 
@@ -581,17 +581,17 @@ dcos package install --cli elastic
 <p>Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase, or just for a specific step.</p>
 
 <p>To restart the entire plan:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update force-restart
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update force-restart
 </code></pre>
 </div>
 
 <p>Or for all steps in a single phase:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update force-restart service-phase
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update force-restart service-phase
 </code></pre>
 </div>
 
 <p>Or for a specific step within a specific phase:</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos elastic update force-restart service-phase service-0:[node]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic update force-restart service-phase service-0:[node]
 </code></pre>
 </div>
 

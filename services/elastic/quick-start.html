@@ -331,7 +331,7 @@
   <li>
     <p>Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos elastic plan show deploy
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-elastic --name<span class="o">=</span><span class="s2">"elastic"</span> plan show deploy
 </code></pre>
     </div>
   </li>
@@ -345,7 +345,7 @@
   <li>
     <p>Retrieve client endpoint information by running the <code class="highlighter-rouge">endpoints</code> command:</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code> $ dcos elastic endpoints coordinator-http
+    <div class="highlighter-rouge"><pre class="highlight"><code> $ dcos beta-elastic --name="elastic" endpoints coordinator-http
  {
      "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200",
      "address": [

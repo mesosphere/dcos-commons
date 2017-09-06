@@ -374,7 +374,7 @@
 <p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic pod list
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod list
 </code></pre>
 </div>
 
@@ -392,7 +392,7 @@
 </div>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic pod info journalnode-0
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod info journalnode-0
 </code></pre>
 </div>
 
@@ -407,7 +407,7 @@
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic pod replace &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod replace &lt;node-id&gt;
 </code></pre>
 </div>
 
@@ -423,7 +423,7 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic pod restart &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod restart &lt;node-id&gt;
 </code></pre>
 </div>
 
@@ -443,7 +443,7 @@
 <p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic config target
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic config target
 </code></pre>
 </div>
 
@@ -457,7 +457,7 @@
 <p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic config list
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic config list
 </code></pre>
 </div>
 
@@ -471,7 +471,7 @@
 <p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos elastic config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 </code></pre>
 </div>
 

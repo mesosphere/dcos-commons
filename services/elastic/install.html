@@ -327,7 +327,7 @@
 
 <p>To start a basic cluster with three master nodes, two data nodes, and one coordinator node, run the following command on the DC/OS CLI:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install elastic
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-elastic
 </code></pre>
 </div>
 
@@ -335,7 +335,7 @@
 
 <p><strong>Note:</strong> You can also install Elastic from the <strong>Universe</strong> &gt; <strong>Packages</strong> tab of the DC/OS web interface. If you install Elastic from the web interface, you must install the Elastic DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install elastic --cli
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install beta-elastic --cli
 </code></pre>
 </div>
 
@@ -360,7 +360,7 @@
 
 <p>The command below creates a cluster using a <code class="highlighter-rouge">options.json</code> file:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install elastic --options<span class="o">=</span>options.json
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-elastic --options<span class="o">=</span>options.json
 </code></pre>
 </div>
 
@@ -381,7 +381,7 @@
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">another-cluster.json</code>:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install elastic --options<span class="o">=</span>another-cluster.json
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-elastic --options<span class="o">=</span>another-cluster.json
 </code></pre>
 </div>
 
