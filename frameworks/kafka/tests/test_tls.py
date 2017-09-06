@@ -62,6 +62,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.smoke
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_tls_endpoints(kafka_service_tls):
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     assert BROKER_TLS_ENDPOINT in endpoints
@@ -75,6 +76,7 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.smoke
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_producer_over_tls(kafka_service_tls):
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
 

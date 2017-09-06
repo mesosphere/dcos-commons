@@ -74,6 +74,7 @@ def configure_package(configure_security):
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_secrets_basic():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -110,6 +111,7 @@ def test_secrets_basic():
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_secrets_verify():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -157,6 +159,7 @@ def test_secrets_verify():
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_secrets_update():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -213,6 +216,7 @@ def test_secrets_update():
 @pytest.mark.secrets
 @pytest.mark.smoke
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_secrets_config_update():
     # 1) install examples/secrets.yml
     # 2) create new Secrets, delete old Secrets
@@ -280,6 +284,7 @@ def test_secrets_config_update():
 @pytest.mark.smoke
 @pytest.mark.secrets
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
     # 2) Tasks with DCOS_SPACE hello-world/somePath
