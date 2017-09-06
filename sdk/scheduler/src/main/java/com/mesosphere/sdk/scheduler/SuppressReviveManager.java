@@ -1,11 +1,11 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -17,6 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,14 +36,12 @@ public class SuppressReviveManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ScheduledExecutorService plansMonitor = Executors.newScheduledThreadPool(1);
     private final SchedulerDriver driver;
-    private final Collection<PlanManager> planManagers;
+    private final PlanCoordinator planCoordinator;
     private final StateStore stateStore;
 
-    private final Object suppressReviveLock = new Object();
-
-    private final Object stateLock = new Object();
     private final ConfigStore<ServiceSpec> configStore;
     private AtomicReference<State> state = new AtomicReference<>(State.INITIAL);
+    private Set<String> candidates = Collections.emptySet();
 
     /**
      * The states of the suppress/revive state machine.
@@ -48,8 +49,7 @@ public class SuppressReviveManager {
     public enum State {
         INITIAL,
         WAITING_FOR_OFFER,
-        REVIVED,
-        SUPPRESSED
+        REVIVED
     }
 
     public SuppressReviveManager(
@@ -57,13 +57,13 @@ public class SuppressReviveManager {
             ConfigStore<ServiceSpec> configStore,
             SchedulerDriver driver,
             EventBus eventBus,
-            Collection<PlanManager> planManagers) {
+            PlanCoordinator planCoordinator) {
         this(
                 stateStore,
                 configStore,
                 driver,
                 eventBus,
-                planManagers,
+                planCoordinator,
                 SUPPRESSS_REVIVE_DELAY_S,
                 SUPPRESSS_REVIVE_INTERVAL_S);
     }
@@ -73,14 +73,14 @@ public class SuppressReviveManager {
             ConfigStore<ServiceSpec> configStore,
             SchedulerDriver driver,
             EventBus eventBus,
-            Collection<PlanManager> planManagers,
+            PlanCoordinator planCoordinator,
             int pollDelay,
             int pollInterval) {
 
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.driver = driver;
-        this.planManagers = planManagers;
+        this.planCoordinator = planCoordinator;
         eventBus.register(this);
         plansMonitor.scheduleAtFixedRate(
                 new Runnable() {
@@ -92,161 +92,40 @@ public class SuppressReviveManager {
                 pollDelay,
                 pollInterval,
                 TimeUnit.SECONDS);
+
         logger.info(
                 "Monitoring these plans for suppress/revive: {}",
-                planManagers.stream().map(planManager -> planManager.getPlan().getName()).collect(Collectors.toList()));
-    }
-
-    public void start() {
-        // This must be run on a separate thread to avoid deadlock with the MesosToSchedulerDriverAdapter
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                transitionState(State.WAITING_FOR_OFFER);
-            }
-        }).start();
-    }
-
-    public State getState() {
-        return state.get();
-    }
-
-    @Subscribe
-    public void handleTaskStatus(Protos.TaskStatus taskStatus) {
-        logger.debug("Handling TaskStatus: {}", taskStatus);
-        if (TaskUtils.isRecoveryNeeded(taskStatus)) {
-            transitionState(State.WAITING_FOR_OFFER);
-        }
-    }
-
-    @Subscribe
-    public void handleOffer(Protos.Offer offer) {
-        logger.debug("Handling offer: {}", offer);
-        State state = this.state.get();
-        switch (state) {
-            case WAITING_FOR_OFFER:
-                transitionState(State.REVIVED);
-                break;
-            default:
-                logger.debug("State remains '{}' after receiving Offer: {}", state, offer);
-        }
-    }
-
-    private void transitionState(State target) {
-        synchronized (stateLock) {
-            State current = getState();
-
-            if (current.equals(target)) {
-                logger.debug("NOOP transition for state: '{}'", target);
-                return;
-            }
-
-            switch (target) {
-                case INITIAL:
-                    logger.error("Invalid state transition.  End state should never be INITIAL");
-                    return;
-                case WAITING_FOR_OFFER:
-                    switch (current) {
-                        case REVIVED:
-                            logger.debug("Already revived, no need to revive again and wait for offers.");
-                            target = State.REVIVED;
-                            break;
-                        default:
-                            revive();
-                    }
-                    break;
-                case REVIVED:
-                    switch (current) {
-                        case WAITING_FOR_OFFER:
-                            // The only acceptable transition
-                            break;
-                        default:
-                            logTransitionError(current, target);
-                            return;
-                    }
-                    break;
-                case SUPPRESSED:
-                    switch (current) {
-                        case REVIVED:
-                            suppress();
-                            break;
-                        case WAITING_FOR_OFFER:
-                            logTransitionWarning(current, target);
-                            return;
-                        default:
-                            logTransitionError(current, target);
-                            return;
-                    }
-                    break;
-            }
-
-            if (state.compareAndSet(current, target)) {
-                logger.debug("Transitioned from '{}' to '{}'", current, target);
-            } else {
-                logger.error("Failed to transitioned from '{}' to '{}'", current, target);
-                return;
-            }
-        }
-    }
-
-    private void logTransitionError(State start, State end) {
-        logger.error("Invalid transition from '{}' to '{}'.", start, end);
-    }
-
-    private void logTransitionWarning(State start, State end) {
-        logger.warn("Unexpected transition from '{}' to '{}'.", start, end);
+                planCoordinator.getPlanManagers().stream()
+                        .map(planManager -> planManager.getPlan().getName())
+                        .collect(Collectors.toList()));
     }
 
     private void suppressOrRevive() {
-        boolean hasOperations = planManagers.stream()
-                .anyMatch(planManager -> PlanUtils.hasOperations(planManager.getPlan()));
-        if (hasOperations || hasTasksNeedingRecovery()) {
-            transitionState(State.WAITING_FOR_OFFER);
-        } else {
-            transitionState(State.SUPPRESSED);
-        }
-    }
+        Set<String> newCandidates = planCoordinator.getCandidates().stream()
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(req -> TaskUtils.getTaskNames(req.getPodInstance()).stream())
+                .collect(Collectors.toSet());
+        logger.debug("Got candidates: {}", newCandidates);
 
-    private void suppress() {
-        synchronized (suppressReviveLock) {
-            setOfferMode(true);
+        newCandidates.removeAll(candidates);
+
+        logger.debug("Old candidates: {}", candidates);
+        logger.debug("New candidates: {}", newCandidates);
+
+        if (newCandidates.isEmpty()) {
+            logger.debug("No new candidates detected, no need to revive.");
+        } else {
+            logger.info("Reviving, new candidates detected: {}", newCandidates);
+            candidates = newCandidates;
+            logger.info("Added new candidates");
+            revive();
         }
     }
 
     private void revive() {
-        synchronized (suppressReviveLock) {
-            setOfferMode(false);
-        }
-    }
-
-    private void setOfferMode(boolean suppressed) {
-        synchronized (suppressReviveLock) {
-            if (suppressed) {
-                logger.info("Suppressing offers.");
-                driver.suppressOffers();
-                StateStoreUtils.setSuppressed(stateStore, true);
-            } else {
-                logger.info("Reviving offers.");
-                driver.reviveOffers();
-                StateStoreUtils.setSuppressed(stateStore, false);
-            }
-        }
-    }
-
-    protected boolean hasTasksNeedingRecovery() {
-        Collection<Plan> plans = planManagers.stream()
-                .map(planManager -> planManager.getPlan())
-                .collect(Collectors.toList());
-        try {
-            return StateStoreUtils.fetchTasksNeedingRecovery(
-                    stateStore,
-                    configStore,
-                    PlanUtils.getLaunchableTasks(plans)).size() > 0;
-        } catch (TaskException e) {
-            logger.error("Failed to determine whether any tasks need recovery.", e);
-            // The safest course of action is to assume recovery is needed.  If it turns out not to be needed, we'll
-            // suppress offers again soon.
-            return true;
-        }
+        logger.info("Reviving offers.");
+        StateStoreUtils.setSuppressed(stateStore, false);
+        driver.reviveOffers();
     }
 }

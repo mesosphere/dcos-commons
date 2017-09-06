@@ -762,8 +762,8 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected Collection<PlanManager> getPlanManagers() {
-        return planCoordinator.getPlanManagers();
+    protected PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 
     public boolean apiServerReady() {

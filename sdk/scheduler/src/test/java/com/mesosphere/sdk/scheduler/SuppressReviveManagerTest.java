@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
  * This class tests {@link SuppressReviveManager}.
  */
 public class SuppressReviveManagerTest {
+    /*
     private StateStore stateStore;
 
     // This EventBus publishes events synchronously.  Changing this property would invalidate assertions in tests below.
@@ -247,4 +248,5 @@ public class SuppressReviveManagerTest {
 
         eventBus.post(taskStatus);
     }
+    */
 }

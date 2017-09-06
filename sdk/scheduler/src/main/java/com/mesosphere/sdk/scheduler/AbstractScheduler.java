@@ -6,6 +6,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -20,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +46,7 @@ public abstract class AbstractScheduler implements Scheduler {
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
+    private AtomicBoolean startedProcessingOffers = new AtomicBoolean(false);
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
      */
@@ -60,7 +63,6 @@ public abstract class AbstractScheduler implements Scheduler {
     protected AbstractScheduler(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
         this.stateStore = stateStore;
         this.configStore = configStore;
-        processOffers();
     }
 
     @Override
@@ -94,8 +96,40 @@ public abstract class AbstractScheduler implements Scheduler {
     }
 
     private void processOffers() {
+        if (startedProcessingOffers.compareAndSet(false, true)) {
+            LOGGER.info("Starting to process offers.");
+        } else {
+            LOGGER.info("Offer processing already under way.");
+            return;
+        }
+
         offerExecutor.execute(() -> {
+
+            while (!apiServerReady()) {
+                LOGGER.info("Waiting for API Server to start ...");
+                try {
+                    LOGGER.info("Sleeping for 1s.");
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    LOGGER.info("Interrupted while waiting for API Server to start.");
+                }
+            }
+
             while (true) {
+                // Task Reconciliation:
+                // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+                // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+                // http://mesos.apache.org/documentation/latest/reconciliation/
+                while (!reconciler.isReconciled()) {
+                    LOGGER.info("Waiting for task reconciliation to complete...");
+                    try {
+                        LOGGER.info("Sleeping for 1s.");
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        LOGGER.info("Interrupted while waiting for task reconciliation to complete.");
+                    }
+                }
+
                 // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
                 LOGGER.info("Processing {} {}:", offers.size(), offers.size() == 1 ? "offer" : "offers");
@@ -121,23 +155,6 @@ public abstract class AbstractScheduler implements Scheduler {
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-        if (!apiServerReady()) {
-            LOGGER.info("Waiting for API Server to start ...");
-            OfferUtils.declineOffers(driver, offers);
-            return;
-        }
-
-        // Task Reconciliation:
-        // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-        // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-        // http://mesos.apache.org/documentation/latest/reconciliation/
-        reconciler.reconcile(driver);
-        if (!reconciler.isReconciled()) {
-            LOGGER.info("Waiting for task reconciliation to complete...");
-            OfferUtils.declineOffers(driver, offers);
-            return;
-        }
-
         synchronized (inProgressLock) {
             offersInProgress.addAll(
                     offers.stream()
@@ -230,10 +247,10 @@ public abstract class AbstractScheduler implements Scheduler {
                     configStore,
                     driver,
                     eventBus,
-                    getPlanManagers());
+                    getPlanCoordinator());
         }
 
-        suppressReviveManager.start();
+        processOffers();
     }
 
     protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
@@ -242,5 +259,5 @@ public abstract class AbstractScheduler implements Scheduler {
 
     protected abstract void processOfferSet(List<Protos.Offer> offers);
 
-    protected abstract Collection<PlanManager> getPlanManagers();
+    protected abstract PlanCoordinator getPlanCoordinator();
 }

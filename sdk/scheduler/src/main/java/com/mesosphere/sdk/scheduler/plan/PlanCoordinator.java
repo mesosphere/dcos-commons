@@ -5,6 +5,7 @@ import org.apache.mesos.SchedulerDriver;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * PlanCoordinator's job is to coordinate offers among configured {@link PlanManager}s.
@@ -12,6 +13,8 @@ import java.util.List;
  * its observers when this state changes.
  */
 public interface PlanCoordinator {
+    List<Step> getCandidates();
+
     /**
      * Provides offers to each {@link PlanManager} for processing. Keeps tracks of dirtied offers and assets.
      *
