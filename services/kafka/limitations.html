@@ -184,8 +184,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -194,11 +192,11 @@
       
       
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -277,9 +275,9 @@
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
-          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
-          
           <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
@@ -295,13 +293,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
-          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -331,13 +327,17 @@
 
 <p>The “disk” configuration value is denominated in MB. We recommend you set the configuration value <code class="highlighter-rouge">log_retention_bytes</code> to a value smaller than the indicated “disk” configuration. See the Configuring section for instructions for customizing these values.</p>
 
-<h2 id="managing-configurations-outside-of-the-service">Managing Configurations Outside of the Service</h2>
+<h3 id="configuration-changes">Configuration changes</h3>
 
-<p>The Kafka service’s core responsibility is to deploy and maintain the deployment of a Kafka cluster whose configuration has been specified. In order to do this, the service assumes that it has ownership of broker configuration. If an end-user makes modifications to individual brokers through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. If a broker crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band. If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.</p>
+<p>You cannot decrease the number of nodes or change volume requirements after initial deployment.</p>
+
+<h2 id="managing-configurations-outside-of-the-service">Managing configurations outside of the service</h2>
+
+<p>Out-of-band configuration modifications are not supported. The Kafka service’s core responsibility is to deploy and maintain the deployment of a Kafka cluster whose configuration has been specified. In order to do this, the service assumes that it has ownership of broker configuration. If an end-user makes modifications to individual brokers through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. If a broker crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band. If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.</p>
 
 <h2 id="brokers">Brokers</h2>
 
-<p>The number of deployable brokers is constrained by two factors. First, brokers have specified required resources, so brokers may not be placed if the DC/OS cluster lacks the requisite resources. Second, the specified “PLACEMENT_STRATEGY” environment variable may affect how many brokers can be created in a Kafka cluster. By default the value is “ANY,” so brokers are placed anywhere and are only constrained by the resources of the cluster. A second option is “NODE.” In this case only one broker may be placed on a given DC/OS agent.</p>
+<p>The number of deployable brokers is constrained by two factors. First, brokers have specified required resources, so brokers may not be placed if the DC/OS cluster lacks the requisite resources. Second, the specified “PLACEMENT_STRATEGY” environment variable may affect how many brokers can be created in a Kafka cluster. By default, the value is “ANY,” so brokers are placed anywhere and are only constrained by the resources of the cluster. A second option is “NODE.” In this case only, one broker may be placed on a given DC/OS agent.</p>
 
 <h2 id="security">Security</h2>
 
@@ -345,7 +345,7 @@
 
 <h2 id="virtual-networks">Virtual networks</h2>
 
-<p>When Kafka is deployed on a virtual network such as the <code class="highlighter-rouge">dcos</code> overlay network, the configuration cannot be updated to use the host network.</p>
+<p>When Kafka is deployed on a virtual network, such as the <code class="highlighter-rouge">dcos</code> overlay network, the configuration cannot be updated to use the host network.</p>
 
 </div>
 </div>

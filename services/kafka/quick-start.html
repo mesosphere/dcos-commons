@@ -184,8 +184,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -194,11 +192,11 @@
       
       
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -277,9 +275,9 @@
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
-          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
-          
           <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
@@ -295,13 +293,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
-          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -327,13 +323,23 @@
 </ul>
 <h1>Kafka: Quick Start</h1>
 <div id="content">
+<h1 id="prerequisite">Prerequisite</h1>
+
+<ul>
+  <li><a href="https://docs.mesosphere.com/latest/administration/installing/">DC/OS installed on your cluster</a>.</li>
+</ul>
+
 <ol>
   <li>
     <p>Install a Kafka cluster. If you are using open source DC/OS, install a Kafka cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code> dcos package install kafka
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos package install kafka
 </code></pre>
     </div>
+
+    <p>Alternatively, you can install Kafka from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
+
+    <p>Kafka will deploy with a default configuration. You can monitor deployment at the Services tab of the DC/OS web interface.</p>
   </li>
   <li>
     <p>Create a new topic.</p>

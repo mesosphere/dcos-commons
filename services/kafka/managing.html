@@ -184,8 +184,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -194,11 +192,11 @@
       
       
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -277,9 +275,9 @@
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
-          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
-          
           <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
@@ -295,13 +293,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
-          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -332,7 +328,7 @@
 
 <p>After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to <code class="highlighter-rouge">_NODEPOD_-0</code>, then <code class="highlighter-rouge">_NODEPOD_-1</code>, and so on.</p>
 
-<p>Nodes are configured with a “Readiness check” to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.</p>
+<p>Nodes are configured with a “readiness check” to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.</p>
 
 <p>Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See <a href="#limitations">Limitations</a>.</p>
 
@@ -375,7 +371,7 @@ dcos package install --cli beta-kafka
 
 <p>If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the <code class="highlighter-rouge">options.json</code> file that was used when <a href="#initial-service-configuration">installing the service</a>.</p>
 
-<p><strong>Note:</strong> You need to specify all configuration values in the <code class="highlighter-rouge">options.json</code> file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the “Recreating <code class="highlighter-rouge">options.json</code>” section below for information on recovering these values.</p>
+<p><strong>Note:</strong> You must specify all configuration values in the <code class="highlighter-rouge">options.json</code> file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the “Recreating <code class="highlighter-rouge">options.json</code>” section below for information on recovering these values.</p>
 
 <h4 id="recreating-optionsjson-optional">Recreating <code class="highlighter-rouge">options.json</code> (optional)</h4>
 
@@ -449,7 +445,7 @@ dcos package install --cli beta-kafka
 <p>To make configuration changes via scheduler environment updates, perform the following steps:</p>
 <ol>
   <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
-  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be configured (default <em><code class="highlighter-rouge">PKGNAME</code></em>).</li>
+  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be configured (default <code class="highlighter-rouge">beta-kafka</code>).</li>
   <li>Click <code class="highlighter-rouge">Edit</code> in the upper right. On DC/OS 1.9.x, the <code class="highlighter-rouge">Edit</code> button is in a menu made up of three dots.</li>
   <li>Navigate to <code class="highlighter-rouge">Environment</code> (or <code class="highlighter-rouge">Environment variables</code>) and search for the option to be updated.</li>
   <li>Update the option value and click <code class="highlighter-rouge">Review and run</code> (or <code class="highlighter-rouge">Deploy changes</code>).</li>
@@ -457,7 +453,7 @@ dcos package install --cli beta-kafka
   <li>If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.</li>
 </ol>
 
-<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-kafka</code> in the CLI, or browse the <em>SERVICE NAME</em> install dialog in the DC/OS web interface.</p>
+<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-kafka</code> in the CLI, or browse the Beta Kafka install dialog in the DC/OS web interface.</p>
 
 <h1 id="add-a-broker">Add a Broker</h1>
 

@@ -184,8 +184,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -194,11 +192,11 @@
       
       
       
-      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+      <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -277,9 +275,9 @@
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
-          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
-          
           <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
@@ -295,13 +293,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
           
-          <li><a href="../../services/kafka/configure.html">Configure</a></li>
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -391,23 +387,18 @@ GET /service/kafka/v1/connection HTTP/1.1
 
 <h1 id="broker-operations">Broker Operations</h1>
 
-<h2 id="add-broker">Add Broker</h2>
-
-<p>Increase the <code class="highlighter-rouge">BROKER_COUNT</code> value via Marathon. This should be rolled as in any other configuration update.</p>
-
 <h2 id="list-all-brokers">List All Brokers</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka broker list
-{
-    "brokers": [
-        "0",
-        "1",
-        "2"
-    ]
-}
+<p>$ dcos beta-kafka –name=kafka broker list
+    {
+        “brokers”: [
+            “0”,
+            “1”,
+            “2”
+        ]
+    }</p>
 
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers"
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers"
 GET /service/kafka/v1/brokers HTTP/1.1
 
 {
@@ -420,41 +411,27 @@ GET /service/kafka/v1/brokers HTTP/1.1
 </code></pre>
 </div>
 
-<h2 id="restart-single-broker">Restart Single Broker</h2>
+<h2 id="view-a-single-broker">View a Single Broker</h2>
 
-<p>Restarts the broker in-place.</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-kafka --name="c-kafka" broker get &lt;id&gt;
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka broker restart 0
-[
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-]
-
-
-$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers/0"
-PUT /service/kafka/v1/brokers/0 HTTP/1.1
-
-[
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-]
-</code></pre>
-</div>
-
-<h2 id="replace-single-broker">Replace Single Broker</h2>
-
-<p>Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka broker replace 0
-[
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-]
+{
+  "listener_security_protocol_map": {
+    "PLAINTEXT": "PLAINTEXT"
+  },
+  "endpoints": [
+    "PLAINTEXT://10.0.2.194:1025"
+  ],
+  "jmx_port": -1,
+  "port": 1025,
+  "host": "10.0.2.194",
+  "version": 4,
+  "timestamp": "1504644309011"
+}
 
 
-$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers/0?replace=true"
-PUT /service/kafka/v1/brokers/0 HTTP/1.1
-
-[
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-]
+$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers/&lt;id&gt;"
+GET /service/kafka/v1/brokers/&lt;id&gt; HTTP/1.1
 </code></pre>
 </div>
 
@@ -915,16 +892,15 @@ GET /service/kafka/v1/plan HTTP/1.1
 
 <h3 id="continue">Continue</h3>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka continue
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka plan continue
 $ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/continue"
 </code></pre>
 </div>
 
 <h3 id="interrupt">Interrupt</h3>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka interrupt
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka plan interrupt
 $ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/interrupt"
-
 
 [15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
 </code></pre>
