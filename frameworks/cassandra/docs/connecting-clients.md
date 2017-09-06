@@ -13,13 +13,13 @@ Clients communicating with Apache Cassandra use the Cassandra Query Language (CQ
 
 Once the service is running, you may view information about its endpoints via either of the following methods:
 - CLI:
-  - List endpoint types: `dcos beta-cassandra endpoints`
-  - View endpoints for an endpoint type: `dcos beta-cassandra endpoints <endpoint>`
+  - List endpoint types: `dcos cassandra endpoints`
+  - View endpoints for an endpoint type: `dcos cassandra endpoints <endpoint>`
 - Web:
   - List endpoint types: `<dcos-url>/service/cassandra/v1/endpoints`
   - View endpoints for an endpoint type: `<dcos-url>/service/cassandra/v1/endpoints/<endpoint>`
 
-The DC/OS Apache Cassandra Service currently exposes only the `node` endpoint type, which shows the locations for all Cassandra nodes in the cluster. To see node addresses, run `dcos beta-cassandra endpoints node`. A typical response will look like the following:
+The DC/OS Apache Cassandra Service currently exposes only the `node` endpoint type, which shows the locations for all Cassandra nodes in the cluster. To see node addresses, run `dcos cassandra endpoints node`. A typical response will look like the following:
 
 ```json
 {
