@@ -17,12 +17,14 @@ from tests import config
 def configure_package(configure_security):
     test_jobs = []
     try:
-        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        test_jobs = config.get_all_jobs(
+            node_address=config.get_foldered_node_address())
         # destroy any leftover jobs first, so that they don't touch the newly installed service:
         for job in test_jobs:
             sdk_jobs.remove_job(job)
 
-        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
+        sdk_install.uninstall(config.PACKAGE_NAME,
+                              config.get_foldered_service_name())
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
@@ -35,7 +37,8 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
+        sdk_install.uninstall(config.PACKAGE_NAME,
+                              config.get_foldered_service_name())
 
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -93,9 +96,19 @@ def test_repair_cleanup_plans_complete():
 @pytest.mark.metrics
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
-    sdk_metrics.wait_for_any_metrics(
+    expected_metrics = [
+        "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
+        "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
+        "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory"
+    ]
+
+    def expected_metrics_exist(emitted_metrics):
+        return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
+
+    sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
         "node-0-server",
-        config.DEFAULT_CASSANDRA_TIMEOUT
+        config.DEFAULT_CASSANDRA_TIMEOUT,
+        expected_metrics_exist
     )

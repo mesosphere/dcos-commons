@@ -11,7 +11,6 @@ import sdk_utils
 PACKAGE_NAME = 'beta-cassandra'
 
 SERVICE_NAME = 'cassandra'
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
@@ -26,11 +25,11 @@ def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
         'id': 'test.cassandra.' + name,
         'run': {
             'cmd': cmd,
-            'docker': { 'image': 'cassandra:3.0.13' },
+            'docker': {'image': 'cassandra:3.0.13'},
             'cpus': 1,
             'mem': 512,
             'user': 'nobody',
-            'restart': { 'policy': restart_policy }
+            'restart': {'policy': restart_policy}
         }
     }
 
