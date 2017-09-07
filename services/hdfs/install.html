@@ -349,7 +349,7 @@
 
 <p>Once you have installed Beta-HDFS, install the CLI.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install beta-hdfs --cli
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-hdfs --cli
 </code></pre>
 </div>
 
@@ -375,7 +375,7 @@
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-hdfs.json</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos package install --options=sample-hdfs.json hdfs
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install --options<span class="o">=</span>sample-hdfs.json hdfs
 </code></pre>
 </div>
 
@@ -393,15 +393,15 @@ See the Configuration section for a list of fields that can be customized via a 
 
 <p>Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique <code class="highlighter-rouge">name</code> for each installation:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>cat hdfs1.json
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>cat hdfs1.json
 
-{
-   "service": {
-       "name": "hdfs1"
-   }
-}
+<span class="o">{</span>
+   <span class="s2">"service"</span>: <span class="o">{</span>
+       <span class="s2">"name"</span>: <span class="s2">"hdfs1"</span>
+   <span class="o">}</span>
+<span class="o">}</span>
 
-dcos package install hdfs --options=hdfs1.json
+<span class="gp">$ </span>dcos package install hdfs --options<span class="o">=</span>hdfs1.json
 </code></pre>
 </div>
 
@@ -501,7 +501,7 @@ dcos package install hdfs --options=hdfs1.json
 <h2 id="viewing-the-installation-plan">Viewing the Installation Plan</h2>
 <p>The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -v -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
 </code></pre>
 </div>
 
@@ -523,14 +523,14 @@ dcos package install hdfs --options=hdfs1.json
 <h2 id="pausing-installation">Pausing Installation</h2>
 <p>To pause installation, issue a REST API request as shown below. The installation will pause after completing installation of the current node and wait for user input.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -v -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> -X POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
 </code></pre>
 </div>
 
 <h2 id="resuming-installation">Resuming Installation</h2>
 <p>If the installation has been paused, the REST API request below will resume installation at the next pending node.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -v -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> -X POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
 </code></pre>
 </div>
 

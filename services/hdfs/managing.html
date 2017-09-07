@@ -350,8 +350,8 @@
     <ul>
       <li>You can install just the subcommand CLI by running <code class="highlighter-rouge">dcos package install --cli beta-hdfs</code>.</li>
       <li>If you are running an older version of the subcommand CLI that doesn’t have the <code class="highlighter-rouge">update</code> command, uninstall and reinstall your CLI.
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --cli beta-hdfs
-dcos package install --cli beta-hdfs
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package uninstall --cli beta-hdfs
+<span class="gp">$ </span>dcos package install --cli beta-hdfs
 </code></pre>
         </div>
       </li>
@@ -467,13 +467,13 @@ dcos package install --cli beta-hdfs
 
 <p>Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -v -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> <span class="s2">"http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy"</span>
 </code></pre>
 </div>
 
 <p>The response will look similar to this:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
 	</span><span class="err">phases:</span><span class="w"> </span><span class="err">[{</span><span class="w">
 		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"77708b6f-52db-4361-a56f-4d2bd9d6bf09"</span><span class="err">,</span><span class="w">
 		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"jn-deploy"</span><span class="p">,</span><span class="w">
@@ -568,13 +568,13 @@ dcos package install --cli beta-hdfs
 
 <p>If you want to interrupt a configuration update that is in progress, enter the <code class="highlighter-rouge">interrupt</code> command.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> POST http:/&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
 </code></pre>
 </div>
 
 <p>If you query the plan again, the response will look like this (notice <code class="highlighter-rouge">status: "Waiting"</code>):</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
 	</span><span class="err">phases:</span><span class="w"> </span><span class="err">[{</span><span class="w">
 		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"77708b6f-52db-4361-a56f-4d2bd9d6bf09"</span><span class="err">,</span><span class="w">
 		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"jn-deploy"</span><span class="p">,</span><span class="w">
@@ -671,13 +671,13 @@ dcos package install --cli beta-hdfs
 
 <p>Enter the <code class="highlighter-rouge">continue</code> command to resume the update process.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X -H <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> POST http://&lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/continue
 </code></pre>
 </div>
 
 <p>After you execute the continue operation, the plan will look like this:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
 	</span><span class="err">phases:</span><span class="w"> </span><span class="err">[{</span><span class="w">
 		</span><span class="err">id:</span><span class="w"> </span><span class="nt">"77708b6f-52db-4361-a56f-4d2bd9d6bf09"</span><span class="err">,</span><span class="w">
 		</span><span class="err">name</span><span class="p">:</span><span class="w"> </span><span class="s2">"jn-deploy"</span><span class="p">,</span><span class="w">
@@ -772,13 +772,13 @@ dcos package install --cli beta-hdfs
 
 <h1 id="configuration-options">Configuration Options</h1>
 
-<p>The following describes the most commonly used features of Beta-HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring a HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.</p>
+<p>The following describes the most commonly used features of Beta-HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.</p>
 
 <h2 id="service-configuration">Service Configuration</h2>
 
 <p>The service configuration object contains properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
         </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
         </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs-principal"</span><span class="p">,</span><span class="w">
@@ -819,32 +819,32 @@ dcos package install --cli beta-hdfs
 <p>The node configuration objects correspond to the configuration for nodes in the HDFS cluster. Node configuration MUST be specified during installation and MAY be modified during configuration updates. All of the properties except <code class="highlighter-rouge">disk</code> and <code class="highlighter-rouge">disk_type</code> MAY be modified during the configuration update process.</p>
 
 <p>Example node configuration:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>	"journal_node": {
-		"cpus": 0.5,
-		"mem": 4096,
-		"disk": 10240,
-		"disk_type": "ROOT",
-		"strategy": "parallel"
-	},
-    "name_node": {
-		"cpus": 0.5,
-		"mem": 4096,
-		"disk": 10240,
-		"disk_type": "ROOT"
-	},
-    "zkfc_node": {
-		"cpus": 0.5,
-		"mem": 4096
-	},
-	"data_node": {
-	    "count": 3,
-		"cpus": 0.5,
-		"mem": 4096,
-		"disk": 10240,
-		"disk_type": "ROOT",
-		"strategy": "parallel"
-	}
-</code></pre>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="w">	</span><span class="s2">"journal_node"</span><span class="err">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="nt">"cpus"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"disk"</span><span class="p">:</span><span class="w"> </span><span class="mi">10240</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"disk_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ROOT"</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"parallel"</span><span class="w">
+	</span><span class="p">}</span><span class="err">,</span><span class="w">
+    </span><span class="s2">"name_node"</span><span class="err">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="nt">"cpus"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"disk"</span><span class="p">:</span><span class="w"> </span><span class="mi">10240</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"disk_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ROOT"</span><span class="w">
+	</span><span class="p">}</span><span class="err">,</span><span class="w">
+    </span><span class="s2">"zkfc_node"</span><span class="err">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="nt">"cpus"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">4096</span><span class="w">
+	</span><span class="p">}</span><span class="err">,</span><span class="w">
+	</span><span class="s2">"data_node"</span><span class="err">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+	    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"cpus"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">4096</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"disk"</span><span class="p">:</span><span class="w"> </span><span class="mi">10240</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"disk_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ROOT"</span><span class="p">,</span><span class="w">
+		</span><span class="nt">"strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"parallel"</span><span class="w">
+	</span><span class="p">}</span><span class="w">
+</span></code></pre>
 </div>
 
 <table class="table">
@@ -1445,7 +1445,7 @@ dcos package install --cli beta-hdfs
 <p>The HDFS file system network configuration, permissions, and compression is configured via the <code class="highlighter-rouge">hdfs</code> JSON object. Once these properties are set at installation time they can not be reconfigured.
 Example HDFS configuration:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"hdfs"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
 		</span><span class="nt">"name_node_rpc_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">9001</span><span class="p">,</span><span class="w">
 		</span><span class="nt">"name_node_http_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">9002</span><span class="p">,</span><span class="w">
@@ -1698,12 +1698,12 @@ refer to the unhealthy Journal Node as it’s the replaced Journal Node.</p>
 
 <ol>
   <li>SSH into the sandbox of the unhealthy Journal Node via
-    <div class="highlighter-rouge"><pre class="highlight"><code>dcos task exec -it journal-0 /bin/bash
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos task <span class="nb">exec</span> -it journal-0 /bin/bash
 </code></pre>
     </div>
   </li>
   <li>In this sandbox, create the directory <code class="highlighter-rouge">journal-data/hdfs/current</code>:
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>mkdir -p journal-data/hdfs/current
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>mkdir -p journal-data/hdfs/current
 </code></pre>
     </div>
   </li>
@@ -1715,12 +1715,12 @@ refer to the unhealthy Journal Node as it’s the replaced Journal Node.</p>
 <code class="highlighter-rouge">journal-data/hdfs/current/VERSION</code>. Paste the copied contents into this file.</p>
   </li>
   <li>Restart the unhealthy Journal Node via:
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs pod restart journal-0
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs pod restart journal-0
 </code></pre>
     </div>
   </li>
   <li>Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the <code class="highlighter-rouge">stderr</code> log. You should see:
-    <div class="highlighter-rouge"><pre class="highlight"><code>INFO namenode.FileJournalManager: Finalizing edits file
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>INFO namenode.FileJournalManager: Finalizing edits file
 </code></pre>
     </div>
   </li>

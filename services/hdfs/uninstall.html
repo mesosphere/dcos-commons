@@ -333,9 +333,9 @@
   <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; beta-hdfs</code>.</li>
 </ol>
 
-<p>For example, to uninstall a HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
+<p>For example, to uninstall an HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --app-id<span class="o">=</span>hdfs-dev beta-hdfs
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span>hdfs-dev beta-hdfs
 </code></pre>
 </div>
 
@@ -345,14 +345,18 @@
 
 <ol>
   <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
-For example, <code class="highlighter-rouge">dcos package uninstall --app-id=hdfs-dev beta-hdfs</code>.</li>
+For example:
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span>hdfs-dev beta-hdfs
+</code></pre>
+    </div>
+  </li>
   <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
 </ol>
 
-<p>For example, to uninstall a Kafka instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
+<p>For example, to uninstall an HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">MY_SERVICE_NAME</span><span class="o">=</span>hdfs-dev
-<span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-hdfs<span class="sb">`</span>.
+<span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-hdfs
 <span class="gp">$ </span>dcos node ssh --master-proxy --leader <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
     -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
     -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">

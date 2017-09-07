@@ -361,7 +361,7 @@
   <li>
     <p>Install the HDFS package.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install hdfs
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install hdfs
 </code></pre>
     </div>
 
@@ -370,7 +370,7 @@
   <li>
     <p>Show the currently configured HDFS nodes.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos hdfs config list
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos hdfs config list
 </code></pre>
     </div>
 
@@ -388,14 +388,14 @@
   <li>
     <p><a href="https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/">SSH</a> to the leading master node.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos node ssh --leader --master-proxy
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos node ssh --leader --master-proxy
 </code></pre>
     </div>
   </li>
   <li>
     <p>Pull the HDFS Docker container down to your node and start an interactive pseudo-TTY session.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>docker run -it mesosphere/hdfs-client:2.6.4 /bin/bash
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>docker run -it mesosphere/hdfs-client:2.6.4 /bin/bash
 </code></pre>
     </div>
 
@@ -419,14 +419,14 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
 
     <p>By default, the client is configured to be configured to connect to an HDFS service named <code class="highlighter-rouge">hdfs</code> and no further client configuration is required. If you want to configure with a different name, run this command with name (<code class="highlighter-rouge">&lt;hdfs-name&gt;</code>) specified:</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">HDFS_SERVICE_NAME=&lt;hdfs-name&gt; </span>./configure-hdfs.sh
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">HDFS_SERVICE_NAME</span><span class="o">=</span>&lt;hdfs-name&gt; ./configure-hdfs.sh
 </code></pre>
     </div>
   </li>
   <li>
     <p>List the contents.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>./bin/hdfs dfs -ls /
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./bin/hdfs dfs -ls /
 </code></pre>
     </div>
 
@@ -435,14 +435,14 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
   <li>
     <p>Create a file on HDFS.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"Test"</span> | ./bin/hdfs dfs -put - /test.txt
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">echo</span> <span class="s2">"Test"</span> | ./bin/hdfs dfs -put - /test.txt
 </code></pre>
     </div>
   </li>
   <li>
     <p>List the contents again.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>./bin/hdfs dfs -ls /
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./bin/hdfs dfs -ls /
 </code></pre>
     </div>
 
@@ -456,7 +456,7 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
   <li>
     <p>Read the file to ensure data integrity.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>./bin/hdfs dfs -cat /test.txt
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>./bin/hdfs dfs -cat /test.txt
 </code></pre>
     </div>
 
@@ -472,7 +472,7 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
       <li>
         <p>Run this command to retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> file.</p>
 
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos hdfs endpoints hdfs-site.xml
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos hdfs endpoints hdfs-site.xml
 </code></pre>
         </div>
 
@@ -493,7 +493,7 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
       <li>
         <p>Run this command to retrieve the <code class="highlighter-rouge">core-site.xml</code> file.</p>
 
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos hdfs endpoints core-site.xml
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos hdfs endpoints core-site.xml
 </code></pre>
         </div>
 
