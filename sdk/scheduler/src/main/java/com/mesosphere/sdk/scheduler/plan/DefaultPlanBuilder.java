@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.DependencyStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.InterruptibleStrategy;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,5 +25,11 @@ public class DefaultPlanBuilder extends ElementBuilder<Plan, Phase> {
                 new ArrayList<>(phases),
                 new DependencyStrategy<>(dependencyStrategyHelper),
                 Collections.emptyList());
+    }
+
+    public void makeTerminal() {
+        Set<Phase> phases = dependencyStrategyHelper.getDependencies().keySet();
+
+        throw new NotImplementedException();
     }
 }

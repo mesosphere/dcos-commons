@@ -87,7 +87,12 @@ public class DefaultPlanBuilderTest {
         planBuilder.add(phase0);
         planBuilder.add(phase1);
         planBuilder.add(phase2);
+
+        planBuilder.makeTerminal();
+
         DefaultPlan plan = planBuilder.build();
+
+
 
         when(phase0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
         when(phase1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
