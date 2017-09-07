@@ -1,14 +1,16 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.PodTestUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -18,9 +20,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -32,31 +32,15 @@ import static org.mockito.Mockito.*;
 public class SuppressReviveManagerTest {
     private StateStore stateStore;
     private SuppressReviveManager manager;
-
-    @Mock private SchedulerDriver driver;
-    @Mock private ConfigStore<ServiceSpec> configStore;
     @Mock private PlanCoordinator planCoordinator;
-    @Mock private Step step;
-    @Mock private PodInstanceRequirement podInstanceRequirement;
-    @Mock private PodInstance podInstance;
-    @Mock private PodSpec podSpec;
-    @Mock private TaskSpec taskSpec;
+    @Mock SchedulerDriver driver;
+
 
     @Before
     public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
         stateStore = new StateStore(new MemPersister());
         manager = null;
-
-        MockitoAnnotations.initMocks(this);
-        when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
-        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
-        when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
-        when(taskSpec.getGoal()).thenReturn(GoalState.RUNNING);
-        when(podInstance.getPod()).thenReturn(podSpec);
-        when(podInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
-        when(podInstanceRequirement.getPodInstance()).thenReturn(podInstance);
-        when(podInstanceRequirement.getTasksToLaunch()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
-        when(step.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceRequirement));
     }
 
     @Test
@@ -69,7 +53,7 @@ public class SuppressReviveManagerTest {
 
     @Test(expected = ConditionTimeoutException.class)
     public void stayRevivedWhenWorkIsIncomplete() {
-        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(step));
+        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(getStep(0)));
         Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
         manager = getSuppressReviveManager(planCoordinator);
         waitSuppressed(stateStore, manager, 5);
@@ -82,22 +66,18 @@ public class SuppressReviveManagerTest {
         manager = getSuppressReviveManager(planCoordinator);
         waitSuppressed(stateStore, manager, 5);
 
-        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(step));
+        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(getStep(0)));
         waitRevived(stateStore, manager, 5);
     }
 
     @Test
-    public void revivedWhenNewWorkAppears() {
-        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(step));
+    public void reviveAgainWhenNewWorkAppears() {
+        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(getStep(0)));
         Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
         manager = getSuppressReviveManager(planCoordinator);
 
-        // Create a Step with a PodInstanceRequirement that fails equality with the original mock
-        PodInstanceRequirement podInstanceRequirement = mock(PodInstanceRequirement.class);
-        when(podInstanceRequirement.getPodInstance()).thenReturn(podInstance);
-        Step step = mock(Step.class);
-        when(step.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceRequirement));
-        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(step));
+        // The PlanCoordinator returns new work.
+        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(getStep(1)));
 
         verify(driver, timeout(5000).atLeastOnce()).reviveOffers();
     }
@@ -111,6 +91,82 @@ public class SuppressReviveManagerTest {
                 1);
     }
 
+    private Step getStep(int index) {
+        PodInstanceRequirement podInstanceRequirement = PodTestUtils.getPodInstanceRequirement(index);
+        UUID id = UUID.randomUUID();
+
+        return new Step() {
+            @Override
+            public Optional<PodInstanceRequirement> start() {
+                return getPodInstanceRequirement();
+            }
+
+            @Override
+            public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+                return Optional.of(podInstanceRequirement);
+            }
+
+            @Override
+            public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
+                // Intentionally empty
+            }
+
+            @Override
+            public Optional<PodInstanceRequirement> getAsset() {
+                return getPodInstanceRequirement();
+            }
+
+            @Override
+            public UUID getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return String.format("step-%d", podInstanceRequirement.getPodInstance().getIndex());
+            }
+
+            @Override
+            public Status getStatus() {
+                return Status.PENDING;
+            }
+
+            @Override
+            public void update(Protos.TaskStatus status) {
+                // Intentionally empty
+            }
+
+            @Override
+            public void restart() {
+                // Intentionally empty
+            }
+
+            @Override
+            public void forceComplete() {
+                // Intentionally empty
+            }
+
+            @Override
+            public List<String> getErrors() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public void interrupt() {
+                // Intentionally empty
+            }
+
+            @Override
+            public void proceed() {
+                // Intentionally empty
+            }
+
+            @Override
+            public boolean isInterrupted() {
+                return false;
+            }
+        };
+    }
 
     private static void waitSuppressed(StateStore stateStore, SuppressReviveManager reviveManager, int seconds) {
         waitStateStore(stateStore, true, seconds);
