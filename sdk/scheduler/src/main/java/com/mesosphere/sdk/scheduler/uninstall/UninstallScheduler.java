@@ -113,8 +113,23 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected Collection<PlanManager> getPlanManagers() {
-        return Arrays.asList(uninstallPlanManager);
+    protected PlanCoordinator getPlanCoordinator() {
+        return new PlanCoordinator() {
+            @Override
+            public List<Step> getCandidates() {
+                return new ArrayList<>(uninstallPlanManager.getCandidates(Collections.emptyList()));
+            }
+
+            @Override
+            public Collection<Protos.OfferID> processOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Collection<PlanManager> getPlanManagers() {
+                return Arrays.asList(uninstallPlanManager);
+            }
+        };
     }
 
     @Override
