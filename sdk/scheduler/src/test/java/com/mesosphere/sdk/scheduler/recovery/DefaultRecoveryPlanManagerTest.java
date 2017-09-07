@@ -296,6 +296,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
