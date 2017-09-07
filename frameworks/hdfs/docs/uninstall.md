@@ -13,7 +13,7 @@ If you are using DC/OS 1.10 and the installed service has a version greater than
 
 1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> beta-hdfs`.
 
-For example, to uninstall a HDFS instance named `hdfs-dev`, run:
+For example, to uninstall an HDFS instance named `hdfs-dev`, run:
 
 ```bash
 dcos package uninstall --app-id=hdfs-dev beta-hdfs
@@ -27,7 +27,7 @@ If you are running DC/OS 1.9 or older, or a version of the service that is older
    For example, `dcos package uninstall --app-id=hdfs-dev beta-hdfs`.
 1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
 
-For example, to uninstall a Kafka instance named `hdfs-dev`, run:
+For example, to uninstall an HDFS instance named `hdfs-dev`, run:
 
 ```bash
 $ MY_SERVICE_NAME=hdfs-dev
