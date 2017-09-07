@@ -5,11 +5,11 @@ feature_maturity: preview
 enterprise: 'no'
 ---
 
-The DC/OS Elastic Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Elastic Service is deployed.
+The DC/OS Apache Cassandra Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Apache Cassandra Service is deployed.
 
 <a name="#rest-auth"></a>
 # REST API Authentication
-REST API requests must be authenticated. This authentication is only applicable for interacting with the Elastic REST API directly. You do not need the token to access the Elasticsearch nodes themselves.
+REST API requests must be authenticated. This authentication is only applicable for interacting with the Apache Cassandra REST API directly. You do not need the token to access the Apache Cassandra nodes themselves.
 
 If you are using Enterprise DC/OS, follow these instructions to [create a service account and an authentication token](https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/). You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also [get the authentication token without a service account](https://docs.mesosphere.com/1.9/security/iam-api/), but you will need to manually refresh the token.
 
@@ -164,8 +164,8 @@ $ curl -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/conf
 
 # Service Status Info
 
-Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if Elastic is in a `suppressed` state and not receiving offers. If a service does not need offers, Mesos can "suppress" it so that other services are not starved for resources.
+Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if Apache Cassandra is in a `suppressed` state and not receiving offers. If a service does not need offers, Mesos can "suppress" it so that other services are not starved for resources.
 
-You can use this request to troubleshoot: if you think Elastic should be receiving resource offers, but is not, you can use this API call to see if Elastic is suppressed.
+You can use this request to troubleshoot: if you think Apache Cassandra should be receiving resource offers, but is not, you can use this API call to see if Apache Cassandra is suppressed.
 ```
 curl -H "Authorization: token=$auth_token" "<dcos_url>/service/cassandra/v1/state/properties/suppressed"
