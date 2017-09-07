@@ -110,7 +110,7 @@ public class SchedulerFlags {
      */
     private static final String PACKAGE_NAME_ENV = "PACKAGE_NAME";
     private static final String PACKAGE_VERSION_ENV = "PACKAGE_VERSION";
-    private static final String PACKAGE_BUILD_TIME_MS_ENV = "PACKAGE_BUILD_TIME_MS";
+    private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
 
     /**
      * Returns a new {@link SchedulerFlags} instance which is based off the process environment.
@@ -238,7 +238,7 @@ public class SchedulerFlags {
      * Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.
      */
     public long getPackageBuildTimeMs() {
-        return flagStore.getRequiredLong(PACKAGE_BUILD_TIME_MS_ENV);
+        return flagStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
     }
 
     /**

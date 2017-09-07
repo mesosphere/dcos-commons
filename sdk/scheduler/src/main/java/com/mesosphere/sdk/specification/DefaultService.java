@@ -83,7 +83,7 @@ public class DefaultService implements Service {
         SchedulerFlags flags = schedulerBuilder.getSchedulerFlags();
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
                 flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
-                SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_MS));
+                SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {

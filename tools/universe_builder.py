@@ -90,10 +90,12 @@ class UniversePackageBuilder(object):
         - Custom environment params like 'TEMPLATE_SOME_PARAM' which maps to '{{some-param}}'
         '''
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
+        now = time.time()
         template_mapping = {
             'package-name': self._pkg_name,
             'package-version': self._pkg_version,
-            'package-build-time-ms': str(int(round(time.time() * 1000))),
+            'package-build-time-epoch-ms': str(int(round(now * 1000))),
+            'package-build-time-str': time.asctime(time.gmtime(now)),
             'artifact-dir': self._upload_dir_url,
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,

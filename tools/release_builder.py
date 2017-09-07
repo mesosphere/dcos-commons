@@ -234,7 +234,7 @@ Artifact output: {}
         '''
         # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
-        logger.info('[3/3] Replacing artifact prefix {} with {}'.format(
+        logger.info('Replacing artifact prefix {} with {}'.format(
             original_artifact_prefix, self._release_artifact_http_dir))
         original_artifact_urls = []
         # find all URLs, across all json files, which match the directory of the stub universe file:
@@ -479,7 +479,7 @@ Artifact output: {}
         # Update package's version to reflect the user's input
         package_json['version'] = self._pkg_version
 
-        logger.info('[1/3] Updated package.json:')
+        logger.info('Updated package.json:')
         logger.info('\n'.join(difflib.ndiff(
             json.dumps(orig_package_json, indent=4).split('\n'),
             json.dumps(package_json, indent=4).split('\n'))))
@@ -508,7 +508,7 @@ Artifact output: {}
                 line = line.replace(version_match.group(1), self._pkg_version)
             marathon_lines.append(line)
 
-        logger.info('[2/3] Updated marathon.json.mustache:')
+        logger.info('Updated marathon.json.mustache:')
         logger.info(''.join(difflib.ndiff(orig_marathon_lines, marathon_lines)))
 
         # Update marathon.json.mustache with changes:

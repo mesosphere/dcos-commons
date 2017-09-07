@@ -24,7 +24,7 @@ task sourceJar(type: Jar) {
 def getGitHash = { ->
     def stdout = new ByteArrayOutputStream()
     exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        commandLine 'git', 'describe', '--match=NeVeRmAtCh', '--always', '--abbrev=8', '--dirty'
         standardOutput = stdout
     }
     return stdout.toString().trim()
@@ -36,7 +36,7 @@ buildConfig {
     version = project.version // VERSION
     appName = project.group + '.' + project.name // NAME
     buildConfigField 'String', 'GIT_SHA', "${getGitHash()}"
-    buildConfigField 'long', 'BUILD_TIME_MS', System.currentTimeMillis() + 'L'
+    buildConfigField 'long', 'BUILD_TIME_EPOCH_MS', System.currentTimeMillis() + 'L'
 }
 
 publishing {
