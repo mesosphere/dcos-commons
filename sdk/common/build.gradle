@@ -24,10 +24,15 @@ task sourceJar(type: Jar) {
 def getGitHash = { ->
     def stdout = new ByteArrayOutputStream()
     exec {
-        commandLine 'git', 'describe', '--match=NeVeRmAtCh', '--always', '--abbrev=8', '--dirty'
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
         standardOutput = stdout
     }
-    return stdout.toString().trim()
+    exec {
+        // Teamcity workaround: using 'git describe' to determine dirty status doesn't work there.
+        commandLine '/bin/sh', '-c', 'if [ -n "$(git diff --name-only HEAD)" ]; then echo -dirty; fi'
+        standardOutput = stdout
+    }
+    return stdout.toString().replace("\n", "")
 }
 buildConfig {
     packageName = 'com.mesosphere.sdk.generated'
