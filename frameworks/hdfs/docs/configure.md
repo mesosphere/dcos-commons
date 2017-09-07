@@ -1,7 +1,6 @@
 ---
 post_title: Configuring
 menu_order: 30
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -9,7 +8,99 @@ enterprise: 'no'
 
 You can customize your cluster in-place when it is up and running.
 
-The HDFS scheduler runs as a Marathon process and can be reconfigured by changing values for the service from the DC/OS dashboard. These are the general steps to follow:
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+
+The instructions below describe how to update the configuration for a running DC/OS service.
+
+## Enterprise DC/OS 1.10
+
+Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.
+
+### Prerequisites
+
++ Enterprise DC/OS 1.10 or newer.
++ Service with a version greater than 2.0.0-x.
++ [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
++ The service's subcommand available and installed on your local machine.
+  + You can install just the subcommand CLI by running `dcos package install --cli beta-hdfs`.
+  + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
+    ```bash
+    dcos package uninstall --cli beta-hdfs
+    dcos package install --cli beta-hdfs
+    ```
+
+### Preparing configuration
+
+If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
+
+```bash
+$ dcos beta-hdfs describe > options.json
+```
+
+Make any configuration changes to this `options.json` file.
+
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
+
+**Note:** You must specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
+
+#### Recreating `options.json` (optional)
+
+If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
+
+First, we'll fetch the default application's environment, current application's environment, and the actual template that maps config values to the environment:
+
+1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
+1. Set the service name that you're using, for example:
+```bash
+$ SERVICE_NAME=beta-hdfs
+```
+1. Get the version of the package that is currently installed:
+```bash
+$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
+```
+1. Then fetch and save the environment variables that have been set for the service:
+```bash
+$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
+```
+1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
+```bash
+$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
+```
+1. We'll also get the entire application template:
+```bash
+$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
+```
+
+Now that you have these files, we'll attempt to recreate the `options.json`.
+
+1. Use JQ and `diff` to compare the two:
+```bash
+$ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
+```
+1. Now compare these values to the values contained in the `env` section in application template:
+```bash
+$ less marathon.json.mustache
+```
+1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
+
+### Starting the update
+
+Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
+
+```bash
+$ dcos beta-hdfs update start --options=options.json
+```
+
+You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
+
+See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
+
+### Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier
+
+If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
+
+<!-- END DUPLICATE BLOCK -->
+These are the general steps to follow:
 
 1.  Go to the **Services** tab of the DC/OS GUI and click the name of the HDFS service to be updated.
 

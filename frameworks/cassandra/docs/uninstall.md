@@ -1,7 +1,6 @@
 ---
 post_title: Uninstall
 menu_order: 60
-feature_maturity: preview
 enterprise: 'no'
 ---
 
