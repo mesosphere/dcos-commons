@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 public class OfferUtilsTest {
@@ -74,8 +76,8 @@ public class OfferUtilsTest {
         final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
         final List<Protos.OfferID> offerIds = offers.stream().map(Protos.Offer::getId).collect(Collectors.toList());
         OfferUtils.declineOffers(mockSchedulerDriver, offers);
-        verify(mockSchedulerDriver).declineOffer(offerIds.get(0));
-        verify(mockSchedulerDriver).declineOffer(offerIds.get(1));
+        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
+        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {

@@ -630,7 +630,7 @@ public class DefaultSchedulerTest {
         Protos.Offer insufficientOffer = OfferTestUtils.getCompleteOffer(neededAdditionalResource);
         defaultScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, timeout(1000).times(1)).killTask(launchedTaskId);
-        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(insufficientOffer.getId());
+        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
 
         // Sent TASK_KILLED status
@@ -696,21 +696,6 @@ public class DefaultSchedulerTest {
     @Test
     public void testSuppress() throws InterruptedException {
         install();
-    }
-
-    @Test
-    public void testRevive() throws InterruptedException {
-        List<Protos.TaskID> taskIds = install();
-        statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
-
-        Awaitility.await()
-            .atMost(1, TimeUnit.SECONDS)
-            .until(new Callable<Boolean>() {
-                @Override
-                public Boolean call() throws Exception {
-                    return !StateStoreUtils.isSuppressed(stateStore);
-                }
-            });
     }
 
     @Test
@@ -787,13 +772,6 @@ public class DefaultSchedulerTest {
                     .getIpAddresses(0)
                     .getIpAddress().equals(TASK_IP);
         });
-    }
-
-    @Test
-    public void testApiServerNotReadyDecline() {
-        TestScheduler testScheduler = new TestScheduler(defaultScheduler, false);
-        testScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
-        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());
     }
 
     @Test
@@ -1014,8 +992,8 @@ public class DefaultSchedulerTest {
                 PlanTestUtils.getStepStatuses(plan));
         Awaitility.await()
                 .atMost(
-                        SuppressReviveManager.SUPPRESSS_REVIVE_DELAY_S +
-                        SuppressReviveManager.SUPPRESSS_REVIVE_INTERVAL_S + 1,
+                        SuppressReviveManager.REVIVE_DELAY_S +
+                        SuppressReviveManager.REVIVE_INTERVAL_S + 1,
                         TimeUnit.SECONDS)
                 .until(new Callable<Boolean>() {
                     @Override

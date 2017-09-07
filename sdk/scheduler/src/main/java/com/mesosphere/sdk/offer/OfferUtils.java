@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
  */
 public class OfferUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferUtils.class);
+    private static final int TWO_WEEKS_S = 2 * 7 * 24 * 60 * 60;
+    private static final Protos.Filters filters = Protos.Filters.newBuilder()
+            .setRefuseSeconds(TWO_WEEKS_S)
+            .build();
 
     /**
      * Filters out accepted offers and returns back a list of unused offers.
@@ -56,7 +60,7 @@ public class OfferUtils {
         unusedOffers.forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
             LOGGER.info("  {}", offerId.getValue());
-            driver.declineOffer(offerId);
+            driver.declineOffer(offerId, filters);
         });
     }
 
