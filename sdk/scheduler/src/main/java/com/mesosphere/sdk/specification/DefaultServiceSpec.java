@@ -18,7 +18,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -89,9 +87,12 @@ public class DefaultServiceSpec implements ServiceSpec {
             return user;
         }
 
-        Optional<PodSpec> podSpecOptional = podSpecs.stream()
-                .filter(podSpec -> podSpec.getUser() != null && podSpec.getUser().isPresent())
-                .findFirst();
+        Optional<PodSpec> podSpecOptional = Optional.empty();
+        if (podSpecs != null) {
+            podSpecOptional = podSpecs.stream()
+                    .filter(podSpec -> podSpec != null && podSpec.getUser() != null && podSpec.getUser().isPresent())
+                    .findFirst();
+        }
 
         if (podSpecOptional.isPresent()) {
             return podSpecOptional.get().getUser().get();
@@ -220,7 +221,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
-     * @param serviceSpec           specification to test for successful serialization/deserialization
+     * @param serviceSpec specification to test for successful serialization/deserialization
      * @throws ConfigStoreException if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec)
@@ -237,7 +238,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      * @param additionalSubtypesToRegister any class subtypes which should be registered with
      *                                     Jackson for deserialization. any custom placement rule implementations
      *                                     must be provided
-     * @throws ConfigStoreException        if testing the provided specification fails
+     * @throws ConfigStoreException if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
