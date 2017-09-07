@@ -107,17 +107,18 @@ public abstract class AbstractScheduler implements Scheduler {
                 }
             }
 
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            while (!reconciler.isReconciled()) {
-                LOGGER.info("Waiting for task reconciliation to complete.");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    LOGGER.debug("Waiting for task reconciliation interrupted.", e);
+            while (true) {
+                // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+                // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+                // http://mesos.apache.org/documentation/latest/reconciliation/
+                while (!reconciler.isReconciled()) {
+                    LOGGER.info("Waiting for task reconciliation to complete.");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        LOGGER.debug("Waiting for task reconciliation interrupted.", e);
+                    }
                 }
-            }
 
             while (true) {
                 List<Protos.Offer> offers = offerQueue.takeAll();
