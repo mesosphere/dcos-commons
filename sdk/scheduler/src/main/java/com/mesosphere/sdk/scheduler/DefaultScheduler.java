@@ -779,8 +779,6 @@ public class DefaultScheduler extends AbstractScheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
 
-        eventBus.post(status);
-
         // Store status, then pass status to PlanManager => Plan => Steps
         try {
             String taskName = StateStoreUtils.getTaskName(stateStore, status);

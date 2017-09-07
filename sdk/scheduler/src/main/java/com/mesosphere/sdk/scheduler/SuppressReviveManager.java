@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.common.eventbus.EventBus;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -34,12 +33,10 @@ public class SuppressReviveManager {
     public SuppressReviveManager(
             SchedulerDriver driver,
             StateStore stateStore,
-            EventBus eventBus,
             PlanCoordinator planCoordinator) {
         this(
                 driver,
                 stateStore,
-                eventBus,
                 planCoordinator,
                 REVIVE_DELAY_S,
                 REVIVE_INTERVAL_S);
@@ -48,7 +45,6 @@ public class SuppressReviveManager {
     public SuppressReviveManager(
             SchedulerDriver driver,
             StateStore stateStore,
-            EventBus eventBus,
             PlanCoordinator planCoordinator,
             int pollDelay,
             int pollInterval) {
@@ -57,7 +53,6 @@ public class SuppressReviveManager {
         this.stateStore = stateStore;
         this.planCoordinator = planCoordinator;
         this.candidates = getRequirements(planCoordinator.getCandidates());
-        eventBus.register(this);
         monitor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override

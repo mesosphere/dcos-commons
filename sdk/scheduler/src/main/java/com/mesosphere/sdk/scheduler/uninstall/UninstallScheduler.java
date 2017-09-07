@@ -140,8 +140,6 @@ public class UninstallScheduler extends AbstractScheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
 
-        eventBus.post(status);
-
         try {
             stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
             reconciler.update(status);
