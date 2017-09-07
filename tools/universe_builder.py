@@ -85,7 +85,10 @@ class UniversePackageBuilder(object):
         return hasher.hexdigest()
 
     def _get_documentation_path(self):
-        return "{}/service-docs/{}/".format(_docs_root, self._pkg_name)
+        documentation_path = "{}/service-docs/{}/".format(_docs_root, self._pkg_name)
+        if self._pkg_version != "stub-universe":
+            documentation_path = "{}v{}/".format(documentation_path, self._pkg_version)
+        return documentation_path
 
     def _get_issues_path(self):
         return "{}/support/".format(_docs_root)
