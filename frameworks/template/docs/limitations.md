@@ -6,25 +6,31 @@ enterprise: 'no'
 ---
 
 # Limitations
+
 _MANAGE CUSTOMER EXPECTIONS BY DISCLOSING ANY FEATURES OF YOUR PRODUCT THAT ARE NOT SUPPORTED WITH DC/OS, FEATURES MISSING FROM THE DC/OS INTEGRATION, ETC._
 
-<a name="removing-a-node"></a>
-## Removing a Node
+## Out-of-band configuration
 
-Removing a node is not supported at this time.
+Out-of-band configuration modifications are not supported. The service's core responsibility is to deploy and maintain an instances with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. For example:
+- If a task crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band.
+- If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.
 
-<a name="updating-storage-volumes"></a>
-## Updating Storage Volumes
-Neither volume type nor volume size requirements may be changed after initial deployment.
+## Scaling in
 
-<a name="rack-aware-replication"></a>
-## Rack-aware Replication
+To prevent accidental data loss, the service does not support reducing the number of nodes.
 
-Rack placement and awareness are not supported at this time.
+## Disk changes
 
-<a name="updating-virtual-network"></a>
-## Updating Virtual Network Configuration
+To prevent accidental data loss from reallocation, the service does not support changing volume requirements after initial deployment.
 
-When a pod from your service uses a virtual network, it does not use the port resources on the agent machine, and thus does not have them reserved. For this reason, we do not allow a pod deployed on a virtual network to be updated (moved) to the host network, because we cannot guarantee that the machine with the reserved volumes will have ports available. To make the reasoning simpler, we also do not allow for pods to be moved from the host network to a virtual network. Once you pick a network paradigm for your service the service is bound to that networking paradigm.
+## Automatic recovery
 
-_CREATE SIMILAR SECTIONS FOR OTHER CAVEATS SPECIFIC TO YOUR PRODUCT INTEGRATION._
+The service does not automatically replace existing nodes which have permanently failed. The operator (or tooling built by the operator) should invoke `pod replace <pod>` or the underlying HTTP command manually. However, temporary failures where the host machine hasn't permanently failed will be recovered automatically.
+
+## Best-effort installation
+
+If your cluster doesn't have enough resources to deploy the service as requested, the initial deployment will not complete until either those resources are available or until you reinstall the service with corrected resource requirements.
+
+## Virtual networks
+
+When the service is deployed on a virtual network, the service may not be switched to host networking without a full re-installation. The same is true for attempting to switch from host to virtual networking.
