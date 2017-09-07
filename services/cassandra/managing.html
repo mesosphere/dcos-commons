@@ -525,9 +525,9 @@ dcos package install --cli beta-cassandra
 </div>
 
 <h2 id="seed-nodes">Seed nodes</h2>
-<p>Cassandra seed nodes are those nodes with indices smaller than the seed node count.  By default, Cassandra is deployed 
+<p>Cassandra seed nodes are those nodes with indices smaller than the seed node count.  By default, Cassandra is deployed
 with a seed node count of two.  So, node-0 and node-1 are seed nodes. When a replace operation is performed on one these
-nodes, all other nodes must be restarted to be brought up to date regarding the ip address of the new seed node. This 
+nodes, all other nodes must be restarted to be brought up to date regarding the ip address of the new seed node. This
 operation is performed automatically.</p>
 
 <p>For example if <code class="highlighter-rouge">node-0</code> needed to be replaced we would execute:</p>
