@@ -100,9 +100,7 @@ public abstract class AbstractScheduler implements Scheduler {
                 List<Protos.Offer> offers = offerQueue.takeAll();
                 LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
                 for (int i = 0; i < offers.size(); ++i) {
-                    LOGGER.info("  {}: {}",
-                            i + 1,
-                            TextFormat.shortDebugString(offers.get(i)));
+                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
                 processOfferSet(offers);
                 offers.forEach(offer -> eventBus.post(offer));
@@ -111,7 +109,6 @@ public abstract class AbstractScheduler implements Scheduler {
                             offers.stream()
                                     .map(offer -> offer.getId())
                                     .collect(Collectors.toList()));
-
                     LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
                             offers.size(),
                             offers.size() == 1 ? "" : "s",
@@ -158,10 +155,13 @@ public abstract class AbstractScheduler implements Scheduler {
         for (Protos.Offer offer : offers) {
             boolean queued = offerQueue.offer(offer);
             if (!queued) {
-                LOGGER.warn(
-                        "Failed to enqueue offer. Offer queue is full. Declining offer: '{}'",
+                LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                         offer.getId().getValue());
                 OfferUtils.declineOffers(driver, Arrays.asList(offer));
+                // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
+                synchronized (inProgressLock) {
+                    offersInProgress.remove(offer.getId());
+                }
             }
         }
     }
