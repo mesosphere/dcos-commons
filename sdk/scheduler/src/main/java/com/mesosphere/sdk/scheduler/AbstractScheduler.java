@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -39,7 +37,6 @@ public abstract class AbstractScheduler implements Scheduler {
     protected final OfferQueue offerQueue = new OfferQueue();
     protected SchedulerDriver driver;
     protected DefaultReconciler reconciler;
-    protected final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
@@ -129,7 +126,6 @@ public abstract class AbstractScheduler implements Scheduler {
                     LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
                 executePlans(offers);
-                offers.forEach(offer -> eventBus.post(offer));
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
                             offers.stream()
@@ -250,7 +246,7 @@ public abstract class AbstractScheduler implements Scheduler {
 
         // A SuppressReviveManager should be constructed only once.
         if (suppressReviveManager == null) {
-            suppressReviveManager = new SuppressReviveManager(driver, stateStore, eventBus, getPlanCoordinator());
+            suppressReviveManager = new SuppressReviveManager(driver, stateStore, getPlanCoordinator());
         }
 
         suppressReviveManager.start();

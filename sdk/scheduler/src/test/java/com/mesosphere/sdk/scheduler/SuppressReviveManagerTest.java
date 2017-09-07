@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.common.eventbus.EventBus;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -10,7 +9,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionTimeoutException;
@@ -33,11 +31,6 @@ import static org.mockito.Mockito.*;
  */
 public class SuppressReviveManagerTest {
     private StateStore stateStore;
-
-    // This EventBus publishes events synchronously.  Changing this property would invalidate assertions in tests below.
-    // For example, asserting that a state transition does not occur after an event is safe now, that assertion would
-    // prove nothing if we put an asynchronous EventBus here.
-    private EventBus eventBus = new EventBus();
     private SuppressReviveManager manager;
 
     @Mock private SchedulerDriver driver;
@@ -113,7 +106,6 @@ public class SuppressReviveManagerTest {
         return new SuppressReviveManager(
                 driver,
                 stateStore,
-                eventBus,
                 planCoordinator,
                 0,
                 1);
@@ -137,29 +129,5 @@ public class SuppressReviveManagerTest {
                         return StateStoreUtils.isSuppressed(stateStore) == suppressed;
                     }
                 });
-    }
-
-    private void sendOffer() {
-        Protos.Offer offer = Protos.Offer.newBuilder()
-                .setId(TestConstants.OFFER_ID)
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(TestConstants.HOSTNAME)
-                .build();
-
-        eventBus.post(offer);
-    }
-
-    private void sendFailedTaskStatus() {
-        sendTaskStatus(Protos.TaskState.TASK_FAILED);
-    }
-
-    private void sendTaskStatus(Protos.TaskState state) {
-        Protos.TaskStatus taskStatus = Protos.TaskStatus.newBuilder()
-                .setTaskId(TestConstants.TASK_ID)
-                .setState(state)
-                .build();
-
-        eventBus.post(taskStatus);
     }
 }
