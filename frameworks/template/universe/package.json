@@ -1,7 +1,7 @@
 {
   "packagingVersion": "4.0",
   "upgradesFrom": ["{{upgrades-from}}"],
-  "downgradesTo": ["*"],
+  "downgradesTo": ["{{downgrades-to}}"],
   "minDcosReleaseVersion": "1.9",
   "name": "template",
   "version": "{{package-version}}",

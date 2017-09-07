@@ -1,7 +1,7 @@
 {
   "packagingVersion": "4.0",
-  "upgradesFrom": ["1.1.27-0.11.0-beta"],
-  "downgradesTo": ["1.1.27-0.11.0-beta"],
+  "upgradesFrom": ["{{upgrades-from}}"],
+  "downgradesTo": ["{{downgrades-to}}"],
   "minDcosReleaseVersion": "1.9",
   "name": "beta-kafka",
   "version": "{{package-version}}",
