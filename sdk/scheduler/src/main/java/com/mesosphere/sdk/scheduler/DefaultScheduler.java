@@ -358,6 +358,7 @@ public class DefaultScheduler extends AbstractScheduler {
             Collection<Plan> plans = getPlans(stateStore, configStore);
             plans = overrideDeployPlan(plans, configUpdateResult);
             Optional<Plan> deployOptional = getDeployPlan(plans);
+
             if (!deployOptional.isPresent()) {
                 throw new IllegalStateException("No deploy plan provided.");
             }
