@@ -2,7 +2,6 @@
 post_title: Version HDFS_1.3.0-2.6.0-cdh5.9.1
 menu_order: 0
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 

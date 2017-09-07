@@ -1,7 +1,6 @@
 ---
 post_title: Limitations
 menu_order: 80
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -25,7 +24,7 @@ When the DC/OS Cassandra Service is deployed on a virtual network, the service m
 
 Data Center Name:
 
-The name of the data center cannot be changed after installation. `service.data_center` and `service.rack` options are not allowed to be modified once Cassandra is installed. 
+The name of the data center cannot be changed after installation. `service.data_center` and `service.rack` options are not allowed to be modified once Cassandra is installed.
 
 ```
 "service": {

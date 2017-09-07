@@ -1,7 +1,6 @@
 ---
 post_title: API Reference
 menu_order: 38
-feature_maturity: preview
 enterprise: 'no'
 ---
 

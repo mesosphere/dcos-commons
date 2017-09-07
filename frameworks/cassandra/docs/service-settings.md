@@ -3,7 +3,6 @@ post_title: Service Settings
 nav_title: Service Settings
 menu_order: 30
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
