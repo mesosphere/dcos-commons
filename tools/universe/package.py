@@ -24,6 +24,9 @@ class Package:
 
         return str(latest_version) if latest_version else "*"
 
+    def get_downgrades_to(self):
+        return self.get_upgrades_from()
+
     def get_name(self):
         return self._name
 

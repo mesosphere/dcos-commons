@@ -103,6 +103,7 @@ class UniversePackageBuilder(object):
         template_mapping = {
             'package-version': self._package.get_version(),
             'upgrades-from': self._package.get_upgrades_from(),
+            'downgrades-to': self._package.get_downgrades_to(),
             'artifact-dir': self._upload_dir_url,
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,
