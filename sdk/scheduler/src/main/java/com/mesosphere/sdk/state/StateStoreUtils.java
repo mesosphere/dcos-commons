@@ -13,8 +13,12 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -304,4 +308,45 @@ public class StateStoreUtils {
             return ConfigurationUpdater.UpdateResult.DeploymentType.valueOf(value);
         }
     }
+
+    /**
+     * Retrieves the contents of a file based on file name.
+     * @param stateStore The state store to get file content from.
+     * @param fileName The name of the file to retrieve.
+     * @return Contents of the file.
+     * @throws UnsupportedEncodingException
+     */
+    public static String getFile(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
+        fileName = "file-" + fileName;
+        return new String(stateStore.fetchProperty(fileName), "UTF-8");
+    }
+
+    /**
+     * Stores the file in the state store.
+     * @param stateStore The state store to store the file in.
+     * @param fileName The name of the file to store.
+     * @param uploadedInputStream The input stream holding the content of the file.
+     */
+    public static void storeFile(StateStore stateStore, String fileName, InputStream uploadedInputStream)
+            throws StateStoreException, IOException {
+        StringWriter stringWriter = new StringWriter();
+        IOUtils.copy(uploadedInputStream, stringWriter, "UTF-8");
+        fileName = "file-" + fileName;
+        LOGGER.info("file content: ", stringWriter.toString());
+        stateStore.storeProperty(fileName, stringWriter.toString().getBytes());
+    }
+
+    /**
+     * Gets the name of the files that are stored in the state store. The files stored in the state store are prefixed
+     * with "file_".
+     * @param stateStore The state store to get files names from.
+     * @return The set of all file names stored.
+     */
+    public static Collection<String> getFileNames(StateStore stateStore) {
+        return stateStore.fetchPropertyKeys().stream()
+                .filter(key -> key.startsWith("file-"))
+                .collect(Collectors.toSet());
+    }
+
+
 }

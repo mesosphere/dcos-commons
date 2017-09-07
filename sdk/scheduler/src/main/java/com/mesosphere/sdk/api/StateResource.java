@@ -4,13 +4,14 @@ import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -33,8 +35,6 @@ import java.util.Optional;
 public class StateResource {
 
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
-    private static final String VERSION_FILE = "versionFile";
-    private static final String VERSION_FILE_ENCODING = "UTF-8";
 
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
@@ -97,41 +97,66 @@ public class StateResource {
         }
     }
 
-    @Path(VERSION_FILE)
+    @Path("/files")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
-    public Response getVersionFile() {
+    public Response getFiles() {
         try {
-            logger.info("Getting version file");
-            String versionFileContent =
-                    new String(stateStore.fetchProperty(VERSION_FILE), VERSION_FILE_ENCODING);
-            return ResponseUtils.plainOkResponse(versionFileContent);
+            logger.info("Getting all files");
+            Collection<String> fileNames = StateStoreUtils.getFileNames(stateStore);
+            return ResponseUtils.plainOkResponse(fileNames.toString());
         } catch (StateStoreException e) {
-            logger.error("Failed to fetch the version file", e);
-            return Response.status(Response.Status.NOT_FOUND).build();
+            logger.error("Failed to get a list of files", e);
+            return Response.serverError().build();
+        }
+    }
+
+    @Path("/files/{file}")
+    @Produces(MediaType.TEXT_PLAIN)
+    @GET
+    public Response getFile(@PathParam("file") String fileName) {
+        try {
+            logger.info("Getting file {}", fileName);
+            return ResponseUtils.plainOkResponse(StateStoreUtils.getFile(stateStore, fileName));
+        } catch (StateStoreException e) {
+            logger.error("Failed to get file {}: {}", fileName, e);
+            return ResponseUtils.plainResponse(
+                    String.format("Failed to get the file"),
+                    Response.Status.NOT_FOUND
+            );
         } catch (UnsupportedEncodingException e) {
             logger.error("Cannot encode data: ", e);
             return Response.serverError().build();
         }
     }
 
-    @Path(VERSION_FILE)
+    @Path("/files/{file}")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response putVersionFile(@FormDataParam("file") InputStream uploadedInputStream) {
+    public Response putFile(
+            @FormDataParam("file") InputStream uploadedInputStream,
+            @FormDataParam("file") FormDataContentDisposition fileDetails
+    ) {
+        logger.info(fileDetails.toString());
+        String fileName = fileDetails.getFileName();
+        if (uploadedInputStream == null || fileName == null) {
+            return ResponseUtils.plainResponse(
+                    "Specify 'file' as a parameter in your request",
+                    Response.Status.BAD_REQUEST
+            );
+        }
+
         try {
-            if (stateStore.hasProperty(VERSION_FILE)) {
-                logger.info("Version file already exists");
-                return Response.status(Response.Status.OK).build();
+            if (stateStore.hasProperty("file-" + fileName)) {
+                String msg = String.format("File %s is already in the state store", fileName);
+                logger.info(msg);
+                return ResponseUtils.plainOkResponse(msg);
             }
-            logger.info("Putting version file");
-            StringWriter stringWriter = new StringWriter();
-            IOUtils.copy(uploadedInputStream, stringWriter, VERSION_FILE_ENCODING);
-            stateStore.storeProperty(VERSION_FILE, stringWriter.toString().getBytes());
-            logger.debug(stringWriter.toString());
+            logger.info("Storing {}", fileName);
+            StateStoreUtils.storeFile(stateStore, fileName, uploadedInputStream);
             return Response.status(Response.Status.OK).build();
-        } catch (Exception e) {
-            logger.error("Failed to PUT version file", e);
+        } catch (StateStoreException | IOException e) {
+            logger.error("Failed to store file {}: {}", fileName, e);
             return Response.serverError().build();
         }
     }

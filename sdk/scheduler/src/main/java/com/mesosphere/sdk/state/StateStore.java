@@ -458,10 +458,11 @@ public class StateStore {
         try {
             final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Determining whether key: {} exists at path: {}", key, path);
-            // If the persister throws an exception if the path (i.e. key) doesn't exist.
+            // persister throws an exception if the path (i.e. key) doesn't exist.
             persister.get(path);
             return true;
         } catch (PersisterException e) {
+            logger.info("Property {} doesn't exist in the state store", key);
             return false;
         }
     }
