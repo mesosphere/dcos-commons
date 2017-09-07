@@ -992,8 +992,8 @@ public class DefaultSchedulerTest {
                 PlanTestUtils.getStepStatuses(plan));
         Awaitility.await()
                 .atMost(
-                        SuppressReviveManager.REVIVE_DELAY_S +
-                        SuppressReviveManager.REVIVE_INTERVAL_S + 1,
+                        SuppressReviveManager.SUPPRESS_REVIVE_DELAY_S +
+                        SuppressReviveManager.SUPPRESS_REVIVE_INTERVAL_S + 1,
                         TimeUnit.SECONDS)
                 .until(new Callable<Boolean>() {
                     @Override

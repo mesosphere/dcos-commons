@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
  * This class monitors a {@link PlanCoordinator} and suppresses or revives offers when appropriate.
  */
 public class SuppressReviveManager {
-    public static final int REVIVE_INTERVAL_S = 5;
-    public static final int REVIVE_DELAY_S = 5;
+    public static final int SUPPRESS_REVIVE_INTERVAL_S = 5;
+    public static final int SUPPRESS_REVIVE_DELAY_S = 5;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
@@ -38,8 +38,8 @@ public class SuppressReviveManager {
                 driver,
                 stateStore,
                 planCoordinator,
-                REVIVE_DELAY_S,
-                REVIVE_INTERVAL_S);
+                SUPPRESS_REVIVE_DELAY_S,
+                SUPPRESS_REVIVE_INTERVAL_S);
     }
 
     public SuppressReviveManager(
@@ -81,7 +81,7 @@ public class SuppressReviveManager {
     private void suppressOrRevive() {
         Set<PodInstanceRequirement> newCandidates = getRequirements(planCoordinator.getCandidates());
         if (newCandidates.isEmpty()) {
-            logger.info("No candidates, suppressing offers");
+            logger.debug("No candidates found");
             suppress();
             candidates = newCandidates;
             return;
@@ -89,14 +89,13 @@ public class SuppressReviveManager {
 
         newCandidates.removeAll(candidates);
 
-        logger.info("Old candidates: {}", candidates);
-        logger.info("New candidates: {}", newCandidates);
+        logger.debug("Old candidates: {}", candidates);
+        logger.debug("New candidates: {}", newCandidates);
 
         if (newCandidates.isEmpty()) {
-            logger.info("No new candidates detected, no need to revive.");
+            logger.debug("No new candidates detected, no need to revive");
         } else {
             candidates = newCandidates;
-            logger.info("Reviving offers");
             revive();
         }
     }
