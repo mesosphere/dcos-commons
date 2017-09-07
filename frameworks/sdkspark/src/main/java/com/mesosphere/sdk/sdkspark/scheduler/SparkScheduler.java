@@ -10,7 +10,7 @@ import java.io.File;
 /**
  * Spark Scheduler
  */
-public class SparkScheduler extends DefaultService {
+class SparkScheduler extends DefaultService {
     public SparkScheduler(File pathToServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         super(createSchedulerBuilder(pathToServiceSpec, schedulerFlags));
     }
