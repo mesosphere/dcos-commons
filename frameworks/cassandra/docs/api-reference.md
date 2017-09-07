@@ -29,14 +29,14 @@ If you are using Enterprise DC/OS, the security mode of your installation may al
 The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.
 
 ```bash
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/plans/deploy
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/plans/deploy
 ```
 ## Pause Installation
 
 The installation will pause after completing installation of the current node and wait for user input.
 
 ```bash
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/plans/deploy/interrupt
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/plans/deploy/interrupt
 ```
 
 ## Resume Installation
@@ -44,7 +44,7 @@ $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v
 The REST API request below will resume installation at the next pending node.
 
 ```bash
-$ curl -X PUT <dcos_surl>/service/elastic/v1/plans/deploy/continue
+$ curl -X PUT <dcos_surl>/service/cassandra/v1/plans/deploy/continue
 ```
 
 # Nodes API
@@ -57,12 +57,12 @@ A list of available node ids can be retrieved by sending a GET request to `/v1/p
 
 CLI Example
 ```
-$ dcos elastic pod list
+$ dcos cassandra pod list
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod
 ```
 
 ## Node Info
@@ -70,17 +70,17 @@ $ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod
 You can retrieve node information by sending a GET request to `/v1/pod/<node-id>/info`:
 
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<node-id>/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod/<node-id>/info
 ```
 
 CLI Example
 ```
-$ dcos elastic pod info journalnode-0
+$ dcos cassandra pod info journalnode-0
 ```
 
 HTTP Example
 ```
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/journalnode-0/info
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod/journalnode-0/info
 
 ```
 
@@ -90,12 +90,12 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-$ dcos elastic pod replace <node-id>
+$ dcos cassandra pod replace <node-id>
 ```
 
 HTTP Example
 ```
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<node-id>/replace
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -106,12 +106,12 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-$ dcos elastic pod restart <node-id>
+$ dcos cassandra pod restart <node-id>
 ```
 
 HTTP Example
 ```bash
-$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<node-id>/restart
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.
@@ -126,12 +126,12 @@ You can view the current target configuration by sending a GET request to `/v1/c
 
 CLI Example
 ```
-$ dcos elastic config target
+$ dcos cassandra config target
 ```
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/configurations/target
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/configurations/target
 ```
 
 ## List Configs
@@ -140,12 +140,12 @@ You can list all configuration IDs by sending a GET request to `/v1/configuratio
 
 CLI Example
 ```
-$ dcos elastic config list
+$ dcos cassandra config list
 ```
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/configurations
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/configurations
 ```
 
 ## View Specified Config
@@ -154,12 +154,12 @@ You can view a specific configuration by sending a GET request to `/v1/configura
 
 CLI Example
 ```
-$ dcos elastic config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+$ dcos cassandra config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 HTTP Example
 ```
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 # Service Status Info
@@ -168,4 +168,4 @@ Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if
 
 You can use this request to troubleshoot: if you think Elastic should be receiving resource offers, but is not, you can use this API call to see if Elastic is suppressed.
 ```
-curl -H "Authorization: token=$auth_token" "<dcos_url>/service/elastic/v1/state/properties/suppressed"
+curl -H "Authorization: token=$auth_token" "<dcos_url>/service/cassandra/v1/state/properties/suppressed"
