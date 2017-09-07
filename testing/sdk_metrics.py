@@ -86,11 +86,11 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
     for metric in expected_metrics:
         if metric not in emitted_metrics:
             metrics_exist = False
-            log.error("Metric {} is not being emitted by {}".format(metric, service_name))
+            log.error("Unable to find metric {}".format(metric))
             # don't short-circuit to log if multiple metrics are missing
 
     if not metrics_exist:
-        log.info("Metrics emitted: {},\nMetrics expected: {}".format(service_metrics, expected_metrics))
+        log.info("Metrics emitted: {},\nMetrics expected: {}".format(emitted_metrics, expected_metrics))
 
     log.info("Expected metrics exist: {}".format(metrics_exist))
     return metrics_exist
@@ -98,7 +98,7 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
 
 def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics_exist):
     """Checks that the service is emitting the expected metrics.
-    The assumption is that if the expected metrics are being emitted then so 
+    The assumption is that if the expected metrics are being emitted then so
     are the rest of the metrics.
 
     Arguments:
