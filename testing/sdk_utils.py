@@ -44,7 +44,7 @@ def get_zk_path(service_name):
 
 @functools.lru_cache()
 def dcos_version_less_than(version):
-    return shakedown.dcos_version_less_than("1.10")
+    return shakedown.dcos_version_less_than(version)
 
 
 def is_test_failure(pytest_request):
