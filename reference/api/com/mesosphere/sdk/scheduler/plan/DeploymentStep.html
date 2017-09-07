@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeployPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" target="_top">Frames</a></li>
@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -135,6 +135,17 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Nested Class Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a></span></code>&nbsp;</td>
+</tr>
+</table>
 <ul class="blockList">
 <li class="blockList"><a name="nested.classes.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Step">
 <!--   -->
@@ -222,25 +233,29 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>(package private) <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getStatus-java.util.Map-">getStatus</a></span>(java.util.Map&lt;Protos.TaskID,<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a>&gt;&nbsp;tasks)</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-"><code>updateOfferStatus(Collection)</code></a>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
 <div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
  <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> has been successfully accepted/fulfilled.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;parameters)</code>
 <div class="block">Provides the Element with a set of named string parameters that it can either use on start or provide to
@@ -413,11 +428,20 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <a name="update-Protos.TaskStatus-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>update</h4>
 <pre>public&nbsp;void&nbsp;update(Protos.TaskStatus&nbsp;status)</pre>
 <div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-"><code>updateOfferStatus(Collection)</code></a>.</div>
+</li>
+</ul>
+<a name="getStatus-java.util.Map-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getStatus</h4>
+<pre><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;getStatus(java.util.Map&lt;Protos.TaskID,<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a>&gt;&nbsp;tasks)</pre>
 </li>
 </ul>
 </li>
@@ -448,7 +472,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeployPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" target="_top">Frames</a></li>
@@ -472,7 +496,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
