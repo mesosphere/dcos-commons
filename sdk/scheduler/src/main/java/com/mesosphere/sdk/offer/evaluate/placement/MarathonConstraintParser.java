@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +152,7 @@ public class MarathonConstraintParser {
                 List<List<String>> rows = new ArrayList<>();
                 // Allow backslash-escaping of commas or colons within regexes:
                 for (String rowStr : escapedSplit(marathonConstraints, ',')) {
-                    rows.add(new ArrayList<>(escapedSplit(rowStr, ':')));
+                    rows.add(Lists.newArrayList(escapedSplit(rowStr, ':')));
                 }
                 LOGGER.debug("Comma/colon-separated '{}' => {} rows: '{}'", marathonConstraints, rows.size(), rows);
                 return rows;

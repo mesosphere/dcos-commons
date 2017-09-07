@@ -147,7 +147,7 @@ public class StateResource {
         }
 
         try {
-            if (stateStore.hasProperty("file-" + fileName)) {
+            if (stateStore.hasProperty(StateStoreUtils.FILE_NAME_PREFIX + fileName)) {
                 String msg = String.format("File %s is already in the state store", fileName);
                 logger.info(msg);
                 return ResponseUtils.plainOkResponse(msg);

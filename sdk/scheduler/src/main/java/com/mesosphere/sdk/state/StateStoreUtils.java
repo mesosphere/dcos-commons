@@ -33,6 +33,7 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
+    public static final String FILE_NAME_PREFIX = "file-";
 
     private StateStoreUtils() {
         // do not instantiate
@@ -317,7 +318,7 @@ public class StateStoreUtils {
      * @throws UnsupportedEncodingException
      */
     public static String getFile(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
-        fileName = "file-" + fileName;
+        fileName = FILE_NAME_PREFIX + fileName;
         return new String(stateStore.fetchProperty(fileName), "UTF-8");
     }
 
@@ -331,8 +332,7 @@ public class StateStoreUtils {
             throws StateStoreException, IOException {
         StringWriter stringWriter = new StringWriter();
         IOUtils.copy(uploadedInputStream, stringWriter, "UTF-8");
-        fileName = "file-" + fileName;
-        LOGGER.info("file content: ", stringWriter.toString());
+        fileName = FILE_NAME_PREFIX + fileName;
         stateStore.storeProperty(fileName, stringWriter.toString().getBytes());
     }
 
@@ -344,7 +344,7 @@ public class StateStoreUtils {
      */
     public static Collection<String> getFileNames(StateStore stateStore) {
         return stateStore.fetchPropertyKeys().stream()
-                .filter(key -> key.startsWith("file-"))
+                .filter(key -> key.startsWith(FILE_NAME_PREFIX))
                 .collect(Collectors.toSet());
     }
 
