@@ -27,7 +27,7 @@ The default installation may not be sufficient for a production deployment, but 
 Once you have installed Beta-HDFS, install the CLI.
 
 ```bash
-dcos package install beta-hdfs --cli
+$ dcos package install beta-hdfs --cli
 ```
 
 # Service Settings
@@ -52,8 +52,8 @@ Sample JSON options file named `sample-hdfs.json`:
 
 The command below creates a cluster using `sample-hdfs.json`:
 
-```
-dcos package install --options=sample-hdfs.json hdfs
+```bash
+$ dcos package install --options=sample-hdfs.json hdfs
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -70,8 +70,8 @@ Many of the other Infinity services currently support DC/OS Vagrant deployment. 
 
 Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique `name` for each installation:
 
-```
-cat hdfs1.json
+```bash
+$ cat hdfs1.json
 
 {
    "service": {
@@ -79,7 +79,7 @@ cat hdfs1.json
    }
 }
 
-dcos package install hdfs --options=hdfs1.json
+$ dcos package install hdfs --options=hdfs1.json
 ```
 
 Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
@@ -178,8 +178,8 @@ When the DC/OS HDFS service is initially installed, it generates an installation
 ## Viewing the Installation Plan
 The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
 ```
 
 ## Plan Errors
@@ -201,15 +201,15 @@ The final phase of the installation is deployment of the distributed storage ser
 To pause installation, issue a REST API request as shown below. The installation will pause after completing installation of the current node and wait for user input.
 
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resuming Installation
 If the installation has been paused, the REST API request below will resume installation at the next pending node.
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
 
 
