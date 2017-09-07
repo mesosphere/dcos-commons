@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Backup and Restore</title>
+<title>Template: Troubleshooting</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -347,11 +347,56 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Backup and Restore</h1>
+<h1>Template: Troubleshooting</h1>
 <div id="content">
-<h1 id="backup-and-restore">Backup and Restore</h1>
+<p><a name="accessing-logs"></a></p>
+<h1 id="accessing-logs">Accessing Logs</h1>
 
-<p>You interact with the Elasticsearch cluster directly to perform snapshot and restore operations. Elasticsearch’s built in <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html">snapshot and restore module</a> allows you to create snapshots of individual indices or an entire cluster into a remote repository like a shared file system, S3, or HDFS.</p>
+<p>Logs for the scheduler and all service nodes can be viewed from the DC/OS web interface.</p>
+
+<ul>
+  <li>Scheduler logs are useful for determining why a node is not being launched (this is under the purview of the Scheduler).</li>
+  <li>Node logs are useful for examining problems in the service itself.</li>
+</ul>
+
+<p>In all cases, logs are generally piped to files name <code class="highlighter-rouge">stdout</code> and/or <code class="highlighter-rouge">stderr</code>.</p>
+
+<p>To view logs for a given node, perform the following steps:</p>
+<ol>
+  <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
+  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be examined (default <code class="highlighter-rouge">_PKGNAME_</code>).</li>
+  <li>In the list of tasks for the service, click on the task to be examined (scheduler is named after the service, nodes are each <code class="highlighter-rouge">_NODEPOD_-&lt;NUM&gt;-node</code>).</li>
+  <li>In the task details, click on the <code class="highlighter-rouge">Logs</code> tab to go into the log viewer. By default, you will see <code class="highlighter-rouge">stdout</code>, but <code class="highlighter-rouge">stderr</code> is also useful. Use the pull-down in the upper right to select the file to be examined.</li>
+</ol>
+
+<p>You can also access the logs via the Mesos UI:</p>
+<ol>
+  <li>Visit <dcos-url>/mesos to view the Mesos UI.</dcos-url></li>
+  <li>Click the <code class="highlighter-rouge">Frameworks</code> tab in the upper left to get a list of services running in the cluster.</li>
+  <li>Navigate into the correct framework for your needs. The scheduler runs under <code class="highlighter-rouge">marathon</code> with a task name matching the service name (default <em><code class="highlighter-rouge">PKGNAME</code></em>). Service nodes run under a framework whose name matches the service name (default <em><code class="highlighter-rouge">PKGNAME</code></em>).</li>
+  <li>You should now see two lists of tasks. <code class="highlighter-rouge">Active Tasks</code> are tasks currently running, and <code class="highlighter-rouge">Completed Tasks</code> are tasks that have exited. Click on the <code class="highlighter-rouge">Sandbox</code> link for the task you wish to examine.</li>
+  <li>The <code class="highlighter-rouge">Sandbox</code> view will list files named <code class="highlighter-rouge">stdout</code> and <code class="highlighter-rouge">stderr</code>. Click the file names to view the files in the browser, or click <code class="highlighter-rouge">Download</code> to download the file to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.</li>
+</ol>
+
+<p><a name="accessing-metrics"></a></p>
+<h1 id="accessing-metrics">Accessing Metrics</h1>
+<p><em>PROVIDE INSTRUCTIONS FOR ACCESSING METRICS OR INDICATE A LACK OF METRICS W/I LIMITATIONS.MD.</em></p>
+
+<p><a name="restarting-a-node"></a></p>
+<h1 id="restarting-a-node">Restarting a Node</h1>
+<p>If you must forcibly restart a node, use the following command to restart the node on the same agent node where it currently resides. This will not result in an outage or loss of data.</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos _PKGNAME_ --name<span class="o">=</span>&lt;service-name&gt; pod restart &lt;node_id&gt;
+</code></pre>
+</div>
+<p><a name="replacing-a-node"></a></p>
+<h1 id="replacing-a-permanently-failed-node">Replacing a Permanently Failed Node</h1>
+<p>The DC/OS <em>SERVICENAME</em> Service is resilient to temporary node failures. However, if a DC/OS agent hosting a <em>SERVICENAME</em> node is permanently lost, manual intervention is required to replace the failed node. The following command should be used to replace the node residing on the failed server.</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos _PKGNAME_ --name<span class="o">=</span>&lt;service-name&gt; pod replace &lt;node_id&gt;
+</code></pre>
+</div>
+
 
 </div>
 </div>

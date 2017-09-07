@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Backup and Restore</title>
+<title>Template: Quick Start</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -347,11 +347,54 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Backup and Restore</h1>
+<h1>Template: Quick Start</h1>
 <div id="content">
-<h1 id="backup-and-restore">Backup and Restore</h1>
+<h1 id="prerequisite">Prerequisite</h1>
 
-<p>You interact with the Elasticsearch cluster directly to perform snapshot and restore operations. Elasticsearch’s built in <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html">snapshot and restore module</a> allows you to create snapshots of individual indices or an entire cluster into a remote repository like a shared file system, S3, or HDFS.</p>
+<ul>
+  <li><a href="https://docs.mesosphere.com/latest/administration/installing/">DC/OS installed on your cluster</a>.</li>
+</ul>
+
+<h1 id="steps">Steps</h1>
+
+<ol>
+  <li>
+    <p>If you are using open source DC/OS, install <em>SERVICENAME</em> cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.</p>
+
+    <div class="language-shell highlighter-rouge"><pre class="highlight"><code> dcos package install _PKGNAME_
+</code></pre>
+    </div>
+
+    <p>Alternatively, you can install <em>SERVICENAME</em> from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
+  </li>
+  <li>
+    <p>The service will now deploy with a default configuration. You can monitor its deployment via the Services tab of the DC/OS web interface.</p>
+  </li>
+  <li>Connect a client to <em>SERVICENAME</em>.
+    <div class="language-shell highlighter-rouge"><pre class="highlight"><code> dcos _PKGNAME_ endpoints
+ <span class="o">[</span>
+     <span class="s2">"_LIST_"</span>,
+     <span class="s2">"_OF_"</span>,
+     <span class="s2">"_ENDPOINTS_
+ ]
+
+ dcos _PKGNAME_ endpoints _ENDPOINT_
+ {
+     "</span>address<span class="s2">": ["</span>10.0.3.156:_PORT_<span class="s2">", "</span>10.0.3.84:_PORT_<span class="s2">"],
+     "</span>dns<span class="s2">": ["</span>_POD_-0._PKGNAME_.mesos:_PORT_<span class="s2">", "</span>_POD_-1._PKGNAME_.mesos:_PORT_<span class="s2">"]
+ }
+</span></code></pre>
+    </div>
+  </li>
+  <li><em>PROVIDE A SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATA, READ DATA).</em></li>
+</ol>
+
+<h1 id="see-also">See Also</h1>
+
+<ul>
+  <li><a href="https://docs.mesosphere.com/service-docs/&lt;Template&gt;/connecting-clients/">Connecting clients</a>.</li>
+</ul>
+
 
 </div>
 </div>

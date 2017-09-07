@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: Backup and Restore</title>
+<title>Template: Install and Customize</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -347,11 +347,50 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: Backup and Restore</h1>
+<h1>Template: Install and Customize</h1>
 <div id="content">
-<h1 id="backup-and-restore">Backup and Restore</h1>
+<p>The default DC/OS <em>SERVICENAME</em> Service installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depeneding on the context of the deployment.</p>
 
-<p>You interact with the Elasticsearch cluster directly to perform snapshot and restore operations. Elasticsearch’s built in <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html">snapshot and restore module</a> allows you to create snapshots of individual indices or an entire cluster into a remote repository like a shared file system, S3, or HDFS.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>If you are using Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">need to provision a service account</a> before installing DC/OS <em>SERVICENAME</em> Service. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+    <ul>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/administration/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li>In <code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
+      <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
+    </ul>
+  </li>
+  <li>Your cluster must have at least <em>NUMBER</em> private nodes.</li>
+</ul>
+
+<h1 id="installing-from-the-dcos-cli">Installing from the DC/OS CLI</h1>
+
+<p>To start a basic test cluster of <em>SERVICENAME</em>, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">More information about installing <em>SERVICENAME</em> on Enterprise DC/OS</a>.</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos package install _PKGNAME_ 
+</code></pre>
+</div>
+
+<p>You can specify a custom configuration in an <code class="highlighter-rouge">options.json</code> file and pass it to <code class="highlighter-rouge">dcos package install</code> using the <code class="highlighter-rouge">--options</code> parameter.</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos package install _PKGNAME_ --options<span class="o">=</span>options.json
+</code></pre>
+</div>
+
+<p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
+
+<p>For more information on building the <code class="highlighter-rouge">options.json</code> file, see <a href="https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/">DC/OS documentation</a> for service configuration access.</p>
+
+<h2 id="installng-from-the-dcos-web-interface">Installng from the DC/OS Web Interface</h2>
+
+<p>You can <a href="https://docs.mesosphere.com/latest/usage/managing-services/install/">install <em>SERVICENAME</em> from the DC/OS web interface</a>. If you install <em>SERVICENAME</em> from the web interface, you must install the DC/OS <em>SERVICENAME</em> CLI subcommands separately. From the DC/OS CLI, enter:</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos package install _PKGNAME_ --cli
+</code></pre>
+</div>
+
+<p>Choose <code class="highlighter-rouge">ADVANCED INSTALLATION</code> to perform a custom installation.</p>
 
 </div>
 </div>
