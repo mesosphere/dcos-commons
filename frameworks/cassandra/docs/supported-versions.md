@@ -3,7 +3,6 @@ post_title: Supported Versions
 nav_title: Supported Versions
 menu_order: 120
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
