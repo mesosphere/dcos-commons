@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/specification/yaml/TemplateUtils.html" target="_top">Frames</a></li>
@@ -130,8 +130,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a></span></code>
-<div class="block">Available behaviors when a template value is missing.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingValue</a></span></code>
+<div class="block">Some information about a Mustache template parameter which wasn't found in the provided environment map.</div>
 </td>
 </tr>
 </table>
@@ -151,18 +151,21 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#applyEnvToMustache-java.lang.String-java.lang.String-java.util.Map-com.mesosphere.sdk.specification.yaml.TemplateUtils.MissingBehavior-">applyEnvToMustache</a></span>(java.lang.String&nbsp;templateName,
-                  java.lang.String&nbsp;templateContent,
-                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;environment,
-                  <a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a>&nbsp;missingValueBehavior)</code>
-<div class="block">Renders a given Mustache template using the provided environment map, with the provided behavior when missing
- template values are encountered.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#renderMustache-java.lang.String-java.lang.String-java.util.Map-java.util.List-">renderMustache</a></span>(java.lang.String&nbsp;templateName,
+              java.lang.String&nbsp;templateContent,
+              java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;values,
+              java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingValue</a>&gt;&nbsp;missingValues)</code>
+<div class="block">Renders a given Mustache template using the provided value map, returning any template parameters which weren't
+ present in the map.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#isMustacheFullyRendered-java.lang.String-">isMustacheFullyRendered</a></span>(java.lang.String&nbsp;templateContent)</code>
-<div class="block">Returns whether the provided content still contains any "{{ }}" mustache templating.</div>
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#renderMustacheThrowIfMissing-java.lang.String-java.lang.String-java.util.Map-">renderMustacheThrowIfMissing</a></span>(java.lang.String&nbsp;templateName,
+                            java.lang.String&nbsp;templateContent,
+                            java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;values)</code>
+<div class="block">Renders a given Mustache template using the provided value map, throwing an exception if any template parameters
+ weren't found in the map.</div>
 </td>
 </tr>
 </table>
@@ -187,40 +190,49 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="applyEnvToMustache-java.lang.String-java.lang.String-java.util.Map-com.mesosphere.sdk.specification.yaml.TemplateUtils.MissingBehavior-">
+<a name="renderMustache-java.lang.String-java.lang.String-java.util.Map-java.util.List-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>applyEnvToMustache</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;applyEnvToMustache(java.lang.String&nbsp;templateName,
-                                                  java.lang.String&nbsp;templateContent,
-                                                  java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;environment,
-                                                  <a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingBehavior</a>&nbsp;missingValueBehavior)</pre>
-<div class="block">Renders a given Mustache template using the provided environment map, with the provided behavior when missing
- template values are encountered.</div>
+<h4>renderMustache</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;renderMustache(java.lang.String&nbsp;templateName,
+                                              java.lang.String&nbsp;templateContent,
+                                              java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;values,
+                                              java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingValue</a>&gt;&nbsp;missingValues)</pre>
+<div class="block">Renders a given Mustache template using the provided value map, returning any template parameters which weren't
+ present in the map.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>templateContent</code> - String representation of template</dd>
-<dd><code>environment</code> - Map of environment variables</dd>
-<dd><code>missingValueBehavior</code> - What to do when the <code>templateContent</code> has a value which isn't present in the
-      <code>environment</code></dd>
+<dd><code>values</code> - Map of values to be inserted into the template</dd>
+<dd><code>missingValues</code> - List where missing value entries will be added for any template params in
+     <code>templateContent</code> which are not found in <code>values</code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>Rendered Mustache template String.</dd>
+<dd>Rendered Mustache template String</dd>
 </dl>
 </li>
 </ul>
-<a name="isMustacheFullyRendered-java.lang.String-">
+<a name="renderMustacheThrowIfMissing-java.lang.String-java.lang.String-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>isMustacheFullyRendered</h4>
-<pre>public static&nbsp;boolean&nbsp;isMustacheFullyRendered(java.lang.String&nbsp;templateContent)</pre>
-<div class="block">Returns whether the provided content still contains any "{{ }}" mustache templating.</div>
+<h4>renderMustacheThrowIfMissing</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;renderMustacheThrowIfMissing(java.lang.String&nbsp;templateName,
+                                                            java.lang.String&nbsp;templateContent,
+                                                            java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;values)
+                                                     throws MustacheException</pre>
+<div class="block">Renders a given Mustache template using the provided value map, throwing an exception if any template parameters
+ weren't found in the map.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>templateContent</code> - the content to be evaluated</dd>
+<dd><code>templateContent</code> - String representation of template</dd>
+<dd><code>values</code> - Map of values to be inserted into the template</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Rendered Mustache template String</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>MustacheException</code> - if parameters in the <code>templateContent</code> weren't provided in the <code>values</code></dd>
 </dl>
 </li>
 </ul>
@@ -252,7 +264,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawVolume.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingBehavior.html" title="enum in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/specification/yaml/TemplateUtils.html" target="_top">Frames</a></li>

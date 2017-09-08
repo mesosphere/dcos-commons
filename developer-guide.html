@@ -230,9 +230,12 @@
     <span>Reference</span>
     <ul>
       
+      
+      
+      <li><a href="./reference/yaml-reference.html">YAML Reference</a></li>
+      
       <li><a href="./reference/api">Javadoc Reference</a></li>
       <li><a href="./reference/swagger-api">REST APIs</a></li>
-      <li><a href="./reference/yaml-reference.html">YAML Reference</a></li>
     </ul>
   </li>
   <li>
@@ -2182,12 +2185,12 @@ hello
         <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
         <span class="s">configs</span><span class="pi">:</span>
           <span class="s">config.xml</span><span class="pi">:</span>
-            <span class="s">template</span><span class="pi">:</span> <span class="s2">"</span><span class="s">config.xml.mustache"</span>
+            <span class="s">template</span><span class="pi">:</span> <span class="s">config.xml.mustache</span>
             <span class="s">dest</span><span class="pi">:</span> <span class="s">etc/config.xml</span>
 </code></pre>
 </div>
 
-<p>The template content may be templated using the <a href="https://mustache.github.io/mustache.5.html">mustache format</a>. Any templated parameters in the file may be automatically populated with environment variables within the task, by including the <code class="highlighter-rouge">bootstrap</code> utility in your tasks. See <a href="#task-bootstrap">Bootstrap Tool</a> for more information. at the beginning of the task.</p>
+<p>The template content may be templated using the <a href="https://mustache.github.io/mustache.5.html">mustache format</a>. Any templated parameters in the file may be automatically populated with environment variables <em>from within the task</em>, by including the <code class="highlighter-rouge">bootstrap</code> utility in your tasks. See <a href="#task-bootstrap">Bootstrap Tool</a> for more information. at the beginning of the task.</p>
 
 <p>For example, say you had a container with the following environment variables:</p>
 

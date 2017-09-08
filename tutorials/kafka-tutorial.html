@@ -230,9 +230,12 @@
     <span>Reference</span>
     <ul>
       
+      
+      
+      <li><a href="../reference/yaml-reference.html">YAML Reference</a></li>
+      
       <li><a href="../reference/api">Javadoc Reference</a></li>
       <li><a href="../reference/swagger-api">REST APIs</a></li>
-      <li><a href="../reference/yaml-reference.html">YAML Reference</a></li>
     </ul>
   </li>
   <li>
@@ -404,8 +407,8 @@
 
 <div class="highlighter-rouge"><pre class="highlight"><code>configs:
   server-properties:
-    template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-    dest: "kafka_2.11-0.10.0.0/config/server.properties"
+    template: server.properties.mustache
+    dest: kafka_2.11-0.10.0.0/config/server.properties
 </code></pre>
 </div>
 
@@ -441,8 +444,8 @@ env:
   SLEEP_DURATION: {{SLEEP_DURATION}}
 configs:
   server-properties:
-    template: “{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache”
-    dest: “kafka_2.11-0.10.0.0/config/server.properties”
+    template: server.properties.mustache
+    dest: kafka_2.11-0.10.0.0/config/server.properties
 ```
 The <code class="highlighter-rouge">server.properties.mustache</code> should live in the current directory (<code class="highlighter-rouge">dcos-commons/examples/kafka/src/main/dist</code>).</li>
     </ul>
@@ -454,22 +457,6 @@ The <code class="highlighter-rouge">server.properties.mustache</code> should liv
   </li>
   <li>Next, create the symlink that’s required to get the unit tests to pass and confirm that it’s created:
     <div class="highlighter-rouge"><pre class="highlight"><code>   cd ../resources &amp;&amp; ln -s ../dist/server.properties.mustache &amp;&amp; ls -l
-</code></pre>
-    </div>
-  </li>
-  <li>Open <code class="highlighter-rouge">/dcos-commons/examples/kafka/src/test/java/com/mesosphere/sdk/kafka/scheduler/ServiceSpecTest.java</code> and add the following beneath the currently set environment variables and make sure to import the URL type:
-    <div class="highlighter-rouge"><pre class="highlight"><code>   // place at top
-   import java.net.URL;
-   import java.io.File;
-</code></pre>
-    </div>
-    <div class="highlighter-rouge"><pre class="highlight"><code>   URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
-   ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
-</code></pre>
-    </div>
-  </li>
-  <li>Save and exit the file. Next, open <code class="highlighter-rouge">/dcos-commons/examples/kafka/universe/marathon.json.mustache</code> and add the following as the first item of the <code class="highlighter-rouge">env</code> list:
-    <div class="highlighter-rouge"><pre class="highlight"><code>   "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
 </code></pre>
     </div>
   </li>
