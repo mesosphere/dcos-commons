@@ -29,6 +29,18 @@ public class DefaultPlanGenerator implements PlanGenerator {
         this.stepFactory = stepFactory;
     }
 
+    private List<Phase> extractPhases(RawPlan rawPlan, Collection<PodSpec> podSpecs) {
+        return rawPlan.getPhases().entrySet().stream()
+                .map(entry-> from(entry.getValue(), entry.getKey(), podSpecs))
+                .collect(Collectors.toList());
+    }
+
+    public Plan generateTerminal(RawPlan rawPlan, String planName, Collection<PodSpec> podSpecs, Phase te) {
+        final List<Phase> phases = extractPhases(rawPlan, podSpecs);
+        return DeployPlanFactory.getPlan(planName, phases,
+                StrategyFactory.generateForPhase(rawPlan.getStrategy(), te, true));
+    }
+
     @Override
     public Plan generate(RawPlan rawPlan, String planName, Collection<PodSpec> podsSpecs) {
         final List<Phase> phases = rawPlan.getPhases().entrySet().stream()

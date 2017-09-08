@@ -69,8 +69,8 @@ public class DefaultScheduler extends AbstractScheduler {
     /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
-    public static class Builder {
-        private ServiceSpec serviceSpec;
+    protected static class Builder {
+        protected ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
         private final Persister persister;
 
@@ -79,12 +79,12 @@ public class DefaultScheduler extends AbstractScheduler {
         private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
 
         // When these collections are empty, we don't do anything extra:
-        private final List<Plan> manualPlans = new ArrayList<>();
-        private final Map<String, RawPlan> yamlPlans = new HashMap<>();
-        private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
-        private Collection<ConfigValidator<ServiceSpec>> customConfigValidators = new ArrayList<>();
-        private Collection<Object> customResources = new ArrayList<>();
-        private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
+        protected final List<Plan> manualPlans = new ArrayList<>();
+        protected final Map<String, RawPlan> yamlPlans = new HashMap<>();
+        protected final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
+        protected Collection<ConfigValidator<ServiceSpec>> customConfigValidators = new ArrayList<>();
+        protected Collection<Object> customResources = new ArrayList<>();
+        protected RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
             this(
@@ -95,7 +95,7 @@ public class DefaultScheduler extends AbstractScheduler {
                             CuratorPersister.newBuilder(serviceSpec).build());
         }
 
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister) {
+        protected Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister) {
             this.serviceSpec = serviceSpec;
             this.schedulerFlags = schedulerFlags;
             this.persister = persister;
@@ -302,7 +302,7 @@ public class DefaultScheduler extends AbstractScheduler {
          * @param stateStore The stateStore to get last deployment type from.
          * @param configStore The configStore to get plans from.
          */
-        private void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
+        protected void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
             ConfigurationUpdater.UpdateResult.DeploymentType lastDeploymentType =
                     StateStoreUtils.getLastCompletedUpdateType(stateStore);
             if (lastDeploymentType.equals(ConfigurationUpdater.UpdateResult.DeploymentType.NONE)) {
@@ -498,7 +498,7 @@ public class DefaultScheduler extends AbstractScheduler {
         }
     }
 
-    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+    protected static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
         List<Plan> deployPlans = plans.stream().filter(Plan::isDeployPlan).collect(Collectors.toList());
 
         if (deployPlans.size() == 1) {
@@ -516,7 +516,7 @@ public class DefaultScheduler extends AbstractScheduler {
         return getDeployPlan(plans).get();
     }
 
-    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
+    protected static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
         if (errors.isEmpty()) {
             return plans;
         }

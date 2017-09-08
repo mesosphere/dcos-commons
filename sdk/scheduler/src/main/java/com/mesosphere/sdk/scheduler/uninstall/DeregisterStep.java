@@ -15,11 +15,16 @@ public class DeregisterStep extends UninstallStep {
     private SchedulerDriver schedulerDriver;
     private StateStore stateStore;
 
+
+    public DeregisterStep() {
+        super("deregister-uninit", Status.PENDING);
+    }
+
     /**
      * Creates a new instance with initial {@code status}. The {@link SchedulerDriver} must be
      * set separately.
      */
-    DeregisterStep(StateStore stateStore) {
+    public DeregisterStep(StateStore stateStore) {
         super("deregister", Status.PENDING);
         this.stateStore = stateStore;
     }

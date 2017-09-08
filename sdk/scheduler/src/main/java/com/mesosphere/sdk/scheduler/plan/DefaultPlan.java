@@ -81,4 +81,8 @@ public class DefaultPlan implements Plan {
     public int hashCode() {
         return Objects.hash(getId());
     }
+
+    public List<Phase> getPhases() {
+        return phases;
+    }
 }

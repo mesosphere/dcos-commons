@@ -68,9 +68,9 @@ public class DefaultSchedulerTest {
     @Rule
     public final ExpectedSystemExit exit = ExpectedSystemExit.none();
     @Mock
-    private SchedulerDriver mockSchedulerDriver;
+    protected SchedulerDriver mockSchedulerDriver;
     @Mock
-    private SchedulerFlags mockSchedulerFlags;
+    protected SchedulerFlags mockSchedulerFlags;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
@@ -98,7 +98,7 @@ public class DefaultSchedulerTest {
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
-    private static final PodSpec podA = TestPodFactory.getPodSpec(
+    protected static final PodSpec podA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
@@ -109,7 +109,7 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    private static final PodSpec podB = TestPodFactory.getPodSpec(
+    protected static final PodSpec podB = TestPodFactory.getPodSpec(
             TASK_B_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
@@ -164,7 +164,7 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    private static ServiceSpec getServiceSpec(PodSpec... pods) {
+    protected static ServiceSpec getServiceSpec(PodSpec... pods) {
         return DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
@@ -182,12 +182,12 @@ public class DefaultSchedulerTest {
         return mockCapabilities;
     }
 
-    private static Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
+    protected static Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
         return getCapabilities(DEFAULT_GPU_POLICY);
     }
 
-    private StateStore stateStore;
-    private ConfigStore<ServiceSpec> configStore;
+    protected StateStore stateStore;
+    protected ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
 
     @Before
