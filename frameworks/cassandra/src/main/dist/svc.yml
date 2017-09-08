@@ -155,7 +155,10 @@ pods:
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
-                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -f apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml -d ${LOCAL_SEEDS} -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
+                            -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
+                            -d ${LOCAL_SEEDS} \
+                            -p {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} "$t" ;
                     done
                 done
 
