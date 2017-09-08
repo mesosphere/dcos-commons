@@ -37,13 +37,13 @@ This configuration update strategy is analogous to the installation procedure ab
 
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
 ```
 
 The response will look similar to this:
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -138,14 +138,14 @@ The response will look similar to this:
 
 If you want to interrupt a configuration update that is in progress, enter the `interrupt` command.
 
-```
-curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+```bash
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 
 If you query the plan again, the response will look like this (notice `status: "Waiting"`):
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -242,13 +242,13 @@ If you query the plan again, the response will look like this (notice `status: "
 
 Enter the `continue` command to resume the update process.
 
-```
-curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+```bash
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
 
 After you execute the continue operation, the plan will look like this:
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -343,13 +343,13 @@ After you execute the continue operation, the plan will look like this:
 
 # Configuration Options
 
-The following describes the most commonly used features of DC/OS Apache Cassandra and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring a HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
+The following describes the most commonly used features of DC/OS Apache HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
 
 ## Service Configuration
 
 The service configuration object contains properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
 
-```
+```json
 {
     "service": {
         "name": "hdfs",
@@ -388,7 +388,7 @@ The service configuration object contains properties that MUST be specified duri
 The node configuration objects correspond to the configuration for nodes in the HDFS cluster. Node configuration MUST be specified during installation and MAY be modified during configuration updates. All of the properties except `disk` and `disk_type` MAY be modified during the configuration update process.
 
 Example node configuration:
-```
+```json
 	"journal_node": {
 		"cpus": 0.5,
 		"mem": 4096,
@@ -477,7 +477,7 @@ Example node configuration:
 The HDFS file system network configuration, permissions, and compression is configured via the `hdfs` JSON object. Once these properties are set at installation time they can not be reconfigured.
 Example HDFS configuration:
 
-```
+```json
 {
     "hdfs": {
 		"name_node_rpc_port": 9001,
