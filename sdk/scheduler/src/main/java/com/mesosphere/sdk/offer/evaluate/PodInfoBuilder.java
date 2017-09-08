@@ -229,19 +229,18 @@ public class PodInfoBuilder {
             if (useDefaultExecutor) {
                 // Any URIs defined in PodSpec itself.
                 for (URI uri : podSpec.getUris()) {
-                    commandBuilder.addUrisBuilder().setValue(uri.toString());
+                    addURI(commandBuilder, uri.toString());
                 }
 
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                    commandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
-                            .setOutputFile(getConfigTemplateDownloadPath(config))
-                            .setExtract(false);
+                    addURI(commandBuilder, ArtifactResource.getTemplateUrl(
+                            serviceName,
+                            targetConfigurationId,
+                            podSpec.getType(),
+                            taskSpec.getName(),
+                            config.getName()))
+                        .setOutputFile(getConfigTemplateDownloadPath(config))
+                        .setExtract(false);
                 }
 
                 // Secrets are constructed differently from other envvars where the proto is concerned:
@@ -311,12 +310,12 @@ public class PodInfoBuilder {
             }
 
             // Required URIs from the scheduler environment:
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
+            addURI(executorCommandBuilder, schedulerFlags.getLibmesosURI());
+            addURI(executorCommandBuilder, schedulerFlags.getJavaURI());
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {
-                executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
+                addURI(executorCommandBuilder, uri.toString());
             }
 
             // Secrets are constructed differently from other envvars where the proto is concerned:
@@ -332,15 +331,14 @@ public class PodInfoBuilder {
             // Finally any URIs for config templates defined in TaskSpecs.
             for (TaskSpec taskSpec : podSpec.getTasks()) {
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                    executorCommandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
-                            .setOutputFile(getConfigTemplateDownloadPath(config))
-                            .setExtract(false);
+                    addURI(executorCommandBuilder, ArtifactResource.getTemplateUrl(
+                            serviceName,
+                            targetConfigurationId,
+                            podSpec.getType(),
+                            taskSpec.getName(),
+                            config.getName()))
+                        .setOutputFile(getConfigTemplateDownloadPath(config))
+                        .setExtract(false);
                 }
             }
         }
@@ -707,6 +705,12 @@ public class PodInfoBuilder {
             }
         }
         return volumes;
+    }
+
+    private static Protos.CommandInfo.URI.Builder addURI(Protos.CommandInfo.Builder builder, String uri) {
+        return builder.addUrisBuilder()
+                .setCache(true)
+                .setValue(uri);
     }
 
     @Override
