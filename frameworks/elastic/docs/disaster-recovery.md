@@ -1,7 +1,6 @@
 ---
 post_title: Disaster Recovery
 menu_order: 80
-feature_maturity: preview
 enterprise: 'no'
 ---
 

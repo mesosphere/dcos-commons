@@ -1,7 +1,6 @@
 ---
 post_title: Upgrade
 menu_order: 130
-feature_maturity: preview
 enterprise: 'no'
 ---
 
