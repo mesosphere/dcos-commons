@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import org.apache.commons.collections.MapUtils;
@@ -10,6 +11,7 @@ import org.apache.commons.collections.MapUtils;
  * cluster being run on.
  */
 public class CapabilityValidator {
+
     public void validate(ServiceSpec serviceSpec) throws CapabilityValidationException {
         validateGpuPolicy(serviceSpec);
         validateResourceRefinement(serviceSpec);
@@ -18,15 +20,26 @@ public class CapabilityValidator {
         }
     }
 
-    private void validateGpuPolicy(ServiceSpec serviceSpec) throws CapabilityValidationException {
-        if (DefaultService.serviceSpecRequestsGpuResources(serviceSpec)
+    private static void validateGpuPolicy(ServiceSpec serviceSpec) throws CapabilityValidationException {
+        if (serviceSpecRequestsGpuResources(serviceSpec)
                 && !Capabilities.getInstance().supportsGpuResource()) {
             throw new CapabilityValidationException(
                     "This cluster's DC/OS version does not support setting GPU_RESOURCE");
         }
     }
 
-    private void validateResourceRefinement(ServiceSpec serviceSpec) throws CapabilityValidationException {
+    public static boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
+        boolean usesGpus = serviceSpec.getPods().stream()
+                .flatMap(podSpec -> podSpec.getTasks().stream())
+                .flatMap(taskSpec -> taskSpec.getResourceSet().getResources().stream())
+                .anyMatch(resourceSpec -> resourceSpec.getName().equals("gpus")
+                        && resourceSpec.getValue().getScalar().getValue() >= 1);
+        // control automatic opt-in to scarce resources (GPUs) here. If the framework specifies GPU resources >= 1
+        // then we opt-in to scarce resource, otherwise follow the default policy (which as of 8/3/17 was to opt-out)
+        return usesGpus || DcosConstants.DEFAULT_GPU_POLICY;
+    }
+
+    private static void validateResourceRefinement(ServiceSpec serviceSpec) throws CapabilityValidationException {
         // All pre-reserved-roles should be "*" if the capability is not supported
         if (!Capabilities.getInstance().supportsPreReservedResources()) {
             boolean hasPreReservedRoles = serviceSpec.getPods().stream()
@@ -40,7 +53,7 @@ public class CapabilityValidator {
         }
     }
 
-    private void validate(PodSpec podSpec) throws CapabilityValidationException {
+    private static void validate(PodSpec podSpec) throws CapabilityValidationException {
         if (!podSpec.getRLimits().isEmpty() && !Capabilities.getInstance().supportsRLimits()) {
             throw new CapabilityValidationException(
                     "This cluster's DC/OS version does not support setting rlimits");

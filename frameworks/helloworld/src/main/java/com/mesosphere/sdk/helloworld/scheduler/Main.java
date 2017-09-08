@@ -2,8 +2,10 @@ package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.DefaultService;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import java.io.File;
 import java.util.Collections;
@@ -20,11 +22,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         if (args.length > 0) {
-            new DefaultService(new File(args[0]), schedulerFlags).run();
+            DefaultService.fromRawServiceSpec(
+                    RawServiceSpec.newBuilder(new File(args[0])).build(), schedulerFlags).run();
         } else {
             // Example of building a custom ServiceSpec entirely in Java without a YAML file:
             TaskEnvRouter taskEnvRouter = new TaskEnvRouter();
-            new DefaultService(DefaultServiceSpec.newBuilder()
+            DefaultService.fromServiceSpec(DefaultServiceSpec.newBuilder()
                     .name("hello-world")
                     .principal("hello-world-principal")
                     .zookeeperConnection("master.mesos:2181")

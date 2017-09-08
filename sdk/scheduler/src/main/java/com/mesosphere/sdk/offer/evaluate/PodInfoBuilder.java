@@ -16,7 +16,6 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -599,10 +598,10 @@ public class PodInfoBuilder {
         return netInfoBuilder.build();
     }
 
-    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
+    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimitSpec> rlimits) {
         Protos.RLimitInfo.Builder rLimitInfoBuilder = Protos.RLimitInfo.newBuilder();
 
-        for (RLimit rLimit : rlimits) {
+        for (RLimitSpec rLimit : rlimits) {
             Optional<Long> soft = rLimit.getSoft();
             Optional<Long> hard = rLimit.getHard();
             Protos.RLimitInfo.RLimit.Builder rLimitsBuilder = Protos.RLimitInfo.RLimit.newBuilder()

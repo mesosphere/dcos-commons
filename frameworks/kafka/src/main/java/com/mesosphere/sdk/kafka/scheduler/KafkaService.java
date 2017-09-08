@@ -7,9 +7,10 @@ import com.mesosphere.sdk.kafka.api.KafkaZKClient;
 import com.mesosphere.sdk.kafka.api.TopicResource;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
@@ -29,7 +30,7 @@ public class KafkaService extends DefaultService {
         super(createSchedulerBuilder(pathToYamlSpecification));
     }
 
-    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification) throws Exception {
+    private static SchedulerBuilder createSchedulerBuilder(File pathToYamlSpecification) throws Exception {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
 
@@ -43,7 +44,7 @@ public class KafkaService extends DefaultService {
         }
         LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
 
-        DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
+        SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
                         .setAllPodsEnv(KAFKA_ZK_URI_ENV, kafkaZookeeperUri)
                         .build(), schedulerFlags)

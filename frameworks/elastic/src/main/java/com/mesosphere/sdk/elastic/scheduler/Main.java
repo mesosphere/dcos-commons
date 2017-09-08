@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
@@ -24,13 +25,13 @@ public class Main {
             RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(new File(args[0])).build();
             SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
             // Elastic is unhappy if cluster.name contains slashes. Replace any slashes with double-underscores:
-            DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
+            SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(
                     DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
                             .setAllPodsEnv("CLUSTER_NAME", SchedulerUtils.withEscapedSlashes(rawServiceSpec.getName()))
                             .build(),
                     schedulerFlags)
                     .setPlansFrom(rawServiceSpec);
-            new DefaultService(schedulerBuilder).run();
+            DefaultService.fromSchedulerBuilder(schedulerBuilder).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);

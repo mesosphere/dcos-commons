@@ -61,7 +61,7 @@ import static org.mockito.Mockito.*;
  * This class tests the DefaultScheduler class.
  */
 @SuppressWarnings({"PMD.TooManyStaticImports", "PMD.AvoidUsingHardCodedIP"})
-public class DefaultSchedulerTest {
+public class SchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
@@ -220,7 +220,7 @@ public class DefaultSchedulerTest {
                         .placementRule(TestPlacementUtils.PASS)
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
+        SchedulerBuilder.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -230,7 +230,7 @@ public class DefaultSchedulerTest {
                         .placementRule(new PlacementRuleMissingEquality())
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
+        SchedulerBuilder.createConfigStore(
                 serviceSpecification, Arrays.asList(PlacementRuleMissingEquality.class), new MemPersister());
     }
 
@@ -241,7 +241,7 @@ public class DefaultSchedulerTest {
                         .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
+        SchedulerBuilder.createConfigStore(
                 serviceSpecification, Arrays.asList(PlacementRuleMismatchedAnnotations.class), new MemPersister());
     }
 
@@ -252,7 +252,7 @@ public class DefaultSchedulerTest {
                         .placementRule(TestPlacementUtils.PASS)
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
+        SchedulerBuilder.createConfigStore(
                 serviceSpecification, Arrays.asList(TestPlacementUtils.PASS.getClass()), new MemPersister());
     }
 
@@ -801,7 +801,7 @@ public class DefaultSchedulerTest {
         Collection<Plan> plans = getDeployUpdatePlans();
         ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
         when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE);
-        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+        plans = SchedulerBuilder.overrideDeployPlan(plans, updateResult);
 
         Plan deployPlan = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
@@ -815,7 +815,7 @@ public class DefaultSchedulerTest {
         Collection<Plan> plans = getDeployUpdatePlans();
         ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
         when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
-        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+        plans = SchedulerBuilder.overrideDeployPlan(plans, updateResult);
 
         Plan deployPlan = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))

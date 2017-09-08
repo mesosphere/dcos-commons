@@ -15,7 +15,6 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.mesos.Protos;
 
 import java.io.File;
@@ -206,10 +205,10 @@ public class YAMLToInternalMappers {
         }
 
         if (containerInfoProvider != null) {
-            List<RLimit> rlimits = new ArrayList<>();
+            List<RLimitSpec> rlimits = new ArrayList<>();
             for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
                 RawRLimit rawRLimit = entry.getValue();
-                rlimits.add(new RLimit(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
+                rlimits.add(new RLimitSpec(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
             }
 
             WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();

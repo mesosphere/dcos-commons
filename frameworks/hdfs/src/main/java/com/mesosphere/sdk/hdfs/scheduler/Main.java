@@ -8,6 +8,8 @@ import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -40,21 +42,22 @@ public class Main {
         if (args.length > 0) {
             // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
 
-            new DefaultService(getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
+            DefaultService.fromSchedulerBuilder(
+                    getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
         }
     }
 
-    private static DefaultScheduler.Builder getBuilder(RawServiceSpec rawServiceSpec)
+    private static SchedulerBuilder getBuilder(RawServiceSpec rawServiceSpec)
             throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .build();
-        DefaultScheduler.Builder builder = DefaultScheduler
+        SchedulerBuilder builder = DefaultScheduler
                 .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerFlags)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec);

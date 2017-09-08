@@ -15,8 +15,9 @@ import org.apache.mesos.Protos;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.DefaultService;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.specification.util.RLimit;
+import com.mesosphere.sdk.specification.util.RLimitSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -530,14 +531,14 @@ public class DefaultServiceSpecTest {
         }
     }
 
-    @Test(expected = RLimit.InvalidRLimitException.class)
+    @Test(expected = RLimitSpec.InvalidRLimitException.class)
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
         DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
     }
 
-    @Test(expected = RLimit.InvalidRLimitException.class)
+    @Test(expected = RLimitSpec.InvalidRLimitException.class)
     public void invalidRLimitNameLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-legacy-name.yml").getFile());

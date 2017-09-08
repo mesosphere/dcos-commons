@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.specification.util;
+package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +14,7 @@ import java.util.*;
  * A valid instance of this class has either both limits set or neither, with the further constraint that the soft limit
  * must be less than or equal to the hard limit.
  */
-public class RLimit {
+public class RLimitSpec {
     private static final Map<String, Protos.RLimitInfo.RLimit.Type> RLIMITS = new HashMap<>();
 
     static {
@@ -27,7 +27,7 @@ public class RLimit {
     private final Long soft;
     private final Long hard;
 
-    public RLimit(
+    public RLimitSpec(
             @JsonProperty("name") String name,
             @JsonProperty("soft") Long soft,
             @JsonProperty("hard") Long hard) throws InvalidRLimitException {
@@ -71,7 +71,7 @@ public class RLimit {
     }
 
     /**
-     * An exception for errors pertaining to {@link RLimit}.
+     * An exception for errors pertaining to {@link RLimitSpec}.
      */
     public static class InvalidRLimitException extends Exception {
         public InvalidRLimitException(String s) {

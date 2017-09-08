@@ -130,12 +130,11 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testHandleInvalidConfig() throws Exception {
-        final ConfigurationUpdater<ServiceSpec> configurationUpdater =
-                new DefaultConfigurationUpdater(
-                        mockStateStore,
-                        mockConfigStore,
-                        DefaultServiceSpec.getComparatorInstance(),
-                        DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -165,12 +164,11 @@ public class ConfigurationUpdaterTest {
 
     @Test
     public void testHandleInvalidConfigSameConfig() throws Exception {
-        final ConfigurationUpdater<ServiceSpec> configurationUpdater =
-                new DefaultConfigurationUpdater(
-                        mockStateStore,
-                        mockConfigStore,
-                        DefaultServiceSpec.getComparatorInstance(),
-                        DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultScheduler.defaultConfigValidators(OfferRequirementTestUtils.getTestSchedulerFlags()));
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, NEW_ID, UNKNOWN_ID));
