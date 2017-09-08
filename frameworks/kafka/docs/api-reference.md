@@ -26,16 +26,16 @@ If you are using Enterprise DC/OS, the security mode of your installation may al
 
 For ongoing maintenance of the Kafka cluster itself, the Kafka service exposes an HTTP API whose structure is designed to roughly match the tools provided by the Kafka distribution, such as `bin/kafka-topics.sh`.
 
-The examples here provide equivalent commands using both the [DC/OS CLI](https://github.com/mesosphere/dcos-cli) (with the `kafka` CLI module installed) and `curl`. These examples assume a service named `kafka` (the default), and the `curl` examples assume a DC/OS cluster path of `<dcos_url>`. Replace these with appropriate values as needed.
+The examples here provide equivalent commands using both the [DC/OS CLI](https://github.com/mesosphere/dcos-cli) (with the `kafka` CLI module installed) and `curl`. These examples assume a service named `kafka` (the default), and the `curl` examples assume that the DC/OS cluster path has been stored in an environment variable `$dcos_url`. Replace these with appropriate values as needed.
 
 The `dcos kafka` CLI commands have a `--name` argument, allowing the user to specify which Kafka instance to query. The value defaults to `kafka`, so it's technically redundant to specify `--name=kafka` in these examples.
 
 # Connection Information
 
-Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the `/connection` endpoint:
+Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the `/endpoints` endpoint:
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/endpoints/broker"
 {
     "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
     "address": [
@@ -85,7 +85,7 @@ $ dcos kafka --name=kafka broker list
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/brokers"
 [
     "0",
     "1",
@@ -93,6 +93,8 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/broker
 ]
 ```
 
+<!--
+TODO: This command fails
 ## Restart Single Broker
 
 Restarts the broker in-place.
@@ -105,12 +107,15 @@ $ dcos kafka --name=kafka broker restart 0
 ```
 
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/brokers/0"
 [
     "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
 ]
 ```
+<-->
 
+<!--
+TODO: This command fails
 ## Replace Single Broker
 
 Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.
@@ -123,12 +128,12 @@ $ dcos kafka --name=kafka broker replace 0
 ```
 
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0?replace=true"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/brokers/0?replace=true"
 [
     "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
 ]
 ```
-
+-->
 # Topic Operations
 
 These operations mirror what is available with `bin/kafka-topics.sh`.
@@ -144,7 +149,7 @@ $ dcos kafka --name=kafka topic list
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics"
 [
     "topic1",
     "topic0"
@@ -201,7 +206,7 @@ $ dcos kafka --name=kafka topic describe topic1
 ```
 
 ```bash
-$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
+$ curl -X GET -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1"
 {
     "partitions": [
         {
@@ -260,7 +265,7 @@ $ dcos kafka --name=kafka topic create topic1 --partitions=3 --replication=3
 Commenting this out as a 503 error is being raise.
 TODO: Replace this with the correct command.
 ```bash
-$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics?name=topic1&partitions=3&replication=3"
+$ curl -X POST -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics?name=topic1&partitions=3&replication=3"
 {
     "message": "Output: Created topic "topic1".n"
 }
@@ -286,8 +291,10 @@ $ dcos kafka --name=kafka topic offsets topic1 --time=last
 ]
 ```
 
+<!--
+TODO: This command fails
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1/offsets?time=last"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1/offsets?time=last"
 
 [
     {
@@ -301,6 +308,7 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics
     }
 ]
 ```
+<-->
 
 ## Alter Topic Partition Count
 
@@ -311,13 +319,15 @@ $ dcos kafka --name=kafka topic partitions topic1 2
 }
 ```
 
+<!--
+TODO: Command fails
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=partitions&partitions=2"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1?operation=partitions&partitions=2"
 {
     "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affected\nAdding partitions succeeded!\n"
 }
 ```
-
+<-->
 ## Run Producer Test on Topic
 
 ```bash
@@ -327,23 +337,26 @@ $ dcos kafka --name=kafka topic producer_test topic1 10
 }
 ```
 
+<!--
+TODO: Command fails
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=producer-test&messages=10"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1?operation=producer-test&messages=10"
 {
     "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
 }
 ```
+<-->
 
-Runs the equivalent of the following command from the machine running the Kafka Scheduler:
-
+This runs the equivalent of the following command from the machine running the Kafka Scheduler:
 ```bash
 $ kafka-producer-perf-test.sh \
-    --topic <topic> \
-    --num-records <messages> \
+    --topic topic1 \
+    --num-records 10 \
     --throughput 100000 \
     --record-size 1024 \
     --producer-props bootstrap.servers=<current broker endpoints>
 ```
+An example of running commands on the scheduler is described in the [Quick-Start Guid](quick-start.md).
 
 ## Delete Topic
 
@@ -355,7 +368,7 @@ $ dcos kafka --name=kafka topic delete topic1
 ```
 
 ```bash
-$ curl -X DELETE -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
+$ curl -X DELETE -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1"
 {
     "message": "Topic topic1 is marked for deletion.\nNote: This will have no impact if delete.topic.enable is not set to true.\n"
 }
@@ -373,7 +386,7 @@ $ dcos kafka --name=kafka topic under_replicated_partitions
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/under_replicated_partitions"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/under_replicated_partitions"
 {
     "message": ""
 }
@@ -389,7 +402,7 @@ $ dcos kafka --name=kafka topic unavailable_partitions
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/unavailable_partitions"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/unavailable_partitions"
 {
     "message": ""
 }
@@ -402,7 +415,7 @@ Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if
 You can use this request to troubleshoot: if you think Kafka should be receiving resource offers, but is not, you can use this API call to see if Kafka is suppressed. You will receive a response of `true` or `false`.
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/state/properties/suppressed"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/state/properties/suppressed"
 ```
 
 # Config History
@@ -420,7 +433,7 @@ $ dcos kafka --name=kafka config list
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/configurations"
 [
     "319ebe89-42e2-40e2-9169-8568e2421023",
     "294235f2-8504-4194-b43d-664443f2132b"
@@ -436,17 +449,18 @@ $ dcos kafka --name=kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
 ```
 
 Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
-is provided in Appendix A.
+is provided in [Appendix A](.#appendix-a-configuration-resource).
 
 The equivalent DC/OS API resource request follows:
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
 ```
 
 The CLI output for viewing a specific configuration matches the API output.
 
-
+<!--
+TODO: This section seems out of place because there is no config chage discussed
 ## Describe Target Configuration
 
 The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as `BROKER_MEM`):
@@ -456,14 +470,14 @@ $ dcos kafka --name=kafka config target
 ```
 
 Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
-is provided in Appendix A.
+is provided in [Appendix A](.#appendix-a-configuration-resource).
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations/target"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/configurations/target"
 ```
 
 The CLI output for viewing a specific configuration matches the API output.
-
+<-->
 
 # Config Updates
 
@@ -473,6 +487,9 @@ These options relate to viewing and controlling rollouts and configuration updat
 
 Displays all Phases and Steps in the service Plan. If a rollout is currently in progress, this returns a 503 HTTP code with response content otherwise unchanged.
 
+<!--
+TODO: I changed this to reference the deploy plan. This isn't the same as the REST API below
+<-->
 ```bash
 $ dcos kafka --name=kafka plan show deploy --json
 {
@@ -522,7 +539,7 @@ $ dcos kafka --name=kafka plan show deploy --json
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan"
 {
     "phases": [
     {
@@ -569,6 +586,9 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
 }
 ```
 
+<!--
+TODO: These upgrade instructions need to be updated. The `continue` and `interrupt` subbommands are
+not valid in this context.
 ## Upgrade Interaction
 
 These operations are only applicable when `PHASE_STRATEGY` is set to `STAGE`, they have no effect when it is set to `INSTALL`. See the Changing Configuration at Runtime part of the Configuring section for more information.
@@ -577,17 +597,21 @@ These operations are only applicable when `PHASE_STRATEGY` is set to `STAGE`, th
 
 ```bash
 $ dcos kafka --name=kafka continue
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/continue"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan/continue"
 ```
 
 ### Interrupt
 
 ```bash
 $ dcos kafka --name=kafka interrupt
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/interrupt"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan/interrupt"
 ```
+<-->
 
 [15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
+
+<!--
+TODO: It may be better to refer to a config.json file elsewhere, as this requires updates if the format changes (e.g principal)<-->
 
 # Appendix A - Configuration Resource
 
