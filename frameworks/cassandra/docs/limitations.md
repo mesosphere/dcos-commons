@@ -37,6 +37,24 @@ The name of the data center cannot be changed after installation. `service.data_
 }
 ```
 
+## Service user
+
+The default user is `nobody`. However, if the UID of `nobody` is not `65534` on the host agents, then Cassandra must be run as `root`.
+
+To determine the UID of `nobody`, run the command `id nobody`. The output of which is:
+```
+uid=65534(nobody) gid=65534(nobody) groups=65534(nobody)
+```
+
+If the returned UID is not `65534`, then Cassandra can be installed as root by setting the service user at install time:
+```
+"service": {
+        "user": "root",
+        ...
+}
+...
+```
+
 ## Out-of-band configuration
 
 Out-of-band configuration modifications are not supported. The service's core responsibility is to deploy and maintain the service with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will override those modifications at a later time. For example:
