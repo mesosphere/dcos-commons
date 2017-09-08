@@ -76,64 +76,63 @@ Increase the `BROKER_COUNT` value via Marathon. This should be rolled as in any 
 ## List All Brokers
 
 ```bash
-$ dcos kafka --name=kafka broker list
+$ dcos kafka --name=kafka pod list
 [
-    "0",
-    "1",
-    "2"
+    "kafka-0",
+    "kafka-1",
+    "kafka-2"
 ]
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/brokers"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/pod"
 [
-    "0",
-    "1",
-    "2"
+    "kafka-0",
+    "kafka-1",
+    "kafka-2"
 ]
 ```
 
-<!--
-TODO: This command fails
 ## Restart Single Broker
 
 Restarts the broker in-place.
 
 ```bash
-$ dcos kafka --name=kafka broker restart 0
+$ dcos kafka --name=kafka pod restart kafka-1
 [
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+  "pod": "kafka-1",
+  "tasks": ["kafka-1-broker"]
 ]
 ```
 
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/brokers/0"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/pod/kafka-1/restart"
 [
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+  "pod": "kafka-1",
+  "tasks": ["kafka-1-broker"]
 ]
 ```
-<-->
 
-<!--
-TODO: This command fails
 ## Replace Single Broker
 
 Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.
 
 ```bash
-$ dcos kafka --name=kafka broker replace 0
+$ dcos kafka --name=kafka pod replace kafka-1
 [
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+  "pod": "kafka-1",
+  "tasks": ["kafka-1-broker"]
 ]
 ```
 
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/brokers/0?replace=true"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/pod/kafka-1/replace"
 [
-    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+  "pod": "kafka-1",
+  "tasks": ["kafka-1-broker"]
 ]
 ```
--->
+
 # Topic Operations
 
 These operations mirror what is available with `bin/kafka-topics.sh`.
@@ -261,16 +260,12 @@ $ dcos kafka --name=kafka topic create topic1 --partitions=3 --replication=3
 }
 ```
 
-<!--
-Commenting this out as a 503 error is being raise.
-TODO: Replace this with the correct command.
 ```bash
-$ curl -X POST -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics?name=topic1&partitions=3&replication=3"
+$ curl -X POST -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1?partitions=3&replication=3"
 {
-    "message": "Output: Created topic "topic1".n"
+    "message": "Output: Created topic \"topic1\"\n"
 }
 ```
-<-->
 
 ## View Topic Offsets
 
@@ -291,10 +286,8 @@ $ dcos kafka --name=kafka topic offsets topic1 --time=last
 ]
 ```
 
-<!--
-TODO: This command fails
 ```bash
-$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1/offsets?time=last"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1/offsets?time=-1"
 
 [
     {
@@ -319,15 +312,13 @@ $ dcos kafka --name=kafka topic partitions topic1 2
 }
 ```
 
-<!--
-TODO: Command fails
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1?operation=partitions&partitions=2"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1/operation/partitions?name=topic1&partitions=2"
 {
     "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affected\nAdding partitions succeeded!\n"
 }
 ```
-<-->
+
 ## Run Producer Test on Topic
 
 ```bash
@@ -337,15 +328,12 @@ $ dcos kafka --name=kafka topic producer_test topic1 10
 }
 ```
 
-<!--
-TODO: Command fails
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1?operation=producer-test&messages=10"
+$ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/topics/topic1/operation/producer-test?messages=10"
 {
     "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
 }
 ```
-<-->
 
 This runs the equivalent of the following command from the machine running the Kafka Scheduler:
 ```bash
@@ -459,8 +447,6 @@ $ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/configu
 
 The CLI output for viewing a specific configuration matches the API output.
 
-<!--
-TODO: This section seems out of place because there is no config chage discussed
 ## Describe Target Configuration
 
 The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as `BROKER_MEM`):
@@ -477,7 +463,6 @@ $ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/configu
 ```
 
 The CLI output for viewing a specific configuration matches the API output.
-<-->
 
 # Config Updates
 
@@ -487,9 +472,6 @@ These options relate to viewing and controlling rollouts and configuration updat
 
 Displays all Phases and Steps in the service Plan. If a rollout is currently in progress, this returns a 503 HTTP code with response content otherwise unchanged.
 
-<!--
-TODO: I changed this to reference the deploy plan. This isn't the same as the REST API below
-<-->
 ```bash
 $ dcos kafka --name=kafka plan show deploy --json
 {
@@ -539,7 +521,7 @@ $ dcos kafka --name=kafka plan show deploy --json
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan"
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan/deploy"
 {
     "phases": [
     {
@@ -567,51 +549,48 @@ $ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan"
         },
         {
             "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
-            "status": "COMPLETE",
+            "status": "IN_PROGRESS",
             "name": "broker-1",
-            "message": "Broker-1 is COMPLETE"
+            "message": "Broker-1 is IN_PROGRESS"
         },
         {
             "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
-            "status": "COMPLETE",
+            "status": "PENDING",
             "name": "broker-2",
-            "message": "Broker-2 is COMPLETE"
+            "message": "Broker-2 is PENDING"
         }
         ],
-        "status": "COMPLETE"
+        "status": "IN_PROGRESS"
     }
     ],
     "errors": [],
-    "status": "COMPLETE"
+    "status": "IN_PROGRESS"
 }
-```
+``
 
-<!--
-TODO: These upgrade instructions need to be updated. The `continue` and `interrupt` subbommands are
-not valid in this context.
 ## Upgrade Interaction
 
 These operations are only applicable when `PHASE_STRATEGY` is set to `STAGE`, they have no effect when it is set to `INSTALL`. See the Changing Configuration at Runtime part of the Configuring section for more information.
 
-### Continue
+### Resume
 
 ```bash
-$ dcos kafka --name=kafka continue
-$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan/continue"
+$ dcos kafka --name=kafka plan continue deploy
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plans/deploy/continue"
 ```
 
 ### Interrupt
 
 ```bash
-$ dcos kafka --name=kafka interrupt
-$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plan/interrupt"
+$ dcos kafka --name=kafka plan pause deploy
+$ curl -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/plans/deploy/interrupt"
 ```
 <-->
 
 [15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
 
 <!--
-TODO: It may be better to refer to a config.json file elsewhere, as this requires updates if the format changes (e.g principal)<-->
+TODO: +1 It may be better to refer to a config.json file elsewhere, as this requires updates if the format changes (e.g principal)<-->
 
 # Appendix A - Configuration Resource
 
