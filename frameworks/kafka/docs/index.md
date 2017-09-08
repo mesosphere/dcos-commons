@@ -1,7 +1,6 @@
 ---
 post_title: Kafka
 menu_order: 90
-feature_maturity: preview
 enterprise: 'no'
 ---
 
