@@ -203,9 +203,10 @@ def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
 
 
 @as_json
-def create_index(index_name, params, service_name=SERVICE_NAME):
+def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}' -d '{}'".format(_curl_api(service_name, "PUT"), index_name, json.dumps(params)))
+        "{}/{}' -d '{}'".format(
+            _curl_api(service_name, "PUT", https=https), index_name, json.dumps(params)))
     return output
 
 
@@ -223,31 +224,33 @@ def get_xpack_license(service_name=SERVICE_NAME):
 
 
 @as_json
-def delete_index(index_name, service_name=SERVICE_NAME):
+def delete_index(index_name, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}'".format(_curl_api(service_name, "DELETE"), index_name))
+        "{}/{}'".format(_curl_api(service_name, "DELETE", https=https), index_name))
     return output
 
 
 @as_json
-def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME):
+def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/{}/{}?refresh=wait_for' -d '{}'".format(
-            _curl_api(service_name, "PUT"), index_name, index_type, doc_id, json.dumps(params)))
+            _curl_api(service_name, "PUT", https=https), index_name, index_type, doc_id, json.dumps(params)))
     return output
 
 
 @as_json
-def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME):
+def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/{}/{}'".format(_curl_api(service_name, "GET"), index_name, index_type, doc_id))
+        "{}/{}/{}/{}'".format(
+            _curl_api(service_name, "GET", https=https), index_name, index_type, doc_id))
     return output
 
 
-def _curl_api(service_name, method, role="master"):
-    host = "http://" + sdk_hosts.autoip_host(
+def _curl_api(service_name, method, role="master", https=False):
+    protocol = 'https://' if https else 'http://'
+    host = protocol + sdk_hosts.autoip_host(
         service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
+    return ("/opt/mesosphere/bin/curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):

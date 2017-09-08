@@ -50,6 +50,14 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
 
+    {{#service.tls}}
+    "TASKCFG_ALL_ELASTIC_ENABLE_TLS": "{{service.tls}}",
+    "ELASTICSEARCH_HEALTH_PROTOCOL": "https",
+    {{/service.tls}}
+    {{^service.tls}}
+    "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
+    {{/service.tls}}
+
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
