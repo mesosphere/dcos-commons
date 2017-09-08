@@ -34,6 +34,7 @@ public class StateStoreUtils {
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
     public static final String FILE_NAME_PREFIX = "file-";
+    public static final String FILE_ENCODING = "UTF-8";
 
     private StateStoreUtils() {
         // do not instantiate
@@ -319,7 +320,7 @@ public class StateStoreUtils {
      */
     public static String getFile(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
         fileName = FILE_NAME_PREFIX + fileName;
-        return new String(stateStore.fetchProperty(fileName), "UTF-8");
+        return new String(stateStore.fetchProperty(fileName), FILE_ENCODING);
     }
 
     /**
@@ -331,9 +332,9 @@ public class StateStoreUtils {
     public static void storeFile(StateStore stateStore, String fileName, InputStream uploadedInputStream)
             throws StateStoreException, IOException {
         StringWriter stringWriter = new StringWriter();
-        IOUtils.copy(uploadedInputStream, stringWriter, "UTF-8");
+        IOUtils.copy(uploadedInputStream, stringWriter, FILE_ENCODING);
         fileName = FILE_NAME_PREFIX + fileName;
-        stateStore.storeProperty(fileName, stringWriter.toString().getBytes());
+        stateStore.storeProperty(fileName, stringWriter.toString().getBytes(FILE_ENCODING));
     }
 
     /**
@@ -345,6 +346,7 @@ public class StateStoreUtils {
     public static Collection<String> getFileNames(StateStore stateStore) {
         return stateStore.fetchPropertyKeys().stream()
                 .filter(key -> key.startsWith(FILE_NAME_PREFIX))
+                .map(file_name -> file_name.replaceFirst(FILE_NAME_PREFIX, ""))
                 .collect(Collectors.toSet());
     }
 
