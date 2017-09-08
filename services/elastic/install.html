@@ -471,6 +471,52 @@ dcos:adminrouter:ops:slave full
 </div>
 <p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
 
+<h2 id="tls">TLS</h2>
+
+<p>The Elastic service can be launched with TLS encryption. Enabling TLS will switch all internal communication between Elastic nodes to encrypted connections.</p>
+
+<p>Enabling TLS is only possible in <code class="highlighter-rouge">permissive</code> and <code class="highlighter-rouge">strict</code> cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the <code class="highlighter-rouge">dcos:superuser</code> permission. If the permission is missing the Elastic scheduler will not abe able to provision TLS artifacts.</p>
+
+<p>Installing Elastic with TLS support requires enabling the <a href="x-pack.md">X-Pack</a>.</p>
+
+<p>Sample JSON options file named <code class="highlighter-rouge">elastic-tls.json</code>:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"service_account_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"elastic"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"service_account"</span><span class="p">:</span><span class="w"> </span><span class="s2">"elastic"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"tls"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nt">"elasticsearch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"xpack_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>For more information about TLS in the SDK see <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#tls">the TLS documentation</a>.</p>
+
+<h3 id="clients">Clients</h3>
+
+<p>Clients connecting to the Elastic service are required to use <a href="https://docs.mesosphere.com/1.10/networking/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the TLS connections.</p>
+
+<h3 id="kibana">Kibana</h3>
+
+<p>When the Elastic service is deployed on DC/OS with TLS support Kibana, acting as an Elastic client, must be configured to verify TLS with the DC/OS CA bundle. To install the DC/OS CA bundle launch Kibana with the following configuration.</p>
+
+<p>Sample JSON options file named <code class="highlighter-rouge">kibana-tls.json</code>:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"kibana"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"xpack_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"elasticsearch_url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://coordinator.elastic.l4lb.thisdcos.directory:9200"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"elasticsearch_tls"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Similarly to Elastic, Kibana requires <a href="x-pack.md">X-Pack</a> to be installed. The Kibana package itself doesn’t support exposing itself over a TLS connection.</p>
+
 </div>
 </div>
 </body>
