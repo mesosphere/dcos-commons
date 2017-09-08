@@ -117,10 +117,6 @@ To make configuration changes via scheduler environment updates, perform the fol
 
 To see a full listing of available options, run `dcos package describe --config kafka` in the CLI, or browse the Apache Kafka install dialog in the DC/OS web interface.
 
-# Add a Broker
-
-Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other configuration update.
-
 # Upgrade Software
 
 1.  In the DC/OS web interface, destroy the Kafka scheduler to be updated.

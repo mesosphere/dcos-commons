@@ -484,5 +484,5 @@ Set the amount of time after the delay before health check failures count toward
 * **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_MAX_FAILURES`: `3`
 
  [8]: #broker-count
- [11]: https://github.com/mesosphere/universe/tree/1-7ea/repo/packages/K/kafka/6
+ [11]: https://github.com/mesosphere/universe/tree/version-3.x/repo/packages/K/kafka/39
  [12]: #changing-configuration-at-runtime
