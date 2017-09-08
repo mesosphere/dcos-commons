@@ -1,6 +1,6 @@
 ---
 post_title: X-Pack
-menu_order: 31
+menu_order: 21
 feature_maturity: preview
 enterprise: 'no'
 ---
