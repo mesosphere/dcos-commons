@@ -26,6 +26,7 @@ def test_backup_and_restore():
     }
 
     with sdk_jobs.InstallJobContext([
+            config.get_write_data_job(),
             config.get_verify_data_job(),
             config.get_delete_data_job(),
             config.get_verify_deletion_job()]):
