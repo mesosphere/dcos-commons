@@ -9,8 +9,6 @@ import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -19,7 +17,6 @@ import java.util.*;
  * Cassandra Service.
  */
 public class Main {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) throws Exception {
         new DefaultService(createSchedulerBuilder(new File(args[0]))).run();
     }
@@ -30,7 +27,7 @@ public class Main {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
         return DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
                         .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
                         .build(),
                 schedulerFlags)

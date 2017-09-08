@@ -21,11 +21,13 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
-            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(new File(args[0])).build();
+            File pathToYamlSpecification = new File(args[0]);
+            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
             SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
             // Elastic is unhappy if cluster.name contains slashes. Replace any slashes with double-underscores:
             DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
-                    DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                    DefaultServiceSpec.newGenerator(
+                            rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
                             .setAllPodsEnv("CLUSTER_NAME", SchedulerUtils.withEscapedSlashes(rawServiceSpec.getName()))
                             .build(),
                     schedulerFlags)

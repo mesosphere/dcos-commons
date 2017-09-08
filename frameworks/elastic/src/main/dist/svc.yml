@@ -59,8 +59,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
@@ -126,8 +126,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
@@ -193,8 +193,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
@@ -260,8 +260,8 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
