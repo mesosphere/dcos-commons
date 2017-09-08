@@ -37,9 +37,9 @@ The name of the data center cannot be changed after installation. `service.data_
 }
 ```
 
-## Service User
+## Service user
 
-The default user is `nobody`. However, if the UID of `nobody` is not `65534` on the host agents, then Cassandra must be run as root.
+The default user is `nobody`. However, if the UID of `nobody` is not `65534` on the host agents, then Cassandra must be run as `root`.
 
 To determine the UID of `nobody`, run the command `id nobody`. The output of which is:
 ```
