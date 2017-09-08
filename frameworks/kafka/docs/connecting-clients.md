@@ -18,7 +18,7 @@ The only supported client library is the official Kafka Java library, i.e., `org
 The following command can be executed from the cli in order to retrieve a set of brokers to connect to.
 
 ```bash
-dcos kafka --name=<name> endpoints broker
+$ dcos kafka --name=<name> endpoints broker
 ```
 
 <a name="using-the-rest-api"></a>
@@ -50,7 +50,7 @@ $ export auth_token=uSeR_t0k3n
 
 Then, use this token to authenticate requests to the Kafka Service:
 
-```bahs
+```bash
 $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
 ```
 

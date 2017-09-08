@@ -289,9 +289,9 @@ This operation will move a broker to a new system and will discard the persisten
 
 For example, let's say `kafka-0`'s host system has died and `kafka-0` needs to be moved.
 
-	```
-	dcos kafka pod replace kafka-0
-	```
+```bash
+$ dcos kafka pod replace kafka-0
+```
 
 <a name="disaster-recovery"></a>
 # Disaster Recovery
