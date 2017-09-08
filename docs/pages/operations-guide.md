@@ -747,25 +747,30 @@ This method can be used mapping any configuration setting (applicable during ini
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
-Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
+Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). In these examples we list the known pods, and then restart the one named `data-1`, which contains a task named `data-1-node`:
 
 Via the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse pod list
+$ dcos hdfs --name=hdfs pod list
 [
-  "dse-0",
-  "dse-1",
-  "dse-2",
-  "opscenter-0",
-  "studio-0"
+  "data-0",
+  "data-1",
+  "data-2",
+  "journal-0",
+  "journal-1",
+  "journal-2",
+  "name-0",
+  "name-1",
+  "zkfc-0",
+  "zkfc-1"
 ]
-$ dcos beta-dse --name=dse pod restart dse-1
+
+$ dcos hdfs --name=hdfs pod restart data-1
 {
-  "pod": "dse-1",
+  "pod": "data-1",
   "tasks": [
-    "dse-1-agent",
-    "dse-1-node"
+    "data-1-node"
   ]
 }
 ```
@@ -773,20 +778,25 @@ $ dcos beta-dse --name=dse pod restart dse-1
 Via the HTTP API directly:
 
 ```bash
-$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/hdfs/v1/pod
 [
-  "dse-0",
-  "dse-1",
-  "dse-2",
-  "opscenter-0",
-  "studio-0"
+  "data-0",
+  "data-1",
+  "data-2",
+  "journal-0",
+  "journal-1",
+  "journal-2",
+  "name-0",
+  "name-1",
+  "zkfc-0",
+  "zkfc-1"
 ]
-$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod/dse-1/restart
+
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/hdfs/v1/pod/data-1/restart
 {
-  "pod": "dse-1",
+  "pod": "data-1",
   "tasks": [
-    "dse-1-agent",
-    "dse-1-node"
+    "data-1-node"
   ]
 }
 ```
@@ -802,23 +812,21 @@ Pod replacement is not currently done automatically by the SDK, as making the co
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
 ```bash
-$ dcos beta-dse --name=dse pod replace dse-1
+$ dcos hdfs --name=hdfs pod replace data-1
 {
-  "pod": "dse-1",
+  "pod": "data-1",
   "tasks": [
-    "dse-1-agent",
-    "dse-1-node"
+    "data-1-node"
   ]
 }
 ```
 
 ```bash
-$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/dse/v1/pod/dse-1/replace
+$ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://yourcluster.com/service/hdfs/v1/pod/data-1/replace
 {
-  "pod": "dse-1",
+  "pod": "data-1",
   "tasks": [
-    "dse-1-agent",
-    "dse-1-node"
+    "data-1-node"
   ]
 }
 ```
@@ -1056,38 +1064,54 @@ These endpoints may also be conveniently accessed using the SDK CLI after instal
 For example, let's get a list of pods using the CLI, and then via the HTTP API:
 
 ```bash
-$ dcos beta-dse --name=dse pod list
+$ dcos hdfs --name=hdfs pod list
 [
-  "dse-0",
-  "dse-1",
-  "dse-2",
-  "opscenter-0",
-  "studio-0"
+  "data-0",
+  "data-1",
+  "data-2",
+  "journal-0",
+  "journal-1",
+  "journal-2",
+  "name-0",
+  "name-1",
+  "zkfc-0",
+  "zkfc-1"
 ]
-$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/dse/v1/pod
+
+$ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dcos-url>/service/hdfs/v1/pod
 [
-  "dse-0",
-  "dse-1",
-  "dse-2",
-  "opscenter-0",
-  "studio-0"
+  "data-0",
+  "data-1",
+  "data-2",
+  "journal-0",
+  "journal-1",
+  "journal-2",
+  "name-0",
+  "name-1",
+  "zkfc-0",
+  "zkfc-1"
 ]
 ```
 
 The `-v` (or `--verbose`) argument allows you to view and diagnose the underlying requests made by the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse -v pod list
+$ dcos hdfs --name=hdfs -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI command: dcos config show core.dcos_url
-2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/hdfs/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.dcos_acs_token
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.ssl_verify
 [
-  "dse-0",
-  "dse-1",
-  "dse-2",
-  "opscenter-0",
-  "studio-0"
+  "data-0",
+  "data-1",
+  "data-2",
+  "journal-0",
+  "journal-1",
+  "journal-2",
+  "name-0",
+  "name-1",
+  "zkfc-0",
+  "zkfc-1"
 ]
 2017/04/25 15:03:44 Response: 200 OK (-1 bytes)
 ```
