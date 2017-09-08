@@ -1,4 +1,3 @@
-import os
 import time
 
 import pytest
@@ -37,20 +36,11 @@ DISCOVERY_TASK_PREFIX = 'discovery-prefix'
 
 
 @pytest.fixture(scope='module')
-def dcos_security_cli():
+def service_account():
     """
-    Installs the dcos enterprise cli.
+    Creates service account and yields the name.
     """
-
-    sdk_cmd.run_cli("package install --yes dcos-enterprise-cli")
-
-
-@pytest.fixture(scope='module')
-def service_account(dcos_security_cli):
-    """
-    Creates service account with `hello-world` name and yields the name.
-    """
-    name = 'hello-world'
+    name = config.SERVICE_NAME
     sdk_security.create_service_account(
         service_account_name=name, service_account_secret=name)
     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
@@ -63,15 +53,19 @@ def service_account(dcos_security_cli):
 
 @pytest.fixture(scope='module')
 def hello_world_service(service_account):
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,
+        config.SERVICE_NAME,
         1,
-        service_name=service_account,
         additional_options={
             "service": {
                 "spec_file": "examples/tls.yml",
                 "service_account": service_account,
                 "service_account_secret": service_account,
+                # Legacy values
+                "principal": service_account,
+                "secret_name": service_account,
                 },
             "tls": {
                 "discovery_task_prefix": DISCOVERY_TASK_PREFIX,
@@ -79,21 +73,20 @@ def hello_world_service(service_account):
             }
         )
 
-    sdk_plan.wait_for_completed_deployment(config.PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     # Wait for service health check to pass
-    shakedown.service_healthy(config.PACKAGE_NAME)
+    shakedown.service_healthy(config.SERVICE_NAME)
 
     # TODO(mh): Add proper wait for health check
     time.sleep(15)
 
     yield service_account
 
-    sdk_install.uninstall(config.PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
     # Make sure that all the TLS artifacts were removed from the secrets store.
-    output = sdk_cmd.run_cli('security secrets list {name}'.format(
-        name=config.PACKAGE_NAME))
+    output = sdk_cmd.run_cli('security secrets list {name}'.format(name=config.SERVICE_NAME))
     artifact_suffixes = [
         'certificate', 'private-key', 'root-ca-certificate',
         'keystore', 'truststore'
@@ -106,12 +99,13 @@ def hello_world_service(service_account):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_java_truststore(hello_world_service):
     """
     Make an HTTP request from CLI to nginx exposed service.
     Test that CLI reads and uses truststore to verify HTTPS connection.
     """
-    task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "keystore")[0]
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "keystore")[0]
     assert task_id
 
     # Make an http request from a CLI app using configured keystore to the
@@ -123,7 +117,7 @@ def test_java_truststore(hello_world_service):
         'java -jar ' + KEYSTORE_APP_JAR_NAME + ' truststoretest '
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
-            config.PACKAGE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
+            config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
     output = task_exec(task_id, command)
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
@@ -134,8 +128,9 @@ def test_java_truststore(hello_world_service):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_tls_basic_artifacts(hello_world_service):
-    task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'artifacts')[0]
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'artifacts')[0]
     assert task_id
 
     # Load end-entity certificate from keystore and root CA cert from truststore
@@ -149,7 +144,7 @@ def test_tls_basic_artifacts(hello_world_service):
     # Check that certificate subject maches the service name
     common_name = end_entity_cert.subject.get_attributes_for_oid(
         NameOID.COMMON_NAME)[0].value
-    assert common_name in sdk_hosts.autoip_host(config.PACKAGE_NAME, 'artifacts-0-node')
+    assert common_name in sdk_hosts.autoip_host(config.SERVICE_NAME, 'artifacts-0-node')
 
     san_extension = end_entity_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
@@ -167,12 +162,13 @@ def test_tls_basic_artifacts(hello_world_service):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_java_keystore(hello_world_service):
     """
     Java `keystore-app` presents itself with provided TLS certificate
     from keystore.
     """
-    task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'artifacts')[0]
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'artifacts')[0]
     assert task_id
 
     # Make a curl request from artifacts container to `keystore-app`
@@ -181,7 +177,7 @@ def test_java_keystore(hello_world_service):
         'curl -v -i '
         '--cacert secure-tls-pod.ca '
         'https://' + sdk_hosts.vip_host(
-            config.PACKAGE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
+            config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
     output = task_exec(task_id, curl, return_stderr_in_stdout=True)
@@ -200,6 +196,7 @@ def test_java_keystore(hello_world_service):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_tls_nginx(hello_world_service):
     """
     Checks that NGINX exposes TLS service with correct PEM encoded end-entity
@@ -209,14 +206,14 @@ def test_tls_nginx(hello_world_service):
     # Use keystore-app `truststoretest` CLI command to run request against
     # the NGINX container to verify that nginx presents itself with end-entity
     # certificate that can be verified by with truststore.
-    task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'keystore')[0]
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'keystore')[0]
     assert task_id
 
     command = _java_command(
         'java -jar ' + KEYSTORE_APP_JAR_NAME + ' truststoretest '
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
-            config.PACKAGE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
+            config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
     output = task_exec(task_id, command)
 
     # Unfortunately the `dcos task exec` doesn't respect the return code
@@ -228,6 +225,7 @@ def test_tls_nginx(hello_world_service):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_1_10_or_higher
+@sdk_utils.dcos_ee_only
 def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     """
     Update service configuration to change discovery prefix of a task.
@@ -250,19 +248,19 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
         san.value for san in san_extension.value._general_names._general_names]
 
     expected_san = (
-        '{name}-0.{package_name}.autoip.dcos.thisdcos.directory'.format(
+        '{name}-0.{service_name}.autoip.dcos.thisdcos.directory'.format(
             name=DISCOVERY_TASK_PREFIX,
-            package_name=config.PACKAGE_NAME)
+            service_name=config.SERVICE_NAME)
         )
     assert expected_san in sans
 
     # Run task update with new discovery prefix
-    marathon_config = sdk_marathon.get_config(config.PACKAGE_NAME)
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['DISCOVERY_TASK_PREFIX'] = DISCOVERY_TASK_PREFIX + '-new'
-    sdk_marathon.update_app(config.PACKAGE_NAME, marathon_config)
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'discovery', original_tasks)
-    new_task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "discovery")[0]
-
+    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'discovery', original_tasks)
+    sdk_tasks.check_running(config.SERVICE_NAME, 4)
+    new_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
     assert task_id != new_task_id
 
     new_cert = x509.load_pem_x509_certificate(
@@ -275,9 +273,9 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
         san.value for san in san_extension.value._general_names._general_names]
 
     expected_san =  (
-        '{name}-0.{package_name}.autoip.dcos.thisdcos.directory'.format(
+        '{name}-0.{service_name}.autoip.dcos.thisdcos.directory'.format(
             name=DISCOVERY_TASK_PREFIX + '-new',
-            package_name=config.PACKAGE_NAME)
+            service_name=config.SERVICE_NAME)
         )
     assert expected_san in sans
 

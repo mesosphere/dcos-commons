@@ -68,7 +68,7 @@ public class TaskUtils {
      * @return A list of the appropriate task names.
      */
     public static List<String> getTaskNames(PodInstance podInstance, Collection<String> tasksToLaunch) {
-        LOGGER.info("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
+        LOGGER.debug("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
         return podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))

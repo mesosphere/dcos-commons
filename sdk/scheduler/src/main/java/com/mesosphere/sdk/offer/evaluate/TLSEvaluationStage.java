@@ -111,17 +111,6 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                     .getContainerBuilder()
                     .addAllVolumes(volumes);
 
-            // TODO(mh): Do we need to share secrets to the executor container as well?
-            Optional<Protos.ExecutorInfo.Builder> executorBuilder = podInfoBuilder.getExecutorBuilder();
-            if (executorBuilder.isPresent()) {
-                executorBuilder.get()
-                        .getContainerBuilder()
-                        .setType(Protos.ContainerInfo.Type.MESOS)
-                        .addAllVolumes(volumes);
-                podInfoBuilder
-                        .getTaskBuilder(taskName)
-                        .setExecutor(executorBuilder.get());
-            }
         }
 
         return EvaluationOutcome.pass(

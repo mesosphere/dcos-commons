@@ -280,82 +280,28 @@ A Task generally maps to a process. A Pod is a collection of Tasks that share an
 
 ## Virtual networks
 
-The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
-
-```yaml
-pods:
-  pod-on-virtual-network:
-    count: {{COUNT}}
-    # join the 'dcos' virtual network
-    networks:
-      dcos:
-    tasks:
-      ...
-  pod-on-host:
-    count: {{COUNT}}
-    tasks:
-      ...
-```
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by using the `networks` keyword in your YAML definition. Refer to [Developers Guide](developer-guide.md) for more information about how to define virtual networks in your service.
 
 When a pod is on a virtual network such as the `dcos`:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
+  * You can also pass labels while invoking CNI plugins. Refer to [Developers Guide](developer.md) for more information about adding CNI labels.
 
-Specifying that pods join a virtual network has the following indirect effects:
-  * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
-    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
-  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
 
 ## Secrets
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+The content of a secret is copied and made available within the pod.  The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to [Developer Guide](developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
+e both.
 
-The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
+**Note:** Secrets are available only in Enterprise DC/OS 1.0 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
 
-You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
-* Kerberos keytabs or other credential files.
-* SSL certificates.
-* Configuration files with sensitive data.
-
-For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-svc/SecretPath1`, as shown below.
-
-```yaml
-name: secret-svc/instance1
-pods:
-  pod-with-secret:
-    count: {{COUNT}}
-    # add secret file to pod's sandbox
-    secrets:
-      secret_name1:
-        secret: secret-svc/Secret_Path1
-        env-key: Secret_Environment_Key
-        file: data/somePath/Secret_FilePath1
-      secret_name2:
-        secret: secret-svc/instance1/Secret_Path2
-        file: data/somePath/Secret_FilePath2
-      secret_name3:
-        secret: secret-svc/Secret_Path3
-        env-key: Secret_Environment_Key2
-    tasks:
-      ....
-```
-
-All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
-
-`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when the executor exits. The secret content is copied securely by Mesos if it is referenced in the pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
-
-**Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
 ### Authorization for Secrets
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
-
-For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
-
-On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
 
 | Secret                               | Service ID                          | Can service access secret? |
@@ -376,29 +322,28 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
 
-Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
-  * Supported: `etc/keys/Secret_FilePath1`
-  * Not supported: `/etc/keys/Secret_FilePath1`
+### Binary Secrets
 
-```yaml
-name: secret-svc/instance2
-pods:
-  pod-with-image:
-    count: {{COUNT}}
-    container:
-      image-name: ubuntu:14.04
-    user: nobody
-    secrets:
-      secret_name4:
-        secret: secret-svc/Secret_Path1
-        env-key: Secret_Environment_Key
-        file: etc/keys/Secret_FilePath1
-      secret_name5:
-        secret: secret-svc/instance1/Secret_Path2
-        file: data/keys/keyset/Secret_FilePath2
-    tasks:
-      ....
+When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64-encoded as specified in RFC 4648.
+
+You can use standard `base64` command line utility. Take a look at the following example that is using BSD `base64` command.
 ```
+$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
+```
+
+`base64` command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping via  `-w 0` argument.  Here is a sample base64 command in Linux.
+```
+$  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded
+```
+
+Give the secret basename prefixed with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
+
+```
+$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
+```
+
+When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
+only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
 
 
 ## Placement Constraints
@@ -441,6 +386,36 @@ Given the above configuration, let's assume `10.0.10.8` is being decommissioned 
 1. Wait for `data-1` to be up and healthy before continuing with any other replacement operations.
 
 The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You'll need to consult the documentation for the service in question, but in theory they should all understand the same set of [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html).
+
+## Integration with DC/OS access controls
+
+In DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/kafka` and `production/kafka`.
+
+Steps:
+
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
+1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
+
+   ```
+   dcos:adminrouter:service:marathon full				
+   dcos:service:marathon:marathon:services:/testing full
+   dcos:adminrouter:ops:mesos full
+   dcos:adminrouter:ops:slave full
+   ```
+1. Install a service (in this example, Kafka) into a folder called `test`. Go to **Catalog**, then search for **beta-kafka**.
+1. Click **CONFIGURE** and change the service name to `/testing/kafka`, then deploy.
+
+   The slashes in your service name are interpreted as folders. You are deploying Kafka in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+
+**Important:**
+- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
+- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
+
+### Interacting with your foldered service
+
+- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/kafka/v1/endpoints`.
 
 # Common operations
 
@@ -597,7 +572,7 @@ $ dcos dse describe > options.json
 
 Make any configuration changes to this `options.json` file.
 
-If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
 
 <strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
@@ -909,6 +884,78 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
     -r $MY_SERVICE_NAME-role \
     -p $MY_SERVICE_NAME-principal \
     -z dcos-service-$MY_SERVICE_NAME"
+```
+
+## Plan Operations
+### List
+Show all plans for this service.
+
+```bash
+dcos kakfa plan list
+```
+
+### Status
+Display the status of the plan with the provided plan name.
+
+```bash
+dcos kafka plan status deploy
+```
+
+**Note:** The `--json` flag, though not default, is helpful in extracting phase UUIDs. Using the UUID instead of name for a
+phase is a more ensures that the request, ie to pause or force-complete, is exactly the phase intended.
+
+### Start
+Start the plan with the provided name and any optional plan arguments.
+
+```bash
+dcos kafka plan start deploy
+```
+
+### Stop
+Stop the running plan with the provided name.
+
+```bash
+dcos kafka plan stop deploy
+```
+
+Plan Pause differs from Plan Stop in the following ways:
+* Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
+* Pause updates the underlying Phase/Step state. Stop not only updates the underlying state, but also restarts the plan.
+
+### Pause
+Pause the plan, or a specific phase in that plan with the provided phase name (or UUID).
+
+```bash
+dcos kafka plan pause deploy 97e70976-505f-4689-abd2-6286c4499091
+```
+
+**NOTE:** The UUID above is an example. Use the Plan Status command with the `--json` flag to extract a valid UUID.
+
+Plan Pause differs from Plan Stop in the following ways:
+* Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
+* Pause updates the underlying Phase/Step state. Stop not only updated the underlying state, but also restarts the plan.
+
+### Resume
+Resume the plan, or a specific phase in that plan, with the provided phase name (or UUID).
+
+```bash
+dcos kafka plan resume deploy 97e70976-505f-4689-abd2-6286c4499091
+```
+
+### Force-Restart
+Restart the plan with the provided name, or a specific phase in the plan, with the provided nam, or a specific step in a
+phase of the plan with the provided step name.
+
+```bash
+dcos kafka plan force-restart deploy
+```
+
+### Force-Complete
+Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due
+to observed failure or due to known required manual preparation that was not performed.
+
+```bash
+dcos kafka plan force-complete deploy
 ```
 
 # Diagnostic Tools

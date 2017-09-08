@@ -827,7 +827,7 @@ public class DefaultSchedulerTest {
     @Test
     public void testGetLaunchableTasks() {
         Set<String> launchableTasks = defaultScheduler.getLaunchableTasks();
-        Assert.assertEquals(new String[]{"POD-A-0-A", "POD-B-0-B", "POD-B-1-B"}, launchableTasks.toArray());
+        Assert.assertArrayEquals(new String[]{"POD-A-0-A", "POD-B-0-B", "POD-B-1-B"}, launchableTasks.toArray());
     }
 
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
@@ -1076,11 +1076,7 @@ public class DefaultSchedulerTest {
                     defaultScheduler.stateStore,
                     defaultScheduler.configStore,
                     defaultScheduler.customEndpointProducers,
-                    defaultScheduler.recoveryPlanOverriderFactory,
-                    new ConfigurationUpdater.UpdateResult(
-                            UUID.randomUUID(),
-                            ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY,
-                            Collections.emptyList()));
+                    defaultScheduler.recoveryPlanOverriderFactory);
             this.apiServerReady = apiServerReady;
         }
 

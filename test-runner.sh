@@ -40,7 +40,7 @@ for framework in $FRAMEWORK_LIST; do
 
     if [ -z "$STUB_UNIVERSE_URL" ]; then
         echo "Starting build for $framework at "`date`
-        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/$framework-universe-url
+        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/${framework}-universe-url
         ${FRAMEWORK_DIR}/build.sh aws
         if [ ! -f "$UNIVERSE_URL_PATH" ]; then
             echo "Missing universe URL file: $UNIVERSE_URL_PATH"
@@ -56,7 +56,7 @@ for framework in $FRAMEWORK_LIST; do
     /build/tools/dcos_login.py
 
     echo "Starting test for $framework at "`date`
-    py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
+    PYTHONUNBUFFERED=1 py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
     echo "Finished test for $framework at "`date`
 done
 

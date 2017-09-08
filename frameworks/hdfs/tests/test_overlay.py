@@ -1,10 +1,10 @@
 from xml.etree import ElementTree
 
 import pytest
+import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
-import sdk_plan
 import sdk_tasks
 import sdk_utils
 import shakedown
@@ -14,28 +14,29 @@ from tests import config
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
+            config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
             timeout_seconds=30*60)
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    config.check_healthy(service_name=config.PACKAGE_NAME)
+    config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
 @sdk_utils.dcos_1_9_or_higher
 def test_tasks_on_overlay():
-    hdfs_tasks = shakedown.shakedown.get_service_task_ids(config.PACKAGE_NAME)
+    hdfs_tasks = shakedown.shakedown.get_service_task_ids(config.SERVICE_NAME)
     assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, "Not enough tasks got launched,"\
         "should be {} got {}".format(len(hdfs_tasks), config.DEFAULT_TASK_COUNT)
     for task in hdfs_tasks:
@@ -46,12 +47,11 @@ def test_tasks_on_overlay():
 @pytest.mark.sanity
 @sdk_utils.dcos_1_9_or_higher
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints("", config.PACKAGE_NAME, 2)
+    observed_endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        xmlout, err, rc = shakedown.run_dcos_command("{} endpoints {}".format(config.PACKAGE_NAME, endpoint))
-        assert rc == 0, "failed to get {} endpoint. \nstdout:{},\nstderr:{} ".format(endpoint, xmlout, err)
+        xmlout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints {}'.format(endpoint))
         ElementTree.fromstring(xmlout)
 
 
@@ -60,9 +60,9 @@ def test_endpoints_on_overlay():
 @pytest.mark.data_integrity
 @sdk_utils.dcos_1_9_or_higher
 def test_write_and_read_data_on_overlay():
-    config.write_data_to_hdfs(config.PACKAGE_NAME, config.TEST_FILE_1_NAME)
-    config.read_data_from_hdfs(config.PACKAGE_NAME, config.TEST_FILE_1_NAME)
-    config.check_healthy(service_name=config.PACKAGE_NAME)
+    config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
+    config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
+    config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 @pytest.mark.data_integrity
@@ -72,14 +72,14 @@ def test_integrity_on_data_node_failure():
     Verifies proper data replication among data nodes.
     """
     # An HDFS write will only successfully return when the data replication has taken place
-    config.write_data_to_hdfs(config.PACKAGE_NAME, config.TEST_FILE_1_NAME)
+    config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
 
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.PACKAGE_NAME, 'data-0-node'))
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.PACKAGE_NAME, 'data-1-node'))
+    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-0-node'))
+    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-1-node'))
 
-    config.read_data_from_hdfs(config.PACKAGE_NAME, config.TEST_FILE_1_NAME)
+    config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
 
-    config.check_healthy(service_name=config.PACKAGE_NAME)
+    config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 @pytest.mark.data_integrity
@@ -90,8 +90,8 @@ def test_integrity_on_name_node_failure():
     This test checks that it is possible to write and read data after the active name node fails
     so as to verify a failover sustains expected functionality.
     """
-    active_name_node = config.get_active_name_node(config.PACKAGE_NAME)
-    sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.PACKAGE_NAME, active_name_node))
+    active_name_node = config.get_active_name_node(config.SERVICE_NAME)
+    sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
 
     predicted_active_name_node = "name-1-node"
     if active_name_node == "name-1-node":
@@ -99,10 +99,10 @@ def test_integrity_on_name_node_failure():
 
     wait_for_failover_to_complete(predicted_active_name_node)
 
-    config.write_data_to_hdfs(config.PACKAGE_NAME, config.TEST_FILE_2_NAME)
-    config.read_data_from_hdfs(config.PACKAGE_NAME, config.TEST_FILE_2_NAME)
+    config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_2_NAME)
+    config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_2_NAME)
 
-    config.check_healthy(service_name=config.PACKAGE_NAME)
+    config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 def wait_for_failover_to_complete(namenode):
@@ -111,7 +111,7 @@ def wait_for_failover_to_complete(namenode):
     The given namenode is the one to become active after the failover is complete.
     """
     def failover_detection():
-        status = config.get_name_node_status(config.PACKAGE_NAME, namenode)
+        status = config.get_name_node_status(config.SERVICE_NAME, namenode)
         return status == "active"
 
     shakedown.wait_for(lambda: failover_detection(), timeout_seconds=config.DEFAULT_HDFS_TIMEOUT)

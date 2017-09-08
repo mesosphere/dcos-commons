@@ -1,0 +1,12 @@
+[connection]
+factory = cqlshlib.ssl.ssl_transport_factory
+
+[ssl]
+; certfile = /root/.cassandra/certificate
+; Note: If validate = true then the certificate name must match the machine's hostname
+validate = true
+; If using client authentication (require_client_auth = true in cassandra.yaml) you'll also need to point to your uesrkey and usercert.
+; SSL client authentication is only supported via cqlsh on C* 2.1 and greater.
+; This is disabled by default on all Instaclustr-managed clusters.
+; userkey = /path/to/userkey.pem
+; usercert = /path/to/usercert.pem

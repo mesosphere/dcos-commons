@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -176,25 +177,48 @@ public class DeploymentStep extends AbstractStep {
         }
     }
 
-    private Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
+    @VisibleForTesting
+    Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
         if (tasks.isEmpty()) {
             return Status.PENDING;
         }
 
+        Set<Status> statuses = new HashSet<>();
         for (Map.Entry<Protos.TaskID, TaskStatusPair> entry : tasks.entrySet()) {
             String taskId = entry.getKey().getValue();
             Status status = entry.getValue().getStatus();
             logger.info("TaskId: {} has status: {}", taskId, status);
-            if (!status.equals(Status.COMPLETE)) {
-                // Keep and log current status
-                return super.getStatus();
-            }
+
+            statuses.add(status);
         }
 
-        return Status.COMPLETE;
+        // A DeploymentStep should have the "least" status of its consituent tasks.
+        // 1 PENDING task and 2 STARTING tasks => PENDING step state
+        // 2 STARTING tasks and 1 COMPLETE task=> STARTING step state
+        // 3 COMPLETE tasks => COMPLETE step state
+        if (statuses.contains(Status.ERROR)) {
+            return Status.ERROR;
+        } else if (statuses.contains(Status.PENDING)) {
+            return Status.PENDING;
+        } else if (statuses.contains(Status.PREPARED)) {
+            return Status.PREPARED;
+        } else if (statuses.contains(Status.STARTING)) {
+            return Status.STARTING;
+        } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
+            // If the size of the set statuses == 1, then all tasks have the same status.
+            // In this case, the status COMPLETE.
+            return Status.COMPLETE;
+        }
+
+        // If we don't explicitly handle the new status,
+        // we will simply return the previous status.
+        logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
+                "Falling back to current step status: {}", statuses, super.getStatus());
+        return super.getStatus();
     }
 
-    private static class TaskStatusPair {
+    @VisibleForTesting
+    static class TaskStatusPair {
         private final Protos.TaskInfo taskInfo;
         private final Status status;
 

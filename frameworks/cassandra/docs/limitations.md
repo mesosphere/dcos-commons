@@ -4,6 +4,10 @@ menu_order: 80
 enterprise: 'no'
 ---
 
+## Node Count
+
+The DC/OS Cassandra Service must be deployed with at least 3 nodes.
+
 ## Rack-Aware Placement
 
 Apache Cassandra's Rack-Aware Replication is not supported at this time.

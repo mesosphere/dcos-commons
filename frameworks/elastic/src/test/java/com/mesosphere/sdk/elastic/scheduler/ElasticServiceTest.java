@@ -32,7 +32,7 @@ public class ElasticServiceTest extends BaseServiceSpecTest {
                 "DATA_NODE_HEAP_MB", "2000",
                 "DATA_NODE_DISK", "10000",
                 "DATA_NODE_DISK_TYPE", "ROOT",
-                "INGEST_NODE_COUNT", "1",
+                "INGEST_NODE_COUNT", "0",
                 "INGEST_NODE_CPUS", "1",
                 "INGEST_NODE_MEM", "4000",
                 "INGEST_NODE_HEAP_MB", "2000",
