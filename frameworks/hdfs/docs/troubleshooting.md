@@ -1,7 +1,6 @@
 ---
 post_title: Troubleshooting
 menu_order: 90
-feature_maturity: preview
 enterprise: 'no'
 ---
 

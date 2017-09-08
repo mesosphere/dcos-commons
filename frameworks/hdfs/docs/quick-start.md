@@ -1,7 +1,6 @@
 ---
 post_title: Quickstart
 menu_order: 40
-feature_maturity: experimental
 enterprise: 'no'
 ---
 
