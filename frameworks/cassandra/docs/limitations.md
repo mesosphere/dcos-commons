@@ -49,8 +49,8 @@ uid=65534(nobody) gid=65534(nobody) groups=65534(nobody)
 If the returned UID is not `65534`, then Cassandra can be installed as root by setting the service user at install time:
 ```
 "service": {
-...
-        "user": "root"
+        "user": "root",
+        ...
 }
 ...
 ```
