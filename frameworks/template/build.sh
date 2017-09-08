@@ -46,7 +46,13 @@ if [ x"$cli_only" = xtrue ]; then
     cli_flag=--cli-only
 fi
 
-${ROOT_DIR}/tools/build_framework.sh $cli_flag $PUBLISH_STEP template $FRAMEWORK_DIR $BUILD_DIR/executor.zip $BUILD_DIR/template-scheduler.zip
+TEMPLATE_DOCUMENTATION_PATH="http://YOURNAMEHERE.COM/DOCS" \
+TEMPLATE_ISSUES_PATH="http://YOURNAMEHERE.COM/SUPPORT" \
+    ${ROOT_DIR}/tools/build_framework.sh $cli_flag $PUBLISH_STEP \
+        template \
+        $FRAMEWORK_DIR \
+        $BUILD_DIR/executor.zip \
+        $BUILD_DIR/template-scheduler.zip
 
 # capture anonymous metrics for reporting
 curl https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/sdk/build-sh-finish.png >/dev/null 2>&1
