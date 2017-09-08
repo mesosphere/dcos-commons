@@ -23,18 +23,32 @@ public class CosmosRenderer {
     private static final Random RANDOM = new Random();
 
     /**
-     * Universe template values that are injected by SDK tooling. We inject test values here.
+     * resource.json template values that are injected by SDK tooling. We inject test values here.
+     * See also: tools/universe_builder.py
      */
     private static final Map<String, String> RESOURCE_TEMPLATE_PARAMS;
     static {
         RESOURCE_TEMPLATE_PARAMS = new HashMap<>();
+        RESOURCE_TEMPLATE_PARAMS.put("artifact-dir", "https://test-url/artifacts");
         RESOURCE_TEMPLATE_PARAMS.put("jre-url", "https://test-url/jre.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("jre-jce-unlimited-url", "https://test-url/jre-jce-unlimited.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("libmesos-bundle-url", "https://test-url/libmesos-bundle.tgz");
-        RESOURCE_TEMPLATE_PARAMS.put("artifact-dir", "https://test-url/artifacts");
         RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli-darwin", "THIS_IS_A_SHA256");
         RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli-linux", "THIS_IS_A_SHA256");
         RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli.exe", "THIS_IS_A_SHA256");
+    }
+
+    /**
+     * marathon.json.mustache template values that are injected by SDK tooling. We inject test values here.
+     * See also: tools/universe_builder.py
+     */
+    private static final Map<String, String> MARATHON_TEMPLATE_PARAMS;
+    static {
+        MARATHON_TEMPLATE_PARAMS = new HashMap<>();
+        MARATHON_TEMPLATE_PARAMS.put("package-name", "test-pkg");
+        MARATHON_TEMPLATE_PARAMS.put("package-version", "0.0.1-beta");
+        MARATHON_TEMPLATE_PARAMS.put("package-build-time-epoch-ms", "0");
+        MARATHON_TEMPLATE_PARAMS.put("package-build-time-str", "Today");
     }
 
     private CosmosRenderer() {
@@ -55,31 +69,34 @@ public class CosmosRenderer {
      */
     public static Map<String, String> renderSchedulerEnvironment(
             Map<String, String> customPackageOptions, Map<String, String> customBuildTemplateParams) {
-        Map<String, String> config = new HashMap<>();
+        Map<String, String> marathonParams = new HashMap<>();
 
         // Get default values from config.json (after doing any needed simulated build rendering):
         // IF THIS FAILS IN YOUR TEST: Did you miss something in customBuildTemplateParams?
-        flattenPropertyTree(config, "", new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
-                "universe/config.json", readFile("universe/config.json"), customBuildTemplateParams)));
+        JSONObject configJson = new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
+                "universe/config.json", readFile("universe/config.json"), customBuildTemplateParams));
+        flattenPropertyTree("", configJson, marathonParams);
 
         // Get "resource.*" content from resource.json (after doing any needed simulated build rendering):
         Map<String, String> resourceParams = new HashMap<>();
-        resourceParams.putAll(RESOURCE_TEMPLATE_PARAMS);
         resourceParams.putAll(customBuildTemplateParams);
+        resourceParams.putAll(RESOURCE_TEMPLATE_PARAMS);
         // IF THIS FAILS IN YOUR TEST: Did you miss something in customBuildTemplateParams?
         JSONObject resourceJson = new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
                 "universe/resource.json", readFile("universe/resource.json"), resourceParams));
-        flattenTree("resource", resourceJson, config);
+        flattenTree("resource", resourceJson, marathonParams);
 
-        // Override any of the above with the caller's manually-configured settings.
-        config.putAll(customPackageOptions);
-        config.putAll(customBuildTemplateParams);
+        // Override any of the above with the caller's manually-configured settings, and with the tooling settings.
+        marathonParams.putAll(customPackageOptions);
+        marathonParams.putAll(customBuildTemplateParams);
+        marathonParams.putAll(MARATHON_TEMPLATE_PARAMS);
 
         // Render marathon.json and get scheduler env content:
         Map<String, String> env = new TreeMap<>(); // for ordered output in logs
         // IF THIS FAILS IN YOUR TEST: Did you miss something in customPackageOptions or customBuildTemplateParams?
-        env.putAll(getMarathonAppEnvironment(TemplateUtils.renderMustacheThrowIfMissing(
-                "universe/marathon.json.mustache", readFile("universe/marathon.json.mustache"), config)));
+        String marathonJson = TemplateUtils.renderMustacheThrowIfMissing(
+                "universe/marathon.json.mustache", readFile("universe/marathon.json.mustache"), marathonParams);
+        env.putAll(getMarathonAppEnvironment(marathonJson));
         return env;
     }
 
@@ -108,7 +125,7 @@ public class CosmosRenderer {
      * For example, {"a": {"properties": {"b": {"default": "c"}, "d": {"properties": {"e": {"default": "f"}}}}}} =>
      * {"a.b": "c", "a.b.d.e": "f"}
      */
-    private static void flattenPropertyTree(Map<String, String> config, String path, JSONObject node) {
+    private static void flattenPropertyTree(String path, JSONObject node, Map<String, String> config) {
         if (node.has("default")) {
             config.put(path, node.get("default").toString());
         }
@@ -116,7 +133,7 @@ public class CosmosRenderer {
             JSONObject props = node.getJSONObject("properties");
             for (String key : props.keySet()) {
                 String entryPath = path.isEmpty() ? key : String.format("%s.%s", path, key);
-                flattenPropertyTree(config, entryPath, props.getJSONObject(key)); // RECURSE
+                flattenPropertyTree(entryPath, props.getJSONObject(key), config); // RECURSE
             }
         }
     }

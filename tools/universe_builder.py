@@ -106,7 +106,7 @@ class UniversePackageBuilder(object):
             'package-name': self._pkg_name,
             'package-version': self._pkg_version,
             'package-build-time-epoch-ms': str(int(round(now * 1000))),
-            'package-build-time-str': time.asctime(time.gmtime(now)),
+            'package-build-time-str': time.strftime('%a %b %d %Y %H:%M:%S +0000', time.gmtime(now)),
             'artifact-dir': self._upload_dir_url,
             'documentation-path': self._get_documentation_path(),
             'issues-path': self._get_issues_path(),
