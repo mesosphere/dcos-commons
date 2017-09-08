@@ -87,6 +87,10 @@ def get_rotating_task_log_lines(task_id: str, task_file: str):
 
 
 def get_task_logs_on_failure(test_name: str):
+    if os.environ.has_key("SOAK_SERVICE_NAME"):
+        # If running in soak, fetching all task logs doesn't really work.
+        log.info('Skipping log collection in soak environment.')
+        return
     for task_id in get_task_ids():
         for task_file in ('stderr', 'stdout'):
             for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
