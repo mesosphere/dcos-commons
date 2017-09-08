@@ -44,8 +44,8 @@ uris:
 ```
 configs:
   server-properties:
-    template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-    dest: "kafka_2.11-0.10.0.0/config/server.properties"
+    template: server.properties.mustache
+    dest: kafka_2.11-0.10.0.0/config/server.properties
 ```
 
 9. Save and exit the `svc.yml` file. It should look similar to the following:
@@ -78,8 +78,8 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         configs:
           server-properties:
-            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-            dest: "kafka_2.11-0.10.0.0/config/server.properties"
+            template: server.properties.mustache
+            dest: kafka_2.11-0.10.0.0/config/server.properties
 ```
 The `server.properties.mustache` should live in the current directory (`dcos-commons/examples/kafka/src/main/dist`).
 
@@ -94,23 +94,7 @@ The `server.properties.mustache` should live in the current directory (`dcos-com
    cd ../resources && ln -s ../dist/server.properties.mustache && ls -l
    ```
 
-12. Open `/dcos-commons/examples/kafka/src/test/java/com/mesosphere/sdk/kafka/scheduler/ServiceSpecTest.java` and add the following beneath the currently set environment variables and make sure to import the URL type:
-   ```
-   // place at top
-   import java.net.URL;
-   import java.io.File;
-   ```
-   ```
-   URL resource = ServiceSpecTest.class.getClassLoader().getResource("server.properties.mustache");
-   ENV_VARS.set("CONFIG_TEMPLATE_PATH", new File(resource.getPath()).getParent());
-   ```
-
-13. Save and exit the file. Next, open `/dcos-commons/examples/kafka/universe/marathon.json.mustache` and add the following as the first item of the `env` list:
-   ```
-   "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
-   ```
-
-14. Run the following command from the root directory of the service:
+12. Run the following command from the root directory of the service:
    ```
 	 cd /dcos-commons/examples/kafka && ./build.sh local
    ```
@@ -119,6 +103,6 @@ The `server.properties.mustache` should live in the current directory (`dcos-com
    ln -s /usr/bin/sha1sum /usr/bin/shasum
    ```
 
-15. Now, install the service via `dcos package install kafka` and visit your dashboard to see Kafka running: http://172.17.0.2/#/services/%2Fkafka/
+13. Now, install the service via `dcos package install kafka` and visit your dashboard to see Kafka running: http://172.17.0.2/#/services/%2Fkafka/
 
 [0] The mustaching provides support for dynamically updating a service's configuration at runtime.

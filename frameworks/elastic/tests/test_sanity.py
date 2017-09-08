@@ -194,6 +194,24 @@ def test_master_node_replace():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
+def test_data_node_replace():
+    data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace data-0')
+    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data-0', data_ids)
+    # pre_test_setup will verify that the cluster becomes healthy again.
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_coordinator_node_replace():
+    coordinator_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'coordinator-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace coordinator-0')
+    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'coordinator-0', coordinator_ids)
+    # pre_test_setup will verify that the cluster becomes healthy again.
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
 def test_plugin_install_and_uninstall(default_populated_index):
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     plugin_name = 'analysis-phonetic'
