@@ -16,7 +16,7 @@ If you are using open source DC/OS, follow these instructions to [pass your auth
 
 Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:
 
-```
+```bash
 $ export auth_token=uSeR_t0k3n
 ```
 
@@ -34,35 +34,37 @@ The `dcos kafka` CLI commands have a `--name` argument, allowing the user to spe
 
 Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the `/connection` endpoint:
 
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
-    GET /service/kafka/v1/connection HTTP/1.1
-
-    {
-      "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-      "address": [
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
+{
+    "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "address": [
         "10.0.0.35:1028",
         "10.0.1.249:1030"
-      ],
-      "dns": [
+    ],
+    "dns": [
         "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
         "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
-      ],
-    }
+    ]
+}
+```
 
 The same information can be retrieved through the DC/OS CLI:
 
-    $ dcos kafka endpoints broker
-    {
-      "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-      "address": [
+```bash
+$ dcos kafka endpoints broker
+{
+    "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+    "address": [
         "10.0.0.35:1028",
         "10.0.1.249:1030"
-      ],
-      "dns": [
+    ],
+    "dns": [
         "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
         "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
-      ],
-    }
+    ]
+}
+```
 
 
 # Broker Operations
@@ -73,63 +75,59 @@ Increase the `BROKER_COUNT` value via Marathon. This should be rolled as in any 
 
 ## List All Brokers
 
-    $ dcos kafka --name=kafka broker list
-    {
-        "brokers": [
-            "0",
-            "1",
-            "2"
-        ]
-    }
+```bash
+$ dcos kafka --name=kafka broker list
+[
+    "0",
+    "1",
+    "2"
+]
+```
 
-
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers"
-    GET /service/kafka/v1/brokers HTTP/1.1
-
-    {
-        "brokers": [
-            "0",
-            "1",
-            "2"
-        ]
-    }
-
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers"
+[
+    "0",
+    "1",
+    "2"
+]
+```
 
 ## Restart Single Broker
 
 Restarts the broker in-place.
 
-    $ dcos kafka --name=kafka broker restart 0
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
+```bash
+$ dcos kafka --name=kafka broker restart 0
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+```
 
-
-    $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0"
-    PUT /service/kafka/v1/brokers/0 HTTP/1.1
-
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
-
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0"
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+```
 
 ## Replace Single Broker
 
 Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.
 
-    $ dcos kafka --name=kafka broker replace 0
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
+```bash
+$ dcos kafka --name=kafka broker replace 0
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+```
 
-
-    $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0?replace=true"
-    PUT /service/kafka/v1/brokers/0 HTTP/1.1
-
-    [
-        "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
-    ]
-
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/brokers/0?replace=true"
+[
+    "broker-0__9c426c50-1087-475c-aa36-cd00d24ccebb"
+]
+```
 
 # Topic Operations
 
@@ -137,262 +135,265 @@ These operations mirror what is available with `bin/kafka-topics.sh`.
 
 ## List Topics
 
-    $ dcos kafka --name=kafka topic list
-    [
-        "topic1",
-        "topic0"
-    ]
+```bash
+$ dcos kafka --name=kafka topic list
+[
+    "topic1",
+    "topic0"
+]
+```
 
-
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics"
-    GET /service/kafka/v1/topics HTTP/1.1
-
-    [
-        "topic1",
-        "topic0"
-    ]
-
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics"
+[
+    "topic1",
+    "topic0"
+]
+```
 
 ## Describe Topic
 
-    $ dcos kafka --name=kafka topic describe topic1
-    {
-        "partitions": [
-            {
-                "0": {
-                    "controller_epoch": 1,
-                    "isr": [
-                        0,
-                        1,
-                        2
-                    ],
-                    "leader": 0,
-                    "leader_epoch": 0,
-                    "version": 1
-                }
-            },
-            {
-                "1": {
-                    "controller_epoch": 1,
-                    "isr": [
-                        1,
-                        2,
-                        0
-                    ],
-                    "leader": 1,
-                    "leader_epoch": 0,
-                    "version": 1
-                }
-            },
-            {
-                "2": {
-                    "controller_epoch": 1,
-                    "isr": [
-                        2,
-                        0,
-                        1
-                    ],
-                    "leader": 2,
-                    "leader_epoch": 0,
-                    "version": 1
-                }
+```bash
+$ dcos kafka --name=kafka topic describe topic1
+{
+    "partitions": [
+        {
+            "0": {
+                "controller_epoch": 1,
+                "isr": [
+                    0,
+                    1,
+                    2
+                ],
+                "leader": 0,
+                "leader_epoch": 0,
+                "version": 1
             }
-        ]
-    }
-
-
-    $ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
-    GET /service/kafka/v1/topics/topic1 HTTP/1.1
-
-    {
-        "partitions": [
-            {
-                "0": {
-                    "controller_epoch": 1,
-                    "isr": [
-                        0,
-                        1,
-                        2
-                    ],
-                    "leader": 0,
-                    "leader_epoch": 0,
-                    "version": 1
-                }
-            },
-            {
-                "1": {
-                    "controller_epoch": 1,
-                    "isr": [
-                        1,
-                        2,
-                        0
-                    ],
-                    "leader": 1,
-                    "leader_epoch": 0,
-                    "version": 1
-                }
-            },
-            {
-                "2": {
-                    "controller_epoch": 1,
-                    "isr": [
-                        2,
-                        0,
-                        1
-                    ],
-                    "leader": 2,
-                    "leader_epoch": 0,
-                    "version": 1
-                }
+        },
+        {
+            "1": {
+                "controller_epoch": 1,
+                "isr": [
+                    1,
+                    2,
+                    0
+                ],
+                "leader": 1,
+                "leader_epoch": 0,
+                "version": 1
             }
-        ]
-    }
+        },
+        {
+            "2": {
+                "controller_epoch": 1,
+                "isr": [
+                    2,
+                    0,
+                    1
+                ],
+                "leader": 2,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        }
+    ]
+}
+```
 
+```bash
+$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
+{
+    "partitions": [
+        {
+            "0": {
+                "controller_epoch": 1,
+                "isr": [
+                    0,
+                    1,
+                    2
+                ],
+                "leader": 0,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        },
+        {
+            "1": {
+                "controller_epoch": 1,
+                "isr": [
+                    1,
+                    2,
+                    0
+                ],
+                "leader": 1,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        },
+        {
+            "2": {
+                "controller_epoch": 1,
+                "isr": [
+                    2,
+                    0,
+                    1
+                ],
+                "leader": 2,
+                "leader_epoch": 0,
+                "version": 1
+            }
+        }
+    ]
+}
+```
 
 ## Create Topic
 
-    $ dcos kafka --name=kafka topic create topic1 --partitions=3 --replication=3
-    {
-        "message": "Output: Created topic "topic1".n"
-    }
+```bash
+$ dcos kafka --name=kafka topic create topic1 --partitions=3 --replication=3
+{
+    "message": "Output: Created topic \"topic1\"\n"
+}
+```
 
-
-    $ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics?name=topic1&partitions=3&replication=3"
-    POST /service/kafka/v1/topics?replication=3&name=topic1&partitions=3 HTTP/1.1
-
-    {
-        "message": "Output: Created topic "topic1".n"
-    }
-
+<!--
+Commenting this out as a 503 error is being raise.
+TODO: Replace this with the correct command.
+```bash
+$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics?name=topic1&partitions=3&replication=3"
+{
+    "message": "Output: Created topic "topic1".n"
+}
+```
+<-->
 
 ## View Topic Offsets
 
 There is an optional `--time` parameter which may be set to either "first", "last", or a timestamp in milliseconds as [described in the Kafka documentation][15].
 
-    $ dcos kafka --name=kafka topic offsets topic1 --time=last
-    [
-        {
-            "2": "334"
-        },
-        {
-            "1": "333"
-        },
-        {
-            "0": "333"
-        }
-    ]
+```bash
+$ dcos kafka --name=kafka topic offsets topic1 --time=last
+[
+    {
+        "2": "334"
+    },
+    {
+        "1": "333"
+    },
+    {
+        "0": "333"
+    }
+]
+```
 
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1/offsets?time=last"
 
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1/offsets?time=last"
-    GET /service/kafka/v1/topics/topic1/offsets?time=last HTTP/1.1
-
-    [
-        {
-            "2": "334"
-        },
-        {
-            "1": "333"
-        },
-        {
-            "0": "333"
-        }
-    ]
-
+[
+    {
+        "2": "334"
+    },
+    {
+        "1": "333"
+    },
+    {
+        "0": "333"
+    }
+]
+```
 
 ## Alter Topic Partition Count
 
-    $ dcos kafka --name=kafka topic partitions topic1 2
-    {
-        "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
-    }
+```bash
+$ dcos kafka --name=kafka topic partitions topic1 2
+{
+    "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affected\nAdding partitions succeeded!\n"
+}
+```
 
-
-    $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=partitions&partitions=2"
-    PUT /service/kafka/v1/topics/topic1?operation=partitions&partitions=2 HTTP/1.1
-
-    {
-        "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
-    }
-
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=partitions&partitions=2"
+{
+    "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affected\nAdding partitions succeeded!\n"
+}
+```
 
 ## Run Producer Test on Topic
 
-    $ dcos kafka --name=kafka topic producer_test topic1 10
+```bash
+$ dcos kafka --name=kafka topic producer_test topic1 10
+{
+    "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.\n"
+}
+```
 
-    {
-        "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
-    }
-
-
-    $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=producer-test&messages=10"
-    PUT /service/kafka/v1/topics/topic1?operation=producer-test&messages=10 HTTP/1.1
-
-    {
-        "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
-    }
-
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=producer-test&messages=10"
+{
+    "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+}
+```
 
 Runs the equivalent of the following command from the machine running the Kafka Scheduler:
 
-    kafka-producer-perf-test.sh
-        --topic <topic>
-        --num-records <messages>
-        --throughput 100000
-        --record-size 1024
-        --producer-props bootstrap.servers=<current broker endpoints>
-
+```bash
+$ kafka-producer-perf-test.sh \
+    --topic <topic> \
+    --num-records <messages> \
+    --throughput 100000 \
+    --record-size 1024 \
+    --producer-props bootstrap.servers=<current broker endpoints>
+```
 
 ## Delete Topic
 
-    $ dcos kafka --name=kafka topic delete topic1
+```bash
+$ dcos kafka --name=kafka topic delete topic1
+{
+    "message": "Topic topic1 is marked for deletion.\nNote: This will have no impact if delete.topic.enable is not set to true.\n"
+}
+```
 
-    {
-        "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
-    }
-
-
-    $ curl -X DELETE -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
-    DELETE /service/kafka/v1/topics/topic1 HTTP/1.1
-
-    {
-        "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
-    }
-
+```bash
+$ curl -X DELETE -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
+{
+    "message": "Topic topic1 is marked for deletion.\nNote: This will have no impact if delete.topic.enable is not set to true.\n"
+}
+```
 
 Note the warning in the output from the commands above. You can change the indicated "delete.topic.enable" configuration value as a configuration change.
 
 ## List Under Replicated Partitions
 
-    $ dcos kafka --name=kafka topic under_replicated_partitions
+```bash
+$ dcos kafka --name=kafka topic under_replicated_partitions
+{
+    "message": ""
+}
+```
 
-    {
-        "message": ""
-    }
-
-
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/under_replicated_partitions"
-    GET /service/kafka/v1/topics/under_replicated_partitions HTTP/1.1
-
-    {
-        "message": ""
-    }
-
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/under_replicated_partitions"
+{
+    "message": ""
+}
+```
 
 ## List Unavailable Partitions
 
-    $ dcos kafka --name=kafka topic unavailable_partitions
+```bash
+$ dcos kafka --name=kafka topic unavailable_partitions
+{
+    "message": ""
+}
+```
 
-    {
-        "message": ""
-    }
-
-
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/unavailable_partitions"
-    GET /service/kafka/v1/topics/unavailable_partitions HTTP/1.1
-
-    {
-        "message": ""
-    }
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/unavailable_partitions"
+{
+    "message": ""
+}
+```
 
 # Service Status
 
@@ -400,8 +401,8 @@ Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if
 
 You can use this request to troubleshoot: if you think Kafka should be receiving resource offers, but is not, you can use this API call to see if Kafka is suppressed. You will receive a response of `true` or `false`.
 
-```
-curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/state/properties/suppressed"
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/state/properties/suppressed"
 ```
 
 # Config History
@@ -410,35 +411,38 @@ These operations relate to viewing the service's configuration history.
 
 ## List Configuration IDs
 
-    $ dcos kafka --name=kafka config list
+```bash
+$ dcos kafka --name=kafka config list
+[
+    "319ebe89-42e2-40e2-9169-8568e2421023",
+    "294235f2-8504-4194-b43d-664443f2132b"
+]
+```
 
-    [
-        "319ebe89-42e2-40e2-9169-8568e2421023",
-        "294235f2-8504-4194-b43d-664443f2132b"
-    ]
-
-
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations"
-    GET /service/kafka/v1/configurations HTTP/1.1
-
-    [
-        "319ebe89-42e2-40e2-9169-8568e2421023",
-        "294235f2-8504-4194-b43d-664443f2132b"
-    ]
-
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations"
+[
+    "319ebe89-42e2-40e2-9169-8568e2421023",
+    "294235f2-8504-4194-b43d-664443f2132b"
+]
+```
 
 ## Describe Configuration
 
 This configuration shows a default per-broker memory allocation of 2048 (configured via the `BROKER_MEM` parameter):
 
-    $ dcos kafka --name=kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
+```bash
+$ dcos kafka --name=kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
+```
 
 Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
 is provided in Appendix A.
 
 The equivalent DC/OS API resource request follows:
 
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
+```
 
 The CLI output for viewing a specific configuration matches the API output.
 
@@ -447,12 +451,16 @@ The CLI output for viewing a specific configuration matches the API output.
 
 The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as `BROKER_MEM`):
 
-    $ dcos kafka --name=kafka config target
+```bash
+$ dcos kafka --name=kafka config target
+```
 
 Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
 is provided in Appendix A.
 
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations/target"
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/configurations/target"
+```
 
 The CLI output for viewing a specific configuration matches the API output.
 
@@ -465,103 +473,101 @@ These options relate to viewing and controlling rollouts and configuration updat
 
 Displays all Phases and Steps in the service Plan. If a rollout is currently in progress, this returns a 503 HTTP code with response content otherwise unchanged.
 
-    $ dcos kafka --name=kafka plan
-    GET /service/kafka/v1/plan HTTP/1.1
-
+```bash
+$ dcos kafka --name=kafka plan show deploy --json
+{
+    "phases": [
     {
-      "phases": [
+        "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
+        "name": "Reconciliation",
+        "steps": [
         {
-          "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
-          "name": "Reconciliation",
-          "steps": [
-            {
-              "id": "9854a67d-7803-46d0-b278-402785fe3199",
-              "status": "COMPLETE",
-              "name": "Reconciliation",
-              "message": "Reconciliation complete"
-            }
-          ],
-          "status": "COMPLETE"
+            "id": "9854a67d-7803-46d0-b278-402785fe3199",
+            "status": "COMPLETE",
+            "name": "Reconciliation",
+            "message": "Reconciliation complete"
+        }
+        ],
+        "status": "COMPLETE"
+    },
+    {
+        "id": "3e72c258-1ead-465f-871e-2a305d29124c",
+        "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
+        "steps": [
+        {
+            "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
+            "status": "COMPLETE",
+            "name": "broker-0",
+            "message": "Broker-0 is COMPLETE"
         },
         {
-          "id": "3e72c258-1ead-465f-871e-2a305d29124c",
-          "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
-          "steps": [
-            {
-              "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
-              "status": "COMPLETE",
-              "name": "broker-0",
-              "message": "Broker-0 is COMPLETE"
-            },
-            {
-              "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
-              "status": "IN_PROGRESS",
-              "name": "broker-1",
-              "message": "Broker-1 is IN_PROGRESS"
-            },
-            {
-              "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
-              "status": "PENDING",
-              "name": "broker-2",
-              "message": "Broker-2 is PENDING"
-            }
-          ],
-          "status": "IN_PROGRESS"
-        }
-      ],
-      "errors": [],
-      "status": "IN_PROGRESS"
-    }
-
-
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
-    GET /service/kafka/v1/plan HTTP/1.1
-
-    {
-      "phases": [
-        {
-          "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
-          "name": "Reconciliation",
-          "steps": [
-            {
-              "id": "9854a67d-7803-46d0-b278-402785fe3199",
-              "status": "COMPLETE",
-              "name": "Reconciliation",
-              "message": "Reconciliation complete"
-            }
-          ],
-          "status": "COMPLETE"
+            "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
+            "status": "IN_PROGRESS",
+            "name": "broker-1",
+            "message": "Broker-1 is IN_PROGRESS"
         },
         {
-          "id": "3e72c258-1ead-465f-871e-2a305d29124c",
-          "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
-          "steps": [
-            {
-              "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
-              "status": "COMPLETE",
-              "name": "broker-0",
-              "message": "Broker-0 is COMPLETE"
-            },
-            {
-              "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
-              "status": "COMPLETE",
-              "name": "broker-1",
-              "message": "Broker-1 is COMPLETE"
-            },
-            {
-              "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
-              "status": "COMPLETE",
-              "name": "broker-2",
-              "message": "Broker-2 is COMPLETE"
-            }
-          ],
-          "status": "COMPLETE"
+            "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
+            "status": "PENDING",
+            "name": "broker-2",
+            "message": "Broker-2 is PENDING"
         }
-      ],
-      "errors": [],
-      "status": "COMPLETE"
+        ],
+        "status": "IN_PROGRESS"
     }
+    ],
+    "errors": [],
+    "status": "IN_PROGRESS"
+}
+```
 
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
+{
+    "phases": [
+    {
+        "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
+        "name": "Reconciliation",
+        "steps": [
+        {
+            "id": "9854a67d-7803-46d0-b278-402785fe3199",
+            "status": "COMPLETE",
+            "name": "Reconciliation",
+            "message": "Reconciliation complete"
+        }
+        ],
+        "status": "COMPLETE"
+    },
+    {
+        "id": "3e72c258-1ead-465f-871e-2a305d29124c",
+        "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
+        "steps": [
+        {
+            "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
+            "status": "COMPLETE",
+            "name": "broker-0",
+            "message": "Broker-0 is COMPLETE"
+        },
+        {
+            "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
+            "status": "COMPLETE",
+            "name": "broker-1",
+            "message": "Broker-1 is COMPLETE"
+        },
+        {
+            "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
+            "status": "COMPLETE",
+            "name": "broker-2",
+            "message": "Broker-2 is COMPLETE"
+        }
+        ],
+        "status": "COMPLETE"
+    }
+    ],
+    "errors": [],
+    "status": "COMPLETE"
+}
+```
 
 ## Upgrade Interaction
 
@@ -569,23 +575,25 @@ These operations are only applicable when `PHASE_STRATEGY` is set to `STAGE`, th
 
 ### Continue
 
-    $ dcos kafka --name=kafka continue
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/continue"
-
+```bash
+$ dcos kafka --name=kafka continue
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/continue"
+```
 
 ### Interrupt
 
-    $ dcos kafka --name=kafka interrupt
-    $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/interrupt"
+```bash
+$ dcos kafka --name=kafka interrupt
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan/interrupt"
+```
 
-
-    [15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
+[15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
 
 # Appendix A - Configuration Resource
 
 The following is an example of the configuration resource:
 
-```
+```json
 {
   "name": "kafka",
   "role": "kafka-role",

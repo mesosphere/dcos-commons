@@ -30,8 +30,8 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
   + You can install just the subcommand CLI by running `dcos package install --cli kafka`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli kafka
-    dcos package install --cli kafka
+    $ dcos package uninstall --cli kafka
+    $ dcos package install --cli kafka
     ```
 
 ### Preparing configuration
@@ -56,36 +56,36 @@ First, we'll fetch the default application's environment, current application's 
 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Set the service name that you're using, for example:
-```bash
-$ SERVICE_NAME=kafka
-```
+    ```bash
+    $ SERVICE_NAME=kafka
+    ```
 1. Get the version of the package that is currently installed:
-```bash
-$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
-```
+    ```bash
+    $ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
+    ```
 1. Then fetch and save the environment variables that have been set for the service:
-```bash
-$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
-```
+    ```bash
+    $ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
+    ```
 1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
-```bash
-$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
-```
+    ```bash
+    $ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
+    ```
 1. We'll also get the entire application template:
-```bash
-$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
-```
+    ```bash
+    $ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
+    ```
 
 Now that you have these files, we'll attempt to recreate the `options.json`.
 
-1. Use JQ and `diff` to compare the two:
-```bash
-$ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
-```
+1. Use `jq` and `diff` to compare the two:
+    ```bash
+    $ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
+    ```
 1. Now compare these values to the values contained in the `env` section in application template:
-```bash
-$ less marathon.json.mustache
-```
+    ```bash
+    $ less marathon.json.mustache
+    ```
 1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
 
 ### Starting the update
@@ -107,7 +107,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 <!-- END DUPLICATE BLOCK -->
 
 To make configuration changes via scheduler environment updates, perform the following steps:
-1. Visit <dcos-url> to access the DC/OS web interface.
+1. Visit `<dcos-url>` to access the DC/OS web interface.
 1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
@@ -115,7 +115,7 @@ To make configuration changes via scheduler environment updates, perform the fol
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config kafka` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config kafka` in the CLI, or browse the Apache Kafka install dialog in the DC/OS web interface.
 
 # Add a Broker
 
@@ -128,17 +128,19 @@ Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other co
 1.  Verify that you no longer see it in the DC/OS web interface.
 
 1.  Optional: Create a JSON options file with any custom configuration, such as a non-default `DEPLOY_STRATEGY`. <!--I'm getting this JSON from the app definition in the UI. The all caps looks a little odd, though -->
-
-        {
-            "env": {
-                "DEPLOY_STRATEGY": "parallel-canary"
-            }
+    ```json
+    {
+        "env": {
+            "DEPLOY_STRATEGY": "parallel-canary"
         }
+    }
+    ```
 
 
 1.  Install the latest version of Kafka:
-
-        $ dcos package install kafka -—options=options.json
+    ```bash
+    $ dcos package install kafka -—options=options.json
+    ```
 
 # Graceful Shutdown
 ## Extend the Kill Grace Period
@@ -154,16 +156,18 @@ the amount of time Kafka brokers take to cleanly shutdown. Find the relevant log
 entries in the [Configure](configure.md) section.
 
 Create an options file `kafka-options.json` with the following content:
-
-        {
-            "brokers": {
-                "kill_grace_period": 60
-            }
-        }
+```json
+{
+    "brokers": {
+        "kill_grace_period": 60
+    }
+}
+```
 
 Issue the following command:
-
-        dcos kafka --name=/kafka update --options=kafka-options.json
+```bash
+$ dcos kafka --name=/kafka update --options=kafka-options.json
+```
 
 ## Restart a Broker with Grace
 
@@ -191,14 +195,14 @@ $ dcos kafka update package-versions
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
-```bash
-$ dcos package uninstall --cli kafka
-$ dcos package install --cli kafka --package-version="1.1.6-5.0.7"
-```
+    ```bash
+    $ dcos package uninstall --cli kafka
+    $ dcos package install --cli kafka --package-version="1.1.6-5.0.7"
+    ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Kafka Service to version `1.1.6-5.0.7`:
-```bash
-$ dcos kafka update start --package-version="1.1.6-5.0.7"
-```
+    ```bash
+    $ dcos kafka update start --package-version="1.1.6-5.0.7"
+    ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 ```bash
