@@ -5,6 +5,7 @@ import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.StrategyGenerator;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +36,16 @@ public class DeployPlanFactory implements PlanFactory {
         return new DefaultPlan(name, phases, strategy, errors);
     }
 
+
+    public Plan getPlan(ServiceSpec serviceSpec, Phase te) {
+        List<Phase> phases = getPhases(serviceSpec);
+        phases.add(te);
+
+        return new DefaultPlan(
+                DEPLOY_PLAN_NAME,
+                phases,
+                strategyGenerator.generate());
+    }
     @Override
     public Plan getPlan(ServiceSpec serviceSpec) {
         return new DefaultPlan(

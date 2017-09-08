@@ -71,7 +71,7 @@ public class AnalyticsScheduler extends DefaultScheduler {
                                 new DeployPlanFactory(
                                         new DefaultPhaseFactory(
                                                 new DefaultStepFactory(configStore, stateStore)), strategyGenerator)
-                                        .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                                        .getPlan(configStore.fetch(configStore.getTargetConfig()), te));
                     } else {
                         plans = Collections.emptyList();
                     }
