@@ -33,7 +33,7 @@ GET /service/kafka/v1/plan HTTP/1.1
             ]
         },
         {
-            
+
             "id": "226a780e-132f-4fea-b584-7712b07cf357",
             "name": "Update to: 72cecf77-dbc5-4ae6-8f91-c88702b9a6a8",
             "steps": [
@@ -59,7 +59,7 @@ GET /service/kafka/v1/plan HTTP/1.1
             "status": "COMPLETE"
         }
     ],
-    
+
     <b>"errors": [
         "Validation error on field \"BROKER_COUNT\": Decreasing this value (from 3 to 2) is not supported."
     ],</b>
@@ -73,7 +73,9 @@ If a machine has permanently failed, manual intervention is required to replace 
 
 In the example below, the broker with id `0` will be replaced on new machine as long as cluster resources are sufficient to satisfy the service’s placement constraints and resource requirements.
 
-    $ dcos kafka broker replace 0
+```bash
+$ dcos kafka broker replace 0
+```
 
 # Extending the Kill Grace Period
 

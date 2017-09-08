@@ -10,7 +10,7 @@ Kafka is available in the Universe and can be installed by using either the web 
 ##  <a name="install-enterprise"></a>Prerequisites
 
 - Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](https://docs.mesosphere.com/service-docs/kafka/kafka-auth/) before installing Kafka. Only someone with `superuser` permission can create the service account.
-	- `strict` [security mode](https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security) requires a service account.  
+	- `strict` [security mode](https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security) requires a service account.
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
 - Your cluster must have at least three private nodes.
@@ -19,19 +19,22 @@ Kafka is available in the Universe and can be installed by using either the web 
 
 To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing Kafka on Enterprise DC/OS](#install-enterprise).
 
-    $ dcos package install kafka
-
+```bash
+$ dcos package install kafka
+```
 
 This command creates a new Kafka cluster with the default name `kafka`. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires [customizing the `name` at install time][4] for each additional instance.
 
 All `dcos kafka` CLI commands have a `--name` argument allowing the user to specify which Kafka instance to query. If you do not specify a service name, the CLI assumes the default value, `kafka`. The default value for `--name` can be customized via the DC/OS CLI configuration:
 
-    $ dcos kafka --name kafka-dev <cmd>
+```bash
+$ dcos kafka --name kafka-dev <cmd>
+```
 
 **Note:** Alternatively, you can [install Kafka from the DC/OS web interface](https://docs.mesosphere.com/1.9/deploying-services/install/). If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
 ```bash
-dcos package install kafka --cli
+$ dcos package install kafka --cli
 ```
 
 # Minimal Installation
@@ -40,18 +43,21 @@ For development purposes, you may wish to install Kafka on a local DC/OS cluster
 
 To start a minimal cluster with a single broker, create a JSON options file named `sample-kafka-minimal.json`:
 
-    {
-        "brokers": {
-            "count": 1,
-            "mem": 512,
-            "disk": 1000
-        }
+```json
+{
+    "brokers": {
+        "count": 1,
+        "mem": 512,
+        "disk": 1000
     }
-
+}
+```
 
 The command below creates a cluster using `sample-kafka-minimal.json`:
 
-    $ dcos package install --options=sample-kafka-minimal.json kafka
+```bash
+$ dcos package install --options=sample-kafka-minimal.json kafka
+```
 
 <a name="custom-installation"></a>
 # Custom Installation
@@ -60,25 +66,28 @@ Customize the defaults by creating a JSON file. Then, pass it to `dcos package i
 
 Sample JSON options file named `sample-kafka-custom.json`:
 
-    {
-        "service": {
-            "name": "sample-kafka-custom",
-            "placement_strategy": "NODE"
-        },
-        "brokers": {
-            "count": 10,
-            "kill_grace_period": 30
-        },
-        "kafka": {
-            "delete_topic_enable": true,
-            "log_retention_hours": 128
-        }
+```json
+{
+    "service": {
+        "name": "sample-kafka-custom",
+        "placement_strategy": "NODE"
+    },
+    "brokers": {
+        "count": 10,
+        "kill_grace_period": 30
+    },
+    "kafka": {
+        "delete_topic_enable": true,
+        "log_retention_hours": 128
     }
-
+}
+```
 
 The command below creates a cluster using `sample-kafka.json`:
 
-    $ dcos package install --options=sample-kafka-custom.json kafka
+```bash
+$ dcos package install --options=sample-kafka-custom.json kafka
+```
 
 **Recommendation:** Store your custom configuration in source control.
 
@@ -88,19 +97,21 @@ See [Configuration Options][6] for a list of fields that can be customized via a
 
 Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` is specified for each installation. For example:
 
-    $ cat kafka1.json
-    {
-        "service": {
-            "name": "kafka1"
-        }
+```
+$ cat kafka1.json
+{
+    "service": {
+        "name": "kafka1"
     }
+}
 
-    $ dcos package install kafka --options=kafka1.json
+$ dcos package install kafka --options=kafka1.json
+```
 
  [4]: #custom-installation
  [5]: https://github.com/mesosphere/dcos-vagrant
  [6]: https://docs.mesosphere.com/service-docs/kafka/configure/#configuration-options
- 
+
 <a name="changing-configuration-at-runtime"></a>
 # Changing Configuration at Runtime
 
@@ -117,41 +128,43 @@ The Kafka scheduler runs as a Marathon process and can be reconfigured by changi
 
 ## Configuration Update REST API
 
-Make the REST request below to view the current deployment plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
+Make the REST request below to view the current deployment plan. See the REST API Authentication part of the [REST API Reference](api-reference.md) section for information on how this request must be authenticated.
 
-    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
 
-    {
-      "phases" : [
+{
+    "phases": [
         {
-          "id" : "b6180a4e-b25f-4307-8855-0b37d671fd46",
-          "name" : "Deployment",
-          "steps" : [
-            {
-              "id" : "258f19a4-d6bc-4ff1-8685-f314924884a1",
-              "status" : "COMPLETE",
-              "name" : "kafka-0:[broker]",
-              "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [258f19a4-d6bc-4ff1-8685-f314924884a1]' has status: 'COMPLETE'."
-            },
-            {
-              "id" : "e59fb2a9-22e2-4900-89e3-bda24041639f",
-              "status" : "COMPLETE",
-              "name" : "kafka-1:[broker]",
-              "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [e59fb2a9-22e2-4900-89e3-bda24041639f]' has status: 'COMPLETE'."
-            },
-            {
-              "id" : "0b5a5048-fd3a-4b2c-a9b5-746045176d29",
-              "status" : "COMPLETE",
-              "name" : "kafka-2:[broker]",
-              "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [0b5a5048-fd3a-4b2c-a9b5-746045176d29]' has status: 'COMPLETE'."
-            }
-          ],
-        "status" : "COMPLETE"
-      }
+            "id": "b6180a4e-b25f-4307-8855-0b37d671fd46",
+            "name": "Deployment",
+            "steps": [
+                {
+                    "id": "258f19a4-d6bc-4ff1-8685-f314924884a1",
+                    "status": "COMPLETE",
+                    "name": "kafka-0:[broker]",
+                    "message": "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-0:[broker] [258f19a4-d6bc-4ff1-8685-f314924884a1]' has status: 'COMPLETE'."
+                },
+                {
+                    "id": "e59fb2a9-22e2-4900-89e3-bda24041639f",
+                    "status": "COMPLETE",
+                    "name": "kafka-1:[broker]",
+                    "message": "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-1:[broker] [e59fb2a9-22e2-4900-89e3-bda24041639f]' has status: 'COMPLETE'."
+                },
+                {
+                    "id": "0b5a5048-fd3a-4b2c-a9b5-746045176d29",
+                    "status": "COMPLETE",
+                    "name": "kafka-2:[broker]",
+                    "message": "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [0b5a5048-fd3a-4b2c-a9b5-746045176d29]' has status: 'COMPLETE'."
+                }
+            ],
+            "status": "COMPLETE"
+        }
     ],
-    "errors" : [ ],
-    "status" : "COMPLETE"
-  }
+    "errors": [],
+    "status": "COMPLETE"
+}
+```
 
 <!-- need to update this with current information for different deployments
 When using the `STAGE` deployment strategy, an update plan will initially pause without doing any update to ensure the plan is correct. It will look like this:
@@ -208,74 +221,78 @@ When using the `STAGE` deployment strategy, an update plan will initially pause 
 
 Enter the `continue` command to execute the first step:
 
-    curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan?cmd=continue"
-    PUT <dcos_url>/service/kafka/v1/continue HTTP/1.1
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan?cmd=continue"
+PUT <dcos_url>/service/kafka/v1/continue HTTP/1.1
 
-    {
-        "Result": "Received cmd: continue"
-    }
-
+{
+    "Result": "Received cmd: continue"
+}
+```
 
 After you execute the continue operation, the plan will look like this:
 
-    curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
-    GET <dcos_url>/service/kafka/v1/plan HTTP/1.1
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/plan"
+GET <dcos_url>/service/kafka/v1/plan HTTP/1.1
 
+{
+    "phases": [
     {
-      "phases": [
+        "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
+        "name": "Reconciliation",
+        "steps": [
         {
-          "id": "9f8927de-d0df-4f72-bd0d-55e3f2c3ab21",
-          "name": "Reconciliation",
-          "steps": [
-            {
-              "id": "2d137273-249b-455e-a65c-3c83228890b3",
-              "status": "COMPLETE",
-              "name": "Reconciliation",
-              "message": "Reconciliation complete"
-            }
-          ],
-          "status": "COMPLETE"
+            "id": "2d137273-249b-455e-a65c-3c83228890b3",
+            "status": "COMPLETE",
+            "name": "Reconciliation",
+            "message": "Reconciliation complete"
+        }
+        ],
+        "status": "COMPLETE"
+    },
+    {
+        "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
+        "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
+        "steps": [
+        {
+            "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
+            "status": "IN_PROGRESS",
+            "name": "broker-0",
+            "message": "Broker-0 is IN_PROGRESS"
         },
         {
-          "id": "a7742963-f7e1-4640-8bd0-2fb28dc04045",
-          "name": "Update to: 6092e4ec-8ffb-49eb-807b-877a85ef8859",
-          "steps": [
-            {
-              "id": "b4453fb0-b4cc-4996-a05c-762673f75e6d",
-              "status": "IN_PROGRESS",
-              "name": "broker-0",
-              "message": "Broker-0 is IN_PROGRESS"
-            },
-            {
-              "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
-              "status": "WAITING",
-              "name": "broker-1",
-              "message": "Broker-1 is WAITING"
-            },
-            {
-              "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
-              "status": "PENDING",
-              "name": "broker-2",
-              "message": "Broker-2 is PENDING"
-            }
-          ],
-          "status": "IN_PROGRESS"
+            "id": "b8a8de9f-8758-4d0f-b785-0a38751a2c94",
+            "status": "WAITING",
+            "name": "broker-1",
+            "message": "Broker-1 is WAITING"
+        },
+        {
+            "id": "49e85522-1bcf-4edb-9456-712e8a537dbc",
+            "status": "PENDING",
+            "name": "broker-2",
+            "message": "Broker-2 is PENDING"
         }
-      ],
-      "errors": [],
-      "status": "IN_PROGRESS"
+        ],
+        "status": "IN_PROGRESS"
     }
-
+    ],
+    "errors": [],
+    "status": "IN_PROGRESS"
+}
+```
 
 
 If you enter `continue` a second time, the rest of the plan will be executed without further interruption. If you want to interrupt a configuration update that is in progress, enter the `interrupt` command:
 
-    curl -X PUT -H "Authorization: token=$auth_token"  "<dcos_url>/service/kafka/v1/plan?cmd=interrupt"
-    PUT <dcos_url>/service/kafka/v1/interrupt HTTP/1.1
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token"  "<dcos_url>/service/kafka/v1/plan?cmd=interrupt"
+PUT <dcos_url>/service/kafka/v1/interrupt HTTP/1.1
 
-    {
-        "Result": "Received cmd: interrupt"
-    }
+{
+    "Result": "Received cmd: interrupt"
+}
+```
 
 **Note:** The interrupt command can’t stop a step that is `InProgress`, but it will stop the change on the subsequent steps.
 
@@ -339,20 +356,24 @@ Configure the port number that the brokers listen on. If the port is set to a pa
 
 Kafka Brokers are configured through settings in a server.properties file deployed with each Broker. The settings here can be specified at installation time or during a post-deployment configuration update. They are set in the DC/OS Universe's config.json as options such as:
 
+```json
     "log_retention_hours": {
         "title": "log.retention.hours",
         "description": "Override log.retention.hours: The number of hours to keep a log file before deleting it (in hours), tertiary to log.retention.ms property",
         "type": "integer",
         "default": 168
     },
+```
 
 The defaults can be overridden at install time by specifying an options.json file with a format like this:
 
+```json
     {
         "kafka": {
             "log_retention_hours": 100
         }
     }
+```
 
 These same values are also represented as environment variables for the scheduler in the form `KAFKA_OVERRIDE_LOG_RETENTION_HOURS` and may be modified through the DC/OS web interface and deployed during a rolling upgrade as [described here][12].
 
@@ -447,7 +468,7 @@ Configure the minimum amount of time before a broker should be replaced:
 * **DC/OS CLI options.json**:
 
 ```json
-    {   
+    {
         "recover_in_place_grace_period_secs":{
             "description":"The minimum amount of time (in minutes) which must pass before a Broker may be destructively replaced.",
             "type":"number",
@@ -570,5 +591,5 @@ Set the amount of time after the delay before health check failures count toward
 * **DC/OS web interface**: Set the environment variable `BROKER_HEALTH_CHECK_MAX_FAILURES`: `3`
 
  [8]: #broker-count
- [11]: https://github.com/mesosphere/universe/tree/1-7ea/repo/packages/K/kafka/6
+ [11]: https://github.com/mesosphere/universe/tree/version-3.x/repo/packages/K/kafka/39
  [12]: #changing-configuration-at-runtime
