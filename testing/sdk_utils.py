@@ -68,7 +68,7 @@ def is_open_dcos():
 
 
 dcos_ee_only = pytest.mark.skipif(
-    'sdk_utils.is_open_dcos',
+    'sdk_utils.is_open_dcos()',
     reason="Feature only supported in DC/OS EE.")
 
 
