@@ -3,7 +3,6 @@ post_title: Managing
 nav_title: Managing
 menu_order: 60
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
