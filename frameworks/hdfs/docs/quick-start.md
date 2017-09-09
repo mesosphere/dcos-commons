@@ -1,6 +1,6 @@
 ---
 post_title: Quickstart
-menu_order: 0
+menu_order: 40
 enterprise: 'no'
 ---
 

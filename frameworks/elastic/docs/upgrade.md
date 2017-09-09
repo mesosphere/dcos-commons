@@ -1,6 +1,6 @@
 ---
 post_title: Upgrade
-menu_order: 15
+menu_order: 130
 enterprise: 'no'
 ---
 

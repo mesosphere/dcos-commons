@@ -1,6 +1,6 @@
 ---
 post_title: Connecting Clients
-menu_order: 40
+menu_order: 50
 enterprise: 'no'
 ---
 
