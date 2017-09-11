@@ -1,7 +1,6 @@
 ---
 post_title: Limitations
 menu_order: 100
-feature_maturity: preview
 enterprise: 'no'
 ---
 
