@@ -52,6 +52,11 @@ public class ResourceBuilder {
                     throw new IllegalStateException("Source path must be set on MOUNT volumes.");
                 }
                 return resourceBuilder.setMountVolume(spec.getContainerPath(), persistenceId, sourceRoot);
+            case PATH:
+                if (!sourceRoot.isPresent()) {
+                    throw new IllegalStateException("Source path must be set on PATH volumes.");
+                }
+                return resourceBuilder.setPathVolume(spec.getContainerPath(), persistenceId, sourceRoot);
             default:
                 throw new IllegalStateException(String.format("Unexpected disk type: %s", spec.getType()));
         }
@@ -90,10 +95,23 @@ public class ResourceBuilder {
     }
 
     private static VolumeSpec getVolumeSpec(Resource resource) {
-        VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
+        DiskInfo.Source.Type tp = resource.getDisk().getSource().getType();
+        //DiskInfo.Source.Type.MOUNT;
+        VolumeSpec.Type type;
+        if (!resource.getDisk().hasSource()) {
+          type = VolumeSpec.Type.ROOT;
+        } else {
+            if (DiskInfo.Source.Type.MOUNT == resource.getDisk().getSource().getType()) {
+                type = VolumeSpec.Type.MOUNT;
+            } else {
+                type = VolumeSpec.Type.PATH;
+            }
+        }
+
         return new DefaultVolumeSpec(
                 resource.getScalar().getValue(),
                 type,
+                resource.getDisk().getVolume().getHostPath(),
                 resource.getDisk().getVolume().getContainerPath(),
                 ResourceUtils.getRole(resource),
                 resource.getRole(),
@@ -180,6 +198,26 @@ public class ResourceBuilder {
         this.diskMountInfo = Optional.of(sourceBuilder.build());
         return this;
     }
+
+    /**
+     * Assigns information relating to {@code PATH} disk volumes for this resource.
+     *
+     * @param existingPersistenceId the persistence ID of a previously reserved disk resource to be associated with
+     * @throws IllegalStateException if the resource does not have type {@code disk}
+     */
+    public ResourceBuilder setPathVolume(
+            String containerPath, Optional<String> existingPersistenceId, Optional<String> existingMountRoot) {
+        // common information across ROOT + MOUNT volumes:
+        setRootVolume(containerPath, existingPersistenceId);
+        // additional information specific to MOUNT volumes:
+        DiskInfo.Source.Builder sourceBuilder = DiskInfo.Source.newBuilder().setType(DiskInfo.Source.Type.PATH);
+        if (existingMountRoot.isPresent()) {
+            sourceBuilder.getPathBuilder().setRoot(existingMountRoot.get());
+        }
+        this.diskMountInfo = Optional.of(sourceBuilder.build());
+        return this;
+    }
+
 
     public ResourceBuilder setMesosResource(MesosResource mesosResource) {
         this.mesosResource = mesosResource;

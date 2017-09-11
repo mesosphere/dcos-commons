@@ -21,6 +21,9 @@ public interface VolumeSpec extends ResourceSpec {
     @JsonProperty("type")
     Type getType();
 
+    @JsonProperty("root-path")
+    String getRootPath();
+
     @JsonProperty("container-path")
     String getContainerPath();
 }

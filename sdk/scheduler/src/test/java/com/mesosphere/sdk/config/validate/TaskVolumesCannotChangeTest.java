@@ -24,6 +24,7 @@ public class TaskVolumesCannotChangeTest {
     private static final VolumeSpec VOLUME1 = new DefaultVolumeSpec(
             DISK_SIZE_MB,
             VolumeSpec.Type.MOUNT,
+            "",
             "some_path",
             "role",
             "*",
@@ -31,6 +32,7 @@ public class TaskVolumesCannotChangeTest {
     private static final VolumeSpec VOLUME2 = new DefaultVolumeSpec(
             DISK_SIZE_MB + 3,
             VolumeSpec.Type.MOUNT,
+            "",
             "some_path",
             "role",
             "*",
@@ -38,6 +40,7 @@ public class TaskVolumesCannotChangeTest {
     private static final VolumeSpec VOLUME3 = new DefaultVolumeSpec(
             DISK_SIZE_MB,
             VolumeSpec.Type.ROOT,
+            "",
             "some_path",
             "role",
             "*",

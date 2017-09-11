@@ -33,12 +33,20 @@ public class PodInstanceRequirementTestUtils {
         return getMountVolumeRequirement(cpus, diskSize, 0);
     }
 
+    public static PodInstanceRequirement getPathVolumeRequirement(double cpus, double diskSize) {
+        return getPathVolumeRequirement(cpus, diskSize, 0);
+    }
+
     public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize, int index) {
         return getRequirement(getRootVolumeResourceSet(cpus, diskSize), index);
     }
 
     public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize, int index) {
         return getRequirement(getMountVolumeResourceSet(cpus, diskSize), index);
+    }
+
+    public static PodInstanceRequirement getPathVolumeRequirement(double cpus, double diskSize, int index) {
+        return getRequirement(getPathVolumeResourceSet(cpus, diskSize), index);
     }
 
     public static PodInstanceRequirement getPortRequirement(int... ports) {
@@ -78,11 +86,15 @@ public class PodInstanceRequirementTestUtils {
         return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name());
     }
 
+    private static ResourceSet getPathVolumeResourceSet(double cpus, double diskSize) {
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.PATH.name());
+    }
+
     private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
-                .addVolume(diskType, diskSize, TestConstants.CONTAINER_PATH)
+                .addVolume(diskType, diskSize, "", TestConstants.CONTAINER_PATH)
                 .build();
     }
 

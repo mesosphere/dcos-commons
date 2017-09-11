@@ -173,6 +173,7 @@ public class DefaultResourceSet implements ResourceSet {
 
         public Builder addVolume(String volumeType,
                                  Double size,
+                                 String rootPath,
                                  String containerPath) {
             VolumeSpec.Type volumeTypeEnum;
             try {
@@ -183,7 +184,7 @@ public class DefaultResourceSet implements ResourceSet {
                         volumeType, containerPath, Arrays.asList(VolumeSpec.Type.values())));
             }
             DefaultVolumeSpec volume =
-                    new DefaultVolumeSpec(size, volumeTypeEnum, containerPath, role, preReservedRole, principal);
+                    new DefaultVolumeSpec(size, volumeTypeEnum, rootPath, containerPath, role, preReservedRole, principal);
             if (volumes.stream()
                     .anyMatch(volumeSpecification ->
                             Objects.equals(volumeSpecification.getContainerPath(), containerPath))) {

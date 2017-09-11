@@ -166,6 +166,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.ROOT,
+                "",
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -224,6 +225,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.ROOT,
+                "",
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -263,6 +265,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.MOUNT,
+                "",
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -284,6 +287,35 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(source.hasMount());
         Assert.assertEquals(TestConstants.MOUNT_SOURCE_ROOT, source.getMount().getRoot());
     }
+
+    @Test
+    public void testNewFromPathVolumeSpec() {
+        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+                10,
+                VolumeSpec.Type.PATH,
+                "/disk1",
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
+                volumeSpec,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("/disk1"));
+
+        Protos.Resource resource = resourceBuilder.build();
+        validateScalarResoure(resource);
+        validateDisk(resource);
+
+        Protos.Resource.DiskInfo diskInfo = resource.getDisk();
+        Assert.assertTrue(diskInfo.hasSource());
+        Protos.Resource.DiskInfo.Source source = diskInfo.getSource();
+        Assert.assertEquals("PATH", source.getType().toString());
+        Assert.assertTrue(source.hasPath());
+        Assert.assertEquals("/disk1", source.getPath().getRoot());
+    }
+
 
     /*
         name: "disk"
@@ -334,6 +366,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.MOUNT,
+                "",
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -405,6 +438,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.ROOT,
+                "",
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -437,6 +471,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 10,
                 VolumeSpec.Type.MOUNT,
+                "",
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,

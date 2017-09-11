@@ -116,7 +116,11 @@ public class ResourceUtils {
 
     public static Optional<String> getSourceRoot(Resource resource) {
         if (resource.hasDisk() && resource.getDisk().hasSource()) {
-            return Optional.of(resource.getDisk().getSource().getMount().getRoot());
+            if (resource.getDisk().getSource().hasMount()) {
+                return Optional.of(resource.getDisk().getSource().getMount().getRoot());
+            } else {
+                return Optional.of(resource.getDisk().getSource().getPath().getRoot());
+            }
         }
 
         return Optional.empty();

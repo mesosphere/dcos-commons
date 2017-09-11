@@ -92,7 +92,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     Optional.empty())
                     .setMesosResource(mesosResource)
                     .build();
-        } else {
+        } else if (volumeSpec.getType().equals(VolumeSpec.Type.MOUNT)) { // MOUNT
             Optional<MesosResource> mesosResourceOptional;
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
@@ -112,6 +112,38 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     resourceId,
                     persistenceId,
                     Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
+                    .setValue(mesosResource.getValue())
+                    .setMesosResource(mesosResource)
+                    .build();
+
+            if (!resourceId.isPresent()) {
+                // Initial reservation of resources
+                logger.info("    Resource '{}' requires a RESERVE operation", volumeSpec.getName());
+                offerRecommendations.add(new ReserveOfferRecommendation(
+                        mesosResourcePool.getOffer(),
+                        resource));
+            }
+        } else {
+            // XXX PATH
+            Optional<MesosResource> mesosResourceOptional;
+            if (!resourceId.isPresent()) {
+                mesosResourceOptional =
+                        mesosResourcePool.consumeSharedNamed(Constants.DISK_RESOURCE_TYPE, volumeSpec);
+            } else {
+                mesosResourceOptional =
+                        mesosResourcePool.getReservedResourceById(resourceId.get());
+            }
+
+            if (!mesosResourceOptional.isPresent()) {
+                return fail(this, "Failed to find PATH volume for '%s'.", volumeSpec).build();
+            }
+
+            mesosResource = mesosResourceOptional.get();
+            resource = ResourceBuilder.fromSpec(
+                    volumeSpec,
+                    resourceId,
+                    persistenceId,
+                    Optional.of(mesosResource.getResource().getDisk().getSource().getPath().getRoot()))
                     .setValue(mesosResource.getValue())
                     .setMesosResource(mesosResource)
                     .build();

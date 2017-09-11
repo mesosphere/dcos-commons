@@ -299,10 +299,12 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                 .addVolume(
                         VolumeSpec.Type.ROOT.name(),
                         1.0,
+                        "",
                         TestConstants.CONTAINER_PATH + "-a")
                 .addVolume(
                         VolumeSpec.Type.ROOT.name(),
                         2.0,
+                        "",
                         TestConstants.CONTAINER_PATH + "-b")
                 .build();
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
@@ -346,13 +348,70 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     }
 
     @Test
+    public void testCreateMultiplePathVolumes() throws Exception {
+        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .cpus(1.0)
+                .addVolume(
+                        VolumeSpec.Type.PATH.name(),
+                        1.0,
+                        "/a",
+                        TestConstants.CONTAINER_PATH + "-a")
+                .addVolume(
+                        VolumeSpec.Type.PATH.name(),
+                        2.0,
+                        "/b",
+                        TestConstants.CONTAINER_PATH + "-b")
+                .build();
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
+
+        Resource offeredDisk1 = ResourceTestUtils.getUnreservedPathVolume(1, "/a");
+        Resource offeredDisk2 = ResourceTestUtils.getUnreservedPathVolume(2, "/b");
+        Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
+
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredCpu, offeredDisk1, offeredDisk2));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(offer));
+        Assert.assertEquals(9, recommendations.size());
+
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(3).getOperation().getType());
+        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(4).getOperation().getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(8).getOperation().getType());
+
+        // Validate Create Operation
+        Operation createOperation = recommendations.get(2).getOperation();
+        Assert.assertEquals(
+                TestConstants.CONTAINER_PATH + "-a",
+                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
+
+        // Validate Create Operation
+        createOperation = recommendations.get(4).getOperation();
+        Assert.assertEquals(
+                TestConstants.CONTAINER_PATH + "-b",
+                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
+
+        // Validate Launch Operation
+        Operation launchOperation = recommendations.get(8).getOperation();
+        for (Protos.TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
+            for (Resource resource : taskInfo.getResourcesList()) {
+                Assert.assertFalse(getResourceId(resource).isEmpty());
+            }
+        }
+    }
+
+    @Test
     public void testConsumeMultipleMountVolumesFailure() throws Exception {
         Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, "", TestConstants.CONTAINER_PATH + "-A")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, "", TestConstants.CONTAINER_PATH + "-B")
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
@@ -397,6 +456,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         new DefaultVolumeSpec(
                                 1000,
                                 VolumeSpec.Type.MOUNT,
+                                "",
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
@@ -456,6 +516,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                         new DefaultVolumeSpec(
                                 1000,
                                 VolumeSpec.Type.MOUNT,
+                                "",
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,

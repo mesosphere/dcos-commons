@@ -34,6 +34,7 @@ public class DefaultTaskSpecTest {
                                 new DefaultVolumeSpec(
                                         100,
                                         VolumeSpec.Type.ROOT,
+                                        "",
                                         TestConstants.CONTAINER_PATH,
                                         TestConstants.ROLE,
                                         TestConstants.PRE_RESERVED_ROLE,

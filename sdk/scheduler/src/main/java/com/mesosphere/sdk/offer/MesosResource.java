@@ -29,6 +29,13 @@ public class MesosResource {
             && resource.getDisk().getSource().getType().equals(Source.Type.MOUNT);
     }
 
+    public boolean isSharedNamed() {
+        return resource.hasDisk()
+                && resource.getDisk().hasSource()
+                && resource.getDisk().getSource().getType().equals(Source.Type.PATH);
+    }
+
+
     public String getName() {
         return resource.getName();
     }

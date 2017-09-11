@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -22,6 +23,11 @@ public class MesosResourcePool {
      * In practice this is always unreserved MOUNT volumes.
      */
     private Map<String, List<MesosResource>> unreservedAtomicPool;
+
+    /**
+     * In practice this is always unreserved PATH volumes.
+     */
+    private Map<String, List<MesosResource>> unreservedSharedNamedPool;
 
     /**
      * Maps resource IDs to Resources.
@@ -46,6 +52,7 @@ public class MesosResourcePool {
         this.offer = offer;
         final Collection<MesosResource> mesosResources = getMesosResources(offer, role);
         this.unreservedAtomicPool = getUnreservedAtomicPool(mesosResources);
+        this.unreservedSharedNamedPool = getUnreservedSharedNamedPool(mesosResources);
         this.dynamicallyReservedPoolByResourceId = getDynamicallyReservedPool(mesosResources);
         this.reservableMergedPoolByRole = getReservableMergedPool(mesosResources);
     }
@@ -55,6 +62,14 @@ public class MesosResourcePool {
      */
     public Offer getOffer() {
         return offer;
+    }
+
+    /**
+     * Returns the unreserved resources which can be partially consumed. For
+     * example, a PATH volume can be partially consumed, it's all-or-nothing.
+     */
+    public Map<String, List<MesosResource>> getUnreservedSharedNamedPool() {
+        return unreservedSharedNamedPool;
     }
 
     /**
@@ -95,7 +110,7 @@ public class MesosResourcePool {
         MesosResource mesosResource = dynamicallyReservedPoolByResourceId.get(resourceId);
 
         if (mesosResource != null) {
-            if (mesosResource.isAtomic()) {
+            if (mesosResource.isAtomic() || mesosResource.isSharedNamed()) {
                 if (sufficientValue(value, mesosResource.getValue())) {
                     dynamicallyReservedPoolByResourceId.remove(resourceId);
                 } else {
@@ -159,6 +174,60 @@ public class MesosResourcePool {
                         resourceName,
                         value);
             }
+        }
+
+        return sufficientResource;
+    }
+
+    public Optional<MesosResource> consumeSharedNamed(String resourceName, VolumeSpec volumeSpec) {
+        List<MesosResource> sharedNamedResources = unreservedSharedNamedPool.get(resourceName);
+        Optional<MesosResource> sufficientResource = Optional.empty();
+
+        List<MesosResource> newUnreservedSharedNamedResources = new ArrayList<>();
+        if (sharedNamedResources != null) {
+            // search for a resource that has the same source path as the volume spec
+            boolean foundResource = false;
+            for (MesosResource sharedNamedResource : sharedNamedResources) {
+                if (!foundResource &&
+                        sharedNamedResource.getResource().getDisk().getSource().getPath().getRoot().equals(volumeSpec.getRootPath())) {
+                    // found !!!
+                    foundResource = true;
+                    // check for empty space
+                    if (sufficientValue(volumeSpec.getValue(), sharedNamedResource.getValue())) {
+                        Value consumedValue = volumeSpec.getValue();
+                        Value leftValue = ValueUtils.subtract(sharedNamedResource.getValue(), volumeSpec.getValue());
+
+                        sufficientResource = Optional.of(
+                                new MesosResource(
+                                    sharedNamedResource.getResource().toBuilder().setScalar(consumedValue.getScalar()).build()
+                                )
+                        );
+                        // substract and add
+                        if (ValueUtils.compare(leftValue, ValueUtils.getZero(leftValue.getType())) > 0) {
+                            newUnreservedSharedNamedResources.add(
+                                    new MesosResource(
+                                            sharedNamedResource.getResource().toBuilder().setScalar(leftValue.getScalar()).build()
+                                    )
+                            );
+                        }
+                    }
+                } else {
+                    newUnreservedSharedNamedResources.add(sharedNamedResource);
+                }
+            }
+        }
+
+        if (newUnreservedSharedNamedResources.isEmpty()) {
+            unreservedSharedNamedPool.remove(resourceName);
+        } else {
+            unreservedSharedNamedPool.put(resourceName, newUnreservedSharedNamedResources);
+        }
+
+        if (!sufficientResource.isPresent()) {
+            logger.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
+                    sharedNamedResources.size(),
+                    resourceName,
+                    volumeSpec.getValue());
         }
 
         return sufficientResource;
@@ -309,6 +378,25 @@ public class MesosResourcePool {
         return pool;
     }
 
+    private static Map<String, List<MesosResource>> getUnreservedSharedNamedPool(
+            Collection<MesosResource> mesosResources) {
+        Map<String, List<MesosResource>> pool = new HashMap<String, List<MesosResource>>();
+
+        for (MesosResource mesosResource : getUnreservedSharedNamedResources(mesosResources)) {
+            String name = mesosResource.getName();
+            List<MesosResource> resList = pool.get(name);
+
+            if (resList == null) {
+                resList = new ArrayList<MesosResource>();
+            }
+
+            resList.add(mesosResource);
+            pool.put(name, resList);
+        }
+
+        return pool;
+    }
+
     private static Map<String, MesosResource> getDynamicallyReservedPool(
             Collection<MesosResource> mesosResources) {
         Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
@@ -366,6 +454,11 @@ public class MesosResourcePool {
         return getUnreservedResources(getAtomicResources(mesosResources));
     }
 
+    private static Collection<MesosResource> getUnreservedSharedNamedResources(
+            Collection<MesosResource> mesosResources) {
+        return getUnreservedResources(getSharedNamedResources(mesosResources));
+    }
+
     private static Collection<MesosResource> getUnreservedResources(
             Collection<MesosResource> mesosResources) {
         Collection<MesosResource> unreservedResources = new ArrayList<MesosResource>();
@@ -392,12 +485,25 @@ public class MesosResourcePool {
         return atomicResources;
     }
 
+    private static Collection<MesosResource> getSharedNamedResources(
+            Collection<MesosResource> mesosResources) {
+        Collection<MesosResource> namedResources = new ArrayList<>();
+
+        for (MesosResource mesosResource : mesosResources) {
+            if (mesosResource.isSharedNamed()) {
+                namedResources.add(mesosResource);
+            }
+        }
+
+        return namedResources;
+    }
+
     private static Collection<MesosResource> getMergedResources(
             Collection<MesosResource> mesosResources) {
         Collection<MesosResource> mergedResources = new ArrayList<>();
 
         for (MesosResource mesosResource : mesosResources) {
-            if (!mesosResource.isAtomic()) {
+            if (!mesosResource.isAtomic() && !mesosResource.isSharedNamed()) {
                 mergedResources.add(mesosResource);
             }
         }

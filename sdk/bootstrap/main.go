@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,6 +52,41 @@ type args struct {
 
 	// Get Task IP
 	getTaskIp bool
+}
+
+type EnvMap map[string]interface{}
+
+type DiskConfig struct {
+	Type string
+	Root string
+	Path string
+	Size int64
+	Last bool
+}
+
+func (m *EnvMap) ParseDisks() string {
+	inputVarName, ok := (*m)["PARSE_DISKS_INPUT_VAR"]
+	if !ok {
+		inputVarName = "DATA_DISKS"
+	}
+	outputVarName, ok := (*m)["PARSE_DISKS_OUTPUT_VAR"]
+	if !ok {
+		outputVarName = "data_disks"
+	}
+	inputVar := (*m)[inputVarName.(string)].(string)
+	disks := strings.Split(inputVar, ";")
+	var outputDisks []DiskConfig = make([]DiskConfig, 0)
+	for _, disk := range disks {
+		spec := strings.Split(disk, ",")
+		tp := spec[0]
+		root := spec[1]
+		path := spec[2]
+		size, _ := strconv.ParseInt(spec[3], 10, 32)
+		outputDisks = append(outputDisks, DiskConfig{tp, root, path, size, false})
+	}
+	outputDisks[len(outputDisks)-1].Last = true
+	(*m)[outputVarName.(string)] = outputDisks
+	return ""
 }
 
 func parseArgs() args {
@@ -211,13 +247,13 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 	return data
 }
 
-func renderTemplate(origContent string, outPath string, envMap map[string]string, source string) {
+func renderTemplate(origContent string, outPath string, envMap EnvMap, source string) {
 	dirpath, _ := path.Split(outPath)
 	template, err := mustache.ParseStringInDir(origContent, dirpath)
 	if err != nil {
 		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, outPath, err)
 	}
-	newContent := template.Render(envMap)
+	newContent := template.Render(&envMap)
 
 	// Print a nice debuggable diff of the changes before they're written.
 	log.Printf("Writing rendered '%s' from %s with the following changes (%d bytes -> %d bytes):",
@@ -234,7 +270,7 @@ func renderTemplate(origContent string, outPath string, envMap map[string]string
 
 func renderTemplates(templateMaxBytes int64) {
 	// Populate map with all envvars:
-	envMap := make(map[string]string)
+	envMap := make(EnvMap)
 	for _, entry := range os.Environ() {
 		keyVal := strings.SplitN(entry, "=", 2) // entry: "key=val"
 		envMap[keyVal[0]] = keyVal[1]

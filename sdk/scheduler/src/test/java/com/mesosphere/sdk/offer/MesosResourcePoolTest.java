@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.specification.DefaultVolumeSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -31,6 +33,16 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     }
 
     @Test
+    public void testCreateSingleUnreservedSharedNamedPool() {
+        Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedPathVolume(1000, "/disk1"));
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedSharedNamedPool().size());
+        Assert.assertEquals(1, pool.getUnreservedSharedNamedPool().get("disk").size());
+    }
+
+
+    @Test
     public void testCreateSingleReservedAtomicPool() {
         Resource resource = ResourceTestUtils.getExpectedMountVolume(1000);
         Offer offer = OfferTestUtils.getOffer(resource);
@@ -38,6 +50,18 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
         String resourceId = new MesosResource(resource).getResourceId().get();
 
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
+        Assert.assertEquals(1, pool.getDynamicallyReservedPoolByResourceId().size());
+        Assert.assertEquals(resource, pool.getDynamicallyReservedPoolByResourceId().get(resourceId).getResource());
+    }
+
+    @Test
+    public void testCreateSingleReservedSharedNamedPool() {
+        Resource resource = ResourceTestUtils.getExpectedPathVolume(1000, "/disk1");
+        Offer offer = OfferTestUtils.getOffer(resource);
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        String resourceId = new MesosResource(resource).getResourceId().get();
+
+        Assert.assertEquals(0, pool.getUnreservedSharedNamedPool().size());
         Assert.assertEquals(1, pool.getDynamicallyReservedPoolByResourceId().size());
         Assert.assertEquals(resource, pool.getDynamicallyReservedPoolByResourceId().get(resourceId).getResource());
     }
@@ -53,6 +77,17 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     }
 
     @Test
+    public void testMultipleUnreservedSharedNamedPool() {
+        Resource resource1 = ResourceTestUtils.getUnreservedPathVolume(1000, "/disk1");
+        Resource resource2 = ResourceTestUtils.getUnreservedPathVolume(1000, "/disk2");
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(resource1, resource2));
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedSharedNamedPool().size());
+        Assert.assertEquals(2, pool.getUnreservedSharedNamedPool().get("disk").size());
+    }
+
+    @Test
     public void testConsumeUnreservedAtomicResource() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);
         Protos.Value resourceValue = ValueUtils.getValue(offerResource);
@@ -63,6 +98,29 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
         MesosResource resourceToConsume = pool.consumeAtomic(offerResource.getName(), resourceValue).get();
         Assert.assertEquals(offerResource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
+    }
+
+    @Test
+    public void testConsumeUnreservedSharedNamedResource() {
+        Resource resource1 = ResourceTestUtils.getUnreservedPathVolume(1000, "/disk1");
+        Resource resource2 = ResourceTestUtils.getUnreservedPathVolume(1000, "/disk2");
+        Offer offer = OfferTestUtils.getOffer(Arrays.asList(resource1, resource2));
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedSharedNamedPool().size());
+        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+                500,
+                VolumeSpec.Type.PATH,
+                "/disk1",
+                "container1",
+                Constants.ANY_ROLE,
+                Constants.ANY_ROLE,
+                "principal");
+        MesosResource resourceToConsume = pool.consumeSharedNamed("disk", volumeSpec).get();
+        //Assert.assertEquals(offerResource, resourceToConsume.getResource());
+        Assert.assertEquals(1, pool.getUnreservedSharedNamedPool().size());
+        // still half a disk left
+        Assert.assertEquals(2, pool.getUnreservedSharedNamedPool().get("disk").size());
     }
 
     @Test

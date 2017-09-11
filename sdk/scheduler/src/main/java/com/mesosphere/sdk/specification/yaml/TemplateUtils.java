@@ -2,20 +2,17 @@ package com.mesosphere.sdk.specification.yaml;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Function;
 
+import com.github.mustachejava.*;
 import org.apache.commons.lang3.StringUtils;
 
-import com.github.mustachejava.Binding;
-import com.github.mustachejava.Code;
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.MustacheException;
-import com.github.mustachejava.ObjectHandler;
-import com.github.mustachejava.TemplateContext;
 import com.github.mustachejava.codes.ValueCode;
 import com.github.mustachejava.reflect.GuardedBinding;
 import com.github.mustachejava.reflect.MissingWrapper;
@@ -91,11 +88,77 @@ public class TemplateUtils {
             }
         }
 
-        mustacheFactory
-                .compile(new StringReader(templateContent), templateName)
-                .execute(writer, objEnv);
-        return writer.toString();
+//        mustacheFactory
+//                .compile(new StringReader(templateContent), templateName)
+//                .execute(writer, objEnv);
+        return executeMustache(mustacheFactory, writer, templateContent, templateName, objEnv).toString();
     }
+
+    public static final class DiskConfig {
+        public String Type;
+        public String Root;
+        public String Path;
+        public int Size;
+        public boolean Last;
+
+        public DiskConfig(String tp, String root, String path, int size, boolean last) {
+            this.Type = tp;
+            this.Root = root;
+            this.Path = path;
+            this.Size = size;
+            this.Last = last;
+        }
+    }
+
+    public static List<DiskConfig> parseDisksString(String disks) {
+        List<DiskConfig> output = new ArrayList<>();
+        String[] tmp = disks.split(";");
+        for (String disk : tmp) {
+            String[] spec = disk.split(",");
+            String type = spec[0];
+            String root = spec[1];
+            String path = spec[2];
+            int size = Integer.parseInt(spec[3]);
+            output.add(new DiskConfig(type, root, path, size, false));
+        }
+        output.get(output.size() - 1).Last = true;
+        return output;
+    }
+
+    /**
+     * Executes a Mustache template, using some extra functions to parse things like disk specs.
+     *
+     * @param templateContent String representation of template.
+     * @param environment     Map of environment variables.
+     * @return Rendered Mustache template String.
+     */
+    public static Writer executeMustache(MustacheFactory factory,
+                                         Writer writer, String templateContent,
+                                         String templateName,
+                                         Map<String, Object> environment) {
+        Map<String, Object> objectEnvironment = new HashMap<>();
+        objectEnvironment.putAll(environment);
+
+        Function<String, String> parseDisks = input -> {
+            try {
+                String inputVarName = (String)environment.getOrDefault("PARSE_DISKS_INPUT_VAR",
+                        "DATA_DISKS");
+                String outputVarName = (String)environment.getOrDefault("PARSE_DISKS_OUTPUT_VAR",
+                        "data_disks");
+                String inputVar = (String)environment.get(inputVarName);
+                List<DiskConfig> outputDisks = parseDisksString(inputVar);
+                objectEnvironment.put(outputVarName, outputDisks);
+            } catch (Exception e) {
+                return "";
+                //date jos
+            }
+            return "";
+        };
+        objectEnvironment.put("ParseDisks", parseDisks);
+        Mustache mustache = factory.compile(new StringReader(templateContent), templateName);
+        return mustache.execute(writer, objectEnvironment);
+    }
+
 
     /**
      * Renders a given Mustache template using the provided value map, throwing an exception if any template parameters

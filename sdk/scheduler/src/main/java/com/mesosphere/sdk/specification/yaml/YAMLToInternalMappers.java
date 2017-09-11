@@ -431,6 +431,7 @@ public class YAMLToInternalMappers {
                 resourceSetBuilder.addVolume(
                         rawVolume.getType(),
                         Double.valueOf(rawVolume.getSize()),
+                        rawVolume.getRoot(),
                         rawVolume.getPath());
             }
         }
@@ -438,6 +439,7 @@ public class YAMLToInternalMappers {
             resourceSetBuilder.addVolume(
                     rawSingleVolume.getType(),
                     Double.valueOf(rawSingleVolume.getSize()),
+                    rawSingleVolume.getRoot(),
                     rawSingleVolume.getPath());
         }
 
@@ -486,7 +488,14 @@ public class YAMLToInternalMappers {
         }
 
         return new DefaultVolumeSpec(
-                rawVolume.getSize(), volumeTypeEnum, rawVolume.getPath(), role, preReservedRole, principal);
+                rawVolume.getSize(),
+                volumeTypeEnum,
+                rawVolume.getRoot(),
+                rawVolume.getPath(),
+                role,
+                preReservedRole,
+                principal
+        );
     }
 
     private static DefaultNetworkSpec convertNetwork(

@@ -30,16 +30,19 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
      */
     @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*")
     private final String containerPath;
+    private final String rootPath;
 
     public DefaultVolumeSpec(
             double diskSize,
             Type type,
+            String rootPath,
             String containerPath,
             String role,
             String preReservedRole,
             String principal) {
         this(
                 type,
+                rootPath,
                 containerPath,
                 Constants.DISK_RESOURCE_TYPE,
                 scalarValue(diskSize),
@@ -51,6 +54,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     @JsonCreator
     private DefaultVolumeSpec(
             @JsonProperty("type") Type type,
+            @JsonProperty("root-path") String rootPath,
             @JsonProperty("container-path") String containerPath,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
@@ -59,6 +63,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
             @JsonProperty("principal")  String principal) {
         super(name, value, role, preReservedRole, principal);
         this.type = type;
+        this.rootPath = rootPath;
         this.containerPath = containerPath;
 
         ValidationUtils.validate(this);
@@ -67,6 +72,11 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     @Override
     public Type getType() {
         return type;
+    }
+
+    @Override
+    public String getRootPath() {
+        return rootPath;
     }
 
     @Override

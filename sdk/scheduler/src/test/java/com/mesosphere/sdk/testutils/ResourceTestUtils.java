@@ -77,6 +77,36 @@ public class ResourceTestUtils {
                 principal).build();
     }
 
+    public static Resource getExpectedPathVolume(
+            double diskSize,
+            String resourceId,
+            String role,
+            String principal,
+            String root,
+            String containerPath,
+            String persistenceId) {
+        Value diskValue = Value.newBuilder()
+                .setType(Value.Type.SCALAR)
+                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
+                .build();
+        DiskInfo pathVolumeDiskInfo = DiskInfo.newBuilder(getUnreservedPathVolumeDiskInfo(root))
+                .setPersistence(Persistence.newBuilder()
+                        .setId(persistenceId)
+                        .setPrincipal(principal)
+                        .build())
+                .setVolume(Volume.newBuilder()
+                        .setContainerPath(containerPath)
+                        .setMode(Volume.Mode.RW)
+                        .build())
+                .build();
+        return addReservation(
+                Resource.newBuilder(getUnreservedResource("disk", diskValue)).setDisk(pathVolumeDiskInfo),
+                resourceId,
+                role,
+                principal).build();
+    }
+
+
     public static Resource getUnreservedRootVolume(double diskSize) {
         Value diskValue = Value.newBuilder()
                 .setType(Value.Type.SCALAR)
@@ -97,6 +127,7 @@ public class ResourceTestUtils {
         VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 diskSize,
                 VolumeSpec.Type.ROOT,
+                "",
                 containerPath,
                 role,
                 Constants.ANY_ROLE,
@@ -172,6 +203,17 @@ public class ResourceTestUtils {
                 .build();
     }
 
+    private static DiskInfo getUnreservedPathVolumeDiskInfo(String root) {
+        return DiskInfo.newBuilder()
+                .setSource(Source.newBuilder()
+                        .setType(Source.Type.PATH)
+                        .setPath(Source.Path.newBuilder()
+                                .setRoot(root)
+                                .build())
+                        .build())
+                .build();
+    }
+
     public static Resource setLabel(Resource resource, String key, String value) {
         Resource.Builder builder = resource.toBuilder();
         builder.getReservationBuilder().getLabelsBuilder().addLabelsBuilder().setKey(key).setValue(value);
@@ -212,8 +254,38 @@ public class ResourceTestUtils {
                 .build();
     }
 
+    public static Resource getUnreservedPathVolume(double diskSize) {
+        Value diskValue = Value.newBuilder()
+                .setType(Value.Type.SCALAR)
+                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
+                .build();
+        return Resource.newBuilder(getUnreservedResource("disk", diskValue))
+                .setRole("*")
+                .setDisk(getUnreservedPathVolumeDiskInfo(TestConstants.PATH_ROOT))
+                .build();
+    }
+
+    public static Resource getUnreservedPathVolume(double diskSize, String root) {
+        Value diskValue = Value.newBuilder()
+                .setType(Value.Type.SCALAR)
+                .setScalar(Value.Scalar.newBuilder().setValue(diskSize))
+                .build();
+        return Resource.newBuilder(getUnreservedResource("disk", diskValue))
+                .setRole("*")
+                .setDisk(getUnreservedPathVolumeDiskInfo(root))
+                .build();
+    }
+
     public static Resource getExpectedMountVolume(double diskSize) {
         return getExpectedMountVolume(diskSize, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
+    }
+
+    public static Resource getExpectedPathVolume(double diskSize) {
+        return getExpectedPathVolume(diskSize, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
+    }
+
+    public static Resource getExpectedPathVolume(double diskSize, String root) {
+        return getExpectedPathVolume(diskSize, root, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
     }
 
     public static Resource getExpectedMountVolume(double diskSize, String resourceId, String persistenceId) {
@@ -223,6 +295,28 @@ public class ResourceTestUtils {
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
                 TestConstants.MOUNT_ROOT,
+                TestConstants.CONTAINER_PATH,
+                persistenceId);
+    }
+
+    public static Resource getExpectedPathVolume(double diskSize, String resourceId, String persistenceId) {
+        return getExpectedPathVolume(
+                diskSize,
+                resourceId,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                TestConstants.PATH_ROOT,
+                TestConstants.CONTAINER_PATH,
+                persistenceId);
+    }
+
+    public static Resource getExpectedPathVolume(double diskSize, String root, String resourceId, String persistenceId) {
+        return getExpectedPathVolume(
+                diskSize,
+                resourceId,
+                TestConstants.ROLE,
+                TestConstants.PRINCIPAL,
+                root,
                 TestConstants.CONTAINER_PATH,
                 persistenceId);
     }
