@@ -76,3 +76,8 @@ If your cluster doesn't have enough resources to deploy the service as requested
 ## Virtual networks
 
 When the service is deployed on a virtual network, the service may not be switched to host networking without a full re-installation. The same is true for attempting to switch from host to virtual networking.
+
+## User UID mismatches
+
+The DC/OS Cassandra Service uses a Docker image to manage its dependencies on Python 2.7 and the CLI tools for Amazon AWS and Microsoft Azure cloud services. Since the Docker image contains a full Linux userspace with its own `/etc/users` file, it is possible for the default service user `nobody` to have a different UID inside the container than on the host system. Although user `nobody` has UID `65534` by convention on many systems, this is not always the case. As Mesos does not perform UID mapping between Linux user namespaces, specifying a service user of `nobody` in this case will cause access failures when the container user attempts to open or execute a filesystem resource owned by a user with a different UID, preventing the service from launching. If the hosts in your cluster have a UID for `nobody` other than 65534, you will need to specify a service user of `root` to run DC/OS Cassandra Service successfully.
+
