@@ -1,6 +1,6 @@
 ---
 post_title: Version 1.0.8-5.2.2
-menu_order: 00
+menu_order: 10
 post_excerpt: ""
 enterprise: 'no'
 ---

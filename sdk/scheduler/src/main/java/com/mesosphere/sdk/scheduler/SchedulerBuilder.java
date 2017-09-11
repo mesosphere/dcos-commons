@@ -10,6 +10,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,15 +22,16 @@ import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotChangeNetworkRegime;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotShrink;
-import com.mesosphere.sdk.config.validate.PreReservationCannotChange;
-import com.mesosphere.sdk.config.validate.ServiceNameCannotContainDoubleUnderscores;
-import com.mesosphere.sdk.config.validate.TLSRequiresServiceAccount;
-import com.mesosphere.sdk.config.validate.TaskVolumesCannotChange;
-import com.mesosphere.sdk.config.validate.UserCannotChange;
+import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.auth.TokenProvider;
+import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhaseFactory;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
@@ -35,6 +39,7 @@ import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -243,7 +248,12 @@ public class SchedulerBuilder {
      * @param configStore The config store to use for plan generation.
      * @return a collection of plans
      */
-    private Collection<Plan> getPlans(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
+    private static Collection<Plan> getPlans(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            ServiceSpec serviceSpec,
+            List<Plan> manualPlans,
+            Map<String, RawPlan> yamlPlans) {
         final String plansType;
         final Collection<Plan> plans;
         if (!manualPlans.isEmpty()) {
@@ -288,11 +298,11 @@ public class SchedulerBuilder {
      * @param stateStore The stateStore to get last deployment type from.
      * @param configStore The configStore to get plans from.
      */
-    private void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
+    private static void fixLastDeploymentType(StateStore stateStore, Collection<Plan> plans) {
         ConfigurationUpdater.UpdateResult.DeploymentType lastDeploymentType =
                 StateStoreUtils.getLastCompletedUpdateType(stateStore);
         if (lastDeploymentType.equals(ConfigurationUpdater.UpdateResult.DeploymentType.NONE)) {
-            Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(getPlans(stateStore, configStore));
+            Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
             if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
                 StateStoreUtils.setLastCompletedUpdateType(
                         stateStore,
@@ -302,33 +312,113 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Creates a new scheduler instance with the provided values or their defaults.
+     * Creates a new Mesos scheduler instance with the provided values or their defaults, or an empty {@link Optional}
+     * if no Mesos scheduler should be registered for this run.
      *
-     * @return a new scheduler instance
-     * @throws IllegalStateException if config validation failed when updating the target config.
+     * @return a new Mesos scheduler instance to be registered, or an empty {@link Optional}
+     * @throws IllegalArgumentException if validating the provided configuration failed
      */
-    public DefaultScheduler build() {
-        try {
-            new CapabilityValidator().validate(serviceSpec);
-        } catch (CapabilityValidator.CapabilityValidationException e) {
-            throw new IllegalStateException("Failed to validate provided ServiceSpec", e);
-        }
-
+    public Optional<Scheduler> build() {
         // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
         final StateStore stateStore = getStateStore();
         final ConfigStore<ServiceSpec> configStore = getConfigStore();
-        fixLastDeploymentType(stateStore, configStore);
+
+        if (getSchedulerFlags().isUninstallEnabled()) {
+            if (!StateStoreUtils.isUninstalling(getStateStore())) {
+                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                        "Uninstall cannot be canceled once enabled.");
+                StateStoreUtils.setUninstalling(getStateStore());
+            }
+
+            return getUninstallScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags());
+        } else {
+            if (StateStoreUtils.isUninstalling(stateStore)) {
+                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                        "Reenable the uninstall flag to complete the process.");
+                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+            }
+
+            return Optional.of(getDefaultScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags()));
+        }
+    }
+
+    private static Optional<Scheduler> getUninstallScheduler(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags) {
+        Optional<SecretsClient> secretsClient = Optional.empty();
+        if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
+            try {
+                TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(schedulerFlags);
+                Executor executor = Executor.newInstance(
+                        new DcosHttpClientBuilder()
+                                .setTokenProvider(tokenProvider)
+                                .setRedirectStrategy(new LaxRedirectStrategy())
+                                .build());
+                secretsClient = Optional.of(new DefaultSecretsClient(executor));
+            } catch (Exception e) {
+                LOGGER.error("Failed to create a secrets store client, " +
+                        "TLS artifacts possibly won't be cleaned up from secrets store", e);
+            }
+        }
+
+        // Always create the scheduler. It will internally start a thread to serve the Plans API.
+        // Return the scheduler only if it should be registered with Mesos.
+        Scheduler scheduler =
+                new UninstallScheduler(serviceSpec.getName(), stateStore, configStore, schedulerFlags, secretsClient);
+
+        if (allButStateStoreUninstalled(stateStore, schedulerFlags)) {
+            LOGGER.info("Not registering framework because it is uninstalling.");
+            return Optional.empty();
+        } else {
+            return Optional.of(scheduler);
+        }
+    }
+
+    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerFlags schedulerFlags) {
+        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
+        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
+        // have register() called after the StateStore already has the uninstall bit wiped.
+        //
+        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
+        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
+        // StateStoreUtils.isUninstalling().
+
+        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
+        return !stateStore.fetchFrameworkId().isPresent() &&
+                tasksNeedClearing(stateStore);
+    }
+
+    private static boolean tasksNeedClearing(StateStore stateStore) {
+        return ResourceUtils.getResourceIds(
+                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+    }
+
+    /**
+     * Creates a new scheduler instance with the provided values or their defaults.
+     *
+     * @return a new scheduler instance
+     * @throws IllegalArgumentException if config validation failed when updating the target config.
+     */
+    private DefaultScheduler getDefaultScheduler(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags) {
+        try {
+            new CapabilityValidator().validate(serviceSpec);
+        } catch (CapabilityValidator.CapabilityValidationException e) {
+            throw new IllegalArgumentException("Failed to validate provided ServiceSpec", e);
+        }
+
+        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans);
+        fixLastDeploymentType(stateStore, plans);
 
         // Update/validate config as needed to reflect the new service spec:
         Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
-        configValidators.addAll(Arrays.asList(
-                new ServiceNameCannotContainDoubleUnderscores(),
-                new PodSpecsCannotShrink(),
-                new TaskVolumesCannotChange(),
-                new PodSpecsCannotChangeNetworkRegime(),
-                new PreReservationCannotChange(),
-                new UserCannotChange(),
-                new TLSRequiresServiceAccount(getSchedulerFlags())));
+        configValidators.addAll(DefaultConfigValidators.getValidators(schedulerFlags));
         configValidators.addAll(customConfigValidators);
 
         final ConfigurationUpdater.UpdateResult configUpdateResult =
@@ -341,16 +431,15 @@ public class SchedulerBuilder {
                 // If there were errors maintain the last accepted target configuration.
                 serviceSpec = configStore.fetch(configStore.getTargetConfig());
             } catch (ConfigStoreException e) {
-                LOGGER.error("Failed to maintain pervious target configuration.");
-                throw new IllegalStateException(e);
+                LOGGER.error("Failed to retrieve previous target configuration.");
+                throw new IllegalArgumentException(e);
             }
         }
 
-        Collection<Plan> plans = getPlans(stateStore, configStore);
         plans = overrideDeployPlan(plans, configUpdateResult);
         Optional<Plan> deployOptional = SchedulerUtils.getDeployPlan(plans);
         if (!deployOptional.isPresent()) {
-            throw new IllegalStateException("No deploy plan provided.");
+            throw new IllegalArgumentException("No deploy plan provided.");
         }
 
         List<String> errors = configUpdateResult.getErrors().stream()
@@ -360,7 +449,7 @@ public class SchedulerBuilder {
 
         return new DefaultScheduler(
                 serviceSpec,
-                getSchedulerFlags(),
+                schedulerFlags,
                 customResources,
                 plans,
                 stateStore,
@@ -405,7 +494,8 @@ public class SchedulerBuilder {
      * Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update
      * plan.
      */
-    private static Collection<Plan> overrideDeployPlan(
+    @VisibleForTesting
+    static Collection<Plan> overrideDeployPlan(
             Collection<Plan> plans,
             ConfigurationUpdater.UpdateResult updateResult) {
 

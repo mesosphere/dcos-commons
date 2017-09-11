@@ -1,9 +1,9 @@
-package com.mesosphere.sdk.specification.util;
+package com.mesosphere.sdk.specification;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-public class RLimitTest {
+public class RLimitSpecTest {
     @Test
     public void testRLimitCreationSucceeds() throws RLimitSpec.InvalidRLimitException {
         RLimitSpec rlimit = new RLimitSpec("RLIMIT_AS", 0L, 1L);

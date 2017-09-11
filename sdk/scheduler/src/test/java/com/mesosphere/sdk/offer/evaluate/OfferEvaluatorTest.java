@@ -13,7 +13,6 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -384,10 +383,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testLaunchSequencedTasksInPod() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        ServiceSpec serviceSpec = getServiceSpec("resource-set-seq.yml");
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -457,10 +453,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testRelaunchFailedPod() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        ServiceSpec serviceSpec = getServiceSpec("resource-set-seq.yml");
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -529,10 +522,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReplaceDeployStep() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal-volume.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        ServiceSpec serviceSpec = getServiceSpec("valid-minimal-volume.yml");
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -594,10 +584,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testResourceRefinementSucceeds() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+            ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
             Offer sufficientOffer = OfferTestUtils.getCompleteOffer(
@@ -649,10 +636,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testResourceRefinementFailsForMissingPreReservation() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+            ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
             Offer badOffer = OfferTestUtils.getOffer(
@@ -678,10 +662,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     public void testResourceRefinementFailsForDifferentPreReservation() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("resource-refinement.yml").getFile());
-            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-            DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+            ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
             Offer badOffer = OfferTestUtils.getOffer(
@@ -793,6 +774,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         for (OfferRecommendation recommendation : recommendations) {
             operationRecorder.record(recommendation);
         }
+    }
+
+    private ServiceSpec getServiceSpec(String specFileName) throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(specFileName).getFile());
+        return DefaultServiceSpec.newGenerator(file, flags).build();
     }
 
     static void validateRole(Resource resource) {

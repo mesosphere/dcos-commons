@@ -21,6 +21,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.PersisterCache;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -200,11 +201,7 @@ public class SchedulerTest {
         configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
-        defaultScheduler = DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .build();
-        defaultScheduler = new TestScheduler(defaultScheduler, true);
+        defaultScheduler = new TestScheduler(getScheduler(serviceSpec), true);
         register();
     }
 
@@ -304,10 +301,7 @@ public class SchedulerTest {
         testLaunchB();
         defaultScheduler.awaitOffersProcessed();
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
-        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags, new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .build();
+        defaultScheduler = getScheduler(getServiceSpec(updatedPodA, podB));
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -321,10 +315,7 @@ public class SchedulerTest {
         testLaunchB();
         defaultScheduler.awaitOffersProcessed();
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
-        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, updatedPodB), flags, new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .build();
+        defaultScheduler = getScheduler(getServiceSpec(podA, updatedPodB));
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -339,10 +330,7 @@ public class SchedulerTest {
         defaultScheduler.awaitOffersProcessed();
 
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
-        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(scaledPodA, podB), flags, new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .build();
+        defaultScheduler = getScheduler(getServiceSpec(scaledPodA, podB));
         register();
 
         Plan plan = defaultScheduler.deploymentPlanManager.getPlan();
@@ -611,10 +599,7 @@ public class SchedulerTest {
 
         // Perform Configuration Update
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
-        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(updatedPodA, podB), flags, new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .build();
+        defaultScheduler = getScheduler(getServiceSpec(updatedPodA, podB));
         defaultScheduler = new TestScheduler(defaultScheduler, true);
         register();
         defaultScheduler.reconciler.forceComplete();
@@ -666,10 +651,7 @@ public class SchedulerTest {
 
         // Build new scheduler with invalid config (shrinking task count)
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
-        defaultScheduler = DefaultScheduler.newBuilder(getServiceSpec(podA, invalidPodB), flags, new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
-                .build();
+        defaultScheduler = getScheduler(getServiceSpec(podA, invalidPodB));
 
         // Ensure prior target configuration is still intact
         Assert.assertEquals(targetConfigId, configStore.getTargetConfig());
@@ -1062,6 +1044,14 @@ public class SchedulerTest {
         public int hashCode() {
             return HashCodeBuilder.reflectionHashCode(this);
         }
+    }
+
+    private DefaultScheduler getScheduler(ServiceSpec serviceSpec) throws PersisterException {
+        return (DefaultScheduler) DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .build()
+                .get();
     }
 
     private static class TestScheduler extends DefaultScheduler {

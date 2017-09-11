@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.template.scheduler;
 
-import com.mesosphere.sdk.scheduler.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import java.io.File;
 
@@ -11,8 +11,10 @@ import java.io.File;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        if (args.length > 0) {
-            new DefaultService(new File(args[0]), SchedulerFlags.fromEnv()).run();
-        }
+        File pathToYamlSpecification = new File(args[0]);
+        SchedulerRunner.fromRawServiceSpec(
+                RawServiceSpec.newBuilder(pathToYamlSpecification).build(),
+                SchedulerFlags.fromEnv(),
+                pathToYamlSpecification.getParentFile()).run();
     }
 }

@@ -241,15 +241,20 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 
             PemReader pemReader = new PemReader(new StringReader(flags.getServiceAccountPrivateKeyPEM()));
-            PrivateKey privateKey = keyFactory.generatePrivate(
-                    new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
+            try {
+                PrivateKey privateKey = keyFactory.generatePrivate(
+                        new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
 
-            ServiceAccountIAMTokenProvider serviceAccountIAMTokenProvider = new ServiceAccountIAMTokenProvider.Builder()
-                    .setIamUrl(URLUtils.fromUnchecked(DcosConstants.IAM_AUTH_URL))
-                    .setUid(flags.getServiceAccountUid())
-                    .setPrivateKey((RSAPrivateKey) privateKey)
-                    .build();
-            return new CachedTokenProvider(serviceAccountIAMTokenProvider, flags.getAuthTokenRefreshThreshold());
+                ServiceAccountIAMTokenProvider serviceAccountIAMTokenProvider =
+                        new ServiceAccountIAMTokenProvider.Builder()
+                        .setIamUrl(URLUtils.fromUnchecked(DcosConstants.IAM_AUTH_URL))
+                        .setUid(flags.getServiceAccountUid())
+                        .setPrivateKey((RSAPrivateKey) privateKey)
+                        .build();
+                return new CachedTokenProvider(serviceAccountIAMTokenProvider, flags.getAuthTokenRefreshThreshold());
+            } finally {
+                pemReader.close();
+            }
         }
 
         public static Builder fromEnvironment(SchedulerFlags flags)

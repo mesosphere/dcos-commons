@@ -4,13 +4,12 @@ import com.google.common.base.Joiner;
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
 import com.mesosphere.sdk.config.validate.TaskEnvCannotChange;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerRunner;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -19,18 +18,17 @@ import java.util.*;
  * Cassandra Service.
  */
 public class Main {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) throws Exception {
-        new DefaultService(createSchedulerBuilder(new File(args[0]))).run();
+        SchedulerRunner.fromSchedulerBuilder(createSchedulerBuilder(new File(args[0]))).run();
     }
 
-    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification)
+    private static SchedulerBuilder createSchedulerBuilder(File pathToYamlSpecification)
             throws Exception {
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
         return DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
                         .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
                         .build(),
                 schedulerFlags)

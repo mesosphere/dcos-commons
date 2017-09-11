@@ -8,7 +8,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,26 +32,26 @@ import java.util.Optional;
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-    private static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
-    private static final String HDFS_SITE_XML = "hdfs-site.xml";
-    private static final String CORE_SITE_XML = "core-site.xml";
+
+    static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
+    static final String HDFS_SITE_XML = "hdfs-site.xml";
+    static final String CORE_SITE_XML = "core-site.xml";
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
-            // We manually configure the pods to have additional tasktype placement rules as required for HDFS:
-
-            DefaultService.fromSchedulerBuilder(
-                    getBuilder(RawServiceSpec.newBuilder(new File(args[0])).build())).run();
+            SchedulerRunner.fromSchedulerBuilder(getBuilder(new File(args[0]))).run();
         } else {
             LOGGER.error("Missing file argument");
             System.exit(1);
         }
     }
 
-    private static SchedulerBuilder getBuilder(RawServiceSpec rawServiceSpec)
+    private static SchedulerBuilder getBuilder(File pathToYamlSpecification)
             throws Exception {
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
+        File configDir = pathToYamlSpecification.getParentFile();
         SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .build();
@@ -62,20 +60,18 @@ public class Main {
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec);
         return builder
-                .setEndpointProducer(HDFS_SITE_XML,
-                        EndpointProducer.constant(renderTemplate(HDFS_SITE_XML, serviceSpec.getName())))
-                .setEndpointProducer(CORE_SITE_XML,
-                        EndpointProducer.constant(renderTemplate(CORE_SITE_XML, serviceSpec.getName())));
+                .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
+                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
+                .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())));
     }
 
-    private static String renderTemplate(String filename, String serviceName) {
-        String pathStr = System.getProperty("user.dir") + "/hdfs-scheduler/" + filename;
-        Path path = Paths.get(pathStr);
+    private static String renderTemplate(File configFile, String serviceName) {
         byte[] bytes;
         try {
-            bytes = Files.readAllBytes(path);
+            bytes = Files.readAllBytes(configFile.toPath());
         } catch (IOException e) {
-            String error = String.format("Failed to render %s", pathStr);
+            String error = String.format("Failed to read %s", configFile.getAbsolutePath());
             LOGGER.error(error, e);
             return error;
         }
@@ -89,7 +85,7 @@ public class Main {
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
-        return TemplateUtils.applyEnvToMustache(pathStr, fileStr, env, TemplateUtils.MissingBehavior.EXCEPTION);
+        return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
     }
 
 

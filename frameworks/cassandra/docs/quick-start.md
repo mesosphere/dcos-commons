@@ -1,7 +1,7 @@
 ---
 post_title: Quick Start
 nav_title: Quick Start
-menu_order: 10
+menu_order: 40
 post_excerpt: ""
 enterprise: 'no'
 ---

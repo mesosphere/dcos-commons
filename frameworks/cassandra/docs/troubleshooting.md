@@ -1,7 +1,7 @@
 ---
 post_title: Troubleshooting
 nav_title: Troubleshooting
-menu_order: 100
+menu_order: 90
 post_excerpt: ""
 enterprise: 'no'
 ---
