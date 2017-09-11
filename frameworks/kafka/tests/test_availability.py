@@ -22,7 +22,7 @@ STARTUP_POLL_DELAY_SECONDS = os.environ.get('STARTUP_LOG_POLL_DELAY', 2)
 def setup_module(module):
     options = {
         "brokers": {
-            "kill_grace_period": BROKERS_KILL_GRACE_PERIOD
+            "kill_grace_period": BROKER_KILL_GRACE_PERIOD
         }
     }
 
@@ -40,7 +40,6 @@ def teardown_module(module):
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.paegun
 @pytest.mark.availability
 @pytest.mark.soak_availability
 @sdk_utils.dcos_1_9_or_higher
