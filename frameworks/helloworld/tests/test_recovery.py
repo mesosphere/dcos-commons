@@ -25,7 +25,7 @@ def test_kill_hello_node():
     config.check_running()
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
     sdk_tasks.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
 
     config.check_running()
 
@@ -45,7 +45,7 @@ def test_pod_restart():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
     config.check_running()
 
     # check agent didn't move:
@@ -76,7 +76,7 @@ def test_pods_restart_graceful_shutdown():
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'world-0-server'
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
     config.check_running()
 
     # ensure the SIGTERM was sent via the "all clean" message in the world
@@ -88,7 +88,8 @@ def test_pods_restart_graceful_shutdown():
     for s in stdout.split('\n'):
         if s.find('echo') < 0 and s.find('all clean') >= 0:
             clean_msg = s
-    assert clean_msg != None
+
+    assert clean_msg is not None
 
 
 @pytest.mark.sanity

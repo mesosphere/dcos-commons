@@ -1,14 +1,22 @@
 ---
 post_title: Quick Start
 menu_order: 10
-feature_maturity: preview
 enterprise: 'no'
 ---
 
+# Prerequisite
+
+- [DC/OS installed on your cluster](https://docs.mesosphere.com/latest/administration/installing/).
+
 1. Install a Kafka cluster. If you are using open source DC/OS, install a Kafka cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
-        dcos package install kafka
+   ```
+   dcos package install kafka
+   ```
 
+   Alternatively, you can install Kafka from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
+
+   Kafka will deploy with a default configuration. You can monitor deployment at the Services tab of the DC/OS web interface.
 
 1. Create a new topic.
 

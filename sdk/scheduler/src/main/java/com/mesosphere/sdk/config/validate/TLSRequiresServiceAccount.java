@@ -3,8 +3,12 @@ package com.mesosphere.sdk.config.validate;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * A {@link TLSRequiresServiceAccount} checks whether the configuration contains provisioning of TLS artifacts
@@ -22,7 +26,7 @@ public class TLSRequiresServiceAccount implements ConfigValidator<ServiceSpec> {
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
         if (!TaskUtils.getTasksWithTLS(newConfig).isEmpty()) {
             try {
-                if (flags.getServiceAccountUid().equals("")) {
+                if (StringUtils.isBlank(flags.getServiceAccountUid())) {
                     return getConfigValidationErrors();
                 }
             } catch (Exception e) {

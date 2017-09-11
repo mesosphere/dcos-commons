@@ -51,6 +51,11 @@
           "type": "string",
           "default": "V0"
         },
+        "tls": {
+          "description": "Enable TLS support (requires Enterprise DC/OS running in strict or permissive security mode).",
+          "type": "boolean",
+          "default": false
+        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
@@ -137,7 +142,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -194,7 +200,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -251,7 +258,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -308,7 +316,8 @@
         },
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
-          "type": "string"
+          "type": "string",
+          "default": ""
         }
       },
       "required": [

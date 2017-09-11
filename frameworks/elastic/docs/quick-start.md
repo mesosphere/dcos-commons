@@ -1,7 +1,6 @@
 ---
 post_title: Quick Start
 menu_order: 10
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -11,7 +10,7 @@ enterprise: 'no'
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
 
 	```bash
-	$ dcos elastic plan show deploy
+	$ dcos beta-elastic --name="elastic" plan show deploy
 	```
 
 1. SSH into the master node.
@@ -22,7 +21,7 @@ enterprise: 'no'
 
 1. Retrieve client endpoint information by running the `endpoints` command:
 
-        $ dcos elastic endpoints coordinator-http
+        $ dcos beta-elastic --name="elastic" endpoints coordinator-http
         {
             "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200",
             "address": [

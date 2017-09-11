@@ -38,7 +38,7 @@ Every DC/OS service must provide a package definition in the format expected by 
 
 ## ZooKeeper
 
-Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. ZooKeeper provides persistent storage for this information.
+Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the state of its tasks. ZooKeeper provides persistent storage for this information.
 
 Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
@@ -1600,11 +1600,11 @@ pods:
         memory: 256
         configs:
           config.xml:
-            template: "config.xml.mustache"
+            template: config.xml.mustache
             dest: etc/config.xml
 ```
 
-The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables within the task, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#task-bootstrap) for more information. at the beginning of the task.
+The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables _from within the task_, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#task-bootstrap) for more information. at the beginning of the task.
 
 For example, say you had a container with the following environment variables:
 

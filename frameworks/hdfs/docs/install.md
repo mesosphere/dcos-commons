@@ -1,7 +1,6 @@
 ---
 post_title: Install and Customize
 menu_order: 0
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -27,7 +26,7 @@ The default installation may not be sufficient for a production deployment, but 
 Once you have installed Beta-HDFS, install the CLI.
 
 ```bash
-dcos package install beta-hdfs --cli
+$ dcos package install beta-hdfs --cli
 ```
 
 # Service Settings
@@ -36,7 +35,7 @@ dcos package install beta-hdfs --cli
 
 Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `beta-hdfs`.
 
-## Custom Installation
+# Custom Installation
 
 If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to `dcos package install` using the `--options` parameter.
 
@@ -52,8 +51,8 @@ Sample JSON options file named `sample-hdfs.json`:
 
 The command below creates a cluster using `sample-hdfs.json`:
 
-```
-dcos package install --options=sample-hdfs.json hdfs
+```bash
+$ dcos package install --options=sample-hdfs.json hdfs
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -70,8 +69,8 @@ Many of the other Infinity services currently support DC/OS Vagrant deployment. 
 
 Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique `name` for each installation:
 
-```
-cat hdfs1.json
+```bash
+$ cat hdfs1.json
 
 {
    "service": {
@@ -79,10 +78,44 @@ cat hdfs1.json
    }
 }
 
-dcos package install hdfs --options=hdfs1.json
+$ dcos package install hdfs --options=hdfs1.json
 ```
 
 Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
+
+<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
+
+## Integration with DC/OS access controls
+
+In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/hdfs` and `production/hdfs`.
+
+Steps:
+
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
+1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
+
+   ```
+   dcos:adminrouter:service:marathon full				
+   dcos:service:marathon:marathon:services:/testing full
+   dcos:adminrouter:ops:mesos full
+   dcos:adminrouter:ops:slave full
+   ```
+1. Install your service into a folder called `test`. Go to **Catalog**, then search for **beta-hdfs**.
+1. Click **CONFIGURE** and change the service name to `/testing/hdfs`, then deploy.
+
+   The slashes in your service name are interpreted as folders. You are deploying HDFS in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+
+**Important:**
+- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
+- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
+
+### Interacting with your foldered service
+
+- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/hdfs/v1/endpoints`.
+
+<!-- END DUPLICATE BLOCK -->
 
 # Colocation
 
@@ -178,8 +211,8 @@ When the DC/OS HDFS service is initially installed, it generates an installation
 ## Viewing the Installation Plan
 The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
 ```
 
 ## Plan Errors
@@ -201,15 +234,15 @@ The final phase of the installation is deployment of the distributed storage ser
 To pause installation, issue a REST API request as shown below. The installation will pause after completing installation of the current node and wait for user input.
 
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resuming Installation
 If the installation has been paused, the REST API request below will resume installation at the next pending node.
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
 
 

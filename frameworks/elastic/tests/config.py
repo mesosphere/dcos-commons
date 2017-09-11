@@ -62,6 +62,7 @@ def check_kibana_adminrouter_integration(path):
     dcos_token = shakedown.dcos_acs_token()
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
         dcos_token, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
+
     def fun():
         exit_status, output = shakedown.run_command_on_master(curl_cmd)
         return output and "HTTP/1.1 200" in output
@@ -71,6 +72,7 @@ def check_kibana_adminrouter_integration(path):
 
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
+
     def fun():
         result = _get_elasticsearch_index_health(curl_api, index_name)
         return result and result["status"] == color
@@ -80,6 +82,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
 
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     curl_api = _curl_api(service_name, "GET")
+
     def expected_nodes():
         result = _get_elasticsearch_cluster_health(curl_api)
         if result is None:
@@ -93,6 +96,7 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
 
 def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
+
     def fun():
         result = _get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and len(result) == DEFAULT_TASK_COUNT
@@ -102,6 +106,7 @@ def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
 
 def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     curl_api = _curl_api(service_name, "GET")
+
     def fun():
         result = _get_hosts_with_plugin(curl_api, plugin_name)
         return result is not None and result == []
@@ -120,8 +125,7 @@ def _get_hosts_with_plugin(curl_api, plugin_name):
 def get_elasticsearch_master(service_name=SERVICE_NAME):
     # just in case, re-fetch the _curl_api in case the elasticsearch master is moved:
     def get_master():
-        exit_status, output = shakedown.run_command_on_master(
-            "{}/_cat/master'".format(_curl_api(service_name, "GET")))
+        exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(_curl_api(service_name, "GET")))
         if exit_status and len(output.split()) > 0:
             return output.split()[-1]
 
@@ -199,9 +203,10 @@ def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
 
 
 @as_json
-def create_index(index_name, params, service_name=SERVICE_NAME):
+def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}' -d '{}'".format(_curl_api(service_name, "PUT"), index_name, json.dumps(params)))
+        "{}/{}' -d '{}'".format(
+            _curl_api(service_name, "PUT", https=https), index_name, json.dumps(params)))
     return output
 
 
@@ -214,36 +219,38 @@ def graph_api(index_name, query, service_name=SERVICE_NAME):
 
 @as_json
 def get_xpack_license(service_name=SERVICE_NAME):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/_xpack/license'".format(_curl_api(service_name, "GET")))
+    exit_status, output = shakedown.run_command_on_master("{}/_xpack/license'".format(_curl_api(service_name, "GET")))
     return output
 
 
 @as_json
-def delete_index(index_name, service_name=SERVICE_NAME):
+def delete_index(index_name, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}'".format(_curl_api(service_name, "DELETE"), index_name))
+        "{}/{}'".format(_curl_api(service_name, "DELETE", https=https), index_name))
     return output
 
 
 @as_json
-def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME):
+def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/{}/{}?refresh=wait_for' -d '{}'".format(
-            _curl_api(service_name, "PUT"), index_name, index_type, doc_id, json.dumps(params)))
+            _curl_api(service_name, "PUT", https=https), index_name, index_type, doc_id, json.dumps(params)))
     return output
 
 
 @as_json
-def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME):
+def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/{}/{}'".format(_curl_api(service_name, "GET"), index_name, index_type, doc_id))
+        "{}/{}/{}/{}'".format(
+            _curl_api(service_name, "GET", https=https), index_name, index_type, doc_id))
     return output
 
 
-def _curl_api(service_name, method, role="master"):
-    host = "http://" + sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("curl -X{} -s -u elastic:changeme '" + host).format(method)
+def _curl_api(service_name, method, role="master", https=False):
+    protocol = 'https://' if https else 'http://'
+    host = protocol + sdk_hosts.autoip_host(
+        service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    return ("/opt/mesosphere/bin/curl -X{} -s -u elastic:changeme '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):

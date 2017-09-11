@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -36,6 +37,7 @@ import static com.mesosphere.sdk.api.ResponseUtils.*;
 /**
  * API for management of Plan(s).
  */
+@Singleton
 @Path("/v1")
 public class PlansResource extends PrettyJsonResource {
 
@@ -108,7 +110,13 @@ public class PlansResource extends PrettyJsonResource {
             }
 
             plan.proceed();
-            return jsonOkResponse(getCommandResult("start"));
+
+            logger.info("Started plan {} with parameters {} by user request", planName, parameters);
+
+            return jsonOkResponse(getCommandResult(String.format("%s %s with parameters: %s",
+                    "start",
+                    planName,
+                    parameters.toString())));
         } else {
             return elementNotFoundResponse();
         }
@@ -183,7 +191,7 @@ public class PlansResource extends PrettyJsonResource {
      *
      * Interrupt differs from stop in the following ways:
      * A) Interrupt can be issued for a specific phase or for all phases within a plan.  Stop can only be
-     *    issued for a plan. 
+     *    issued for a plan.
      * B) Interrupt updates the underlying Phase/Step state. Stop not only updates the underlying state, but
      *    also restarts the Plan.
      */

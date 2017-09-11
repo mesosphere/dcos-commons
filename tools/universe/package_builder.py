@@ -21,6 +21,8 @@ _jre_url = 'https://downloads.mesosphere.com/java/jre-8u144-linux-x64.tar.gz'
 _jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u131-linux-x64-jce-unlimited.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-1.10-1.4-63e0814.tar.gz'
 
+_docs_root = "https://docs.mesosphere.com"
+
 _command_json_filename = 'command.json'
 _config_json_filename = 'config.json'
 _marathon_json_filename = 'marathon.json.mustache'
@@ -93,6 +95,15 @@ class UniversePackageBuilder(object):
                 buf = fd.read(BLOCKSIZE)
         return hasher.hexdigest()
 
+    def _get_documentation_path(self):
+        documentation_path = "{}/service-docs/{}/".format(_docs_root, self._pkg_name)
+        if self._pkg_version != "stub-universe":
+            documentation_path = "{}v{}/".format(documentation_path, self._pkg_version)
+        return documentation_path
+
+    def _get_issues_path(self):
+        return "{}/support/".format(_docs_root)
+
     def _get_template_mapping_for_content(self, orig_content):
         '''Returns a template mapping (dict) for the following cases:
         - Default params like '{{package-version}}' and '{{artifact-dir}}'
@@ -105,6 +116,8 @@ class UniversePackageBuilder(object):
             'upgrades-from': self._package.get_upgrades_from(),
             'downgrades-to': self._package.get_downgrades_to(),
             'artifact-dir': self._upload_dir_url,
+            'documentation-path': self._get_documentation_path(),
+            'issues-path': self._get_issues_path(),
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,
             'libmesos-bundle-url': _libmesos_bundle_url}

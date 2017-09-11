@@ -1,7 +1,6 @@
 ---
 post_title: Backup and Restore
 menu_order: 34
-feature_maturity: preview
 enterprise: 'no'
 ---
 

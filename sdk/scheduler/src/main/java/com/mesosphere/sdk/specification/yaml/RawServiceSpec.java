@@ -10,7 +10,9 @@ import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -35,12 +37,12 @@ public class RawServiceSpec {
             YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
         }
 
-        private final String yamlTemplate;
+        private final File pathToYamlTemplate;
         private Map<String, String> env;
 
-        private Builder(String yamlTemplate, Map<String, String> env) {
-            this.yamlTemplate = yamlTemplate;
-            this.env = env;
+        private Builder(File pathToYamlTemplate) {
+            this.pathToYamlTemplate = pathToYamlTemplate;
+            this.env = System.getenv();
         }
 
         /**
@@ -59,12 +61,14 @@ public class RawServiceSpec {
         public RawServiceSpec build() throws Exception {
             // We allow missing values. For example, the service principal may be left empty, in which case we use a
             // reasonable default principal.
-            String yamlWithEnv = TemplateUtils.applyEnvToMustache(
-                    "rawServiceSpec", yamlTemplate, env, TemplateUtils.MissingBehavior.EMPTY_STRING);
-            LOGGER.info("Rendered ServiceSpec:\n{}", yamlWithEnv);
-            if (!TemplateUtils.isMustacheFullyRendered(yamlWithEnv)) {
-                throw new IllegalStateException("YAML contains unsubstitued variables.");
-            }
+            List<TemplateUtils.MissingValue> missingValues = new ArrayList<>();
+            String yamlWithEnv = TemplateUtils.renderMustache(
+                    pathToYamlTemplate.getName(),
+                    FileUtils.readFileToString(pathToYamlTemplate, StandardCharsets.UTF_8),
+                    env,
+                    missingValues);
+            LOGGER.info("Rendered ServiceSpec from {}:\nMissing template values: {}\n{}",
+                    pathToYamlTemplate.getAbsolutePath(), missingValues, yamlWithEnv);
             return YAML_MAPPER.readValue(yamlWithEnv.getBytes(StandardCharsets.UTF_8), RawServiceSpec.class);
         }
     }
@@ -76,11 +80,7 @@ public class RawServiceSpec {
     private final WriteOnceLinkedHashMap<String, RawPlan> plans;
 
     public static Builder newBuilder(File pathToYamlTemplate) throws IOException {
-        return newBuilder(FileUtils.readFileToString(pathToYamlTemplate, StandardCharsets.UTF_8));
-    }
-
-    public static Builder newBuilder(String yamlTemplate) {
-        return new Builder(yamlTemplate, System.getenv());
+        return new Builder(pathToYamlTemplate);
     }
 
     @JsonCreator

@@ -3,7 +3,6 @@ post_title: Node Settings
 nav_title: Node Settings
 menu_order: 50
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 

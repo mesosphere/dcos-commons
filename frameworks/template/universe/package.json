@@ -10,6 +10,6 @@
   "selected": false,
   "framework": true,
   "tags": ["template"],
-  "postInstallNotes": "DC/OS YOURNAMEHERE is being installed!\n\n\tDocumentation: http://YOURNAMEHERE.COM/DOCS\n\tIssues: http://YOURNAMEHERE.COM/SUPPORT",
+  "postInstallNotes": "DC/OS YOURNAMEHERE is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
   "postUninstallNotes": "DC/OS YOURNAMEHERE is being uninstalled."
 }
