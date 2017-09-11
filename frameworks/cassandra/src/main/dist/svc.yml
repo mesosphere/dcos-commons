@@ -185,6 +185,10 @@ pods:
         {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
       restore-snapshot:
         goal: FINISHED
+        configs:
+          cassandra:
+            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
         cmd: >
                 ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
@@ -202,15 +206,17 @@ pods:
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
                             -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                    result=$?
+                    echo sstableloader exited with code: $result
+                    if [ $result != 0 ]
+                    then
+                        exit $result
+                    fi
                     done
                 done
 
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
-        configs:
-          cassandra:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
-            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
         {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
         transport-encryption:
           - name: node
