@@ -43,6 +43,7 @@ public class StateResource {
     protected static final int FILE_SIZE = 1024; // state store shouldn't be holding big files anyway...
     protected static final String UPLOAD_TOO_BIG_ERROR_MESSAGE = "File size is restricted to "
             + FILE_SIZE + " bytes.";
+    protected static final String NO_FILE_ERROR_MESSAGE = "Only the first 1024 bytes of a file can be uploaded.";
 
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
@@ -154,10 +155,7 @@ public class StateResource {
         logger.info(fileDetails.toString());
         String fileName = fileDetails.getFileName();
         if (uploadedInputStream == null || fileName == null) {
-            return ResponseUtils.plainResponse(
-                    "Specify 'file' as a parameter in your request",
-                    Response.Status.BAD_REQUEST
-            );
+            return ResponseUtils.plainResponse(NO_FILE_ERROR_MESSAGE, Response.Status.BAD_REQUEST);
         }
 
         if (fileDetails.getSize() > FILE_SIZE) {
@@ -269,7 +267,7 @@ public class StateResource {
             FormDataContentDisposition fileDetails
     ) throws StateStoreException, IOException {
         StringWriter writer = new StringWriter();
-        Reader reader = new InputStreamReader(uploadedInputStream);
+        Reader reader = new InputStreamReader(uploadedInputStream, FILE_ENCODING);
         // only copy the number of bytes the metadata specifies
         IOUtils.copyLarge(reader, writer, 0, fileDetails.getSize());
         fileName = FILE_NAME_PREFIX + fileName;
