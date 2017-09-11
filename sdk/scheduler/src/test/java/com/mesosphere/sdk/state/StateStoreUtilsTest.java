@@ -19,7 +19,6 @@ import org.junit.Test;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
@@ -32,8 +31,6 @@ import static org.junit.Assert.assertThat;
  */
 public class StateStoreUtilsTest {
 
-    private static final String FILE_NAME = "test-file";
-    private static final String FILE_CONTENT = "test data";
     private Persister persister;
     private StateStore stateStore;
 
@@ -392,24 +389,6 @@ public class StateStoreUtilsTest {
         final String key = "invalid_value";
         stateStore.storeProperty(key, "horses".getBytes(StandardCharsets.UTF_8));
         StateStoreUtils.fetchBooleanProperty(stateStore, key);
-    }
-
-    @Test
-    public void testStoreAndGetFile() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateStoreUtils.FILE_ENCODING));
-        StateStoreUtils.storeFile(stateStore, FILE_NAME, inputStream);
-        assertThat(StateStoreUtils.getFile(stateStore, FILE_NAME), is(FILE_CONTENT));
-    }
-
-    @Test
-    public void testStoreAndListFiles() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateStoreUtils.FILE_ENCODING));
-        StateStoreUtils.storeFile(stateStore, FILE_NAME + "-1", inputStream);
-        StateStoreUtils.storeFile(stateStore, FILE_NAME + "-2", inputStream);
-        HashSet<String> file_names = new HashSet<>();
-        file_names.add(FILE_NAME + "-1");
-        file_names.add(FILE_NAME + "-2");
-        assertThat(StateStoreUtils.getFileNames(stateStore), is(file_names));
     }
 
     private static Protos.TaskInfo newTaskInfo(

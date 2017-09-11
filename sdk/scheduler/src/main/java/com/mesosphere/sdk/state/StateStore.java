@@ -56,7 +56,6 @@ public class StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
-    public static final String LOCK_PATH_NAME = "lock";
 
     protected final Persister persister;
 
@@ -448,22 +447,6 @@ public class StateStore {
             } else {
                 throw new StateStoreException(e);
             }
-        }
-    }
-
-    /**
-     * Returns whether or not a given property exists.
-     */
-    public boolean hasProperty(String key) throws StateStoreException {
-        try {
-            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
-            logger.debug("Determining whether key: {} exists at path: {}", key, path);
-            // persister throws an exception if the path (i.e. key) doesn't exist.
-            persister.get(path);
-            return true;
-        } catch (PersisterException e) {
-            logger.info("Property {} doesn't exist in the state store", key);
-            return false;
         }
     }
 

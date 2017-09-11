@@ -4,12 +4,12 @@ import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -22,10 +22,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
@@ -35,6 +38,11 @@ import java.util.Optional;
 public class StateResource {
 
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
+    protected static final String FILE_NAME_PREFIX = "file-";
+    protected static final Charset FILE_ENCODING = StandardCharsets.UTF_8;
+    protected static final int FILE_SIZE = 1024; // state store shouldn't be holding big files anyway...
+    protected static final String UPLOAD_TOO_BIG_ERROR_MESSAGE = "File size is restricted to "
+            + FILE_SIZE + " bytes.";
 
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
@@ -103,7 +111,7 @@ public class StateResource {
     public Response getFiles() {
         try {
             logger.info("Getting all files");
-            Collection<String> fileNames = StateStoreUtils.getFileNames(stateStore);
+            Collection<String> fileNames = getFileNames(stateStore);
             return ResponseUtils.plainOkResponse(fileNames.toString());
         } catch (StateStoreException e) {
             logger.error("Failed to get a list of files", e);
@@ -117,7 +125,7 @@ public class StateResource {
     public Response getFile(@PathParam("file") String fileName) {
         try {
             logger.info("Getting file {}", fileName);
-            return ResponseUtils.plainOkResponse(StateStoreUtils.getFile(stateStore, fileName));
+            return ResponseUtils.plainOkResponse(getFile(stateStore, fileName));
         } catch (StateStoreException e) {
             logger.error("Failed to get file {}: {}", fileName, e);
             return ResponseUtils.plainResponse(
@@ -130,6 +138,12 @@ public class StateResource {
         }
     }
 
+    /**
+     * Endpoint for uploading arbitrary files of size up to 1024 Bytes.
+     * @param uploadedInputStream The input stream containing the data.
+     * @param fileDetails The details of the file to upload.
+     * @return response indicating result of put operation.
+     */
     @Path("/files/{file}")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -146,14 +160,13 @@ public class StateResource {
             );
         }
 
+        if (fileDetails.getSize() > FILE_SIZE) {
+           return ResponseUtils.plainResponse(UPLOAD_TOO_BIG_ERROR_MESSAGE, Response.Status.BAD_REQUEST);
+        }
+
         try {
-            if (stateStore.hasProperty(StateStoreUtils.FILE_NAME_PREFIX + fileName)) {
-                String msg = String.format("File %s is already in the state store", fileName);
-                logger.info(msg);
-                return ResponseUtils.plainOkResponse(msg);
-            }
             logger.info("Storing {}", fileName);
-            StateStoreUtils.storeFile(stateStore, fileName, uploadedInputStream);
+            storeFile(stateStore, fileName, uploadedInputStream, fileDetails);
             return Response.status(Response.Status.OK).build();
         } catch (StateStoreException | IOException e) {
             logger.error("Failed to store file {}: {}", fileName, e);
@@ -229,5 +242,50 @@ public class StateResource {
         return new JSONObject(Collections.singletonMap(
                 "message",
                 String.format("Received cmd: %s", command)));
+    }
+
+    /**
+     * Retrieves the contents of a file based on file name.
+     * @param stateStore The state store to get file content from.
+     * @param fileName The name of the file to retrieve.
+     * @return Contents of the file.
+     * @throws UnsupportedEncodingException
+     */
+    protected static String getFile(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
+        fileName = FILE_NAME_PREFIX + fileName;
+        return new String(stateStore.fetchProperty(fileName), FILE_ENCODING);
+    }
+
+    /**
+     * Stores the file in the state store.
+     * @param stateStore The state store to store the file in.
+     * @param fileName The name of the file to store.
+     * @param uploadedInputStream The input stream holding the content of the file.
+     */
+    protected static void storeFile(
+            StateStore stateStore,
+            String fileName,
+            InputStream uploadedInputStream,
+            FormDataContentDisposition fileDetails
+    ) throws StateStoreException, IOException {
+        StringWriter writer = new StringWriter();
+        Reader reader = new InputStreamReader(uploadedInputStream);
+        // only copy the number of bytes the metadata specifies
+        IOUtils.copyLarge(reader, writer, 0, fileDetails.getSize());
+        fileName = FILE_NAME_PREFIX + fileName;
+        stateStore.storeProperty(fileName, writer.toString().getBytes(FILE_ENCODING));
+    }
+
+    /**
+     * Gets the name of the files that are stored in the state store. The files stored in the state store are prefixed
+     * with "file_".
+     * @param stateStore The state store to get files names from.
+     * @return The set of all file names stored.
+     */
+    protected static Collection<String> getFileNames(StateStore stateStore) {
+        return stateStore.fetchPropertyKeys().stream()
+                .filter(key -> key.startsWith(FILE_NAME_PREFIX))
+                .map(file_name -> file_name.replaceFirst(FILE_NAME_PREFIX, ""))
+                .collect(Collectors.toSet());
     }
 }

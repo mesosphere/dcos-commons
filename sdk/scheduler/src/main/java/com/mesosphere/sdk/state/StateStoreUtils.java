@@ -13,12 +13,8 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,8 +29,6 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
-    public static final String FILE_NAME_PREFIX = "file-";
-    public static final String FILE_ENCODING = "UTF-8";
 
     private StateStoreUtils() {
         // do not instantiate
@@ -310,45 +304,4 @@ public class StateStoreUtils {
             return ConfigurationUpdater.UpdateResult.DeploymentType.valueOf(value);
         }
     }
-
-    /**
-     * Retrieves the contents of a file based on file name.
-     * @param stateStore The state store to get file content from.
-     * @param fileName The name of the file to retrieve.
-     * @return Contents of the file.
-     * @throws UnsupportedEncodingException
-     */
-    public static String getFile(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
-        fileName = FILE_NAME_PREFIX + fileName;
-        return new String(stateStore.fetchProperty(fileName), FILE_ENCODING);
-    }
-
-    /**
-     * Stores the file in the state store.
-     * @param stateStore The state store to store the file in.
-     * @param fileName The name of the file to store.
-     * @param uploadedInputStream The input stream holding the content of the file.
-     */
-    public static void storeFile(StateStore stateStore, String fileName, InputStream uploadedInputStream)
-            throws StateStoreException, IOException {
-        StringWriter stringWriter = new StringWriter();
-        IOUtils.copy(uploadedInputStream, stringWriter, FILE_ENCODING);
-        fileName = FILE_NAME_PREFIX + fileName;
-        stateStore.storeProperty(fileName, stringWriter.toString().getBytes(FILE_ENCODING));
-    }
-
-    /**
-     * Gets the name of the files that are stored in the state store. The files stored in the state store are prefixed
-     * with "file_".
-     * @param stateStore The state store to get files names from.
-     * @return The set of all file names stored.
-     */
-    public static Collection<String> getFileNames(StateStore stateStore) {
-        return stateStore.fetchPropertyKeys().stream()
-                .filter(key -> key.startsWith(FILE_NAME_PREFIX))
-                .map(file_name -> file_name.replaceFirst(FILE_NAME_PREFIX, ""))
-                .collect(Collectors.toSet());
-    }
-
-
 }
