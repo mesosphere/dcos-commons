@@ -49,18 +49,6 @@
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
       
       
@@ -210,6 +198,22 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </ul>
   </li>
   <li>
@@ -218,11 +222,11 @@
       
       
       
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -254,33 +258,29 @@
           
           <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
-          
-          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
           
           <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
-          
-          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/managing.html">Managing</a></li>
           
           <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
           
-          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
           
-          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
           
+          <li><a href="../../services/elastic/support.html">Supported Versions</a></li>
+          
           <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
           
-          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -292,25 +292,27 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
-          
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
-          
-          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
-          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
-          
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
           <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -322,11 +324,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
-          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -336,11 +338,13 @@
           
           <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
           
-          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
-          
           <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
           
-          <li><a href="../../services/kafka/upgrade.html">Upgrade `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta` in DC/OS 1.10</a></li>
+          <li><a href="../../services/kafka/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -366,7 +370,7 @@
 
 <p>The following command can be executed from the cli in order to retrieve a set of brokers to connect to.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos kafka --name=&lt;name&gt; endpoints broker
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>&lt;name&gt; endpoints broker
 </code></pre>
 </div>
 
@@ -377,7 +381,7 @@
 
 <p>The following <code class="highlighter-rouge">curl</code> example demonstrates how to retrive connection a set of brokers to connect to using the REST API.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"</span>
 </code></pre>
 </div>
 
@@ -387,19 +391,17 @@
 
 <p>First, we retrieve <code class="highlighter-rouge">uSeR_t0k3n</code> with our user credentials and store the token as an environment variable:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl --data '{"uid":"username", "password":"password"}' -H "Content-Type:application/json" "&lt;dcos_url&gt;/acs/api/v1/auth/login"
-
-{
-  "token": "uSeR_t0k3n"
-}
-
-export auth_token=uSeR_t0k3n
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl --data <span class="s1">'{"uid":"username", "password":"password"}'</span> -H <span class="s2">"Content-Type:application/json"</span> <span class="s2">"&lt;dcos_url&gt;/acs/api/v1/auth/login"</span>
+<span class="o">{</span>
+  <span class="s2">"token"</span>: <span class="s2">"uSeR_t0k3n"</span>
+<span class="o">}</span>
+<span class="gp">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
 </code></pre>
 </div>
 
 <p>Then, use this token to authenticate requests to the Kafka Service:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"</span>
 </code></pre>
 </div>
 
@@ -409,19 +411,21 @@ export auth_token=uSeR_t0k3n
 
 <p>The response, for both the CLI and the REST API is as below.</p>
 
-<p>{
-    “address”: [
-      “10.0.0.49:1025”,
-      “10.0.2.253:1025”,
-      “10.0.1.27:1025”
-    ],
-    “dns”: [
-      “kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025”,
-      “kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025”,
-      “kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025”
-    ],
-    “vip”: “broker.kafka.l4lb.thisdcos.directory:9092”
-  }</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"10.0.0.49:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"10.0.2.253:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"10.0.1.27:1025"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"dns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"vip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
 
 <p>This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. <a href="https://docs.mesosphere.com/1.9/networking/">Learn more about load balancing and VIPs in DC/OS</a>.</p>
 
@@ -431,11 +435,11 @@ export auth_token=uSeR_t0k3n
 
 <h2 id="adding-the-kafka-client-library-to-your-application">Adding the Kafka Client Library to Your Application</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>&lt;dependency&gt;
-  &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;
-  &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;
-  &lt;version&gt;0.9.0.1&lt;/version&gt;
-&lt;/dependency&gt;
+<div class="language-xml highlighter-rouge"><pre class="highlight"><code>    <span class="nt">&lt;dependency&gt;</span>
+      <span class="nt">&lt;groupId&gt;</span>org.apache.kafka<span class="nt">&lt;/groupId&gt;</span>
+      <span class="nt">&lt;artifactId&gt;</span>kafka-clients<span class="nt">&lt;/artifactId&gt;</span>
+      <span class="nt">&lt;version&gt;</span>0.9.0.1<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;/dependency&gt;</span>
 </code></pre>
 </div>
 
@@ -445,65 +449,65 @@ export auth_token=uSeR_t0k3n
 
 <p>The code snippet below demonstrates how to connect a Kafka Producer to the cluster and perform a loop of simple insertions.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
+<div class="language-java highlighter-rouge"><pre class="highlight"><code>    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.KafkaProducer</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.ProducerRecord</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.ByteArraySerializer</span><span class="o">;</span>
 
-Map&lt;String, Object&gt; producerConfig = new HashMap&lt;&gt;();
-producerConfig.put("bootstrap.servers", "10.0.0.211:9843,10.0.0.217:10056,10.0.0.214:9689");
-// optional:
-producerConfig.put("metadata.fetch.timeout.ms": "3000");
-producerConfig.put("request.timeout.ms", "3000");
-// ... other options: http://kafka.apache.org/documentation.html#producerconfigs
-ByteArraySerializer serializer = new ByteArraySerializer();
-KafkaProducer&lt;byte[], byte[]&gt; kafkaProducer = new KafkaProducer&lt;&gt;(producerConfig, serializer, serializer);
+    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">producerConfig</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+    <span class="n">producerConfig</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"bootstrap.servers"</span><span class="o">,</span> <span class="s">"10.0.0.211:9843,10.0.0.217:10056,10.0.0.214:9689"</span><span class="o">);</span>
+    <span class="c1">// optional:</span>
+    <span class="n">producerConfig</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"metadata.fetch.timeout.ms"</span><span class="o">:</span> <span class="s">"3000"</span><span class="o">);</span>
+    <span class="n">producerConfig</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"request.timeout.ms"</span><span class="o">,</span> <span class="s">"3000"</span><span class="o">);</span>
+    <span class="c1">// ... other options: http://kafka.apache.org/documentation.html#producerconfigs</span>
+    <span class="n">ByteArraySerializer</span> <span class="n">serializer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ByteArraySerializer</span><span class="o">();</span>
+    <span class="n">KafkaProducer</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[],</span> <span class="kt">byte</span><span class="o">[]&gt;</span> <span class="n">kafkaProducer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">KafkaProducer</span><span class="o">&lt;&gt;(</span><span class="n">producerConfig</span><span class="o">,</span> <span class="n">serializer</span><span class="o">,</span> <span class="n">serializer</span><span class="o">);</span>
 
-byte[] message = new byte[1024];
-for (int i = 0; i &lt; message.length; ++i) {
-  if (i % 2 == 0) {
-    message[i] = 'x';
-  } else {
-    message[i] = 'o';
-  }
-}
-ProducerRecord&lt;byte[], byte[]&gt; record = new ProducerRecord&lt;&gt;("test-topic", message);
-while (true) {
-  kafkaProducer.send(record).get();
-  Thread.sleep(1000);
-}
+    <span class="kt">byte</span><span class="o">[]</span> <span class="n">message</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="mi">1024</span><span class="o">];</span>
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">message</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="o">++</span><span class="n">i</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">message</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="sc">'x'</span><span class="o">;</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="n">message</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="sc">'o'</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+    <span class="n">ProducerRecord</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[],</span> <span class="kt">byte</span><span class="o">[]&gt;</span> <span class="n">record</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ProducerRecord</span><span class="o">&lt;&gt;(</span><span class="s">"test-topic"</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+    <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">kafkaProducer</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="n">record</span><span class="o">).</span><span class="na">get</span><span class="o">();</span>
+      <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
+    <span class="o">}</span>
 </code></pre>
 </div>
 
 <p>The code snippet below demonstrates how to connect a Kafka Consumer to the cluster and perform a simple retrievals.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
+<div class="language-java highlighter-rouge"><pre class="highlight"><code>    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.ConsumerRecord</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.ConsumerRecords</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.KafkaConsumer</span><span class="o">;</span>
+    <span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.ByteArrayDeserializer</span><span class="o">;</span>
 
-Map&lt;String, Object&gt; consumerConfig = new HashMap&lt;&gt;();
-consumerConfig.put("bootstrap.servers", "10.0.0.211:9843,10.0.0.217:10056,10.0.0.214:9689");
-// optional:
-consumerConfig.put("group.id", "test-client-consumer")
-// ... other options: http://kafka.apache.org/documentation.html#consumerconfigs
-ByteArrayDeserializer deserializer = new ByteArrayDeserializer();
-KafkaConsumer&lt;byte[], byte[]&gt; kafkaConsumer = new KafkaConsumer&lt;&gt;(consumerConfig, deserializer, deserializer);
+    <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">consumerConfig</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+    <span class="n">consumerConfig</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"bootstrap.servers"</span><span class="o">,</span> <span class="s">"10.0.0.211:9843,10.0.0.217:10056,10.0.0.214:9689"</span><span class="o">);</span>
+    <span class="c1">// optional:</span>
+    <span class="n">consumerConfig</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s">"group.id"</span><span class="o">,</span> <span class="s">"test-client-consumer"</span><span class="o">)</span>
+    <span class="c1">// ... other options: http://kafka.apache.org/documentation.html#consumerconfigs</span>
+    <span class="n">ByteArrayDeserializer</span> <span class="n">deserializer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ByteArrayDeserializer</span><span class="o">();</span>
+    <span class="n">KafkaConsumer</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[],</span> <span class="kt">byte</span><span class="o">[]&gt;</span> <span class="n">kafkaConsumer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">KafkaConsumer</span><span class="o">&lt;&gt;(</span><span class="n">consumerConfig</span><span class="o">,</span> <span class="n">deserializer</span><span class="o">,</span> <span class="n">deserializer</span><span class="o">);</span>
 
-List&lt;String&gt; topics = new ArrayList&lt;&gt;();
-topics.add("test-topic");
-kafkaConsumer.subscribe(topics);
-while (true) {
-  ConsumerRecords&lt;byte[], byte[]&gt; records = kafkaConsumer.poll(1000);
-  int bytes = 0;
-  for (ConsumerRecord&lt;byte[], byte[]&gt; record : records) {
-    if (record.key() != null) {
-      bytes += record.key().length;
-    }
-    bytes += record.value().length;
-  }
-  System.out.println(String.format("Got %d messages (%d bytes)", records.count(), bytes));
-}
-kafkaConsumer.close();
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">topics</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
+    <span class="n">topics</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="s">"test-topic"</span><span class="o">);</span>
+    <span class="n">kafkaConsumer</span><span class="o">.</span><span class="na">subscribe</span><span class="o">(</span><span class="n">topics</span><span class="o">);</span>
+    <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+      <span class="n">ConsumerRecords</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[],</span> <span class="kt">byte</span><span class="o">[]&gt;</span> <span class="n">records</span> <span class="o">=</span> <span class="n">kafkaConsumer</span><span class="o">.</span><span class="na">poll</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
+      <span class="kt">int</span> <span class="n">bytes</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+      <span class="k">for</span> <span class="o">(</span><span class="n">ConsumerRecord</span><span class="o">&lt;</span><span class="kt">byte</span><span class="o">[],</span> <span class="kt">byte</span><span class="o">[]&gt;</span> <span class="n">record</span> <span class="o">:</span> <span class="n">records</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">record</span><span class="o">.</span><span class="na">key</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">bytes</span> <span class="o">+=</span> <span class="n">record</span><span class="o">.</span><span class="na">key</span><span class="o">().</span><span class="na">length</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">bytes</span> <span class="o">+=</span> <span class="n">record</span><span class="o">.</span><span class="na">value</span><span class="o">().</span><span class="na">length</span><span class="o">;</span>
+      <span class="o">}</span>
+      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="s">"Got %d messages (%d bytes)"</span><span class="o">,</span> <span class="n">records</span><span class="o">.</span><span class="na">count</span><span class="o">(),</span> <span class="n">bytes</span><span class="o">));</span>
+    <span class="o">}</span>
+    <span class="n">kafkaConsumer</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
 </code></pre>
 </div>
 
@@ -511,7 +515,7 @@ kafkaConsumer.close();
 
 <p>The following code connects to a DC/OS-hosted Kafka instance using <code class="highlighter-rouge">bin/kafka-console-producer.sh</code> and <code class="highlighter-rouge">bin/kafka-console-consumer.sh</code> as an example:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos kafka endpoints broker
+<pre><code class="language-bvash">$ dcos beta-kafka endpoints broker
 {
   "address": [
     "10.0.0.49:1025",
@@ -526,16 +530,15 @@ kafkaConsumer.close();
   "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
 }
 
-dcos node ssh --master-proxy --leader
+$ dcos node ssh --master-proxy --leader
 
-core@ip-10-0-6-153 ~ docker run -it mesosphere/kafka-client
+core@ip-10-0-6-153 ~ $ docker run -it mesosphere/kafka-client
 
 root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list 10.0.0.49:1025, 10.0.2.253:1025, 10.0.1.27:1025 --topic topic1
 
 root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/kafka --topic topic1 --from-beginning
-Hello, World.
+    Hello, World.
 </code></pre>
-</div>
 
 
 </div>

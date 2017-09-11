@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Elastic: API Reference</title>
+<title>Cassandra: API Reference</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -354,13 +354,13 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Elastic: API Reference</h1>
+<h1>Cassandra: API Reference</h1>
 <div id="content">
-<p>The DC/OS Elastic Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Elastic Service is deployed.</dcos_url></p>
+<p>The DC/OS Apache Cassandra Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Apache Cassandra Service is deployed.</dcos_url></p>
 
 <p><a name="#rest-auth"></a></p>
 <h1 id="rest-api-authentication">REST API Authentication</h1>
-<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the Elastic REST API directly. You do not need the token to access the Elasticsearch nodes themselves.</p>
+<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the Apache Cassandra REST API directly. You do not need the token to access the Apache Cassandra nodes themselves.</p>
 
 <p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/1.9/security/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
 
@@ -379,14 +379,14 @@
 <h1 id="plan-api">Plan API</h1>
 <p>The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/elastic/v1/plans/deploy
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/cassandra/v1/plans/deploy
 </code></pre>
 </div>
 <h2 id="pause-installation">Pause Installation</h2>
 
 <p>The installation will pause after completing installation of the current node and wait for user input.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/elastic/v1/plans/deploy/interrupt
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/cassandra/v1/plans/deploy/interrupt
 </code></pre>
 </div>
 
@@ -394,7 +394,7 @@
 
 <p>The REST API request below will resume installation at the next pending node.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT &lt;dcos_surl&gt;/service/elastic/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT &lt;dcos_surl&gt;/service/cassandra/v1/plans/deploy/continue
 </code></pre>
 </div>
 
@@ -407,12 +407,12 @@
 <p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod list
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra pod list
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/pod
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/pod
 </code></pre>
 </div>
 
@@ -420,17 +420,17 @@
 
 <p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pod/&lt;node-id&gt;/info</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/pod/&lt;node-id&gt;/info
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/pod/&lt;node-id&gt;/info
 </code></pre>
 </div>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod info journalnode-0
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra pod info journalnode-0
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/pod/journalnode-0/info
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl  -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/pod/journalnode-0/info
 
 </code></pre>
 </div>
@@ -440,12 +440,12 @@
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod replace &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra pod replace &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X POST -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/pod/&lt;node-id&gt;/replace
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -X POST -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/pod/&lt;node-id&gt;/replace
 </code></pre>
 </div>
 
@@ -456,12 +456,12 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic pod restart &lt;node-id&gt;
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra pod restart &lt;node-id&gt;
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/elastic/v1/pod/&lt;node-id&gt;/restart
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/cassandra/v1/pod/&lt;node-id&gt;/restart
 </code></pre>
 </div>
 
@@ -476,12 +476,12 @@
 <p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic config target
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra config target
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/configurations/target
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/configurations/target
 </code></pre>
 </div>
 
@@ -490,12 +490,12 @@
 <p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic config list
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra config list
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/configurations
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/configurations
 </code></pre>
 </div>
 
@@ -504,22 +504,22 @@
 <p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
 
 <p>CLI Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-elastic config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 </code></pre>
 </div>
 
 <p>HTTP Example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/elastic/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization:token=$auth_token" &lt;dcos_url&gt;/service/cassandra/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 </code></pre>
 </div>
 
 <h1 id="service-status-info">Service Status Info</h1>
 
-<p>Send a GET request to the <code class="highlighter-rouge">/v1/state/properties/suppressed</code> endpoint to learn if Elastic is in a <code class="highlighter-rouge">suppressed</code> state and not receiving offers. If a service does not need offers, Mesos can “suppress” it so that other services are not starved for resources.</p>
+<p>Send a GET request to the <code class="highlighter-rouge">/v1/state/properties/suppressed</code> endpoint to learn if Apache Cassandra is in a <code class="highlighter-rouge">suppressed</code> state and not receiving offers. If a service does not need offers, Mesos can “suppress” it so that other services are not starved for resources.</p>
 
-<p>You can use this request to troubleshoot: if you think Elastic should be receiving resource offers, but is not, you can use this API call to see if Elastic is suppressed.
+<p>You can use this request to troubleshoot: if you think Apache Cassandra should be receiving resource offers, but is not, you can use this API call to see if Apache Cassandra is suppressed.
 ```
-curl -H “Authorization: token=$auth_token” “<dcos_url>/service/elastic/v1/state/properties/suppressed"</dcos_url></p>
+curl -H “Authorization: token=$auth_token” “<dcos_url>/service/cassandra/v1/state/properties/suppressed"</dcos_url></p>
 
 </div>
 </div>

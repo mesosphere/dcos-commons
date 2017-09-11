@@ -49,18 +49,6 @@
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
       
       
@@ -210,6 +198,22 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </ul>
   </li>
   <li>
@@ -218,11 +222,11 @@
       
       
       
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -254,33 +258,29 @@
           
           <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
-          
-          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
           
           <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
-          
-          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/managing.html">Managing</a></li>
           
           <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
           
-          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
           
-          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
           
+          <li><a href="../../services/elastic/support.html">Supported Versions</a></li>
+          
           <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
           
-          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -292,25 +292,27 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
-          
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
-          
-          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
-          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
-          
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
           <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -322,11 +324,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
-          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -336,11 +338,13 @@
           
           <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
           
-          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
-          
           <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
           
-          <li><a href="../../services/kafka/upgrade.html">Upgrade `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta` in DC/OS 1.10</a></li>
+          <li><a href="../../services/kafka/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -355,21 +359,6 @@
 <h1 id="overview">Overview</h1>
 <p>We support upgrade/rollback between adjacent versions only. Concretely, to upgrade from version 2 to version 4, you must upgrade from 2 -&gt; 3, then from 3 -&gt; 4.</p>
 
-<h1 id="upgrade-instructions">Upgrade Instructions</h1>
-
-<ol>
-  <li>In the DC/OS web interface, destroy the Elastic instance to be updated. (This will not kill Elasticsearch node tasks).</li>
-  <li>Verify that you no longer see the Elastic instance in the DC/OS web interface.</li>
-  <li>From the DC/OS CLI, install the N+1 version of Elastic (where N is your current version) with any customizations you require in a JSON options file:</li>
-</ol>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install elastic --options<span class="o">=</span>/path/to/options.json
-</code></pre>
-</div>
-
-<p>The command above will trigger the install of the new Elastic version. You can follow the upgrade progress by making a REST request identical to the one used to follow the progress of a configuration upgrade. See the Configuring section for more information.</p>
-
-<p>Note: The upgrade process will cause all of your Elastic node processes to restart.</p>
 
 </div>
 </div>

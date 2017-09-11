@@ -49,18 +49,6 @@
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
       
       
@@ -210,6 +198,22 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </ul>
   </li>
   <li>
@@ -218,11 +222,11 @@
       
       
       
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -254,33 +258,29 @@
           
           <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
-          
-          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
           
           <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
-          
-          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/managing.html">Managing</a></li>
           
           <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
           
-          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
           
-          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
           
+          <li><a href="../../services/elastic/support.html">Supported Versions</a></li>
+          
           <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
           
-          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -292,25 +292,27 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
-          
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
-          
-          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
-          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
-          
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
           <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -322,11 +324,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
-          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -336,11 +338,13 @@
           
           <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
           
-          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
-          
           <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
           
-          <li><a href="../../services/kafka/upgrade.html">Upgrade `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta` in DC/OS 1.10</a></li>
+          <li><a href="../../services/kafka/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -355,7 +359,7 @@
 <h1 id="updating-configuration">Updating Configuration</h1>
 <p>You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying DC/OS Kafka Service itself.</p>
 
-<p>After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to <code class="highlighter-rouge">_NODEPOD_-0</code>, then <code class="highlighter-rouge">_NODEPOD_-1</code>, and so on.</p>
+<p>After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to <code class="highlighter-rouge">kafka-0</code>, then <code class="highlighter-rouge">kafka-1</code>, and so on.</p>
 
 <p>Nodes are configured with a “readiness check” to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.</p>
 
@@ -379,8 +383,8 @@
     <ul>
       <li>You can install just the subcommand CLI by running <code class="highlighter-rouge">dcos package install --cli beta-kafka</code>.</li>
       <li>If you are running an older version of the subcommand CLI that doesn’t have the <code class="highlighter-rouge">update</code> command, uninstall and reinstall your CLI.
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --cli beta-kafka
-dcos package install --cli beta-kafka
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package uninstall --cli beta-kafka
+<span class="gp">$ </span>dcos package install --cli beta-kafka
 </code></pre>
         </div>
       </li>
@@ -440,7 +444,7 @@ dcos package install --cli beta-kafka
 <p>Now that you have these files, we’ll attempt to recreate the <code class="highlighter-rouge">options.json</code>.</p>
 
 <ol>
-  <li>Use JQ and <code class="highlighter-rouge">diff</code> to compare the two:
+  <li>Use <code class="highlighter-rouge">jq</code> and <code class="highlighter-rouge">diff</code> to compare the two:
     <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>diff &lt;<span class="o">(</span>jq -S . default_env.json<span class="o">)</span> &lt;<span class="o">(</span>jq -S . current_env.json<span class="o">)</span>
 </code></pre>
     </div>
@@ -473,7 +477,7 @@ dcos package install --cli beta-kafka
 
 <p>To make configuration changes via scheduler environment updates, perform the following steps:</p>
 <ol>
-  <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
+  <li>Visit <code class="highlighter-rouge">&lt;dcos-url&gt;</code> to access the DC/OS web interface.</li>
   <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be configured (default <code class="highlighter-rouge">beta-kafka</code>).</li>
   <li>Click <code class="highlighter-rouge">Edit</code> in the upper right. On DC/OS 1.9.x, the <code class="highlighter-rouge">Edit</code> button is in a menu made up of three dots.</li>
   <li>Navigate to <code class="highlighter-rouge">Environment</code> (or <code class="highlighter-rouge">Environment variables</code>) and search for the option to be updated.</li>
@@ -483,10 +487,6 @@ dcos package install --cli beta-kafka
 </ol>
 
 <p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-kafka</code> in the CLI, or browse the Beta Kafka install dialog in the DC/OS web interface.</p>
-
-<h1 id="add-a-broker">Add a Broker</h1>
-
-<p>Increase the <code class="highlighter-rouge">BROKER_COUNT</code> value via the DC/OS web interface as in any other configuration update.</p>
 
 <h1 id="upgrade-software">Upgrade Software</h1>
 
@@ -499,23 +499,24 @@ dcos package install --cli beta-kafka
   </li>
   <li>
     <p>Optional: Create a JSON options file with any custom configuration, such as a non-default <code class="highlighter-rouge">DEPLOY_STRATEGY</code>. <!--I'm getting this JSON from the app definition in the UI. The all caps looks a little odd, though --></p>
+  </li>
+</ol>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"DEPLOY_STRATEGY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"parallel-canary"</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"DEPLOY_STRATEGY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"parallel-canary"</span><span class="w">
     </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
-    </div>
-  </li>
-  <li>
-    <p>Install the latest version of Kafka:</p>
+</div>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install kafka -—options=options.json
-</code></pre>
-    </div>
-  </li>
+<ol>
+  <li>Install the latest version of Kafka:</li>
 </ol>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-kafka -—options<span class="o">=</span>options.json
+</code></pre>
+</div>
 
 <h1 id="graceful-shutdown">Graceful Shutdown</h1>
 <h2 id="extend-the-kill-grace-period">Extend the Kill Grace Period</h2>
@@ -532,17 +533,17 @@ entries in the <a href="configure.md">Configure</a> section.</p>
 
 <p>Create an options file <code class="highlighter-rouge">kafka-options.json</code> with the following content:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="w">    </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="nt">"kill_grace_period"</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="w">
-        </span><span class="p">}</span><span class="w">
-    </span><span class="p">}</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"kill_grace_period"</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
 </span></code></pre>
 </div>
 
 <p>Issue the following command:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>    dcos kafka --name=/kafka update --options=kafka-options.json
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>/kafka update --options<span class="o">=</span>kafka-options.json
 </code></pre>
 </div>
 
@@ -586,6 +587,7 @@ entries in the <a href="configure.md">Configure</a> section.</p>
 </ol>
 
 <p>If you are missing mandatory configuration parameters, the <code class="highlighter-rouge">update</code> command will return an error. To supply missing values, you can also provide an <code class="highlighter-rouge">options.json</code> file (see <a href="#updating-configuration">Updating configuration</a>):</p>
+
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka update start --options<span class="o">=</span>options.json --package-version<span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre>
 </div>

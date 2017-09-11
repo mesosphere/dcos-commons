@@ -49,18 +49,6 @@
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
       
       
@@ -210,6 +198,22 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </ul>
   </li>
   <li>
@@ -218,11 +222,11 @@
       
       
       
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -254,33 +258,29 @@
           
           <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
-          
-          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
           
           <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
-          
-          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/managing.html">Managing</a></li>
           
           <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
           
-          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
           
-          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
           
+          <li><a href="../../services/elastic/support.html">Supported Versions</a></li>
+          
           <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
           
-          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -292,25 +292,27 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
-          
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
-          
-          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
-          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
-          
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
           <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -322,11 +324,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
-          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -336,11 +338,13 @@
           
           <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
           
-          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
-          
           <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
           
-          <li><a href="../../services/kafka/upgrade.html">Upgrade `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta` in DC/OS 1.10</a></li>
+          <li><a href="../../services/kafka/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -371,21 +375,20 @@
 
 <p>To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="#install-enterprise">More information about installing Kafka on Enterprise DC/OS</a>.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install kafka
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-kafka
 </code></pre>
 </div>
 
 <p>This command creates a new Kafka cluster with the default name <code class="highlighter-rouge">kafka</code>. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which Kafka instance to query. If you do not specify a service name, the CLI assumes the default value, <code class="highlighter-rouge">kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which Kafka instance to query. If you do not specify a service name, the CLI assumes the default value, <code class="highlighter-rouge">kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name kafka-dev &lt;cmd&gt;
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name kafka-dev &lt;cmd&gt;
 
-<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/1.9/deploying-services/install/">install Kafka from the DC/OS web interface</a>. If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<span class="k">**</span>Note:<span class="k">**</span> Alternatively, you can <span class="o">[</span>install Kafka from the DC/OS web interface]<span class="o">(</span>https://docs.mesosphere.com/1.9/deploying-services/install/<span class="o">)</span>. If you install Kafka from the web interface, you must install the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package install kafka --cli
+<span class="sb">```</span>bash
+dcos package install beta-kafka --cli
 </code></pre>
 </div>
 
@@ -395,19 +398,19 @@
 
 <p>To start a minimal cluster with a single broker, create a JSON options file named <code class="highlighter-rouge">sample-kafka-minimal.json</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"disk"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="w">
-    </span><span class="p">}</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"mem"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"disk"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="w">
+  </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 </div>
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-kafka-minimal.json</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install --options=sample-kafka-minimal.json kafka
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install --options<span class="o">=</span>sample-kafka-minimal.json beta-kafka
 </code></pre>
 </div>
 
@@ -418,26 +421,26 @@
 
 <p>Sample JSON options file named <code class="highlighter-rouge">sample-kafka-custom.json</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sample-kafka-custom"</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"placement_strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NODE"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"kill_grace_period"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="nt">"delete_topic_enable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"log_retention_hours"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w">
-    </span><span class="p">}</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sample-kafka-custom"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"placement_strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NODE"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nt">"brokers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"kill_grace_period"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"delete_topic_enable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"log_retention_hours"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w">
+  </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
 </div>
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-kafka.json</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos package install --options=sample-kafka-custom.json kafka
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install --options<span class="o">=</span>sample-kafka-custom.json beta-kafka
 </code></pre>
 </div>
 
@@ -449,18 +452,17 @@
 
 <p>Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique <code class="highlighter-rouge">name</code> be specified for each installation. For example:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ cat kafka1.json
-{
-    "service": {
-        "name": "kafka1"
-    }
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>cat kafka1.json
+<span class="o">{</span>
+  <span class="s2">"service"</span>: <span class="o">{</span>
+  <span class="s2">"name"</span>: <span class="s2">"kafka1"</span>
+  <span class="o">}</span>
+<span class="o">}</span>
 
-$ dcos package install kafka --options=kafka1.json
-
-	&lt;!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE --&gt;
+<span class="gp">$ </span>dcos package install beta-kafka --options<span class="o">=</span>kafka1.json
 </code></pre>
 </div>
+<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
 <h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
 

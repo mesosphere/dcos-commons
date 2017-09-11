@@ -49,18 +49,6 @@
       
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
       
       
@@ -210,6 +198,22 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
     </ul>
   </li>
   <li>
@@ -218,11 +222,11 @@
       
       
       
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
       <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
       
       <li><a href="../../tutorials/quick-start-java.html">Quick Start (Java)</a></li>
-      
-      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
     </ul>
   </li>
@@ -254,33 +258,29 @@
           
           <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
           
-          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
-          
-          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
           
           <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/elastic/configure.html">Configuring</a></li>
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
           
-          <li><a href="../../services/elastic/x-pack.html">X-Pack</a></li>
-          
-          <li><a href="../../services/elastic/connecting.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/elastic/backup_restore.html">Backup and Restore</a></li>
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/elastic/managing.html">Managing</a></li>
           
           <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
           
-          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
           
-          <li><a href="../../services/elastic/version_policy.html">Version Policy</a></li>
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
           
           <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
           
+          <li><a href="../../services/elastic/support.html">Supported Versions</a></li>
+          
           <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
           
-          <li><a href="../../services/elastic/changelog.html">Changelog</a></li>
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -292,25 +292,27 @@
         <ul>
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
-          
           <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
           
-          <li><a href="../../services/hdfs/configure.html">Configuring</a></li>
-          
-          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
           
           <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
           
           <li><a href="../../services/hdfs/managing.html">Managing</a></li>
           
-          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
-          
           <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
           
           <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          <li><a href="../../services/hdfs/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -322,11 +324,11 @@
         <ul>
           
           
-          <li><a href="../../services/kafka/install-and-customize.html">Install and Customize</a></li>
-          
-          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
           
@@ -336,11 +338,13 @@
           
           <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
           
-          <li><a href="../../services/kafka/version-policy.html">Version Policy</a></li>
-          
           <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
           
-          <li><a href="../../services/kafka/upgrade.html">Upgrade `1.1.26-0.10.1.0-beta` to `1.1.27-0.11.0-beta` in DC/OS 1.10</a></li>
+          <li><a href="../../services/kafka/support.html">Supported Versions</a></li>
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
           
         </ul>
       </li>
@@ -362,7 +366,7 @@
 
 <p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ export auth_token=uSeR_t0k3n
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
 </code></pre>
 </div>
 
@@ -372,17 +376,15 @@
 
 <p>For ongoing maintenance of the Kafka cluster itself, the Kafka service exposes an HTTP API whose structure is designed to roughly match the tools provided by the Kafka distribution, such as <code class="highlighter-rouge">bin/kafka-topics.sh</code>.</p>
 
-<p>The examples here provide equivalent commands using both the <a href="https://github.com/mesosphere/dcos-cli">DC/OS CLI</a> (with the <code class="highlighter-rouge">kafka</code> CLI module installed) and <code class="highlighter-rouge">curl</code>. These examples assume a service named <code class="highlighter-rouge">kafka</code> (the default), and the <code class="highlighter-rouge">curl</code> examples assume a DC/OS cluster path of <code class="highlighter-rouge">&lt;dcos_url&gt;</code>. Replace these with appropriate values as needed.</p>
+<p>The examples here provide equivalent commands using both the <a href="https://github.com/mesosphere/dcos-cli">DC/OS CLI</a> (with the <code class="highlighter-rouge">kafka</code> CLI module installed) and <code class="highlighter-rouge">curl</code>. These examples assume a service named <code class="highlighter-rouge">kafka</code> (the default), and the <code class="highlighter-rouge">curl</code> examples assume that the DC/OS cluster path has been stored in an environment variable <code class="highlighter-rouge">$dcos_url</code>. Replace these with appropriate values as needed.</p>
 
-<p>The <code class="highlighter-rouge">dcos kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument, allowing the user to specify which Kafka instance to query. The value defaults to <code class="highlighter-rouge">kafka</code>, so it’s technically redundant to specify <code class="highlighter-rouge">--name=kafka</code> in these examples.</p>
+<p>The <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument, allowing the user to specify which Kafka instance to query. The value defaults to <code class="highlighter-rouge">kafka</code>, so it’s technically redundant to specify <code class="highlighter-rouge">--name=kafka</code> in these examples.</p>
 
 <h1 id="connection-information">Connection Information</h1>
 
-<p>Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the <code class="highlighter-rouge">/connection</code> endpoint:</p>
+<p>Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the <code class="highlighter-rouge">/endpoints</code> endpoint:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"
-GET /service/kafka/v1/connection HTTP/1.1
-
+<pre><code class="language-bssh">$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"
 {
   "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
   "address": [
@@ -395,22 +397,21 @@ GET /service/kafka/v1/connection HTTP/1.1
   ],
 }
 </code></pre>
-</div>
 
 <p>The same information can be retrieved through the DC/OS CLI:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka endpoints broker
-{
-  "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
-  "address": [
-    "10.0.0.35:1028",
-    "10.0.1.249:1030"
-  ],
-  "dns": [
-    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
-    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
-  ],
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos betai-kafka endpoints broker
+<span class="o">{</span>
+  <span class="s2">"vip"</span>: <span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span>,
+  <span class="s2">"address"</span>: <span class="o">[</span>
+    <span class="s2">"10.0.0.35:1028"</span>,
+    <span class="s2">"10.0.1.249:1030"</span>
+  <span class="o">]</span>,
+  <span class="s2">"dns"</span>: <span class="o">[</span>
+    <span class="s2">"kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028"</span>,
+    <span class="s2">"kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"</span>
+  <span class="o">]</span>,
+<span class="o">}</span>
 </code></pre>
 </div>
 
@@ -418,49 +419,61 @@ GET /service/kafka/v1/connection HTTP/1.1
 
 <h2 id="list-all-brokers">List All Brokers</h2>
 
-<p>$ dcos beta-kafka –name=kafka broker list
-    {
-        “brokers”: [
-            “0”,
-            “1”,
-            “2”
-        ]
-    }</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers"
-GET /service/kafka/v1/brokers HTTP/1.1
-
-{
-    "brokers": [
-        "0",
-        "1",
-        "2"
-    ]
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka pod list
+<span class="o">[</span>
+  <span class="s2">"kafka-0"</span>,
+  <span class="s2">"kafka-1"</span>,
+  <span class="s2">"kafka-2"</span>
+<span class="o">]</span>
 </code></pre>
 </div>
 
-<h2 id="view-a-single-broker">View a Single Broker</h2>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/pod"</span>
+<span class="o">[</span>
+  <span class="s2">"kafka-0"</span>,
+  <span class="s2">"kafka-1"</span>,
+  <span class="s2">"kafka-2"</span>
+<span class="o">]</span>
+</code></pre>
+</div>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-kafka --name="c-kafka" broker get &lt;id&gt;
+<h2 id="restart-a-single-broker">Restart a Single Broker</h2>
 
-{
-  "listener_security_protocol_map": {
-    "PLAINTEXT": "PLAINTEXT"
-  },
-  "endpoints": [
-    "PLAINTEXT://10.0.2.194:1025"
-  ],
-  "jmx_port": -1,
-  "port": 1025,
-  "host": "10.0.2.194",
-  "version": 4,
-  "timestamp": "1504644309011"
-}
+<p>Restarts the broker in-place.</p>
 
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka pod restart kafka-1
+<span class="o">[</span>
+  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
+<span class="o">]</span>
+</code></pre>
+</div>
 
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/brokers/&lt;id&gt;"
-GET /service/kafka/v1/brokers/&lt;id&gt; HTTP/1.1
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/pod/kafka-1/restart"</span>
+<span class="o">[</span>
+  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
+<span class="o">]</span>
+</code></pre>
+</div>
+
+<h2 id="replace-a-single-broker">Replace a Single Broker</h2>
+
+<p>Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka pod replace kafka-1
+<span class="o">[</span>
+  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
+<span class="o">]</span>
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/pod/kafka-1/replace"</span>
+<span class="o">[</span>
+  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
+<span class="o">]</span>
 </code></pre>
 </div>
 
@@ -470,233 +483,223 @@ GET /service/kafka/v1/brokers/&lt;id&gt; HTTP/1.1
 
 <h2 id="list-topics">List Topics</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic list
-[
-    "topic1",
-    "topic0"
-]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic list
+<span class="o">[</span>
+  <span class="s2">"topic1"</span>,
+  <span class="s2">"topic0"</span>
+<span class="o">]</span>
+</code></pre>
+</div>
 
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics"
-GET /service/kafka/v1/topics HTTP/1.1
-
-[
-    "topic1",
-    "topic0"
-]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/topics"</span>
+<span class="o">[</span>
+  <span class="s2">"topic1"</span>,
+  <span class="s2">"topic0"</span>
+<span class="o">]</span>
 </code></pre>
 </div>
 
 <h2 id="describe-topic">Describe Topic</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic describe topic1
-{
-    "partitions": [
-        {
-            "0": {
-                "controller_epoch": 1,
-                "isr": [
-                    0,
-                    1,
-                    2
-                ],
-                "leader": 0,
-                "leader_epoch": 0,
-                "version": 1
-            }
-        },
-        {
-            "1": {
-                "controller_epoch": 1,
-                "isr": [
-                    1,
-                    2,
-                    0
-                ],
-                "leader": 1,
-                "leader_epoch": 0,
-                "version": 1
-            }
-        },
-        {
-            "2": {
-                "controller_epoch": 1,
-                "isr": [
-                    2,
-                    0,
-                    1
-                ],
-                "leader": 2,
-                "leader_epoch": 0,
-                "version": 1
-            }
-        }
-    ]
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic describe topic1
+<span class="o">{</span>
+  <span class="s2">"partitions"</span>: <span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        0,
+        1,
+        2
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 0,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        1,
+        2,
+        0
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 1,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        2,
+        0,
+        1
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 2,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"</span>
+<span class="o">{</span>
+  <span class="s2">"partitions"</span>: <span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        0,
+        1,
+        2
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 0,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        1,
+        2,
+        0
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 1,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        2,
+        0,
+        1
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 2,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
 
-$ curl -X POST -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"
-GET /service/kafka/v1/topics/topic1 HTTP/1.1
-
-{
-    "partitions": [
-        {
-            "0": {
-                "controller_epoch": 1,
-                "isr": [
-                    0,
-                    1,
-                    2
-                ],
-                "leader": 0,
-                "leader_epoch": 0,
-                "version": 1
-            }
-        },
-        {
-            "1": {
-                "controller_epoch": 1,
-                "isr": [
-                    1,
-                    2,
-                    0
-                ],
-                "leader": 1,
-                "leader_epoch": 0,
-                "version": 1
-            }
-        },
-        {
-            "2": {
-                "controller_epoch": 1,
-                "isr": [
-                    2,
-                    0,
-                    1
-                ],
-                "leader": 2,
-                "leader_epoch": 0,
-                "version": 1
-            }
-        }
-    ]
-}
 </code></pre>
 </div>
 
 <h2 id="create-topic">Create Topic</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic create topic1 --partitions=3 --replication=3
-{
-    "message": "Output: Created topic "topic1".n"
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic create topic1 --partitions<span class="o">=</span>3 --replication<span class="o">=</span>3
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Output: Created topic </span><span class="se">\"</span><span class="s2">topic1</span><span class="se">\"\n</span><span class="s2">"</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
-
-$ curl -X POST -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics?name=topic1&amp;partitions=3&amp;replication=3"
-POST /service/kafka/v1/topics?replication=3&amp;name=topic1&amp;partitions=3 HTTP/1.1
-
-{
-    "message": "Output: Created topic "topic1".n"
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/topics/topic1?partitions=3&amp;replication=3"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Output: Created topic </span><span class="se">\"</span><span class="s2">topic1</span><span class="se">\"\n</span><span class="s2">"</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
 <h2 id="view-topic-offsets">View Topic Offsets</h2>
 
-<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as [described in the Kafka documentation][15].</p>
+<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell">described in the Kafka documentation</a>.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic offsets topic1 --time=last
-[
-    {
-        "2": "334"
-    },
-    {
-        "1": "333"
-    },
-    {
-        "0": "333"
-    }
-]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic offsets topic1 --time<span class="o">=</span>last
+<span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="s2">"334"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>
+<span class="o">]</span>
+</code></pre>
+</div>
 
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1/offsets?time=last"
-GET /service/kafka/v1/topics/topic1/offsets?time=last HTTP/1.1
-
-[
-    {
-        "2": "334"
-    },
-    {
-        "1": "333"
-    },
-    {
-        "0": "333"
-    }
-]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/topics/topic1/offsets?time=-1"</span>
+<span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="s2">"334"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>
+<span class="o">]</span>
 </code></pre>
 </div>
 
 <h2 id="alter-topic-partition-count">Alter Topic Partition Count</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic partitions topic1 2
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-kafka --name=kafka topic partitions topic1 2
 {
-    "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
+  "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
 }
+</code></pre>
+</div>
 
-
-$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=partitions&amp;partitions=2"
-PUT /service/kafka/v1/topics/topic1?operation=partitions&amp;partitions=2 HTTP/1.1
-
-{
-    "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=partitions&amp;partitions=2"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
 <h2 id="run-producer-test-on-topic">Run Producer Test on Topic</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic producer_test topic1 10
-
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos beta-kafka --name=kafka topic producer_test topic1 10
 {
-    "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+  "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
 }
 
-
+```bash
 $ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=producer-test&amp;messages=10"
-PUT /service/kafka/v1/topics/topic1?operation=producer-test&amp;messages=10 HTTP/1.1
-
 {
-    "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+  "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
 }
 </code></pre>
 </div>
 
-<p>Runs the equivalent of the following command from the machine running the Kafka Scheduler:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>kafka-producer-perf-test.sh
-    --topic &lt;topic&gt;
-    --num-records &lt;messages&gt;
-    --throughput 100000
-    --record-size 1024
-    --producer-props bootstrap.servers=&lt;current broker endpoints&gt;
+<p>This runs the equivalent of the following command from the machine running the Kafka Scheduler:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>kafka-producer-perf-test.sh <span class="se">\</span>
+  --topic &lt;topic&gt; <span class="se">\</span>
+  --num-records &lt;messages&gt; <span class="se">\</span>
+  --throughput 100000 <span class="se">\</span>
+  --record-size 1024 <span class="se">\</span>
+  --producer-props bootstrap.servers<span class="o">=</span>&lt;current broker endpoints&gt;
 </code></pre>
 </div>
 
 <h2 id="delete-topic">Delete Topic</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic delete topic1
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic delete topic1
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
-{
-    "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
-}
-
-
-$ curl -X DELETE -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"
-DELETE /service/kafka/v1/topics/topic1 HTTP/1.1
-
-{
-    "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X DELETE -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
@@ -704,37 +707,33 @@ DELETE /service/kafka/v1/topics/topic1 HTTP/1.1
 
 <h2 id="list-under-replicated-partitions">List Under Replicated Partitions</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic under_replicated_partitions
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic under_replicated_partitions
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
-{
-    "message": ""
-}
-
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/under_replicated_partitions"
-GET /service/kafka/v1/topics/under_replicated_partitions HTTP/1.1
-
-{
-    "message": ""
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/under_replicated_partitions"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
 <h2 id="list-unavailable-partitions">List Unavailable Partitions</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka topic unavailable_partitions
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka topic unavailable_partitions
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
-{
-    "message": ""
-}
-
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/unavailable_partitions"
-GET /service/kafka/v1/topics/unavailable_partitions HTTP/1.1
-
-{
-    "message": ""
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/unavailable_partitions"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
@@ -744,7 +743,7 @@ GET /service/kafka/v1/topics/unavailable_partitions HTTP/1.1
 
 <p>You can use this request to troubleshoot: if you think Kafka should be receiving resource offers, but is not, you can use this API call to see if Kafka is suppressed. You will receive a response of <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/state/properties/suppressed"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nv">$curl</span> -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/state/properties/suppressed"</span>
 </code></pre>
 </div>
 
@@ -754,21 +753,19 @@ GET /service/kafka/v1/topics/unavailable_partitions HTTP/1.1
 
 <h2 id="list-configuration-ids">List Configuration IDs</h2>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka config list
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
+</code></pre>
+</div>
 
-[
-    "319ebe89-42e2-40e2-9169-8568e2421023",
-    "294235f2-8504-4194-b43d-664443f2132b"
-]
-
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations"
-GET /service/kafka/v1/configurations HTTP/1.1
-
-[
-    "319ebe89-42e2-40e2-9169-8568e2421023",
-    "294235f2-8504-4194-b43d-664443f2132b"
-]
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/configurations"</span>
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
 </code></pre>
 </div>
 
@@ -776,16 +773,16 @@ GET /service/kafka/v1/configurations HTTP/1.1
 
 <p>This configuration shows a default per-broker memory allocation of 2048 (configured via the <code class="highlighter-rouge">BROKER_MEM</code> parameter):</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
 </code></pre>
 </div>
 
 <p>Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
-is provided in Appendix A.</p>
+is provided in <a href=".#appendix-a-configuration-resource">Appendix A</a>.</p>
 
 <p>The equivalent DC/OS API resource request follows:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"</span>
 </code></pre>
 </div>
 
@@ -795,14 +792,14 @@ is provided in Appendix A.</p>
 
 <p>The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as <code class="highlighter-rouge">BROKER_MEM</code>):</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka config target
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka config target
 </code></pre>
 </div>
 
 <p>Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
 is provided in Appendix A.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/configurations/target"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/configurations/target"</span>
 </code></pre>
 </div>
 
@@ -816,102 +813,99 @@ is provided in Appendix A.</p>
 
 <p>Displays all Phases and Steps in the service Plan. If a rollout is currently in progress, this returns a 503 HTTP code with response content otherwise unchanged.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka plan
-GET /service/kafka/v1/plan HTTP/1.1
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka plan show deploy --json
+<span class="o">{</span>
+  <span class="s2">"phases"</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">"id"</span>: <span class="s2">"1915bcad-1235-400f-8406-4ac7555a7d34"</span>,
+      <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
+      <span class="s2">"steps"</span>: <span class="o">[</span>
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"9854a67d-7803-46d0-b278-402785fe3199"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Reconciliation complete"</span>
+        <span class="o">}</span>
+      <span class="o">]</span>,
+      <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>
+    <span class="o">}</span>,
+    <span class="o">{</span>
+      <span class="s2">"id"</span>: <span class="s2">"3e72c258-1ead-465f-871e-2a305d29124c"</span>,
+      <span class="s2">"name"</span>: <span class="s2">"Update to: 329ef254-7331-48dc-a476-8a0e45752871"</span>,
+      <span class="s2">"steps"</span>: <span class="o">[</span>
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"ebf4cb02-1011-452a-897a-8c4083188bb2"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"broker-0"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Broker-0 is COMPLETE"</span>
+        <span class="o">}</span>,
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"ff9e74a7-04fd-45b7-b44c-00467aaacd5b"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"broker-1"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Broker-1 is IN_PROGRESS"</span>
+        <span class="o">}</span>,
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"a2ba3969-cb18-4a05-abd0-4186afe0f840"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"PENDING"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"broker-2"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Broker-2 is PENDING"</span>
+        <span class="o">}</span>
+      <span class="o">]</span>,
+      <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+    <span class="o">}</span>
+  <span class="o">]</span>,
+  <span class="s2">"errors"</span>: <span class="o">[]</span>,
+  <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+<span class="o">}</span>
+</code></pre>
+</div>
 
-{
-  "phases": [
-    {
-      "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
-      "name": "Reconciliation",
-      "steps": [
-        {
-          "id": "9854a67d-7803-46d0-b278-402785fe3199",
-          "status": "COMPLETE",
-          "name": "Reconciliation",
-          "message": "Reconciliation complete"
-        }
-      ],
-      "status": "COMPLETE"
-    },
-    {
-      "id": "3e72c258-1ead-465f-871e-2a305d29124c",
-      "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
-      "steps": [
-        {
-          "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
-          "status": "COMPLETE",
-          "name": "broker-0",
-          "message": "Broker-0 is COMPLETE"
-        },
-        {
-          "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
-          "status": "IN_PROGRESS",
-          "name": "broker-1",
-          "message": "Broker-1 is IN_PROGRESS"
-        },
-        {
-          "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
-          "status": "PENDING",
-          "name": "broker-2",
-          "message": "Broker-2 is PENDING"
-        }
-      ],
-      "status": "IN_PROGRESS"
-    }
-  ],
-  "errors": [],
-  "status": "IN_PROGRESS"
-}
-
-
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan"
-GET /service/kafka/v1/plan HTTP/1.1
-
-{
-  "phases": [
-    {
-      "id": "1915bcad-1235-400f-8406-4ac7555a7d34",
-      "name": "Reconciliation",
-      "steps": [
-        {
-          "id": "9854a67d-7803-46d0-b278-402785fe3199",
-          "status": "COMPLETE",
-          "name": "Reconciliation",
-          "message": "Reconciliation complete"
-        }
-      ],
-      "status": "COMPLETE"
-    },
-    {
-      "id": "3e72c258-1ead-465f-871e-2a305d29124c",
-      "name": "Update to: 329ef254-7331-48dc-a476-8a0e45752871",
-      "steps": [
-        {
-          "id": "ebf4cb02-1011-452a-897a-8c4083188bb2",
-          "status": "COMPLETE",
-          "name": "broker-0",
-          "message": "Broker-0 is COMPLETE"
-        },
-        {
-          "id": "ff9e74a7-04fd-45b7-b44c-00467aaacd5b",
-          "status": "COMPLETE",
-          "name": "broker-1",
-          "message": "Broker-1 is COMPLETE"
-        },
-        {
-          "id": "a2ba3969-cb18-4a05-abd0-4186afe0f840",
-          "status": "COMPLETE",
-          "name": "broker-2",
-          "message": "Broker-2 is COMPLETE"
-        }
-      ],
-      "status": "COMPLETE"
-    }
-  ],
-  "errors": [],
-  "status": "COMPLETE"
-}
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/plan/deploy"</span>
+<span class="o">{</span>
+  <span class="s2">"phases"</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">"id"</span>: <span class="s2">"1915bcad-1235-400f-8406-4ac7555a7d34"</span>,
+      <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
+      <span class="s2">"steps"</span>: <span class="o">[</span>
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"9854a67d-7803-46d0-b278-402785fe3199"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Reconciliation complete"</span>
+        <span class="o">}</span>
+      <span class="o">]</span>,
+      <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>
+    <span class="o">}</span>,
+    <span class="o">{</span>
+      <span class="s2">"id"</span>: <span class="s2">"3e72c258-1ead-465f-871e-2a305d29124c"</span>,
+      <span class="s2">"name"</span>: <span class="s2">"Update to: 329ef254-7331-48dc-a476-8a0e45752871"</span>,
+      <span class="s2">"steps"</span>: <span class="o">[</span>
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"ebf4cb02-1011-452a-897a-8c4083188bb2"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"broker-0"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Broker-0 is COMPLETE"</span>
+        <span class="o">}</span>,
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"ff9e74a7-04fd-45b7-b44c-00467aaacd5b"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"broker-1"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Broker-1 is IN_PROGRESS"</span>
+        <span class="o">}</span>,
+        <span class="o">{</span>
+          <span class="s2">"id"</span>: <span class="s2">"a2ba3969-cb18-4a05-abd0-4186afe0f840"</span>,
+          <span class="s2">"status"</span>: <span class="s2">"PENDING"</span>,
+          <span class="s2">"name"</span>: <span class="s2">"broker-2"</span>,
+          <span class="s2">"message"</span>: <span class="s2">"Broker-2 is PENDING"</span>
+        <span class="o">}</span>
+      <span class="o">]</span>,
+      <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+    <span class="o">}</span>
+  <span class="o">]</span>,
+  <span class="s2">"errors"</span>: <span class="o">[]</span>,
+  <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+<span class="o">}</span>
 </code></pre>
 </div>
 
@@ -921,17 +915,15 @@ GET /service/kafka/v1/plan HTTP/1.1
 
 <h3 id="continue">Continue</h3>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka plan continue
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/continue"
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka plan <span class="k">continue </span>deploy
+<span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/plan/deploy/continue"</span>
 </code></pre>
 </div>
 
 <h3 id="interrupt">Interrupt</h3>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos kafka --name=kafka plan interrupt
-$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/plan/interrupt"
-
-[15]: https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>kafka plan pause deploy
+<span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/plan/deploy/interrupt"</span>
 </code></pre>
 </div>
 
@@ -939,7 +931,7 @@ $ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/
 
 <p>The following is an example of the configuration resource:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
   </span><span class="nt">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
   </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">

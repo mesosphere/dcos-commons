@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Template: Connecting Clients</title>
+<title>HDFS: Supported Versions</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -354,44 +354,30 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Template: Connecting Clients</h1>
+<h1>HDFS: Supported Versions</h1>
 <div id="content">
-<h1 id="connecting-clients">Connecting Clients</h1>
-<p>One of the benefits of running containerized services is that they can be placed anywhere in the cluster. Because they can be deployed anywhere on the cluster, clients need a way to find the service. This is where service discovery comes in.</p>
+<h1 id="support">Support</h1>
 
-<p><a name="discovering-endpoints"></a></p>
-<h2 id="discovering-endpoints">Discovering Endpoints</h2>
+<p><a name="package-versioning-scheme"></a></p>
+<h2 id="package-versioning-scheme">Package Versioning Scheme</h2>
 
-<p>Once the service is running, you may view information about its endpoints via either of the following methods:</p>
 <ul>
-  <li>CLI:
-    <ul>
-      <li>List endpoint types: <code class="highlighter-rouge">dcos _PKGNAME_ endpoints</code></li>
-      <li>View endpoints for an endpoint type: <code class="highlighter-rouge">dcos _PKGNAME_ endpoints &lt;endpoint&gt;</code></li>
-    </ul>
-  </li>
-  <li>API:
-    <ul>
-      <li>List endpoint types: <code class="highlighter-rouge">&lt;dcos-url&gt;/service/_PKGNAME_/v1/endpoints</code></li>
-      <li>View endpoints for an endpoint type: <code class="highlighter-rouge">&lt;dcos-url&gt;/service/_PKGNAME_/v1/endpoints/&lt;endpoint&gt;</code></li>
-    </ul>
-  </li>
+  <li>HDFS: latest stable at the time of the release, refer to the package version.</li>
+  <li>DC/OS: 1.9 or higher</li>
 </ul>
 
-<p>Returned endpoints will include the following:</p>
-<ul>
-  <li><code class="highlighter-rouge">.autoip.dcos.thisdcos.directory</code> hostnames for each instance that will follow them if they’re moved within the DC/OS cluster.</li>
-  <li>A HA-enabled VIP hostname for accessing any of the instances (optional).</li>
-  <li>A direct IP address for accessing the service if <code class="highlighter-rouge">.autoip.dcos.thisdcos.directory</code> hostnames are not resolvable.</li>
-  <li>If your service is on a virtual network such as the <code class="highlighter-rouge">dcos</code> overlay network, then the IP will be from the subnet allocated to the host that the task is running on. It will not be the host IP. To resolve the host IP use Mesos DNS (<code class="highlighter-rouge">&lt;task&gt;.&lt;service&gt;.mesos</code>).</li>
-</ul>
+<p>Packages are versioned with an <code class="highlighter-rouge">a.b.c-x.y.z</code> format, where <code class="highlighter-rouge">a.b.c</code> is the version of the DC/OS integration and <code class="highlighter-rouge">x.y.z</code> indicates the version of HDFS. For example, <code class="highlighter-rouge">1.5.0-3.2.1</code> indicates version <code class="highlighter-rouge">1.5.0</code> of the DC/OS integration and version <code class="highlighter-rouge">3.2.1</code> of HDFS.</p>
 
-<p>In general, the <code class="highlighter-rouge">.autoip.dcos.thisdcos.directory</code> endpoints will only work from within the same DC/OS cluster. From outside the cluster you can either use direct IPs or set up a proxy service that acts as a frontend to your <em>SERVICENAME</em> instance. For development and testing purposes, you can use <a href="https://docs.mesosphere.com/latest/administration/access-node/tunnel/">DC/OS Tunnel</a> to access services from outside the cluster, but this option is not suitable for production use.</p>
+<p><a name="version-policy"></a></p>
+<h2 id="version-policy">Version Policy</h2>
 
-<p><a name="connecting-clients-to-endpoints"></a></p>
-<h2 id="connecting-clients-to-endpoints">Connecting Clients to Endpoints</h2>
+<p>The DC/OS HDFS Service is engineered and tested to work with a specific release of HDFS. We select stable versions of the base technology in order to promote customer success. We have selected the latest stable version from HDFS for new releases.</p>
 
-<p><em>GIVEN A RELEVANT EXAMPLE CLIENT FOR YOUR SERVICE, PROVIDE INSTRUCTIONS FOR CONNECTING THAT CLIENT USING THE ENDPOINTS LISTED ABOVE. WE RECOMMEND USING THE .MESOS ENDPOINTS IN YOUR EXAMPLE AS THEY WILL FOLLOW TASKS IF THEY ARE MOVED WITHIN THE CLUSTER.</em></p>
+<p><a name="contacting-technical-support"></a></p>
+<h2 id="contacting-technical-support">Contacting Technical Support</h2>
+
+<h3 id="mesosphere-dcos">Mesosphere DC/OS</h3>
+<p><a href="https://support.mesosphere.com/hc/en-us/requests/new">Submit a request</a>.</p>
 
 </div>
 </div>
