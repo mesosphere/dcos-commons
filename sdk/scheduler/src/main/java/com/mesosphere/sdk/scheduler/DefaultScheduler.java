@@ -759,7 +759,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
 
         // Decline remaining offers.
-        OfferUtils.declineOffers(driver, unusedOffers);
+        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
     }
 
     @Override
