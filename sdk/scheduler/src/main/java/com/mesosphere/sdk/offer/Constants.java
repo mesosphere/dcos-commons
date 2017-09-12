@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import org.apache.mesos.Protos.DiscoveryInfo;
 
+import java.time.Duration;
+
 /**
  * This class encapsulates constants of relevance to SDK Scheduler internals.
  *
@@ -67,4 +69,9 @@ public class Constants {
      * by the SDK.
      */
     public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+
+    private static final int TWO_WEEKS_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
+
+    public static final int LONG_DECLINE_SECONDS = TWO_WEEKS_SECONDS;
+    public static final int SHORT_DECLINE_SECONDS = 5;
 }

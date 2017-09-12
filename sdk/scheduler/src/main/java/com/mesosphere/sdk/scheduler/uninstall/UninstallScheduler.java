@@ -109,7 +109,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
         // Decline remaining offers.
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        OfferUtils.declineOffers(driver, unusedOffers);
+        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
     }
 
     @Override

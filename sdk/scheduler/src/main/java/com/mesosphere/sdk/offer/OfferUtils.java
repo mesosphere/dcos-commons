@@ -14,10 +14,6 @@ import java.util.stream.Collectors;
  */
 public class OfferUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferUtils.class);
-    private static final int TWO_WEEKS_S = 2 * 7 * 24 * 60 * 60;
-    private static final Protos.Filters filters = Protos.Filters.newBuilder()
-            .setRefuseSeconds(TWO_WEEKS_S)
-            .build();
 
     /**
      * Filters out accepted offers and returns back a list of unused offers.
@@ -54,14 +50,17 @@ public class OfferUtils {
      *
      * @param driver The {@link SchedulerDriver} that will receive the declineOffer() calls
      * @param unusedOffers The collection of Offers to decline
+     * @param refuseSeconds The number of seconds for which the offers should be refused
      */
-    public static void declineOffers(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {
-        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
+    public static void declineOffers(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
+        LOGGER.info("Declining {} unused offers for {} seconds:", unusedOffers.size(), refuseSeconds);
+        final Protos.Filters filters = Protos.Filters.newBuilder()
+                .setRefuseSeconds(refuseSeconds)
+                .build();
         unusedOffers.forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
             LOGGER.info("  {}", offerId.getValue());
             driver.declineOffer(offerId, filters);
         });
     }
-
 }

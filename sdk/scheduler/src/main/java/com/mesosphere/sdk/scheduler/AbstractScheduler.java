@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
@@ -162,7 +163,7 @@ public abstract class AbstractScheduler implements Scheduler {
             if (!queued) {
                 LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                         offer.getId().getValue());
-                OfferUtils.declineOffers(driver, Arrays.asList(offer));
+                OfferUtils.declineOffers(driver, Arrays.asList(offer), Constants.SHORT_DECLINE_SECONDS);
                 // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                 synchronized (inProgressLock) {
                     offersInProgress.remove(offer.getId());
