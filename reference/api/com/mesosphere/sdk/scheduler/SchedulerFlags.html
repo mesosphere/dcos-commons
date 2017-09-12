@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -202,24 +202,42 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getLibmesosURI--">getLibmesosURI</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
-<td class="colFirst"><code>java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getServiceAccountPrivateKeyPEM--">getServiceAccountPrivateKeyPEM</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>long</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getPackageBuildTimeMs--">getPackageBuildTimeMs</a></span>()</code>
+<div class="block">Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.</div>
+</td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getServiceAccountUid--">getServiceAccountUid</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getPackageName--">getPackageName</a></span>()</code>
+<div class="block">Returns the package name as advertised in the scheduler environment.</div>
+</td>
 </tr>
 <tr id="i12" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getPackageVersion--">getPackageVersion</a></span>()</code>
+<div class="block">Returns the package version as advertised in the scheduler environment.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getServiceAccountPrivateKeyPEM--">getServiceAccountPrivateKeyPEM</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#getServiceAccountUid--">getServiceAccountUid</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#isSideChannelActive--">isSideChannelActive</a></span>()</code>
 <div class="block">Returns whether it appears that side channel auth should be used when creating the SchedulerDriver.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#isStateCacheEnabled--">isStateCacheEnabled</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html#isUninstallEnabled--">isUninstallEnabled</a></span>()</code>&nbsp;</td>
 </tr>
@@ -383,10 +401,40 @@ extends java.lang.Object</pre>
 <a name="getServiceAccountPrivateKeyPEM--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getServiceAccountPrivateKeyPEM</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getServiceAccountPrivateKeyPEM()</pre>
+</li>
+</ul>
+<a name="getPackageName--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPackageName</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getPackageName()</pre>
+<div class="block">Returns the package name as advertised in the scheduler environment.</div>
+</li>
+</ul>
+<a name="getPackageVersion--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPackageVersion</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getPackageVersion()</pre>
+<div class="block">Returns the package version as advertised in the scheduler environment.</div>
+</li>
+</ul>
+<a name="getPackageBuildTimeMs--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getPackageBuildTimeMs</h4>
+<pre>public&nbsp;long&nbsp;getPackageBuildTimeMs()</pre>
+<div class="block">Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.</div>
 </li>
 </ul>
 </li>
