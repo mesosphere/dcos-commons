@@ -36,7 +36,6 @@ public class DeployPlanFactory implements PlanFactory {
         return new DefaultPlan(name, phases, strategy, errors);
     }
 
-
     public Plan getPlan(ServiceSpec serviceSpec, Phase te) {
         List<Phase> phases = getPhases(serviceSpec);
         phases.add(te);
@@ -46,6 +45,7 @@ public class DeployPlanFactory implements PlanFactory {
                 phases,
                 strategyGenerator.generate());
     }
+
     @Override
     public Plan getPlan(ServiceSpec serviceSpec) {
         return new DefaultPlan(

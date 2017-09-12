@@ -69,7 +69,7 @@ public class DefaultScheduler extends AbstractScheduler {
     /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
      */
-    protected static class Builder {
+    public static class Builder {
         protected ServiceSpec serviceSpec;
         private final SchedulerFlags schedulerFlags;
         private final Persister persister;
@@ -614,7 +614,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 .collect(Collectors.toList());
     }
 
-    private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
+    protected void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
         LOGGER.info("Initializing globals...");
 
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);

@@ -91,9 +91,19 @@ public class TestPodFactory {
             String dnsPrefix,
             ResourceSet resourceSet,
             Collection<ConfigFileSpec> configs) {
+        return getTaskSpec(name, cmd, dnsPrefix, GoalState.RUNNING, resourceSet, configs);
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            String dnsPrefix,
+            GoalState goal,
+            ResourceSet resourceSet,
+            Collection<ConfigFileSpec> configs) {
         return DefaultTaskSpec.newBuilder()
                 .name(name)
-                .goalState(GoalState.RUNNING)
+                .goalState(goal)
                 .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder(Collections.emptyMap())
                         .value(cmd)
@@ -150,6 +160,15 @@ public class TestPodFactory {
             double disk) {
         return getPodSpec(type, user, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
     }
+
+    public static PodSpec getPodSpec(
+            String type,
+            List<TaskSpec> taskSpecs,
+            String user,
+            int count) {
+        return getPodSpec(type, user, count, taskSpecs);
+    }
+
 
     public static PodSpec getPodSpec(String type, String user, int count, List<TaskSpec> taskSpecs) {
         return DefaultPodSpec.newBuilder("test-executor")

@@ -83,10 +83,10 @@ public class DefaultSchedulerTest {
     private static final int TASK_A_COUNT = 1;
     private static final String TASK_A_POD_NAME = "POD-A";
     private static final String TASK_A_NAME = "A";
-    private static final double TASK_A_CPU = 1.0;
+    protected static final double TASK_A_CPU = 1.0;
     private static final double UPDATED_TASK_A_CPU = TASK_A_CPU + 1.0;
-    private static final double TASK_A_MEM = 1000.0;
-    private static final double TASK_A_DISK = 1500.0;
+    protected static final double TASK_A_MEM = 1000.0;
+    protected static final double TASK_A_DISK = 1500.0;
     private static final String TASK_A_CMD = "echo " + TASK_A_NAME;
 
     private static final int TASK_B_COUNT = 2;
@@ -98,7 +98,7 @@ public class DefaultSchedulerTest {
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
-    protected static final PodSpec podA = TestPodFactory.getPodSpec(
+    private static final PodSpec podA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-A",
             TASK_A_NAME,
@@ -109,7 +109,7 @@ public class DefaultSchedulerTest {
             TASK_A_MEM,
             TASK_A_DISK);
 
-    protected static final PodSpec podB = TestPodFactory.getPodSpec(
+    private static final PodSpec podB = TestPodFactory.getPodSpec(
             TASK_B_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-B",
             TASK_B_NAME,
@@ -846,7 +846,7 @@ public class DefaultSchedulerTest {
         return Arrays.asList(deployPlan, updatePlan);
     }
 
-    private int countOperationType(
+    protected int countOperationType(
             Protos.Offer.Operation.Type operationType,
             Collection<Protos.Offer.Operation> operations) {
         int count = 0;
@@ -868,11 +868,11 @@ public class DefaultSchedulerTest {
         return null;
     }
 
-    private static Protos.TaskID getTaskId(Collection<Protos.Offer.Operation> operations) {
+    protected static Protos.TaskID getTaskId(Collection<Protos.Offer.Operation> operations) {
         return getTask(operations).getTaskId();
     }
 
-    private static Protos.TaskStatus getTaskStatus(Protos.TaskID taskID, Protos.TaskState state) {
+    protected static Protos.TaskStatus getTaskStatus(Protos.TaskID taskID, Protos.TaskState state) {
         return Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
                 .setState(state)
@@ -900,7 +900,7 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private Protos.Offer getSufficientOfferForTaskA() {
+    protected Protos.Offer getSufficientOfferForTaskA() {
         UUID offerId = UUID.randomUUID();
 
         return Protos.Offer.newBuilder()
@@ -983,7 +983,7 @@ public class DefaultSchedulerTest {
      * Workaround for typecast warnings relating to Collection arguments.
      * @see https://stackoverflow.com/questions/20441594/mockito-and-hamcrest-how-to-verify-invokation-of-collection-argument
      */
-    private static <T> Matcher<Collection<T>> isACollectionThat(final Matcher<Iterable<? extends T>> matcher) {
+    protected static <T> Matcher<Collection<T>> isACollectionThat(final Matcher<Iterable<? extends T>> matcher) {
         return new BaseMatcher<Collection<T>>() {
             @Override public boolean matches(Object item) {
                 return matcher.matches(item);

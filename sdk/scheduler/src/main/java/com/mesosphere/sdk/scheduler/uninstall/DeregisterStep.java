@@ -33,7 +33,7 @@ public class DeregisterStep extends UninstallStep {
      *
      * @param schedulerDriver Must be set before call to {@link #start()}
      */
-    void setSchedulerDriver(SchedulerDriver schedulerDriver) {
+    public void setSchedulerDriver(SchedulerDriver schedulerDriver) {
         this.schedulerDriver = schedulerDriver;
     }
 

@@ -37,6 +37,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
 
     public Plan generateTerminal(RawPlan rawPlan, String planName, Collection<PodSpec> podSpecs, Phase te) {
         final List<Phase> phases = extractPhases(rawPlan, podSpecs);
+        phases.add(te);
         return DeployPlanFactory.getPlan(planName, phases,
                 StrategyFactory.generateForPhase(rawPlan.getStrategy(), te, true));
     }

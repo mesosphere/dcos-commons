@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 
@@ -20,7 +21,9 @@ public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C
 
     @Override
     public Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets) {
-        return getDependencyStrategyHelper(elements).getCandidates(isInterrupted(), dirtyAssets);
+        Collection<C> candidates = getDependencyStrategyHelper(elements).getCandidates(isInterrupted(), dirtyAssets);
+        //return getDependencyStrategyHelper(elements).getCandidates(isInterrupted(), dirtyAssets);
+        return candidates;
     }
 
     private DependencyStrategyHelper<C> getDependencyStrategyHelper(Collection<C> elements) {
@@ -28,11 +31,14 @@ public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C
             if (dependencyStrategyHelper == null) {
                 dependencyStrategyHelper = new DependencyStrategyHelper<>(elements);
                 for (C element: dependencyStrategyHelper.getDependencies().keySet()) {
-                    dependencyStrategyHelper.addDependency(terminalElement, element);
+                    if (element != terminalElement) {
+                        dependencyStrategyHelper.addDependency(terminalElement, element);
+                    }
                 }
             }
         } else {
             if (dependencyStrategyHelper == null) {
+                dependencyStrategyHelper = new DependencyStrategyHelper<>(elements);
                 List<C> planElements = elements.stream()
                         .filter(el -> !el.isComplete())
                         .collect(Collectors.toList());
@@ -43,11 +49,16 @@ public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C
                     C current = planElements.get(i);
                     dependencyStrategyHelper.addDependency(previous, current);
                 }
-                C penultimateElement = planElements.get(planElements.size());
+                C penultimateElement = planElements.get(planElements.size() - 1);
                 dependencyStrategyHelper.addDependency(terminalElement, penultimateElement);
             }
         }
         return dependencyStrategyHelper;
+    }
+
+    @VisibleForTesting
+    public boolean isParallel() {
+        return parallel;
     }
 
     public static class Generator<C extends Element> implements StrategyGenerator<C> {

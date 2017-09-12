@@ -20,6 +20,7 @@ import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,8 @@ import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
 
 public class AnalyticsScheduler extends DefaultScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalyticsScheduler.class);
+
+    protected DeregisterStep deregisterStep;
 
     public static class Builder extends DefaultScheduler.Builder {
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister)
@@ -44,6 +47,11 @@ public class AnalyticsScheduler extends DefaultScheduler {
 
         public Builder setConfigStore(ConfigStore<ServiceSpec> configStore) {
             super.setConfigStore(configStore);
+            return this;
+        }
+
+        public Builder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
+            super.setPlansFrom(rawServiceSpec);
             return this;
         }
 
@@ -119,9 +127,10 @@ public class AnalyticsScheduler extends DefaultScheduler {
                 }
             }
 
+            DeregisterStep deregisterStep = new DeregisterStep(stateStore);
             Phase teardownPhase = new DefaultPhase(
                     "auto-delete",
-                    Collections.singletonList(Optional.of(new DeregisterStep(stateStore)).get()),
+                    Collections.singletonList(Optional.of(deregisterStep).get()),
                     new SerialStrategy<>(),
                     Collections.emptyList());
 
@@ -138,6 +147,7 @@ public class AnalyticsScheduler extends DefaultScheduler {
                     .collect(Collectors.toList());
             plans = updateDeployPlan(plans, errors);
 
+            LOGGER.info("SENTINEL: finished build");
             return new AnalyticsScheduler(
                     this.getServiceSpec(),
                     this.getSchedulerFlags(),
@@ -146,13 +156,26 @@ public class AnalyticsScheduler extends DefaultScheduler {
                     stateStore,
                     configStore,
                     endpointProducers,
-                    Optional.ofNullable(recoveryPlanOverriderFactory));
+                    Optional.ofNullable(recoveryPlanOverriderFactory),
+                    deregisterStep);
         }
    }
 
    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister)
            throws PersisterException {
        return new Builder(serviceSpec, schedulerFlags, persister);
+   }
+
+   private void setSchedulerDriverForTerminalPhase(SchedulerDriver driver) {
+        this.deregisterStep.setSchedulerDriver(driver);
+   }
+
+   @Override
+   protected void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
+        LOGGER.info("Initializing ANALYTICS scheduler");
+        setSchedulerDriverForTerminalPhase(driver);
+        super.initializeGlobals(driver);
+        LOGGER.info("Done initializing ANALYTICS scheduler");
    }
 
    AnalyticsScheduler(
@@ -163,8 +186,10 @@ public class AnalyticsScheduler extends DefaultScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
+            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory,
+            DeregisterStep deregisterStep) {
         super(serviceSpec, schedulerFlags, customResources, plans, stateStore, configStore, customEndpointProducers,
                 recoveryPlanOverriderFactory);
+        this.deregisterStep = deregisterStep;
    }
 }
