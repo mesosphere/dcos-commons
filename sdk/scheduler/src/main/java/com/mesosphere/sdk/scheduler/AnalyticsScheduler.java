@@ -4,6 +4,7 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.StrategyGenerator;
@@ -19,6 +20,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -35,6 +37,14 @@ public class AnalyticsScheduler extends DefaultScheduler {
     protected DeregisterStep deregisterStep;
 
     public static class Builder extends DefaultScheduler.Builder {
+        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags)
+                throws PersisterException {
+            this(serviceSpec, schedulerFlags, schedulerFlags.isStateCacheEnabled() ?
+            new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
+            CuratorPersister.newBuilder(serviceSpec).build());
+        }
+
+
         private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister)
             throws PersisterException {
             super(serviceSpec, schedulerFlags, persister);
@@ -159,6 +169,10 @@ public class AnalyticsScheduler extends DefaultScheduler {
                     Optional.ofNullable(recoveryPlanOverriderFactory),
                     deregisterStep);
         }
+   }
+
+   public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+        return new Builder(serviceSpec, schedulerFlags);
    }
 
    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister)
