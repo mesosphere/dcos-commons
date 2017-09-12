@@ -391,14 +391,15 @@
 
 <h2 id="service-user">Service user</h2>
 
-<p>The default user is <code class="highlighter-rouge">nobody</code>. However, if the UID of <code class="highlighter-rouge">nobody</code> is not <code class="highlighter-rouge">65534</code> on the host agents, then Cassandra must be run as <code class="highlighter-rouge">root</code>.</p>
+<p>The DC/OS Cassandra Service uses a Docker image to manage its dependencies on Python 2.7 and the CLI tools for Amazon AWS and Microsoft Azure cloud services. Since the Docker image contains a full Linux userspace with its own <code class="highlighter-rouge">/etc/users</code> file, it is possible for the default service user <code class="highlighter-rouge">nobody</code> to have a different UID inside the container than on the host system. Although user <code class="highlighter-rouge">nobody</code> has UID <code class="highlighter-rouge">65534</code> by convention on many systems, this is not always the case. As Mesos does not perform UID mapping between Linux user namespaces, specifying a service user of <code class="highlighter-rouge">nobody</code> in this case will cause access failures when the container user attempts to open or execute a filesystem resource owned by a user with a different UID, preventing the service from launching. If the hosts in your cluster have a UID for <code class="highlighter-rouge">nobody</code> other than 65534, you will need to specify a service user of <code class="highlighter-rouge">root</code> to run DC/OS Cassandra Service successfully.</p>
 
-<p>To determine the UID of <code class="highlighter-rouge">nobody</code>, run the command <code class="highlighter-rouge">id nobody</code>. The output of which is:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>uid=65534(nobody) gid=65534(nobody) groups=65534(nobody)
+<p>To determine the UID of <code class="highlighter-rouge">nobody</code>, run the command <code class="highlighter-rouge">id nobody</code> on a host in your cluster:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>$ id nobody
+uid=65534(nobody) gid=65534(nobody) groups=65534(nobody)
 </code></pre>
 </div>
 
-<p>If the returned UID is not <code class="highlighter-rouge">65534</code>, then Cassandra can be installed as root by setting the service user at install time:</p>
+<p>If the returned UID is not <code class="highlighter-rouge">65534</code>, then the DC/OS Cassandra Service can be installed as root by setting the service user at install time:</p>
 <div class="highlighter-rouge"><pre class="highlight"><code>"service": {
         "user": "root",
         ...
