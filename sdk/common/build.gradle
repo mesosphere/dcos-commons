@@ -1,4 +1,6 @@
-apply plugin: 'java'
+plugins {
+    id 'de.fuerstenau.buildconfig' version '1.1.8'
+}
 
 ext {
     commonsCollectionsVer = "3.2.2"
@@ -16,6 +18,30 @@ ext {
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava
+}
+
+// Configure the SDKBuildInfo class generator
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    exec {
+        // Teamcity workaround: using 'git describe' to determine dirty status doesn't work there.
+        commandLine '/bin/sh', '-c', 'if [ -n "$(git diff --name-only HEAD)" ]; then echo -dirty; fi'
+        standardOutput = stdout
+    }
+    return stdout.toString().replace("\n", "")
+}
+buildConfig {
+    packageName = 'com.mesosphere.sdk.generated'
+    clsName = 'SDKBuildInfo'
+
+    version = project.version // VERSION
+    appName = project.group + '.' + project.name // NAME
+    buildConfigField 'String', 'GIT_SHA', "${getGitHash()}"
+    buildConfigField 'long', 'BUILD_TIME_EPOCH_MS', System.currentTimeMillis() + 'L'
 }
 
 publishing {
