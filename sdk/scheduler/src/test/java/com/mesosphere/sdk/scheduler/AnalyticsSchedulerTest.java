@@ -262,29 +262,29 @@ public class AnalyticsSchedulerTest extends DefaultSchedulerTest {
         Set<Status> obs = new HashSet<>(statuses);
         Set<Status> expected = new HashSet<>(Arrays.asList(Status.PENDING));
         Assert.assertEquals("", obs, expected);
-
+        // Send offers for the driver, and the two workers, make sure they are accepted
         Collection<Protos.Offer.Operation> op0 = sendOffer(scheduler);
         Collection<Protos.Offer.Operation> op1 = sendOffer(scheduler);
         Collection<Protos.Offer.Operation> op2 = sendOffer(scheduler);
         statuses = PlanTestUtils.getStepStatuses(scheduler.deploymentPlanManager.getPlan());
-        Assert.assertTrue(String.format("got statuses %s", statuses.toString()), statuses.stream()
-                .filter(status -> status == Status.PENDING).count() == 1);
+        Assert.assertTrue(String.format("Got statuses %s, should have 1 PENDING", statuses.toString()),
+                statuses.stream().filter(status -> status == Status.PENDING).count() == 1);
+        // Verify that the scheduler declines offers now
         Protos.Offer offer = getSufficientOfferForTaskA();
         List<Protos.Offer> offers = Arrays.asList(offer);
         Protos.OfferID offerId = offer.getId();
-        // Verify that the scheduler declines offers now
         scheduler.resourceOffers(mockSchedulerDriver, offers);
         verify(mockSchedulerDriver, timeout(3000).times(1))
                 .declineOffer(offerId);
         statuses = PlanTestUtils.getStepStatuses(scheduler.deploymentPlanManager.getPlan());
         Assert.assertTrue("", statuses.stream()
                 .filter(status -> status == Status.PENDING).count() == 1);
+        // Update the tasks so they are finished, this is when we'd want to clean up the service
         statusUpdate(getTaskId(op0), Protos.TaskState.TASK_FINISHED);
         statusUpdate(getTaskId(op1), Protos.TaskState.TASK_FINISHED);
         statusUpdate(getTaskId(op2), Protos.TaskState.TASK_FINISHED);
-
-        //Thread.sleep(3000);
-
+        // Send a final offer to "spin the freewheel" it will be declined because the final step ("deregister step")
+        // is NOOP
         Protos.Offer finalOffer = getSufficientOfferForTaskA();
         List<Protos.Offer> finalOffers= Arrays.asList(finalOffer);
         // Verify that the scheduler declines offers now
@@ -292,6 +292,7 @@ public class AnalyticsSchedulerTest extends DefaultSchedulerTest {
         verify(mockSchedulerDriver, timeout(3000).times(1))
                 .declineOffer(finalOffer.getId());
         statuses = PlanTestUtils.getStepStatuses(plan);
+        // Assert all of the steps are now complete
         Assert.assertTrue(String.format("Got Statuses %s", statuses),
                 statuses.stream().allMatch(status -> status == Status.COMPLETE));
 
