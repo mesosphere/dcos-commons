@@ -11,7 +11,6 @@ import os.path
 import re
 import tempfile
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
@@ -27,16 +26,14 @@ _marathon_json_filename = 'marathon.json.mustache'
 _package_json_filename = 'package.json'
 _resource_json_filename = 'resource.json'
 _expected_package_filenames = [
-    _command_json_filename,
-    _config_json_filename,
-    _marathon_json_filename,
-    _package_json_filename,
-    _resource_json_filename]
+    _command_json_filename, _config_json_filename, _marathon_json_filename,
+    _package_json_filename, _resource_json_filename
+]
 
 
 class UniversePackageBuilder(object):
-
-    def __init__(self, package, input_dir_path, upload_dir_url, artifact_paths):
+    def __init__(self, package, input_dir_path, upload_dir_url,
+                 artifact_paths):
 
         self._package = package
         self._upload_dir_url = upload_dir_url
@@ -46,40 +43,45 @@ class UniversePackageBuilder(object):
         self._artifact_file_paths = {}
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
-                raise Exception('Provided package path is not a file: {} (full list: {})'.format(
-                    artifact_path, artifact_paths))
+                raise Exception(
+                    'Provided package path is not a file: {} (full list: {})'.
+                    format(artifact_path, artifact_paths))
             prior_path = self._artifact_file_paths.get(
                 os.path.basename(artifact_path), '')
             if prior_path:
-                raise Exception('Duplicate filename between "{}" and "{}". Artifact filenames must be unique.'.format(
-                    prior_path, artifact_path))
+                raise Exception(
+                    'Duplicate filename between "{}" and "{}". Artifact filenames must be unique.'.
+                    format(prior_path, artifact_path))
             self._artifact_file_paths[os.path.basename(
                 artifact_path)] = artifact_path
 
     def set_input_dir_path(self, input_dir_path):
         """Validate and set the input directory path"""
         if not os.path.isdir(input_dir_path):
-            raise Exception(
-                'Provided package path is not a directory: {}'.format(input_dir_path))
+            raise Exception('Provided package path is not a directory: {}'.
+                            format(input_dir_path))
 
-        if not os.path.isfile(os.path.join(input_dir_path, _package_json_filename)):
+        if not os.path.isfile(
+                os.path.join(input_dir_path, _package_json_filename)):
             raise Exception(
-                "Provided package path does not contain the expected package files: {}".format(input_dir_path)
-            )
+                "Provided package path does not contain the expected package files: {}".
+                format(input_dir_path))
 
         self._input_dir_path = input_dir_path
 
     def _iterate_package_files(self):
         for package_filename in os.listdir(self._input_dir_path):
-            package_filepath = os.path.join(
-                self._input_dir_path, package_filename)
+            package_filepath = os.path.join(self._input_dir_path,
+                                            package_filename)
             if os.stat(package_filepath).st_size > (1024 * 1024):
-                logger.warning(
-                    'Ignoring package file larger than 1MB: {}'.format(package_filepath))
+                logger.warning('Ignoring package file larger than 1MB: {}'.
+                               format(package_filepath))
                 continue
             if package_filename not in _expected_package_filenames:
-                logger.warning('Ignoring unrecognized package file: {} (expected one of: {})'.format(
-                    package_filepath, ', '.join(_expected_package_filenames)))
+                logger.warning(
+                    'Ignoring unrecognized package file: {} (expected one of: {})'.
+                    format(package_filepath, ', '.join(
+                        _expected_package_filenames)))
                 continue
             yield package_filename, open(package_filepath).read()
 
@@ -94,9 +96,11 @@ class UniversePackageBuilder(object):
         return hasher.hexdigest()
 
     def _get_documentation_path(self):
-        documentation_path = "{}/service-docs/{}/".format(_docs_root, self._pkg_name)
+        documentation_path = "{}/service-docs/{}/".format(
+            _docs_root, self._pkg_name)
         if self._pkg_version != "stub-universe":
-            documentation_path = "{}v{}/".format(documentation_path, self._pkg_version)
+            documentation_path = "{}v{}/".format(documentation_path,
+                                                 self._pkg_version)
         return documentation_path
 
     def _get_issues_path(self):
@@ -118,7 +122,8 @@ class UniversePackageBuilder(object):
             'issues-path': self._get_issues_path(),
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,
-            'libmesos-bundle-url': _libmesos_bundle_url}
+            'libmesos-bundle-url': _libmesos_bundle_url
+        }
 
         # look for any 'sha256:filename' template params, and get shas for those.
         # this avoids calculating shas unless they're requested by the template.
@@ -127,8 +132,10 @@ class UniversePackageBuilder(object):
             shafilepath = self._artifact_file_paths.get(shafilename, '')
             if not shafilepath:
                 raise Exception(
-                    'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(shafilename) +
-                    'Please provide the full path to this artifact (known artifacts: {})'.format(self._artifact_file_paths))
+                    'Missing path for artifact file named \'{}\' (to calculate sha256). '.
+                    format(shafilename) +
+                    'Please provide the full path to this artifact (known artifacts: {})'.
+                    format(self._artifact_file_paths))
             template_mapping['sha256:{}'.format(
                 shafilename)] = self._calculate_sha256(shafilepath)
 
@@ -136,8 +143,8 @@ class UniversePackageBuilder(object):
         for env_key, env_val in os.environ.items():
             if env_key.startswith('TEMPLATE_'):
                 # 'TEMPLATE_SOME_KEY' => 'some-key'
-                template_mapping[env_key[len('TEMPLATE_'):].lower(
-                ).replace('_', '-')] = env_val
+                template_mapping[env_key[len('TEMPLATE_'):].lower().replace(
+                    '_', '-')] = env_val
 
         return template_mapping
 
@@ -145,12 +152,12 @@ class UniversePackageBuilder(object):
         template_mapping = self._get_template_mapping_for_content(orig_content)
         new_content = orig_content
         for template_key, template_val in template_mapping.items():
-            new_content = new_content.replace(
-                '{{%s}}' % template_key, template_val)
+            new_content = new_content.replace('{{%s}}' % template_key,
+                                              template_val)
         if orig_content == new_content:
             logger.info('')
-            logger.info(
-                'No templating detected in {}, leaving file as-is'.format(filename))
+            logger.info('No templating detected in {}, leaving file as-is'.
+                        format(filename))
             return orig_content
         logger.info('')
         logger.info('Applied templating changes to {}:'.format(filename))
@@ -160,13 +167,14 @@ class UniversePackageBuilder(object):
         for key in template_keys:
             logger.info('  {{%s}} => %s' % (key, template_mapping[key]))
         logger.info('Resulting diff:')
-        logger.info('\n'.join(difflib.ndiff(
-            orig_content.split('\n'), new_content.split('\n'))))
+        logger.info('\n'.join(
+            difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
         return new_content
 
     def _generate_packages_dict(self, package_files):
         package_json = json.loads(
-            package_files[_package_json_filename], object_pairs_hook=collections.OrderedDict)
+            package_files[_package_json_filename],
+            object_pairs_hook=collections.OrderedDict)
         package_json['releaseVersion'] = 0
 
         command_json = package_files.get(_command_json_filename)
@@ -182,7 +190,10 @@ class UniversePackageBuilder(object):
         marathon_json = package_files.get(_marathon_json_filename)
         if marathon_json is not None:
             package_json['marathon'] = {
-                'v2AppMustacheTemplate': base64.standard_b64encode(bytearray(marathon_json, 'utf-8')).decode()}
+                'v2AppMustacheTemplate':
+                base64.standard_b64encode(
+                    bytearray(marathon_json, 'utf-8')).decode()
+            }
 
         resource_json = package_files.get(_resource_json_filename)
         if resource_json is not None:
@@ -201,10 +212,12 @@ class UniversePackageBuilder(object):
                 filename, content)
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         jsonpath = os.path.join(
-            scratchdir, 'stub-universe-{}.json'.format(self._package.get_name()))
+            scratchdir,
+            'stub-universe-{}.json'.format(self._package.get_name()))
         jsonfile = open(jsonpath, 'w')
-        jsonfile.write(json.dumps(self._generate_packages_dict(
-            updated_package_files), indent=2))
+        jsonfile.write(
+            json.dumps(
+                self._generate_packages_dict(updated_package_files), indent=2))
         jsonfile.flush()
         jsonfile.close()
         return jsonpath
