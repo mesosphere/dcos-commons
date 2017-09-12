@@ -150,8 +150,9 @@ class HTTPPublisher(object):
         http_url_root = 'http://{}:{}'.format(self._http_host, port)
 
         package_info = universe.Package(self._pkg_name, self._pkg_version)
+        package_manager = universe.PackageManager()
         self._package_builder = universe.UniversePackageBuilder(
-            package_info,
+            package_info, package_manager,
             self._input_dir_path, http_url_root, self._artifact_paths)
 
         # hack: write httpd script then run it directly

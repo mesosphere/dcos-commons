@@ -3,9 +3,7 @@
 import argparse
 import logging
 import sys
-from universe import Package
-from universe import UniversePackageBuilder
-
+import universe
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -50,11 +48,12 @@ Artifacts:       {}
 ###'''.format(args.package_name, args.package_version, args.package_dir_path,
               args.upload_dir_url, ','.join(args.artifact_paths)))
 
-    package_info = Package(args.package_name, args.package_version)
-    builder = UniversePackageBuilder(package_info,
-                                     args.package_dir_path,
-                                     args.upload_dir_url,
-                                     args.artifact_paths)
+    package_info = universe.Package(args.package_name, args.package_version)
+    package_manager = universe.PackageManager()
+    builder = universe.UniversePackageBuilder(package_info, package_manager,
+                                              args.package_dir_path,
+                                              args.upload_dir_url,
+                                              args.artifact_paths)
     package_path = builder.build_package()
     if not package_path:
         logger.error("Error building stub universe")

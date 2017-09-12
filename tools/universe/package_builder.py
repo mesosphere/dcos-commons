@@ -32,10 +32,11 @@ _expected_package_filenames = [
 
 
 class UniversePackageBuilder(object):
-    def __init__(self, package, input_dir_path, upload_dir_url,
+    def __init__(self, package, package_manager, input_dir_path, upload_dir_url,
                  artifact_paths):
 
         self._package = package
+        self._package_manager = package_manager
         self._upload_dir_url = upload_dir_url
 
         self.set_input_dir_path(input_dir_path)
@@ -97,14 +98,26 @@ class UniversePackageBuilder(object):
 
     def _get_documentation_path(self):
         documentation_path = "{}/service-docs/{}/".format(
-            _docs_root, self._pkg_name)
-        if self._pkg_version != "stub-universe":
-            documentation_path = "{}v{}/".format(documentation_path,
-                                                 self._pkg_version)
+            _docs_root, self._package.get_name())
+        package_version = str(self._package.get_version())
+        if package_version != "stub-universe":
+            documentation_path = "{}v{}/".format(documentation_path, package_version)
+
         return documentation_path
 
     def _get_issues_path(self):
         return "{}/support/".format(_docs_root)
+
+    def _get_upgrades_from(self):
+        latest_package = self._package_manager.get_latest(self._package)
+
+        if latest_package is None:
+            return "*"
+
+        return str(latest_package.get_version())
+
+    def _get_downgrades_to(self):
+        return self._get_upgrades_from()
 
     def _get_template_mapping_for_content(self, orig_content):
         '''Returns a template mapping (dict) for the following cases:
@@ -115,8 +128,8 @@ class UniversePackageBuilder(object):
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
         template_mapping = {
             'package-version': self._package.get_version(),
-            'upgrades-from': self._package.get_upgrades_from(),
-            'downgrades-to': self._package.get_downgrades_to(),
+            'upgrades-from': self._get_upgrades_from(),
+            'downgrades-to': self._get_downgrades_to(),
             'artifact-dir': self._upload_dir_url,
             'documentation-path': self._get_documentation_path(),
             'issues-path': self._get_issues_path(),
