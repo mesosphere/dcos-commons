@@ -128,6 +128,7 @@ public class SchedulerUtils {
      */
     @SuppressWarnings("DM_EXIT")
     public static void hardExit(SchedulerErrorCode errorCode) {
+        System.err.println(String.format("Exiting immediately with code: %d", errorCode.getValue()));
         System.exit(errorCode.getValue());
     }
 

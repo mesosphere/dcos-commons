@@ -61,7 +61,9 @@ public class SchedulerRunner implements Runnable {
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
-            Optional<Scheduler> mesosScheduler = schedulerBuilder.build();
+            AbstractScheduler scheduler = schedulerBuilder.build();
+            scheduler.start();
+            Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
             if (mesosScheduler.isPresent()) {
                 runScheduler(
                         mesosScheduler.get(),

@@ -10,9 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +21,7 @@ import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
-import com.mesosphere.sdk.dcos.SecretsClient;
-import com.mesosphere.sdk.dcos.auth.TokenProvider;
-import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
-import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhaseFactory;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
@@ -318,7 +308,7 @@ public class SchedulerBuilder {
      * @return a new Mesos scheduler instance to be registered, or an empty {@link Optional}
      * @throws IllegalArgumentException if validating the provided configuration failed
      */
-    public Optional<Scheduler> build() {
+    public AbstractScheduler build() {
         // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
         final StateStore stateStore = getStateStore();
         final ConfigStore<ServiceSpec> configStore = getConfigStore();
@@ -330,7 +320,7 @@ public class SchedulerBuilder {
                 StateStoreUtils.setUninstalling(getStateStore());
             }
 
-            return getUninstallScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags());
+            return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerFlags);
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -338,62 +328,8 @@ public class SchedulerBuilder {
                 SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
             }
 
-            return Optional.of(getDefaultScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags()));
+            return getDefaultScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags());
         }
-    }
-
-    private static Optional<Scheduler> getUninstallScheduler(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags) {
-        Optional<SecretsClient> secretsClient = Optional.empty();
-        if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
-            try {
-                TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(schedulerFlags);
-                Executor executor = Executor.newInstance(
-                        new DcosHttpClientBuilder()
-                                .setTokenProvider(tokenProvider)
-                                .setRedirectStrategy(new LaxRedirectStrategy())
-                                .build());
-                secretsClient = Optional.of(new DefaultSecretsClient(executor));
-            } catch (Exception e) {
-                LOGGER.error("Failed to create a secrets store client, " +
-                        "TLS artifacts possibly won't be cleaned up from secrets store", e);
-            }
-        }
-
-        // Always create the scheduler. It will internally start a thread to serve the Plans API.
-        // Return the scheduler only if it should be registered with Mesos.
-        Scheduler scheduler =
-                new UninstallScheduler(serviceSpec.getName(), stateStore, configStore, schedulerFlags, secretsClient);
-
-        if (allButStateStoreUninstalled(stateStore, schedulerFlags)) {
-            LOGGER.info("Not registering framework because it is uninstalling.");
-            return Optional.empty();
-        } else {
-            return Optional.of(scheduler);
-        }
-    }
-
-    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerFlags schedulerFlags) {
-        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
-        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
-        // have register() called after the StateStore already has the uninstall bit wiped.
-        //
-        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
-        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
-        // StateStoreUtils.isUninstalling().
-
-        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return !stateStore.fetchFrameworkId().isPresent() &&
-                tasksNeedClearing(stateStore);
-    }
-
-    private static boolean tasksNeedClearing(StateStore stateStore) {
-        return ResourceUtils.getResourceIds(
-                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
-                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     /**

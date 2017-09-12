@@ -7,7 +7,6 @@ import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.ParentElement;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import org.json.JSONArray;
@@ -24,6 +23,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -44,14 +45,17 @@ public class PlansResource extends PrettyJsonResource {
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Collection<PlanManager> planManagers;
+    private final Collection<PlanManager> planManagers = new ArrayList<>();
+    private final Object planManagersLock = new Object();
 
-    public PlansResource(final PlanCoordinator planCoordinator) {
-        this.planManagers = planCoordinator.getPlanManagers();
-    }
-
-    public PlansResource(Collection<PlanManager> planManagers) {
-        this.planManagers = planManagers;
+    /**
+     * Assigns the list of plans to be managed via this endpoint.
+     */
+    public void setPlanManagers(Collection<PlanManager> planManagers) {
+        synchronized (planManagersLock) {
+            this.planManagers.clear();
+            this.planManagers.addAll(planManagers);
+        }
     }
 
     /**
@@ -375,15 +379,22 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     private List<String> getPlanNames() {
-        return planManagers.stream()
-                .map(planManager -> planManager.getPlan().getName())
-                .collect(Collectors.toList());
+        synchronized (planManagersLock) {
+            return planManagers.stream()
+                    .map(planManager -> planManager.getPlan().getName())
+                    .collect(Collectors.toList());
+        }
     }
 
     private Optional<PlanManager> getPlanManager(String planName) {
-        return planManagers.stream()
-                .filter(planManager -> planManager.getPlan().getName().equals(planName))
-                .findFirst();
+        synchronized (planManagersLock) {
+            if (planManagers.isEmpty()) {
+                logger.error("Plan managers haven't been initialized yet. Unable to retrieve plan {}", planName);
+            }
+            return planManagers.stream()
+                    .filter(planManager -> planManager.getPlan().getName().equals(planName))
+                    .findFirst();
+        }
     }
 
     private static Response invalidParameterResponse(String message) {

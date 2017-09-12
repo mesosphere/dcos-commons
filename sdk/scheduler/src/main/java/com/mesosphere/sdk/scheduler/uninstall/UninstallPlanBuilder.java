@@ -7,14 +7,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.auth.TokenProvider;
+import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
@@ -53,11 +60,10 @@ class UninstallPlanBuilder {
     private final Plan plan;
 
     UninstallPlanBuilder(
-            String serviceName,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags,
-            Optional<SecretsClient> secretsClient) {
+            SchedulerFlags schedulerFlags) {
         this.taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
@@ -112,16 +118,27 @@ class UninstallPlanBuilder {
                 resourceSteps.size());
         phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));
 
-        if (secretsClient.isPresent()) {
-            // If applicable, we also clean up any TLS secrets that we'd created before
-            phases.add(new DefaultPhase(
-                    TLS_CLEANUP_PHASE,
-                    Collections.singletonList(new TLSCleanupStep(
-                            Status.PENDING,
-                            secretsClient.get(),
-                            SecretNameGenerator.getNamespaceFromEnvironment(serviceName, schedulerFlags))),
-                    new SerialStrategy<>(),
-                    Collections.emptyList()));
+        // If applicable, we also clean up any TLS secrets that we'd created before
+        if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
+            try {
+                TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(schedulerFlags);
+                Executor executor = Executor.newInstance(
+                        new DcosHttpClientBuilder()
+                                .setTokenProvider(tokenProvider)
+                                .setRedirectStrategy(new LaxRedirectStrategy())
+                                .build());
+                SecretsClient secretsClient = new DefaultSecretsClient(executor);
+                String namespace =
+                        SecretNameGenerator.getNamespaceFromEnvironment(serviceSpec.getName(), schedulerFlags);
+                phases.add(new DefaultPhase(
+                        TLS_CLEANUP_PHASE,
+                        Collections.singletonList(new TLSCleanupStep(Status.PENDING, secretsClient, namespace)),
+                        new SerialStrategy<>(),
+                        Collections.emptyList()));
+            } catch (Exception e) {
+                LOGGER.error("Failed to create a secrets store client, " +
+                        "TLS artifacts possibly won't be cleaned up from secrets store", e);
+            }
         }
 
         // Finally, we unregister the framework from Mesos.
@@ -159,7 +176,8 @@ class UninstallPlanBuilder {
         if (deregisterStep.isPresent()) {
             deregisterStep.get().setSchedulerDriver(schedulerDriver);
         }
-        TaskKiller taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
+        TaskKiller taskKiller = new DefaultTaskKiller(taskFailureListener);
+        taskKiller.setSchedulerDriver(schedulerDriver);
         for (Step taskKillStep : taskKillSteps) {
             ((TaskKillStep) taskKillStep).setTaskKiller(taskKiller);
         }
