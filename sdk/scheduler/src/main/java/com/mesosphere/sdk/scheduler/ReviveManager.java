@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * This class monitors a {@link PlanCoordinator} and suppresses or revives offers when appropriate.
+ * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
  */
 public class ReviveManager {
     public static final int REVIVE_INTERVAL_S = 5;
