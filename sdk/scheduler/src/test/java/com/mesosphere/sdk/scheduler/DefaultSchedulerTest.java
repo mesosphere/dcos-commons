@@ -694,11 +694,6 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testSuppress() throws InterruptedException {
-        install();
-    }
-
-    @Test
     public void testTaskIpIsStoredOnInstall() throws InterruptedException {
         install();
 
@@ -992,13 +987,13 @@ public class DefaultSchedulerTest {
                 PlanTestUtils.getStepStatuses(plan));
         Awaitility.await()
                 .atMost(
-                        SuppressReviveManager.SUPPRESS_REVIVE_DELAY_S +
-                        SuppressReviveManager.SUPPRESS_REVIVE_INTERVAL_S + 1,
+                        ReviveManager.REVIVE_DELAY_S +
+                        ReviveManager.REVIVE_INTERVAL_S + 1,
                         TimeUnit.SECONDS)
                 .until(new Callable<Boolean>() {
                     @Override
                     public Boolean call() throws Exception {
-                        return StateStoreUtils.isSuppressed(stateStore);
+                        return defaultScheduler.planCoordinator.getCandidates().isEmpty();
                     }
                 });
 

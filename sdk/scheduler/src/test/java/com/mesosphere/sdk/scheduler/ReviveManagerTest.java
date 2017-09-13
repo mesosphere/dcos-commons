@@ -5,7 +5,6 @@ import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -27,11 +26,11 @@ import java.util.concurrent.TimeUnit;
 import static org.mockito.Mockito.*;
 
 /**
- * This class tests {@link SuppressReviveManager}.
+ * This class tests {@link ReviveManager}.
  */
-public class SuppressReviveManagerTest {
+public class ReviveManagerTest {
     private StateStore stateStore;
-    private SuppressReviveManager manager;
+    private ReviveManager manager;
     @Mock private PlanCoordinator planCoordinator;
     @Mock SchedulerDriver driver;
 
@@ -43,31 +42,12 @@ public class SuppressReviveManagerTest {
         manager = null;
     }
 
-    @Test
-    public void suppressWhenWorkIsComplete() {
-        when(planCoordinator.getCandidates()).thenReturn(Collections.emptyList());
-        Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
-        manager = getSuppressReviveManager(planCoordinator);
-        waitSuppressed(stateStore, manager, 5);
-    }
-
     @Test(expected = ConditionTimeoutException.class)
     public void stayRevivedWhenWorkIsIncomplete() {
         when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(getStep(0)));
         Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
         manager = getSuppressReviveManager(planCoordinator);
         waitSuppressed(stateStore, manager, 5);
-    }
-
-    @Test
-    public void suppressToRevivedWhenNewWorkAppears() {
-        when(planCoordinator.getCandidates()).thenReturn(Collections.emptyList());
-        Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
-        manager = getSuppressReviveManager(planCoordinator);
-        waitSuppressed(stateStore, manager, 5);
-
-        when(planCoordinator.getCandidates()).thenReturn(Arrays.asList(getStep(0)));
-        waitRevived(stateStore, manager, 5);
     }
 
     @Test
@@ -82,8 +62,8 @@ public class SuppressReviveManagerTest {
         verify(driver, timeout(5000).atLeastOnce()).reviveOffers();
     }
 
-    private SuppressReviveManager getSuppressReviveManager(PlanCoordinator planCoordinator) {
-        return new SuppressReviveManager(
+    private ReviveManager getSuppressReviveManager(PlanCoordinator planCoordinator) {
+        return new ReviveManager(
                 driver,
                 stateStore,
                 planCoordinator,
@@ -168,11 +148,11 @@ public class SuppressReviveManagerTest {
         };
     }
 
-    private static void waitSuppressed(StateStore stateStore, SuppressReviveManager reviveManager, int seconds) {
+    private static void waitSuppressed(StateStore stateStore, ReviveManager reviveManager, int seconds) {
         waitStateStore(stateStore, true, seconds);
     }
 
-    private static void waitRevived(StateStore stateStore, SuppressReviveManager reviveManager, int seconds) {
+    private static void waitRevived(StateStore stateStore, ReviveManager reviveManager, int seconds) {
         waitStateStore(stateStore, false, seconds);
     }
 
