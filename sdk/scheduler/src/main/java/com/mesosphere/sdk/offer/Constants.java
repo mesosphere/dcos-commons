@@ -70,8 +70,13 @@ public class Constants {
      */
     public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
 
-    private static final int TWO_WEEKS_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
+    /**
+     * The duration in seconds to decline offers the scheduler does not need for the foreseeable future.
+     */
+    public static final int LONG_DECLINE_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
 
-    public static final int LONG_DECLINE_SECONDS = TWO_WEEKS_SECONDS;
+    /**
+     * The duration in seconds to decline offers the scheduler does not need for a short time.
+     */
     public static final int SHORT_DECLINE_SECONDS = 5;
 }

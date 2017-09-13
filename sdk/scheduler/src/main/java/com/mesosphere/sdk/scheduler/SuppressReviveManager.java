@@ -78,6 +78,41 @@ public class SuppressReviveManager {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     *
+     * Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+     * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}`s) we
+     * assume that the offers we've declined forever may be useful to that work, and so we revive offers.
+     *
+     * Pseudo-code algorithm is this:
+     *
+     *     // We always start out revived
+     *     List<Requirement> currRequirements = getRequirements();
+
+     *     while (true) {
+     *         List<Requirement> newRequirements = getRequirements() - currRequirements;
+     *         if (newRequirements.isEmpty()) {
+     *             print “No new work”;
+     *         } else {
+     *             currRequirements = newRequirements;
+     *             revive();
+     *         }
+     *     }
+
+     * I've left out the `supress` portion of the logic in the pseudocode, but it's in the real code.  In short, if
+     * there's no work, suppress.
+
+     * A natural question is why do we overwrite `currRequirements` with `newRequirements`?  Anything that is in
+     * `currRequirements` has had revive called for it.  Any change with regard to `currRequirements` i.e.
+     * `newRequirements` implies that those requirements may need an offer which has been declined forever, so we need
+     * to revive.  We cannot maintain a cummulative list in `currRequirements` because we may see the same work twice.
+
+     * e.g.
+     *     `kafka-0-broker` fails    @ 10:30, it's new work!
+     *     `kafka-0-broker` recovers @ 10:35
+     *     `kafka-0-broker` fails    @ 11:00, it's new work!
+     *     ...
+     */
     private void suppressOrRevive() {
         Set<PodInstanceRequirement> newCandidates = getRequirements(planCoordinator.getCandidates());
         if (newCandidates.isEmpty()) {
@@ -101,14 +136,14 @@ public class SuppressReviveManager {
     }
 
     private void suppress() {
-        setOfferMode(true);
+        setSuppressed(true);
     }
 
     private void revive() {
-        setOfferMode(false);
+        setSuppressed(false);
     }
 
-    private void setOfferMode(boolean suppressed) {
+    private void setSuppressed(boolean suppressed) {
         if (suppressed) {
             logger.info("Suppressing offers.");
             driver.suppressOffers();

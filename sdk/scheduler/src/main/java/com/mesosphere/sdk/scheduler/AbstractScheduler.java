@@ -43,8 +43,6 @@ public abstract class AbstractScheduler implements Scheduler {
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
     private AtomicBoolean processingOffers = new AtomicBoolean(false);
 
-    private AtomicBoolean processingOffers = new AtomicBoolean(false);
-
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
      */
@@ -121,22 +119,23 @@ public abstract class AbstractScheduler implements Scheduler {
                     }
                 }
 
-            while (true) {
-                List<Protos.Offer> offers = offerQueue.takeAll();
-                LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
-                for (int i = 0; i < offers.size(); ++i) {
-                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-                }
-                executePlans(offers);
-                synchronized (inProgressLock) {
-                    offersInProgress.removeAll(
-                            offers.stream()
-                                    .map(offer -> offer.getId())
-                                    .collect(Collectors.toList()));
-                    LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
-                            offers.size(),
-                            offers.size() == 1 ? "" : "s",
-                            offersInProgress.stream().collect(Collectors.toList()));
+                while (true) {
+                    List<Protos.Offer> offers = offerQueue.takeAll();
+                    LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
+                    for (int i = 0; i < offers.size(); ++i) {
+                        LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+                    }
+                    executePlans(offers);
+                    synchronized (inProgressLock) {
+                        offersInProgress.removeAll(
+                                offers.stream()
+                                        .map(offer -> offer.getId())
+                                        .collect(Collectors.toList()));
+                        LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
+                                offers.size(),
+                                offers.size() == 1 ? "" : "s",
+                                offersInProgress.stream().collect(Collectors.toList()));
+                    }
                 }
             }
         });
@@ -250,8 +249,6 @@ public abstract class AbstractScheduler implements Scheduler {
         if (suppressReviveManager == null) {
             suppressReviveManager = new SuppressReviveManager(driver, stateStore, getPlanCoordinator());
         }
-
-        suppressReviveManager.start();
 
         // The main plan execution loop should only be started once.
         if (processingOffers.compareAndSet(false, true)) {
