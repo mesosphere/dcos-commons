@@ -57,16 +57,21 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         prefix_clause = ''
         if prefix:
             prefix_clause = ' starting with "{}"'.format(prefix)
-        log.info('Waiting for {} tasks{} to have updated ids:\n- Old tasks: {}\n- Current tasks: {}'.format(
-            len(old_task_ids), prefix_clause, sorted(old_task_ids), sorted(task_ids)))
 
-        all_updated = True
-        for id in task_ids:
-            if id in old_task_ids:
-                all_updated = False
-        if len(task_ids) < len(old_task_ids):
-            all_updated = False
-        return all_updated
+        old_set = set(old_task_ids)
+        new_set = set(task_ids)
+        newly_launched_set = (new_set - old_set)
+        all_updated = len(newly_launched_set) == len(new_set)
+        if all_updated:
+            return all_updated
+
+        # forgive the language a bit, but len('remained') == len('launched'),
+        # and similar for the rest of the label for task ids in the log line,
+        # so makes for easier reading
+        log.info('Waiting for tasks{} to have updated ids:\n- Old tasks (remained): {}\n- New tasks (launched): {}'.format(
+            prefix_clause,
+            old_set & new_set,
+            newly_launched_set))
 
     shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
 
