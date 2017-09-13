@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 /**
  * This class monitors a {@link PlanCoordinator} and suppresses or revives offers when appropriate.
  */
-public class SuppressReviveManager {
-    public static final int SUPPRESS_REVIVE_INTERVAL_S = 5;
-    public static final int SUPPRESS_REVIVE_DELAY_S = 5;
+public class ReviveManager {
+    public static final int REVIVE_INTERVAL_S = 5;
+    public static final int REVIVE_DELAY_S = 5;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
@@ -30,7 +30,7 @@ public class SuppressReviveManager {
     private final StateStore stateStore;
     private Set<PodInstanceRequirement> candidates;
 
-    public SuppressReviveManager(
+    public ReviveManager(
             SchedulerDriver driver,
             StateStore stateStore,
             PlanCoordinator planCoordinator) {
@@ -38,11 +38,11 @@ public class SuppressReviveManager {
                 driver,
                 stateStore,
                 planCoordinator,
-                SUPPRESS_REVIVE_DELAY_S,
-                SUPPRESS_REVIVE_INTERVAL_S);
+                REVIVE_DELAY_S,
+                REVIVE_INTERVAL_S);
     }
 
-    public SuppressReviveManager(
+    public ReviveManager(
             SchedulerDriver driver,
             StateStore stateStore,
             PlanCoordinator planCoordinator,
@@ -57,7 +57,7 @@ public class SuppressReviveManager {
                 new Runnable() {
                     @Override
                     public void run() {
-                        suppressOrRevive();
+                        revive();
                     }
                 },
                 pollDelay,
@@ -65,7 +65,7 @@ public class SuppressReviveManager {
                 TimeUnit.SECONDS);
 
         logger.info(
-                "Monitoring these plans for suppress/suppressOrRevive: {}",
+                "Monitoring these plans for suppress/revive: {}",
                 planCoordinator.getPlanManagers().stream()
                         .map(planManager -> planManager.getPlan().getName())
                         .collect(Collectors.toList()));
@@ -88,7 +88,7 @@ public class SuppressReviveManager {
      *
      *     // We always start out revived
      *     List<Requirement> currRequirements = getRequirements();
-
+     *
      *     while (true) {
      *         List<Requirement> newRequirements = getRequirements() - currRequirements;
      *         if (newRequirements.isEmpty()) {
@@ -98,30 +98,21 @@ public class SuppressReviveManager {
      *             revive();
      *         }
      *     }
-
-     * I've left out the `supress` portion of the logic in the pseudocode, but it's in the real code.  In short, if
-     * there's no work, suppress.
-
-     * A natural question is why do we overwrite `currRequirements` with `newRequirements`?  Anything that is in
-     * `currRequirements` has had revive called for it.  Any change with regard to `currRequirements` i.e.
-     * `newRequirements` implies that those requirements may need an offer which has been declined forever, so we need
-     * to revive.  We cannot maintain a cummulative list in `currRequirements` because we may see the same work twice.
+     *
+     * A natural question is why do we overwrite {@code currRequirements} with {@code newRequirements}?  Anything that
+     * is in {@code currRequirements} has had revive called for it.  Any change with regard to {@code currRequirements}
+     * i.e. {@code newRequirements} implies that those requirements may need an offer which has been declined forever,
+     * so we need to revive.  We cannot maintain a cummulative list in {@code currRequirements} because we may see the
+     * same work twice.
 
      * e.g.
-     *     `kafka-0-broker` fails    @ 10:30, it's new work!
-     *     `kafka-0-broker` recovers @ 10:35
-     *     `kafka-0-broker` fails    @ 11:00, it's new work!
+     *     kafka-0-broker fails    @ 10:30, it's new work!
+     *     kafka-0-broker recovers @ 10:35
+     *     kafka-0-broker fails    @ 11:00, it's new work!
      *     ...
      */
-    private void suppressOrRevive() {
+    private void revive() {
         Set<PodInstanceRequirement> newCandidates = getRequirements(planCoordinator.getCandidates());
-        if (newCandidates.isEmpty()) {
-            logger.debug("No candidates found");
-            suppress();
-            candidates = newCandidates;
-            return;
-        }
-
         newCandidates.removeAll(candidates);
 
         logger.debug("Old candidates: {}", candidates);
@@ -131,24 +122,6 @@ public class SuppressReviveManager {
             logger.debug("No new candidates detected, no need to revive");
         } else {
             candidates = newCandidates;
-            revive();
-        }
-    }
-
-    private void suppress() {
-        setSuppressed(true);
-    }
-
-    private void revive() {
-        setSuppressed(false);
-    }
-
-    private void setSuppressed(boolean suppressed) {
-        if (suppressed) {
-            logger.info("Suppressing offers.");
-            driver.suppressOffers();
-            StateStoreUtils.setSuppressed(stateStore, true);
-        } else {
             logger.info("Reviving offers.");
             driver.reviveOffers();
             StateStoreUtils.setSuppressed(stateStore, false);

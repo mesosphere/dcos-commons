@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public abstract class AbstractScheduler implements Scheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScheduler.class);
-    private SuppressReviveManager suppressReviveManager;
+    private ReviveManager reviveManager;
 
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
@@ -245,9 +245,9 @@ public abstract class AbstractScheduler implements Scheduler {
         reconciler.start();
         reconciler.reconcile(driver);
 
-        // A SuppressReviveManager should be constructed only once.
-        if (suppressReviveManager == null) {
-            suppressReviveManager = new SuppressReviveManager(driver, stateStore, getPlanCoordinator());
+        // A ReviveManager should be constructed only once.
+        if (reviveManager == null) {
+            reviveManager = new ReviveManager(driver, stateStore, getPlanCoordinator());
         }
 
         // The main plan execution loop should only be started once.
