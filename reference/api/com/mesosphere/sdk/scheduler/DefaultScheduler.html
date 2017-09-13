@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":9,"i10":9,"i11":10,"i12":10,"i13":9};
+var methods = {"i0":10,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":9,"i11":9,"i12":10,"i13":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -278,34 +278,40 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#executePlans-java.util.List-">executePlans</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>
+<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>(package private) java.util.Set&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#getLaunchableTasks--">getLaunchableTasks</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>protected java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initialize-SchedulerDriver-">initialize</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializeDeploymentPlanManager--">initializeDeploymentPlanManager</a></span>()</code>
 <div class="block">Override this function to inject your own deployment plan manager.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializePlanCoordinator--">initializePlanCoordinator</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializeRecoveryPlanManager--">initializeRecoveryPlanManager</a></span>()</code>
 <div class="block">Override this function to inject your own recovery plan manager.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
           <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>
@@ -314,7 +320,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
  should be organized.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#newBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-com.mesosphere.sdk.storage.Persister-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
           <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
@@ -323,10 +329,6 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
  details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
  should be organized.</div>
 </td>
-</tr>
-<tr id="i11" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#processOfferSet-java.util.List-">processOfferSet</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>&nbsp;</td>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>void</code></td>
@@ -658,16 +660,18 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <pre>protected&nbsp;void&nbsp;initializePlanCoordinator()</pre>
 </li>
 </ul>
-<a name="processOfferSet-java.util.List-">
+<a name="executePlans-java.util.List-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>processOfferSet</h4>
-<pre>protected&nbsp;void&nbsp;processOfferSet(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</pre>
+<h4>executePlans</h4>
+<pre>protected&nbsp;void&nbsp;executePlans(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-">AbstractScheduler</a></code></span></div>
+<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOfferSet-java.util.List-">processOfferSet</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-">executePlans</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 </dl>
 </li>
 </ul>

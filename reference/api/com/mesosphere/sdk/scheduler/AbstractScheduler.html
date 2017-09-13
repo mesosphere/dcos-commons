@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":6,"i7":6,"i8":10,"i9":10,"i10":6,"i11":10,"i12":10,"i13":10,"i14":10};
+var methods = {"i0":6,"i1":10,"i2":10,"i3":10,"i4":6,"i5":10,"i6":10,"i7":6,"i8":6,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -220,39 +220,45 @@ extends java.lang.Object</pre>
      java.lang.String&nbsp;message)</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>protected abstract void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-">executePlans</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>
+<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executorLost-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-int-">executorLost</a></span>(SchedulerDriver&nbsp;driver,
             Protos.ExecutorID&nbsp;executorId,
             Protos.SlaveID&nbsp;agentId,
             int&nbsp;status)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkMessage-SchedulerDriver-Protos.ExecutorID-Protos.SlaveID-byte:A-">frameworkMessage</a></span>(SchedulerDriver&nbsp;driver,
                 Protos.ExecutorID&nbsp;executorId,
                 Protos.SlaveID&nbsp;agentId,
                 byte[]&nbsp;data)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>protected abstract java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected abstract void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#initialize-SchedulerDriver-">initialize</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerRescinded-SchedulerDriver-Protos.OfferID-">offerRescinded</a></span>(SchedulerDriver&nbsp;driver,
               Protos.OfferID&nbsp;offerId)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#postRegister--">postRegister</a></span>()</code>&nbsp;</td>
-</tr>
 <tr id="i10" class="altColor">
-<td class="colFirst"><code>protected abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOfferSet-java.util.List-">processOfferSet</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>&nbsp;</td>
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#postRegister--">postRegister</a></span>()</code>
+<div class="block">Registration can occur multiple times in a scheduler's lifecycle via both
+ <code>Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)</code> and
+ <code>Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)</code> calls.</div>
+</td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>void</code></td>
@@ -505,6 +511,9 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>postRegister</h4>
 <pre>protected&nbsp;void&nbsp;postRegister()</pre>
+<div class="block">Registration can occur multiple times in a scheduler's lifecycle via both
+ <code>Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)</code> and
+ <code>Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)</code> calls.</div>
 </li>
 </ul>
 <a name="initialize-SchedulerDriver-">
@@ -530,13 +539,14 @@ extends java.lang.Object</pre>
 <pre>protected abstract&nbsp;boolean&nbsp;apiServerReady()</pre>
 </li>
 </ul>
-<a name="processOfferSet-java.util.List-">
+<a name="executePlans-java.util.List-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>processOfferSet</h4>
-<pre>protected abstract&nbsp;void&nbsp;processOfferSet(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</pre>
+<h4>executePlans</h4>
+<pre>protected abstract&nbsp;void&nbsp;executePlans(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</pre>
+<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </li>
 </ul>
 <a name="getPlanManagers--">

@@ -1728,6 +1728,14 @@
 <dd>
 <div class="block">Implements exact string matching support for string comparisons.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-">executePlans(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
+<dd>
+<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#executePlans-java.util.List-">executePlans(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#executePlans-java.util.List-">executePlans(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#EXECUTOR_ID">EXECUTOR_ID</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#EXECUTOR_NAME">EXECUTOR_NAME</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
@@ -5062,7 +5070,11 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html#PositiveScalarProtoValueValidator--">PositiveScalarProtoValueValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValueValidator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#postRegister--">postRegister()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Registration can occur multiple times in a scheduler's lifecycle via both
+ <code>Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)</code> and
+ <code>Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)</code> calls.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#PRE_RESERVED_ROLE">PRE_RESERVED_ROLE</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/validate/PreReservationCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">PreReservationCannotChange</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
@@ -5129,12 +5141,6 @@
 <dd>
 <div class="block">Provides offers to each <a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> for processing.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOfferSet-java.util.List-">processOfferSet(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#processOfferSet-java.util.List-">processOfferSet(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processOfferSet-java.util.List-">processOfferSet(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosCertInstaller.ProcessRunner.html#ProcessRunner--">ProcessRunner()</a></span> - Constructor for class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosCertInstaller.ProcessRunner.html" title="class in com.mesosphere.sdk.dcos">DcosCertInstaller.ProcessRunner</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html#ProcessRunner--">ProcessRunner()</a></span> - Constructor for class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html" title="class in com.mesosphere.sdk.executor">CheckHandler.ProcessRunner</a></dt>
@@ -6424,9 +6430,13 @@
 </a>
 <h2 class="title">T</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#takeAll-java.time.Duration-">takeAll(Duration)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dd>
+<div class="block">Calling this method will wait for Offers for the provided duration.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#takeAll--">takeAll()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
 <dd>
-<div class="block">Calling this method is a blocking Operation.</div>
+<div class="block">Calling this method will wait for Offers for a static duration of <a href="com/mesosphere/sdk/scheduler/OfferQueue.html#DEFAULT_CAPACITY"><code>OfferQueue.DEFAULT_CAPACITY</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TARGET_CONFIGURATION_LABEL">TARGET_CONFIGURATION_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
