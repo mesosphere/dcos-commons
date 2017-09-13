@@ -1,0 +1,37 @@
+name: "hello-world"
+pods:
+  driver:
+    count: 1
+    tasks:
+      driver-task:
+        goal: FINISHED
+        cmd: "./task-cmd"
+        cpus: 1.0
+        memory: 512
+        volume:
+          path: container-path
+          size: 1000
+          type: ROOT
+  worker:
+    count: 2
+    tasks:
+      worker-task:
+        goal: FINISHED
+        cmd: "./task-cmd"
+        cpus: 1.0
+        memory: 512
+        volume:
+          path: container-path
+          size: 1000
+          type: ROOT
+
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      driver-deploy:
+        strategy: serial
+        pod: driver
+      worker-deploy:
+        strategy: parallel
+        pod: worker

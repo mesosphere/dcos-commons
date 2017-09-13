@@ -1,3 +1,9 @@
+'''
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_security IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import logging
 import os
 from typing import List, Tuple

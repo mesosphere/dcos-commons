@@ -57,7 +57,7 @@ A list of available node ids can be retrieved by sending a GET request to `/v1/p
 
 CLI Example
 ```
-$ dcos elastic pod list
+$ dcos beta-elastic pod list
 ```
 
 HTTP Example
@@ -75,7 +75,7 @@ $ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/elastic/v1/pod/<
 
 CLI Example
 ```
-$ dcos elastic pod info journalnode-0
+$ dcos beta-elastic pod info journalnode-0
 ```
 
 HTTP Example
@@ -90,7 +90,7 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```
-$ dcos elastic pod replace <node-id>
+$ dcos beta-elastic pod replace <node-id>
 ```
 
 HTTP Example
@@ -106,7 +106,7 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```
-$ dcos elastic pod restart <node-id>
+$ dcos beta-elastic pod restart <node-id>
 ```
 
 HTTP Example
@@ -126,7 +126,7 @@ You can view the current target configuration by sending a GET request to `/v1/c
 
 CLI Example
 ```
-$ dcos elastic config target
+$ dcos beta-elastic config target
 ```
 
 HTTP Example
@@ -140,7 +140,7 @@ You can list all configuration IDs by sending a GET request to `/v1/configuratio
 
 CLI Example
 ```
-$ dcos elastic config list
+$ dcos beta-elastic config list
 ```
 
 HTTP Example
@@ -154,7 +154,7 @@ You can view a specific configuration by sending a GET request to `/v1/configura
 
 CLI Example
 ```
-$ dcos elastic config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+$ dcos beta-elastic config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 HTTP Example

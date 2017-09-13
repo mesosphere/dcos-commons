@@ -10,18 +10,24 @@ import java.util.List;
  */
 public class StrategyFactory {
     public static Strategy<Phase> generateForPhase(String strategyType) {
+        return generateForPhase(strategyType, null, false);
+    }
+
+    public static Strategy<Phase> generateForPhase(String strategyType, Phase teardownPhase, boolean terminal) {
         if (strategyType == null) {
             return new SerialStrategy.Generator<Phase>().generate();
         }
         Strategy<Phase> strategy = null;
         switch (strategyType) {
             case "parallel":
-                strategy = new ParallelStrategy.Generator<Phase>().generate();
+                strategy = terminal ? new TerminalStrategy.Generator<>(true, teardownPhase).generate() :
+                        new ParallelStrategy.Generator<Phase>().generate();
                 break;
             case "serial":
                 // fall through
             default:
-                strategy = new SerialStrategy.Generator<Phase>().generate();
+                strategy = terminal ? new TerminalStrategy.Generator<>(false, teardownPhase).generate() :
+                        new SerialStrategy.Generator<Phase>().generate();
         }
 
         return strategy;

@@ -156,7 +156,7 @@ public class TLSEvaluationStageTest {
                 .getExecutor()
                 .getContainer();
 
-        assertTLSArtifacts(executorContainer, secretNameGenerator);
+        Assert.assertEquals(0, executorContainer.getVolumesCount());
 
         Protos.ContainerInfo taskContainer = podInfoBuilder
                 .getTaskBuilder(TestConstants.TASK_NAME)
@@ -203,7 +203,7 @@ public class TLSEvaluationStageTest {
                 .getExecutor()
                 .getContainer();
 
-        assertKeystoreArtifacts(executorContainer, secretNameGenerator);
+        Assert.assertEquals(0, executorContainer.getVolumesCount());
 
         Protos.ContainerInfo taskContainer = podInfoBuilder
                 .getTaskBuilder(TestConstants.TASK_NAME)
@@ -252,8 +252,7 @@ public class TLSEvaluationStageTest {
                 .getTaskBuilder(TestConstants.TASK_NAME)
                 .getExecutor()
                 .getContainer();
-
-        assertTLSArtifacts(executorContainer, secretNameGenerator);
+        Assert.assertEquals(0, executorContainer.getVolumesCount());
 
         Protos.ContainerInfo taskContainer = podInfoBuilder
                 .getTaskBuilder(TestConstants.TASK_NAME)

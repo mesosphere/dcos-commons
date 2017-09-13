@@ -1,7 +1,6 @@
 ---
 post_title: Connecting Clients
 menu_order: 40
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -179,4 +178,3 @@ The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-co
  [13]: https://docs.mesosphere.com/1.9/security/users-groups/
  [14]: https://docs.mesosphere.com/1.9/security/iam-api/
  [15]: https://docs.mesosphere.com/service-docs/kafka/configure/#tls
-

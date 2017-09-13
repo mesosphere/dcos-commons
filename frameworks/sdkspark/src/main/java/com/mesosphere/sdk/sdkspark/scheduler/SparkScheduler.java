@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.sdkspark.scheduler;
 
+import com.mesosphere.sdk.scheduler.AnalyticsScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
@@ -11,6 +12,7 @@ import java.io.File;
  * Spark Scheduler
  */
 class SparkScheduler extends DefaultService {
+
     public SparkScheduler(File pathToServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         super(createSchedulerBuilder(pathToServiceSpec, schedulerFlags));
     }
@@ -63,8 +65,11 @@ class SparkScheduler extends DefaultService {
             finalizedServiceSpecBuilder.replacementFailurePolicy(yamlServiceSpec.getReplacementFailurePolicy().get());
         }
 
-        return DefaultScheduler.newBuilder(finalizedServiceSpecBuilder.build(), schedulerFlags)
+        return AnalyticsScheduler.newBuilder(finalizedServiceSpecBuilder.build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
+
+        //return DefaultScheduler.newBuilder(finalizedServiceSpecBuilder.build(), schedulerFlags)
+        //        .setPlansFrom(rawServiceSpec);
     }
 
     private static DefaultScheduler.Builder createSchedulerBuilder(

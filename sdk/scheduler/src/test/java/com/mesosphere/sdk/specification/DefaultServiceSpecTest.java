@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.scheduler.AnalyticsScheduler;
 import org.apache.mesos.Protos;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -75,6 +76,25 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
         Assert.assertNotNull(serviceSpec);
+    }
+
+    @Test
+    public void validAnalytics() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+
+        capabilities = mock(Capabilities.class);
+        when(capabilities.supportsGpuResource()).thenReturn(true);
+        when(capabilities.supportsCNINetworking()).thenReturn(true);
+
+        Persister persister = new MemPersister();
+        Capabilities.overrideCapabilities(capabilities);
+        AnalyticsScheduler scheduler = AnalyticsScheduler.newBuilder(serviceSpec, flags, new MemPersister())
+                .setStateStore(new StateStore(persister))
+                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+                .build();
+
     }
 
     @Test
