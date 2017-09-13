@@ -15,6 +15,7 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
@@ -50,6 +51,8 @@ public class DefaultService implements Service {
     private Scheduler scheduler;
     private StateStore stateStore;
 
+    private Status goal = Status.IN_PROGRESS;
+
     public DefaultService() {
         //No initialization needed
     }
@@ -66,6 +69,9 @@ public class DefaultService implements Service {
         this(DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
+        //this(AnalyticsScheduler.newBuilder(
+        //        DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
+        //            .setPlansFrom(rawServiceSpec));
     }
 
     public DefaultService(
@@ -74,6 +80,7 @@ public class DefaultService implements Service {
             Collection<Plan> plans) throws Exception {
         this(DefaultScheduler.newBuilder(serviceSpecification, schedulerFlags)
                 .setPlans(plans));
+        //this(AnalyticsScheduler.newBuilder(serviceSpecification, schedulerFlags).setPlans(plans));
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
@@ -89,6 +96,10 @@ public class DefaultService implements Service {
         // control automatic opt-in to scarce resources (GPUs) here. If the framework specifies GPU resources >= 1
         // then we opt-in to scarce resource, otherwise follow the default policy (which as of 8/3/17 was to opt-out)
         return usesGpus || DcosConstants.DEFAULT_GPU_POLICY;
+    }
+
+    public void setGoal(Status goalStatus) {
+        this.goal = goalStatus;
     }
 
     private void initService() {
@@ -170,8 +181,15 @@ public class DefaultService implements Service {
         LOGGER.error("Scheduler driver exited with status: {}", status);
         // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
         // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
-        if (status != Protos.Status.DRIVER_STOPPED) {
-            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+        if (goal == Status.IN_PROGRESS) {
+            if (status != Protos.Status.DRIVER_STOPPED) {
+                SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+            }
+        } else {
+            if (status == Protos.Status.DRIVER_STOPPED) {
+                LOGGER.info("SENTINEL: Looks like the driver finished, exiting successfully");
+                SchedulerUtils.hardExit(SchedulerErrorCode.SUCCESS);
+            }
         }
     }
 
