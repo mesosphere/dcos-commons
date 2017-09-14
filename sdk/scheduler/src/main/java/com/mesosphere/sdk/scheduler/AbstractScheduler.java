@@ -54,7 +54,7 @@ public abstract class AbstractScheduler {
     protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Executor for processing offers off the queue in {@link #processOfferSet(List)}.
+     * Executor for processing offers off the queue in {@link #executePlansLoop()}.
      */
     private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
 
@@ -102,7 +102,7 @@ public abstract class AbstractScheduler {
                 for (int i = 0; i < offers.size(); ++i) {
                     LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
-                processOfferSet(offers);
+                executePlans(offers);
                 offers.forEach(offer -> eventBus.post(offer));
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
@@ -183,10 +183,9 @@ public abstract class AbstractScheduler {
     protected abstract Collection<PlanManager> getPlanManagers();
 
     /**
-     * Handles a set of one or more resource offers which were received from Mesos. This call is executed on a separate
-     * thread which is run by the {@link #offerExecutor}.
+     * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
      */
-    protected abstract void processOfferSet(List<Protos.Offer> offers);
+    protected abstract void executePlans(List<Protos.Offer> offers);
 
     /**
      * Handles a task status update which was received from Mesos. This call is executed on a separate thread which is
@@ -348,9 +347,17 @@ public abstract class AbstractScheduler {
             SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
         }
 
+        /**
+         * Registration can occur multiple times in a scheduler's lifecycle via both
+         * {@link Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} and
+         * {@link Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)} calls.
+         */
         private void postRegister() {
+            // Task reconciliation should be started on all registrations.
             reconciler.start();
             reconciler.reconcile(driver);
+
+            // A SuppressReviveManager should be constructed only once.
             if (suppressReviveManager == null) {
                 suppressReviveManager = new SuppressReviveManager(
                         stateStore,

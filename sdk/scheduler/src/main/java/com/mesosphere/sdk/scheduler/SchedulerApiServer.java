@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ public class SchedulerApiServer {
     public SchedulerApiServer(SchedulerFlags schedulerFlags, Collection<Object> resources) {
         this.server = JettyHttpContainerFactory.createServer(
                 UriBuilder.fromUri("http://0.0.0.0/").port(schedulerFlags.getApiServerPort()).build(),
-                new ResourceConfig().registerInstances(resources),
+                new ResourceConfig(MultiPartFeature.class).registerInstances(resources),
                 false /* don't start yet. wait for start() call below. */);
         this.startTimer = new Timer();
         this.startTimeout = schedulerFlags.getApiServerInitTimeout();
