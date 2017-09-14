@@ -233,7 +233,8 @@ class UniversePackageBuilder(object):
             scratchdir,
             'stub-universe-{}.json'.format(self._package.get_name()))
         with open(jsonpath, 'w') as jsonfile:
-            json.dump(jsonfile,
-                self._generate_packages_dict(updated_package_files), indent=2))
+            json.dump(self._generate_packages_dict(updated_package_files),
+                      jsonfile,
+                      indent=2)
 
         return jsonpath
