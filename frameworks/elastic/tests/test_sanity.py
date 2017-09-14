@@ -235,11 +235,11 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
     sdk_tasks.check_tasks_not_updated(foldered_name, "master", initial_task_ids)
 
 
+# Run this test next to last, as it changes the task count
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_bump_node_counts():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    # Run this test last, as it changes the task count
     marathon_config = sdk_marathon.get_config(foldered_name)
     data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
     marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
@@ -249,3 +249,21 @@ def test_bump_node_counts():
     marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(foldered_name, marathon_config)
     sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT + 3)
+
+
+# Run this test last, as it changes the task count again
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_adding_data_nodes_only_restarts_masters():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
+    initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")
+    initial_coordinator_task_ids = sdk_tasks.get_task_ids(foldered_name, "coordinator")
+    marathon_config = sdk_marathon.get_config(foldered_name)
+    data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
+    marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
+    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT + 4)
+    sdk_tasks.check_tasks_updated(foldered_name, "master", initial_master_task_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, "data", initial_data_task_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
