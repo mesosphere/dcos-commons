@@ -60,8 +60,9 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
 
         old_set = set(old_task_ids)
         new_set = set(task_ids)
-        newly_launched_set = (new_set - old_set)
-        all_updated = len(newly_launched_set) == len(new_set)
+        newly_launched_set = new_set.difference(old_set)
+        old_remaining_set = old_set.intersection(new_set)
+        all_updated = len(newly_launched_set) == len(new_set) and len(old_remaining_set) == 0
         if all_updated:
             return all_updated
 
@@ -70,7 +71,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         # so makes for easier reading
         log.info('Waiting for tasks{} to have updated ids:\n- Old tasks (remained): {}\n- New tasks (launched): {}'.format(
             prefix_clause,
-            old_set & new_set,
+            old_remaining_set,
             newly_launched_set))
 
     shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
