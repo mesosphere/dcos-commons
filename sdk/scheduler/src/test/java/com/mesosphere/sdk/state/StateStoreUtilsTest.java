@@ -17,7 +17,7 @@ import org.apache.mesos.Protos;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
