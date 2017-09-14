@@ -348,9 +348,12 @@ pods:
 plans:
   deploy:
     strategy: serial
-    pod: hello
-    steps:
-      - default: [[init], [main]]
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[init], [main]]
 ```
 
 This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the `init` task and another representing the `main` task. The ServiceSpec indicates that two `hello` pods should be launched so the following tasks would be launched by steps serially:
@@ -374,10 +377,13 @@ pods:
 plans:
   deploy:
     strategy: serial
-    pod: hello
-    steps:
-      - 0: [[init], [main]]
-      - default: [[main]]
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - 0: [[init], [main]]
+          - default: [[main]]
 ```
 
 This plan would result in steps generating the following tasks:
@@ -1477,6 +1483,7 @@ pods:
         resource-set: hello-resources
 plans:
   deploy:
+    strategy: serial
     phases:
       hello-deploy:
         strategy: serial
@@ -1521,7 +1528,8 @@ plans:
       sidecar-deploy:
         strategy: parallel
         pod: hello
-        tasks: [sidecar]
+        steps:
+          - default: [[sidecar]]
 ```
 
 The command definition for the sidecar task includes environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.
