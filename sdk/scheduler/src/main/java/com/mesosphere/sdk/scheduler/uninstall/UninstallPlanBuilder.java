@@ -14,14 +14,12 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.SecretsClient;
-import com.mesosphere.sdk.dcos.auth.TokenProvider;
-import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
@@ -63,7 +61,8 @@ class UninstallPlanBuilder {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags) {
+            SchedulerFlags schedulerFlags,
+            Optional<SecretsClient> customSecretsClientForTests) {
         this.taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
@@ -119,20 +118,24 @@ class UninstallPlanBuilder {
         phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));
 
         // If applicable, we also clean up any TLS secrets that we'd created before
+        // TODO(nickbp): If TLS secrets are disabled (and removed from the spec) after being added, we won't clean them!
         if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
             try {
-                TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(schedulerFlags);
-                Executor executor = Executor.newInstance(
-                        new DcosHttpClientBuilder()
-                                .setTokenProvider(tokenProvider)
-                                .setRedirectStrategy(new LaxRedirectStrategy())
-                                .build());
-                SecretsClient secretsClient = new DefaultSecretsClient(executor);
-                String namespace =
-                        SecretNameGenerator.getNamespaceFromEnvironment(serviceSpec.getName(), schedulerFlags);
+                // Use any provided custom client, or otherwise construct a default client
+                SecretsClient secretsClient = customSecretsClientForTests.isPresent()
+                        ? customSecretsClientForTests.get()
+                        : new DefaultSecretsClient(
+                                Executor.newInstance(new DcosHttpClientBuilder()
+                                        .setTokenProvider(schedulerFlags.getDcosAuthTokenProvider())
+                                        .setRedirectStrategy(new LaxRedirectStrategy())
+                                        .build()));
+                Step cleanupStep = new TLSCleanupStep(
+                        Status.PENDING,
+                        secretsClient,
+                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerFlags, serviceSpec.getName()));
                 phases.add(new DefaultPhase(
                         TLS_CLEANUP_PHASE,
-                        Collections.singletonList(new TLSCleanupStep(Status.PENDING, secretsClient, namespace)),
+                        Collections.singletonList(cleanupStep),
                         new SerialStrategy<>(),
                         Collections.emptyList()));
             } catch (Exception e) {

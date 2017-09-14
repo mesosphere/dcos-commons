@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.collect.ImmutableList;
-import com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
@@ -67,13 +66,13 @@ public class StateStoreUtilsTest {
 
     @Test
     public void testEmptyStateStoreHasNoLastCompletedUpdateType() {
-        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(DeploymentType.NONE));
+        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(StateStoreUtils.DeploymentType.NONE));
     }
 
     @Test
     public void testLastCompletedUpdateTypeGetsSet() {
-        StateStoreUtils.setLastCompletedUpdateType(stateStore, DeploymentType.DEPLOY);
-        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(DeploymentType.DEPLOY));
+        StateStoreUtils.setLastCompletedUpdateType(stateStore, StateStoreUtils.DeploymentType.DEPLOY);
+        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(StateStoreUtils.DeploymentType.DEPLOY));
     }
 
     @Test

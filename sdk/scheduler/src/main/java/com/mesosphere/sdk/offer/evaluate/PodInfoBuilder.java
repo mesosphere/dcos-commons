@@ -289,7 +289,7 @@ public class PodInfoBuilder {
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
-        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpaceLabelValue());
+        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpace());
 
         if (useDefaultExecutor) {
             executorInfoBuilder.setType(Protos.ExecutorInfo.Type.DEFAULT)

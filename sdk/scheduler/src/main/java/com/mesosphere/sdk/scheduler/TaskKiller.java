@@ -16,8 +16,10 @@ public interface TaskKiller {
     /**
      * Configures this instance with the {@link SchedulerDriver} to be invoked when killing tasks.
      * This must be called at least once before {@link #killTask(TaskID, RecoveryType)} is invoked.
+     *
+     * @return this
      */
-    void setSchedulerDriver(SchedulerDriver driver);
+    TaskKiller setSchedulerDriver(SchedulerDriver driver);
 
     /**
      * This method should accept Tasks which the caller wishes to kill.  The kill may be destructive (for restarting at

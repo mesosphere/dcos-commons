@@ -25,18 +25,18 @@ public class SchedulerApiServer {
     private final Duration startTimeout;
 
     public SchedulerApiServer(SchedulerFlags schedulerFlags, Collection<Object> resources) {
-        ResourceConfig resourceConfig = new ResourceConfig();
-        for (Object resource : resources) {
-            resourceConfig.register(resource);
-        }
         this.server = JettyHttpContainerFactory.createServer(
-                UriBuilder.fromUri("http://0.0.0.0/").port(schedulerFlags.getApiServerPort()).build(), resourceConfig);
+                UriBuilder.fromUri("http://0.0.0.0/").port(schedulerFlags.getApiServerPort()).build(),
+                new ResourceConfig().registerInstances(resources),
+                false /* don't start yet. wait for start() call below. */);
         this.startTimer = new Timer();
         this.startTimeout = schedulerFlags.getApiServerInitTimeout();
     }
 
     /**
      * Launches the API server on a separate thread.
+     *
+     * @param listener A listener object which will be notified when the underlying server changes state
      */
     public void start(LifeCycle.Listener listener) {
         if (server.isStarted()) {
@@ -45,10 +45,11 @@ public class SchedulerApiServer {
         server.addLifeCycleListener(listener);
 
         startTimer.schedule(new TimerTask() {
+            @Override
             public void run() {
-                if (!server.isRunning()) {
-                    LOGGER.error("API Server failed to start within {}ms.", startTimeout.toMillis());
-                    SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_TIMEOUT);
+                if (!server.isStarted()) {
+                    LOGGER.error("API Server failed to start within {}ms", startTimeout.toMillis());
+                    SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_ERROR);
                 }
             }
         }, startTimeout.toMillis());
@@ -64,6 +65,7 @@ public class SchedulerApiServer {
                     server.join();
                 } catch (Exception e) {
                     LOGGER.error("API Server failed with exception: ", e);
+                    SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_ERROR);
                 } finally {
                     LOGGER.info("API Server exiting.");
                     try {

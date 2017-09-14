@@ -17,7 +17,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import difflib.DiffUtils;
 import org.apache.mesos.Protos;
@@ -39,7 +38,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     private final ConfigStore<ServiceSpec> configStore;
     private final ConfigurationComparator<ServiceSpec> configComparator;
     private final Collection<ConfigValidator<ServiceSpec>> validators;
-    private final UpdateResult.DeploymentType lastUpdateType;
 
     public DefaultConfigurationUpdater(
             StateStore stateStore,
@@ -50,7 +48,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         this.configStore = configStore;
         this.configComparator = configComparator;
         this.validators = validators;
-        this.lastUpdateType = StateStoreUtils.getLastCompletedUpdateType(stateStore);
     }
 
     @Override
@@ -140,12 +137,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         // leftover configs which are not the target and which are not referenced by any tasks.
         cleanupDuplicateAndUnusedConfigs(targetConfig.get(), targetConfigId);
 
-        UpdateResult.DeploymentType updateType =
-                lastUpdateType.equals(UpdateResult.DeploymentType.NONE) ?
-                        UpdateResult.DeploymentType.DEPLOY :
-                        UpdateResult.DeploymentType.UPDATE;
-
-        return new ConfigurationUpdater.UpdateResult(targetConfigId, updateType, errors);
+        return new ConfigurationUpdater.UpdateResult(targetConfigId, errors);
     }
 
     /**

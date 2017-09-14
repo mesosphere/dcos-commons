@@ -1,15 +1,8 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.dcos.CertificateAuthorityClient;
-import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.dcos.SecretsClient;
-import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
-import com.mesosphere.sdk.dcos.auth.ServiceAccountIAMTokenProvider;
-import com.mesosphere.sdk.dcos.auth.TokenProvider;
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.ca.DefaultCAClient;
-import com.mesosphere.sdk.dcos.http.CustomRedirectStrategy;
-import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
-import com.mesosphere.sdk.dcos.http.URLUtils;
 import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.*;
@@ -19,8 +12,9 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.http.client.fluent.Executor;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
-import org.bouncycastle.util.io.pem.PemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,14 +22,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.IOException;
-import java.io.StringReader;
-import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -54,7 +43,12 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
     private final SchedulerFlags schedulerFlags;
 
-    public TLSEvaluationStage(
+    public static Builder newBuilder(String serviceName, SchedulerFlags flags) {
+        return new Builder(serviceName, flags);
+    }
+
+    @VisibleForTesting
+    TLSEvaluationStage(
             String serviceName,
             String taskName,
             TLSArtifactsPersister tlsArtifactsPersister,
@@ -77,58 +71,39 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             SecretNameGenerator secretNameGenerator;
 
             try {
-                CertificateNamesGenerator certificateNamesGenerator = getCertificateNamesGenerator(
-                    podInfoBuilder, taskSpec);
+                CertificateNamesGenerator certificateNamesGenerator =
+                        getCertificateNamesGenerator(podInfoBuilder, taskSpec);
 
-                secretNameGenerator = getSecretNameGenerator(
-                    podInfoBuilder,
-                    transportEncryptionName,
-                    SecretNameGenerator.getSansHash(certificateNamesGenerator.getSANs()));
+                secretNameGenerator = new SecretNameGenerator(
+                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerFlags, serviceName),
+                        TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
+                        transportEncryptionName,
+                        certificateNamesGenerator.getSANs());
 
                 if (!tlsArtifactsPersister.isArtifactComplete(secretNameGenerator)) {
                     tlsArtifactsPersister.cleanUpSecrets(secretNameGenerator);
                     TLSArtifacts tlsArtifacts = this.tlsArtifactsGenerator.generate(certificateNamesGenerator);
                     tlsArtifactsPersister.persist(secretNameGenerator, tlsArtifacts);
                 } else {
-                    logger.info(
-                            String.format(
-                                    "Task '%s' has already all secrets for '%s' TLS config",
-                                    taskName, transportEncryptionName));
+                    logger.info("Task '{}' has already all secrets for '{}' TLS config",
+                            taskName, transportEncryptionName);
                 }
             } catch (Exception e) {
-                logger.error("Failed to get certificate ", taskName, e);
+                logger.error(String.format("Failed to get certificate %s", taskName), e);
                 return EvaluationOutcome.fail(
                         this, "Failed to store TLS artifacts for task %s because of exception: %s", taskName, e)
                         .build();
             }
 
-            Collection<Protos.Volume> volumes = getExecutorInfoSecretVolumes(
-                    transportEncryptionSpec, secretNameGenerator);
-
             // Share keys to the task container
             podInfoBuilder
                     .getTaskBuilder(taskName)
                     .getContainerBuilder()
-                    .addAllVolumes(volumes);
+                    .addAllVolumes(getExecutorInfoSecretVolumes(transportEncryptionSpec, secretNameGenerator));
 
         }
 
-        return EvaluationOutcome.pass(
-                this, "TLS certificate created and added to the task")
-                .build();
-
-    }
-
-    private SecretNameGenerator getSecretNameGenerator(
-            PodInfoBuilder podInfoBuilder,
-            String transportEncryptionName,
-            String sanHash) {
-        // Provision secrets within DCOS_SPACE namespace so the tasks will be authorized to use secrets.
-        return new SecretNameGenerator(
-                SecretNameGenerator.getNamespaceFromEnvironment(serviceName, schedulerFlags),
-                TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
-                transportEncryptionName,
-                sanHash);
+        return EvaluationOutcome.pass(this, "TLS certificate created and added to the task").build();
     }
 
     private CertificateNamesGenerator getCertificateNamesGenerator(
@@ -215,74 +190,17 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
      */
     public static class Builder {
 
-        @Valid
-        @NotNull
-        @Size(min = 1)
-        private String serviceName;
+        private final String serviceName;
+        private final SchedulerFlags schedulerFlags;
 
         @Valid
         @NotNull
         @Size(min = 1)
         private String taskName;
 
-        @Valid
-        @NotNull
-        private SchedulerFlags schedulerFlags;
-
-        private CertificateAuthorityClient certificateAuthorityClient;
-        private SecretsClient secretsClient;
-        private KeyPairGenerator keyPairGenerator;
-
-        private TLSArtifactsGenerator tlsArtifactsGenerator;
-        private TLSArtifactsPersister tlsArtifactsPersister;
-
-        public static TokenProvider tokenProviderFromEnvironment(SchedulerFlags flags)
-                throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-
-            PemReader pemReader = new PemReader(new StringReader(flags.getServiceAccountPrivateKeyPEM()));
-            try {
-                PrivateKey privateKey = keyFactory.generatePrivate(
-                        new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
-
-                ServiceAccountIAMTokenProvider serviceAccountIAMTokenProvider =
-                        new ServiceAccountIAMTokenProvider.Builder()
-                        .setIamUrl(URLUtils.fromUnchecked(DcosConstants.IAM_AUTH_URL))
-                        .setUid(flags.getServiceAccountUid())
-                        .setPrivateKey((RSAPrivateKey) privateKey)
-                        .build();
-                return new CachedTokenProvider(serviceAccountIAMTokenProvider, flags.getAuthTokenRefreshThreshold());
-            } finally {
-                pemReader.close();
-            }
-        }
-
-        public static Builder fromEnvironment(SchedulerFlags flags)
-                throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-            TokenProvider tokenProvider = tokenProviderFromEnvironment(flags);
-
-            Executor executor = Executor.newInstance(
-                    new DcosHttpClientBuilder()
-                            .setTokenProvider(tokenProvider)
-                            .setRedirectStrategy(new CustomRedirectStrategy())
-                            .build());
-
-            CertificateAuthorityClient certificateAuthorityClient = new DefaultCAClient(executor);
-            SecretsClient secretsClient = new DefaultSecretsClient(executor);
-
-            return new Builder()
-                    .setSchedulerFlags(flags)
-                    .setCertificateAuthorityClient(certificateAuthorityClient)
-                    .setSecretsClient(secretsClient);
-        }
-
-        public Builder() throws NoSuchAlgorithmException {
-            this.keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        }
-
-        public Builder setServiceName(String serviceName) {
+        private Builder(String serviceName, SchedulerFlags schedulerFlags) {
             this.serviceName = serviceName;
-            return this;
+            this.schedulerFlags = schedulerFlags;
         }
 
         public Builder setTaskName(String taskName) {
@@ -290,67 +208,24 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             return this;
         }
 
-        public Builder setSchedulerFlags(SchedulerFlags schedulerFlags) {
-            this.schedulerFlags = schedulerFlags;
-            return this;
-        }
-
-        public CertificateAuthorityClient getCertificateAuthorityClient() {
-            return certificateAuthorityClient;
-        }
-
-        public Builder setCertificateAuthorityClient(CertificateAuthorityClient certificateAuthorityClient) {
-            this.certificateAuthorityClient = certificateAuthorityClient;
-            return this;
-        }
-
-        public SecretsClient getSecretsClient() {
-            return secretsClient;
-        }
-
-        public Builder setSecretsClient(SecretsClient secretsClient) {
-            this.secretsClient = secretsClient;
-            return this;
-        }
-
-        public KeyPairGenerator getKeyPairGenerator() {
-            return keyPairGenerator;
-        }
-
-        public Builder setKeyPairGenerator(KeyPairGenerator keyPairGenerator) {
-            this.keyPairGenerator = keyPairGenerator;
-            return this;
-        }
-
-        public Builder setTlsArtifactsGenerator(TLSArtifactsGenerator tlsArtifactsGenerator) {
-            this.tlsArtifactsGenerator = tlsArtifactsGenerator;
-            return this;
-        }
-
-        public Builder setTlsArtifactsPersister(TLSArtifactsPersister tlsArtifactsPersister) {
-            this.tlsArtifactsPersister = tlsArtifactsPersister;
-            return this;
-        }
-
-        private TLSArtifactsPersister getTLSArtifactsPersister() {
-            return tlsArtifactsPersister == null ?
-                    new TLSArtifactsPersister(getSecretsClient(), serviceName) : tlsArtifactsPersister;
-        }
-
-        private TLSArtifactsGenerator getTLSArtifactsGenerator() {
-            return tlsArtifactsGenerator == null ?
-                    new TLSArtifactsGenerator(
-                        getKeyPairGenerator(), getCertificateAuthorityClient()) :
-                    tlsArtifactsGenerator;
-        }
-
-        public TLSEvaluationStage build() {
+        public TLSEvaluationStage build() throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
             ValidationUtils.validate(this);
+
+            Executor executor = Executor.newInstance(
+                    new DcosHttpClientBuilder()
+                            .setTokenProvider(schedulerFlags.getDcosAuthTokenProvider())
+                            .setRedirectStrategy(new LaxRedirectStrategy() {
+                                protected boolean isRedirectable(String method) {
+                                    // Also treat PUT calls as redirectable
+                                    return method.equalsIgnoreCase(HttpPut.METHOD_NAME) || super.isRedirectable(method);
+                                }
+                            })
+                            .build());
             return new TLSEvaluationStage(
                     serviceName,
                     taskName,
-                    getTLSArtifactsPersister(),
-                    getTLSArtifactsGenerator(),
+                    new TLSArtifactsPersister(new DefaultSecretsClient(executor), serviceName),
+                    new TLSArtifactsGenerator(KeyPairGenerator.getInstance("RSA"), new DefaultCAClient(executor)),
                     schedulerFlags);
         }
     }

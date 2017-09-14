@@ -16,7 +16,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.specification.RLimitSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;

@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
+import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -44,14 +44,14 @@ public class UninstallScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags) {
+            SchedulerFlags schedulerFlags,
+            Optional<SecretsClient> customSecretsClientForTests) {
         super(stateStore, configStore, schedulerFlags);
-
-        this.uninstallPlanBuilder = new UninstallPlanBuilder(serviceSpec, stateStore, configStore, schedulerFlags);
-        this.uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
-        PlansResource plansResource = new PlansResource();
-        plansResource.setPlanManagers(Collections.singletonList(uninstallPlanManager));
-        resources = Collections.singletonList(plansResource);
+        uninstallPlanBuilder = new UninstallPlanBuilder(
+                serviceSpec, stateStore, configStore, schedulerFlags, customSecretsClientForTests);
+        uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
+        resources = Collections.singletonList(new PlansResource()
+                .setPlanManagers(Collections.singletonList(uninstallPlanManager)));
     }
 
     @Override
@@ -113,16 +113,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     protected void processStatusUpdate(Protos.TaskStatus status) {
-        eventBus.post(status);
-
-        try {
-            stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
-            reconciler.update(status);
-        } catch (Exception e) {
-            LOGGER.warn(String.format("Failed to handle TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: %s",
-                    TextFormat.shortDebugString(status)), e);
-        }
+        stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
     }
 
     @Override

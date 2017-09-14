@@ -54,9 +54,9 @@ public class DefaultScheduler extends AbstractScheduler {
     private PlanCoordinator planCoordinator;
 
     /**
-     * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service, including
-     * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
-     * should be organized.
+     * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
+     * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
+     * deployment should be organized.
      */
     public static SchedulerBuilder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags)
             throws PersisterException {
@@ -64,9 +64,9 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     /**
-     * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service, including
-     * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
-     * should be organized.
+     * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
+     * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
+     * deployment should be organized.
      */
     @VisibleForTesting
     public static SchedulerBuilder newBuilder(
@@ -259,46 +259,38 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected void processStatusUpdate(Protos.TaskStatus status) {
-        eventBus.post(status);
-
         // Store status, then pass status to PlanManager => Plan => Steps
-        try {
-            String taskName = StateStoreUtils.getTaskName(stateStore, status);
-            Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
+        String taskName = StateStoreUtils.getTaskName(stateStore, status);
+        Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
-            stateStore.storeStatus(taskName, status);
-            planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
-            reconciler.update(status);
+        stateStore.storeStatus(taskName, status);
+        planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
-            if (lastStatus.isPresent() &&
-                    AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
-                    TaskUtils.isRecoveryNeeded(status)) {
-                // The initial launch of this task failed. Give up and try again with a clean slate.
-                LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. " +
-                        "Prior status was: {}",
-                        taskName, TextFormat.shortDebugString(lastStatus.get()));
-                taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
+        if (lastStatus.isPresent() &&
+                AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
+                TaskUtils.isRecoveryNeeded(status)) {
+            // The initial launch of this task failed. Give up and try again with a clean slate.
+            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. " +
+                    "Prior status was: {}",
+                    taskName, TextFormat.shortDebugString(lastStatus.get()));
+            taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
+        }
+
+        // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
+        // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
+        // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
+        // on TASK_RUNNINGs
+        if (status.hasContainerStatus() &&
+                status.getContainerStatus().getNetworkInfosCount() > 0 &&
+                status.getContainerStatus().getNetworkInfosList().stream()
+                        .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+            // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
+            // TaskInfo exists.
+            try {
+                StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
+            } catch (StateStoreException e) {
+                LOGGER.warn("Unable to store network info for status update: " + status, e);
             }
-
-            // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
-            // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
-            // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
-            // on TASK_RUNNINGs
-            if (status.hasContainerStatus() &&
-                    status.getContainerStatus().getNetworkInfosCount() > 0 &&
-                    status.getContainerStatus().getNetworkInfosList().stream()
-                            .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-                // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
-                // TaskInfo exists.
-                try {
-                    StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
-                } catch (StateStoreException e) {
-                    LOGGER.warn("Unable to store network info for status update: " + status, e);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
         }
     }
 

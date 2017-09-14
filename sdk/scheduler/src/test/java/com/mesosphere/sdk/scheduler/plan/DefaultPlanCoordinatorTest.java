@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -19,7 +18,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 
 /**
  * Tests for {@code DefaultPlanCoordinator}.
@@ -73,9 +71,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private DefaultServiceSpec serviceSpecification;
     private DefaultServiceSpec serviceSpecificationB;
-    private OfferAccepter offerAccepter;
     private StateStore stateStore;
-    private TaskKiller taskKiller;
     private DefaultPlanScheduler planScheduler;
     private TaskFailureListener taskFailureListener;
     private SchedulerDriver schedulerDriver;
@@ -85,7 +81,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     @Before
     public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
-        offerAccepter = spy(new OfferAccepter(Arrays.asList()));
 
         taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
@@ -100,10 +95,9 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
-        taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
 
         planScheduler = new DefaultPlanScheduler(
-                offerAccepter,
+                new OfferAccepter(Arrays.asList()),
                 new OfferEvaluator(
                         stateStore,
                         TestConstants.SERVICE_NAME,
@@ -111,7 +105,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         OfferRequirementTestUtils.getTestSchedulerFlags(),
                         true),
                 stateStore,
-                taskKiller);
+                new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver));
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)

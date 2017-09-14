@@ -38,11 +38,12 @@ public abstract class AbstractScheduler {
     protected final SchedulerFlags schedulerFlags;
 
     private SchedulerApiServer apiServer;
+    // Tracks whether apiServer has entered a started state. We avoid launching tasks until after the API server has
+    // started, because when tasks launch they typically require access to ArtifactResource for config templates.
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
 
     private final MesosScheduler mesosScheduler = new MesosScheduler();
-    protected final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
-    protected DefaultReconciler reconciler;
+    private final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
@@ -70,16 +71,27 @@ public abstract class AbstractScheduler {
     }
 
     /**
-     * Starts any internal threads to be used by the service.
+     * Starts any internal threads to be used by the service. Must be called after construction.
+     *
+     * @return this
      */
-    public void start() {
-        this.apiServer = new SchedulerApiServer(schedulerFlags, getResources());
-        this.apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-            @Override
-            public void lifeCycleStarted(LifeCycle event) {
-                apiServerStarted.set(true);
-            }
-        });
+    public AbstractScheduler start() {
+        if (apiServer != null) {
+            throw new IllegalStateException("start() can only be called once");
+        }
+
+        // Trigger launch of the API server. We start processing offers only once the API server has launched.
+        if (apiServerStarted.get()) {
+            LOGGER.info("Skipping API server setup");
+        } else {
+            this.apiServer = new SchedulerApiServer(schedulerFlags, getResources());
+            this.apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                @Override
+                public void lifeCycleStarted(LifeCycle event) {
+                    apiServerStarted.set(true);
+                }
+            });
+        }
 
         // Start consumption of the offer queue. This will idle until offers start arriving.
         offerExecutor.execute(() -> {
@@ -104,6 +116,8 @@ public abstract class AbstractScheduler {
                 }
             }
         });
+
+        return this;
     }
 
     /**
@@ -119,28 +133,71 @@ public abstract class AbstractScheduler {
      * offers have been processed.
      *
      * @throws InterruptedException if waiting for offers to be processed is interrupted
+     * @throws IllegalStateException if offers were not processed in a reasonable amount of time
      */
     @VisibleForTesting
     public void awaitOffersProcessed() throws InterruptedException {
-        while (true) {
+        final int totalDurationMs = 5000;
+        final int sleepDurationMs = 100;
+        for (int i = 0; i < totalDurationMs / sleepDurationMs; ++i) {
             synchronized (inProgressLock) {
                 if (offersInProgress.isEmpty()) {
                     LOGGER.info("All offers processed.");
                     return;
                 }
+                LOGGER.warn("Offers in progress {} is non-empty, sleeping for {}ms ...",
+                        offersInProgress, sleepDurationMs);
             }
-
-            LOGGER.warn("Offers in progress {} is non empty, sleeping for 500ms ...", offersInProgress);
-            Thread.sleep(500);
+            Thread.sleep(sleepDurationMs);
         }
+        throw new IllegalStateException(String.format(
+                "Timed out after %dms waiting for offers to be processed", totalDurationMs));
     }
 
-    protected abstract Collection<Object> getResources();
+    /**
+     * Skips the creation of the API server and marks it as "started". In order for this to have any effect, it must
+     * be called before {@link #start()}.
+     *
+     * @return this
+     */
+    @VisibleForTesting
+    public AbstractScheduler disableApiServer() {
+        apiServerStarted.set(true);
+        return this;
+    }
+
+    /**
+     * Performs any additional Scheduler initialization after registration has completed. The provided
+     * {@link SchedulerDriver} may be used to talk to Mesos.
+     */
     protected abstract void initialize(SchedulerDriver driver) throws Exception;
-    protected abstract void processOfferSet(List<Protos.Offer> offers);
-    protected abstract void processStatusUpdate(Protos.TaskStatus status);
+
+    /**
+     * Returns a list of API resources to be served by the scheduler to the local cluster.
+     */
+    protected abstract Collection<Object> getResources();
+
+    /**
+     * Returns a list of Plan Managers, one per Plan.
+     */
     protected abstract Collection<PlanManager> getPlanManagers();
 
+    /**
+     * Handles a set of one or more resource offers which were received from Mesos. This call is executed on a separate
+     * thread which is run by the {@link #offerExecutor}.
+     */
+    protected abstract void processOfferSet(List<Protos.Offer> offers);
+
+    /**
+     * Handles a task status update which was received from Mesos. This call is executed on a separate thread which is
+     * run by the Mesos Scheduler Driver.
+     */
+    protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
+
+    /**
+     * Implementation of Mesos' {@link Scheduler} interface.
+     * Messages received from Mesos are forwarded to the parent {@link AbstractScheduler}.
+     */
     private class MesosScheduler implements Scheduler {
 
         // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
@@ -150,9 +207,11 @@ public abstract class AbstractScheduler {
 
         private SchedulerDriver driver;
         private SuppressReviveManager suppressReviveManager;
+        @VisibleForTesting
+        DefaultReconciler reconciler;
 
         @Override
-        public void registered(SchedulerDriver driver_, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
+        public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
             if (isAlreadyRegistered.getAndSet(true)) {
                 // This may occur as the result of a master election.
                 LOGGER.info("Already registered, calling reregistered()");
@@ -162,7 +221,7 @@ public abstract class AbstractScheduler {
 
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
             try {
-                reconciler = new DefaultReconciler(stateStore);
+                this.reconciler = new DefaultReconciler(stateStore);
                 initialize(driver);
             } catch (Exception e) {
                 LOGGER.error("Initialization failed with exception: ", e);
@@ -177,7 +236,7 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            driver = driver_;
+            this.driver = driver;
             postRegister();
         }
 
@@ -235,7 +294,14 @@ public abstract class AbstractScheduler {
                     status.getState().toString(),
                     status.getMessage(),
                     TextFormat.shortDebugString(status));
-            processStatusUpdate(status);
+            eventBus.post(status);
+            try {
+                processStatusUpdate(status);
+                reconciler.update(status);
+            } catch (Exception e) {
+                LOGGER.warn("Failed to update TaskStatus received from Mesos. "
+                        + "This may be expected if Mesos sent stale status information: " + status, e);
+            }
         }
 
         @Override
@@ -270,7 +336,8 @@ public abstract class AbstractScheduler {
         }
 
         @Override
-        public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
+        public void executorLost(
+                SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
             // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
             LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), agentId.getValue());
         }

@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.dcos.ca;
 
-import com.mesosphere.sdk.dcos.auth.ConstantTokenProvider;
-import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -36,7 +34,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -52,14 +49,10 @@ import static org.mockito.Mockito.when;
 
 public class DefaultCAClientTest {
 
-    private String TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJhZG1pbiIsImV4cCI6MTQ5OTAxNTQ2NH0.PSEvegn859wXxswcmjMybGBbA20s2KSpag_CYRaDqeT4ICwiVwN2TkpxJUhnytuXFOchgucHGAW0UREJXnq88l0FgtcRIOxgyXFN5C4QOI5bt7wGtwudVTteDhaibN3NDqiMCvLmtgZDsqrDhepLpY4tFncNBSBj9NJWznLTzkjKgf0FCKw5c2bXUgB4D6EGMFaJg-JO4u5Aa7kf2nV7W0WBFnQOkClaBrr_--MbFYdz3Cls4H7YeHFiS3SnmH7NhEDbvhCIrNNhAGH_vvsrZEjyc0Zj18pl6bsH3_T1tafY_WwQHiIcTb4hmHQasl0ui0aRswierwSrhCZnzyaU-g";
-
     private KeyPairGenerator KEY_PAIR_GENERATOR;
     private int RSA_KEY_SIZE = 2048;
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private String TEST_IP_ADDR = "127.0.0.1";
-
-    private URL CA_BASE_URL;
 
     @Mock private HttpClient httpClient;
     @Mock private HttpResponse httpResponse;
@@ -73,16 +66,7 @@ public class DefaultCAClientTest {
     public void init() throws NoSuchAlgorithmException, MalformedURLException {
         KEY_PAIR_GENERATOR = KeyPairGenerator.getInstance("RSA");
         KEY_PAIR_GENERATOR.initialize(RSA_KEY_SIZE);
-        CA_BASE_URL = new URL("https://172.17.0.2/ca/api/v2/");
         MockitoAnnotations.initMocks(this);
-    }
-
-    private Executor createAuthenticatedExecutor() throws NoSuchAlgorithmException {
-        HttpClient httpClient = new DcosHttpClientBuilder()
-                .disableTLSVerification()
-                .setTokenProvider(new ConstantTokenProvider(TOKEN))
-                .build();
-        return Executor.newInstance(httpClient);
     }
 
     private DefaultCAClient createClientWithStatusLine(StatusLine statusLine) throws IOException {
@@ -206,23 +190,6 @@ public class DefaultCAClientTest {
                        )
                ),
                "UTF-8");
-    }
-
-    @Ignore
-    @Test
-    public void testSignAgainstRunningCluster() throws Exception {
-        DefaultCAClient client = new DefaultCAClient(CA_BASE_URL, createAuthenticatedExecutor());
-        X509Certificate certificate = client.sign(createCSR());
-        Assert.assertNotNull(certificate);
-    }
-
-    @Ignore
-    @Test
-    public void testBundleAgainstRunningCluster() throws Exception {
-        DefaultCAClient client = new DefaultCAClient(CA_BASE_URL, createAuthenticatedExecutor());
-        X509Certificate certificate = client.sign(createCSR());
-        Collection<X509Certificate> certificates = client.chainWithRootCert(certificate);
-        Assert.assertTrue(certificates.size() > 0);
     }
 
     @Test

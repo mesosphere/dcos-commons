@@ -27,6 +27,7 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
 import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -232,6 +233,105 @@ public class SchedulerBuilder {
     }
 
     /**
+     * Creates a new Mesos scheduler instance with the provided values or their defaults, or an empty {@link Optional}
+     * if no Mesos scheduler should be registered for this run.
+     *
+     * @return a new Mesos scheduler instance to be registered, or an empty {@link Optional}
+     * @throws IllegalArgumentException if validating the provided configuration failed
+     */
+    public AbstractScheduler build() {
+        // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
+        final StateStore stateStore = getStateStore();
+        final ConfigStore<ServiceSpec> configStore = getConfigStore();
+
+        if (getSchedulerFlags().isUninstallEnabled()) {
+            if (!StateStoreUtils.isUninstalling(getStateStore())) {
+                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                        "Uninstall cannot be canceled once enabled.");
+                StateStoreUtils.setUninstalling(getStateStore());
+            }
+
+            return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerFlags, Optional.empty());
+        } else {
+            if (StateStoreUtils.isUninstalling(stateStore)) {
+                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                        "Reenable the uninstall flag to complete the process.");
+                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+            }
+
+            return getDefaultScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags());
+        }
+    }
+
+    /**
+     * Creates a new scheduler instance with the provided values or their defaults.
+     *
+     * @return a new scheduler instance
+     * @throws IllegalArgumentException if config validation failed when updating the target config.
+     */
+    private DefaultScheduler getDefaultScheduler(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            ServiceSpec serviceSpec,
+            SchedulerFlags schedulerFlags) {
+        try {
+            new CapabilityValidator().validate(serviceSpec);
+        } catch (CapabilityValidator.CapabilityValidationException e) {
+            throw new IllegalArgumentException("Failed to validate provided ServiceSpec", e);
+        }
+
+        // Determine the last completed deployment type BEFORE we update the config.
+        // Plans may be generated from the config content.
+        StateStoreUtils.DeploymentType lastCompletedDeploymentType = getLastCompletedDeploymentType(
+                stateStore, getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans));
+
+        // Update/validate config as needed to reflect the new service spec:
+        Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
+        configValidators.addAll(DefaultConfigValidators.getValidators(schedulerFlags));
+        configValidators.addAll(customConfigValidators);
+        final ConfigurationUpdater.UpdateResult configUpdateResult =
+                updateConfig(serviceSpec, stateStore, configStore, configValidators);
+
+        // Now generate the new plans
+        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans);
+
+        if (!configUpdateResult.getErrors().isEmpty()) {
+            LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
+                    configUpdateResult.getTargetId(), configUpdateResult.getErrors());
+            try {
+                // If there were errors, stick with the last accepted target configuration.
+                serviceSpec = configStore.fetch(configStore.getTargetConfig());
+            } catch (ConfigStoreException e) {
+                LOGGER.error("Failed to retrieve previous target configuration.");
+                throw new IllegalArgumentException(e);
+            }
+        }
+
+        plans = overrideDeployPlan(plans, lastCompletedDeploymentType);
+        Optional<Plan> deployOptional = SchedulerUtils.getDeployPlan(plans);
+        if (!deployOptional.isPresent()) {
+            throw new IllegalArgumentException("No deploy plan provided: " + plans);
+        }
+
+        List<String> errors = configUpdateResult.getErrors().stream()
+                .map(ConfigValidationError::toString)
+                .collect(Collectors.toList());
+        if (!errors.isEmpty()) {
+            plans = updateDeployPlan(plans, errors);
+        }
+
+        return new DefaultScheduler(
+                serviceSpec,
+                schedulerFlags,
+                customResources,
+                plans,
+                stateStore,
+                configStore,
+                endpointProducers,
+                Optional.ofNullable(recoveryPlanOverriderFactory));
+    }
+
+    /**
      * Gets or generate plans against the given service spec.
      *
      * @param stateStore The state store to use for plan generation.
@@ -261,11 +361,9 @@ public class SchedulerBuilder {
             plansType = "generated";
             try {
                 if (!configStore.list().isEmpty()) {
-                    plans = Arrays.asList(
-                            new DeployPlanFactory(
-                                    new DefaultPhaseFactory(
-                                            new DefaultStepFactory(configStore, stateStore)))
-                                    .getPlan(configStore.fetch(configStore.getTargetConfig())));
+                    PlanFactory planFactory = new DeployPlanFactory(
+                            new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore)));
+                    plans = Arrays.asList(planFactory.getPlan(configStore.fetch(configStore.getTargetConfig())));
                 } else {
                     plans = Collections.emptyList();
                 }
@@ -288,117 +386,24 @@ public class SchedulerBuilder {
      * @param stateStore The stateStore to get last deployment type from.
      * @param configStore The configStore to get plans from.
      */
-    private static void fixLastDeploymentType(StateStore stateStore, Collection<Plan> plans) {
-        ConfigurationUpdater.UpdateResult.DeploymentType lastDeploymentType =
-                StateStoreUtils.getLastCompletedUpdateType(stateStore);
-        if (lastDeploymentType.equals(ConfigurationUpdater.UpdateResult.DeploymentType.NONE)) {
-            Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
+    private static StateStoreUtils.DeploymentType getLastCompletedDeploymentType(
+            StateStore stateStore, Collection<Plan> oldPlans) {
+        StateStoreUtils.DeploymentType lastDeploymentType = StateStoreUtils.getLastCompletedUpdateType(stateStore);
+        if (lastDeploymentType.equals(StateStoreUtils.DeploymentType.NONE)) {
+            Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(oldPlans);
             if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                StateStoreUtils.setLastCompletedUpdateType(
-                        stateStore,
-                        ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
+                lastDeploymentType = StateStoreUtils.DeploymentType.DEPLOY;
+                StateStoreUtils.setLastCompletedUpdateType(stateStore, lastDeploymentType);
             }
         }
+        return lastDeploymentType;
     }
 
     /**
-     * Creates a new Mesos scheduler instance with the provided values or their defaults, or an empty {@link Optional}
-     * if no Mesos scheduler should be registered for this run.
-     *
-     * @return a new Mesos scheduler instance to be registered, or an empty {@link Optional}
-     * @throws IllegalArgumentException if validating the provided configuration failed
+     * Updates the Deploy plan in the provided list of {@code plans} to contain the provided {@code errors}.
+     * Returns a new list of plans containing the updates.
      */
-    public AbstractScheduler build() {
-        // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
-        final StateStore stateStore = getStateStore();
-        final ConfigStore<ServiceSpec> configStore = getConfigStore();
-
-        if (getSchedulerFlags().isUninstallEnabled()) {
-            if (!StateStoreUtils.isUninstalling(getStateStore())) {
-                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
-                        "Uninstall cannot be canceled once enabled.");
-                StateStoreUtils.setUninstalling(getStateStore());
-            }
-
-            return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerFlags);
-        } else {
-            if (StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
-                        "Reenable the uninstall flag to complete the process.");
-                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
-            }
-
-            return getDefaultScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags());
-        }
-    }
-
-    /**
-     * Creates a new scheduler instance with the provided values or their defaults.
-     *
-     * @return a new scheduler instance
-     * @throws IllegalArgumentException if config validation failed when updating the target config.
-     */
-    private DefaultScheduler getDefaultScheduler(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags) {
-        try {
-            new CapabilityValidator().validate(serviceSpec);
-        } catch (CapabilityValidator.CapabilityValidationException e) {
-            throw new IllegalArgumentException("Failed to validate provided ServiceSpec", e);
-        }
-
-        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans);
-        fixLastDeploymentType(stateStore, plans);
-
-        // Update/validate config as needed to reflect the new service spec:
-        Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
-        configValidators.addAll(DefaultConfigValidators.getValidators(schedulerFlags));
-        configValidators.addAll(customConfigValidators);
-
-        final ConfigurationUpdater.UpdateResult configUpdateResult =
-                updateConfig(serviceSpec, stateStore, configStore, configValidators);
-
-        if (!configUpdateResult.getErrors().isEmpty()) {
-            LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
-                    configUpdateResult.getTargetId(), configUpdateResult.getErrors());
-            try {
-                // If there were errors maintain the last accepted target configuration.
-                serviceSpec = configStore.fetch(configStore.getTargetConfig());
-            } catch (ConfigStoreException e) {
-                LOGGER.error("Failed to retrieve previous target configuration.");
-                throw new IllegalArgumentException(e);
-            }
-        }
-
-        plans = overrideDeployPlan(plans, configUpdateResult);
-        Optional<Plan> deployOptional = SchedulerUtils.getDeployPlan(plans);
-        if (!deployOptional.isPresent()) {
-            throw new IllegalArgumentException("No deploy plan provided.");
-        }
-
-        List<String> errors = configUpdateResult.getErrors().stream()
-                .map(ConfigValidationError::toString)
-                .collect(Collectors.toList());
-        plans = updateDeployPlan(plans, errors);
-
-        return new DefaultScheduler(
-                serviceSpec,
-                schedulerFlags,
-                customResources,
-                plans,
-                stateStore,
-                configStore,
-                endpointProducers,
-                Optional.ofNullable(recoveryPlanOverriderFactory));
-    }
-
     private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
-        if (errors.isEmpty()) {
-            return plans;
-        }
-
         Collection<Plan> updatedPlans = new ArrayList<>();
         Plan deployPlan = SchedulerUtils.getDeployPlan(plans).get();
         deployPlan = new DefaultPlan(
@@ -427,23 +432,25 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update
-     * plan.
+     * Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update plan.
      */
     @VisibleForTesting
     static Collection<Plan> overrideDeployPlan(
-            Collection<Plan> plans,
-            ConfigurationUpdater.UpdateResult updateResult) {
+            Collection<Plan> plans, StateStoreUtils.DeploymentType lastCompletedDeploymentType) {
+
+        StateStoreUtils.DeploymentType deploymentType =
+                lastCompletedDeploymentType.equals(StateStoreUtils.DeploymentType.NONE) ?
+                        StateStoreUtils.DeploymentType.DEPLOY :
+                        StateStoreUtils.DeploymentType.UPDATE;
 
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
 
-        LOGGER.info(String.format("Update type: '%s', Found update plan: '%s'",
-                updateResult.getDeploymentType().name(),
-                updatePlanOptional.isPresent()));
+        LOGGER.info("Update type: '{}', Found update plan: '{}'",
+                deploymentType.name(), updatePlanOptional.isPresent());
 
-        if (updateResult.getDeploymentType().equals(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE)
+        if (deploymentType.equals(StateStoreUtils.DeploymentType.UPDATE)
                 && updatePlanOptional.isPresent()) {
             LOGGER.info("Overriding deploy plan with update plan.");
 

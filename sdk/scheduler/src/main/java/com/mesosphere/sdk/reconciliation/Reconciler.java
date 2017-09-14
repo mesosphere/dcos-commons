@@ -58,12 +58,4 @@ public interface Reconciler {
      * @see #isReconciled()
      */
     Set<String> remaining();
-
-    /**
-     * Forces reconciliation into a complete state. This may result in inconsistent task state
-     * between Mesos and the Framework Scheduler, so calling it is not recommended.
-     * <p>
-     * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
-     */
-    void forceComplete();
 }

@@ -7,7 +7,7 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
 /**
- * Returns a collection {@link ConfigValidator}s to be enabled in services by default
+ * Catalog of {@link ConfigValidator}s to be enabled in services by default.
  */
 public class DefaultConfigValidators {
 

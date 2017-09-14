@@ -16,6 +16,8 @@ import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class TLSRequiresServiceAccountTest {
@@ -53,66 +55,39 @@ public class TLSRequiresServiceAccountTest {
         when(podWithoutTLS.getType()).thenReturn(TestConstants.POD_TYPE);
     }
 
-    private ServiceSpec createServiceSpec(PodSpec podSpec) {
-        return DefaultServiceSpec.newBuilder()
-                .addPod(podSpec)
-                .name(TestConstants.SERVICE_NAME)
-                .principal(TestConstants.PRINCIPAL)
-                .build();
-    }
-
     @Test
-    public void testNoTLSNoServiceAccount() {
+    public void testNoTLSNoServiceAccount() throws Exception {
         Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
                 .validate(original, createServiceSpec(podWithoutTLS));
         assertThat(errors, is(empty()));
+        verify(flags, times(0)).getDcosAuthTokenProvider();
     }
 
     @Test
-    public void testNoTLSWithServiceAccount() {
-        when(flags.getServiceAccountUid()).thenReturn(TestConstants.SERVICE_USER);
+    public void testNoTLSWithServiceAccount() throws Exception {
+        when(flags.getDcosAuthTokenProvider()).thenReturn(null); // if it doesn't throw, then it passes
         Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
                 .validate(original, createServiceSpec(podWithoutTLS));
         assertThat(errors, is(empty()));
+        verify(flags, times(0)).getDcosAuthTokenProvider();
     }
 
     @Test
-    public void testWithTLSNoServiceAccount() {
+    public void testWithTLSNoServiceAccount() throws Exception {
+        when(flags.getDcosAuthTokenProvider()).thenThrow(new IllegalStateException("boo"));
         Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
                 .validate(original, createServiceSpec(podWithTLS));
         assertThat(errors, hasSize(1));
+        verify(flags, times(1)).getDcosAuthTokenProvider();
     }
 
     @Test
-    public void testWithTLSWithServiceAccount() {
-        when(flags.getServiceAccountUid()).thenReturn(TestConstants.SERVICE_USER);
+    public void testTLSWithServiceAccount() throws Exception {
+        when(flags.getDcosAuthTokenProvider()).thenReturn(null); // if it doesn't throw, then it passes
         Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
                 .validate(original, createServiceSpec(podWithTLS));
         assertThat(errors, is(empty()));
-    }
-
-    @Test
-    public void testEmptyServiceAccountUidIsNotValid() {
-        when(flags.getServiceAccountUid()).thenReturn("");
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
-                .validate(original, createServiceSpec(podWithTLS));
-        assertThat(errors, hasSize(1));
-    }
-
-    @Test
-    public void testWhitespaceServiceAccountUidIsNotValid() {
-        when(flags.getServiceAccountUid()).thenReturn("    ");
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
-                .validate(original, createServiceSpec(podWithTLS));
-        assertThat(errors, hasSize(1));
-    }
-
-    @Test
-    public void testNullServiceAccountUidIsNotValid() {
-        when(flags.getServiceAccountUid()).thenReturn(null);
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
-                .validate(original, createServiceSpec(podWithTLS));
-        assertThat(errors, hasSize(1));
+        verify(flags, times(1)).getDcosAuthTokenProvider();
     }
 
     @Test
@@ -124,4 +99,11 @@ public class TLSRequiresServiceAccountTest {
         assertThat(errors, hasSize(1));
     }
 
+    private static ServiceSpec createServiceSpec(PodSpec podSpec) {
+        return DefaultServiceSpec.newBuilder()
+                .addPod(podSpec)
+                .name(TestConstants.SERVICE_NAME)
+                .principal(TestConstants.PRINCIPAL)
+                .build();
+    }
 }

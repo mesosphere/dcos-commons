@@ -50,12 +50,15 @@ public class PlansResource extends PrettyJsonResource {
 
     /**
      * Assigns the list of plans to be managed via this endpoint.
+     *
+     * @return this
      */
-    public void setPlanManagers(Collection<PlanManager> planManagers) {
+    public PlansResource setPlanManagers(Collection<PlanManager> planManagers) {
         synchronized (planManagersLock) {
             this.planManagers.clear();
             this.planManagers.addAll(planManagers);
         }
+        return this;
     }
 
     /**

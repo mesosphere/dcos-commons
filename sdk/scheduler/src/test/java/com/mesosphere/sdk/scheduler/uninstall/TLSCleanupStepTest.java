@@ -4,6 +4,9 @@ import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.testutils.TestConstants;
+
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNamesBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,12 +30,15 @@ public class TLSCleanupStepTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        String taskInstanceName = String.format("%s-%d-%s", TestConstants.POD_TYPE, 0, TestConstants.TASK_NAME);
-        secretNameGenerator = new SecretNameGenerator(
-                TestConstants.SERVICE_NAME,
-                taskInstanceName,
-                "tls-test",
-                "");
+        try {
+            secretNameGenerator = new SecretNameGenerator(
+                    TestConstants.SERVICE_NAME,
+                    String.format("%s-%d-%s", TestConstants.POD_TYPE, 0, TestConstants.TASK_NAME),
+                    "tls-test",
+                    new GeneralNamesBuilder().addName(new GeneralName(GeneralName.dNSName, "")).build());
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private TLSCleanupStep createTLSCleanupStep() {

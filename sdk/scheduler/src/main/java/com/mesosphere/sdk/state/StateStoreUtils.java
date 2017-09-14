@@ -2,7 +2,6 @@ package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -280,11 +279,20 @@ public class StateStoreUtils {
     }
 
     /**
+     * Two types of deployments are differentiated by this type.  Either a services is
+     * being deployed for the first time "DEPLOY", or it is updating a previously deployed
+     * version of the service, "UPDATE"
+     */
+    public enum DeploymentType {
+        NONE,
+        DEPLOY,
+        UPDATE
+    }
+
+    /**
      * Sets the last completed update type.
      */
-    public static void setLastCompletedUpdateType(
-            StateStore stateStore,
-            ConfigurationUpdater.UpdateResult.DeploymentType updateResultDeploymentType) {
+    public static void setLastCompletedUpdateType(StateStore stateStore, DeploymentType updateResultDeploymentType) {
         stateStore.storeProperty(
                 LAST_COMPLETED_UPDATE_TYPE_KEY,
                 updateResultDeploymentType.name().getBytes(StandardCharsets.UTF_8));
@@ -293,15 +301,12 @@ public class StateStoreUtils {
     /**
      * Gets the last completed update type.
      */
-    public static ConfigurationUpdater.UpdateResult.DeploymentType getLastCompletedUpdateType(StateStore stateStore) {
+    public static DeploymentType getLastCompletedUpdateType(StateStore stateStore) {
         byte[] bytes = fetchPropertyOrEmptyArray(
                 stateStore,
                 LAST_COMPLETED_UPDATE_TYPE_KEY);
-        if (bytes.length == 0) {
-            return ConfigurationUpdater.UpdateResult.DeploymentType.NONE;
-        } else {
-            String value = new String(bytes, StandardCharsets.UTF_8);
-            return ConfigurationUpdater.UpdateResult.DeploymentType.valueOf(value);
-        }
+        return bytes.length == 0
+                ? DeploymentType.NONE
+                : DeploymentType.valueOf(new String(bytes, StandardCharsets.UTF_8));
     }
 }

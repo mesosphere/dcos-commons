@@ -10,6 +10,9 @@ import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
 import java.util.*;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * This class provides utility methods for tests concerned with OfferRequirements.
  */
@@ -47,11 +50,12 @@ public class OfferRequirementTestUtils {
     }
 
     public static SchedulerFlags getTestSchedulerFlags() {
-        Map<String, String> map = new HashMap<>();
-        map.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
-        map.put("EXECUTOR_URI", "test-executor-uri");
-        map.put("JAVA_URI", "test-java-uri");
-        map.put("LIBMESOS_URI", "test-libmesos-uri");
-        return SchedulerFlags.fromMap(map);
+        SchedulerFlags schedulerFlags = mock(SchedulerFlags.class);
+        when(schedulerFlags.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
+        when(schedulerFlags.getExecutorURI()).thenReturn("test-executor-uri");
+        when(schedulerFlags.getJavaURI()).thenReturn("test-java-uri");
+        when(schedulerFlags.getLibmesosURI()).thenReturn("test-libmesos-uri");
+        when(schedulerFlags.getDcosSpace()).thenReturn("/");
+        return schedulerFlags;
     }
 }

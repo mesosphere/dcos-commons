@@ -142,19 +142,6 @@ public class DefaultReconciler implements Reconciler {
     }
 
     @Override
-    public void forceComplete() {
-        // YOLO: wipe state. this may result in inconsistent task state between Mesos and Framework
-        synchronized (unreconciled) {
-            if (!unreconciled.isEmpty()) {
-                LOGGER.warn("Discarding {} remaining unreconciled tasks due to Force Complete call",
-                        unreconciled.size());
-            }
-            unreconciled.clear();
-        }
-        isImplicitReconciliationTriggered.set(true);
-    }
-
-    @Override
     public boolean isReconciled() {
         return unreconciled.isEmpty();
     }

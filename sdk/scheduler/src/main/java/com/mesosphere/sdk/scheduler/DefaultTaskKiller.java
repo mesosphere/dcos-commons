@@ -22,8 +22,9 @@ public class DefaultTaskKiller implements TaskKiller {
     }
 
     @Override
-    public void setSchedulerDriver(SchedulerDriver driver) {
+    public TaskKiller setSchedulerDriver(SchedulerDriver driver) {
         this.driver = driver;
+        return this;
     }
 
     @Override
