@@ -72,14 +72,10 @@ class InstallJobContext(object):
 def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
-    run_id_pattern = re.match('^Run ID: (.*)$', sdk_cmd.run_cli('job run {}'.format(job_name)))
-    if run_id_pattern is None:
-        # CLI command and output was already logged via run_cli() call
-        raise Exception(
-            'Unable to extract Run ID from "job run" output. Bad CLI version?: {}'.format(
-                sdk_cmd.run_cli('--version')))
-    run_id = run_id_pattern.group(1)
+    # start job run, get run ID to be polled against:
+    run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
 
+    # wait for run to succeed, throw if run fails:
     def fun():
         # catch errors from CLI: ensure that the only error raised is our own:
         try:

@@ -2,7 +2,6 @@
 post_title: Version _PACKAGEVERSION_-_SERVICEVERSION_
 menu_order: 10
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 

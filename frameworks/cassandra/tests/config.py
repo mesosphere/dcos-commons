@@ -1,19 +1,23 @@
 """ Utilties specific to Cassandra tests """
 
 import os
+import logging
+import traceback
 
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
 import sdk_utils
 
+log = logging.getLogger(__name__)
 
 PACKAGE_NAME = 'beta-cassandra'
 
-SERVICE_NAME = 'cassandra'
+SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or 'cassandra'
 
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
+# Soak artifact scripts may override the service name to test
 
 DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
@@ -105,6 +109,15 @@ def run_backup_and_restore(
     verify_data_job = get_verify_data_job(node_address=job_node_address)
     delete_data_job = get_delete_data_job(node_address=job_node_address)
     verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
+
+
+    # Ensure the keyspaces we will use aren't present.
+    try:
+        jobs.run_job(delete_data_job)
+    except:
+        log.info("Error during delete (normal if no stale data).")
+        tb = traceback.format_exc()
+        log.info(tb)
 
     # Write data to Cassandra with a metronome job, then verify it was written
     # Note: Write job will fail if data already exists

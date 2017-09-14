@@ -1,6 +1,6 @@
 ---
 post_title: Uninstall
-menu_order: 20
+menu_order: 30
 enterprise: 'no'
 ---
 
@@ -15,7 +15,7 @@ If you are using DC/OS 1.10 and the installed service has a version greater than
 For example, to uninstall a Kafka instance named `kafka-dev`, run:
 
 ```bash
-dcos package uninstall --app-id=kafka-dev beta-kafka
+$ dcos package uninstall --app-id=kafka-dev beta-kafka
 ```
 
 ### Older versions
@@ -30,7 +30,7 @@ For example, to uninstall a Kafka instance named `kakfa-dev`, run:
 
 ```bash
 $ MY_SERVICE_NAME=kafka-dev
-$ dcos package uninstall --app-id=$MY_SERVICE_NAME beta-kafka`.
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME beta-kafka`
 $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
     -r $MY_SERVICE_NAME-role \
     -p $MY_SERVICE_NAME-principal \
