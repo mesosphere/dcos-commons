@@ -83,8 +83,14 @@ def pytest_runtest_makereport(item, call):
 
 
 def get_rotating_task_log_lines(task_id: str, task_file: str):
-    rotated_filenames = [task_file,]
-    rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
+    result = subprocess.run(['dcos', 'task', 'ls', task_id], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if result.returncode:
+        log.error(result.stderr.decode())
+        return []
+
+    sandbox_files = result.stdout.decode().split()
+    rotated_file_names = [log_file_name for log_file_name in sandbox_files if task_file in log_file_name]
+
     for filename in rotated_filenames:
         lines = get_task_logs_for_id(task_id, filename)
         if not lines:
