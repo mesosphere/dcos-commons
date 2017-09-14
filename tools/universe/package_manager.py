@@ -103,7 +103,7 @@ def _get_packages_with_curl(universe_url, headers):
             status_code = int(output)
 
             if status_code != 200:
-                raise Exception("Curl returned status code %s", status_code)
+                raise Exception("Curl returned status code {}".format(status_code))
 
             with open(tmp_filename, "r") as f:
                 packages = json.load(f)['packages']

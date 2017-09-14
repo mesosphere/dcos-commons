@@ -19,14 +19,14 @@ $ %(prog)s kafka 1.2.3-4.5.6 \\
     /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip
 """
 
-EPILOG_STRING = "In addition, environment variables named 'TEMPLATE_SOME_PARAMETER' " \
+EPILOGUE_STRING = "In addition, environment variables named 'TEMPLATE_SOME_PARAMETER' " \
                 "will be inserted against the provided package template (with params of the " \
                 " form '{{some-parameter}}')"
 
 
 def main(argv):
     parser = argparse.ArgumentParser(description=DESCRIPTION_STRING,
-                                     epilog=EPILOG_STRING)
+                                     epilog=EPILOGUE_STRING)
     parser.add_argument('package_name', type=str,
                         help='The package name')
     parser.add_argument('package_version', type=str,
