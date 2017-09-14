@@ -55,13 +55,14 @@ class PackageManager:
         all_package_versions = self.get_package_versions(package_name)
 
         if all_package_versions:
-            return sorted(all_package_versions)[-1]
+            return all_package_versions[-1]
 
         return None
 
     def get_packages(self):
         """Query the uninverse to get a list of packages"""
         if not self.__package_cache:
+            LOGGER.info("Package cache is empty. Retrieving package information")
             raw_package_list = self._get_packages(self._universe_url, self._headers)
 
             package_dict = {}
