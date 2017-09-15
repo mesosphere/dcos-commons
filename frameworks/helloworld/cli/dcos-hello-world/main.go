@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/mesosphere/dcos-commons/cli"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 func main() {

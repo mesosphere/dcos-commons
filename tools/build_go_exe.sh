@@ -74,10 +74,8 @@ if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_
     ln -s "$REPO_ROOT_DIR" $REPO_NAME
 fi
 
-# Run 'go get'/'go build' from within GOPATH:
+# Run 'go test'/'go build' from within GOPATH:
 cd $GOPATH_EXE_DIR
-
-go get
 
 # run unit tests
 go test -v
