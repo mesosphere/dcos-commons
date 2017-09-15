@@ -66,6 +66,10 @@ pods:
               curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
               export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+              if [ -f journal-data/hdfs/current/VERSION ] && [ ! -f uploadedVersionFile ]; then
+                curl -X PUT -F 'file=@journal-data/hdfs/current/VERSION' api.{{FRAMEWORK_NAME}}.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION &&
+                touch uploadedVersionFile
+              fi &&
               [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
             fi
           delay: 30
