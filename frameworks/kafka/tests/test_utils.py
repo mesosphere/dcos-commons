@@ -74,8 +74,8 @@ def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
-def topic_lists_are_equal_without_automatic_topics(expected, actual):
+def assert_topic_lists_are_equal_without_automatic_topics(expected, actual):
     """Check for equality in topic lists after filtering topics that start with
     an underscore."""
-    filtered_actual = filter(lambda x: not x.startswith('_'), actual)
-    return expected == filtered_actual
+    filtered_actual = list(filter(lambda x: not x.startswith('_'), actual))
+    assert expected == filtered_actual

@@ -107,7 +107,7 @@ def test_custom_zookeeper():
     # topic created earlier against default zk should no longer be present:
     topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'topic list', json=True)
 
-    assert test_utils.topic_lists_are_equal_without_automatic_topics([], topic_list_info)
+    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], topic_list_info)
 
     # tests from here continue with the custom ZK path...
 
