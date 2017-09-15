@@ -1,3 +1,4 @@
+import config
 import pytest
 import sdk_repository
 import sdk_security
@@ -9,4 +10,4 @@ def configure_universe():
 
 @pytest.fixture(scope='session')
 def configure_security(configure_universe):
-    yield from sdk_security.security_session('kafka')
+    yield from sdk_security.security_session(config.SERVICE_NAME)
