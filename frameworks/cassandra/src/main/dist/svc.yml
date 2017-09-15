@@ -108,7 +108,7 @@ pods:
         {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
         configs:
           cqlshrc:
-            template: {{CONFIG_TEMPLATE_PATH}}/cqlshrc
+            template: cqlshrc
             dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
         transport-encryption:
           - name: cqlsh
@@ -177,7 +177,7 @@ pods:
         {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
         configs:
           cqlshrc:
-            template: {{CONFIG_TEMPLATE_PATH}}/cqlshrc
+            template: cqlshrc
             dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
         transport-encryption:
           - name: cqlsh
@@ -209,7 +209,7 @@ pods:
         resource-set: sidecar-resources
         configs:
           cassandra:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
+            template: cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
         {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
         transport-encryption:
