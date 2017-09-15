@@ -110,7 +110,13 @@ public class PlansResource extends PrettyJsonResource {
             }
 
             plan.proceed();
-            return jsonOkResponse(getCommandResult("start"));
+
+            logger.info("Started plan {} with parameters {} by user request", planName, parameters);
+
+            return jsonOkResponse(getCommandResult(String.format("%s %s with parameters: %s",
+                    "start",
+                    planName,
+                    parameters.toString())));
         } else {
             return elementNotFoundResponse();
         }

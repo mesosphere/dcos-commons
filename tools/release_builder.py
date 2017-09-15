@@ -234,7 +234,7 @@ Artifact output: {}
         '''
         # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
-        logger.info('[2/2] Replacing artifact prefix {} with {}'.format(
+        logger.info('Replacing artifact prefix {} with {}'.format(
             original_artifact_prefix, self._release_artifact_http_dir))
         original_artifact_urls = []
         # find all URLs, across all json files, which match the directory of the stub universe file:
@@ -461,10 +461,9 @@ Artifact output: {}
             json.dump(resource_json, f, indent=4, sort_keys=True)
 
 
-    def _update_name_and_version(self, pkgdir):
-        '''Updates the package definition to contain the desired version string,
+    def _update_package_json(self, pkgdir):
+        '''Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
-        Returns the directory containing the updated package.
         '''
         package_file_name = os.path.join(pkgdir, 'package.json')
         with open(package_file_name) as f:
@@ -480,7 +479,7 @@ Artifact output: {}
         # Update package's version to reflect the user's input
         package_json['version'] = self._pkg_version
 
-        logger.info('[1/2] Updated package.json:')
+        logger.info('Updated package.json:')
         logger.info('\n'.join(difflib.ndiff(
             json.dumps(orig_package_json, indent=4).split('\n'),
             json.dumps(package_json, indent=4).split('\n'))))
@@ -491,10 +490,37 @@ Artifact output: {}
             f.write('\n')
 
 
+    def _update_marathon_json(self, pkgdir):
+        '''Updates the marathon.json definition to contain the desired name and version strings.
+        '''
+        # note: the file isn't valid JSON, so we edit the raw content instead
+        marathon_file_name = os.path.join(pkgdir, 'marathon.json.mustache')
+        with open(marathon_file_name) as f:
+            orig_marathon_lines = f.readlines()
+
+        marathon_lines = []
+        for line in orig_marathon_lines:
+            name_match = re.match(r'^ *"PACKAGE_NAME": ?"(.*)",?$', line.rstrip('\n'))
+            version_match = re.match(r'^ *"PACKAGE_VERSION": ?"(.*)",?$', line.rstrip('\n'))
+            if name_match:
+                line = line.replace(name_match.group(1), self._pkg_name)
+            elif version_match:
+                line = line.replace(version_match.group(1), self._pkg_version)
+            marathon_lines.append(line)
+
+        logger.info('Updated marathon.json.mustache:')
+        logger.info(''.join(difflib.ndiff(orig_marathon_lines, marathon_lines)))
+
+        # Update marathon.json.mustache with changes:
+        with open(marathon_file_name, 'w') as f:
+            f.writelines(marathon_lines)
+
+
     def release_package(self):
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         pkgdir = self._download_unpack_stub_universe(scratchdir)
-        self._update_name_and_version(pkgdir)
+        self._update_package_json(pkgdir)
+        self._update_marathon_json(pkgdir)
 
         original_artifact_urls = self._get_and_update_artifact_urls(pkgdir)
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)

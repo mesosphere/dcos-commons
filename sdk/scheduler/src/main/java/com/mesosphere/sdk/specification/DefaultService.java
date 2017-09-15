@@ -8,6 +8,7 @@ import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
+import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +44,7 @@ import java.util.stream.Collectors;
  * Customizing the runtime user for individual tasks may be accomplished by customizing the 'user'
  * field on CommandInfo returned by {@link TaskSpec#getCommand()}.
  */
-public class DefaultService implements Service {
+public class DefaultService implements Runnable {
     protected static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
@@ -54,17 +56,20 @@ public class DefaultService implements Service {
         //No initialization needed
     }
 
-    public DefaultService(String yamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(RawServiceSpec.newBuilder(yamlSpecification).build(), schedulerFlags);
+    public DefaultService(File yamlSpecFile, SchedulerFlags schedulerFlags) throws Exception {
+        this(yamlSpecFile, yamlSpecFile.getParentFile(), schedulerFlags);
     }
 
-    public DefaultService(File pathToYamlSpecification, SchedulerFlags schedulerFlags) throws Exception {
-        this(RawServiceSpec.newBuilder(pathToYamlSpecification).build(), schedulerFlags);
+    public DefaultService(File yamlSpecFile, File configTemplateDir, SchedulerFlags schedulerFlags)
+            throws Exception {
+        this(RawServiceSpec.newBuilder(yamlSpecFile).build(), configTemplateDir, schedulerFlags);
     }
 
-    public DefaultService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
+    public DefaultService(RawServiceSpec rawServiceSpec, File configTemplateDir, SchedulerFlags schedulerFlags)
+            throws Exception {
         this(DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags).build(), schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configTemplateDir).build(),
+                schedulerFlags)
                 .setPlansFrom(rawServiceSpec));
     }
 
@@ -78,6 +83,10 @@ public class DefaultService implements Service {
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
+        SchedulerFlags flags = schedulerBuilder.getSchedulerFlags();
+        LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
+                flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
+                SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
@@ -92,7 +101,6 @@ public class DefaultService implements Service {
     }
 
     private void initService() {
-
         // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
         this.stateStore = schedulerBuilder.getStateStore();
         if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
@@ -145,33 +153,27 @@ public class DefaultService implements Service {
 
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
-        try {
-            register();
-        } finally {
-            locker.unlock();
-        }
-    }
-
-    /**
-     * Creates and registers the service with Mesos, while starting a Jetty HTTP API service on the {@code apiPort}.
-     */
-    @Override
-    public void register() {
         if (allButStateStoreUninstalled()) {
             LOGGER.info("Not registering framework because it is uninstalling.");
-            return;
-        }
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(schedulerBuilder.getServiceSpec(), stateStore);
-        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        String zkUri = String.format("zk://%s/mesos", schedulerBuilder.getServiceSpec().getZookeeperConnection());
-        Protos.Status status = new SchedulerDriverFactory()
-                .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
-                .run();
-        LOGGER.error("Scheduler driver exited with status: {}", status);
-        // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
-        // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
-        if (status != Protos.Status.DRIVER_STOPPED) {
-            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+        } else {
+            Protos.Status status;
+            try {
+                Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(schedulerBuilder.getServiceSpec(), stateStore);
+                LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
+                String zkUri =
+                        String.format("zk://%s/mesos", schedulerBuilder.getServiceSpec().getZookeeperConnection());
+                status = new SchedulerDriverFactory()
+                        .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
+                        .run();
+                LOGGER.error("Scheduler driver exited with status: {}", status);
+            } finally {
+                locker.unlock();
+            }
+            // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
+            // When this happens, we continue running so that we can advertise that the uninstall plan is complete.
+            if (status != null && status != Protos.Status.DRIVER_STOPPED) {
+                SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+            }
         }
     }
 

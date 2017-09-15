@@ -56,7 +56,6 @@ public class StateStore {
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
-    public static final String LOCK_PATH_NAME = "lock";
 
     protected final Persister persister;
 

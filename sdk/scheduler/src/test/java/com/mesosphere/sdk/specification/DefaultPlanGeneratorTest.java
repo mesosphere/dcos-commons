@@ -33,7 +33,8 @@ public class DefaultPlanGeneratorTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("custom-phases.yml").getFile());
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        DefaultServiceSpec serviceSpec =
+                DefaultServiceSpec.newGenerator(rawServiceSpec, flags, file.getParentFile()).build();
 
         Persister persister = new MemPersister();
         stateStore = new StateStore(persister);

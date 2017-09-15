@@ -106,6 +106,13 @@ public class SchedulerFlags {
     private static final String SIDECHANNEL_AUTH_ENV_NAME = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
 
     /**
+     * Environment variables which advertise to the service what the DC/OS package name and package version are.
+     */
+    private static final String PACKAGE_NAME_ENV = "PACKAGE_NAME";
+    private static final String PACKAGE_VERSION_ENV = "PACKAGE_VERSION";
+    private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
+
+    /**
      * Returns a new {@link SchedulerFlags} instance which is based off the process environment.
      */
     public static SchedulerFlags fromEnv() {
@@ -214,6 +221,27 @@ public class SchedulerFlags {
     }
 
     /**
+     * Returns the package name as advertised in the scheduler environment.
+     */
+    public String getPackageName() {
+        return flagStore.getRequired(PACKAGE_NAME_ENV);
+    }
+
+    /**
+     * Returns the package version as advertised in the scheduler environment.
+     */
+    public String getPackageVersion() {
+        return flagStore.getRequired(PACKAGE_VERSION_ENV);
+    }
+
+    /**
+     * Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.
+     */
+    public long getPackageBuildTimeMs() {
+        return flagStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
+    }
+
+    /**
      * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
      */
     private static class FlagStore {
@@ -230,6 +258,10 @@ public class SchedulerFlags {
 
         private int getRequiredInt(String envKey) {
             return toInt(envKey, getRequired(envKey));
+        }
+
+        private long getRequiredLong(String envKey) {
+            return toLong(envKey, getRequired(envKey));
         }
 
         private String getOptional(String envKey, String defaultValue) {
@@ -256,6 +288,19 @@ public class SchedulerFlags {
         private static int toInt(String envKey, String envVal) {
             try {
                 return Integer.parseInt(envVal);
+            } catch (NumberFormatException e) {
+                throw FlagException.invalidValue(String.format(
+                        "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
+            }
+        }
+
+        /**
+         * If the value cannot be parsed as a long, this points to the source envKey, and ensures that
+         * {@link SchedulerFlags} calls only throw {@link FlagException}.
+         */
+        private static long toLong(String envKey, String envVal) {
+            try {
+                return Long.parseLong(envVal);
             } catch (NumberFormatException e) {
                 throw FlagException.invalidValue(String.format(
                         "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));

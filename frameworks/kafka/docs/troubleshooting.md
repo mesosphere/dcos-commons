@@ -1,12 +1,12 @@
 ---
 post_title: Troubleshooting
-menu_order: 70
+menu_order: 90
 enterprise: 'no'
 ---
 
-The Kafka service will be listed as "Unhealthy" when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the `dcos kafka topic under_replicated_partitions` and `dcos kafka topic describe <topic-name>` commands to find the problem broker and determine what actions are required.
+The Kafka service will be listed as "Unhealthy" when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the `dcos beta-kafka topic under_replicated_partitions` and `dcos beta-kafka topic describe <topic-name>` commands to find the problem broker and determine what actions are required.
 
-Possible repair actions include `dcos kafka broker restart <broker-id>` and `dcos kafka broker replace <broker-id>`. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.
+Possible repair actions include `dcos beta-kafka broker restart <broker-id>` and `dcos beta-kafka broker replace <broker-id>`. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.
 
 # Configuration Update Errors
 
@@ -32,7 +32,6 @@ GET /service/kafka/v1/plan HTTP/1.1
             ]
         },
         {
-
             "id": "226a780e-132f-4fea-b584-7712b07cf357",
             "name": "Update to: 72cecf77-dbc5-4ae6-8f91-c88702b9a6a8",
             "steps": [
@@ -58,7 +57,6 @@ GET /service/kafka/v1/plan HTTP/1.1
             "status": "COMPLETE"
         }
     ],
-
     <b>"errors": [
         "Validation error on field \"BROKER_COUNT\": Decreasing this value (from 3 to 2) is not supported."
     ],</b>
@@ -72,9 +70,11 @@ If a machine has permanently failed, manual intervention is required to replace 
 
 In the example below, the broker with id `0` will be replaced on new machine as long as cluster resources are sufficient to satisfy the service’s placement constraints and resource requirements.
 
-    $ dcos kafka broker replace 0
+    ```bash
+    $ dcos beta-kafka broker replace 0
+    ```
 
 # Extending the Kill Grace Period
 
 If the Kafka brokers are not completing the clean shutdown within the configured
-`brokers.kill_grace_period` (Kill Grace Period), extend the Kill Grace Period, see Managing - Extend Kill Grace Period.
+`brokers.kill_grace_period` (Kill Grace Period), extend the Kill Grace Period, see [Managing - Extend the Kill Grace Period](managing.md#extend-the-kill-grace-period).

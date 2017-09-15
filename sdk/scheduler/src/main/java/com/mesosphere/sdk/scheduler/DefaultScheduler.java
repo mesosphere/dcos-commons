@@ -722,7 +722,7 @@ public class DefaultScheduler extends AbstractScheduler {
         }
     }
 
-    protected void processOfferSet(List<Protos.Offer> offers) {
+    protected void executePlans(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
 
         // Coordinate amongst all the plans via PlanCoordinator.

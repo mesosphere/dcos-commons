@@ -8,7 +8,6 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -18,7 +17,7 @@ import org.apache.mesos.Protos;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -443,8 +442,7 @@ public class StateStoreUtilsTest {
 
         ClassLoader classLoader = StateStoreUtilsTest.class.getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
-                .build();
+        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags).build();
 
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);

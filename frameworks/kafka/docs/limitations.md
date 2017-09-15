@@ -1,30 +1,35 @@
 ---
 post_title: Limitations
-menu_order: 80
+menu_order: 100
 enterprise: 'no'
 ---
-
 
 ## Configurations
 
 The "disk" configuration value is denominated in MB. We recommend you set the configuration value `log_retention_bytes` to a value smaller than the indicated "disk" configuration. See the Configuring section for instructions for customizing these values.
 
-### Configuration changes
-
-You cannot decrease the number of nodes or change volume requirements after initial deployment.
-
-## Managing configurations outside of the service
-
-Out-of-band configuration modifications are not supported. The Kafka service's core responsibility is to deploy and maintain the deployment of a Kafka cluster whose configuration has been specified. In order to do this, the service assumes that it has ownership of broker configuration. If an end-user makes modifications to individual brokers through out-of-band configuration operations, the service will almost certainly override those modifications at a later time. If a broker crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band. If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.
-
-## Brokers
-
-The number of deployable brokers is constrained by two factors. First, brokers have specified required resources, so brokers may not be placed if the DC/OS cluster lacks the requisite resources. Second, the specified "PLACEMENT_STRATEGY" environment variable may affect how many brokers can be created in a Kafka cluster. By default, the value is "ANY," so brokers are placed anywhere and are only constrained by the resources of the cluster. A second option is "NODE." In this case only, one broker may be placed on a given DC/OS agent.
-
 ## Security
 
 The security features introduced in Apache Kafka 0.9 are not supported at this time.
 
+## Out-of-band configuration
+
+Out-of-band configuration modifications are not supported. The service's core responsibility is to deploy and maintain the service with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will override those modifications at a later time. For example:
+- If a task crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band.
+- If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.
+
+## Scaling in
+
+To prevent accidental data loss, the service does not support reducing the number of pods.
+
+## Disk changes
+
+To prevent accidental data loss from reallocation, the service does not support changing volume requirements after initial deployment.
+
+## Best-effort installation
+
+If your cluster doesn't have enough resources to deploy the service as requested, the initial deployment will not complete until either those resources are available or until you reinstall the service with corrected resource requirements. Similarly, scale-outs following initial deployment will not complete if the cluster doesn't have the needed available resources to complete the scale-out.
+
 ## Virtual networks
 
-When Kafka is deployed on a virtual network, such as the `dcos` overlay network, the configuration cannot be updated to use the host network.
+When the service is deployed on a virtual network, the service may not be switched to host networking without a full re-installation. The same is true for attempting to switch from host to virtual networking.

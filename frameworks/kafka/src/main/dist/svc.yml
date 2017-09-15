@@ -66,8 +66,8 @@ pods:
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
           server-properties:
-            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-            dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
+            template: server.properties.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/server.properties
         readiness-check:
           cmd: |
             # since the server is just started, the starting and started log lines

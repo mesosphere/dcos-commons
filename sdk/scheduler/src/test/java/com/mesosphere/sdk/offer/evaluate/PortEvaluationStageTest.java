@@ -11,6 +11,7 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,7 +68,9 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     }
 
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
-        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, flags);
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags).build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule((offer, offerRequirement, taskInfos) ->

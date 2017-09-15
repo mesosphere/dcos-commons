@@ -11,6 +11,7 @@ import os.path
 import re
 import sys
 import tempfile
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -100,8 +101,12 @@ class UniversePackageBuilder(object):
         - Custom environment params like 'TEMPLATE_SOME_PARAM' which maps to '{{some-param}}'
         '''
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
+        now = time.time()
         template_mapping = {
+            'package-name': self._pkg_name,
             'package-version': self._pkg_version,
+            'package-build-time-epoch-ms': str(int(round(now * 1000))),
+            'package-build-time-str': time.strftime('%a %b %d %Y %H:%M:%S +0000', time.gmtime(now)),
             'artifact-dir': self._upload_dir_url,
             'documentation-path': self._get_documentation_path(),
             'issues-path': self._get_issues_path(),
