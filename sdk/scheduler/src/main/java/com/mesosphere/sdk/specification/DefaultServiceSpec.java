@@ -18,6 +18,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -27,6 +28,8 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -113,15 +116,43 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.user);
     }
 
-
-    public static Generator newGenerator(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
-        return newGenerator(rawServiceSpec, schedulerFlags, new TaskEnvRouter());
+    /**
+     * Returns a new generator with the provided configuration.
+     *
+     * @param rawServiceSpec The object model representation of a Service Specification YAML file
+     * @param schedulerFlags Scheduler flags containing operator-facing knobs
+     * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
+     *     directory as the Service Specification YAML file
+     */
+    public static Generator newGenerator(
+            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, File configTemplateDir) {
+        return new Generator(rawServiceSpec, schedulerFlags, new TaskEnvRouter(), configTemplateDir);
     }
 
+    /**
+     * Used by unit tests.
+     */
+    @VisibleForTesting
+    public static Generator newGenerator(File rawServiceSpecFile, SchedulerFlags schedulerFlags) throws Exception {
+        return new Generator(
+                RawServiceSpec.newBuilder(rawServiceSpecFile).build(),
+                schedulerFlags,
+                new TaskEnvRouter(),
+                rawServiceSpecFile.getParentFile()); // assume that any configs are in the same directory as the spec
+    }
+
+    /**
+     * Used by unit tests.
+     */
     @VisibleForTesting
     public static Generator newGenerator(
-            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, TaskEnvRouter taskEnvRouter) {
-        return new Generator(rawServiceSpec, schedulerFlags, taskEnvRouter);
+            RawServiceSpec rawServiceSpec,
+            SchedulerFlags schedulerFlags,
+            Map<String, String> schedulerEnvironment,
+            File configTemplateDir)
+                    throws Exception {
+        return new Generator(
+                rawServiceSpec, schedulerFlags, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
     }
 
     public static Builder newBuilder() {
@@ -221,7 +252,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
-     * @param serviceSpec specification to test for successful serialization/deserialization
+     * @param serviceSpec           specification to test for successful serialization/deserialization
      * @throws ConfigStoreException if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec)
@@ -238,7 +269,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      * @param additionalSubtypesToRegister any class subtypes which should be registered with
      *                                     Jackson for deserialization. any custom placement rule implementations
      *                                     must be provided
-     * @throws ConfigStoreException if testing the provided specification fails
+     * @throws ConfigStoreException        if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
@@ -342,14 +373,17 @@ public class DefaultServiceSpec implements ServiceSpec {
         private final RawServiceSpec rawServiceSpec;
         private final SchedulerFlags schedulerFlags;
         private final TaskEnvRouter taskEnvRouter;
-        private YAMLToInternalMappers.FileReader fileReader;
+        private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
 
         private Generator(
-                RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, TaskEnvRouter taskEnvRouter) {
+                RawServiceSpec rawServiceSpec,
+                SchedulerFlags schedulerFlags,
+                TaskEnvRouter taskEnvRouter,
+                File configTemplateDir) {
             this.rawServiceSpec = rawServiceSpec;
             this.schedulerFlags = schedulerFlags;
             this.taskEnvRouter = taskEnvRouter;
-            this.fileReader = new YAMLToInternalMappers.FileReader();
+            this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
         }
 
         /**
@@ -377,13 +411,14 @@ public class DefaultServiceSpec implements ServiceSpec {
          * This is exposed to support mockery in tests.
          */
         @VisibleForTesting
-        public Generator setFileReader(YAMLToInternalMappers.FileReader fileReader) {
-            this.fileReader = fileReader;
+        public Generator setConfigTemplateReader(YAMLToInternalMappers.ConfigTemplateReader configTemplateReader) {
+            this.configTemplateReader = configTemplateReader;
             return this;
         }
 
         public DefaultServiceSpec build() throws Exception {
-            return YAMLToInternalMappers.convertServiceSpec(rawServiceSpec, schedulerFlags, taskEnvRouter, fileReader);
+            return YAMLToInternalMappers.convertServiceSpec(
+                    rawServiceSpec, schedulerFlags, taskEnvRouter, configTemplateReader);
         }
     }
 

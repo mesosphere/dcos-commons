@@ -5,11 +5,13 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
  */
 public class OfferQueue {
     private static final int DEFAULT_CAPACITY = 100;
+    private static final Duration DEFAULT_OFFER_WAIT = Duration.ofSeconds(5);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
 
@@ -29,21 +32,34 @@ public class OfferQueue {
     }
 
     /**
-     * Calling this method is a blocking Operation. It returns all Offers currently in the queue. It always returns at
-     * least one Offer.
+     * Calling this method will wait for Offers for the provided duration.
+     * It returns all Offers currently in the queue if any are present and none otherwise.
      */
-    public List<Protos.Offer> takeAll() {
+    public List<Protos.Offer> takeAll(Duration duration) {
         List<Protos.Offer> offers = new LinkedList<>();
         try {
-            // The take() call is blocking, so waits for at least one Offer is returned.  The following drainTo() call
-            // will pull the remainder of Offers (including zero Offers) off the queue and return.
-            offers.add(queue.take());
+            // The poll() waits for one Offer or returns null if none is present within the timeout.  The following
+            // drainTo() call will pull the remainding of Offers (including zero Offers) off the queue and return.
+            Protos.Offer offer = queue.poll(duration.getSeconds(), TimeUnit.SECONDS);
+            if (offer != null) {
+                offers.add(offer);
+            }
+
             queue.drainTo(offers);
         } catch (InterruptedException e) {
             logger.warn("Interrupted while waiting for offer in queue.");
         }
 
         return offers;
+    }
+
+    /**
+     * Calling this method will wait for Offers for a static duration of {@link OfferQueue#DEFAULT_CAPACITY}.
+     * It returns all Offers currently in the queue if any are present and an empty list if the duration
+     * of {@link OfferQueue#DEFAULT_OFFER_WAIT} is reached.
+     */
+    public List<Protos.Offer> takeAll() {
+        return takeAll(DEFAULT_OFFER_WAIT);
     }
 
     /**

@@ -11,6 +11,7 @@ import os.path
 import re
 import sys
 import tempfile
+import time
 
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,8 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 _jre_url = 'https://downloads.mesosphere.com/java/jre-8u144-linux-x64.tar.gz'
 _jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u131-linux-x64-jce-unlimited.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-1.10-1.4-63e0814.tar.gz'
+
+_docs_root = "https://docs.mesosphere.com"
 
 _command_json_filename = 'command.json'
 _config_json_filename = 'config.json'
@@ -82,6 +85,15 @@ class UniversePackageBuilder(object):
                 buf = fd.read(BLOCKSIZE)
         return hasher.hexdigest()
 
+    def _get_documentation_path(self):
+        documentation_path = "{}/service-docs/{}/".format(_docs_root, self._pkg_name)
+        if self._pkg_version != "stub-universe":
+            documentation_path = "{}v{}/".format(documentation_path, self._pkg_version)
+        return documentation_path
+
+    def _get_issues_path(self):
+        return "{}/support/".format(_docs_root)
+
     def _get_template_mapping_for_content(self, orig_content):
         '''Returns a template mapping (dict) for the following cases:
         - Default params like '{{package-version}}' and '{{artifact-dir}}'
@@ -89,9 +101,15 @@ class UniversePackageBuilder(object):
         - Custom environment params like 'TEMPLATE_SOME_PARAM' which maps to '{{some-param}}'
         '''
         # default template values (may be overridden via eg TEMPLATE_PACKAGE_VERSION envvars):
+        now = time.time()
         template_mapping = {
+            'package-name': self._pkg_name,
             'package-version': self._pkg_version,
+            'package-build-time-epoch-ms': str(int(round(now * 1000))),
+            'package-build-time-str': time.strftime('%a %b %d %Y %H:%M:%S +0000', time.gmtime(now)),
             'artifact-dir': self._upload_dir_url,
+            'documentation-path': self._get_documentation_path(),
+            'issues-path': self._get_issues_path(),
             'jre-url': _jre_url,
             'jre-jce-unlimited-url': _jre_jce_unlimited_url,
             'libmesos-bundle-url': _libmesos_bundle_url}

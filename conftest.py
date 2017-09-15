@@ -31,7 +31,7 @@ def get_task_ids(user: str=None):
     """ This function uses dcos task WITHOUT the JSON options because
     that can return the wrong user for schedulers
     """
-    tasks = subprocess.check_output(['dcos', 'task', '--completed']).decode().split('\n')
+    tasks = subprocess.check_output(['dcos', 'task']).decode().split('\n')
     for task_str in tasks[1:]: # First line is the header line
         task = task_str.split()
         if len(task) < 5:
@@ -42,7 +42,7 @@ def get_task_ids(user: str=None):
 
 def get_task_logs_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000):
     result = subprocess.run(
-        ['dcos', 'task', 'log', task_id, '--completed', '--lines', str(lines), task_file],
+        ['dcos', 'task', 'log', task_id, '--lines', str(lines), task_file],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -72,8 +72,14 @@ def pytest_runtest_makereport(item, call):
     # properly handle post-yield fixture teardown failures.
     if rep.failed:
         log.error('Test {} failed in {} phase, dumping state'.format(item.name, rep.when))
-        get_task_logs_on_failure(item.name)
-        get_mesos_state_on_failure(item.name)
+        try:
+            get_task_logs_on_failure(item.name)
+        except Exception:
+            log.exception('Task log collection failed!')
+        try:
+            get_mesos_state_on_failure(item.name)
+        except Exception:
+            log.exception('Mesos state collection failed!')
 
 
 def get_rotating_task_log_lines(task_id: str, task_file: str):

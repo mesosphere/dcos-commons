@@ -90,7 +90,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOfferSet(List<Protos.Offer> offers) {
+    protected void executePlans(List<Protos.Offer> offers) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());

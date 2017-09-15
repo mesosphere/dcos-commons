@@ -6,42 +6,38 @@ import (
 	"os"
 )
 
-var libprocessIP = "LIBPROCESS_IP"
-var mesosContainerIP = "MESOS_CONTAINER_IP"
+// This helper function gives the current container's IP address, when run in a
+// given network, mnt and UTS namespace.  The function first checks the presence of
+// `LIBPROCESS_IP` if present it will return this as the container's IP address
+// else it will look at the `hostname` setup for the container to pick out the
+// IP address associated with the hostname.
+func ContainerIP() (containerIP net.IP, err error) {
+	ip := os.Getenv("LIBPROCESS_IP")
+	if ip != "" {
+		containerIP = net.ParseIP(ip)
+		if containerIP == nil {
+			err = fmt.Errorf("Invalid LIBPROCESS_IP found: %s", ip)
+			return
+		}
 
-// ContainerIP This helper function gives the current container's IP address, when run in a
-// given network, mnt and UTS namespace.
-func ContainerIP() (net.IP, error) {
-	// First, try MESOS_CONTAINER_IP (DC/OS 1.10+, when running the default executor)
-	ip, err := validateIP(mesosContainerIP)
-	if ip != nil || err != nil {
-		return ip, err
+		if containerIP.String() != "0.0.0.0" && containerIP.String() != "::" {
+			return
+		}
 	}
 
-	// Fall through to LIBPROCESS_IP (< DC/OS 1.10, custom executor)
-	ip, err = validateIP(libprocessIP)
-	if ip != nil || err != nil {
-		return ip, err
+	// LIBPROCESS_IP is empty or is set to 0.0.0.0 or ::
+	hostName, err := os.Hostname()
+	if err != nil {
+		err = fmt.Errorf("Unable to retrieve hostname: %s", err)
+		return
 	}
 
-	return nil, fmt.Errorf("Neither MESOS_CONTAINER_IP nor LIBPROCESS_IP is set. Cannot determine IP.")
-}
-
-func validateIP(envvar string) (net.IP, error) {
-	ip := os.Getenv(envvar)
-	if ip == "" {
-		return nil, nil
+	ipAddr, err := net.ResolveIPAddr("ip", hostName)
+	if err != nil {
+		err = fmt.Errorf("Unable to resolve hostname(%s): %s", hostName, err)
+		return
 	}
 
-	validIP := net.ParseIP(ip)
-	if validIP == nil {
-		return nil, fmt.Errorf("Invalid %s found: %s", envvar, ip)
-	}
-
-	if validIP.String() == "0.0.0.0" || validIP.String() == "::" {
-		return nil, fmt.Errorf("%s is INADDR_ANY: %s", envvar, ip)
-	}
-
-	return validIP, nil
-
+	containerIP = ipAddr.IP
+	return
 }

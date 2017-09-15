@@ -22,6 +22,10 @@
   },
   {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "SERVICE_NAME": "{{service.name}}",
     "SERVICE_USER": "{{service.user}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
@@ -138,13 +142,11 @@
     "TASKCFG_ALL_CASSANDRA_PHI_CONVICT_THRESHOLD": "{{cassandra.phi_convict_threshold}}",
     "TASKCFG_ALL_CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED": "{{cassandra.buffer_pool_use_heap_if_exhausted}}",
     "TASKCFG_ALL_CASSANDRA_DISK_OPTIMIZATION_STRATEGY": "{{cassandra.disk_optimization_strategy}}",
-    "TASKCFG_ALL_CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS": "{{cassandra.streaming_socket_timeout_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_MAX_VALUE_SIZE_IN_MB": "{{cassandra.max_value_size_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_OTC_COALESCING_STRATEGY": "{{cassandra.otc_coalescing_strategy}}",
     "TASKCFG_ALL_REMOTE_SEEDS": "{{service.remote_seeds}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
-    "S3CLI_URI": "{{resource.assets.uris.s3cli-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
     "CASSANDRA_URI": "{{resource.assets.uris.cassandra-tar-gz}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
@@ -152,8 +154,7 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "TASKCFG_ALL_CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
     "TASKCFG_ALL_CASSANDRA_LOCATION_RACK": "{{service.rack}}",
-    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
-    "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
+    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

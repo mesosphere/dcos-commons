@@ -219,10 +219,9 @@ public class PodInfoBuilder {
                 .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
-            CommandSpec commandSpec = taskSpec.getCommand().get();
-            Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder();
-            commandBuilder.setValue(commandSpec.getValue())
-                    .setEnvironment(getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
+            Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder()
+                    .setValue(taskSpec.getCommand().get().getValue())
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
             setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
 
@@ -274,8 +273,8 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
-        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
-        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec);
+        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec);
         setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
@@ -352,14 +351,21 @@ public class PodInfoBuilder {
         return executorInfoBuilder;
     }
 
-    private static Protos.Environment getTaskEnvironment(
-            String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
+    /**
+     * Generates a Task environment containing the configured environment values from the {@link CommandSpec}, along
+     * with a set of default environment variables that all SDK tasks get for free.
+     */
+    @VisibleForTesting
+    public static Map<String, String> getTaskEnvironment(
+            String serviceName, PodInstance podInstance, TaskSpec taskSpec) {
         Map<String, String> environmentMap = new TreeMap<>();
 
         // Task envvars from either of the following sources:
         // - ServiceSpec (provided by developer)
         // - TASKCFG_<podname>_* (provided by user, handled when parsing YAML, potentially overrides ServiceSpec)
-        environmentMap.putAll(commandSpec.getEnvironment());
+        if (taskSpec.getCommand().isPresent()) {
+            environmentMap.putAll(taskSpec.getCommand().get().getEnvironment());
+        }
 
         // Default envvars for use by executors/developers:
         // Unline the envvars added in getExecutorEnvironment(), these are specific to individual tasks and currently
@@ -377,7 +383,7 @@ public class PodInfoBuilder {
         // Inject TASK_NAME as KEY for conditional mustache templating
         environmentMap.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return EnvUtils.toProto(environmentMap);
+        return environmentMap;
     }
 
     private static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
@@ -419,8 +425,7 @@ public class PodInfoBuilder {
             Protos.TaskInfo.Builder taskInfo,
             String serviceName,
             PodInstance podInstance,
-            TaskSpec taskSpec,
-            CommandSpec commandSpec) {
+            TaskSpec taskSpec) {
         if (!taskSpec.getHealthCheck().isPresent()) {
             LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -439,20 +444,16 @@ public class PodInfoBuilder {
             healthCheckBuilder.setType(Protos.HealthCheck.Type.COMMAND);
         }
 
-        Protos.CommandInfo.Builder healthCheckCommandBuilder = healthCheckBuilder.getCommandBuilder()
-                .setValue(healthCheckSpec.getCommand());
-        if (taskSpec.getCommand().isPresent()) {
-            healthCheckCommandBuilder.setEnvironment(
-                    getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
-        }
+        healthCheckBuilder.getCommandBuilder()
+                .setValue(healthCheckSpec.getCommand())
+                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
     }
 
     private void setReadinessCheck(
             Protos.TaskInfo.Builder taskInfoBuilder,
             String serviceName,
             PodInstance podInstance,
-            TaskSpec taskSpec,
-            CommandSpec commandSpec) {
+            TaskSpec taskSpec) {
         if (!taskSpec.getReadinessCheck().isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -460,33 +461,25 @@ public class PodInfoBuilder {
 
         ReadinessCheckSpec readinessCheckSpec = taskSpec.getReadinessCheck().get();
 
-        Protos.CommandInfo.Builder readinessCheckCommandBuilder;
         if (useDefaultExecutor) {
+            // Default executors supports the newer TaskInfo.check field:
             Protos.CheckInfo.Builder builder = taskInfoBuilder.getCheckBuilder()
                     .setType(Protos.CheckInfo.Type.COMMAND)
                     .setDelaySeconds(readinessCheckSpec.getDelay())
                     .setIntervalSeconds(readinessCheckSpec.getInterval())
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
-
-            readinessCheckCommandBuilder = builder.getCommandBuilder().getCommandBuilder();
-            readinessCheckCommandBuilder.setValue(readinessCheckSpec.getCommand());
-            if (taskSpec.getCommand().isPresent()) {
-                readinessCheckCommandBuilder.setEnvironment(
-                        getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
-            }
+            builder.getCommandBuilder().getCommandBuilder()
+                    .setValue(readinessCheckSpec.getCommand())
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
         } else {
+            // Custom executor implies older Mesos where TaskInfo.check doesn't exist yet. Fall back to label hack:
             Protos.HealthCheck.Builder builder = Protos.HealthCheck.newBuilder()
                     .setDelaySeconds(readinessCheckSpec.getDelay())
                     .setIntervalSeconds(readinessCheckSpec.getInterval())
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
-
-            readinessCheckCommandBuilder = builder.getCommandBuilder();
-            readinessCheckCommandBuilder.setValue(readinessCheckSpec.getCommand());
-            if (taskSpec.getCommand().isPresent()) {
-                readinessCheckCommandBuilder.setEnvironment(
-                        getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
-            }
-
+            builder.getCommandBuilder()
+                    .setValue(readinessCheckSpec.getCommand())
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
             taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                     .setReadinessCheck(builder.build())
                     .toProto());

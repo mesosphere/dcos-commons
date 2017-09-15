@@ -1,9 +1,8 @@
 ---
 post_title: Managing
 nav_title: Managing
-menu_order: 80
+menu_order: 60
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -177,11 +176,11 @@ dcos beta-cassandra pod replace node-2
 ```
 
 ## Seed nodes
-Cassandra seed nodes are those nodes with indices smaller than the seed node count.  By default, Cassandra is deployed 
+Cassandra seed nodes are those nodes with indices smaller than the seed node count.  By default, Cassandra is deployed
 with a seed node count of two.  So, node-0 and node-1 are seed nodes. When a replace operation is performed on one these
-nodes, all other nodes must be restarted to be brought up to date regarding the ip address of the new seed node. This 
+nodes, all other nodes must be restarted to be brought up to date regarding the ip address of the new seed node. This
 operation is performed automatically.
-  
+
 For example if `node-0` needed to be replaced we would execute:
 
 ```bash

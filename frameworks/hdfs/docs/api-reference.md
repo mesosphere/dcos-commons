@@ -1,7 +1,6 @@
 ---
 post_title: API Reference
-menu_order: 60
-feature_maturity: preview
+menu_order: 70
 enterprise: 'no'
 ---
 
@@ -19,8 +18,8 @@ If you are using open source DC/OS, follow these instructions to [pass your HTTP
 
 Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:
 
-```
-export auth_token=uSeR_t0k3n
+```bash
+$ export auth_token=uSeR_t0k3n
 ```
 
 The `curl` examples in this document assume that an auth token has been stored in an environment variable named `auth_token`.
@@ -31,14 +30,14 @@ If you are using Enterprise DC/OS, the security mode of your installation may al
 The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.
 
 ```bash
-curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy
 ```
 ## Pause Installation
 
 The installation will pause after completing installation of the current node and wait for user input.
 
 ```bash
-curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 ## Resume Installation
@@ -46,17 +45,17 @@ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pla
 The REST API request below will resume installation at the next pending node.
 
 ```bash
-curl -X PUT <dcos_surl>/service/hdfs/v1/plans/deploy/continue
+$ curl -X PUT <dcos_surl>/service/hdfs/v1/plans/deploy/continue
 ```
 
 # Connection API
 
 ```bash
-curl -H "Authorization:token=$auth_token" dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
+$ curl -H "Authorization:token=$auth_token" dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
 ```
 
 ```bash
-curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/endpoints/core-site.xml
 ```
 
 You will see a response similar to the following:
@@ -290,13 +289,13 @@ The pod API provides endpoints for retrieving information about nodes, restartin
 A list of available node ids can be retrieved by sending a GET request to `/v1/pod`:
 
 CLI Example
-```
-dcos beta-hdfs pod list
+```bash
+$ dcos beta-hdfs pod list
 ```
 
 HTTP Example
-```
-curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod
+```bash
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod
 [
     "data-0",
     "data-1",
@@ -315,18 +314,18 @@ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod
 
 You can retrieve node information by sending a GET request to `/v1/pod/<node-id>/info`:
 
-```
-curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/info
+```bash
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/info
 ```
 
 CLI Example
-```
-dcos beta-hdfs pod info journal-0
+```bash
+$ dcos beta-hdfs pod info journal-0
 ```
 
 HTTP Example
-```
-curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/journal-0/info
+```bash
+$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/journal-0/info
 [{
 	info: {
 		name: "journal-0-node",
@@ -725,13 +724,13 @@ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/journa
 The replace endpoint can be used to replace a node with an instance running on another agent node.
 
 CLI Example
-```
-dcos beta-hdfs pod replace <node-id>
+```bash
+$ dcos beta-hdfs pod replace <node-id>
 ```
 
 HTTP Example
-```
-curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/replace
+```bash
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/replace
 ```
 
 If the operation succeeds, a `200 OK` is returned.
@@ -741,13 +740,13 @@ If the operation succeeds, a `200 OK` is returned.
 The restart endpoint can be used to restart a node in place on the same agent node.
 
 CLI Example
-```
-dcos beta-hdfs pod restart <node-id>
+```bash
+$ dcos beta-hdfs pod restart <node-id>
 ```
 
 HTTP Example
 ```bash
-curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/restart
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/restart
 ```
 
 If the operation succeeds a `200 OK` is returned.
@@ -761,13 +760,13 @@ The configuration API provides an endpoint to view current and previous configur
 You can view the current target configuration by sending a GET request to `/v1/configurations/target`.
 
 CLI Example
-```
-dcos beta-hdfs config target
+```bash
+$ dcos beta-hdfs config target
 ```
 
 HTTP Example
-```
-curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/target
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/target
 {
 	name: "hdfs",
 	role: "hdfs-role",
@@ -2025,13 +2024,13 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 You can list all configuration IDs by sending a GET request to `/v1/configurations`.
 
 CLI Example
-```
-dcos beta-hdfs config list
+```bash
+$ dcos beta-hdfs config list
 ```
 
 HTTP Example
-```
-curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations
 [
     "9a8d4308-ab9d-4121-b460-696ec3368ad6"
 ]
@@ -2042,13 +2041,13 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 You can view a specific configuration by sending a GET request to `/v1/configurations/<config-id>`.
 
 CLI Example
-```
-dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+```bash
+$ dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 HTTP Example
-```
-curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 {
     ... same format as target config above ...
 }
@@ -2057,6 +2056,6 @@ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configurati
 # Service Status Info
 Send a GET request to the `/v1/state/properties/suppressed` endpoint to learn if HDFS is in a `suppressed` state and not receiving offers. If a service does not need offers, Mesos can "suppress" it so that other services are not starved for resources.
 You can use this request to troubleshoot: if you think HDFS should be receiving resource offers, but is not, you can use this API call to see if HDFS is suppressed.
-```
-curl -H "Authorization: token=$auth_token" "<dcos_url>/service/hdfs/v1/state/properties/suppressed"
+```bash
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/hdfs/v1/state/properties/suppressed"
 ```

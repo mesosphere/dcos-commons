@@ -22,13 +22,15 @@
   },
   {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "BROKER_KILL_GRACE_PERIOD": "{{brokers.kill_grace_period}}",
-    "CMD_PREFIX": "{{service.cmd_prefix}}",
-    "SECRET_NAME": "{{service.secret_name}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
@@ -70,7 +72,6 @@
     {{/service.tls_allow_plaintext}}
     {{/service.tls}}
 
-    "CONFIG_TEMPLATE_PATH": "kafka-scheduler",
     "KAFKA_VERSION_PATH": "kafka_2.11-0.11.0.0",
 
     "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",

@@ -1,6 +1,6 @@
 ---
 post_title: Kafka
-menu_order: 90
+menu_order: 10
 enterprise: 'no'
 ---
 

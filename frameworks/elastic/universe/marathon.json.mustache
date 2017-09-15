@@ -22,6 +22,10 @@
   },
   {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "ELASTIC_VERSION": "{{elastic-version}}",
     "STATSD_URI": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
@@ -49,6 +53,14 @@
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
+
+    {{#service.tls}}
+    "TASKCFG_ALL_ELASTIC_ENABLE_TLS": "{{service.tls}}",
+    "ELASTICSEARCH_HEALTH_PROTOCOL": "https",
+    {{/service.tls}}
+    {{^service.tls}}
+    "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
+    {{/service.tls}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
@@ -82,8 +94,7 @@
     "COORDINATOR_NODE_PLACEMENT": "{{coordinator_nodes.placement}}",
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
-    "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
-    "CONFIG_TEMPLATE_PATH": "elastic-scheduler"
+    "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

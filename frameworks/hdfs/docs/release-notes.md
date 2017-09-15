@@ -1,7 +1,6 @@
 ---
 post_title: Release Notes
-menu_order: 30
-feature_maturity: preview
+menu_order: 120
 enterprise: 'no'
 ---
 
@@ -29,4 +28,4 @@ enterprise: 'no'
 
 ### Documentation
 - Pre-install notes include five agent pre-requisite
-- Updated CLI documentation 
+- Updated CLI documentation

@@ -3,7 +3,6 @@ post_title: Installing and Customizing
 nav_title: Installing and Customizing
 menu_order: 20
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -40,3 +39,37 @@ You can [install DC/OS Apache Cassandra from the DC/OS web interface](https://do
 dcos package install beta-cassandra --cli
 ```
 Choose `ADVANCED INSTALLATION` to perform a custom installation.
+
+<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
+
+## Integration with DC/OS access controls
+
+In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/cassandra` and `production/cassandra`.
+
+Steps:
+
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
+1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
+
+   ```
+   dcos:adminrouter:service:marathon full				
+   dcos:service:marathon:marathon:services:/testing full
+   dcos:adminrouter:ops:mesos full
+   dcos:adminrouter:ops:slave full
+   ```
+1. Install your service into a folder called `test`. Go to **Catalog**, then search for **beta-cassandra**.
+1. Click **CONFIGURE** and change the service name to `/testing/cassandra`, then deploy.
+
+   The slashes in your service name are interpreted as folders. You are deploying Cassandra in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+
+**Important:**
+- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
+- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
+
+### Interacting with your foldered service
+
+- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/cassandra/v1/endpoints`.
+
+<!-- END DUPLICATE BLOCK -->

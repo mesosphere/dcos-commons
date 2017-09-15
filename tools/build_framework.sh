@@ -13,8 +13,9 @@ usage() {
 # Optional envvars:
 #   REPO_ROOT_DIR: path to root of source repository (default: parent directory of this file)
 #   REPO_NAME: name of the source repository (default: directory name of REPO_ROOT_DIR)
-#   BOOTSTRAP_DIR: path to bootstrap tool, or an empty string to disable bootstrap build (default: <REPO_ROOT_DIR>/sdk/bootstrap)
-#   CLI_DIR: path to the CLI directory, or an empty string to disable CLI build (default: </absolute/framework/path>/cli/)
+#   BOOTSTRAP_DIR: path to bootstrap tool, or "disable" to disable bootstrap build (default: <REPO_ROOT_DIR>/sdk/bootstrap)
+#   EXECUTOR_DIR: path to the executor directory, or "disable" to disable executor build (default: <REPO_ROOT_DIR>/sdk/executor)
+#   CLI_DIR: path to the CLI directory, or "disable" to disable CLI build (default: </absolute/framework/path>/cli/)
 #   UNIVERSE_DIR: path to universe packaging (default: </absolute/framework/path>/universe/)
 
 
@@ -75,6 +76,7 @@ export REPO_NAME=$(basename $REPO_ROOT_DIR) # default to name of REPO_ROOT_DIR
 
 # optional customizable names/paths:
 BOOTSTRAP_DIR=${BOOTSTRAP_DIR:=${REPO_ROOT_DIR}/sdk/bootstrap}
+EXECUTOR_DIR=${EXECUTOR_DIR:=${REPO_ROOT_DIR}/sdk/executor}
 CLI_DIR=${CLI_DIR:=$(ls -d ${FRAMEWORK_DIR}/cli/dcos-*)}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
 
@@ -94,12 +96,19 @@ if [ x"$cli_only" = xtrue ]; then
     exit
 fi
 
-if [ -n "$BOOTSTRAP_DIR" ]; then
+DISABLED_VALUE="disable"
+
+if [ "$BOOTSTRAP_DIR" != $DISABLED_VALUE ]; then
     echo "- Bootstrap: $BOOTSTRAP_DIR"
 else
     echo "- Bootstrap: disabled"
 fi
-if [ -n "$CLI_DIR" ]; then
+if [ "$EXECUTOR_DIR" != $DISABLED_VALUE ]; then
+    echo "- Executor:  $EXECUTOR_DIR"
+else
+    echo "- Executor:  disabled"
+fi
+if [ "$CLI_DIR" != $DISABLED_VALUE ]; then
     echo "- CLI:       $CLI_DIR"
 else
     echo "- CLI:       disabled"
@@ -117,20 +126,22 @@ then
 fi
 
 # Ensure executor build up to date
-${REPO_ROOT_DIR}/gradlew distZip -p ${REPO_ROOT_DIR}/sdk/executor
+if [ "$EXECUTOR_DIR" != $DISABLED_VALUE ]; then
+    ${REPO_ROOT_DIR}/gradlew distZip -p $EXECUTOR_DIR
+fi
 
 # Service (Java):
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
 
 BOOTSTRAP_ARTIFACT=""
-if [ -n "$BOOTSTRAP_DIR" ]; then
+if [ "$BOOTSTRAP_DIR" != $DISABLED_VALUE ]; then
     # Executor Bootstrap (Go):
     ${BOOTSTRAP_DIR}/build.sh
     BOOTSTRAP_ARTIFACT="${BOOTSTRAP_DIR}/bootstrap.zip"
 fi
 
 CLI_ARTIFACTS=""
-if [ -n "$CLI_DIR" ]; then
+if [ "$CLI_DIR" != $DISABLED_VALUE ]; then
     build_cli
     CLI_ARTIFACTS="${CLI_DIR}/dcos-service-cli-linux ${CLI_DIR}/dcos-service-cli-darwin ${CLI_DIR}/dcos-service-cli.exe"
 fi

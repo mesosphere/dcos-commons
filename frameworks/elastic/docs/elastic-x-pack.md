@@ -1,7 +1,6 @@
 ---
 post_title: X-Pack
-menu_order: 31
-feature_maturity: preview
+menu_order: 21
 enterprise: 'no'
 ---
 
@@ -12,11 +11,11 @@ enterprise: 'no'
 ![x-pack](img/x-pack.png)
 
 You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don't wish to purchase a license, you can disable it without losing access to your data.
-  
+
 ## License Expiration
 
 If you uninstall the X-Pack plugin via the service configuration or you let your license expire, remember these two important points:
- 
+
 1. Your data is still there.
 1. All data operations (read and write) continue to work.
 

@@ -1,9 +1,8 @@
 ---
 post_title: Cassandra Settings
 nav_title: Cassandra Settings
-menu_order: 40
+menu_order: 24
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 

@@ -22,6 +22,10 @@
   },
   {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "HDFS_VERSION": "hadoop-2.6.0-cdh5.11.0",
@@ -121,8 +125,7 @@
     "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS": "*",
     "TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}",
     "TASKCFG_ALL_IPC_CLIENT_CONNECT_MAX_RETRIES": "{{hdfs.ipc_client_connect_max_retries}}",
-    "TASKCFG_ALL_TASK_USER": "{{service.user}}",
-    "CONFIG_TEMPLATE_PATH": "hdfs-scheduler"
+    "TASKCFG_ALL_TASK_USER": "{{service.user}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

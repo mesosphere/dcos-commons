@@ -1,9 +1,8 @@
 ---
 post_title: Disaster Recovery
 nav_title: Disaster Recovery
-menu_order: 90
+menu_order: 80
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 

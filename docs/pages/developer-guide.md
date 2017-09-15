@@ -1600,11 +1600,11 @@ pods:
         memory: 256
         configs:
           config.xml:
-            template: "config.xml.mustache"
+            template: config.xml.mustache
             dest: etc/config.xml
 ```
 
-The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables within the task, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#task-bootstrap) for more information. at the beginning of the task.
+The template content may be templated using the [mustache format](https://mustache.github.io/mustache.5.html). Any templated parameters in the file may be automatically populated with environment variables _from within the task_, by including the `bootstrap` utility in your tasks. See [Bootstrap Tool](#task-bootstrap) for more information. at the beginning of the task.
 
 For example, say you had a container with the following environment variables:
 

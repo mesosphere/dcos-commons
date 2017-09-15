@@ -8,6 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import os
+import re
 import tempfile
 import traceback
 
@@ -71,15 +72,10 @@ class InstallJobContext(object):
 def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
-    sdk_cmd.run_cli('job run {}'.format(job_name))
+    # start job run, get run ID to be polled against:
+    run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
 
-    def wait_for_run_id():
-        runs = json.loads(sdk_cmd.run_cli('job show runs {} --json'.format(job_name)))
-        if len(runs) > 0:
-            return runs[0]['id']
-        return ''
-    run_id = shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
-
+    # wait for run to succeed, throw if run fails:
     def fun():
         # catch errors from CLI: ensure that the only error raised is our own:
         try:

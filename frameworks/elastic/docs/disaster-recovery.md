@@ -1,7 +1,6 @@
 ---
-post_title: Backup and Restore
-menu_order: 34
-feature_maturity: preview
+post_title: Disaster Recovery
+menu_order: 80
 enterprise: 'no'
 ---
 

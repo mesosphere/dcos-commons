@@ -21,6 +21,10 @@
   },
   {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "SLEEP_DURATION": "{{service.sleep}}",
     "FRAMEWORK_USER": "{{service.user}}",

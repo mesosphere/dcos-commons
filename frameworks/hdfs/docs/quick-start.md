@@ -1,7 +1,6 @@
 ---
 post_title: Quickstart
-menu_order: 0
-feature_maturity: experimental
+menu_order: 40
 enterprise: 'no'
 ---
 
@@ -21,7 +20,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Install the HDFS package.
 
     ```bash
-    dcos package install hdfs
+    $ dcos package install hdfs
     ```
 
     **Tip:** Type `dcos hdfs` to view the HDFS CLI options.
@@ -30,7 +29,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Show the currently configured HDFS nodes.
 
     ```bash
-    dcos hdfs config list
+    $ dcos hdfs config list
     ```
 
     The output should resemble:
@@ -46,13 +45,13 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  [SSH](https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/) to the leading master node.
 
     ```bash
-    dcos node ssh --leader --master-proxy
+    $ dcos node ssh --leader --master-proxy
     ```
 
 1.  Pull the HDFS Docker container down to your node and start an interactive pseudo-TTY session.
 
     ```bash
-    docker run -it mesosphere/hdfs-client:2.6.4 /bin/bash
+    $ docker run -it mesosphere/hdfs-client:2.6.4 /bin/bash
     ```
 
     The output should resemble:
@@ -76,13 +75,13 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     By default, the client is configured to be configured to connect to an HDFS service named `hdfs` and no further client configuration is required. If you want to configure with a different name, run this command with name (`<hdfs-name>`) specified:
 
     ```bash
-    HDFS_SERVICE_NAME=<hdfs-name> ./configure-hdfs.sh
+    $ HDFS_SERVICE_NAME=<hdfs-name> ./configure-hdfs.sh
     ```
 
 1.  List the contents.
 
     ```bash
-    ./bin/hdfs dfs -ls /
+    $ ./bin/hdfs dfs -ls /
     ```
 
     The output should be empty.
@@ -90,13 +89,13 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Create a file on HDFS.
 
     ```bash
-    echo "Test" | ./bin/hdfs dfs -put - /test.txt
+    $ echo "Test" | ./bin/hdfs dfs -put - /test.txt
     ```
 
 1.  List the contents again.
 
     ```bash
-    ./bin/hdfs dfs -ls /
+    $ ./bin/hdfs dfs -ls /
     ```
 
     The output should now resemble:
@@ -109,7 +108,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Read the file to ensure data integrity.
 
     ```bash
-    ./bin/hdfs dfs -cat /test.txt
+    $ ./bin/hdfs dfs -cat /test.txt
     ```
 
     The output should resemble:
@@ -123,7 +122,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `hdfs-site.xml` file.
 
         ```bash
-        dcos hdfs endpoints hdfs-site.xml
+        $ dcos hdfs endpoints hdfs-site.xml
         ```
 
         The output should resemble:
@@ -143,7 +142,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `core-site.xml` file.
 
         ```bash
-        dcos hdfs endpoints core-site.xml
+        $ dcos hdfs endpoints core-site.xml
         ```
 
         The output should resemble:

@@ -43,6 +43,7 @@ public abstract class AbstractScheduler implements Scheduler {
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
+    private AtomicBoolean processingOffers = new AtomicBoolean(false);
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -50,7 +51,7 @@ public abstract class AbstractScheduler implements Scheduler {
     protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Executor for processing offers off the queue in {@code processOffers()}.
+     * Executor for processing offers off the queue in {@link #executePlansLoop()}.
      */
     private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
 
@@ -60,7 +61,6 @@ public abstract class AbstractScheduler implements Scheduler {
     protected AbstractScheduler(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
         this.stateStore = stateStore;
         this.configStore = configStore;
-        processOffers();
     }
 
     @Override
@@ -93,25 +93,25 @@ public abstract class AbstractScheduler implements Scheduler {
         postRegister();
     }
 
-    private void processOffers() {
+    /**
+     * This method starts the main execution thread for the scheduler.  It drives the execution of plans including
+     * providing offers.
+     */
+    private void executePlansLoop() {
         offerExecutor.execute(() -> {
             while (true) {
-                // This is a blocking call which pulls as many elements from the offer queue as possible.
                 List<Protos.Offer> offers = offerQueue.takeAll();
                 LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
                 for (int i = 0; i < offers.size(); ++i) {
-                    LOGGER.info("  {}: {}",
-                            i + 1,
-                            TextFormat.shortDebugString(offers.get(i)));
+                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
-                processOfferSet(offers);
+                executePlans(offers);
                 offers.forEach(offer -> eventBus.post(offer));
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
                             offers.stream()
                                     .map(offer -> offer.getId())
                                     .collect(Collectors.toList()));
-
                     LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
                             offers.size(),
                             offers.size() == 1 ? "" : "s",
@@ -158,10 +158,13 @@ public abstract class AbstractScheduler implements Scheduler {
         for (Protos.Offer offer : offers) {
             boolean queued = offerQueue.offer(offer);
             if (!queued) {
-                LOGGER.warn(
-                        "Failed to enqueue offer. Offer queue is full. Declining offer: '{}'",
+                LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                         offer.getId().getValue());
                 OfferUtils.declineOffers(driver, Arrays.asList(offer));
+                // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
+                synchronized (inProgressLock) {
+                    offersInProgress.remove(offer.getId());
+                }
             }
         }
     }
@@ -230,9 +233,17 @@ public abstract class AbstractScheduler implements Scheduler {
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
+    /**
+     * Registration can occur multiple times in a scheduler's lifecycle via both
+     * {@link Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} and
+     * {@link Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)} calls.
+     */
     protected void postRegister() {
+        // Task reconciliation should be started on all registrations.
         reconciler.start();
         reconciler.reconcile(driver);
+
+        // A SuppressReviveManager should be constructed only once.
         if (suppressReviveManager == null) {
             suppressReviveManager = new SuppressReviveManager(
                     stateStore,
@@ -243,13 +254,21 @@ public abstract class AbstractScheduler implements Scheduler {
         }
 
         suppressReviveManager.start();
+
+        // The main plan execution loop should only be started once.
+        if (processingOffers.compareAndSet(false, true)) {
+            executePlansLoop();
+        }
     }
 
     protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
 
     protected abstract boolean apiServerReady();
 
-    protected abstract void processOfferSet(List<Protos.Offer> offers);
+    /**
+     * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
+     */
+    protected abstract void executePlans(List<Protos.Offer> offers);
 
     protected abstract Collection<PlanManager> getPlanManagers();
 }

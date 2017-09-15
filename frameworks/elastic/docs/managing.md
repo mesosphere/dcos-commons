@@ -1,7 +1,6 @@
 ---
 post_title: Managing
-menu_order: 36
-feature_maturity: preview
+menu_order: 60
 enterprise: 'no'
 ---
 

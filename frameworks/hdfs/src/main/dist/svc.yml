@@ -41,17 +41,17 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           hadoop-metrics2:
-            template: {{CONFIG_TEMPLATE_PATH}}/journal-hadoop-metrics2.properties
+            template: journal-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:
@@ -124,17 +124,17 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           hadoop-metrics2:
-            template: {{CONFIG_TEMPLATE_PATH}}/name-hadoop-metrics2.properties
+            template: name-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:
@@ -153,14 +153,14 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:
@@ -179,14 +179,14 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-bootstrap-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:
@@ -205,14 +205,14 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:
@@ -231,14 +231,14 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:
@@ -283,17 +283,17 @@ pods:
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/KRB5_CONF_URI}}
           core-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/core-site.xml
+            template: core-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/core-site.xml
           hdfs-site:
-            template: {{CONFIG_TEMPLATE_PATH}}/hdfs-site.xml
+            template: hdfs-site.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
           hadoop-metrics2:
-            template: {{CONFIG_TEMPLATE_PATH}}/data-hadoop-metrics2.properties
+            template: data-hadoop-metrics2.properties
             dest: {{HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
           {{#TLS_ENABLED}}
           ssl-server:
-            template: {{CONFIG_TEMPLATE_PATH}}/ssl-server.xml
+            template: ssl-server.xml
             dest: {{HDFS_VERSION}}/etc/hadoop/ssl-server.xml
           {{/TLS_ENABLED}}
         env:

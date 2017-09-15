@@ -1,7 +1,6 @@
 ---
 post_title: Release Notes
-menu_order: 40
-feature_maturity: preview
+menu_order: 120
 enterprise: 'no'
 ---
 
