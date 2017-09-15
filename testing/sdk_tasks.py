@@ -62,8 +62,16 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         new_set = set(task_ids)
         newly_launched_set = new_set.difference(old_set)
         old_remaining_set = old_set.intersection(new_set)
-        all_updated = len(newly_launched_set) == len(new_set) and len(old_remaining_set) == 0
+        # the constrainst of old and new task cardinality match should be covered by completion of
+        # deploy/recovery/whatever plan, not task cardinality, but some uses of this method are not
+        # using the plan, so not the definitive source, so will fail when the finished state of a
+        # plan yields more or less tasks per pod.
+        all_updated = len(newly_launched_set) == len(new_set) and len(old_remaining_set) == 0 and len(old_set) == len(new_set)
         if all_updated:
+            log.info('All of the tasks{} have updated\n- Old tasks: {}\n- New tasks: {}'.format(
+                prefix_clause,
+                old_set,
+                new_set))
             return all_updated
 
         # forgive the language a bit, but len('remained') == len('launched'),
