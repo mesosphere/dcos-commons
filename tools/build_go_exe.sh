@@ -58,7 +58,7 @@ fi
 # Run 'go get'/'go build' from within GOPATH:
 cd $GOPATH_EXE_DIR
 
-go get
+#go get
 
 # run unit tests
 go test -v
