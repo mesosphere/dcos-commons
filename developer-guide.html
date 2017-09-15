@@ -850,9 +850,12 @@ now, you must manually run the janitor script as shown above.</p>
 <span class="s">plans</span><span class="pi">:</span>
   <span class="s">deploy</span><span class="pi">:</span>
     <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
-    <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
-    <span class="s">steps</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">init</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]]</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">init</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]]</span>
 </code></pre>
 </div>
 
@@ -878,10 +881,13 @@ now, you must manually run the janitor script as shown above.</p>
 <span class="s">plans</span><span class="pi">:</span>
   <span class="s">deploy</span><span class="pi">:</span>
     <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
-    <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
-    <span class="s">steps</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s">0</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">init</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]]</span>
-      <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">main</span><span class="pi">]]</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">0</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">init</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">main</span><span class="pi">]]</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">main</span><span class="pi">]]</span>
 </code></pre>
 </div>
 
@@ -2066,6 +2072,7 @@ hello
         <span class="s">resource-set</span><span class="pi">:</span> <span class="s">hello-resources</span>
 <span class="s">plans</span><span class="pi">:</span>
   <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
     <span class="s">phases</span><span class="pi">:</span>
       <span class="s">hello-deploy</span><span class="pi">:</span>
         <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
@@ -2110,7 +2117,8 @@ hello
       <span class="s">sidecar-deploy</span><span class="pi">:</span>
         <span class="s">strategy</span><span class="pi">:</span> <span class="s">parallel</span>
         <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
-        <span class="s">tasks</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">sidecar</span><span class="pi">]</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">sidecar</span><span class="pi">]]</span>
 </code></pre>
 </div>
 
