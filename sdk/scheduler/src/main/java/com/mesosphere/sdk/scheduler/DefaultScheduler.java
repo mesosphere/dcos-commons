@@ -118,11 +118,11 @@ public class DefaultScheduler extends AbstractScheduler {
         /**
          * Specifies a custom {@link StateStore}, otherwise the return value of
          * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
-         *
+         * <p>
          * The state store persists copies of task information and task status for all tasks running in the service.
          *
          * @throws IllegalStateException if the state store is already set, via a previous call to either
-         * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+         *                               {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
          */
         public Builder setStateStore(StateStore stateStore) {
             if (stateStoreOptional.isPresent()) {
@@ -136,7 +136,7 @@ public class DefaultScheduler extends AbstractScheduler {
         /**
          * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
          * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
-         *
+         * <p>
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
          */
@@ -149,7 +149,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         /**
          * Specifies a custom {@link ConfigStore}.
-         *
+         * <p>
          * The config store persists a copy of the current configuration ('target' configuration),
          * while also storing historical configurations.
          */
@@ -166,7 +166,7 @@ public class DefaultScheduler extends AbstractScheduler {
         /**
          * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default
          * created via {@link DefaultScheduler#createConfigStore(ServiceSpec, Collection)}.
-         *
+         * <p>
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
          */
@@ -203,7 +203,7 @@ public class DefaultScheduler extends AbstractScheduler {
          * Specifies a custom {@link EndpointProducer} to be added to the /endpoints API. This may be used by services
          * which wish to expose custom endpoint information via that API.
          *
-         * @param name the name of the endpoint to be exposed
+         * @param name             the name of the endpoint to be exposed
          * @param endpointProducer the producer to be invoked when the provided endpoint name is requested
          */
         public Builder setEndpointProducer(String name, EndpointProducer endpointProducer) {
@@ -216,9 +216,9 @@ public class DefaultScheduler extends AbstractScheduler {
          * {@link DefaultPlanGenerator} to handle conversion. This is overridden by any plans manually provided by
          * {@link #setPlans(Collection)}.
          *
-         * @throws ConfigStoreException if creating a default config store fails
+         * @throws ConfigStoreException  if creating a default config store fails
          * @throws IllegalStateException if the plans were already set either via this call or via
-         * {@link #setPlans(Collection)}
+         *                               {@link #setPlans(Collection)}
          */
         public Builder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
             if (rawServiceSpec.getPlans() != null) {
@@ -233,7 +233,7 @@ public class DefaultScheduler extends AbstractScheduler {
          * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
          *
          * @throws IllegalStateException if the plans were already set either via this call or via
-         * {@link #setPlansFrom(RawServiceSpec)}
+         *                               {@link #setPlansFrom(RawServiceSpec)}
          */
         public Builder setPlans(Collection<Plan> plans) {
             this.manualPlans.clear();
@@ -243,6 +243,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         /**
          * Sets the provided {@link PlanManager} to be the plan manager used for recovery.
+         *
          * @param recoveryPlanOverriderFactory the factory whcih generates the custom recovery plan manager
          */
         public Builder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
@@ -253,7 +254,7 @@ public class DefaultScheduler extends AbstractScheduler {
         /**
          * Gets or generate plans against the given service spec.
          *
-         * @param stateStore The state store to use for plan generation.
+         * @param stateStore  The state store to use for plan generation.
          * @param configStore The config store to use for plan generation.
          * @return a collection of plans
          */
@@ -299,7 +300,7 @@ public class DefaultScheduler extends AbstractScheduler {
         /**
          * Detects whether or not the previous deployment's type was set or not and if not, sets it in the state store.
          *
-         * @param stateStore The stateStore to get last deployment type from.
+         * @param stateStore  The stateStore to get last deployment type from.
          * @param configStore The configStore to get plans from.
          */
         private void fixLastDeploymentType(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
@@ -447,7 +448,7 @@ public class DefaultScheduler extends AbstractScheduler {
     @VisibleForTesting
     static ConfigStore<ServiceSpec> createConfigStore(
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
-                    throws ConfigStoreException {
+            throws ConfigStoreException {
         return new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
                 persister);
@@ -473,13 +474,13 @@ public class DefaultScheduler extends AbstractScheduler {
      * Updates the configuration target to reflect the provided {@code serviceSpec} using the provided
      * {@code configValidators}, or stays with the previous configuration if there were validation errors.
      *
-     * @param serviceSpec the service specification to use
-     * @param stateStore the state store to pass to the updater
-     * @param configStore the config store to pass to the updater
+     * @param serviceSpec      the service specification to use
+     * @param stateStore       the state store to pass to the updater
+     * @param configStore      the config store to pass to the updater
      * @param configValidators the list of config validators, see {@link #defaultConfigValidators()} for reasonable
-     *     defaults
+     *                         defaults
      * @return the config update result, which may contain one or more validation errors produced by
-     *     {@code configValidators}
+     * {@code configValidators}
      */
     public static ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,

@@ -37,10 +37,14 @@ import static org.mockito.Mockito.when;
 
 public class DefaultServiceSpecTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
-    @Mock private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
-    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
-    @Mock private StateStore mockStateStore;
-    @Mock private Capabilities capabilities;
+    @Mock
+    private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
+    @Mock
+    private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock
+    private StateStore mockStateStore;
+    @Mock
+    private Capabilities capabilities;
 
     @Before
     public void beforeEach() {
