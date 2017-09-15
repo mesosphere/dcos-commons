@@ -16,13 +16,8 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    tasks:
-      node:
-        goal: RUNNING
-        cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+    resource-sets:
+      journal-resources:
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -34,6 +29,20 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
+    tasks:
+      bootstrap:
+        goal: FINISHED
+        cmd: >
+          mkdir -p journal-data/hdfs/current &&
+          curl api.{{FRAMEWORK_NAME}}.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION > journal-data/hdfs/current/VERSION
+        resource-set: journal-resources
+      node:
+        goal: RUNNING
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+        resource-set: journal-resources
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:
@@ -317,6 +326,10 @@ plans:
       journal:
         strategy: {{DEPLOY_STRATEGY}}
         pod: journal
+        steps:
+          - 0: [[node]]
+          - 1: [[node]]
+          - 2: [[node]]
       name:
         strategy: serial
         pod: name
@@ -338,6 +351,10 @@ plans:
       journal:
         strategy: {{UPDATE_STRATEGY}}
         pod: journal
+        steps:
+          - 0: [[node]]
+          - 1: [[node]]
+          - 2: [[node]]
       name:
         strategy: {{UPDATE_STRATEGY}}
         pod: name
@@ -351,6 +368,13 @@ plans:
   replace:
     strategy: serial
     phases:
+      journal:
+        strategy: serial
+        pod: journal
+        steps:
+          - 0: [[bootstrap], [node]]
+          - 1: [[bootstrap], [node]]
+          - 2: [[bootstrap], [node]]
       name:
         strategy: serial
         pod: name
