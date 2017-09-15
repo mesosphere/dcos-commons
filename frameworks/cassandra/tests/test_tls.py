@@ -58,9 +58,9 @@ def service_account():
 @pytest.fixture(scope='module')
 def cassandra_service_tls(service_account):
     sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
+        package_name=PACKAGE_NAME,
         service_name=service_account,
+        expected_running_tasks=DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
                 "service_account_secret": service_account,
