@@ -1,5 +1,6 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.queue;
 
+import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;

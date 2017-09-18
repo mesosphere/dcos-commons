@@ -4,6 +4,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
+import com.mesosphere.sdk.queue.OfferQueue;
+import com.mesosphere.sdk.queue.WorkSet;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -42,6 +44,8 @@ public abstract class AbstractScheduler implements Scheduler {
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
     private AtomicBoolean processingOffers = new AtomicBoolean(false);
+
+    protected final WorkSet workSet = WorkSet.getInstance();
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -125,6 +129,8 @@ public abstract class AbstractScheduler implements Scheduler {
                     for (int i = 0; i < offers.size(); ++i) {
                         LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                     }
+
+                    workSet.setWork(new HashSet<>(getPlanCoordinator().getCandidates()));
                     executePlans(offers);
                     synchronized (inProgressLock) {
                         offersInProgress.removeAll(
@@ -247,7 +253,7 @@ public abstract class AbstractScheduler implements Scheduler {
 
         // A ReviveManager should be constructed only once.
         if (reviveManager == null) {
-            reviveManager = new ReviveManager(driver, stateStore, getPlanCoordinator());
+            reviveManager = new ReviveManager(driver, stateStore, workSet);
         }
 
         // The main plan execution loop should only be started once.
