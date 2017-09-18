@@ -117,9 +117,7 @@ pods:
           size: {{DATA_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
-          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          MASTER_ENABLED: false
           DATA_ENABLED: true
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
@@ -184,9 +182,7 @@ pods:
           size: {{INGEST_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
-          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
@@ -251,9 +247,7 @@ pods:
           size: {{COORDINATOR_NODE_DISK}}
         cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
-          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"

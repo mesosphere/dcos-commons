@@ -14,6 +14,8 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
+current_expected_task_count = config.DEFAULT_TASK_COUNT
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -26,7 +28,7 @@ def configure_package(configure_security):
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
             foldered_name,
-            config.DEFAULT_TASK_COUNT,
+            current_expected_task_count,
             additional_options={
                 "service": {"name": foldered_name},
                 "ingest_nodes": {"count": 1} })
@@ -41,7 +43,7 @@ def configure_package(configure_security):
 @pytest.fixture(autouse=True)
 def pre_test_setup():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
+    sdk_tasks.check_running(foldered_name, current_expected_task_count)
     config.wait_for_expected_nodes_to_exist(service_name=foldered_name)
 
 
@@ -239,7 +241,6 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 @pytest.mark.sanity
 def test_bump_node_counts():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    # Run this test last, as it changes the task count
     marathon_config = sdk_marathon.get_config(foldered_name)
     data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
     marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
@@ -248,4 +249,25 @@ def test_bump_node_counts():
     coordinator_nodes = int(marathon_config['env']['COORDINATOR_NODE_COUNT'])
     marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(foldered_name, marathon_config)
-    sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT + 3)
+    global current_expected_task_count
+    current_expected_task_count += 3
+    sdk_tasks.check_running(foldered_name, current_expected_task_count)
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_adding_data_nodes_only_restarts_masters():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
+    initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")
+    initial_coordinator_task_ids = sdk_tasks.get_task_ids(foldered_name, "coordinator")
+    marathon_config = sdk_marathon.get_config(foldered_name)
+    data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
+    marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
+    sdk_marathon.update_app(foldered_name, marathon_config)
+    global current_expected_task_count
+    current_expected_task_count += 1
+    sdk_tasks.check_running(foldered_name, current_expected_task_count)
+    sdk_tasks.check_tasks_updated(foldered_name, "master", initial_master_task_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, "data", initial_data_task_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
