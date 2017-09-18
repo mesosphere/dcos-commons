@@ -1,0 +1,56 @@
+package: github.com/dcos/dcos-cni
+import:
+- package: github.com/containernetworking/cni
+  version: 0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff
+  subpackages:
+  - pkg/ip
+  - pkg/ipam
+  - pkg/ns
+  - pkg/skel
+  - pkg/skel
+  - pkg/types
+  - pkg/types/current
+  - pkg/version
+  - libcni
+  - pkg/invoke
+  - pkg/types/020
+  - pkg/utils
+  - pkg/utils/hwaddr
+  - pkg/utils/sysctl
+  - pkg/version/testhelpers
+  - plugins/ipam/host-local/backend
+  - plugins/ipam/host-local/backend/allocator
+  - plugins/ipam/host-local/backend/disk
+  - plugins/test/noop/debug
+- package: github.com/vishvananda/netlink
+  version: fe3b5664d23a11b52ba59bece4ff29c52772a56b
+  subpackages:
+  - nl
+- package: github.com/vishvananda/netns
+  version: 8ba1072b58e0c2a240eb5f6120165c7776c3e7b8
+- package: github.com/coreos/go-iptables
+  subpackages:
+  - iptables
+- package: github.com/coreos/go-systemd
+  subpackages:
+  - activation
+- package: github.com/d2g/dhcp4
+- package: github.com/d2g/dhcp4client
+- package: golang.org/x/sys
+  subpackages:
+  - unix
+  - windows
+  - windows/registry
+  - windows/svc
+  - windows/svc/debug
+  - windows/svc/eventlog
+  - windows/svc/mgr
+testImport:
+- package: github.com/onsi/ginkgo
+  subpackages:
+  - config
+  - extensions/table
+- package: github.com/onsi/gomega
+  subpackages:
+  - gbytes
+  - gexec
