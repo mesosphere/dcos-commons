@@ -19,7 +19,7 @@ import (
 	"github.com/aryann/difflib"
 	"github.com/nickbp/mustache"
 
-    "github.com/dcos/dcos-cni/pkg/mesos"
+	"github.com/dcos/dcos-cni/pkg/mesos"
 )
 
 // arg handling
@@ -31,7 +31,6 @@ const (
 )
 
 var verbose = false
-
 
 type args struct {
 	// Whether to print the container environment up-front
