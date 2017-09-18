@@ -152,6 +152,7 @@ pods:
       restore-snapshot:
         goal: FINISHED
         cmd: >
+                ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
@@ -164,6 +165,10 @@ pods:
 
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
+        configs:
+          cassandra:
+            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
 plans:
   deploy:
     strategy: serial
