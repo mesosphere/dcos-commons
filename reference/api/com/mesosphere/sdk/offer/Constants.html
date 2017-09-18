@@ -170,21 +170,33 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#LONG_DECLINE_SECONDS">LONG_DECLINE_SECONDS</a></span></code>
+<div class="block">The duration in seconds to decline offers the scheduler does not need for the foreseeable future.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#MEMORY_RESOURCE_TYPE">MEMORY_RESOURCE_TYPE</a></span></code>
 <div class="block">The name used for memory resources.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static DiscoveryInfo.Visibility</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#OMITTED_PORT_VISIBILITY">OMITTED_PORT_VISIBILITY</a></span></code>
 <div class="block">The visibility setting to use by default in Mesos Ports, for non-VIP ports.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#PORTS_RESOURCE_TYPE">PORTS_RESOURCE_TYPE</a></span></code>
 <div class="block">The name used for reserved network port resources.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#SHORT_DECLINE_SECONDS">SHORT_DECLINE_SECONDS</a></span></code>
+<div class="block">The duration in seconds to decline offers the scheduler does not need for a short time.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -426,7 +438,7 @@ extends java.lang.Object</pre>
 <a name="DEFAULT_TASK_DISCOVERY_VISIBILITY">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>DEFAULT_TASK_DISCOVERY_VISIBILITY</h4>
 <pre>public static final&nbsp;DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY</pre>
@@ -434,6 +446,30 @@ extends java.lang.Object</pre>
 
  According to the networking team this isn't currently used by DC/OS itself (as of 1.10). It likewise isn't used
  by the SDK.</div>
+</li>
+</ul>
+<a name="LONG_DECLINE_SECONDS">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>LONG_DECLINE_SECONDS</h4>
+<pre>public static final&nbsp;int LONG_DECLINE_SECONDS</pre>
+<div class="block">The duration in seconds to decline offers the scheduler does not need for the foreseeable future.</div>
+</li>
+</ul>
+<a name="SHORT_DECLINE_SECONDS">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>SHORT_DECLINE_SECONDS</h4>
+<pre>public static final&nbsp;int SHORT_DECLINE_SECONDS</pre>
+<div class="block">The duration in seconds to decline offers the scheduler does not need for a short time.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.SHORT_DECLINE_SECONDS">Constant Field Values</a></dd>
+</dl>
 </li>
 </ul>
 </li>

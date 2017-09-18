@@ -993,7 +993,7 @@
 <dd>
 <div class="block">A broken-down representation of a version string's elements.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferUtils.html#declineOffers-SchedulerDriver-java.util.Collection-">declineOffers(SchedulerDriver, Collection&lt;Protos.Offer&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferUtils.html" title="class in com.mesosphere.sdk.offer">OfferUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferUtils.html#declineOffers-SchedulerDriver-java.util.Collection-int-">declineOffers(SchedulerDriver, Collection&lt;Protos.Offer&gt;, int)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferUtils.html" title="class in com.mesosphere.sdk.offer">OfferUtils</a></dt>
 <dd>
 <div class="block">Decline unused <code>org.apache.mesos.Protos.Offer</code>s.</div>
 </dd>
@@ -1632,6 +1632,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPodInstance</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></dt>
@@ -1722,8 +1724,6 @@
 <dd>
 <div class="block">Builder for constructor <a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a> instances.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#eventBus">eventBus</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">ExactMatcher</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
 <div class="block">Implements exact string matching support for string comparisons.</div>
@@ -2133,9 +2133,15 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.html#getBytes--">getBytes()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#getCandidates--">getCandidates()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
+<dd>
+<div class="block">Returns the set of steps across all <a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s which are eligible for execution.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanManager.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Plan.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getCandidates--">getCandidates()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html#getCandidates-java.util.Collection-">getCandidates(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a></dt>
 <dd>
@@ -2870,19 +2876,19 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlan--">getPlan()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">getPlanCoordinator()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#getPlanCoordinator--">getPlanCoordinator()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlanCoordinator--">getPlanCoordinator()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#getPlanInfo-java.lang.String-">getPlanInfo(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
 <dd>
 <div class="block">Returns a full list of the <a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>'s contents (incl all <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s/<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s).</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanManagers--">getPlanManagers()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#getPlanManagers--">getPlanManagers()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#getPlanManagers--">getPlanManagers()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getPlanManagers--">getPlanManagers()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlanManagers--">getPlanManagers()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getPlans-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">getPlans(StateStore, ConfigStore&lt;ServiceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
@@ -3276,8 +3282,6 @@
 <div class="block">Returns the name of the object which produced this response.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getSourceRoot-Resource-">getSourceRoot(Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#getState--">getState()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--">getStateStore()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></dt>
 <dd>
@@ -3695,8 +3699,6 @@
 </a>
 <h2 class="title">H</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#handleOffer-Protos.Offer-">handleOffer(Protos.Offer)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html#handleResponseStatusLine-StatusLine-int-">handleResponseStatusLine(StatusLine, int)</a></span> - Method in class com.mesosphere.sdk.dcos.ca.<a href="com/mesosphere/sdk/dcos/ca/DefaultCAClient.html" title="class in com.mesosphere.sdk.dcos.ca">DefaultCAClient</a></dt>
 <dd>
 <div class="block">Handle common responses from different API endpoints of DC/OS CA service.</div>
@@ -3705,8 +3707,6 @@
 <dd>
 <div class="block">Handle common responses from different API endpoints of DC/OS secrets service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#handleTaskStatus-Protos.TaskStatus-">handleTaskStatus(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#hardExit-com.mesosphere.sdk.scheduler.SchedulerErrorCode-">hardExit(SchedulerErrorCode)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
 <dd>
 <div class="block">Immediately exits the process with the ordinal value of the provided <code>errorCode</code>.</div>
@@ -3786,6 +3786,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPodInstance</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></dt>
@@ -3824,10 +3826,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/util/RLimit.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.specification.util.<a href="com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util">RLimit</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#hasOperations--">hasOperations()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#hasOperations--">hasOperations()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#hasOperations-com.mesosphere.sdk.scheduler.plan.Plan-">hasOperations(Plan)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
 <dd>
 <div class="block">Indicates whether a plan has any work left to do.</div>
@@ -3841,8 +3839,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#hasResourceId-Resource-">hasResourceId(Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#hasStatus--">hasStatus()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#hasTasksNeedingRecovery--">hasTasksNeedingRecovery()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#HEALTH_CHECK_CMD">HEALTH_CHECK_CMD</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
@@ -4356,6 +4352,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/YAMLConfigurationLoader.html#logProcessEnv--">logProcessEnv()</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/YAMLConfigurationLoader.html" title="class in com.mesosphere.sdk.config">YAMLConfigurationLoader</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/Constants.html#LONG_DECLINE_SECONDS">LONG_DECLINE_SECONDS</a></span> - Static variable in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></dt>
+<dd>
+<div class="block">The duration in seconds to decline offers the scheduler does not need for the foreseeable future.</div>
+</dd>
 </dl>
 <a name="I:M">
 <!--   -->
@@ -5616,6 +5616,18 @@
 <dd>
 <div class="block">Restarts a pod instance in-place.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#REVIVE_DELAY_S">REVIVE_DELAY_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#REVIVE_INTERVAL_S">REVIVE_INTERVAL_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">ReviveManager</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">This class monitors a <a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a> and revives offers when appropriate.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">ReviveManager(SchedulerDriver, StateStore, PlanCoordinator)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-int-int-">ReviveManager(SchedulerDriver, StateStore, PlanCoordinator, int, int)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util"><span class="typeNameLink">RLimit</span></a> - Class in <a href="com/mesosphere/sdk/specification/util/package-summary.html">com.mesosphere.sdk.specification.util</a></dt>
 <dd>
 <div class="block">Representation of an individual rlimit, consisting of a name and optional soft/hard limits.</div>
@@ -6178,6 +6190,10 @@
 <div class="block">Sets whether tasks in this pod share a pid namespace and returns a reference to this Builder so that the
  methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/Constants.html#SHORT_DECLINE_SECONDS">SHORT_DECLINE_SECONDS</a></span> - Static variable in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></dt>
+<dd>
+<div class="block">The duration in seconds to decline offers the scheduler does not need for a short time.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#shouldLaunch--">shouldLaunch()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#shutdown-ExecutorDriver-">shutdown(ExecutorDriver)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
@@ -6224,8 +6240,6 @@
 <div class="block">Starts the Step, whose <a href="com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
 <dd>&nbsp;</dd>
@@ -6433,22 +6447,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#supportsPreReservedResources--">supportsPreReservedResources()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#supportsRLimits--">supportsRLimits()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SuppressReviveManager</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
-<dd>
-<div class="block">This class monitors all plans and suppresses or revives offers when appropriate.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#SuppressReviveManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-SchedulerDriver-EventBus-java.util.Collection-">SuppressReviveManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerDriver, EventBus, Collection&lt;PlanManager&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#SuppressReviveManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-SchedulerDriver-EventBus-java.util.Collection-int-int-">SuppressReviveManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerDriver, EventBus, Collection&lt;PlanManager&gt;, int, int)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.State.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SuppressReviveManager.State</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
-<dd>
-<div class="block">The states of the suppress/revive state machine.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#SUPPRESSS_REVIVE_DELAY_S">SUPPRESSS_REVIVE_DELAY_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html#SUPPRESSS_REVIVE_INTERVAL_S">SUPPRESSS_REVIVE_INTERVAL_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.html" title="class in com.mesosphere.sdk.scheduler">SuppressReviveManager</a></dt>
 <dd>&nbsp;</dd>
 </dl>
 <a name="I:T">
@@ -7315,10 +7313,6 @@
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.State.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.State.html" title="enum in com.mesosphere.sdk.scheduler">SuppressReviveManager.State</a></dt>
-<dd>
-<div class="block">Returns the enum constant of this type with the specified name.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/GoalState.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
@@ -7360,11 +7354,6 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.Type.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerFlags.FlagException.Type.html" title="enum in com.mesosphere.sdk.scheduler">SchedulerFlags.FlagException.Type</a></dt>
-<dd>
-<div class="block">Returns an array containing the constants of this enum type, in
-the order they are declared.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.State.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SuppressReviveManager.State.html" title="enum in com.mesosphere.sdk.scheduler">SuppressReviveManager.State</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>

@@ -147,8 +147,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#declineOffers-SchedulerDriver-java.util.Collection-">declineOffers</a></span>(SchedulerDriver&nbsp;driver,
-             java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#declineOffers-SchedulerDriver-java.util.Collection-int-">declineOffers</a></span>(SchedulerDriver&nbsp;driver,
+             java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers,
+             int&nbsp;refuseSeconds)</code>
 <div class="block">Decline unused <code>org.apache.mesos.Protos.Offer</code>s.</div>
 </td>
 </tr>
@@ -242,19 +243,21 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="declineOffers-SchedulerDriver-java.util.Collection-">
+<a name="declineOffers-SchedulerDriver-java.util.Collection-int-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>declineOffers</h4>
 <pre>public static&nbsp;void&nbsp;declineOffers(SchedulerDriver&nbsp;driver,
-                                 java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
+                                 java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers,
+                                 int&nbsp;refuseSeconds)</pre>
 <div class="block">Decline unused <code>org.apache.mesos.Protos.Offer</code>s.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>driver</code> - The <code>SchedulerDriver</code> that will receive the declineOffer() calls</dd>
 <dd><code>unusedOffers</code> - The collection of Offers to decline</dd>
+<dd><code>refuseSeconds</code> - The number of seconds for which the offers should be refused</dd>
 </dl>
 </li>
 </ul>

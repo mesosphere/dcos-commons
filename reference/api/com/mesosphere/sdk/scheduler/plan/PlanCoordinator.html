@@ -126,12 +126,12 @@ var activeTableTab = "activeTableTab";
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getCandidates--">getCandidates</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#hasOperations--">hasOperations</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.OfferID&gt;</code></td>
@@ -170,16 +170,16 @@ var activeTableTab = "activeTableTab";
 </dl>
 </li>
 </ul>
-<a name="hasOperations--">
+<a name="getCandidates--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>hasOperations</h4>
-<pre>boolean&nbsp;hasOperations()</pre>
+<h4>getCandidates</h4>
+<pre>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getCandidates()</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>True if this <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a> has operations to perform.</dd>
+<dd>The <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s which are eligible for processing.</dd>
 </dl>
 </li>
 </ul>

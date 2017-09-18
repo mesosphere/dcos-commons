@@ -142,22 +142,18 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#driver">driver</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected EventBus</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#eventBus">eventBus</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation">DefaultReconciler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reconciler">reconciler</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected java.util.concurrent.ExecutorService</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></span></code>
 <div class="block">Executor for handling TaskStatus updates in <code>#statusUpdate(SchedulerDriver, Protos.TaskStatus)</code>.</div>
@@ -240,8 +236,8 @@ extends java.lang.Object</pre>
                 byte[]&nbsp;data)</code>&nbsp;</td>
 </tr>
 <tr id="i7" class="rowColor">
-<td class="colFirst"><code>protected abstract java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>protected abstract <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>protected abstract void</code></td>
@@ -346,15 +342,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>reconciler</h4>
 <pre>protected&nbsp;<a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation">DefaultReconciler</a> reconciler</pre>
-</li>
-</ul>
-<a name="eventBus">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>eventBus</h4>
-<pre>protected final&nbsp;EventBus eventBus</pre>
 </li>
 </ul>
 <a name="statusExecutor">
@@ -549,13 +536,13 @@ extends java.lang.Object</pre>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </li>
 </ul>
-<a name="getPlanManagers--">
+<a name="getPlanCoordinator--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getPlanManagers</h4>
-<pre>protected abstract&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getPlanManagers()</pre>
+<h4>getPlanCoordinator</h4>
+<pre>protected abstract&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()</pre>
 </li>
 </ul>
 </li>

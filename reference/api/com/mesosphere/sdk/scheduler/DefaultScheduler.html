@@ -214,7 +214,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <!--   -->
 </a>
 <h3>Fields inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#configStore">configStore</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#driver">driver</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#eventBus">eventBus</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reconciler">reconciler</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#configStore">configStore</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#driver">driver</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#reconciler">reconciler</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></code></li>
 </ul>
 </li>
 </ul>
@@ -288,8 +288,8 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#getLaunchableTasks--">getLaunchableTasks</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>protected java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
@@ -675,16 +675,16 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </dl>
 </li>
 </ul>
-<a name="getPlanManagers--">
+<a name="getPlanCoordinator--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getPlanManagers</h4>
-<pre>protected&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getPlanManagers()</pre>
+<h4>getPlanCoordinator</h4>
+<pre>protected&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanManagers--">getPlanManagers</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 </dl>
 </li>
 </ul>

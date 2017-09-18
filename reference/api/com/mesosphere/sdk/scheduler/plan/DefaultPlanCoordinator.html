@@ -154,12 +154,14 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#getCandidates--">getCandidates</a></span>()</code>
+<div class="block">Returns the set of steps across all <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s which are eligible for execution.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#hasOperations--">hasOperations</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;OfferID&gt;</code></td>
@@ -208,6 +210,23 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getCandidates--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getCandidates</h4>
+<pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getCandidates()</pre>
+<div class="block">Returns the set of steps across all <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s which are eligible for execution.  Execution normally
+ means that these steps are ready to be matched with offers and launch tasks.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getCandidates--">getCandidates</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s which are eligible for processing.</dd>
+</dl>
+</li>
+</ul>
 <a name="processOffers-SchedulerDriver-java.util.List-">
 <!--   -->
 </a>
@@ -223,21 +242,6 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of OfferID's that were used for scheduling operations.</dd>
-</dl>
-</li>
-</ul>
-<a name="hasOperations--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>hasOperations</h4>
-<pre>public&nbsp;boolean&nbsp;hasOperations()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#hasOperations--">hasOperations</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>True if this <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a> has operations to perform.</dd>
 </dl>
 </li>
 </ul>
