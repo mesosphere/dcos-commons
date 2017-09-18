@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Interface for Plan schedulers. Attempts to start {@link Step}s, while fulfilling any
- * {@link com.mesosphere.sdk.offer.OfferRequirement} they provide.
+ * {@link PodInstanceRequirement}s they provide.
  */
 public interface PlanScheduler {
     /**
