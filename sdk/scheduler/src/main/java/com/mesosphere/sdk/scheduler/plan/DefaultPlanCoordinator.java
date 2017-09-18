@@ -35,7 +35,8 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
      * Returns the set of steps across all {@link PlanManager}s which are eligible for execution.  Execution normally
      * means that these steps are ready to be matched with offers and launch tasks.
      */
-    private List<Step> getCandidates() {
+    @Override
+    public List<Step> getCandidates() {
         // Assets that are being actively worked on
         final Set<PodInstanceRequirement> dirtiedAssets = new HashSet<>();
 
@@ -89,18 +90,6 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     @Override
     public Collection<OfferID> processOffers(final SchedulerDriver driver, final List<Offer> offersToProcess) {
         return planScheduler.resourceOffers(driver, offersToProcess, getCandidates());
-    }
-
-    @Override
-    public boolean hasOperations() {
-        boolean ret = false;
-        for (final PlanManager planManager : planManagers) {
-            LOGGER.debug("Plan: name={} status={}",
-                    planManager.getPlan().getName(),
-                    planManager.getPlan().getStatus());
-            ret = ret || PlanUtils.hasOperations(planManager.getPlan());
-        }
-        return ret;
     }
 
     @Override
