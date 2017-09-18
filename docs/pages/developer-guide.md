@@ -38,7 +38,7 @@ Every DC/OS service must provide a package definition in the format expected by 
 
 ## ZooKeeper
 
-Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the the state of its tasks. ZooKeeper provides persistent storage for this information.
+Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the state of its tasks. ZooKeeper provides persistent storage for this information.
 
 Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
@@ -348,9 +348,12 @@ pods:
 plans:
   deploy:
     strategy: serial
-    pod: hello
-    steps:
-      - default: [[init], [main]]
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[init], [main]]
 ```
 
 This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the `init` task and another representing the `main` task. The ServiceSpec indicates that two `hello` pods should be launched so the following tasks would be launched by steps serially:
@@ -374,10 +377,13 @@ pods:
 plans:
   deploy:
     strategy: serial
-    pod: hello
-    steps:
-      - 0: [[init], [main]]
-      - default: [[main]]
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - 0: [[init], [main]]
+          - default: [[main]]
 ```
 
 This plan would result in steps generating the following tasks:
@@ -981,7 +987,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
-Refer to [Secrets Tutorial](tutorials/secrets-tutorial.md) for an 
+Refer to [Secrets Tutorial](tutorials/secrets-tutorial.md) for an
 SDK-based example service using DC/OS secrets.
 
 ### Authorization for Secrets
@@ -1427,6 +1433,7 @@ pods:
         resource-set: hello-resources
 plans:
   deploy:
+    strategy: serial
     phases:
       hello-deploy:
         strategy: serial
@@ -1471,7 +1478,8 @@ plans:
       sidecar-deploy:
         strategy: parallel
         pod: hello
-        tasks: [sidecar]
+        steps:
+          - default: [[sidecar]]
 ```
 
 The command definition for the sidecar task includes environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.
@@ -1550,7 +1558,7 @@ pods:
         memory: 256
         configs:
           config.xml:
-            template: "config.xml.mustache"
+            template: config.xml.mustache
             dest: etc/config.xml
 ```
 
