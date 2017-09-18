@@ -33,7 +33,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     public Optional<Phase> override(PodInstanceRequirement stoppedPod) {
         if (stoppedPod.getPodInstance().getPod().getType().equals("data")
                 || stoppedPod.getRecoveryType() != RecoveryType.PERMANENT) {
-            logger.info("No overrides necessary. Pod is not a name node or it isn't a permanent failure.");
+            logger.info("No overrides necessary. Pod is not a journal or name node or it isn't a permanent failure.");
             return Optional.empty();
         }
 
