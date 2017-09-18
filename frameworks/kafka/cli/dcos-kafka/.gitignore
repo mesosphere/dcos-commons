@@ -1,3 +1,4 @@
-dcos-kafka*
+dcos-*
 *.whl
 native-*
+.native-*

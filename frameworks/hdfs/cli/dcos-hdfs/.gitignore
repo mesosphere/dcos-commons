@@ -1,3 +1,4 @@
 dcos-*
 *.whl
 native-*
+.native-*
