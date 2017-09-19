@@ -722,12 +722,13 @@ public class DefaultScheduler extends AbstractScheduler {
         }
     }
 
-    protected void executePlans(List<Protos.Offer> offers) {
+    @Override
+    protected void executePlans(List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-        acceptedOffers.addAll(planScheduler.resourceOffers(driver, localOffers, workSet.getWork()));
+        acceptedOffers.addAll(planScheduler.resourceOffers(driver, localOffers, steps));
         LOGGER.info(
                 "Offers accepted by plan coordinator: {}",
                 acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));

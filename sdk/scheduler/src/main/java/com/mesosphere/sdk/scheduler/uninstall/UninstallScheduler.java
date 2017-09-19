@@ -90,14 +90,13 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void executePlans(List<Protos.Offer> offers) {
+    protected void executePlans(List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
-        Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
-        if (!candidateSteps.isEmpty()) {
+        if (!steps.isEmpty()) {
             LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
-                    candidateSteps.stream().map(Element::getName).collect(Collectors.toList()));
-            candidateSteps.forEach(Step::start);
+                    steps.stream().map(Element::getName).collect(Collectors.toList()));
+            steps.forEach(Step::start);
         }
 
         // Destroy/Unreserve any reserved resource or volume that is offered

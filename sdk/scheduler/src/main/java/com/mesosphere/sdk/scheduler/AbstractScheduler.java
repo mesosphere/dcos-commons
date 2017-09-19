@@ -5,9 +5,9 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.queue.OfferQueue;
-import com.mesosphere.sdk.queue.WorkSet;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -44,8 +44,6 @@ public abstract class AbstractScheduler implements Scheduler {
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
     private AtomicBoolean processingOffers = new AtomicBoolean(false);
-
-    protected final WorkSet workSet = WorkSet.getInstance();
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -123,6 +121,10 @@ public abstract class AbstractScheduler implements Scheduler {
                     }
                 }
 
+                // Revive offers if necessary
+                Collection<Step> steps = getPlanCoordinator().getCandidates();
+                reviveManager.revive(steps);
+
                 LOGGER.info("Pulling offers off the queue...");
                 List<Protos.Offer> offers = offerQueue.takeAll();
                 LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
@@ -130,8 +132,9 @@ public abstract class AbstractScheduler implements Scheduler {
                     LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
 
-                workSet.setWork(new HashSet<>(getPlanCoordinator().getCandidates()));
-                executePlans(offers);
+                // Match offers with work
+                executePlans(offers, steps);
+
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
                             offers.stream()
@@ -254,7 +257,7 @@ public abstract class AbstractScheduler implements Scheduler {
 
         // A ReviveManager should be constructed only once.
         if (reviveManager == null) {
-            reviveManager = new ReviveManager(driver, stateStore, workSet);
+            reviveManager = new ReviveManager(driver, stateStore);
         }
 
         // The main plan execution loop should only be started once.
@@ -270,7 +273,7 @@ public abstract class AbstractScheduler implements Scheduler {
     /**
      * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
      */
-    protected abstract void executePlans(List<Protos.Offer> offers);
+    protected abstract void executePlans(List<Protos.Offer> offers, Collection<Step> steps);
 
     protected abstract PlanCoordinator getPlanCoordinator();
 }

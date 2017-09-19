@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.queue.WorkSet;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -31,8 +31,8 @@ import static org.mockito.Mockito.*;
 public class ReviveManagerTest {
     private StateStore stateStore;
     private ReviveManager manager;
-    @Mock private WorkSet workSet;
-    @Mock SchedulerDriver driver;
+    @Mock private PlanCoordinator planCoordinator;
+    @Mock private SchedulerDriver driver;
 
 
     @Before
@@ -44,34 +44,29 @@ public class ReviveManagerTest {
 
     @Test(expected = ConditionTimeoutException.class)
     public void stayRevivedWhenWorkIsIncomplete() {
-        when(workSet.getWork()).thenReturn(getStepSet(0));
+        when(planCoordinator.getCandidates()).thenReturn(getStepSet(0));
         Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
-        manager = getSuppressReviveManager(workSet);
+        manager = getSuppressReviveManager();
         waitSuppressed(stateStore, manager, 5);
     }
 
     @Test
     public void reviveAgainWhenNewWorkAppears() {
-        when(workSet.getWork()).thenReturn(getStepSet(0));
+        when(planCoordinator.getCandidates()).thenReturn(getStepSet(0));
         Assert.assertFalse(StateStoreUtils.isSuppressed(stateStore));
-        manager = getSuppressReviveManager(workSet);
+        manager = getSuppressReviveManager();
 
         // The PlanCoordinator returns new work.
-        when(workSet.getWork()).thenReturn(getStepSet(1));
+        when(planCoordinator.getCandidates()).thenReturn(getStepSet(1));
 
         verify(driver, timeout(5000).atLeastOnce()).reviveOffers();
     }
 
-    private ReviveManager getSuppressReviveManager(WorkSet workSet) {
-        return new ReviveManager(
-                driver,
-                stateStore,
-                workSet,
-                0,
-                1);
+    private ReviveManager getSuppressReviveManager() {
+        return new ReviveManager(driver, stateStore);
     }
 
-    private Set<Step> getStepSet(int index) {
+    private List<Step> getStepSet(int index) {
         PodInstanceRequirement podInstanceRequirement = PodTestUtils.getPodInstanceRequirement(index);
         UUID id = UUID.randomUUID();
 
@@ -147,7 +142,7 @@ public class ReviveManagerTest {
             }
         };
 
-        return new HashSet<>(Arrays.asList(step));
+        return Arrays.asList(step);
     }
 
     private static void waitSuppressed(StateStore stateStore, ReviveManager reviveManager, int seconds) {

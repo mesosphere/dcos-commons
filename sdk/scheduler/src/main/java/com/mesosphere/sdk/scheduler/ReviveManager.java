@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.queue.WorkSet;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -13,63 +12,27 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
  */
 public class ReviveManager {
-    public static final int REVIVE_INTERVAL_S = 5;
-    public static final int REVIVE_DELAY_S = 5;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
-    private final ScheduledExecutorService monitor = Executors.newScheduledThreadPool(1);
     private final StateStore stateStore;
-    private final WorkSet workSet;
     private final TokenBucket tokenBucket;
-    private Set<WorkItem> candidates;
+    private Set<WorkItem> candidates = new HashSet<>();
 
-    public ReviveManager(
-            SchedulerDriver driver,
-            StateStore stateStore,
-            WorkSet workSet) {
-        this(
-                driver,
-                stateStore,
-                workSet,
-                REVIVE_DELAY_S,
-                REVIVE_INTERVAL_S);
-    }
-
-    public ReviveManager(
-            SchedulerDriver driver,
-            StateStore stateStore,
-            WorkSet workSet,
-            int pollDelay,
-            int pollInterval) {
-
+    public ReviveManager(SchedulerDriver driver, StateStore stateStore) {
         this.driver = driver;
         this.stateStore = stateStore;
-        this.workSet = workSet;
-        this.candidates = getCandidates();
         this.tokenBucket = new TokenBucket();
-        monitor.scheduleAtFixedRate(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        revive();
-                    }
-                },
-                pollDelay,
-                pollInterval,
-                TimeUnit.SECONDS);
     }
 
     /**
@@ -105,8 +68,8 @@ public class ReviveManager {
      *     kafka-0-broker fails    @ 11:00, it's new work!
      *     ...
      */
-    private void revive() {
-        Set<WorkItem> newCandidates = getCandidates();
+    public void revive(Collection<Step> steps) {
+        Set<WorkItem> newCandidates = getCandidates(steps);
         logger.info("Current candidates: {}", newCandidates);
         newCandidates.removeAll(candidates);
 
@@ -129,28 +92,14 @@ public class ReviveManager {
         candidates = newCandidates;
     }
 
-    private Set<WorkItem> getCandidates() {
-        Set<Step> work = workSet.getWork();
-        List<String> workNames = work.stream()
-                .map(step -> String.format("%s [%s]", step.getName(), step.getStatus()))
-                .collect(Collectors.toList());
-        logger.info("Unfiltered work: {}", workNames);
-
-        Set<WorkItem> workItems = work.stream()
+    private Set<WorkItem> getCandidates(Collection<Step> steps) {
+        return steps.stream()
                 .filter(step -> step.getStatus().equals(Status.PENDING) || step.getStatus().equals(Status.PREPARED))
                 .map(step -> new WorkItem(step))
                 .collect(Collectors.toSet());
-
-        workNames = workItems.stream()
-                .map(step -> String.format("%s [%s]", step.getName(), step.getStatus()))
-                .collect(Collectors.toList());
-        logger.info("Filtered work: {}", workNames);
-
-        return workItems;
     }
 
     private static class WorkItem {
-
         private final Optional<PodInstanceRequirement> podInstanceRequirement;
         private final String name;
         private final Status status;
@@ -159,18 +108,6 @@ public class ReviveManager {
             this.podInstanceRequirement = step.getPodInstanceRequirement();
             this.name = step.getName();
             this.status = step.getStatus();
-        }
-
-        public String getName() {
-           return name;
-        }
-
-        public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
-            return podInstanceRequirement;
-        }
-
-        public Status getStatus() {
-            return status;
         }
 
         @Override
@@ -185,7 +122,7 @@ public class ReviveManager {
 
         @Override
         public String toString() {
-            return String.format("%s [%s]", getName(), getStatus());
+            return String.format("%s [%s]", name, status);
         }
     }
 }
