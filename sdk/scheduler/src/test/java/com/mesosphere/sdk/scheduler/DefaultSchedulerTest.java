@@ -752,7 +752,7 @@ public class DefaultSchedulerTest {
         DefaultScheduler scheduler = getScheduler(getServiceSpec(podA, podB), true);
         scheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
-        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());
+        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any(), any());
     }
 
     @Test

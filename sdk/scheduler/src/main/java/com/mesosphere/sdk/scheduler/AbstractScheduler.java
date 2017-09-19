@@ -358,7 +358,7 @@ public abstract class AbstractScheduler {
          * {@link Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)} calls.
          */
         private void postRegister() {
-            // Task reconciliation should be started on all registrations.
+            // Task reconciliation should be (re)started on all (re-)registrations.
             reconciler.start();
             reconciler.reconcile(driver);
 
