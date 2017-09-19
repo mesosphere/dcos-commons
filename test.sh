@@ -25,6 +25,9 @@ function usage()
     echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
+    echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
+    echo "   enviroment variable:"
+    echo "      PYTEST_ARGS=$PYTEST_ARGS"
     echo "-p PATH to cluster SSH key [default ${ssh_path}]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "Cluster must be created and \$CLUSTER_URL set"
@@ -147,14 +150,28 @@ if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
     exit 1
 fi
 
+if [ -n "$PYTEST_K" ]; then
+    if [ -n "$PYTEST_ARGS" ]; then
+        PYTEST_ARGS="$PYTEST_ARGS "
+    fi
+    PYTEST_ARGS="-k \"$PYTEST_K\""
+fi
+
+if [ -n "$PYTEST_M" ]; then
+    if [ -n "$PYTEST_ARGS" ]; then
+        PYTEST_ARGS="$PYTEST_ARGS "
+    fi
+    PYTEST_ARGS="-m \"$PYTEST_M\""
+fi
+
+
 docker run --rm \
     -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
     -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
     -e CLUSTER_URL="$CLUSTER_URL" \
     $azure_args \
     -e SECURITY="$security" \
-    -e PYTEST_K="$pytest_k" \
-    -e PYTEST_M="$pytest_m" \
+    -e PYTEST_ARGS="$PYTEST_ARGS" \
     -e FRAMEWORK=$framework \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -v $(pwd):/build \
