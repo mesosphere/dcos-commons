@@ -40,6 +40,7 @@ class UniverseReleaseBuilder(object):
         self._force_upload = os.environ.get('FORCE_ARTIFACT_UPLOAD', '').lower() == 'true'
         self._beta_release = beta_release.lower() == 'true'
         self._release_universe_repo=os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
+        self._release_branch=os.environ.get('RELEASE_BRANCH', 'version-3.x')
 
         name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
         if not name_match:
@@ -308,7 +309,7 @@ Artifact output: {}
         # check out the repo, create a new local branch:
         ret = os.system(' && '.join([
             'cd {}'.format(scratchdir),
-            'git clone --depth 1 --branch version-3.x git@github.com:{}'.format(self._release_universe_repo),
+            'git clone --depth 1 --branch {} git@github.com:{} universe'.format(self._release_branch, self._release_universe_repo),
             'cd universe',
             'git config --local user.email jenkins@mesosphere.com',
             'git config --local user.name release_builder.py',
@@ -417,7 +418,7 @@ Artifact output: {}
             payload = {
                 'title': self._pr_title,
                 'head': branch,
-                'base': 'version-3.x',
+                'base': self._release_branch,
                 'body': commitmsg_file.read()}
         conn = http.client.HTTPSConnection('api.github.com')
         conn.set_debuglevel(999)
