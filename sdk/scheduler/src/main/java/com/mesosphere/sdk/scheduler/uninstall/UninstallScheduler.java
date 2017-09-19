@@ -121,11 +121,6 @@ public class UninstallScheduler extends AbstractScheduler {
             }
 
             @Override
-            public Collection<Protos.OfferID> processOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-                return Collections.emptyList();
-            }
-
-            @Override
             public Collection<PlanManager> getPlanManagers() {
                 return Arrays.asList(uninstallPlanManager);
             }

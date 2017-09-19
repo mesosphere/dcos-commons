@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -12,13 +9,6 @@ import java.util.List;
  * its observers when this state changes.
  */
 public interface PlanCoordinator {
-
-    /**
-     * Provides offers to each {@link PlanManager} for processing. Keeps tracks of dirtied offers and assets.
-     *
-     * @return List of OfferID's that were used for scheduling operations.
-     */
-    Collection<Protos.OfferID> processOffers(final SchedulerDriver driver, final List<Protos.Offer> offers);
 
     /**
      * @return The {@link Step}s which are eligible for processing.
