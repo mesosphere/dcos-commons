@@ -29,8 +29,6 @@ public abstract class AbstractStep implements Step {
         this.name = name;
         this.status = status;
         this.interrupted = false;
-
-        setStatus(status); // Log initial status
     }
 
     @Override

@@ -3,17 +3,23 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.queue.WorkSet;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
@@ -27,7 +33,8 @@ public class ReviveManager {
     private final ScheduledExecutorService monitor = Executors.newScheduledThreadPool(1);
     private final StateStore stateStore;
     private final WorkSet workSet;
-    private Set<Step> candidates;
+    private final TokenBucket tokenBucket;
+    private Set<WorkItem> candidates;
 
     public ReviveManager(
             SchedulerDriver driver,
@@ -51,7 +58,8 @@ public class ReviveManager {
         this.driver = driver;
         this.stateStore = stateStore;
         this.workSet = workSet;
-        this.candidates = workSet.getWork();
+        this.candidates = getCandidates();
+        this.tokenBucket = new TokenBucket();
         monitor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override
@@ -98,19 +106,86 @@ public class ReviveManager {
      *     ...
      */
     private void revive() {
-        Set<Step> newCandidates = workSet.getWork();
+        Set<WorkItem> newCandidates = getCandidates();
+        logger.info("Current candidates: {}", newCandidates);
         newCandidates.removeAll(candidates);
 
-        logger.debug("Old candidates: {}", candidates);
-        logger.debug("New candidates: {}", newCandidates);
-        candidates = newCandidates;
+        logger.info("Old     candidates: {}", candidates);
+        logger.info("New     candidates: {}", newCandidates);
 
         if (newCandidates.isEmpty()) {
-            logger.debug("No new candidates detected, no need to revive");
+            logger.info("No new candidates detected, no need to revive");
         } else {
-            logger.info("Reviving offers.");
-            driver.reviveOffers();
-            StateStoreUtils.setSuppressed(stateStore, false);
+            if (tokenBucket.tryAcquire()) {
+                logger.info("Reviving offers.");
+                driver.reviveOffers();
+                StateStoreUtils.setSuppressed(stateStore, false);
+            } else {
+                logger.warn("Revive attempt has been throttled.");
+                return;
+            }
+        }
+
+        candidates = newCandidates;
+    }
+
+    private Set<WorkItem> getCandidates() {
+        Set<Step> work = workSet.getWork();
+        List<String> workNames = work.stream()
+                .map(step -> String.format("%s [%s]", step.getName(), step.getStatus()))
+                .collect(Collectors.toList());
+        logger.info("Unfiltered work: {}", workNames);
+
+        Set<WorkItem> workItems = work.stream()
+                .filter(step -> step.getStatus().equals(Status.PENDING) || step.getStatus().equals(Status.PREPARED))
+                .map(step -> new WorkItem(step))
+                .collect(Collectors.toSet());
+
+        workNames = workItems.stream()
+                .map(step -> String.format("%s [%s]", step.getName(), step.getStatus()))
+                .collect(Collectors.toList());
+        logger.info("Filtered work: {}", workNames);
+
+        return workItems;
+    }
+
+    private static class WorkItem {
+
+        private final Optional<PodInstanceRequirement> podInstanceRequirement;
+        private final String name;
+        private final Status status;
+
+        private WorkItem(Step step) {
+            this.podInstanceRequirement = step.getPodInstanceRequirement();
+            this.name = step.getName();
+            this.status = step.getStatus();
+        }
+
+        public String getName() {
+           return name;
+        }
+
+        public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+            return podInstanceRequirement;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s [%s]", getName(), getStatus());
         }
     }
 }
