@@ -58,11 +58,12 @@ def test_service_startup_rapid():
     stdout = ''
     retries = 15
     while retries > 0:
+        retries -= 1
         stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic producer_test test 100')
         if 'records sent' in stdout:
             break
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pods restart {}'.format(task_short_name), json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart {}'.format(task_short_name), json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == task_short_name
     assert jsonobj['tasks'] == [ '{}-broker'.format(task_short_name) ]
