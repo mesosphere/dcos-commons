@@ -28,11 +28,11 @@
 
     "NODE_COUNT": "{{node.count}}",
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
-    "JQ_URI": "{{resource.assets.uris.jq-bin}}",
     "PORTWORX_CLUSTER_NAME": "{{node.portworx_cluster}}",
     "PORTWORX_IMAGE_NAME": "{{{node.portworx_image}}}",
     "PORTWORX_OPTIONS": "{{{node.portworx_options}}}",
     {{#etcd.enabled}}
+    "ETCD_ENABLED": "{{etcd.enabled}}",
     "PORTWORX_KVDB": "etcd://etcd-proxy-0-start.{{service.name}}.mesos:2379",
     {{/etcd.enabled}}
     {{^etcd.enabled}}
@@ -49,7 +49,6 @@
     {{/service.secret_name}}
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
 
-    "ETCD_ENABLED": "{{etcd.enabled}}",
     "ETCD_PLACEMENT": "{{etcd.placement_constraint}}",
     "ETCD_CPUS": "{{etcd.cpus}}",
     "ETCD_MEM": "{{etcd.mem}}",
@@ -68,14 +67,17 @@
     "INFLUXDB_IMAGE": "{{influxdb.image}}",
     "INFLUXDB_LISTEN_PORT": "{{influxdb.listen_port}}",
 
+    {{#lighthouse.enabled}}
     "LIGHTHOUSE_ENABLED": "{{lighthouse.enabled}}",
+    {{/lighthouse.enabled}}
     "LIGHTHOUSE_PLACEMENT": "{{lighthouse.placement_constraint}}",
     "LIGHTHOUSE_CPUS": "{{lighthouse.cpus}}",
     "LIGHTHOUSE_MEM": "{{lighthouse.mem}}",
     "LIGHTHOUSE_IMAGE": "{{lighthouse.image}}",
     "LIGHTHOUSE_WEBUI_PORT": "{{lighthouse.webui_port}}",
     "LIGHTHOUSE_COMPANY_NAME": "{{lighthouse.company_name}}",
-    "LIGHTHOUSE_ADMIN_EMAIL": "{{lighthouse.admin_email}}"
+    "LIGHTHOUSE_ADMIN_EMAIL": "{{lighthouse.admin_email}}",
+    "LIGHTHOUSE_ADMIN_PASSWORD": "{{lighthouse.admin_password}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

@@ -5,13 +5,12 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/portworx-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "jq-bin": "https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64"
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
     },
     "container": {
       "docker": {
-        "portworx": "portworx/px-enterprise:1.2.9",
-        "lighthouse": "portworx/px-lighthouse:latest",
+        "portworx": "portworx/px-enterprise:1.2.10",
+        "lighthouse": "portworx/px-lighthouse:1.1.8",
         "influxdb": "influxdb:latest",
         "etcd": "mesosphere/etcd-mesos:latest"
       }

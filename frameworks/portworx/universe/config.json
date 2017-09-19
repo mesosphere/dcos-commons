@@ -45,7 +45,7 @@
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default":"portworx/px-dev:1.2.9"
+            "default":"portworx/px-enterprise:1.2.10"
           },
           "portworx_options": {
             "title": "Portworx Options",
@@ -237,7 +237,7 @@
           "image": {
             "title": "Lighthouse Image name",
             "type": "string",
-            "default":"portworx/px-lighthouse:latest"
+            "default":"portworx/px-lighthouse:1.1.8"
           },
           "webui_port": {
             "title": "WebUI Port",
@@ -256,6 +256,12 @@
             "description": "Email to use for the Lighthouse account. Default password is admin and can be changed after first login. Used for resetting password and sending alerts.",
             "type": "string",
             "default": "portworx@yourcompany.com"
+          },
+          "admin_password": {
+            "title": "Administrator Password",
+            "description": "Password to use for the Lighthouse account.",
+            "type": "string",
+            "default": "admin"
           }
         },
         "required":[

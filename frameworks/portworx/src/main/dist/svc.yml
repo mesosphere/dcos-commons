@@ -10,8 +10,6 @@ pods:
         cpus: 0.3
         memory: 512
     placement: {{NODE_PLACEMENT}}
-    uris:
-      - {{JQ_URI}}
     tasks:
       install:
         goal: FINISHED
@@ -24,20 +22,17 @@ pods:
                     exit 1
                 fi
 
+                authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:{{{LIGHTHOUSE_ADMIN_PASSWORD}}} | base64)
 
                 if [ $POD_INSTANCE_INDEX -eq "0" ]; then
-                    authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:admin | base64)
                     token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X POST \
                         -H "Accept:application/json" -H "Authorization:Basic $authkey" \
                         http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
                 fi
 
-                chmod +x ${MESOS_SANDBOX}/jq-linux64
-
-                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X GET http://etcd-proxy-0-start.${FRAMEWORK_HOST}:2379/v2/keys/pwx/{{PORTWORX_CLUSTER_NAME}}/lighthouse/cluster/config/{{PORTWORX_CLUSTER_NAME}} |\
-                    ${MESOS_SANDBOX}/jq-linux64 -r ".node" |\
-                    ${MESOS_SANDBOX}/jq-linux64 -r ".value"|\
-                    ${MESOS_SANDBOX}/jq-linux64 -r ".token")
+                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl \
+                        -H "Accept:application/json" -H "Authorization:Basic $authkey" \
+                        http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/token/{{PORTWORX_CLUSTER_NAME}});
 
                 if [ -z "$PWX_TOKEN" ]; then
                     echo 'Error getting PWX token from lighthouse.' >&2
@@ -164,7 +159,7 @@ pods:
           type: {{INFLUXDB_DISK_TYPE}}
           size: {{INFLUXDB_DISK_SIZE}}
         readiness-check:
-          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_HOST}.mesos:{{INFLUXDB_LISTEN_PORT}}/ping
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_HOST}:{{INFLUXDB_LISTEN_PORT}}/ping
           interval: 5
           delay: 0
           timeout: 60
@@ -182,8 +177,8 @@ pods:
           http:
             port: {{LIGHTHOUSE_WEBUI_PORT}}
         cmd: >
-            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}.mesos:{{INFLUXDB_LISTEN_PORT}}/query --data-urlencode "q=CREATE DATABASE px_stats" &&
-            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}.mesos:{{INFLUXDB_LISTEN_PORT}}/ -k {{PORTWORX_KVDB}}
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:{{INFLUXDB_LISTEN_PORT}}/query --data-urlencode "q=CREATE DATABASE px_stats" &&
+            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:{{INFLUXDB_LISTEN_PORT}}/ -k {{PORTWORX_KVDB}}
         env:
           PWX_LH_PORT: {{LIGHTHOUSE_WEBUI_PORT}}
           PWX_PX_PRECREATE_ADMIN: true
