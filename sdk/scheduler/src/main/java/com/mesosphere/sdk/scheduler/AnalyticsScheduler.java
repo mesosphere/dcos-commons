@@ -8,13 +8,12 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.StrategyGenerator;
-import com.mesosphere.sdk.scheduler.plan.strategy.TerminalStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.FollowOnStrategy;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.validation.CapabilityValidator;
-import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -28,8 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
 
 public class AnalyticsScheduler extends DefaultScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AnalyticsScheduler.class);
@@ -84,7 +81,7 @@ public class AnalyticsScheduler extends DefaultScheduler {
                 plansType = "generated";
                 try {
                     if (!configStore.list().isEmpty()) {
-                        StrategyGenerator<Phase> strategyGenerator = new TerminalStrategy.Generator<>(false, te);
+                        StrategyGenerator<Phase> strategyGenerator = new FollowOnStrategy.Generator<>(false, te);
                         plans = Arrays.asList(
                                 new DeployPlanFactory(
                                         new DefaultPhaseFactory(

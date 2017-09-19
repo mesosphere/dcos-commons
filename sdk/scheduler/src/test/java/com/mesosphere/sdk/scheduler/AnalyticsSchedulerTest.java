@@ -2,21 +2,19 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.plan.strategy.TerminalStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.FollowOnStrategy;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.testutils.PlanTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.awaitility.Awaitility;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -248,13 +246,13 @@ public class AnalyticsSchedulerTest extends DefaultSchedulerTest {
         scheduler = new TestScheduler(scheduler, true);
         scheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
         DefaultPlan plan = (DefaultPlan) scheduler.deploymentPlanManager.getPlan();
-        TerminalStrategy<Phase> terminalStrategy = (TerminalStrategy<Phase>) plan.getStrategy();
+        FollowOnStrategy<Phase> followOnStrategy = (FollowOnStrategy<Phase>) plan.getStrategy();
         // Check that parallel flag is propagated through from yaml
-        Assert.assertTrue(terminalStrategy.isParallel());
+        Assert.assertTrue(followOnStrategy.isParallel());
         // Check that terminal phase is added
         Assert.assertTrue(plan.getPhases().size() == 3);
         Assert.assertTrue(plan.getPhases().get(2).getName().equals("auto-delete"));
-        Assert.assertTrue(terminalStrategy.getCandidates(plan.getChildren(),
+        Assert.assertTrue(followOnStrategy.getCandidates(plan.getChildren(),
                 Collections.emptyList()).size() == 2);
         // Check that statuses are all pending
         List<Status> statuses = PlanTestUtils.getStepStatuses(scheduler.deploymentPlanManager.getPlan());

@@ -9,14 +9,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C> {
+public class FollowOnStrategy<C extends Element> extends InterruptibleStrategy<C> {
     private DependencyStrategyHelper<C> dependencyStrategyHelper;
     boolean parallel;
-    C terminalElement;
+    C followOnElement;
 
-    public TerminalStrategy(boolean isParallel, C te) {
+    public FollowOnStrategy(boolean isParallel, C te) {
         this.parallel = isParallel;
-        this.terminalElement = te;
+        this.followOnElement = te;
     }
 
     @Override
@@ -31,8 +31,8 @@ public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C
             if (dependencyStrategyHelper == null) {
                 dependencyStrategyHelper = new DependencyStrategyHelper<>(elements);
                 for (C element: dependencyStrategyHelper.getDependencies().keySet()) {
-                    if (element != terminalElement) {
-                        dependencyStrategyHelper.addDependency(terminalElement, element);
+                    if (element != followOnElement) {
+                        dependencyStrategyHelper.addDependency(followOnElement, element);
                     }
                 }
             }
@@ -50,7 +50,7 @@ public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C
                     dependencyStrategyHelper.addDependency(previous, current);
                 }
                 C penultimateElement = planElements.get(planElements.size() - 1);
-                dependencyStrategyHelper.addDependency(terminalElement, penultimateElement);
+                dependencyStrategyHelper.addDependency(followOnElement, penultimateElement);
             }
         }
         return dependencyStrategyHelper;
@@ -62,9 +62,9 @@ public class TerminalStrategy<C extends Element> extends InterruptibleStrategy<C
     }
 
     public static class Generator<C extends Element> implements StrategyGenerator<C> {
-        TerminalStrategy<C> strategy;
+        FollowOnStrategy<C> strategy;
         public Generator(boolean parallel, C te) {
-            strategy = new TerminalStrategy<>(parallel, te);
+            strategy = new FollowOnStrategy<>(parallel, te);
         }
 
         @Override
