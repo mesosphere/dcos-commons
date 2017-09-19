@@ -10,12 +10,10 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
@@ -105,11 +103,11 @@ public class ReviveManager {
 
         logger.debug("Old candidates: {}", candidates);
         logger.debug("New candidates: {}", newCandidates);
+        candidates = newCandidates;
 
         if (newCandidates.isEmpty()) {
             logger.debug("No new candidates detected, no need to revive");
         } else {
-            candidates = newCandidates;
             logger.info("Reviving offers.");
             driver.reviveOffers();
             StateStoreUtils.setSuppressed(stateStore, false);

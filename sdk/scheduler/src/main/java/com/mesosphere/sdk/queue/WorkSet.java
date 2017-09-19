@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.queue;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.HashSet;

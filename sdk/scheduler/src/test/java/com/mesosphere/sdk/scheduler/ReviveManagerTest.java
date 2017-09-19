@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.queue.WorkSet;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;

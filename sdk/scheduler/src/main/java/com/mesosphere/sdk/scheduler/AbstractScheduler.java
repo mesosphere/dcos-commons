@@ -123,25 +123,24 @@ public abstract class AbstractScheduler implements Scheduler {
                     }
                 }
 
-                while (true) {
-                    List<Protos.Offer> offers = offerQueue.takeAll();
-                    LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
-                    for (int i = 0; i < offers.size(); ++i) {
-                        LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-                    }
+                LOGGER.info("Pulling offers off the queue...");
+                List<Protos.Offer> offers = offerQueue.takeAll();
+                LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
+                for (int i = 0; i < offers.size(); ++i) {
+                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+                }
 
-                    workSet.setWork(new HashSet<>(getPlanCoordinator().getCandidates()));
-                    executePlans(offers);
-                    synchronized (inProgressLock) {
-                        offersInProgress.removeAll(
-                                offers.stream()
-                                        .map(offer -> offer.getId())
-                                        .collect(Collectors.toList()));
-                        LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
-                                offers.size(),
-                                offers.size() == 1 ? "" : "s",
-                                offersInProgress.stream().collect(Collectors.toList()));
-                    }
+                workSet.setWork(new HashSet<>(getPlanCoordinator().getCandidates()));
+                executePlans(offers);
+                synchronized (inProgressLock) {
+                    offersInProgress.removeAll(
+                            offers.stream()
+                                    .map(offer -> offer.getId())
+                                    .collect(Collectors.toList()));
+                    LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
+                            offers.size(),
+                            offers.size() == 1 ? "" : "s",
+                            offersInProgress.stream().collect(Collectors.toList()));
                 }
             }
         });
