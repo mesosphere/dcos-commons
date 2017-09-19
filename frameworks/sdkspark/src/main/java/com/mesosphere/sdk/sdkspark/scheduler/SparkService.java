@@ -11,13 +11,13 @@ import java.io.File;
 /**
  * Spark Scheduler
  */
-class SparkScheduler extends DefaultService {
+class SparkService extends DefaultService {
 
-    public SparkScheduler(File pathToServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
+    public SparkService(File pathToServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         super(createSchedulerBuilder(pathToServiceSpec, schedulerFlags));
     }
 
-    public SparkScheduler(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
+    public SparkService(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) throws Exception {
         super(createSchedulerBuilder(rawServiceSpec, schedulerFlags));
     }
 
@@ -67,9 +67,6 @@ class SparkScheduler extends DefaultService {
 
         return AnalyticsScheduler.newBuilder(finalizedServiceSpecBuilder.build(), schedulerFlags)
                 .setPlansFrom(rawServiceSpec);
-
-        //return DefaultScheduler.newBuilder(finalizedServiceSpecBuilder.build(), schedulerFlags)
-        //        .setPlansFrom(rawServiceSpec);
     }
 
     private static DefaultScheduler.Builder createSchedulerBuilder(

@@ -40,7 +40,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
     public void testSparkScheduler() throws Exception {
         RawServiceSpec rawServiceSpec = getRawServiceSpec("svc.yml");
         SchedulerFlags schedulerFlags = SchedulerFlags.fromMap(envVars);
-        SparkScheduler sparkScheduler = new SparkScheduler(rawServiceSpec, schedulerFlags);
+        SparkService sparkScheduler = new SparkService(rawServiceSpec, schedulerFlags);
         Assert.assertNotNull(sparkScheduler);
     }
 
