@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,16 +16,12 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
     private final List<PlanManager> planManagers = new LinkedList<>();
-    private final PlanScheduler planScheduler;
 
-    public DefaultPlanCoordinator(
-            List<PlanManager> planManagers,
-            PlanScheduler planScheduler) {
+    public DefaultPlanCoordinator(List<PlanManager> planManagers) {
         if (CollectionUtils.isEmpty(planManagers)) {
             throw new IllegalArgumentException("At least one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
-        this.planScheduler = planScheduler;
     }
 
     /**
@@ -85,11 +78,6 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         LOGGER.info("Got total candidates: {}",
                 candidates.stream().map(step -> step.getName()).collect(Collectors.toList()));
         return candidates;
-    }
-
-    @Override
-    public Collection<OfferID> processOffers(final SchedulerDriver driver, final List<Offer> offersToProcess) {
-        return planScheduler.resourceOffers(driver, offersToProcess, getCandidates());
     }
 
     @Override

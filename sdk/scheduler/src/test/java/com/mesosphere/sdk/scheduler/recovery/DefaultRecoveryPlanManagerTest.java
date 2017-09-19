@@ -66,6 +66,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private TestingFailureMonitor failureMonitor;
     private TestingLaunchConstrainer launchConstrainer;
     private PlanCoordinator planCoordinator;
+    private DefaultPlanScheduler planScheduler;
     private PlanManager mockDeployManager;
     private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
@@ -121,7 +122,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
+        planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
                         stateStore,
@@ -131,20 +132,24 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         true),
                 stateStore,
                 new DefaultTaskKiller(taskFailureListener, schedulerDriver));
-        planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
-                planScheduler);
+        planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager));
     }
 
     @Test
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedTryConstrainedlaunch() throws Exception {
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_FAILED);
 
         launchConstrainer.setCanLaunch(false);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
+        Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         assertEquals(0, acceptedOffers.size());
         // Verify launchConstrainer was used
@@ -152,7 +157,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            planCoordinator.processOffers(schedulerDriver, getOffers());
+            planScheduler.resourceOffers(schedulerDriver, getOffers(), planCoordinator.getCandidates());
             //verify the UI
             assertNotNull(recoveryManager.getPlan());
             assertNotNull(recoveryManager.getPlan().getChildren());
@@ -182,7 +187,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         recoveryManager.update(status);
 
         // no dirty
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, offers);
+        Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
         assertEquals(1, acceptedOffers.size());
 
         // Verify launchConstrainer was checked before launch
@@ -209,7 +217,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn((Collection) Arrays.asList(step));
 
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, offers);
+        Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         assertEquals(1, acceptedOffers.size());
         reset(mockDeployManager);
@@ -227,11 +238,17 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        planCoordinator.processOffers(schedulerDriver, getOffers());
+        planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            planCoordinator.processOffers(schedulerDriver, getOffers());
+            planScheduler.resourceOffers(
+                    schedulerDriver,
+                    getOffers(),
+                    planCoordinator.getCandidates());
 
             // verify the transition to stopped
             assertNotNull(recoveryManager.getPlan());
@@ -259,9 +276,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
 
         recoveryManager.update(status);
-        final Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(
+        final Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
                 schedulerDriver,
-                getOffers());
+                getOffers(),
+                planCoordinator.getCandidates());
 
         // Verify we launched the task
         assertEquals(1, acceptedOffers.size());
@@ -299,7 +317,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        final Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, insufficientOffers);
+        final Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                insufficientOffers,
+                planCoordinator.getCandidates());
 
         assertEquals(0, acceptedOffers.size());
         // Verify we transitioned the task to failed
@@ -335,7 +356,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
+        final Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         assertEquals(1, acceptedOffers.size());
 

@@ -687,7 +687,7 @@ public class DefaultScheduler extends AbstractScheduler {
         planManagers.add(deploymentPlanManager);
         planManagers.add(recoveryPlanManager);
         planManagers.addAll(getOtherPlanManagers());
-        planCoordinator = new DefaultPlanCoordinator(planManagers, planScheduler);
+        planCoordinator = new DefaultPlanCoordinator(planManagers);
     }
 
     private void initializeResources() throws InterruptedException {
@@ -727,7 +727,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-        acceptedOffers.addAll(planCoordinator.processOffers(driver, localOffers));
+        acceptedOffers.addAll(planScheduler.resourceOffers(driver, localOffers, workSet.getWork()));
         LOGGER.info(
                 "Offers accepted by plan coordinator: {}",
                 acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));

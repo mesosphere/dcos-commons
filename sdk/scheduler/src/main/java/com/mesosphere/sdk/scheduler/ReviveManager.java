@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.queue.WorkSet;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -9,12 +10,10 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
@@ -25,19 +24,19 @@ public class ReviveManager {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
-    private final PlanCoordinator planCoordinator;
     private final ScheduledExecutorService monitor = Executors.newScheduledThreadPool(1);
     private final StateStore stateStore;
-    private Set<PodInstanceRequirement> candidates;
+    private final WorkSet workSet;
+    private Set<Step> candidates;
 
     public ReviveManager(
             SchedulerDriver driver,
             StateStore stateStore,
-            PlanCoordinator planCoordinator) {
+            WorkSet workSet) {
         this(
                 driver,
                 stateStore,
-                planCoordinator,
+                workSet,
                 REVIVE_DELAY_S,
                 REVIVE_INTERVAL_S);
     }
@@ -45,14 +44,14 @@ public class ReviveManager {
     public ReviveManager(
             SchedulerDriver driver,
             StateStore stateStore,
-            PlanCoordinator planCoordinator,
+            WorkSet workSet,
             int pollDelay,
             int pollInterval) {
 
         this.driver = driver;
         this.stateStore = stateStore;
-        this.planCoordinator = planCoordinator;
-        this.candidates = getRequirements(planCoordinator.getCandidates());
+        this.workSet = workSet;
+        this.candidates = workSet.getWork();
         monitor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override
@@ -63,19 +62,6 @@ public class ReviveManager {
                 pollDelay,
                 pollInterval,
                 TimeUnit.SECONDS);
-
-        logger.info(
-                "Monitoring these plans for suppress/revive: {}",
-                planCoordinator.getPlanManagers().stream()
-                        .map(planManager -> planManager.getPlan().getName())
-                        .collect(Collectors.toList()));
-    }
-
-    private Set<PodInstanceRequirement> getRequirements(Collection<Step> steps) {
-        return steps.stream()
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .collect(Collectors.toSet());
     }
 
     /**
@@ -112,16 +98,16 @@ public class ReviveManager {
      *     ...
      */
     private void revive() {
-        Set<PodInstanceRequirement> newCandidates = getRequirements(planCoordinator.getCandidates());
+        Set<Step> newCandidates = workSet.getWork();
         newCandidates.removeAll(candidates);
 
         logger.debug("Old candidates: {}", candidates);
         logger.debug("New candidates: {}", newCandidates);
+        candidates = newCandidates;
 
         if (newCandidates.isEmpty()) {
             logger.debug("No new candidates detected, no need to revive");
         } else {
-            candidates = newCandidates;
             logger.info("Reviving offers.");
             driver.reviveOffers();
             StateStoreUtils.setSuppressed(stateStore, false);

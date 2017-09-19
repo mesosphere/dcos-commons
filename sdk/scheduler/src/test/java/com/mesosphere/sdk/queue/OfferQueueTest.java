@@ -1,11 +1,10 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.queue;
 
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -118,13 +117,6 @@ public class OfferQueueTest {
         offerQueue.remove(TestConstants.OFFER_ID);
         // Expect capacity to increase by one as we've removed one known offer
         Assert.assertEquals(remainingCapacity + 1, offerQueue.getRemainingCapacity());
-    }
-
-    @Test
-    public void testGetNoOffers() {
-        OfferQueue offerQueue = new OfferQueue();
-        List<Protos.Offer> offers = offerQueue.takeAll(Duration.ZERO);
-        Assert.assertTrue(offers.isEmpty());
     }
 
     private Protos.Offer getOffer() {
