@@ -15,7 +15,7 @@ import sdk_utils
 
 from tests.test_utils import *
 
-BROKERS_KILL_GRACE_PERIOD = int(os.environ.get('BROKER_KILL_GRACE_PERIOD', 30))
+BROKER_KILL_GRACE_PERIOD = int(os.environ.get('BROKER_KILL_GRACE_PERIOD', 30))
 EXPECTED_KAFKA_STARTUP_SECONDS = os.environ.get('KAFKA_EXPECTED_STARTUP', 30)
 EXPECTED_DCOS_STARTUP_SECONDS = os.environ.get('DCOS_EXPECTED_STARTUP', 30)
 STARTUP_POLL_DELAY_SECONDS = os.environ.get('STARTUP_LOG_POLL_DELAY', 2)
@@ -60,11 +60,12 @@ def test_service_startup_rapid():
     retries = 15
     retry_delay = 1.0
     while retries > 0:
+        retries -= 1
         stdout = sdk_cmd.run_cli('kafka topic producer_test test 100')
         if 'records sent' in stdout:
             break
 
-    stdout = sdk_cmd.run_cli('kafka pods restart {}'.format(task_short_name))
+    stdout = sdk_cmd.run_cli('kafka pod restart {}'.format(task_short_name))
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == task_short_name
