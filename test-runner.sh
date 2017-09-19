@@ -62,14 +62,17 @@ fi
 
 pytest_args=()
 
+# PYTEST_K and PYTEST_M are treated as single strings, and should thus be added
+# to the pytest_args array in quotes.
 if [ -n "$PYTEST_K" ]; then
-    pytest_args+=(-k $PYTEST_K)
+    pytest_args+=(-k "$PYTEST_K")
 fi
 
 if [ -n "$PYTEST_M" ]; then
-    pytest_args+=(-m $PYTEST_M)
+    pytest_args+=(-m "$PYTEST_M")
 fi
 
+# Each of the space-separated parts of PYTEST_ARGS are treated separately.
 if [ -n "$PYTEST_ARGS" ]; then
     pytest_args+=($PYTEST_ARGS)
 fi
@@ -130,7 +133,7 @@ for framework in $FRAMEWORK_LIST; do
     fi
 
     echo "Starting test for $framework at "`date`
-    py.test -vv -s ${pytest_args[@]} ${FRAMEWORK_DIR}/tests
+    py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_DIR}/tests
     exit_code=$?
     echo "Finished test for $framework at "`date`
 

@@ -150,18 +150,18 @@ if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
     exit 1
 fi
 
-if [ -n "$PYTEST_K" ]; then
+if [ -n "$pytest_k" ]; then
     if [ -n "$PYTEST_ARGS" ]; then
         PYTEST_ARGS="$PYTEST_ARGS "
     fi
-    PYTEST_ARGS="-k \"$PYTEST_K\""
+    PYTEST_ARGS="$PYTEST_ARGS-k \"$pytest_k\""
 fi
 
-if [ -n "$PYTEST_M" ]; then
+if [ -n "$pytest_m" ]; then
     if [ -n "$PYTEST_ARGS" ]; then
         PYTEST_ARGS="$PYTEST_ARGS "
     fi
-    PYTEST_ARGS="-m \"$PYTEST_M\""
+    PYTEST_ARGS="$PYTEST_ARGS-m \"$pytest_m\""
 fi
 
 
