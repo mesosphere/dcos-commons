@@ -9,6 +9,7 @@ import java.util.List;
  * its observers when this state changes.
  */
 public interface PlanCoordinator {
+
     /**
      * @return The {@link Step}s which are eligible for processing.
      */

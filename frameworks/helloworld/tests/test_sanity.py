@@ -203,7 +203,7 @@ def test_state_properties_get():
     assert jsonobj[5] == "world-1-server:task-status"
 
     stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state property suppressed')
-    assert stdout == "true\n"
+    assert stdout == "false\n"
 
 
 @pytest.mark.sanity
