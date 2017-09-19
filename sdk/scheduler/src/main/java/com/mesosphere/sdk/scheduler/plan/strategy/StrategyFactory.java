@@ -20,13 +20,13 @@ public class StrategyFactory {
         Strategy<Phase> strategy = null;
         switch (strategyType) {
             case "parallel":
-                strategy = terminal ? new TerminalStrategy.Generator<>(true, teardownPhase).generate() :
+                strategy = terminal ? new FollowOnStrategy.Generator<>(true, teardownPhase).generate() :
                         new ParallelStrategy.Generator<Phase>().generate();
                 break;
             case "serial":
                 // fall through
             default:
-                strategy = terminal ? new TerminalStrategy.Generator<>(false, teardownPhase).generate() :
+                strategy = terminal ? new FollowOnStrategy.Generator<>(false, teardownPhase).generate() :
                         new SerialStrategy.Generator<Phase>().generate();
         }
 
