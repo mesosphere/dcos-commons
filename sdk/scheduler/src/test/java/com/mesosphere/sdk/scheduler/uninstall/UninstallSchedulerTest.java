@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.V1SchedulerDriver;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -11,7 +12,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,7 +82,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     private UninstallScheduler uninstallScheduler;
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
-    @Mock private SchedulerDriver mockSchedulerDriver;
+    @Mock private V1SchedulerDriver mockSchedulerDriver;
     @Mock private SecretsClient mockSecretsClient;
 
     @Before

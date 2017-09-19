@@ -2,12 +2,10 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.Credential;
 import org.apache.mesos.Protos.FrameworkInfo;
-import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +29,7 @@ public class SchedulerDriverFactory {
      * @throws IllegalArgumentException if {@link FrameworkInfo}.principal is unset or empty when
      *     authentication is needed
      */
-    public SchedulerDriver create(
+    public V1SchedulerDriver create(
             Scheduler scheduler, FrameworkInfo frameworkInfo, String masterUrl, SchedulerFlags schedulerFlags) {
         return create(scheduler, frameworkInfo, masterUrl, schedulerFlags, null /* credentialSecret */);
     }
@@ -50,7 +48,7 @@ public class SchedulerDriverFactory {
      * @throws IllegalArgumentException if {@link FrameworkInfo}.principal is unset or empty when
      *     authentication is needed
      */
-    public SchedulerDriver create(
+    public V1SchedulerDriver create(
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
@@ -88,15 +86,15 @@ public class SchedulerDriverFactory {
     /**
      * Broken out into a separate function to allow testing with custom SchedulerDrivers.
      */
-    protected SchedulerDriver createInternal(
+    protected V1SchedulerDriver createInternal(
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
             final Credential credential) {
         if (credential == null) {
-            return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true);
+            return new V1SchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true);
         } else {
-            return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential);
+            return new V1SchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential);
         }
     }
 

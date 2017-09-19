@@ -10,8 +10,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +34,7 @@ public abstract class AbstractScheduler implements Scheduler {
     // master re-election. Avoid performing initialization multiple times, which would cause resourcesQueue to be stuck.
     private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
     protected final OfferQueue offerQueue = new OfferQueue();
-    protected SchedulerDriver driver;
+    protected V1SchedulerDriver driver;
     protected DefaultReconciler reconciler;
 
     private Object inProgressLock = new Object();
@@ -44,7 +42,7 @@ public abstract class AbstractScheduler implements Scheduler {
     private AtomicBoolean processingOffers = new AtomicBoolean(false);
 
     /**
-     * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
+     * Executor for handling TaskStatus updates in {@link #statusUpdate(V1SchedulerDriver, Protos.TaskStatus)}.
      */
     protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
@@ -61,8 +59,7 @@ public abstract class AbstractScheduler implements Scheduler {
         this.configStore = configStore;
     }
 
-    @Override
-    public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
+    public void registered(V1SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         if (isAlreadyRegistered.getAndSet(true)) {
             // This may occur as the result of a master election.
             LOGGER.info("Already registered, calling reregistered()");
@@ -142,8 +139,7 @@ public abstract class AbstractScheduler implements Scheduler {
     }
 
 
-    @Override
-    public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+    public void resourceOffers(V1SchedulerDriver driver, List<Protos.Offer> offers) {
 
         synchronized (inProgressLock) {
             offersInProgress.addAll(
@@ -192,53 +188,47 @@ public abstract class AbstractScheduler implements Scheduler {
         }
     }
 
-    @Override
-    public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
+    public void reregistered(V1SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
         postRegister();
     }
 
-    @Override
-    public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
+    public void offerRescinded(V1SchedulerDriver driver, Protos.OfferID offerId) {
         LOGGER.info("Rescinding offer: {}", offerId.getValue());
         offerQueue.remove(offerId);
     }
 
-    @Override
     public void frameworkMessage(
-            SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, byte[] data) {
+            V1SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, byte[] data) {
         LOGGER.error("Received a {} byte Framework Message from Executor {}, but don't know how to process it",
                 data.length, executorId.getValue());
     }
 
-    @Override
-    public void disconnected(SchedulerDriver driver) {
+    public void disconnected(V1SchedulerDriver driver) {
         LOGGER.error("Disconnected from Master, shutting down.");
         SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
     }
 
-    @Override
-    public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
+    public void slaveLost(V1SchedulerDriver driver, Protos.SlaveID agentId) {
         // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
         LOGGER.warn("Agent lost: {}", agentId.getValue());
     }
 
-    @Override
-    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
+    public void executorLost(
+            V1SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
         // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
         LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), agentId.getValue());
     }
 
-    @Override
-    public void error(SchedulerDriver driver, String message) {
+    public void error(V1SchedulerDriver driver, String message) {
         LOGGER.error("SchedulerDriver returned an error, shutting down: {}", message);
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
     }
 
     /**
      * Registration can occur multiple times in a scheduler's lifecycle via both
-     * {@link Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} and
-     * {@link Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)} calls.
+     * {@link AbstractScheduler#registered(V1SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} and
+     * {@link AbstractScheduler#reregistered(V1SchedulerDriver, Protos.MasterInfo)} calls.
      */
     protected void postRegister() {
         // Task reconciliation should be started on all registrations.
@@ -256,7 +246,7 @@ public abstract class AbstractScheduler implements Scheduler {
         }
     }
 
-    protected abstract void initialize(SchedulerDriver driver) throws InterruptedException;
+    protected abstract void initialize(V1SchedulerDriver driver) throws InterruptedException;
 
     protected abstract boolean apiServerReady();
 
@@ -264,6 +254,8 @@ public abstract class AbstractScheduler implements Scheduler {
      * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
      */
     protected abstract void executePlans(List<Protos.Offer> offers);
+
+    public abstract void statusUpdate(V1SchedulerDriver driver, Protos.TaskStatus status);
 
     protected abstract PlanCoordinator getPlanCoordinator();
 }

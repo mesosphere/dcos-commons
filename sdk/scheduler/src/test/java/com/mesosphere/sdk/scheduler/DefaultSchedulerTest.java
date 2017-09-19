@@ -28,7 +28,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.SchedulerDriver;
 import org.awaitility.Awaitility;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -68,7 +67,7 @@ public class DefaultSchedulerTest {
     @Rule
     public final ExpectedSystemExit exit = ExpectedSystemExit.none();
     @Mock
-    private SchedulerDriver mockSchedulerDriver;
+    private V1SchedulerDriver mockSchedulerDriver;
     @Mock
     private SchedulerFlags mockSchedulerFlags;
     @Captor
