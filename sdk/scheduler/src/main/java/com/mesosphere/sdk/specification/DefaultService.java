@@ -139,6 +139,7 @@ public class DefaultService implements Runnable {
             }
             this.scheduler = schedulerBuilder.build();
         }
+        this.scheduler.start();
     }
 
     @Override
