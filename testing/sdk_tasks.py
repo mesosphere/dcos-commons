@@ -79,8 +79,6 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
             old_remaining_set,
             newly_launched_set))
 
-        log.info('Waiting for tasks{} to have updated ids:\n- Old tasks (remained): {}\n- New tasks (launched): {}'.format(
-
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_deployment(service_name)
