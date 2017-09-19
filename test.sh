@@ -11,7 +11,7 @@
 set -e
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
+FRAMEWORK_LIST=$(if [ -d $REPO_ROOT_DIR/frameworks ]; then ls $REPO_ROOT_DIR/frameworks | sort; fi)
 
 # Set default values
 security="permissive"
