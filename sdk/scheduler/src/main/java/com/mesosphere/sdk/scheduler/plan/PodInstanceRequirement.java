@@ -3,8 +3,13 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A PodInstanceRequirement encapsulates a {@link PodInstance} and the names of tasks that should be launched in it.
@@ -66,7 +71,7 @@ public class PodInstanceRequirement {
 
     @Override
     public String toString() {
-        return getName();
+        return String.format("%s[%s]", getName(), recoveryType);
     }
 
     /**
@@ -86,6 +91,16 @@ public class PodInstanceRequirement {
                 .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t))
                 .count() > 0;
         return podConflicts && anyTaskConflicts;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     /**

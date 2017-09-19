@@ -347,20 +347,3 @@ def test_metrics():
         expected_metrics_exist
     )
 
-
-# --------- Suppressed -------------
-
-
-@pytest.mark.smoke
-@pytest.mark.sanity
-def test_suppress():
-    dcos_url = dcos.config.get_config_val('core.dcos_url')
-    suppressed_url = urllib.parse.urljoin(
-        dcos_url, 'service/{}/v1/state/properties/suppressed'.format(sdk_utils.get_foldered_name(config.SERVICE_NAME)))
-
-    def fun():
-        response = dcos.http.get(suppressed_url)
-        response.raise_for_status()
-        return response.text == "true"
-
-    shakedown.wait_for(fun)

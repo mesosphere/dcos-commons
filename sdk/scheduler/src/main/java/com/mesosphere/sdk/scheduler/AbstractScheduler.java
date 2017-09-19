@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.reconciliation.Reconciler;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -43,7 +43,6 @@ public abstract class AbstractScheduler {
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
 
     private final MesosScheduler mesosScheduler = new MesosScheduler();
-    private final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
 
     private Object inProgressLock = new Object();
     private Set<Protos.OfferID> offersInProgress = new HashSet<>();
@@ -103,7 +102,6 @@ public abstract class AbstractScheduler {
                     LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
                 processOffers(offers);
-                offers.forEach(offer -> eventBus.post(offer));
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
                             offers.stream()
@@ -187,9 +185,9 @@ public abstract class AbstractScheduler {
     protected abstract Collection<Object> getResources();
 
     /**
-     * Returns a list of Plan Managers, one per Plan.
+     * Returns the Plan Coordinator which is handling all available Plans.
      */
-    protected abstract Collection<PlanManager> getPlanManagers();
+    protected abstract PlanCoordinator getPlanCoordinator();
 
     /**
      * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
@@ -214,9 +212,8 @@ public abstract class AbstractScheduler {
         private final OfferQueue offerQueue = new OfferQueue();
 
         private SchedulerDriver driver;
-        private SuppressReviveManager suppressReviveManager;
-        @VisibleForTesting
-        DefaultReconciler reconciler;
+        private ReviveManager reviveManager;
+        private Reconciler reconciler;
 
         @Override
         public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
@@ -253,7 +250,7 @@ public abstract class AbstractScheduler {
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers);
+                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
                 return;
             }
 
@@ -265,7 +262,7 @@ public abstract class AbstractScheduler {
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers);
+                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
                 return;
             }
 
@@ -286,7 +283,7 @@ public abstract class AbstractScheduler {
                 if (!queued) {
                     LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                             offer.getId().getValue());
-                    OfferUtils.declineOffers(driver, Arrays.asList(offer));
+                    OfferUtils.declineOffers(driver, Arrays.asList(offer), Constants.SHORT_DECLINE_SECONDS);
                     // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                     synchronized (inProgressLock) {
                         offersInProgress.remove(offer.getId());
@@ -302,7 +299,6 @@ public abstract class AbstractScheduler {
                     status.getState().toString(),
                     status.getMessage(),
                     TextFormat.shortDebugString(status));
-            eventBus.post(status);
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
@@ -366,16 +362,10 @@ public abstract class AbstractScheduler {
             reconciler.start();
             reconciler.reconcile(driver);
 
-            // A SuppressReviveManager should be constructed only once.
-            if (suppressReviveManager == null) {
-                suppressReviveManager = new SuppressReviveManager(
-                        stateStore,
-                        configStore,
-                        driver,
-                        eventBus,
-                        getPlanManagers());
+            // A ReviveManager should be constructed only once.
+            if (reviveManager == null) {
+                reviveManager = new ReviveManager(driver, stateStore, getPlanCoordinator());
             }
-            suppressReviveManager.start();
         }
     }
 }

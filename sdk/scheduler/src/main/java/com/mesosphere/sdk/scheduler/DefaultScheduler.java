@@ -676,8 +676,8 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected Collection<PlanManager> getPlanManagers() {
-        return planCoordinator.getPlanManagers();
+    protected PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 
     @Override
@@ -715,7 +715,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
 
         // Decline remaining offers.
-        OfferUtils.declineOffers(driver, unusedOffers);
+        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
     }
 
     @Override

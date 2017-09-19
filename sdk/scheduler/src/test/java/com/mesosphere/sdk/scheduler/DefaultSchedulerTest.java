@@ -608,7 +608,7 @@ public class DefaultSchedulerTest {
         defaultScheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, timeout(1000).times(1)).killTask(launchedTaskId);
-        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(insufficientOffer.getId());
+        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
 
         // Sent TASK_KILLED status
@@ -666,26 +666,6 @@ public class DefaultSchedulerTest {
         }
 
         return Collections.emptyList();
-    }
-
-    @Test
-    public void testSuppress() throws InterruptedException {
-        install();
-    }
-
-    @Test
-    public void testRevive() throws InterruptedException {
-        List<Protos.TaskID> taskIds = install();
-        statusUpdate(taskIds.get(0), Protos.TaskState.TASK_FAILED);
-
-        Awaitility.await()
-            .atMost(1, TimeUnit.SECONDS)
-            .until(new Callable<Boolean>() {
-                @Override
-                public Boolean call() throws Exception {
-                    return !StateStoreUtils.isSuppressed(stateStore);
-                }
-            });
     }
 
     @Test
@@ -772,7 +752,7 @@ public class DefaultSchedulerTest {
         DefaultScheduler scheduler = getScheduler(getServiceSpec(podA, podB), true);
         scheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(getSufficientOfferForTaskA()));
-        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());//TODO FAIL
+        verify(mockSchedulerDriver, timeout(1000).times(1)).declineOffer(any());
     }
 
     @Test
@@ -982,13 +962,13 @@ public class DefaultSchedulerTest {
                 PlanTestUtils.getStepStatuses(getDeploymentPlan()));
         Awaitility.await()
                 .atMost(
-                        SuppressReviveManager.SUPPRESSS_REVIVE_DELAY_S +
-                        SuppressReviveManager.SUPPRESSS_REVIVE_INTERVAL_S + 1,
+                        ReviveManager.REVIVE_DELAY_S +
+                        ReviveManager.REVIVE_INTERVAL_S + 1,
                         TimeUnit.SECONDS)
                 .until(new Callable<Boolean>() {
                     @Override
                     public Boolean call() throws Exception {
-                        return StateStoreUtils.isSuppressed(stateStore);
+                        return defaultScheduler.getPlanCoordinator().getCandidates().isEmpty();
                     }
                 });
 
@@ -1060,12 +1040,12 @@ public class DefaultSchedulerTest {
     }
 
     private Plan getPlan(String planName) {
-        for (PlanManager planManager : defaultScheduler.getPlanManagers()) {
+        for (PlanManager planManager : defaultScheduler.getPlanCoordinator().getPlanManagers()) {
             if (planManager.getPlan().getName().equals(planName)) {
                 return planManager.getPlan();
             }
         }
         throw new IllegalStateException(String.format(
-                "No %s plan found: %s", planName, defaultScheduler.getPlanManagers()));
+                "No %s plan found: %s", planName, defaultScheduler.getPlanCoordinator().getPlanManagers()));
     }
 }

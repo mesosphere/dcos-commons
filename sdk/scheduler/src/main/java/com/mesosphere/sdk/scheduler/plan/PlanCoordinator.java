@@ -12,6 +12,7 @@ import java.util.List;
  * its observers when this state changes.
  */
 public interface PlanCoordinator {
+
     /**
      * Provides offers to each {@link PlanManager} for processing. Keeps tracks of dirtied offers and assets.
      *
@@ -20,9 +21,9 @@ public interface PlanCoordinator {
     Collection<Protos.OfferID> processOffers(final SchedulerDriver driver, final List<Protos.Offer> offers);
 
     /**
-     * @return True if this {@link PlanCoordinator} has operations to perform.
+     * @return The {@link Step}s which are eligible for processing.
      */
-    boolean hasOperations();
+    List<Step> getCandidates();
 
     /**
      * @return The {@link PlanManager}s which the PlanCoordinator coordinates.
