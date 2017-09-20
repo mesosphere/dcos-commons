@@ -121,16 +121,18 @@ public abstract class AbstractScheduler implements Scheduler {
                     }
                 }
 
-                // Revive offers if necessary
-                Collection<Step> steps = getPlanCoordinator().getCandidates();
-                reviveManager.revive(steps);
-
                 LOGGER.info("Pulling offers off the queue...");
                 List<Protos.Offer> offers = offerQueue.takeAll();
                 LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
                 for (int i = 0; i < offers.size(); ++i) {
                     LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
                 }
+
+                // Get the current work
+                Collection<Step> steps = getPlanCoordinator().getCandidates();
+
+                // Revive offers if necessary
+                reviveManager.revive(steps);
 
                 // Match offers with work
                 executePlans(offers, steps);

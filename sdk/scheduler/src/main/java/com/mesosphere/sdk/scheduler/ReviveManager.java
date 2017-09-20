@@ -44,33 +44,34 @@ public class ReviveManager {
      * Pseudo-code algorithm is this:
      *
      *     // We always start out revived
-     *     List<Requirement> currRequirements = getRequirements();
+     *     List<Requirement> oldRequirements = getRequirements();
      *
      *     while (true) {
-     *         List<Requirement> newRequirements = getRequirements() - currRequirements;
+     *         List<Requirement> currRequirements = getRequirements()
+     *         List<Requirement> newRequirements = oldRequirements - currRequirements;
      *         if (newRequirements.isEmpty()) {
      *             print “No new work”;
      *         } else {
-     *             currRequirements = newRequirements;
+     *             oldRequirements = currRequirements;
      *             revive();
      *         }
      *     }
      *
-     * A natural question is why do we overwrite {@code currRequirements} with {@code newRequirements}?  Anything that
-     * is in {@code currRequirements} has had revive called for it.  Any change with regard to {@code currRequirements}
-     * i.e. {@code newRequirements} implies that those requirements may need an offer which has been declined forever,
-     * so we need to revive.  We cannot maintain a cummulative list in {@code currRequirements} because we may see the
-     * same work twice.
-
-     * e.g.
+     * The invariant maintained is that the oldRequirements have always had revive called for them at least once, giving
+     * them access to offers.
+     *
+     * This case must work:
+     *
      *     kafka-0-broker fails    @ 10:30, it's new work!
      *     kafka-0-broker recovers @ 10:35
      *     kafka-0-broker fails    @ 11:00, it's new work!
      *     ...
      */
     public void revive(Collection<Step> steps) {
-        Set<WorkItem> newCandidates = getCandidates(steps);
-        logger.info("Current candidates: {}", newCandidates);
+        Set<WorkItem> currCandidates = getCandidates(steps);
+        logger.info("Current candidates: {}", currCandidates);
+
+        Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
         newCandidates.removeAll(candidates);
 
         logger.info("Old     candidates: {}", candidates);
@@ -89,7 +90,7 @@ public class ReviveManager {
             }
         }
 
-        candidates = newCandidates;
+        candidates = currCandidates;
     }
 
     private Set<WorkItem> getCandidates(Collection<Step> steps) {
@@ -122,7 +123,12 @@ public class ReviveManager {
 
         @Override
         public String toString() {
-            return String.format("%s [%s]", name, status);
+            return String.format("%s [%s][%s]",
+                    name,
+                    status,
+                    podInstanceRequirement.isPresent() ?
+                            podInstanceRequirement.get().getRecoveryType() :
+                            "N/A");
         }
     }
 }
