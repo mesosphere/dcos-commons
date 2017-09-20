@@ -76,8 +76,8 @@ fi
 
 # Add symlink from GOPATH for the vendor deps that aren't under our repo org
 for external_vendor in github.com/containernetworking github.com/dcos github.com/vishvanada; do
-    if [ ! -e $GOPATH/src/$external_vendor ]; then
-        ln -s $(pwd)/govendor/$external_vendor/ $GOPATH/src/$external_vendor
+    if [ ! -h $GOPATH/src/$external_vendor ]; then
+        ln -s $REPO_ROOT_DIR/govendor/$external_vendor/ $GOPATH/src/$external_vendor
     fi
 done
 
