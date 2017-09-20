@@ -40,8 +40,13 @@ if [ x$PULLREQUEST = "xtrue" ]; then
     git pull origin $MERGE_FROM --no-commit --ff
 fi
 
-# Verify SDK CLI, run unit tests
-go test ./...
+# Verify golang-based projects: SDK CLI (exercised via helloworld, our model service)
+# and SDK bootstrap, run unit tests
+for golang_sub_project in frameworks/helloworld/cli/dcos-hello-world sdk/bootstrap; do
+    pushd $golang_sub_project
+    go test .
+    popd
+done
 
 # Build steps for SDK libraries:
 ./gradlew clean jar check
