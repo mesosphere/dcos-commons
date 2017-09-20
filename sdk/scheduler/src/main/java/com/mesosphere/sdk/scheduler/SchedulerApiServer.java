@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -22,16 +23,16 @@ import javax.ws.rs.core.UriBuilder;
 public class SchedulerApiServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerApiServer.class);
 
+    private final int port;
     private final Server server;
-    private final Timer startTimer;
     private final Duration startTimeout;
 
     public SchedulerApiServer(SchedulerFlags schedulerFlags, Collection<Object> resources) {
+        this.port = schedulerFlags.getApiServerPort();
         this.server = JettyHttpContainerFactory.createServer(
-                UriBuilder.fromUri("http://0.0.0.0/").port(schedulerFlags.getApiServerPort()).build(),
-                new ResourceConfig(MultiPartFeature.class).registerInstances(resources),
+                UriBuilder.fromUri("http://0.0.0.0/").port(this.port).build(),
+                new ResourceConfig(MultiPartFeature.class).registerInstances(new HashSet<>(resources)),
                 false /* don't start yet. wait for start() call below. */);
-        this.startTimer = new Timer();
         this.startTimeout = schedulerFlags.getApiServerInitTimeout();
     }
 
@@ -46,11 +47,12 @@ public class SchedulerApiServer {
         }
         server.addLifeCycleListener(listener);
 
+        final Timer startTimer = new Timer("API-start-timeout");
         startTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 if (!server.isStarted()) {
-                    LOGGER.error("API Server failed to start within {}ms", startTimeout.toMillis());
+                    LOGGER.error("API Server failed to start at port {} within {}ms", port, startTimeout.toMillis());
                     SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_ERROR);
                 }
             }
@@ -59,21 +61,20 @@ public class SchedulerApiServer {
         Runnable runServerCallback = new Runnable() {
             public void run() {
                 try {
-                    LOGGER.info("Starting API server");
+                    LOGGER.info("Starting API server at port {}", port);
                     server.start();
-                    server.dumpStdErr();
-                    LOGGER.info("API server started");
+                    LOGGER.info("API server started at port {}", port);
                     startTimer.cancel();
                     server.join();
                 } catch (Exception e) {
-                    LOGGER.error("API Server failed with exception: ", e);
+                    LOGGER.error(String.format("API server at port %d failed with exception: ", port), e);
                     SchedulerUtils.hardExit(SchedulerErrorCode.API_SERVER_ERROR);
                 } finally {
-                    LOGGER.info("API Server exiting.");
+                    LOGGER.info("API server at port {} exiting", port);
                     try {
                         server.destroy();
                     } catch (Exception e) {
-                        LOGGER.error("Failed to stop API server with exception: ", e);
+                        LOGGER.error(String.format("Failed to stop API server at port %d with exception: ", port), e);
                     }
                 }
             }
