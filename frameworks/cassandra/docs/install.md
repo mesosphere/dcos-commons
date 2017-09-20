@@ -53,7 +53,7 @@ Steps:
    Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
    ```
-   dcos:adminrouter:service:marathon full				
+   dcos:adminrouter:service:marathon full
    dcos:service:marathon:marathon:services:/testing full
    dcos:adminrouter:ops:mesos full
    dcos:adminrouter:ops:slave full
@@ -73,3 +73,47 @@ Steps:
 - To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/cassandra/v1/endpoints`.
 
 <!-- END DUPLICATE BLOCK -->
+
+# Multi-data-center Deployment
+
+To replicate data across data centers, Apache Cassandra requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here's what starting a multi-data-center Apache Cassandra deployment would like, running inside of a single DC/OS cluster.
+
+Launch the first cluster with the default configuration:
+```
+dcos package install beta-cassandra
+```
+
+Create an `options.json` file for the second cluster that specifies a different service name and data center name:
+```json
+{
+  "service": {
+    "name": "cassandra2",
+    "data_center": "dc2"
+  }
+}
+```
+
+Launch the second cluster with these custom options:
+```
+dcos package install beta-cassandra --options=<options>.json
+```
+
+Get the list of seed node addresses for the first cluster from the scheduler HTTP API:
+```json
+DCOS_AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
+DCOS_URL=$(dcos config show core.dcos_url)
+curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra/v1/seeds
+{"seeds": ["10.0.0.1", "10.0.0.2"]}
+```
+
+In the DC/OS UI, go to the configuration dialog for the second cluster (whose service name is `cassandra2`) and update the `TASKCFG_ALL_REMOTE_SEEDS` environment variable to `10.0.0.1,10.0.0.2`. This environment variable may not already be present in a fresh install. To add it, click the plus sign at the bottom of the list of environment variables, and then fill in its name and value in the new row that appears.
+
+Get the seed node addresses for the second cluster the same way:
+```
+curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra2/v1/seeds
+{"seeds": ["10.0.0.3", "10.0.0.4"]}
+```
+
+In the DC/OS UI, go to the configuration dialog for the first cluster (whose service name is `cassandra`) and update the `TASKCFG_ALL_REMOTE_SEEDS` environment variable to `10.0.0.3,10.0.0.4`, again adding the variable with the plus sign if it's not already present.
+
+Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add, appending a comma-separated list of that cluster's seeds to the `TASKCFG_ALL_REMOTE_SEEDS` environment variable for each existing cluster, and adding a comma-separated list of each existing cluster's seeds to the newly-added cluster's `TASKCFG_ALL_REMOTE_SEEDS` environment variable.
