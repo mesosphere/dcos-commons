@@ -324,7 +324,7 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. Your file must be Base64-encoded as specified in RFC 4648.
 
-You can use standard `base64` command line utility. The following example uss the BSD `base64` command.
+You can use standard `base64` command line utility. The following example uses the BSD `base64` command.
 ```
 $  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
 ```
