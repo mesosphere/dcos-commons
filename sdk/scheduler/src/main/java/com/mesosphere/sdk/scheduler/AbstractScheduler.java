@@ -154,7 +154,9 @@ public abstract class AbstractScheduler implements Scheduler {
             LOGGER.info("Enqueuing {} offer{}. Updated offers in progress: {}",
                     offers.size(),
                     offers.size() == 1 ? "" : "s",
-                    offersInProgress.stream().collect(Collectors.toList()));
+                    offersInProgress.stream()
+                            .map(offerID -> offerID.getValue())
+                            .collect(Collectors.toList()));
         }
 
         for (Protos.Offer offer : offers) {
