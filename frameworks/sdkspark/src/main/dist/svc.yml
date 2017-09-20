@@ -17,13 +17,18 @@ pods:
     tasks:
       driver:
         goal: FINISHED
+        ports:
+          driver:
+            port: {{DRIVER_PORT}}
+            env-key: SPARK_DRIVER_PORT
+            advertise: false
         cmd: >
           ./bin/spark-submit --master mesos://zk://master.mesos:2181/mesos
           --driver-cores {{COORDINATOR_CORES}}
           --driver-memory {{COORDINATOR_MEM}}M
           --class {{SPARK_MAIN_CLASS}}
           --executor-memory {{EXECUTOR_MEM}}M
-          --conf spark.driver.port=9000
+          --conf spark.driver.port=$SPARK_DRIVER_PORT
           --conf spark.ssl.noCertVerification=true
           --conf spark.mesos.backend=sdk
         cpus: {{COORDINATOR_CORES}}
@@ -53,10 +58,15 @@ pods:
     tasks:
       worker:
         goal: FINISHED
+        ports:
+          driver:
+            port: {{DRIVER_PORT}}
+            env-key: SPARK_DRIVER_PORT
+            advertise: false
         cmd: >
           $BOOTSTRAP -resolve-hosts coordinator-0-driver.sdkspark.mesos &&
           /opt/spark/dist/./bin/spark-class org.apache.spark.executor.CoarseGrainedExecutorBackend
-          --driver-url spark://CoarseGrainedScheduler@coordinator-0-driver.sdkspark.mesos:9000
+          --driver-url spark://CoarseGrainedScheduler@coordinator-0-driver.sdkspark.mesos:$SPARK_DRIVER_PORT
           --executor-id $POD_INSTANCE_INDEX
           --hostname $(hostname -i)
           --cores {{EXECUTOR_CORES}}

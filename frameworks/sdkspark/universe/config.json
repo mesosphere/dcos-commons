@@ -169,6 +169,12 @@
               "MOUNT"
             ],
             "default": "ROOT"
+          },
+          "port": {
+            "title": "Port",
+            "description": "Port for coordinator to listen on",
+            "type": "integer",
+            "default": 0
           }
         },
         "required":[
