@@ -286,17 +286,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        Set<PodInstanceRequirement> dirtyAssets = new HashSet<>();
-        if (plan != null) {
-            dirtyAssets.addAll(plan.getChildren().stream()
-                    .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> step.isPrepared())
-                    .map(step -> step.getPodInstanceRequirement())
-                    .filter(podInstanceRequirement -> podInstanceRequirement.isPresent())
-                    .map(podInstanceRequirement -> podInstanceRequirement.get())
-                    .collect(Collectors.toSet()));
-        }
-        return dirtyAssets;
+        return PlanUtils.getDirtyAsseets(plan);
     }
 
     private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
