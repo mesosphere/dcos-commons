@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -79,7 +80,7 @@ public class ReviveManagerTest {
     }
 
     private ReviveManager getReviveManager() {
-        return new ReviveManager(driver, stateStore);
+        return new ReviveManager(driver, stateStore, TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
     }
 
     private List<Step> getSteps(Integer index) {

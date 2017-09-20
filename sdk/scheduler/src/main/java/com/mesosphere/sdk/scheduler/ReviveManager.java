@@ -30,9 +30,13 @@ public class ReviveManager {
     private Set<WorkItem> candidates = new HashSet<>();
 
     public ReviveManager(SchedulerDriver driver, StateStore stateStore) {
+        this(driver, stateStore, TokenBucket.newBuilder().build());
+    }
+
+    public ReviveManager(SchedulerDriver driver, StateStore stateStore, TokenBucket tokenBucket) {
         this.driver = driver;
         this.stateStore = stateStore;
-        this.tokenBucket = new TokenBucket();
+        this.tokenBucket = tokenBucket;
     }
 
     /**
