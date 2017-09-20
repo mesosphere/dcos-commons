@@ -759,12 +759,12 @@ public class DefaultScheduler extends AbstractScheduler {
                 unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
 
         // Decline remaining offers.
-        OfferUtils.declineOffers(driver, unusedOffers);
+        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
     }
 
     @Override
-    protected Collection<PlanManager> getPlanManagers() {
-        return planCoordinator.getPlanManagers();
+    protected PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 
     public boolean apiServerReady() {
@@ -778,8 +778,6 @@ public class DefaultScheduler extends AbstractScheduler {
                 status.getState().toString(),
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
-
-        eventBus.post(status);
 
         // Store status, then pass status to PlanManager => Plan => Steps
         try {

@@ -50,14 +50,17 @@ public class OfferUtils {
      *
      * @param driver The {@link SchedulerDriver} that will receive the declineOffer() calls
      * @param unusedOffers The collection of Offers to decline
+     * @param refuseSeconds The number of seconds for which the offers should be refused
      */
-    public static void declineOffers(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {
-        LOGGER.info("Declining {} unused offers:", unusedOffers.size());
+    public static void declineOffers(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
+        LOGGER.info("Declining {} unused offers for {} seconds:", unusedOffers.size(), refuseSeconds);
+        final Protos.Filters filters = Protos.Filters.newBuilder()
+                .setRefuseSeconds(refuseSeconds)
+                .build();
         unusedOffers.forEach(offer -> {
             final Protos.OfferID offerId = offer.getId();
             LOGGER.info("  {}", offerId.getValue());
-            driver.declineOffer(offerId);
+            driver.declineOffer(offerId, filters);
         });
     }
-
 }

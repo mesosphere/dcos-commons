@@ -200,18 +200,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     }
 
     @Test
-    public void testApiServerNotReadyDecline() throws InterruptedException {
-        UninstallScheduler uninstallScheduler =
-                new TestScheduler(TestConstants.SERVICE_NAME, stateStore, mockConfigStore, false);
-        uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
-
-        Protos.Offer offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
-        uninstallScheduler.awaitOffersProcessed();
-        verify(mockSchedulerDriver, times(1)).declineOffer(any());
-    }
-
-    @Test
     public void testAllButDeregisteredPlanCompletes() throws Exception {
         // No framework ID is set yet, and there are no tasks, and no SchedulerDriver
         UninstallScheduler uninstallScheduler = new UninstallScheduler(

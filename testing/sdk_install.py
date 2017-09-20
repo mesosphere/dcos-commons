@@ -75,17 +75,6 @@ def install(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
-        # given the above wait for plan completion, here we just wait up to 5 minutes
-        if shakedown.dcos_version_less_than("1.9"):
-            log.info("Skipping `is_suppressed` check for %s/%s as this is only suppored starting in version 1.9",
-                     package_name, service_name)
-        else:
-            log.info("Waiting for %s/%s to be suppressed...", package_name, service_name)
-            shakedown.wait_for(
-                lambda: sdk_api.is_suppressed(service_name),
-                noisy=True,
-                timeout_seconds=5 * 60)
-
     log.info('Installed {}/{} after {}'.format(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 

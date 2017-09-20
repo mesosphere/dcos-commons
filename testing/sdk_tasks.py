@@ -47,6 +47,9 @@ def get_task_ids(service_name, task_prefix):
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    # TODO: strongly consider merging the use of checking that tasks have been replaced (this method)
+    # and checking that the deploy/upgrade/repair plan has completed. Each serves a part in the bigger
+    # atomic test, that the plan completed properly where properly includes that no old tasks remain.
     def fn():
         try:
             task_ids = get_task_ids(service_name, prefix)
@@ -57,16 +60,30 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         prefix_clause = ''
         if prefix:
             prefix_clause = ' starting with "{}"'.format(prefix)
-        log.info('Waiting for {} tasks{} to have updated ids:\n- Old tasks: {}\n- Current tasks: {}'.format(
-            len(old_task_ids), prefix_clause, sorted(old_task_ids), sorted(task_ids)))
 
-        all_updated = True
-        for id in task_ids:
-            if id in old_task_ids:
-                all_updated = False
-        if len(task_ids) < len(old_task_ids):
-            all_updated = False
-        return all_updated
+        old_set = set(old_task_ids)
+        new_set = set(task_ids)
+        newly_launched_set = new_set.difference(old_set)
+        old_remaining_set = old_set.intersection(new_set)
+        # the constrainst of old and new task cardinality match should be covered by completion of
+        # deploy/recovery/whatever plan, not task cardinality, but some uses of this method are not
+        # using the plan, so not the definitive source, so will fail when the finished state of a
+        # plan yields more or less tasks per pod.
+        all_updated = len(newly_launched_set) == len(new_set) and len(old_remaining_set) == 0 and len(new_set) >= len(old_set)
+        if all_updated:
+            log.info('All of the tasks{} have updated\n- Old tasks: {}\n- New tasks: {}'.format(
+                prefix_clause,
+                old_set,
+                new_set))
+            return all_updated
+
+        # forgive the language a bit, but len('remained') == len('launched'),
+        # and similar for the rest of the label for task ids in the log line,
+        # so makes for easier reading
+        log.info('Waiting for tasks{} to have updated ids:\n- Old tasks (remained): {}\n- New tasks (launched): {}'.format(
+            prefix_clause,
+            old_remaining_set,
+            newly_launched_set))
 
     shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
 

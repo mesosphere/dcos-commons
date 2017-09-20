@@ -9,7 +9,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 **Prerequisites:**
 
 -  [DC/OS and DC/OS CLI installed](https://docs.mesosphere.com/1.9/installing/) with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.
--  Depending on your [security mode](https://docs.mesosphere.com/1.9/overview/security/security-modes/), HDFS requires a service authentication for access to DC/OS. For more information, see [Configuring DC/OS Access for HDFS](https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/).
+-  Depending on your [security mode](https://docs.mesosphere.com/1.9/overview/security/security-modes/), HDFS requires a service authentication token for access to DC/OS. For more information, see [Configuring DC/OS Access for HDFS](https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/).
 
    | Security mode | Service Account |
    |---------------|-----------------------|
