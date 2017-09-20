@@ -896,10 +896,9 @@ Agent 3: X B
 
 <p>Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.</p>
 
-<p>The content of a secret is copied and made available within the pod.  The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to <a href="developer-guide.md">Developer Guide</a> for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
-e both.</p>
+<p>The content of a secret is copied and made available within the pod. The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to <a href="developer-guide.md">Developer Guide</a> for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.</p>
 
-<p><strong>Note:</strong> Secrets are available only in Enterprise DC/OS 1.0 onwards. <a href="https://docs.mesosphere.com/1.9/security/secrets/">Learn more about the secrets store</a>.</p>
+<p><strong>Note:</strong> Secrets are available only in Enterprise DC/OS 1.10 onwards. <a href="https://docs.mesosphere.com/1.10/security/secrets/">Learn more about the secrets store</a>.</p>
 
 <h3 id="authorization-for-secrets">Authorization for Secrets</h3>
 
@@ -976,25 +975,25 @@ e both.</p>
 
 <h3 id="binary-secrets">Binary Secrets</h3>
 
-<p>When you need to store binary files into DC/OS secrets store, for example a Kerberos keytab file, your file needs to be Base64-encoded as specified in RFC 4648.</p>
+<p>You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. Your file must be Base64-encoded as specified in RFC 4648.</p>
 
-<p>You can use standard <code class="highlighter-rouge">base64</code> command line utility. Take a look at the following example that is using BSD <code class="highlighter-rouge">base64</code> command.</p>
+<p>You can use standard <code class="highlighter-rouge">base64</code> command line utility. The following example uses the BSD <code class="highlighter-rouge">base64</code> command.</p>
 <div class="highlighter-rouge"><pre class="highlight"><code>$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
 </code></pre>
 </div>
 
-<p><code class="highlighter-rouge">base64</code> command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping via  <code class="highlighter-rouge">-w 0</code> argument.  Here is a sample base64 command in Linux.</p>
+<p>The <code class="highlighter-rouge">base64</code> command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping with the <code class="highlighter-rouge">-w 0</code> argument. Here is a sample base64 command in Linux.</p>
 <div class="highlighter-rouge"><pre class="highlight"><code>$  base64 -w 0 -i krb5.keytab &gt; kerb5.keytab.base64-encoded
 </code></pre>
 </div>
 
-<p>Give the secret basename prefixed with <code class="highlighter-rouge">__dcos_base64__</code>. For example  <code class="highlighter-rouge">some/path/__dcos_base64__mysecret</code> and <code class="highlighter-rouge">__dcos_base64__mysecret</code> will be base64-decoded automatically.</p>
+<p>Prefix the secret name with <code class="highlighter-rouge">__dcos_base64__</code>. For example  <code class="highlighter-rouge">some/path/__dcos_base64__mysecret</code> and <code class="highlighter-rouge">__dcos_base64__mysecret</code> will be base64-decoded automatically.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
 </code></pre>
 </div>
 
-<p>When you reference the <code class="highlighter-rouge">__dcos_base64__mysecret</code> secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to <a href="developer-guide.md">Developer Guide</a> for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
+<p>When you reference the <code class="highlighter-rouge">__dcos_base64__mysecret</code> secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to the <a href="developer-guide.md">Developer Guide</a> for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
 only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).</p>
 
 <h2 id="placement-constraints">Placement Constraints</h2>
@@ -1058,7 +1057,7 @@ only as a file such that it will be autoatically decoded and made available as a
     <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.
 Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>dcos:adminrouter:service:marathon full				
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos:adminrouter:service:marathon full
 dcos:service:marathon:marathon:services:/testing full
 dcos:adminrouter:ops:mesos full
 dcos:adminrouter:ops:slave full
