@@ -945,7 +945,6 @@ In the example above, a server task can be accessed through the address:
 server-lb.hello-world.l4lb.thisdcos.directory:80
 ```
 
-
 ## Virtual networks
 
 The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
@@ -993,13 +992,13 @@ Specifying that pods join a virtual network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
-  
-  
+
+
 # Secrets
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.10/security/secrets/).
 
 The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
 
@@ -1037,7 +1036,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
-Refer to [Secrets Tutorial](tutorials/secrets-tutorial.md) for an 
+Refer to the [Secrets Tutorial](tutorials/secrets-tutorial.md) for an
 SDK-based example service using DC/OS secrets.
 
 ### Authorization for Secrets
@@ -1094,7 +1093,7 @@ pods:
 
 # TLS
 
-**This feature works only on Mesosphere DC/OS Enterprise and is not supported on DC/OS Open.**
+**This feature works only on Mesosphere DC/OS Enterprise and is not supported on Open Source DC/OS.**
 
 The SDK provides an automated way of provisioning X.509 certificates and private keys for tasks. These TLS artifacts can be consumed by tasks to create encrypted TLS connections.
 
