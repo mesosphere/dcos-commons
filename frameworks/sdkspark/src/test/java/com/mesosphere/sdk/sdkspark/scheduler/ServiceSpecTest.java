@@ -28,6 +28,7 @@ public class ServiceSpecTest extends BaseServiceSpecTest {
                 "COORDINATOR_MEM", "512",
                 "COORDINATOR_DISK", "5000",
                 "COORDINATOR_DISK_TYPE", "ROOT",
+                "DRIVER_PORT", "0",
                 "SPARK_APP_URL", "http://someplace/mysparkapp.jar",
                 "SLEEP_DURATION", "1000");
     }
