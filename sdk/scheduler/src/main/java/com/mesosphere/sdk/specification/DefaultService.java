@@ -147,10 +147,12 @@ public class DefaultService implements Runnable {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
-        initService();
-
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
+
+        // Only create/start the scheduler (and state store, etc...) AFTER getting the curator lock above:
+        initService();
+
         try {
             if (scheduler.getMesosScheduler().isPresent()) {
                 Protos.Status status;

@@ -26,8 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * Abstract {@link Scheduler} that provides some default behaviors around Mesos lifecycle events such as
- * getting registered, reregistered, disconnected, etc.
+ * Abstract main scheduler class that ties together the main pieces of a SDK Scheduler process.
+ * Handles interaction with Mesos via an embedded {@link AbstractScheduler.MesosScheduler} object.
  */
 public abstract class AbstractScheduler {
 
@@ -70,7 +70,8 @@ public abstract class AbstractScheduler {
     }
 
     /**
-     * Starts any internal threads to be used by the service. Must be called after construction.
+     * Starts any internal threads to be used by the service.
+     * Must be called after construction, once, in order for work to proceed.
      *
      * @return this
      */
