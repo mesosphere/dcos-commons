@@ -79,6 +79,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
             old_remaining_set,
             newly_launched_set))
 
+    shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
 
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_deployment(service_name)
