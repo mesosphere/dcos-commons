@@ -179,5 +179,5 @@ docker run --rm \
     -w /build \
     -t \
     -i \
-    mesosphere/dcos-commons:dev \
+    mesosphere/dcos-commons:latest \
     bash test-runner.sh
