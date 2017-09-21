@@ -3,12 +3,8 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.TestStep;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
-import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.PodTestUtils;
 import org.apache.mesos.SchedulerDriver;
-import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,8 +15,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.*;
 
@@ -28,7 +22,6 @@ import static org.mockito.Mockito.*;
  * This class tests {@link ReviveManager}.
  */
 public class ReviveManagerTest {
-    private StateStore stateStore;
     private ReviveManager manager;
     private final UUID testUUID = UUID.randomUUID();
     @Mock private SchedulerDriver driver;
@@ -36,7 +29,6 @@ public class ReviveManagerTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        stateStore = new StateStore(new MemPersister());
         manager = null;
     }
 
@@ -80,7 +72,7 @@ public class ReviveManagerTest {
     }
 
     private ReviveManager getReviveManager() {
-        return new ReviveManager(driver, stateStore, TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
+        return new ReviveManager(driver, TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
     }
 
     private List<Step> getSteps(Integer index) {
@@ -90,24 +82,5 @@ public class ReviveManagerTest {
                         testUUID,
                         String.format("step-%d", podInstanceRequirement.getPodInstance().getIndex()),
                         podInstanceRequirement));
-    }
-
-    private static void waitSuppressed(StateStore stateStore, ReviveManager reviveManager, int seconds) {
-        waitStateStore(stateStore, true, seconds);
-    }
-
-    private static void waitRevived(StateStore stateStore, ReviveManager reviveManager, int seconds) {
-        waitStateStore(stateStore, false, seconds);
-    }
-
-    private static void waitStateStore(StateStore stateStore, boolean suppressed, int seconds) {
-        Awaitility.await()
-                .atMost(seconds, TimeUnit.SECONDS)
-                .until(new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() throws Exception {
-                        return StateStoreUtils.isSuppressed(stateStore) == suppressed;
-                    }
-                });
     }
 }

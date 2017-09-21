@@ -1,11 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.SchedulerDriver;
@@ -19,23 +16,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
+ * This class determines whether offers should be revived based on changes to the work being processed by the scheduler.
  */
 public class ReviveManager {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
-    private final StateStore stateStore;
     private final TokenBucket tokenBucket;
     private Set<WorkItem> candidates = new HashSet<>();
 
-    public ReviveManager(SchedulerDriver driver, StateStore stateStore) {
-        this(driver, stateStore, TokenBucket.newBuilder().build());
+    public ReviveManager(SchedulerDriver driver) {
+        this(driver, TokenBucket.newBuilder().build());
     }
 
-    public ReviveManager(SchedulerDriver driver, StateStore stateStore, TokenBucket tokenBucket) {
+    public ReviveManager(SchedulerDriver driver, TokenBucket tokenBucket) {
         this.driver = driver;
-        this.stateStore = stateStore;
         this.tokenBucket = tokenBucket;
     }
 
@@ -73,21 +68,15 @@ public class ReviveManager {
      */
     public void revive(Collection<Step> steps) {
         Set<WorkItem> currCandidates = getCandidates(steps);
-        logger.info("Current candidates: {}", currCandidates);
-
         Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
         newCandidates.removeAll(candidates);
 
-        logger.info("Old     candidates: {}", candidates);
-        logger.info("New     candidates: {}", newCandidates);
+        logger.info("Candidates, old: {}, current: {}, new:{}", candidates, currCandidates, newCandidates);
 
-        if (newCandidates.isEmpty()) {
-            logger.info("No new candidates detected, no need to revive");
-        } else {
+        if (!newCandidates.isEmpty()) {
             if (tokenBucket.tryAcquire()) {
                 logger.info("Reviving offers.");
                 driver.reviveOffers();
-                StateStoreUtils.setSuppressed(stateStore, false);
             } else {
                 logger.warn("Revive attempt has been throttled.");
                 return;
@@ -97,6 +86,9 @@ public class ReviveManager {
         candidates = currCandidates;
     }
 
+    /**
+     * Returns candidates which potentially need new offers.
+     */
     private Set<WorkItem> getCandidates(Collection<Step> steps) {
         return steps.stream()
                 .filter(step -> step.getStatus().equals(Status.PENDING) || step.getStatus().equals(Status.PREPARED))
@@ -104,6 +96,10 @@ public class ReviveManager {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * A WorkItem encapsulates the relevant elements of a {@link Step} for the purposes of determining whether reviving
+     * offers is necessary.
+     */
     private static class WorkItem {
         private final Optional<PodInstanceRequirement> podInstanceRequirement;
         private final String name;

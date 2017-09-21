@@ -259,7 +259,7 @@ public abstract class AbstractScheduler implements Scheduler {
 
         // A ReviveManager should be constructed only once.
         if (reviveManager == null) {
-            reviveManager = new ReviveManager(driver, stateStore);
+            reviveManager = new ReviveManager(driver);
         }
 
         // The main plan execution loop should only be started once.
