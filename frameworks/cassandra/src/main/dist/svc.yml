@@ -201,7 +201,7 @@ pods:
                 {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
-                            -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                            -p {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} "$t" ;
                     done
                 done
 
