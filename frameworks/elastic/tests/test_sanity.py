@@ -44,7 +44,7 @@ def configure_package(configure_security):
 def pre_test_setup():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
-    config.wait_for_expected_nodes_to_exist(service_name=foldered_name)
+    config.wait_for_expected_nodes_to_exist(service_name=foldered_name, task_count=current_expected_task_count)
 
 
 @pytest.fixture

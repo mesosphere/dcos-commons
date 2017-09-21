@@ -18,6 +18,8 @@ import (
 	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
 	"github.com/aryann/difflib"
 	"github.com/nickbp/mustache"
+
+	"github.com/dcos/dcos-cni/pkg/mesos"
 )
 
 // arg handling
@@ -336,31 +338,13 @@ func isFile(path string) (bool, error) {
 	return false, nil
 }
 
-func GetLocalIPold() string {
-	addrs, err := net.InterfaceAddrs()
+func getContainerIPAddress() (string, error) {
+	ip, err := mesos.ContainerIP()
+	var addr = ip.String()
 	if err != nil {
-		return ""
+		return addr, err
 	}
-	for _, address := range addrs {
-		// check the address type and if it is not a loopback the display it
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP.String()
-			}
-		}
-	}
-	return ""
-}
-
-func GetLocalIP() (addr string, err error) {
-	ip, err := ContainerIP()
-
-	if err != nil {
-		return ip.String(), err
-	}
-
-	addr = ip.String()
-	return ip.String(), err
+	return addr, err
 }
 
 // main
@@ -368,7 +352,7 @@ func GetLocalIP() (addr string, err error) {
 func main() {
 	args := parseArgs()
 
-	pod_ip, err := GetLocalIP()
+	pod_ip, err := getContainerIPAddress()
 	if err != nil {
 		log.Fatalf("Cannot find the container's IP address: ", err)
 	}

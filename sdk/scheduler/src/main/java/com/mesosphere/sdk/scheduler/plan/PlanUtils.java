@@ -4,9 +4,7 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +66,19 @@ public class PlanUtils {
                         TaskUtils.getTaskNames(
                                 podInstanceRequirement.getPodInstance(),
                                 podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
+    }
+
+    public static Set<PodInstanceRequirement> getDirtyAsseets(Plan plan) {
+        if (plan == null) {
+            return Collections.emptySet();
+        }
+
+        return plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(Step::isAssetDirty)
+                .filter(step -> step.getAsset().isPresent())
+                .map(step -> step.getAsset().get())
                 .collect(Collectors.toSet());
     }
 }

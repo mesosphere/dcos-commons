@@ -36,19 +36,6 @@ public class DefaultPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        Set<PodInstanceRequirement> dirtyAssets = new HashSet<>();
-        final List<? extends Phase> phases = plan.getChildren();
-        for (Phase phase : phases) {
-            final List<? extends Step> steps = phase.getChildren();
-            for (Step step : steps) {
-                if (step.isAssetDirty()) {
-                    Optional<PodInstanceRequirement> dirtyAsset = step.getAsset();
-                    if (dirtyAsset.isPresent()) {
-                        dirtyAssets.add(dirtyAsset.get());
-                    }
-                }
-            }
-        }
-        return dirtyAssets;
+        return PlanUtils.getDirtyAsseets(plan);
     }
 }
