@@ -53,6 +53,10 @@ network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
 network.tcp.send_buffer_size: {{NETWORK_TCP_SEND_BUFFER_SIZE}}
 network.tcp.receive_buffer_size: {{NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
 
+transport.tcp_connect_timeout: {{TRANSPORT_TCP_CONNECT_TIMEOUT}}
+transport.tcp.compress: {{TRANSPORT_TCP_COMPRESS}}
+transport.ping_schedule: {{TRANSPORT_PING_SCHEDULE}}
+
 http.enabled: {{HTTP_ENABLED}}
 http.publish_port: {{HTTP_PORT}}
 http.max_content_length: {{HTTP_MAX_CONTENT_LENGTH}}
