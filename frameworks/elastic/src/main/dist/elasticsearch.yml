@@ -47,6 +47,11 @@ xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/ELASTIC_ENABLE_TLS}}
 
+network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
+network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
+network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
+network.tcp.send_buffer_size: {{NETWORK_TCP_SEND_BUFFER_SIZE}}
+network.tcp.receive_buffer_size: {{NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
 
 http.enabled: {{HTTP_ENABLED}}
 http.publish_port: {{HTTP_PORT}}

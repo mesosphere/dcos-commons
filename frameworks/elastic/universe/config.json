@@ -330,6 +330,31 @@
           "type": "string",
           "default": "5m"
         },
+        "network_tcp_no_delay": {
+          "description": "Enable or disable the TCP no delay setting. Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },
+        "network_tcp_keep_alive": {
+          "description": "Enable or disable TCP keep alive. Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },
+        "network_tcp_reuse_address": {
+          "description": "Should an address be reused or not. Defaults to true on non-windows machines.",
+          "type": "boolean",
+          "default": true
+        },
+        "network_tcp_send_buffer_size": {
+          "description": "The size of the TCP send buffer (specified with size units). By default not explicitly set.",
+          "type": "string",
+          "default": ""  
+        },
+        "network_tcp_receive_buffer_size": {
+          "description": "The size of the TCP receive buffer (specified with size units). By default not explicitly set.",
+          "type": "string",
+          "default": ""  
+        },
         "http_enabled": {
           "description": "The http module can be completely disabled and not started by setting http.enabled to false. Default is true.",
           "type": "boolean",
