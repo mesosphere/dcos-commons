@@ -27,8 +27,13 @@ public class OfferQueue {
         this(DEFAULT_CAPACITY);
     }
 
+    /**
+     * Creates a new queue with the provided capacity.
+     *
+     * @param capacity the maximum size of the queue, or zero for unlimited queue size
+     */
     public OfferQueue(int capacity) {
-        this.queue = new LinkedBlockingQueue<>(capacity);
+        this.queue = capacity == 0 ? new LinkedBlockingQueue<>() : new LinkedBlockingQueue<>(capacity);
     }
 
     /**
@@ -39,7 +44,7 @@ public class OfferQueue {
         List<Protos.Offer> offers = new LinkedList<>();
         try {
             // The poll() waits for one Offer or returns null if none is present within the timeout.  The following
-            // drainTo() call will pull the remainding of Offers (including zero Offers) off the queue and return.
+            // drainTo() call will pull the following Offers (if any) off the queue and return.
             Protos.Offer offer = queue.poll(duration.getSeconds(), TimeUnit.SECONDS);
             if (offer != null) {
                 offers.add(offer);

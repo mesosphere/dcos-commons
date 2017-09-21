@@ -42,10 +42,14 @@ public abstract class AbstractScheduler {
     // started, because when tasks launch they typically require access to ArtifactResource for config templates.
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
 
+    // Whether we should run in multithreaded mode. Should only be disabled for tests.
+    private boolean multithreaded = true;
+
     private final MesosScheduler mesosScheduler = new MesosScheduler();
 
-    private Object inProgressLock = new Object();
-    private Set<Protos.OfferID> offersInProgress = new HashSet<>();
+    private final Object inProgressLock = new Object();
+    private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
+    private OfferQueue offerQueue = new OfferQueue();
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -93,28 +97,14 @@ public abstract class AbstractScheduler {
             });
         }
 
-        // Start consumption of the offer queue. This will idle until offers start arriving.
-        offerExecutor.execute(() -> {
-            while (true) {
-                // This is a blocking call which pulls as many elements from the offer queue as possible.
-                List<Protos.Offer> offers = mesosScheduler.offerQueue.takeAll();
-                LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
-                for (int i = 0; i < offers.size(); ++i) {
-                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+        if (multithreaded) {
+            // Start consumption of the offer queue. This will idle until offers start arriving.
+            offerExecutor.execute(() -> {
+                while (true) {
+                    processQueuedOffers();
                 }
-                processOffers(offers);
-                synchronized (inProgressLock) {
-                    offersInProgress.removeAll(
-                            offers.stream()
-                                    .map(offer -> offer.getId())
-                                    .collect(Collectors.toList()));
-                    LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
-                            offers.size(),
-                            offers.size() == 1 ? "" : "s",
-                            offersInProgress.stream().collect(Collectors.toList()));
-                }
-            }
-        });
+            });
+        }
 
         return this;
     }
@@ -166,13 +156,44 @@ public abstract class AbstractScheduler {
     }
 
     /**
-     * Forces the offer cycle reconciliation stage to be complete.
+     * Forces the offer cycle reconciliation stage to be complete. Useful for testing the offer cycle.
+     *
+     * @return this
      */
     @VisibleForTesting
-    public AbstractScheduler forceReconciliationComplete() {
+    AbstractScheduler forceReconciliationComplete() {
         mesosScheduler.reconciler.forceComplete();
         return this;
     }
+
+    /**
+     * Forces the Scheduler to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
+     * called before calling {@link #start()}.
+     *
+     * @return this
+     */
+    @VisibleForTesting
+    public AbstractScheduler disableThreading() {
+        multithreaded = false;
+        return this;
+    }
+
+    /**
+     * Overrides the Scheduler's offer queue size. Must only be called before the scheduler has {@link #start()}ed.
+     *
+     * @param queueSize the queue size to use, zero for infinite
+     */
+    @VisibleForTesting
+    public AbstractScheduler setOfferQueueSize(int queueSize) {
+        offerQueue = new OfferQueue(queueSize);
+        return this;
+    }
+
+    /**
+     * Returns a list of API resources to be served by the scheduler to the local cluster.
+     * This may be called before {@link #initialize(SchedulerDriver)} has been called.
+     */
+    protected abstract Collection<Object> getResources();
 
     /**
      * Performs any additional Scheduler initialization after registration has completed. The provided
@@ -181,12 +202,8 @@ public abstract class AbstractScheduler {
     protected abstract void initialize(SchedulerDriver driver) throws Exception;
 
     /**
-     * Returns a list of API resources to be served by the scheduler to the local cluster.
-     */
-    protected abstract Collection<Object> getResources();
-
-    /**
      * Returns the Plan Coordinator which is handling all available Plans.
+     * This will only be called after {@link #initialize(SchedulerDriver)} has been called at least once.
      */
     protected abstract PlanCoordinator getPlanCoordinator();
 
@@ -202,6 +219,29 @@ public abstract class AbstractScheduler {
     protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
 
     /**
+     * Dequeues and processes any elements which are present on the offer queue, potentially blocking for offers to
+     * appear.
+     */
+    private void processQueuedOffers() {
+        List<Protos.Offer> offers = offerQueue.takeAll();
+        LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
+        for (int i = 0; i < offers.size(); ++i) {
+            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+        }
+        processOffers(offers);
+        synchronized (inProgressLock) {
+            offersInProgress.removeAll(
+                    offers.stream()
+                            .map(offer -> offer.getId())
+                            .collect(Collectors.toList()));
+            LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
+                    offers.size(),
+                    offers.size() == 1 ? "" : "s",
+                    offersInProgress.stream().collect(Collectors.toList()));
+        }
+    }
+
+    /**
      * Implementation of Mesos' {@link Scheduler} interface.
      * Messages received from Mesos are forwarded to the parent {@link AbstractScheduler} instance.
      */
@@ -210,7 +250,6 @@ public abstract class AbstractScheduler {
         // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
         // master re-election. Avoid performing initialization multiple times, which would cause queues to be stuck.
         private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
-        private final OfferQueue offerQueue = new OfferQueue();
 
         private SchedulerDriver driver;
         private ReviveManager reviveManager;
@@ -292,6 +331,10 @@ public abstract class AbstractScheduler {
                         offersInProgress.remove(offer.getId());
                     }
                 }
+            }
+
+            if (!multithreaded) {
+                processQueuedOffers();
             }
         }
 

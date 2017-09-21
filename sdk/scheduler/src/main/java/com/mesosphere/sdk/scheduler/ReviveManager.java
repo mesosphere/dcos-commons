@@ -34,12 +34,7 @@ public class ReviveManager {
             SchedulerDriver driver,
             StateStore stateStore,
             PlanCoordinator planCoordinator) {
-        this(
-                driver,
-                stateStore,
-                planCoordinator,
-                REVIVE_DELAY_S,
-                REVIVE_INTERVAL_S);
+        this(driver, stateStore, planCoordinator, REVIVE_DELAY_S, REVIVE_INTERVAL_S);
     }
 
     public ReviveManager(
@@ -48,7 +43,6 @@ public class ReviveManager {
             PlanCoordinator planCoordinator,
             int pollDelay,
             int pollInterval) {
-
         this.driver = driver;
         this.stateStore = stateStore;
         this.planCoordinator = planCoordinator;
@@ -64,8 +58,7 @@ public class ReviveManager {
                 pollInterval,
                 TimeUnit.SECONDS);
 
-        logger.info(
-                "Monitoring these plans for suppress/revive: {}",
+        logger.info("Monitoring these plans for suppress/revive: {}",
                 planCoordinator.getPlanManagers().stream()
                         .map(planManager -> planManager.getPlan().getName())
                         .collect(Collectors.toList()));

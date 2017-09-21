@@ -152,10 +152,6 @@ public class ReviveManagerTest {
         waitStateStore(stateStore, true, seconds);
     }
 
-    private static void waitRevived(StateStore stateStore, ReviveManager reviveManager, int seconds) {
-        waitStateStore(stateStore, false, seconds);
-    }
-
     private static void waitStateStore(StateStore stateStore, boolean suppressed, int seconds) {
         Awaitility.await()
                 .atMost(seconds, TimeUnit.SECONDS)
