@@ -16,8 +16,6 @@ import sdk_utils
 import shakedown
 from tests import config, test_utils
 
-EPHEMERAL_TOPIC_NAME = 'topic_2'
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -41,7 +39,7 @@ def configure_package(configure_security):
 
         # wait for brokers to finish registering before starting tests
         test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-            service_name=foldered_name)
+                                      service_name=foldered_name)
 
         yield  # let the test session execute
     finally:
@@ -86,8 +84,7 @@ def test_custom_zookeeper():
     broker_ids = sdk_tasks.get_task_ids(foldered_name, '{}-'.format(config.DEFAULT_POD_TYPE))
 
     # create a topic against the default zk:
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'topic list', json=True) == [config.DEFAULT_TOPIC_NAME]
+    test_utils.create_topic(config.DEFAULT_TOPIC_NAME, service_name=foldered_name)
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     # should be using default path when this envvar is empty/unset:
@@ -108,7 +105,9 @@ def test_custom_zookeeper():
     assert zookeeper.rstrip('\n') == zk_path
 
     # topic created earlier against default zk should no longer be present:
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'topic list', json=True) == []
+    topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'topic list', json=True)
+
+    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], topic_list_info)
 
     # tests from here continue with the custom ZK path...
 
@@ -159,13 +158,13 @@ def test_pod_replace():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_create():
-    test_utils.create_topic(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    test_utils.create_topic(config.EPHEMERAL_TOPIC_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_delete():
-    test_utils.delete_topic(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    test_utils.delete_topic(config.EPHEMERAL_TOPIC_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.sanity
