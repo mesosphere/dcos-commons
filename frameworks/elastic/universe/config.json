@@ -325,16 +325,16 @@
           "type": "string",
           "default": "changeme"
         },
+        "gateway_recover_after_time": {
+          "description": "f the expected number of nodes is not achieved, the recovery process waits for the configured amount of time before trying to recover regardless. Defaults to 5m if one of the expected_nodes settings is configured.",
+          "type": "string",
+          "default": "5m"
+        },
         "http_enabled": {
           "description": "The http module can be completely disabled and not started by setting http.enabled to false. Default is true.",
           "type": "boolean",
           "default": true
-        },
-         "http_port": {
-          "description": "A bind port range. Defaults to 9200-9300.",
-          "type": "string",
-          "default": "9200-9300"
-        },
+        }
          "http_max_content_length": {
           "description": "The max content of an HTTP request. Defaults to 100mb. If set to greater than Integer.MAX_VALUE, it will be reset to 100mb.",
           "type": "string",
