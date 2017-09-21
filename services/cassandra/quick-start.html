@@ -390,17 +390,16 @@
   <li>Write some data to your cluster using the <code class="highlighter-rouge">node-0-server</code> entry provided above.</li>
 </ol>
 
-<p><strong>Note:</strong> In production, you should specify multiple node addresses to avoid disruption if a subset of addressed nodes are down:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos node ssh --master-proxy --leader
-<span class="gp">$ </span>docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
-<span class="gp">&gt; </span>CREATE KEYSPACE space1 WITH REPLICATION <span class="o">=</span> <span class="o">{</span> <span class="s1">'class'</span> : <span class="s1">'SimpleStrategy'</span>, <span class="s1">'replication_factor'</span> : 3 <span class="o">}</span>;
-<span class="gp">&gt; </span>USE space1;
-<span class="gp">&gt; </span>CREATE TABLE testtable1 <span class="o">(</span>key varchar, value varchar, PRIMARY KEY<span class="o">(</span>key<span class="o">))</span>;
-<span class="gp">&gt; </span>INSERT INTO space1.testtable1<span class="o">(</span>key, value<span class="o">)</span> VALUES<span class="o">(</span><span class="s1">'testkey1'</span>, <span class="s1">'testvalue1'</span><span class="o">)</span>;
-<span class="gp">&gt; </span>SELECT <span class="k">*</span> FROM testtable1;
-</code></pre>
-</div>
+<p><strong>Note:</strong> In production, you should specify multiple node addresses to avoid disruption if a subset of addressed nodes are down:
+    <code class="highlighter-rouge">
+    dcos node ssh --master-proxy --leader
+    core@ip-10-0-6-153 ~ docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
+    &gt; CREATE KEYSPACE space1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
+    &gt; USE space1;
+    &gt; CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));
+    &gt; INSERT INTO space1.testtable1(key, value) VALUES('testkey1', 'testvalue1');
+    &gt; SELECT * FROM testtable1;
+   </code></p>
 
 </div>
 </div>
