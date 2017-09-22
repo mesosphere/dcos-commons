@@ -390,7 +390,7 @@
           "type": "string",
           "default": "8kB"
         },
-         "http.compression": {
+         "http_compression": {
           "description": "Support for compression when possible (with Accept-Encoding). Defaults to true.",
           "type": "boolean",
           "default": true

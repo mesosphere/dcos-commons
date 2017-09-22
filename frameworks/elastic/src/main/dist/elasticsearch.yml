@@ -58,7 +58,6 @@ transport.tcp.compress: {{TRANSPORT_TCP_COMPRESS}}
 transport.ping_schedule: {{TRANSPORT_PING_SCHEDULE}}
 
 http.enabled: {{HTTP_ENABLED}}
-http.publish_port: {{HTTP_PORT}}
 http.max_content_length: {{HTTP_MAX_CONTENT_LENGTH}}
 http.max_initial_line_length: {{HTTP_MAX_INITIAL_LINE_LENGTH}}
 http.max_header_size: {{HTTP_MAX_HEADER_SIZE}}
@@ -66,7 +65,6 @@ http.compression: {{HTTP_COMPRESSION}}
 http.compression_level: {{HTTP_COMPRESSION_LEVEL}}
 http.cors.enabled: {{HTTP_CORS_ENABLED}}
 http.cors.max-age: {{HTTP_CORS_MAX_AGE}}
-http.cors.allow-methods: {{HTTP_CORS_ALLOW_METHODS}}
 http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
 http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
 http.pipelining: {{HTTP_PIPELINING}}
