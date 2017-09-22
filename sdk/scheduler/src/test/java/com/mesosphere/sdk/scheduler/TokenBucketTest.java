@@ -72,14 +72,14 @@ public class TokenBucketTest {
     @Test
     public void acquireIntervalEnforced() throws InterruptedException {
         Duration acquireInterval = Duration.ofMillis(100);
-        TokenBucket bucket = TokenBucket.newBuilder()
+        TestTokenBucket bucket = new TestTokenBucket(
+                TokenBucket.newBuilder()
                 .initialTokenCount(2)
-                .acquireInterval(acquireInterval)
-                .build();
+                .acquireInterval(acquireInterval));
 
         Assert.assertTrue(bucket.tryAcquire());
         Assert.assertFalse(bucket.tryAcquire());
-        Thread.sleep(acquireInterval.toMillis());
+        bucket.increment(acquireInterval.toMillis());
         Assert.assertTrue(bucket.tryAcquire());
     }
 
@@ -116,5 +116,22 @@ public class TokenBucketTest {
         TokenBucket.newBuilder()
                 .acquireInterval(Duration.ofSeconds(-1))
                 .build();
+    }
+
+    private static class TestTokenBucket extends TokenBucket {
+        private long now = System.currentTimeMillis();
+
+        private TestTokenBucket(Builder builder) {
+            super(builder.initial, builder.capacity, builder.incrementInterval, builder.acquireInterval);
+        }
+
+        public void increment(long milliseconds) {
+            now += milliseconds;
+        }
+
+        @Override
+        protected long now() {
+            return now;
+        }
     }
 }

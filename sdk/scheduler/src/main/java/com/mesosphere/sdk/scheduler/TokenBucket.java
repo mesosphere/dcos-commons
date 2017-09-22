@@ -15,37 +15,36 @@ import java.util.concurrent.TimeUnit;
 public class TokenBucket {
     public static final int DEFAULT_CAPACITY = 256;
     public static final int DEFAULT_INITIAL_COUNT = DEFAULT_CAPACITY;
-    public static final Duration DEFAULT_MIN_ACQUIRE_INTEVAL = Duration.ofSeconds(5);
-    public static final Duration DEFAULT_MIN_INCREMENT_INTERVAL = Duration.ofSeconds(DEFAULT_CAPACITY);
+    public static final Duration DEFAULT_ACQUIRE_INTEVAL = Duration.ofSeconds(5);
+    public static final Duration DEFAULT_INCREMENT_INTERVAL = Duration.ofSeconds(DEFAULT_CAPACITY);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private final int initial;
     private final int capacity;
     private final Duration incrementInterval;
     private final Duration acquireInterval;
     private int count;
     private long lastRevive = 0;
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
     /**
      * A TokenBucket acts as a rate limiting helper.  Clients should not perform rate limited work without acquiring a
      * token from the {@link #tryAcquire()} method.
      * @param initial The initial number of tokens available
      * @param capacity The maximum number of tokens the bucket may hold
-     * @param incrementInterval The incrementInterval between adding a new token to the bucket
+     * @param incrementInterval The interval between adding new tokens to the bucket
+     * @param acquireInterval  The minimum interval between allowing tokens to be acquired
      */
-    private TokenBucket(int initial, int capacity, Duration incrementInterval, Duration minAcquireInterval) {
+    protected TokenBucket(int initial, int capacity, Duration incrementInterval, Duration acquireInterval) {
+        this.initial = initial;
         this.count = initial;
         this.capacity = capacity;
         this.incrementInterval = incrementInterval;
-        this.acquireInterval = minAcquireInterval;
+        this.acquireInterval = acquireInterval;
 
         String msg = String.format(
                 "TokenBucket count: %d, capacity: %d, incrementInterval: %s, acquireInterval: %s",
-                count, capacity, incrementInterval, acquireInterval);
+                count, capacity, incrementInterval, this.acquireInterval);
 
         logger.info(msg);
 
@@ -53,7 +52,7 @@ public class TokenBucket {
                 || capacity < 1
                 || incrementInterval.isNegative()
                 || incrementInterval.isZero()
-                || minAcquireInterval.isNegative()) {
+                || acquireInterval.isNegative()) {
             throw new IllegalStateException(
                     String.format("TokenBucket construction failed with invalid configuration: %s", msg));
         }
@@ -70,21 +69,38 @@ public class TokenBucket {
                 TimeUnit.MILLISECONDS);
     }
 
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public Builder toBuilder() {
+        return new Builder()
+                .initialTokenCount(initial)
+                .capacity(capacity)
+                .incrementInterval(incrementInterval)
+                .acquireInterval(acquireInterval);
+    }
+
+
     /**
      * This method returns true if a rate-limited action should be executed, and false if the action should not occur.
      */
     public synchronized boolean tryAcquire() {
         if (count > 0 && durationHasPassed(acquireInterval)) {
             count--;
-            lastRevive = System.currentTimeMillis();
+            lastRevive = now();
             return true;
         }
 
         return false;
     }
 
+    protected long now() {
+        return System.currentTimeMillis();
+    }
+
     /**
-     * This method adds a token to the bucket.
+     * This method adds a token to the bucket up to the capacity of the bucket.
      */
     private synchronized void increment() {
         if (count < capacity) {
@@ -97,17 +113,17 @@ public class TokenBucket {
      * minimum duration has passed and false otherwise.
      */
     private boolean durationHasPassed(Duration duration) {
-        return System.currentTimeMillis() - lastRevive >= duration.toMillis();
+        return now() - lastRevive >= duration.toMillis();
     }
 
     /**
      * This class is a builder for {@link TokenBucket}s.
      */
     public static final class Builder {
-        private int initial = DEFAULT_INITIAL_COUNT;
-        private int capacity = DEFAULT_CAPACITY;
-        private Duration incrementInterval = DEFAULT_MIN_INCREMENT_INTERVAL;
-        private Duration acquireInterval = DEFAULT_MIN_ACQUIRE_INTEVAL;
+        protected int initial = DEFAULT_INITIAL_COUNT;
+        protected int capacity = DEFAULT_CAPACITY;
+        protected Duration incrementInterval = DEFAULT_INCREMENT_INTERVAL;
+        protected Duration acquireInterval = DEFAULT_ACQUIRE_INTEVAL;
 
         /**
          * Set the initial number of tokens.

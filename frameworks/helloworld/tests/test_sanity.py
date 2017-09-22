@@ -182,15 +182,10 @@ def test_pod_info():
     assert task['status']['state'] == 'TASK_RUNNING'
 
 
+@pytest.mark.gabriel
 @pytest.mark.sanity
 def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    # 'suppressed' could be missing if the scheduler recently started, loop for a bit just in case:
-    def check_for_nonempty_properties():
-        jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
-        return len(jsonobj) > 0
-
-    shakedown.wait_for(lambda: check_for_nonempty_properties(), timeout_seconds=30)
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
     assert len(jsonobj) == 6
@@ -198,12 +193,8 @@ def test_state_properties_get():
     assert jsonobj[0] == "hello-0-server:task-status"
     assert jsonobj[1] == "hello-1-server:task-status"
     assert jsonobj[2] == "last-completed-update-type"
-    assert jsonobj[3] == "suppressed"
-    assert jsonobj[4] == "world-0-server:task-status"
-    assert jsonobj[5] == "world-1-server:task-status"
-
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state property suppressed')
-    assert stdout == "false\n"
+    assert jsonobj[3] == "world-0-server:task-status"
+    assert jsonobj[4] == "world-1-server:task-status"
 
 
 @pytest.mark.sanity
