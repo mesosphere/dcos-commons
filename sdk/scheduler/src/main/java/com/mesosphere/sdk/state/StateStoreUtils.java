@@ -208,20 +208,6 @@ public class StateStoreUtils {
     }
 
     /**
-     * Returns the current value of the 'suppressed' property in the provided {@link StateStore}.
-     */
-    public static boolean isSuppressed(StateStore stateStore) throws StateStoreException {
-        return fetchBooleanProperty(stateStore, SUPPRESSED_PROPERTY_KEY);
-    }
-
-    /**
-     * Sets a 'suppressed' property in the provided {@link StateStore} to the provided value.
-     */
-    public static void setSuppressed(StateStore stateStore, boolean isSuppressed) {
-        setBooleanProperty(stateStore, SUPPRESSED_PROPERTY_KEY, isSuppressed);
-    }
-
-    /**
      * Returns the current value of the 'uninstall' property in the provided {@link StateStore}.
      */
     public static boolean isUninstalling(StateStore stateStore) throws StateStoreException {

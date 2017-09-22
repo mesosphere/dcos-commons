@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.queue;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;

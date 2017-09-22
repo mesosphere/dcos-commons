@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +25,7 @@ import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -185,24 +184,19 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        protected void initialize(SchedulerDriver driver) throws Exception {
-            // nothing to initialize
-        }
-
-        @Override
-        protected PlanCoordinator getPlanCoordinator() {
+        protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
             return mockPlanCoordinator;
         }
 
         @Override
-        protected void processOffers(List<Offer> offers) {
+        protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
             receivedOfferIds.addAll(offers.stream()
                     .map(o -> o.getId().getValue())
                     .collect(Collectors.toList()));
         }
 
         @Override
-        protected void processStatusUpdate(TaskStatus status) throws Exception {
+        protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
             throw new UnsupportedOperationException();
         }
     }

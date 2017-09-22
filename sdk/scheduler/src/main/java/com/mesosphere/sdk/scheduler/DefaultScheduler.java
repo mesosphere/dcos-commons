@@ -60,8 +60,8 @@ public class DefaultScheduler extends AbstractScheduler {
     private final PlansResource plansResource;
     private final PodResource podResource;
 
-    private SchedulerDriver driver;
     private PlanCoordinator planCoordinator;
+    private PlanScheduler planScheduler;
 
     /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
@@ -568,25 +568,38 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void initialize(SchedulerDriver driver) throws Exception {
-        this.driver = driver;
+    public Collection<Object> getResources() {
+        return resources;
+    }
 
+    @Override
+    protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
 
         taskKiller.setSchedulerDriver(driver);
-        planCoordinator = getPlanCoordinator(taskKiller, offerAccepter);
+        planCoordinator = buildPlanCoordinator();
+        planScheduler = new DefaultPlanScheduler(
+                        offerAccepter,
+                        new OfferEvaluator(
+                                stateStore,
+                                serviceSpec.getName(),
+                                configStore.getTargetConfig(),
+                                schedulerFlags,
+                                Capabilities.getInstance().supportsDefaultExecutor()),
+                        stateStore,
+                        taskKiller);
         killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
+        return planCoordinator;
     }
 
-    private PlanCoordinator getPlanCoordinator(TaskKiller taskKiller, OfferAccepter offerAccepter)
-            throws ConfigStoreException {
+    private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
         final Collection<PlanManager> planManagers = new ArrayList<>();
 
-        // 1a. Deployment plan manager
+        // Deployment plan manager
         PlanManager deploymentPlanManager = new DefaultPlanManager(getDeployPlan(plans).get());
         // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
         // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
@@ -595,7 +608,7 @@ public class DefaultScheduler extends AbstractScheduler {
         deploymentPlanManager.getPlan().proceed();
         planManagers.add(deploymentPlanManager);
 
-        // 1b. Recovery plan manager
+        // Recovery plan manager
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {
             LOGGER.info("Adding overriding recovery plan manager.");
@@ -623,25 +636,13 @@ public class DefaultScheduler extends AbstractScheduler {
                 failureMonitor,
                 overrideRecoveryPlanManagers));
 
-        // 1c. Other (non-deploy) plans
+        // Other custom plan managers
         planManagers.addAll(plans.stream()
                 .filter(plan -> !plan.isDeployPlan())
                 .map(DefaultPlanManager::new)
                 .collect(Collectors.toList()));
 
-        // 2. Finally, the Plan Scheduler
-        PlanScheduler planScheduler = new DefaultPlanScheduler(
-                offerAccepter,
-                new OfferEvaluator(
-                        stateStore,
-                        serviceSpec.getName(),
-                        configStore.getTargetConfig(),
-                        schedulerFlags,
-                        Capabilities.getInstance().supportsDefaultExecutor()),
-                stateStore,
-                taskKiller);
-
-        return new DefaultPlanCoordinator(planManagers, planScheduler);
+        return new DefaultPlanCoordinator(planManagers);
     }
 
     private static void killUnneededTasks(StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
@@ -669,25 +670,14 @@ public class DefaultScheduler extends AbstractScheduler {
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
 
-
     @Override
-    public Collection<Object> getResources() {
-        return resources;
-    }
-
-    @Override
-    protected PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
-    }
-
-    @Override
-    protected void processOffers(List<Protos.Offer> offers) {
+    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
 
         // Coordinate amongst all the plans via PlanCoordinator.
         final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-        acceptedOffers.addAll(planCoordinator.processOffers(driver, localOffers));
-        LOGGER.info("Offers accepted by plan coordinator: {}",
+        acceptedOffers.addAll(planScheduler.resourceOffers(driver, localOffers, steps));
+        LOGGER.info("Offers accepted by plan scheduler: {}",
                 acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
@@ -755,7 +745,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @VisibleForTesting
-    Set<String> getLaunchableTasks() {
-        return PlanUtils.getLaunchableTasks(plans);
+    PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 }
