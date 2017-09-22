@@ -1,5 +1,6 @@
 import pytest
 import sdk_cmd
+import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_tasks
@@ -206,4 +207,14 @@ def test_config_update_then_zk_killed():
     config.bump_hello_cpus()
     sdk_tasks.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition():
+    host = sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-server")
+
+    shakedown.partition_agent(host)
+    shakedown.reconnect_agent(host)
+
     config.check_running()
