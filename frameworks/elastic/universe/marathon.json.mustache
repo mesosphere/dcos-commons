@@ -99,8 +99,12 @@
     "TASKCFG_ALL_NETWORK_TCP_NO_DELAY": "{{elasticsearch.network_tcp_no_delay}}",
     "TASKCFG_ALL_NETWORK_TCP_KEEP_ALIVE": "{{elasticsearch.network_tcp_keep_alive}}",
     "TASKCFG_ALL_NETWORK_TCP_REUSE_ADDRESS": "{{elasticsearch.network_tcp_reuse_address}}",
+    {{#elasticsearch.network_tcp_send_buffer_size}}
     "TASKCFG_ALL_NETWORK_TCP_SEND_BUFFER_SIZE": "{{elasticsearch.network_tcp_send_buffer_size}}",
+    {{/elasticsearch.network_tcp_send_buffer_size}}
+    {{#elasticsearch.network_tcp_receive_buffer_size}}
     "TASKCFG_ALL_NETWORK_TCP_RECEIVE_BUFFER_SIZE": "{{elasticsearch.network_tcp_receive_buffer_size}}",
+    {{/elasticsearch.network_tcp_receive_buffer_size}}
     "TASKCFG_ALL_TRANSPORT_TCP_CONNECT_TIMEOUT": "{{elasticsearch.transport_tcp_connect_timeout}}", 
     "TASKCFG_ALL_TRANSPORT_TCP_COMPRESS": "{{elasticsearch.transport_tcp_compress}}",
     "TASKCFG_ALL_TRANSPORT_PING_SCHEDULE": "{{elasticsearch.transport_ping_schedule}}",

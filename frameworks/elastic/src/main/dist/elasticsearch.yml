@@ -23,7 +23,7 @@ metrics.statsd.port: {{STATSD_UDP_PORT}}
 gateway.expected_master_nodes: 3
 gateway.expected_data_nodes: {{DATA_NODE_COUNT}}
 gateway.recover_after_master_nodes: 3
-gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}},
+gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}}
 gateway.recover_after_time: {{GATEWAY_RECOVER_AFTER_TIME}}
 node.master: true
 {{/MASTER_ENABLED}}
@@ -50,10 +50,14 @@ xpack.security.http.ssl.client_authentication: none
 network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
 network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
 network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
+{{#NETWORK_TCP_SEND_BUFFER_SIZE}}
 network.tcp.send_buffer_size: {{NETWORK_TCP_SEND_BUFFER_SIZE}}
+{{/NETWORK_TCP_SEND_BUFFER_SIZE}}
+{{#NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
 network.tcp.receive_buffer_size: {{NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
+{{/NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
 
-transport.tcp_connect_timeout: {{TRANSPORT_TCP_CONNECT_TIMEOUT}}
+transport.tcp.connect_timeout: {{TRANSPORT_TCP_CONNECT_TIMEOUT}}
 transport.tcp.compress: {{TRANSPORT_TCP_COMPRESS}}
 transport.ping_schedule: {{TRANSPORT_PING_SCHEDULE}}
 

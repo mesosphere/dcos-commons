@@ -326,7 +326,7 @@
           "default": "changeme"
         },
         "gateway_recover_after_time": {
-          "description": "f the expected number of nodes is not achieved, the recovery process waits for the configured amount of time before trying to recover regardless. Defaults to 5m if one of the expected_nodes settings is configured.",
+          "description": "If the expected number of nodes is not achieved, the recovery process waits for the configured amount of time before trying to recover regardless. Defaults to 5m if one of the expected_nodes settings is configured.",
           "type": "string",
           "default": "5m"
         },
@@ -341,7 +341,7 @@
           "default": true
         },
         "network_tcp_reuse_address": {
-          "description": "Should an address be reused or not. Defaults to true on non-windows machines.",
+          "description": "Should an address be reused or not. Defaults to true.",
           "type": "boolean",
           "default": true
         },
@@ -406,17 +406,17 @@
           "default": true
         },
           "http_cors_max_age": {
-          "description": "Browsers send a \"preflight\" OPTIONS-request to determine CORS settings. max-age defines how long the result should be cached for. Defaults to 1728000 (20 days)",
+          "description": "Browsers send a \"preflight\" OPTIONS-request to determine CORS settings. Defines how long the result should be cached for. Defaults to 1728000 (20 days)",
           "type": "integer",
           "default": 1728000
         },
         "http_cors_allow_credentials": {
-          "description": "Whether the Access-Control-Allow-Credentials header should be returned. Note: This header is only returned, when the setting is set to true. Defaults to false.",
+          "description": "Whether the Access-Control-Allow-Credentials header should be returned. Note: This header is only returned when the setting is set to true. Defaults to false.",
           "type": "boolean",
           "default": false
         },
         "http_detailed_errors_enabled": {
-          "description": "nables or disables the output of detailed error messages and stack traces in response output. Note: When set to false and the error_trace request parameter is specified, an error will be returned; when error_trace is not specified, a simple message will be returned. Defaults to true.",
+          "description": "Enables or disables the output of detailed error messages and stack traces in response output. Note: When set to false and the error_trace request parameter is specified, an error will be returned; when error_trace is not specified, a simple message will be returned. Defaults to true.",
           "type": "boolean",
           "default": true
         },
