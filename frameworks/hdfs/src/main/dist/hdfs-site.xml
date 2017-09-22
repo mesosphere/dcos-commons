@@ -41,6 +41,10 @@
         <value>{{MESOS_SANDBOX}}/name-data</value>
     </property>
     <property>
+        <name>dfs.namenode.name.dir.restore</name>
+        <value>{{NAMENODE_NAME_DIR_RESTORE}}</value>
+    </property>
+    <property>
         <name>dfs.namenode.safemode.threshold-pct</name>
         <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value>
     </property>
@@ -67,6 +71,18 @@
     <property>
         <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
         <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.considerLoad</name>
+        <value>{{NAMENODE_REPLICATION_CONSIDERLOAD}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.fs-limits.max-component-length</name>
+        <value>{{NAMENODE_FS-LIMITS_MAX-COMPONENT-LENGTH}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.fs-limits.max-directory-items</name>
+        <value>{{NAMENODE_FS-LIMITS_MAX-DIRECTORY-ITEMS}}</value>
     </property>
 
 
@@ -167,6 +183,14 @@
         <name>dfs.datanode.handler.count</name>
         <value>{{DATA_NODE_HANDLER_COUNT}}</value>
     </property>
+    <property>
+        <name>dfs.datanode.dns.nameserver</name>
+        <value>{{DATANODE_DNS_NAMESERVER}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.du.reserved</name>
+        <value>{{DATANODE_DU_RESERVED}}</value>
+    </property>
 
     <!-- HA -->
     <property>
@@ -224,6 +248,18 @@
     <property>
         <name>dfs.client.cached.conn.retry</name>
         <value>{{CLIENT_CACHED_CONN_RETRY}}</value>
+    </property>
+    <property>
+        <name>dfs.https.server.keystore.resource</name>
+        <value>{{HTTPS_SERVER_KEYSTORE_RESOURCE}}</value>
+    </property>
+    <property>
+        <name>dfs.client.https.keystore.resource</name>
+        <value>{{CLIENT_HTTPS_KEYSTORE_RESOURCE}}</value>
+    </property>
+    <property>
+        <name>dfs.default.chunk.view.size</name>
+        <value>{{DEFAULT_CHUNK_VIEW_SIZE}}</value>
     </property>
 
     {{#SECURE_MODE}}

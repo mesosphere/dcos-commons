@@ -176,13 +176,37 @@
           "description": "Name node disk type",
           "type": "string",
           "default": "ROOT"
+        },
+        "replication_considerLoad": {
+          "description": "Decide if chooseTarget considers the target's load or not",
+          "type": "boolean",
+          "default": true
+        },
+        "name_dir_restore": {
+          "description": "Set to true to enable NameNode to attempt recovering a previously failed dfs.namenode.name.dir. When enabled, a recovery of any failed directory is attempted during checkpoint.",
+          "type": "boolean",
+          "default": false
+        },
+        "fs-limits_max-component-length": {
+          "description": "Defines the maximum number of bytes in UTF-8 encoding in each component of a path. A value of 0 will disable the check.",
+          "type": "integer",
+          "default": 255
+        },
+        "fs-limits_max-directory-items": {
+          "description": "Defines the maximum number of items that a directory may contain. A value of 0 will disable the check.",
+          "type": "integer",
+          "default": 1048576
         }
       },
       "required": [
         "cpus",
         "mem",
         "disk",
-        "disk_type"
+        "disk_type",
+        "replication_considerLoad",
+        "name_dir_restore",
+        "fs-limits_max-component-length",
+        "fs-limits_max-directory-items"
       ]
     },
     "zkfc_node": {
@@ -238,13 +262,32 @@
           "description": "The number of server threads for the datanode.",
           "type": "integer",
           "default": 10
+        },
+        "dns_interface": {
+          "type": "string",
+          "description": "The name of the Network Interface from which a data node should report its IP address.",
+          "default": "default"
+        },
+        "dns_nameserver": {
+          "type": "string",
+          "description": "The host name or IP address of the name server (DNS) which a DataNode should use to determine the host name used by the NameNode for communication and display purposes.",
+          "default": "default"
+        },
+        "du_reserved": {
+          "type": "integer",
+          "description": "Reserved space in bytes per volume. Always leave this much space free for non dfs use.",
+          "default": 0
         }
       },
       "required": [
         "cpus",
         "mem",
         "disk",
-        "disk_type"
+        "disk_type",
+        "handler_count",
+        "dns_interface",
+        "dns_nameserver",
+        "du_reserved"
       ]
     },
     "hdfs": {
@@ -380,7 +423,22 @@
           "type": "integer",
           "description": "The number of times the HDFS client will pull a socket from the cache. Once this number is exceeded, the client will try to create a new socket.",
           "default": 3
-        }
+        },
+        "dfs_https_server_keystore_resource": {
+          "type": "string",
+          "description": "Resource file from which ssl server keystore information will be extracted",
+          "default": "ssl-server.xml"
+        },
+        "dfs_client_https_keystore_resource": {
+          "type": "string",
+          "description": "Resource file from which ssl client keystore information will be extracted",
+          "default": "ssl-client.xml"
+        },
+        "dfs_default_chunk_view_size": {
+          "type": "integer",
+          "description": "The number of bytes to view for a file on the browser.",
+          "default": 32768
+        },
       },
       "required": [
         "name_node_rpc_port",
@@ -393,7 +451,21 @@
         "permissions_enabled",
         "name_node_heartbeat_recheck_interval",
         "compress_image",
-        "image_compression_codec"
+        "image_compression_codec",
+        "hadoop_root_logger",
+        "ipc_client_connect_max_retries",
+        "dfs_namenode_logging_level",
+        "dfs_namenode_rpc-bind-host_name_node_0",
+        "dfs_namenode_rpc-bind-host_name_node_1",
+        "dfs_namenode_http-bind-host_name_node_0",
+        "dfs_namenode_http-bind-host_name_node_1",
+        "hadoop_hdfs_configuration_version",
+        "dfs_namenode_servicerpc_address_namenode_0",
+        "dfs_namenode_servicerpc_address_namenode_1",
+        "dfs_namenode_servicerpc_bind_host_namenode_0",
+        "dfs_namenode_servicerpc_bind_host_namenode_1",
+        "dfs_client_cached_conn_retry",
+        "dfs_default_chunk_view_size"
       ]
     }
   }
