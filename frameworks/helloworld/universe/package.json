@@ -11,6 +11,6 @@
   "framework": true,
   "tags": ["example", "reference", "hello-world"],
   "preInstallNotes": "This DC/OS Service is currently in preview.",
-  "postInstallNotes": "DC/OS hello-world is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
-  "postUninstallNotes": "DC/OS hello-world is being uninstalled."
+  "postInstallNotes": "The DC/OS hello-world service is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
+  "postUninstallNotes": "The DC/OS hello-world service is being uninstalled.\n\nFor DC/OS versions from 1.10 no further action is required. For older DC/OS versions follow the instructions at https://docs.mesosphere.com/deploying-services/uninstall/#framework-cleaner to remove any persistent state if required."
 }
