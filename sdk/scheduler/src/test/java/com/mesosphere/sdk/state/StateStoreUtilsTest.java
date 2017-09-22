@@ -339,20 +339,6 @@ public class StateStoreUtilsTest {
     }
 
     @Test
-    public void testEmptyStateStoreIsNotSuppressed() {
-        assertThat(StateStoreUtils.isSuppressed(stateStore), is(false));
-    }
-
-    @Test
-    public void testToggleSuppressed() {
-        StateStoreUtils.setSuppressed(stateStore, true);
-        assertThat(StateStoreUtils.isSuppressed(stateStore), is(true));
-
-        StateStoreUtils.setSuppressed(stateStore, false);
-        assertThat(StateStoreUtils.isSuppressed(stateStore), is(false));
-    }
-
-    @Test
     public void testEmptyStateStoreIsNotUninstalling() {
         assertThat(StateStoreUtils.isUninstalling(stateStore), is(false));
     }

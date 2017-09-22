@@ -18,7 +18,7 @@ public abstract class AbstractStep implements Step {
      */
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final UUID id = UUID.randomUUID();
+    protected UUID id = UUID.randomUUID();
     private final String name;
 
     private final Object statusLock = new Object();
@@ -29,8 +29,6 @@ public abstract class AbstractStep implements Step {
         this.name = name;
         this.status = status;
         this.interrupted = false;
-
-        setStatus(status); // Log initial status
     }
 
     @Override

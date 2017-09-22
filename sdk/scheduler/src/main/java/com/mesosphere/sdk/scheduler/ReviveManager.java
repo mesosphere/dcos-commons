@@ -1,81 +1,37 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * This class monitors a {@link PlanCoordinator} and revives offers when appropriate.
+ * This class determines whether offers should be revived based on changes to the work being processed by the scheduler.
  */
 public class ReviveManager {
-    public static final int REVIVE_INTERVAL_S = 5;
-    public static final int REVIVE_DELAY_S = 5;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
-    private final PlanCoordinator planCoordinator;
-    private final ScheduledExecutorService monitor = Executors.newScheduledThreadPool(1);
-    private final StateStore stateStore;
-    private Set<PodInstanceRequirement> candidates;
+    private final TokenBucket tokenBucket;
+    private Set<WorkItem> candidates = new HashSet<>();
 
-    public ReviveManager(
-            SchedulerDriver driver,
-            StateStore stateStore,
-            PlanCoordinator planCoordinator) {
-        this(
-                driver,
-                stateStore,
-                planCoordinator,
-                REVIVE_DELAY_S,
-                REVIVE_INTERVAL_S);
+    public ReviveManager(SchedulerDriver driver) {
+        this(driver, TokenBucket.newBuilder().build());
     }
 
-    public ReviveManager(
-            SchedulerDriver driver,
-            StateStore stateStore,
-            PlanCoordinator planCoordinator,
-            int pollDelay,
-            int pollInterval) {
-
+    public ReviveManager(SchedulerDriver driver, TokenBucket tokenBucket) {
         this.driver = driver;
-        this.stateStore = stateStore;
-        this.planCoordinator = planCoordinator;
-        this.candidates = getRequirements(planCoordinator.getCandidates());
-        monitor.scheduleAtFixedRate(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        revive();
-                    }
-                },
-                pollDelay,
-                pollInterval,
-                TimeUnit.SECONDS);
-
-        logger.info(
-                "Monitoring these plans for suppress/revive: {}",
-                planCoordinator.getPlanManagers().stream()
-                        .map(planManager -> planManager.getPlan().getName())
-                        .collect(Collectors.toList()));
-    }
-
-    private Set<PodInstanceRequirement> getRequirements(Collection<Step> steps) {
-        return steps.stream()
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .map(step -> step.getPodInstanceRequirement().get())
-                .collect(Collectors.toSet());
+        this.tokenBucket = tokenBucket;
     }
 
     /**
@@ -87,44 +43,92 @@ public class ReviveManager {
      * Pseudo-code algorithm is this:
      *
      *     // We always start out revived
-     *     List<Requirement> currRequirements = getRequirements();
+     *     List<Requirement> oldRequirements = getRequirements();
      *
      *     while (true) {
-     *         List<Requirement> newRequirements = getRequirements() - currRequirements;
+     *         List<Requirement> currRequirements = getRequirements()
+     *         List<Requirement> newRequirements = oldRequirements - currRequirements;
      *         if (newRequirements.isEmpty()) {
      *             print “No new work”;
      *         } else {
-     *             currRequirements = newRequirements;
+     *             oldRequirements = currRequirements;
      *             revive();
      *         }
      *     }
      *
-     * A natural question is why do we overwrite {@code currRequirements} with {@code newRequirements}?  Anything that
-     * is in {@code currRequirements} has had revive called for it.  Any change with regard to {@code currRequirements}
-     * i.e. {@code newRequirements} implies that those requirements may need an offer which has been declined forever,
-     * so we need to revive.  We cannot maintain a cummulative list in {@code currRequirements} because we may see the
-     * same work twice.
-
-     * e.g.
+     * The invariant maintained is that the oldRequirements have always had revive called for them at least once, giving
+     * them access to offers.
+     *
+     * This case must work:
+     *
      *     kafka-0-broker fails    @ 10:30, it's new work!
      *     kafka-0-broker recovers @ 10:35
      *     kafka-0-broker fails    @ 11:00, it's new work!
      *     ...
      */
-    private void revive() {
-        Set<PodInstanceRequirement> newCandidates = getRequirements(planCoordinator.getCandidates());
+    public void revive(Collection<Step> steps) {
+        Set<WorkItem> currCandidates = getCandidates(steps);
+        Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
         newCandidates.removeAll(candidates);
 
-        logger.debug("Old candidates: {}", candidates);
-        logger.debug("New candidates: {}", newCandidates);
+        logger.info("Candidates, old: {}, current: {}, new:{}", candidates, currCandidates, newCandidates);
 
-        if (newCandidates.isEmpty()) {
-            logger.debug("No new candidates detected, no need to revive");
-        } else {
-            candidates = newCandidates;
-            logger.info("Reviving offers.");
-            driver.reviveOffers();
-            StateStoreUtils.setSuppressed(stateStore, false);
+        if (!newCandidates.isEmpty()) {
+            if (tokenBucket.tryAcquire()) {
+                logger.info("Reviving offers.");
+                driver.reviveOffers();
+            } else {
+                logger.warn("Revive attempt has been throttled.");
+                return;
+            }
+        }
+
+        candidates = currCandidates;
+    }
+
+    /**
+     * Returns candidates which potentially need new offers.
+     */
+    private Set<WorkItem> getCandidates(Collection<Step> steps) {
+        return steps.stream()
+                .filter(step -> step.getStatus().equals(Status.PENDING) || step.getStatus().equals(Status.PREPARED))
+                .map(step -> new WorkItem(step))
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * A WorkItem encapsulates the relevant elements of a {@link Step} for the purposes of determining whether reviving
+     * offers is necessary.
+     */
+    private static class WorkItem {
+        private final Optional<PodInstanceRequirement> podInstanceRequirement;
+        private final String name;
+        private final Status status;
+
+        private WorkItem(Step step) {
+            this.podInstanceRequirement = step.getPodInstanceRequirement();
+            this.name = step.getName();
+            this.status = step.getStatus();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s [%s][%s]",
+                    name,
+                    status,
+                    podInstanceRequirement.isPresent() ?
+                            podInstanceRequirement.get().getRecoveryType() :
+                            "N/A");
         }
     }
 }
