@@ -91,6 +91,8 @@ func checkPlansResponse(response *http.Response, body []byte) error {
 		}
 	case response.StatusCode == http.StatusAlreadyReported:
 		return errors.New("Cannot execute command. Command has already been issued or the plan has completed.")
+	case response.StatusCode == http.StatusExpectationFailed:
+		return errors.New("plan has errors")
 	}
 	return nil
 }
@@ -238,8 +240,13 @@ func (cmd *planHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElem
 func printStatus(planName string, rawJSON bool) {
 	client.SetCustomResponseCheck(checkPlansResponse)
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/plans/%s", planName))
+
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
+		if err.Error() == "plan has errors" {
+			defer client.Exit(1)
+		} else {
+			client.PrintMessageAndExit(err.Error())
+		}
 	}
 	if rawJSON {
 		client.PrintJSONBytes(responseBytes)
