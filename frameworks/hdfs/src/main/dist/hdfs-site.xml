@@ -2,6 +2,10 @@
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
     <property>
+        <name>hadoop.hdfs.configuration.version</name>
+        <value>{{HADOOP_HDFS_CONFIGURATION_VERSION}}</value>
+    </property>
+    <property>
         <name>dfs.nameservice.id</name>
         <value>hdfs</value>
     </property>
@@ -24,6 +28,10 @@
     </property>
     {{/TLS_ENABLED}}
     <!-- namenode -->
+    <property>
+        <name>dfs.namenode.logging.level</name>
+        <value>{{NAMENODE_LOGGING_LEVEL}}</value>
+    </property>
     <property>
         <name>dfs.namenode.shared.edits.dir</name>
         <value>qjournal://journal-0-node.{{FRAMEWORK_HOST}}:{{JOURNAL_NODE_RPC_PORT}};journal-1-node.{{FRAMEWORK_HOST}}:{{JOURNAL_NODE_RPC_PORT}};journal-2-node.{{FRAMEWORK_HOST}}:{{JOURNAL_NODE_RPC_PORT}}/hdfs</value>
@@ -69,15 +77,23 @@
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
-        <value>0.0.0.0</value>
+        <value>{{NAMENODE_RPC_BINDHOST_NAMENODE_0}}</value>
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-0-node</name>
         <value>name-0-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
     <property>
+        <name>dfs.namenode.servicerpc-address.hdfs.name-0-node</name>
+        <value>{{NAMENODE_SERVICERPC_ADDRESS_NAMENODE_0}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.servicerpc-bind-host.hdfs.name-0-node</name>
+        <value>{{NAMENODE_SERVICERPC_BIND_HOST_NAMENODE_0}}</value>
+    </property>
+    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
-        <value>0.0.0.0</value>
+        <value>{{NAMENODE_HTTP_BINDHOST_NAMENODE_1}}</value>
     </property>
 
 
@@ -88,15 +104,23 @@
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
-        <value>0.0.0.0</value>
+        <value>{{NAMENODE_RPC_BINDHOST_NAMENODE_1}}</value>
     </property>
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
         <value>name-1-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
     <property>
+        <name>dfs.namenode.servicerpc-address.hdfs.name-1-node</name>
+        <value>{{NAMENODE_SERVICERPC_ADDRESS_NAMENODE_1}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.servicerpc-bind-host.hdfs.name-1-node</name>
+        <value>{{NAMENODE_SERVICERPC_BIND_HOST_NAMENODE_1}}</value>
+    </property>
+    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
-        <value>0.0.0.0</value>
+        <value>{{NAMENODE_HTTP_BINDHOST_NAMENODE_1}}</value>
     </property>
 
     <property>
@@ -196,6 +220,10 @@
     <property>
         <name>dfs.permissions.enabled</name>
         <value>{{PERMISSIONS_ENABLED}}</value>
+    </property>
+    <property>
+        <name>dfs.client.cached.conn.retry</name>
+        <value>{{CLIENT_CACHED_CONN_RETRY}}</value>
     </property>
 
     {{#SECURE_MODE}}

@@ -233,6 +233,11 @@
           "description":"Data node disk type",
           "type":"string",
           "default": "ROOT"
+        },
+        "handler_count": {
+          "description": "The number of server threads for the datanode.",
+          "type": "integer",
+          "default": 10
         }
       },
       "required": [
@@ -320,6 +325,61 @@
           "type": "integer",
           "description": "Indicates the number of retries a client will make to establish a server connection.",
           "default": 300
+        },
+        "dfs_namenode_logging_level": {
+          "type": "string",
+          "description": "The logging level for dfs namenode. Other values are 'dir' (trace namespace mutations), 'block'' (trace block under/over replications and block creations/deletions), or 'all'.",
+          "default": "info"
+        },
+        "dfs_namenode_rpc-bind-host_name_node_0": {
+          "type": "string",
+          "description": "The actual address the RPC server will bind to. If this optional address is set, it overrides only the hostname portion of dfs.namenode.rpc-address. This is useful for making the name node listen on all interfaces by setting it to 0.0.0.0.",
+          "default": "0.0.0.0"
+        },
+        "dfs_namenode_rpc-bind-host_name_node_1": {
+          "type": "string",
+          "description": "The actual address the RPC server will bind to. If this optional address is set, it overrides only the hostname portion of dfs.namenode.rpc-address. This is useful for making the name node listen on all interfaces by setting it to 0.0.0.0.",
+          "default": "0.0.0.0"
+        },
+        "dfs_namenode_http-bind-host_name_node_0": {
+          "type": "string",
+          "description": "The actual adress the HTTP server will bind to. If this optional address is set, it overrides only the hostname portion of dfs.namenode.http-address. This is useful for making the name node HTTP server listen on all interfaces by setting it to 0.0.0.0.",
+          "default": "0.0.0.0"
+        },
+        "dfs_namenode_http-bind-host_name_node_1": {
+          "type": "string",
+          "description": "The actual adress the HTTP server will bind to. If this optional address is set, it overrides only the hostname portion of dfs.namenode.http-address. This is useful for making the name node HTTP server listen on all interfaces by setting it to 0.0.0.0.",
+          "default": "0.0.0.0"
+        },
+        "hadoop_hdfs_configuration_version": {
+          "type": "integer",
+          "description": "version of this configuration file",
+          "default": 1
+        },
+        "dfs_namenode_servicerpc_address_namenode_0": {
+          "type": "string",
+          "description": "RPC address for HDFS Services communication. BackupNode, Datanodes and all other services should be connecting to this address if it is configured. If the value of this property is unset the value of dfs.namenode.rpc-address will be used as the default.",
+          "default": ""
+        },
+        "dfs_namenode_servicerpc_address_namenode_1": {
+          "type": "string",
+          "description": "RPC address for HDFS Services communication. BackupNode, Datanodes and all other services should be connecting to this address if it is configured. If the value of this property is unset the value of dfs.namenode.rpc-address will be used as the default.",
+          "default": ""
+        },
+        "dfs_namenode_servicerpc_bind_host_namenode_0": {
+          "type": "string",
+          "description": "The actual address the service RPC server will bind to. If this optional address is set, it overrides only the hostname portion of dfs.namenode.servicerpc-address. This is useful for making the name node listen on all interfaces by setting it to 0.0.0.0.",
+          "default": ""
+        },
+        "dfs_namenode_servicerpc_bind_host_namenode_1": {
+          "type": "string",
+          "description": "The actual address the service RPC server will bind to. If this optional address is set, it overrides only the hostname portion of dfs.namenode.servicerpc-address. This is useful for making the name node listen on all interfaces by setting it to 0.0.0.0.",
+          "default": ""
+        },
+        "dfs_client_cached_conn_retry": {
+          "type": "integer",
+          "description": "The number of times the HDFS client will pull a socket from the cache. Once this number is exceeded, the client will try to create a new socket.",
+          "default": 3
         }
       },
       "required": [

@@ -89,6 +89,7 @@
     "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
     "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
     {{/service.kerberos.enabled}}
+    "TASKCFG_ALL_HADOOP_HDFS_CONFIGURATION_VERSION": "{{hdfs.hadoop_hdfs_configuration_version}}",
     "TASKCFG_ALL_ADMINISTRATORS": "{{hdfs.administrators}}",
     "TASKCFG_ALL_NAME_NODE_RPC_PORT":"{{hdfs.name_node_rpc_port}}",
     "TASKCFG_ALL_NAME_NODE_HTTP_PORT":"{{hdfs.name_node_http_port}}",
@@ -100,7 +101,7 @@
     "TASKCFG_ALL_DATA_NODE_IPC_PORT":"{{hdfs.data_node_ipc_port}}",
     "TASKCFG_ALL_DATA_NODE_BALANCE_BANDWIDTH_PER_SEC":"41943040",
     "TASKCFG_ALL_NAME_NODE_SAFEMODE_THRESHOLD_PCT":"0.9",
-    "TASKCFG_ALL_DATA_NODE_HANDLER_COUNT":"10",
+    "TASKCFG_ALL_DATA_NODE_HANDLER_COUNT":"{{data_node.handler_count}}",
     "TASKCFG_ALL_NAME_NODE_HANDLER_COUNT":"20",
     "TASKCFG_ALL_PERMISSIONS_ENABLED":"{{hdfs.permissions_enabled}}",
     "TASKCFG_ALL_NAME_NODE_HEARTBEAT_RECHECK_INTERVAL":"{{hdfs.name_node_heartbeat_recheck_interval}}",
@@ -125,7 +126,18 @@
     "TASKCFG_ALL_HADOOP_PROXYUSER_HTTPFS_HOSTS": "*",
     "TASKCFG_ALL_HADOOP_ROOT_LOGGER": "{{hdfs.hadoop_root_logger}}",
     "TASKCFG_ALL_IPC_CLIENT_CONNECT_MAX_RETRIES": "{{hdfs.ipc_client_connect_max_retries}}",
-    "TASKCFG_ALL_TASK_USER": "{{service.user}}"
+    "TASKCFG_ALL_TASK_USER": "{{service.user}}",
+
+    "TASKCFG_ALL_NAMENODE_SERVICERPC_ADDRESS_NAMENODE_0": "{{hdfs.dfs_namenode_servicerpc_address_namenode_0}}",
+    "TASKCFG_ALL_NAMENODE_SERVICERPC_ADDRESS_NAMENODE_1": "{{hdfs.dfs_namenode_servicerpc_address_namenode_1}}",
+    "TASKCFG_ALL_NAMENODE_SERVICERPC_BIND_HOST_NAMENODE_0": "{{hdfs.dfs_namenode_servicerpc_bind_host_namenode_0}}",
+    "TASKCFG_ALL_NAMENODE_SERVICERPC_BIND_HOST_NAMENODE_1": "{{hdfs.dfs_namenode_servicerpc_bind_host_namenode_1}}",
+    "TASKCFG_ALL_NAMENODE_LOGGING_LEVEL": "{{hdfs.dfs_namenode_logging_level}}",
+    "TASKCFG_ALL_NAMENODE_RPC_BINDHOST_NAMENODE_0": "{{hdfs.dfs_namenode_rpc-bind-host_name_node_0}}",
+    "TASKCFG_ALL_NAMENODE_RPC_BINDHOST_NAMENODE_1": "{{hdfs.dfs_namenode_rpc-bind-host_name_node_1}}",
+    "TASKCFG_ALL_NAMENODE_HTTP_BINDHOST_NAMENODE_0": "{{hdfs.dfs_namenode_http-bind-host_name_node_0}}",
+    "TASKCFG_ALL_NAMENODE_HTTP_BINDHOST_NAMENODE_1": "{{hdfs.dfs_namenode_http-bind-host_name_node_1}}",
+    "TASKCFG_ALL_CLIENT_CACHED_CONN_RETRY": "{{hdfs.dfs_client_cached_conn_retry}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
