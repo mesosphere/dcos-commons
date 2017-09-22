@@ -131,11 +131,11 @@ public abstract class AbstractScheduler implements Scheduler {
                 // Get the current work
                 Collection<Step> steps = getPlanCoordinator().getCandidates();
 
-                // Revive offers if necessary
-                reviveManager.revive(steps);
-
                 // Match offers with work
                 executePlans(offers, steps);
+
+                // Revive offers if necessary
+                reviveManager.revive(steps);
 
                 synchronized (inProgressLock) {
                     offersInProgress.removeAll(
