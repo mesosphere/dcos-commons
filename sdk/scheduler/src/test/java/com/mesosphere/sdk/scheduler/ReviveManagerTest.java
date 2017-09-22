@@ -65,6 +65,14 @@ public class ReviveManagerTest {
     }
 
     @Test
+    public void dontReviveWhenThrottled() {
+        ReviveManager manager = new ReviveManager(driver);
+        manager.revive(getSteps(0));
+        manager.revive(getSteps(1));
+        verify(driver, times(1)).reviveOffers();
+    }
+
+    @Test
     public void dontReviveOnEmptyWork() {
         manager = getReviveManager();
         manager.revive(Collections.emptyList());

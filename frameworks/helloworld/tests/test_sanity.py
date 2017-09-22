@@ -182,7 +182,6 @@ def test_pod_info():
     assert task['status']['state'] == 'TASK_RUNNING'
 
 
-@pytest.mark.gabriel
 @pytest.mark.sanity
 def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
