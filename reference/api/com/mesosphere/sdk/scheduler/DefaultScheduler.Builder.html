@@ -283,12 +283,12 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;setStateStore(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
  <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code> will be used.
-
+ <p>
  The state store persists copies of task information and task status for all tasks running in the service.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalStateException</code> - if the state store is already set, via a previous call to either
- <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> or to <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--"><code>getStateStore()</code></a></dd>
+                               <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> or to <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--"><code>getStateStore()</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -301,7 +301,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;getStateStore()</pre>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a>, or a reasonable default
  created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code>.
-
+ <p>
  In order to avoid cohesiveness issues between this setting and the <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#build--"><code>build()</code></a> step,
  <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> may not be invoked after this has been called.</div>
 </li>
@@ -314,7 +314,7 @@ extends java.lang.Object</pre>
 <h4>setConfigStore</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;setConfigStore(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</pre>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a>.
-
+ <p>
  The config store persists a copy of the current configuration ('target' configuration),
  while also storing historical configurations.</div>
 </li>
@@ -328,7 +328,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigStore()</pre>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>setConfigStore(ConfigStore)</code></a>, or a reasonable default
  created via <code>DefaultScheduler#createConfigStore(ServiceSpec, Collection)</code>.
-
+ <p>
  In order to avoid cohesiveness issues between this setting and the <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#build--"><code>build()</code></a> step,
  <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>setConfigStore(ConfigStore)</code></a> may not be invoked after this has been called.</div>
 </li>
@@ -387,7 +387,7 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if creating a default config store fails</dd>
 <dd><code>java.lang.IllegalStateException</code> - if the plans were already set either via this call or via
- <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setPlans-java.util.Collection-"><code>setPlans(Collection)</code></a></dd>
+                               <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setPlans-java.util.Collection-"><code>setPlans(Collection)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -403,7 +403,7 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalStateException</code> - if the plans were already set either via this call or via
- <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setPlansFrom-com.mesosphere.sdk.specification.yaml.RawServiceSpec-"><code>setPlansFrom(RawServiceSpec)</code></a></dd>
+                               <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setPlansFrom-com.mesosphere.sdk.specification.yaml.RawServiceSpec-"><code>setPlansFrom(RawServiceSpec)</code></a></dd>
 </dl>
 </li>
 </ul>
