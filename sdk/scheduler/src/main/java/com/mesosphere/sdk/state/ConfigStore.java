@@ -16,7 +16,7 @@ import java.util.UUID;
 
 /**
  * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
- *
+ * <p>
  * <p>The ZNode structure in Zookeeper is as follows:
  * <br>rootPath/
  * <br>&nbsp;-> ConfigTarget (contains UUID)
@@ -93,6 +93,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      */
     public T fetch(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
+        logger.info("Fetching configuration with ID={} from {}", id, path);
         byte[] data;
         try {
             data = persister.get(path);
