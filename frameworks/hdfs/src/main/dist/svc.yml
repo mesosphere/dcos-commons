@@ -33,8 +33,12 @@ pods:
       bootstrap:
         goal: FINISHED
         cmd: >
+          echo "Creating version directory in the journal-data persistent volume" &&
           mkdir -p journal-data/hdfs/current &&
-          curl api.$FRAMEWORK_SCHEDULER_NAME.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION > journal-data/hdfs/current/VERSION
+          echo "Fetching VERSION file" &&
+          curl api.$FRAMEWORK_SCHEDULER_NAME.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION > journal-data/hdfs/current/VERSION &&
+          echo "VERSION has the following content:" &&
+          cat journal-data/hdfs/current/VERSION
         resource-set: journal-resources
       node:
         goal: RUNNING
