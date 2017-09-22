@@ -41,14 +41,14 @@ public class UninstallScheduler extends AbstractScheduler {
      * the framework deregisters itself and cleans up its state in Zookeeper.
      */
     public UninstallScheduler(
-            String serviceName,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
-            Optional<SecretsClient> secretsClient) {
+            Optional<SecretsClient> customSecretsClientForTests) {
         super(stateStore, configStore);
-        this.uninstallPlanBuilder =
-                new UninstallPlanBuilder(serviceName, stateStore, configStore, schedulerFlags, secretsClient);
+        this.uninstallPlanBuilder = new UninstallPlanBuilder(
+                serviceSpec, stateStore, configStore, schedulerFlags, customSecretsClientForTests);
         this.uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
         LOGGER.info("Initializing plans resource...");
         this.schedulerApiServer = new SchedulerApiServer(
@@ -56,14 +56,6 @@ public class UninstallScheduler extends AbstractScheduler {
                 Collections.singletonList(new PlansResource(Collections.singletonList(uninstallPlanManager))),
                 schedulerFlags.getApiServerInitTimeout());
         new Thread(schedulerApiServer).start();
-    }
-
-    public UninstallScheduler(
-            String serviceName,
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags) {
-        this(serviceName, stateStore, configStore, schedulerFlags, Optional.empty());
     }
 
     @Override

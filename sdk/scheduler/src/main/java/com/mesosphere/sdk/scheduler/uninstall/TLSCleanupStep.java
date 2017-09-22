@@ -23,7 +23,18 @@ import java.util.stream.Collectors;
  */
 public class TLSCleanupStep extends AbstractStep {
 
-    private static final Pattern PATTERN = createSecretNamePattern();
+    private static final Pattern PATTERN;
+    static {
+        List<String> possibleSecretNames = Arrays.asList(
+                SecretNameGenerator.SECRET_NAME_CERTIFICATE,
+                SecretNameGenerator.SECRET_NAME_PRIVATE_KEY,
+                SecretNameGenerator.SECRET_NAME_CA_CERT,
+                SecretNameGenerator.SECRET_NAME_KEYSTORE,
+                SecretNameGenerator.SECRET_NAME_TRUSTSTORE);
+        PATTERN = Pattern.compile(String.format("^.+%s(?:%s)$",
+                SecretNameGenerator.DELIMITER,
+                String.join("|", possibleSecretNames)));
+    }
 
     private final SecretsClient secretsClient;
     private final String namespace;
@@ -65,26 +76,6 @@ public class TLSCleanupStep extends AbstractStep {
         }
 
         return Optional.empty();
-    }
-
-    /**
-     * Creates a regex pattern that matches possible {@link TLSArtifacts} paths in secrets store namespaced
-     * to existing service.
-     */
-    private static Pattern createSecretNamePattern() {
-        List<String> possibleSecretNames = Arrays.asList(
-                SecretNameGenerator.SECRET_NAME_CERTIFICATE,
-                SecretNameGenerator.SECRET_NAME_PRIVATE_KEY,
-                SecretNameGenerator.SECRET_NAME_CA_CERT,
-                SecretNameGenerator.SECRET_NAME_KEYSTORE,
-                SecretNameGenerator.SECRET_NAME_TRUSTSTORE
-        );
-
-        String regex = String.format("^.+%s(?:%s)$",
-                SecretNameGenerator.DELIMITER,
-                String.join("|", possibleSecretNames));
-
-        return Pattern.compile(regex);
     }
 
     @Override

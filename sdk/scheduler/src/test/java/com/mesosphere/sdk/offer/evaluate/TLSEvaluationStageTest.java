@@ -56,7 +56,7 @@ public class TLSEvaluationStageTest {
                 TestConstants.SERVICE_NAME,
                 TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME,
                 "test-tls",
-                SecretNameGenerator.getSansHash(certificateNamesGenerator.getSANs()));
+                certificateNamesGenerator.getSANs());
     }
 
     private static PodInstanceRequirement getRequirementWithTransportEncryption(

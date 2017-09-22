@@ -278,8 +278,8 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks) {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags,
-                podInstanceRequirement);
+        Optional<TLSEvaluationStage.Builder> tlsBuilder =
+                getTLSEvaluationStageBuilder(serviceName, schedulerFlags, podInstanceRequirement);
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
@@ -341,12 +341,12 @@ public class OfferEvaluator {
                     .findFirst()
                     .get();
 
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                evaluationStages.add(tlsBuilder
-                        .get()
-                        .setServiceName(serviceName)
-                        .setTaskName(taskName)
-                        .build());
+            if (tlsBuilder.isPresent() && !taskSpec.getTransportEncryption().isEmpty()) {
+                try {
+                    evaluationStages.add(tlsBuilder.get().setTaskName(taskName).build());
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+                    logger.error("Failed to create TLSEvaluationStage, no TLS will be provisioned", e);
+                }
             }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
@@ -401,8 +401,8 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo) {
 
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = getTLSEvaluationStageBuilderFromEnvironment(schedulerFlags,
-                podInstanceRequirement);
+        Optional<TLSEvaluationStage.Builder> tlsBuilder =
+                getTLSEvaluationStageBuilder(serviceName, schedulerFlags, podInstanceRequirement);
 
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
@@ -450,12 +450,12 @@ public class OfferEvaluator {
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
 
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                evaluationStages.add(tlsBuilder
-                        .get()
-                        .setServiceName(serviceName)
-                        .setTaskName(taskSpec.getName())
-                        .build());
+            if (tlsBuilder.isPresent() && !taskSpec.getTransportEncryption().isEmpty()) {
+                try {
+                    evaluationStages.add(tlsBuilder.get().setTaskName(taskSpec.getName()).build());
+                } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+                    logger.error("Failed to create TLSEvaluationStage, no TLS will be provisioned", e);
+                }
             }
 
             boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
@@ -465,20 +465,12 @@ public class OfferEvaluator {
         return evaluationStages;
     }
 
-    private static Optional<TLSEvaluationStage.Builder> getTLSEvaluationStageBuilderFromEnvironment(
-            SchedulerFlags flags, PodInstanceRequirement podInstanceRequirement) {
-        Optional<TLSEvaluationStage.Builder> tlsBuilder = Optional.empty();
+    private static Optional<TLSEvaluationStage.Builder> getTLSEvaluationStageBuilder(
+            String serviceName, SchedulerFlags flags, PodInstanceRequirement podInstanceRequirement) {
         // Don't create a TLS stage if there's no TLS requested.
-        if (TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()) {
-            return tlsBuilder;
-        }
-
-        try {
-            tlsBuilder = Optional.of(TLSEvaluationStage.Builder.fromEnvironment(flags));
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException | SchedulerFlags.FlagException e) {
-            logger.error("Failed to create TLSEvaluationStage.Builder, no TLS will be provisioned", e);
-        }
-        return tlsBuilder;
+        return TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()
+                ? Optional.empty()
+                : Optional.of(TLSEvaluationStage.newBuilder(serviceName, flags));
     }
 
     private static Protos.TaskInfo getTaskInfoSharingResourceSet(

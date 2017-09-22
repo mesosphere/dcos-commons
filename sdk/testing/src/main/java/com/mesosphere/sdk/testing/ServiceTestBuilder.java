@@ -28,7 +28,6 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
  * Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it.
@@ -163,7 +162,6 @@ public class ServiceTestBuilder {
         SchedulerFlags mockFlags = Mockito.mock(SchedulerFlags.class);
         Mockito.when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
         Mockito.when(mockFlags.getApiServerPort()).thenReturn(8080);
-        Mockito.when(mockFlags.getServiceAccountUid()).thenReturn(TestConstants.PRINCIPAL);
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);

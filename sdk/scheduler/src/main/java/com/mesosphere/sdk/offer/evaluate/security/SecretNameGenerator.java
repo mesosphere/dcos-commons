@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.util.encoders.Hex;
@@ -19,7 +20,7 @@ public class SecretNameGenerator {
     private final String taskInstanceName;
     private final String namespace;
     private final String transportEncryptionName;
-    private final String sanHash;
+    private final String sansHash;
 
     public static final String SECRET_NAME_CERTIFICATE = "certificate";
     public static final String SECRET_NAME_PRIVATE_KEY = "private-key";
@@ -38,11 +39,11 @@ public class SecretNameGenerator {
             String namespace,
             String taskInstanceName,
             String transportEncryptionName,
-            String sanHash) {
+            GeneralNames generalNames) throws NoSuchAlgorithmException {
         this.namespace = namespace;
         this.taskInstanceName = taskInstanceName;
         this.transportEncryptionName = transportEncryptionName;
-        this.sanHash = sanHash;
+        this.sansHash = getSansHash(generalNames);
     }
 
     public String getTaskSecretsNamespace() {
@@ -104,7 +105,7 @@ public class SecretNameGenerator {
     }
 
     private String getSecretPath(String name, boolean withBase64Prefix) {
-        String[] names = Arrays.asList(sanHash, taskInstanceName, transportEncryptionName, name)
+        String[] names = Arrays.asList(sansHash, taskInstanceName, transportEncryptionName, name)
                 .stream()
                 .filter(item -> item != null)
                 .filter(item -> !item.equals(""))
@@ -128,8 +129,8 @@ public class SecretNameGenerator {
        return String.format("__dcos_base64__%s", name);
     }
 
-    public static String getNamespaceFromEnvironment(String defaultNamespace, SchedulerFlags flags) {
-        String secretNamespace = flags.getDcosSpaceLabelValue();
+    public static String getNamespaceFromEnvironment(SchedulerFlags flags, String defaultNamespace) {
+        String secretNamespace = flags.getDcosSpace();
 
         if (secretNamespace.startsWith("/")) {
             secretNamespace = secretNamespace.substring(1);
@@ -144,12 +145,9 @@ public class SecretNameGenerator {
 
     /**
      * Creates SHA1 string representation of all {@link GeneralNames}.
-     *
-     * @param generalNames
-     * @return
-     * @throws NoSuchAlgorithmException
      */
-    public static String getSansHash(GeneralNames generalNames) throws NoSuchAlgorithmException {
+    @VisibleForTesting
+    static String getSansHash(GeneralNames generalNames) throws NoSuchAlgorithmException {
         String allSans = Arrays.stream(generalNames.getNames())
                 .map(name -> name.getName().toString())
                 .collect(Collectors.joining(";"));

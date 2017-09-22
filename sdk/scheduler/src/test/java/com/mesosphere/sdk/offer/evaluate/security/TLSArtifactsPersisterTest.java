@@ -2,6 +2,9 @@ package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.dcos.secrets.Secret;
+
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNamesBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,9 +45,15 @@ public class TLSArtifactsPersisterTest {
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        String taskInstanceName = String.format("%s-%d-%s", "podName", 0, "taskName");
-        secretNameGenerator = new SecretNameGenerator(
-                "serviceName", taskInstanceName, "name", "");
+        try {
+            secretNameGenerator = new SecretNameGenerator(
+                    "serviceName",
+                    String.format("%s-%d-%s", "podName", 0, "taskName"),
+                    "name",
+                    new GeneralNamesBuilder().addName(new GeneralName(GeneralName.dNSName, "")).build());
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test
@@ -146,5 +155,4 @@ public class TLSArtifactsPersisterTest {
 
         verify(secretsClientMock, never()).delete(anyString());
     }
-
 }

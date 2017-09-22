@@ -2,7 +2,6 @@ package com.mesosphere.sdk.dcos.ca;
 
 import com.mesosphere.sdk.dcos.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.dcos.http.URLUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.fluent.ContentResponseHandler;
@@ -16,7 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -33,12 +33,10 @@ public class DefaultCAClient implements CertificateAuthorityClient {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private URL baseURL;
     private Executor httpExecutor;
     private CertificateFactory certificateFactory;
 
-    public DefaultCAClient(URL baseURL, Executor executor) {
-        this.baseURL = baseURL;
+    public DefaultCAClient(Executor executor) {
         this.httpExecutor = executor;
 
         try {
@@ -46,10 +44,6 @@ public class DefaultCAClient implements CertificateAuthorityClient {
         } catch (CertificateException e) {
             logger.error("Failed to create certificate factory", e);
         }
-    }
-
-    public DefaultCAClient(Executor executor) {
-        this(URLUtils.fromUnchecked(DcosConstants.CA_BASE_URI), executor);
     }
 
     @Override
@@ -110,8 +104,8 @@ public class DefaultCAClient implements CertificateAuthorityClient {
         return certificates;
     }
 
-    private JSONObject doPostRequest(String path, JSONObject data) throws IOException, CAException {
-        Request request = Request.Post(URLUtils.addPathUnchecked(baseURL, path).toString())
+    private JSONObject doPostRequest(String path, JSONObject data) throws IOException, CAException, URISyntaxException {
+        Request request = Request.Post(new URI(DcosConstants.CA_BASE_URI + path))
                 .bodyString(data.toString(), ContentType.APPLICATION_JSON);
         Response response = httpExecutor.execute(request);
         HttpResponse httpResponse = response.returnResponse();

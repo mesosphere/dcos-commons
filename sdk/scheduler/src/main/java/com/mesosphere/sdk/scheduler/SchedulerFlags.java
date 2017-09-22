@@ -1,8 +1,21 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.Credential;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
 
+import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
+import com.mesosphere.sdk.dcos.auth.ServiceAccountIAMTokenProvider;
+import com.mesosphere.sdk.dcos.auth.TokenProvider;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.util.Map;
 
@@ -140,14 +153,6 @@ public class SchedulerFlags {
     }
 
     /**
-     * Returns the configured threshold that will trigger auth token refresh before its expiration.
-     */
-    public Duration getAuthTokenRefreshThreshold() {
-        return Duration.ofSeconds(flagStore.getOptionalInt(
-                AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
-    }
-
-    /**
      * Returns the configured API port, or throws {@link FlagException} if the environment lacked the required
      * information.
      */
@@ -171,18 +176,13 @@ public class SchedulerFlags {
         return flagStore.getRequired(JAVA_HOME_ENV);
     }
 
-    public String getDcosSpaceLabelValue() {
+    public String getDcosSpace() {
+        // Try in order: DCOS_SPACE, MARATHON_APP_ID, "/"
         String value = flagStore.getOptional(DCOS_SPACE_ENV, null);
         if (value != null) {
             return value;
         }
-
-        value = flagStore.getOptional(MARATHON_APP_ID_ENV, null);
-        if (value != null) {
-            return value;
-        }
-
-        return "/"; // No Authorization for this framework
+        return flagStore.getOptional(MARATHON_APP_ID_ENV, "/");
     }
 
     public boolean isStateCacheEnabled() {
@@ -202,22 +202,31 @@ public class SchedulerFlags {
         return flagStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
     }
 
-    public String getServiceAccountUid() {
-        return getServiceAccountObject().getString("uid");
-    }
-
-    public String getServiceAccountPrivateKeyPEM() {
-        return getServiceAccountObject().getString("private_key");
-    }
-
     /**
-     * Gets a service account JSON object.
-     *
-     * TODO(mh): Add documentation about this JSON varaible being injected to scheduler runtime
-     * {@see https://github.com/mesosphere/mesos-modules-private/blob/master/common/bouncer.cpp#L340}
+     * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an exception if the local
+     * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
      */
-    private JSONObject getServiceAccountObject() {
-        return new JSONObject(flagStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+    public TokenProvider getDcosAuthTokenProvider()
+            throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+        JSONObject serviceAccountObject = new JSONObject(flagStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+        PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
+        try {
+            PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(
+                    new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
+
+            ServiceAccountIAMTokenProvider serviceAccountIAMTokenProvider =
+                    new ServiceAccountIAMTokenProvider.Builder()
+                    .setUid(serviceAccountObject.getString("uid"))
+                    .setPrivateKey((RSAPrivateKey) privateKey)
+                    .build();
+
+            Duration authTokenRefreshThreshold = Duration.ofSeconds(flagStore.getOptionalInt(
+                    AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
+
+            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
+        } finally {
+            pemReader.close();
+        }
     }
 
     /**
