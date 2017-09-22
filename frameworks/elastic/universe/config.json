@@ -356,17 +356,17 @@
           "default": ""  
         },
         "transport_tcp_connect_timeout": {
-          "description": "The socket connect timeout setting (in time setting format). Defaults to 30s."
+          "description": "The socket connect timeout setting (in time setting format). Defaults to 30s.",
           "type": "string",
           "default": "30s"
         },
         "transport_tcp_compress": {
-          "description": "Set to true to enable compression (LZF) between all nodes. Defaults to false."
+          "description": "Set to true to enable compression (LZF) between all nodes. Defaults to false.",
           "type": "boolean",
           "default": false
         },
         "transport_ping_schedule": {
-          "description": "Schedule a regular ping message to ensure that connections are kept alive. Defaults to 5s in the transport client and -1 (disabled) elsewhere."
+          "description": "Schedule a regular ping message to ensure that connections are kept alive. Defaults to 5s in the transport client and -1 (disabled) elsewhere.",
           "type": "string",
           "default": "-1"
         },
@@ -374,7 +374,7 @@
           "description": "The http module can be completely disabled and not started by setting http.enabled to false. Default is true.",
           "type": "boolean",
           "default": true
-        }
+        },
          "http_max_content_length": {
           "description": "The max content of an HTTP request. Defaults to 100mb. If set to greater than Integer.MAX_VALUE, it will be reset to 100mb.",
           "type": "string",
