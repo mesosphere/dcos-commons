@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,7 @@ public class DefaultService implements Runnable {
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     private DefaultScheduler.Builder schedulerBuilder;
-    private Scheduler scheduler;
+    private AbstractScheduler scheduler;
     private StateStore stateStore;
 
     public DefaultService() {

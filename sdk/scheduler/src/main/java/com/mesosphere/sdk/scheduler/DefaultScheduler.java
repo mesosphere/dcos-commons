@@ -33,7 +33,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,8 +115,7 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         /**
-         * Specifies a custom {@link StateStore}, otherwise the return value of
-         * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
+         * Specifies a custom {@link StateStore}.
          *
          * The state store persists copies of task information and task status for all tasks running in the service.
          *
@@ -134,8 +132,7 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         /**
-         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-         * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
+         * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}.
          *
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
@@ -165,7 +162,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         /**
          * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default
-         * created via {@link DefaultScheduler#createConfigStore(ServiceSpec, Collection)}.
+         * created via {@link DefaultScheduler#createConfigStore(ServiceSpec, Collection, Persister)}.
          *
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
@@ -192,7 +189,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
         /**
          * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
-         * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.
+         * or otherwise uses the default validators returned by
+         * {@link DefaultScheduler#defaultConfigValidators(SchedulerFlags)}.
          */
         public Builder setCustomConfigValidators(Collection<ConfigValidator<ServiceSpec>> customConfigValidators) {
             this.customConfigValidators = customConfigValidators;
@@ -441,8 +439,8 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     /**
-     * Version of {@link #createConfigStore(ServiceSpec, Collection)} which allows passing a custom {@link Persister}
-     * object. Exposed for unit tests.
+     * Creates a {@link ConfigStore} for the current service based on its {@link ServiceSpec}, storing that config with
+     * the supplied {@link Persister}. Exposed for unit tests.
      */
     @VisibleForTesting
     static ConfigStore<ServiceSpec> createConfigStore(
@@ -476,8 +474,8 @@ public class DefaultScheduler extends AbstractScheduler {
      * @param serviceSpec the service specification to use
      * @param stateStore the state store to pass to the updater
      * @param configStore the config store to pass to the updater
-     * @param configValidators the list of config validators, see {@link #defaultConfigValidators()} for reasonable
-     *     defaults
+     * @param configValidators the list of config validators, see {@link #defaultConfigValidators(SchedulerFlags)} for
+     *     reasonable defaults
      * @return the config update result, which may contain one or more validation errors produced by
      *     {@code configValidators}
      */
@@ -562,7 +560,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
 
-    protected void initialize(SchedulerDriver driver) throws InterruptedException {
+    protected void initialize(V1SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
@@ -613,7 +611,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 .collect(Collectors.toList());
     }
 
-    private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
+    private void initializeGlobals(V1SchedulerDriver driver) throws ConfigStoreException {
         LOGGER.info("Initializing globals...");
 
         taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
@@ -773,7 +771,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
+    public void statusUpdate(V1SchedulerDriver driver, Protos.TaskStatus status) {
         LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
                 status.getTaskId().getValue(),
                 status.getState().toString(),

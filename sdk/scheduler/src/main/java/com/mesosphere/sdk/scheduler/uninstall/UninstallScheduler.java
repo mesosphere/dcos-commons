@@ -67,7 +67,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void initialize(SchedulerDriver driver) throws InterruptedException {
+    protected void initialize(V1SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
@@ -127,7 +127,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
+    public void statusUpdate(V1SchedulerDriver driver, Protos.TaskStatus status) {
         LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
                 status.getTaskId().getValue(),
                 status.getState().toString(),

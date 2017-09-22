@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
-import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.*;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -155,7 +152,7 @@ public class SchedulerDriverFactoryTest {
          * being present.
          */
         @Override
-        protected MesosSchedulerDriver createInternal(
+        protected V1SchedulerDriver createInternal(
                 final Scheduler scheduler,
                 final FrameworkInfo frameworkInfo,
                 final String masterUrl,
@@ -175,33 +172,33 @@ public class SchedulerDriverFactoryTest {
     private static class NoOpScheduler implements Scheduler {
 
         @Override
-        public void registered(SchedulerDriver driver, FrameworkID frameworkId, MasterInfo masterInfo) { }
+        public void registered(V1SchedulerDriver driver, FrameworkID frameworkId, MasterInfo masterInfo) { }
 
         @Override
-        public void reregistered(SchedulerDriver driver, MasterInfo masterInfo) { }
+        public void reregistered(V1SchedulerDriver driver, MasterInfo masterInfo) { }
 
         @Override
-        public void resourceOffers(SchedulerDriver driver, List<Offer> offers) { }
+        public void offerRescinded(V1SchedulerDriver driver, OfferID offerId) { }
 
         @Override
-        public void offerRescinded(SchedulerDriver driver, OfferID offerId) { }
+        public void statusUpdate(V1SchedulerDriver driver, TaskStatus status) { }
 
         @Override
-        public void statusUpdate(SchedulerDriver driver, TaskStatus status) { }
+        public void resourceOffers(V1SchedulerDriver driver, List<Offer> offers) { }
 
         @Override
-        public void frameworkMessage(SchedulerDriver driver, ExecutorID executorId, SlaveID slaveId, byte[] data) { }
+        public void frameworkMessage(V1SchedulerDriver driver, ExecutorID executorId, SlaveID slaveId, byte[] data) { }
 
         @Override
-        public void disconnected(SchedulerDriver driver) { }
+        public void disconnected(V1SchedulerDriver driver) { }
 
         @Override
-        public void slaveLost(SchedulerDriver driver, SlaveID slaveId) { }
+        public void slaveLost(V1SchedulerDriver driver, SlaveID slaveId) { }
 
         @Override
-        public void executorLost(SchedulerDriver driver, ExecutorID executorId, SlaveID slaveId, int status) { }
+        public void executorLost(V1SchedulerDriver driver, ExecutorID executorId, SlaveID slaveId, int status) { }
 
         @Override
-        public void error(SchedulerDriver driver, String message) { }
+        public void error(V1SchedulerDriver driver, String message) { }
     }
 }
