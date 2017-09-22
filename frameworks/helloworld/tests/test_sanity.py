@@ -188,7 +188,7 @@ def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
-    assert len(jsonobj) == 6
+    assert len(jsonobj) == 5
     # alphabetical ordering:
     assert jsonobj[0] == "hello-0-server:task-status"
     assert jsonobj[1] == "hello-1-server:task-status"
