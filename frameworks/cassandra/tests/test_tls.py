@@ -23,6 +23,7 @@ from tests.config import (
     DEFAULT_NODE_PORT,
     DEFAULT_TASK_COUNT,
     PACKAGE_NAME,
+    SERVICE_NAME,
     _get_test_job
 )
 
@@ -59,7 +60,7 @@ def service_account():
 def cassandra_service_tls(service_account):
     sdk_install.install(
         package_name=PACKAGE_NAME,
-        service_name=service_account,
+        service_name=SERVICE_NAME,
         expected_running_tasks=DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
