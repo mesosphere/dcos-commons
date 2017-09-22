@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6};
+var methods = {"i0":6,"i1":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -133,13 +133,6 @@ var activeTableTab = "activeTableTab";
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;Protos.OfferID&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers</a></span>(SchedulerDriver&nbsp;driver,
-             java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>
-<div class="block">Provides offers to each <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> for processing.</div>
-</td>
-</tr>
 </table>
 </li>
 </ul>
@@ -155,21 +148,6 @@ var activeTableTab = "activeTableTab";
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="processOffers-SchedulerDriver-java.util.List-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>processOffers</h4>
-<pre>java.util.Collection&lt;Protos.OfferID&gt;&nbsp;processOffers(SchedulerDriver&nbsp;driver,
-                                                   java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</pre>
-<div class="block">Provides offers to each <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> for processing. Keeps tracks of dirtied offers and assets.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>List of OfferID's that were used for scheduling operations.</dd>
-</dl>
-</li>
-</ul>
 <a name="getCandidates--">
 <!--   -->
 </a>

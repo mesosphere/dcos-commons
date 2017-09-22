@@ -142,7 +142,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#driver">driver</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></code></td>
+<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
@@ -217,7 +217,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>protected abstract void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-">executePlans</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-java.util.Collection-">executePlans</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+            java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</code>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </td>
 </tr>
@@ -323,7 +324,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>offerQueue</h4>
-<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a> offerQueue</pre>
+<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a> offerQueue</pre>
 </li>
 </ul>
 <a name="driver">
@@ -526,13 +527,14 @@ extends java.lang.Object</pre>
 <pre>protected abstract&nbsp;boolean&nbsp;apiServerReady()</pre>
 </li>
 </ul>
-<a name="executePlans-java.util.List-">
+<a name="executePlans-java.util.List-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>executePlans</h4>
-<pre>protected abstract&nbsp;void&nbsp;executePlans(java.util.List&lt;Protos.Offer&gt;&nbsp;offers)</pre>
+<pre>protected abstract&nbsp;void&nbsp;executePlans(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+                                     java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </li>
 </ul>

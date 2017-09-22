@@ -17,6 +17,12 @@
     catch(err) {
     }
 //-->
+var methods = {"i0":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var altColor = "altColor";
+var rowColor = "rowColor";
+var tableTab = "tableTab";
+var activeTableTab = "activeTableTab";
 </script>
 <noscript>
 <div>JavaScript is disabled on your browser.</div>
@@ -41,7 +47,7 @@
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerApiServer.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -67,15 +73,15 @@
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
-<li><a href="#methods.inherited.from.class.java.lang.Object">Method</a></li>
+<li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
-<li>Method</li>
+<li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
 <a name="skip.navbar.top">
@@ -103,36 +109,13 @@
 <br>
 <pre>public class <span class="typeNameLabel">ReviveManager</span>
 extends java.lang.Object</pre>
-<div class="block">This class monitors a <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a> and revives offers when appropriate.</div>
+<div class="block">This class determines whether offers should be revived based on changes to the work being processed by the scheduler.</div>
 </li>
 </ul>
 </div>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#REVIVE_DELAY_S">REVIVE_DELAY_S</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#REVIVE_INTERVAL_S">REVIVE_INTERVAL_S</a></span></code>&nbsp;</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -145,16 +128,11 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">ReviveManager</a></span>(SchedulerDriver&nbsp;driver,
-             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-             <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-">ReviveManager</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-int-int-">ReviveManager</a></span>(SchedulerDriver&nbsp;driver,
-             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-             <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
-             int&nbsp;pollDelay,
-             int&nbsp;pollInterval)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.scheduler.TokenBucket-">ReviveManager</a></span>(SchedulerDriver&nbsp;driver,
+             <a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a>&nbsp;tokenBucket)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -165,6 +143,20 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Method and Description</th>
+</tr>
+<tr id="i0" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/ReviveManager.html#revive-java.util.Collection-">revive</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</code>
+<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+ (a.k.a.</div>
+</td>
+</tr>
+</table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
@@ -180,68 +172,75 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="REVIVE_INTERVAL_S">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>REVIVE_INTERVAL_S</h4>
-<pre>public static final&nbsp;int REVIVE_INTERVAL_S</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.ReviveManager.REVIVE_INTERVAL_S">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="REVIVE_DELAY_S">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>REVIVE_DELAY_S</h4>
-<pre>public static final&nbsp;int REVIVE_DELAY_S</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.ReviveManager.REVIVE_DELAY_S">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">
+<a name="ReviveManager-SchedulerDriver-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>ReviveManager</h4>
-<pre>public&nbsp;ReviveManager(SchedulerDriver&nbsp;driver,
-                     <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                     <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator)</pre>
+<pre>public&nbsp;ReviveManager(SchedulerDriver&nbsp;driver)</pre>
 </li>
 </ul>
-<a name="ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-int-int-">
+<a name="ReviveManager-SchedulerDriver-com.mesosphere.sdk.scheduler.TokenBucket-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ReviveManager</h4>
 <pre>public&nbsp;ReviveManager(SchedulerDriver&nbsp;driver,
-                     <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                     <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
-                     int&nbsp;pollDelay,
-                     int&nbsp;pollInterval)</pre>
+                     <a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a>&nbsp;tokenBucket)</pre>
+</li>
+</ul>
+</li>
+</ul>
+<!-- ============ METHOD DETAIL ========== -->
+<ul class="blockList">
+<li class="blockList"><a name="method.detail">
+<!--   -->
+</a>
+<h3>Method Detail</h3>
+<a name="revive-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>revive</h4>
+<pre>public&nbsp;void&nbsp;revive(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
+<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+ (a.k.a. forever) whenever we decline any offer.  When we see *new* work (<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>`s) we
+ assume that the offers we've declined forever may be useful to that work, and so we revive offers.
+
+ Pseudo-code algorithm is this:
+
+     // We always start out revived
+     List<Requirement> oldRequirements = getRequirements();
+
+     while (true) {
+         List<Requirement> currRequirements = getRequirements()
+         List<Requirement> newRequirements = oldRequirements - currRequirements;
+         if (newRequirements.isEmpty()) {
+             print “No new work”;
+         } else {
+             oldRequirements = currRequirements;
+             revive();
+         }
+     }
+
+ The invariant maintained is that the oldRequirements have always had revive called for them at least once, giving
+ them access to offers.
+
+ This case must work:
+
+     kafka-0-broker fails    @ 10:30, it's new work!
+     kafka-0-broker recovers @ 10:35
+     kafka-0-broker fails    @ 11:00, it's new work!
+     ...</div>
 </li>
 </ul>
 </li>
@@ -271,7 +270,7 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerApiServer.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -297,15 +296,15 @@ extends java.lang.Object</pre>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
-<li><a href="#methods.inherited.from.class.java.lang.Object">Method</a></li>
+<li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
-<li>Method</li>
+<li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
 <a name="skip.navbar.bottom">

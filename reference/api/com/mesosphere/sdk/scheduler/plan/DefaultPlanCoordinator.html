@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -135,8 +135,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#DefaultPlanCoordinator-java.util.List-com.mesosphere.sdk.scheduler.plan.PlanScheduler-">DefaultPlanCoordinator</a></span>(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers,
-                      <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a>&nbsp;planScheduler)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#DefaultPlanCoordinator-java.util.List-">DefaultPlanCoordinator</a></span>(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -163,13 +162,6 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#getPlanManagers--">getPlanManagers</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;OfferID&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers</a></span>(SchedulerDriver&nbsp;driver,
-             java.util.List&lt;Offer&gt;&nbsp;offersToProcess)</code>
-<div class="block">Provides offers to each <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> for processing.</div>
-</td>
-</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -192,14 +184,13 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultPlanCoordinator-java.util.List-com.mesosphere.sdk.scheduler.plan.PlanScheduler-">
+<a name="DefaultPlanCoordinator-java.util.List-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultPlanCoordinator</h4>
-<pre>public&nbsp;DefaultPlanCoordinator(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers,
-                              <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a>&nbsp;planScheduler)</pre>
+<pre>public&nbsp;DefaultPlanCoordinator(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</pre>
 </li>
 </ul>
 </li>
@@ -224,24 +215,6 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordin
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#getCandidates--">getCandidates</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s which are eligible for processing.</dd>
-</dl>
-</li>
-</ul>
-<a name="processOffers-SchedulerDriver-java.util.List-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>processOffers</h4>
-<pre>public&nbsp;java.util.Collection&lt;OfferID&gt;&nbsp;processOffers(SchedulerDriver&nbsp;driver,
-                                                   java.util.List&lt;Offer&gt;&nbsp;offersToProcess)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">PlanCoordinator</a></code></span></div>
-<div class="block">Provides offers to each <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> for processing. Keeps tracks of dirtied offers and assets.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>List of OfferID's that were used for scheduling operations.</dd>
 </dl>
 </li>
 </ul>

@@ -96,6 +96,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferAccepter.html#accept-SchedulerDriver-java.util.List-">accept(SchedulerDriver, List&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferAccepter.html" title="class in com.mesosphere.sdk.offer">OfferAccepter</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#acquireInterval">acquireInterval</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#acquireInterval-java.time.Duration-">acquireInterval(Duration)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>
+<div class="block">Set the minimum interval between acquiring tokens.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ValueUtils.html#add-Value-Value-">add(Value, Value)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer">ValueUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ElementBuilder.html#add-C-">add(C)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ElementBuilder.html" title="class in com.mesosphere.sdk.scheduler.plan">ElementBuilder</a></dt>
@@ -329,6 +335,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec.Builder</a></dt>
 <dd>
 <div class="block">Returns a <code>DefaultCommandSpec</code> built from the parameters previously set.</div>
@@ -393,6 +401,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html#Builder-com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.Type-java.lang.Object-java.util.Collection-java.lang.String-java.lang.Object...-">Builder(EvaluationOutcome.Type, Object, Collection&lt;OfferRecommendation&gt;, String, Object...)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
@@ -488,6 +498,12 @@
 <dt><a href="com/mesosphere/sdk/specification/validation/CapabilityValidator.CapabilityValidationException.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">CapabilityValidator.CapabilityValidationException</span></a> - Exception in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
 <dd>
 <div class="block">Exception thrown when a <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> requires DC/OS features not supported by the active cluster.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#capacity">capacity</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#capacity-int-">capacity(int)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>
+<div class="block">Set the maximum number of tokens.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos"><span class="typeNameLink">CertificateAuthorityClient</span></a> - Interface in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
 <dd>
@@ -632,6 +648,8 @@
 <dt><a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a> - package com.mesosphere.sdk.offer.evaluate.security</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a> - package com.mesosphere.sdk.offer.taskdata</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/queue/package-summary.html">com.mesosphere.sdk.queue</a> - package com.mesosphere.sdk.queue</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/reconciliation/package-summary.html">com.mesosphere.sdk.reconciliation</a> - package com.mesosphere.sdk.reconciliation</dt>
 <dd>&nbsp;</dd>
@@ -1001,7 +1019,15 @@
 <dd>
 <div class="block">Decodes the provided encoded data as a <code>HealthCheck</code>, or throws <a href="com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer"><code>TaskException</code></a> if decoding failed.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_ACQUIRE_INTEVAL">DEFAULT_ACQUIRE_INTEVAL</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_CAPACITY">DEFAULT_CAPACITY</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DEFAULT_GPU_POLICY">DEFAULT_GPU_POLICY</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_INCREMENT_INTERVAL">DEFAULT_INCREMENT_INTERVAL</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_INITIAL_COUNT">DEFAULT_INITIAL_COUNT</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DEFAULT_IP_PROTOCOL">DEFAULT_IP_PROTOCOL</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
@@ -1127,7 +1153,7 @@
 <dd>
 <div class="block">Default implementation of PlanCoordinator.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#DefaultPlanCoordinator-java.util.List-com.mesosphere.sdk.scheduler.plan.PlanScheduler-">DefaultPlanCoordinator(List&lt;PlanManager&gt;, PlanScheduler)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#DefaultPlanCoordinator-java.util.List-">DefaultPlanCoordinator(List&lt;PlanManager&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultPlanGenerator</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -1728,13 +1754,13 @@
 <dd>
 <div class="block">Implements exact string matching support for string comparisons.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-">executePlans(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#executePlans-java.util.List-java.util.Collection-">executePlans(List&lt;Protos.Offer&gt;, Collection&lt;Step&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
 <dd>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#executePlans-java.util.List-">executePlans(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#executePlans-java.util.List-java.util.Collection-">executePlans(List&lt;Protos.Offer&gt;, Collection&lt;Step&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#executePlans-java.util.List-">executePlans(List&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#executePlans-java.util.List-java.util.Collection-">executePlans(List&lt;Protos.Offer&gt;, Collection&lt;Step&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#EXECUTOR_ID">EXECUTOR_ID</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
@@ -3092,7 +3118,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html#getRelativePath--">getRelativePath()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#getRemainingCapacity--">getRemainingCapacity()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#getRemainingCapacity--">getRemainingCapacity()</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">This method returns the remaining capacity in the queue.</div>
 </dd>
@@ -3267,7 +3293,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getSharePidNamespace--">getSharePidNamespace()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#getSize--">getSize()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#getSize--">getSize()</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">This method returns the number of elements in the queue.</div>
 </dd>
@@ -3870,6 +3896,8 @@
 <dl>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#IAM_AUTH_URL">IAM_AUTH_URL</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#id">id</a></span> - Variable in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#id-java.lang.String-">id(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>id</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -3879,6 +3907,14 @@
 <div class="block">Sets the <code>image</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#incrementInterval">incrementInterval</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#incrementInterval-java.time.Duration-">incrementInterval(Duration)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>
+<div class="block">Set the interval between putting new tokens in the bucket.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#initial">initial</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#INITIAL_LAUNCH_LABEL">INITIAL_LAUNCH_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Label for tracking in the state store whether this is the first launch of this task at its current location.</div>
@@ -3906,6 +3942,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#initializeRecoveryPlanManager--">initializeRecoveryPlanManager()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>
 <div class="block">Override this function to inject your own recovery plan manager.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#initialTokenCount-int-">initialTokenCount(int)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
+<dd>
+<div class="block">Set the initial number of tokens.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorUtils.html#initServiceName-com.mesosphere.sdk.storage.Persister-java.lang.String-">initServiceName(Persister, String)</a></span> - Static method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorUtils.html" title="class in com.mesosphere.sdk.curator">CuratorUtils</a></dt>
 <dd>
@@ -4015,7 +4055,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#isEmpty--">isEmpty()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#isEmpty--">isEmpty()</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">This method specifies whether any offers are in the queue.</div>
 </dd>
@@ -4127,10 +4167,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchedulerState.html#isSuppressed--">isSuppressed()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchedulerState.html" title="class in com.mesosphere.sdk.state">SchedulerState</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#isSuppressed-com.mesosphere.sdk.state.StateStore-">isSuppressed(StateStore)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>
-<div class="block">Returns the current value of the 'suppressed' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#isTerminal-TaskStatus-">isTerminal(TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided <code>TaskStatus</code> has reached a terminal state.</div>
@@ -4584,6 +4620,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#newBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">newBuilder(PodInstanceRequirement)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html#newBuilder-java.util.Map-">newBuilder(Map&lt;String, String&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></dt>
 <dd>
 <div class="block">Creates a new builder instance using the provided <code>ConfigNamespace</code> for any additional config overrides.</div>
@@ -4656,6 +4694,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/NotRule.html#NotRule-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-">NotRule(PlacementRule)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/NotRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">NotRule</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#now--">now()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#NUMBER_OF_PORT_MAPPINGS">NUMBER_OF_PORT_MAPPINGS</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html#numberOfPortMappings--">numberOfPortMappings()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html" title="class in com.mesosphere.sdk.specification.yaml">RawNetwork</a></dt>
@@ -4666,7 +4706,7 @@
 </a>
 <h2 class="title">O</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#offer-Protos.Offer-">offer(Protos.Offer)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#offer-Protos.Offer-">offer(Protos.Offer)</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">This method enqueues an Offer from Mesos if there is capacity.</div>
 </dd>
@@ -4707,15 +4747,15 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerFlags-boolean-">OfferEvaluator(StateStore, String, UUID, SchedulerFlags, boolean)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">OfferQueue</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dt><a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue"><span class="typeNameLink">OfferQueue</span></a> - Class in <a href="com/mesosphere/sdk/queue/package-summary.html">com.mesosphere.sdk.queue</a></dt>
 <dd>
 <div class="block">This class acts as a buffer of Offers from Mesos.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#OfferQueue--">OfferQueue()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#OfferQueue--">OfferQueue()</a></span> - Constructor for class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#OfferQueue-int-">OfferQueue(int)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#OfferQueue-int-">OfferQueue(int)</a></span> - Constructor for class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#offerQueue">offerQueue</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferRecommendation</span></a> - Interface in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
@@ -5155,12 +5195,6 @@
 <dd>
 <div class="block">Utilities relating to construction of <code>ProcessBuilder</code>s.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers(SchedulerDriver, List&lt;Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanCoordinator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html#processOffers-SchedulerDriver-java.util.List-">processOffers(SchedulerDriver, List&lt;Protos.Offer&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></dt>
-<dd>
-<div class="block">Provides offers to each <a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a> for processing.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosCertInstaller.ProcessRunner.html#ProcessRunner--">ProcessRunner()</a></span> - Constructor for class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosCertInstaller.ProcessRunner.html" title="class in com.mesosphere.sdk.dcos">DcosCertInstaller.ProcessRunner</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html#ProcessRunner--">ProcessRunner()</a></span> - Constructor for class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html" title="class in com.mesosphere.sdk.executor">CheckHandler.ProcessRunner</a></dt>
@@ -5409,7 +5443,7 @@
 <dd>
 <div class="block">Removes the provided label value, or does nothing if it was already not present.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#remove-Protos.OfferID-">remove(Protos.OfferID)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#remove-Protos.OfferID-">remove(Protos.OfferID)</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">This method removes an offer from the queue based on its OfferID.</div>
 </dd>
@@ -5618,17 +5652,18 @@
 <dd>
 <div class="block">Restarts a pod instance in-place.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#REVIVE_DELAY_S">REVIVE_DELAY_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#REVIVE_INTERVAL_S">REVIVE_INTERVAL_S</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
-<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#revive-java.util.Collection-">revive(Collection&lt;Step&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dd>
+<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+ (a.k.a.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">ReviveManager</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
-<div class="block">This class monitors a <a href="com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a> and revives offers when appropriate.</div>
+<div class="block">This class determines whether offers should be revived based on changes to the work being processed by the scheduler.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">ReviveManager(SchedulerDriver, StateStore, PlanCoordinator)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-">ReviveManager(SchedulerDriver)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-int-int-">ReviveManager(SchedulerDriver, StateStore, PlanCoordinator, int, int)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ReviveManager.html#ReviveManager-SchedulerDriver-com.mesosphere.sdk.scheduler.TokenBucket-">ReviveManager(SchedulerDriver, TokenBucket)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler">ReviveManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/util/RLimit.html" title="class in com.mesosphere.sdk.specification.util"><span class="typeNameLink">RLimit</span></a> - Class in <a href="com/mesosphere/sdk/specification/util/package-summary.html">com.mesosphere.sdk.specification.util</a></dt>
 <dd>
@@ -6134,10 +6169,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchedulerState.html#setSuppressed-boolean-">setSuppressed(boolean)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchedulerState.html" title="class in com.mesosphere.sdk.state">SchedulerState</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStoreUtils.html#setSuppressed-com.mesosphere.sdk.state.StateStore-boolean-">setSuppressed(StateStore, boolean)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state">StateStoreUtils</a></dt>
-<dd>
-<div class="block">Sets a 'suppressed' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to the provided value.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigStore.html#setTargetConfig-java.util.UUID-">setTargetConfig(UUID)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig(UUID)</a></span> - Method in interface com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a></dt>
@@ -6456,13 +6487,13 @@
 </a>
 <h2 class="title">T</h2>
 <dl>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#takeAll-java.time.Duration-">takeAll(Duration)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#takeAll-java.time.Duration-">takeAll(Duration)</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">Calling this method will wait for Offers for the provided duration.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferQueue.html#takeAll--">takeAll()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferQueue.html" title="class in com.mesosphere.sdk.scheduler">OfferQueue</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#takeAll--">takeAll()</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
-<div class="block">Calling this method will wait for Offers for a static duration of <a href="com/mesosphere/sdk/scheduler/OfferQueue.html#DEFAULT_CAPACITY"><code>OfferQueue.DEFAULT_CAPACITY</code></a>.</div>
+<div class="block">Calling this method will wait for Offers for a static duration of <a href="com/mesosphere/sdk/queue/OfferQueue.html#DEFAULT_CAPACITY"><code>OfferQueue.DEFAULT_CAPACITY</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TARGET_CONFIGURATION_LABEL">TARGET_CONFIGURATION_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
@@ -6770,6 +6801,8 @@
 <dd>
 <div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#toBuilder--">toBuilder()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toEndpoint-java.lang.String-int-">toEndpoint(String, int)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
 <dd>
 <div class="block">Concatenates the provided hostname/port in "hostname:port" format.</div>
@@ -6807,6 +6840,18 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#toJsonStringOrEmpty-T-">toJsonStringOrEmpty(T)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
 <dd>
 <div class="block">Returns a JSON representation of the provided value, or an empty string if conversion fails.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TokenBucket</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">This class implements a token bucket to limit the rate at which actions may be taken.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#TokenBucket-int-int-java.time.Duration-java.time.Duration-">TokenBucket(int, int, Duration, Duration)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>
+<div class="block">A TokenBucket acts as a rate limiting helper.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TokenBucket.Builder</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">This class is a builder for <a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler"><code>TokenBucket</code></a>s.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/dcos/auth/TokenProvider.html" title="interface in com.mesosphere.sdk.dcos.auth"><span class="typeNameLink">TokenProvider</span></a> - Interface in <a href="com/mesosphere/sdk/dcos/auth/package-summary.html">com.mesosphere.sdk.dcos.auth</a></dt>
 <dd>
@@ -7023,6 +7068,10 @@
 <dt><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html" title="enum in com.mesosphere.sdk.specification"><span class="typeNameLink">TransportEncryptionSpec.Type</span></a> - Enum in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">The allowed formats of TLS certificate format.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#tryAcquire--">tryAcquire()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
+<dd>
+<div class="block">This method returns true if a rate-limited action should be executed, and false if the action should not occur.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultService.html#TWO_WEEK_SEC">TWO_WEEK_SEC</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultService.html" title="class in com.mesosphere.sdk.specification">DefaultService</a></dt>
 <dd>&nbsp;</dd>
