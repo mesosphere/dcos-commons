@@ -16,13 +16,8 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    tasks:
-      node:
-        goal: RUNNING
-        cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+    resource-sets:
+      journal-resources:
         cpus: {{JOURNAL_CPUS}}
         memory: {{JOURNAL_MEM}}
         ports:
@@ -34,6 +29,24 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
+    tasks:
+      bootstrap:
+        goal: FINISHED
+        cmd: >
+          echo "Creating version directory in the journal-data persistent volume" &&
+          mkdir -p journal-data/hdfs/current &&
+          echo "Fetching VERSION file" &&
+          curl api.$FRAMEWORK_SCHEDULER_NAME.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION > journal-data/hdfs/current/VERSION &&
+          echo "VERSION has the following content:" &&
+          cat journal-data/hdfs/current/VERSION
+        resource-set: journal-resources
+      node:
+        goal: RUNNING
+        cmd: >
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+              mv hdfs {{HDFS_VERSION}}/bin/ ;
+              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+        resource-set: journal-resources
         configs:
           {{#KRB5_CONF_URI}}
           krb5-conf:
@@ -66,6 +79,10 @@ pods:
               curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
               export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+              if [ -f journal-data/hdfs/current/VERSION ] && [ ! -f journal-data/uploadedVersionFile ]; then
+                curl -X PUT -F 'file=@journal-data/hdfs/current/VERSION' api.$FRAMEWORK_SCHEDULER_NAME.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION &&
+                touch journal-data/uploadedVersionFile
+              fi &&
               [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
             fi
           delay: 30
@@ -313,6 +330,10 @@ plans:
       journal:
         strategy: {{DEPLOY_STRATEGY}}
         pod: journal
+        steps:
+          - 0: [[node]]
+          - 1: [[node]]
+          - 2: [[node]]
       name:
         strategy: serial
         pod: name
@@ -334,6 +355,10 @@ plans:
       journal:
         strategy: {{UPDATE_STRATEGY}}
         pod: journal
+        steps:
+          - 0: [[node]]
+          - 1: [[node]]
+          - 2: [[node]]
       name:
         strategy: {{UPDATE_STRATEGY}}
         pod: name
@@ -347,6 +372,13 @@ plans:
   replace:
     strategy: serial
     phases:
+      journal:
+        strategy: serial
+        pod: journal
+        steps:
+          - 0: [[bootstrap], [node]]
+          - 1: [[bootstrap], [node]]
+          - 2: [[bootstrap], [node]]
       name:
         strategy: serial
         pod: name
