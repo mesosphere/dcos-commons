@@ -213,8 +213,27 @@ def test_config_update_then_zk_killed():
 @pytest.mark.recovery
 def test_partition():
     host = sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-server")
-
     shakedown.partition_agent(host)
     shakedown.reconnect_agent(host)
+    config.check_running()
 
+
+@pytest.mark.recovery
+def test_partition_master_both_ways():
+    shakedown.partition_master()
+    shakedown.reconnect_master()
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition_master_incoming():
+    shakedown.partition_master(incoming=True, outgoing=False)
+    shakedown.reconnect_master()
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition_master_outgoing():
+    shakedown.partition_master(incoming=False, outgoing=True)
+    shakedown.reconnect_master()
     config.check_running()
