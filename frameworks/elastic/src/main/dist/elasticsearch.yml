@@ -69,5 +69,5 @@ http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
 http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
 http.pipelining: {{HTTP_PIPELINING}}
 http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
-http.content_type.required: {{HTTP_CONENT_TYPE_REQUIRED}}
+http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 
