@@ -84,7 +84,30 @@
         <name>dfs.namenode.fs-limits.max-directory-items</name>
         <value>{{NAMENODE_FS-LIMITS_MAX-DIRECTORY-ITEMS}}</value>
     </property>
-
+    <property>
+        <name>dfs.namenode.fs-limits.min-block-size</name>
+        <value>{{NAMENODE_FS-LIMITS_MIN-BLOCK-SIZE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.fs-limits.max-blocks-per-file</name>
+        <value>{{NAMENODE_FS-LIMITS_MAX-BLOCKS-PER-FILE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.edits.dir</name>
+        <value>{{MESOS_SANDBOX}}/name-data</value>
+    </property>
+    <property>
+        <name>dfs.namenode.acls.enabled</name>
+        <value>{{NAMENODE_ACLS_ENABLED}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.lazypersist.file.scrub.interval.sec</name>
+        <value>{{NAMENODE_LAZYPERSIST_FILE_SCRUB_INTERVAL_SEC}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.min</name>
+        <value>{{NAMENODE_REPLICATION_MIN}}</value>
+    </property>
 
     <!-- name-0-node -->
     <property>
@@ -246,6 +269,10 @@
         <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
     <property>
+        <name>dfs.permissions.superusergroup</name>
+        <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
+    </property>
+    <property>
         <name>dfs.client.cached.conn.retry</name>
         <value>{{CLIENT_CACHED_CONN_RETRY}}</value>
     </property>
@@ -260,6 +287,26 @@
     <property>
         <name>dfs.default.chunk.view.size</name>
         <value>{{DEFAULT_CHUNK_VIEW_SIZE}}</value>
+    </property>
+    <property>
+        <name>dfs.block.access.token.enable</name>
+        <value>{{BLOCK_ACCESS_TOKEN_ENABLE}}</value>
+    </property>
+    <property>
+        <name>dfs.block.access.key.update.interval</name>
+        <value>{{BLOCK_ACCESS_KEY_UPDATE_INTERVAL}}</value>
+    </property>
+    <property>
+        <name>dfs.block.access.token.lifetime</name>
+        <value>{{BLOCK_ACCESS_TOKEN_LIFETIME}}</value>
+    </property>
+    <property>
+        <name>dfs.replication</name>
+        <value>{{REPLICATION}}</value>
+    </property>
+    <property>
+        <name>dfs.replication.max</name>
+        <value>{{REPLICATION_MAX}}</value>
     </property>
 
     {{#SECURE_MODE}}

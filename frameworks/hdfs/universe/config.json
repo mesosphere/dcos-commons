@@ -196,6 +196,31 @@
           "description": "Defines the maximum number of items that a directory may contain. A value of 0 will disable the check.",
           "type": "integer",
           "default": 1048576
+        },
+        "fs-limits_min-block-size": {
+          "description": "Minimum block size in bytes, enforced by the Namenode at create time. This prevents the accidental creation of files with tiny block sizes (and thus many blocks), which can degrade performance.",
+          "type": "integer",
+          "default": 1048576
+        },
+        "fs-limits_max-blocks-per-file": {
+          "description": "Maximum number of blocks per file, enforced by the Namenode on write. This prevents the creation of extremely large files which can degrade performance.",
+          "type": "integer",
+          "default": 1048576
+        },
+        "acls_enabled": {
+          "type": "boolean",
+          "description": "Set to true to enable support for HDFS ACLs (Access Control Lists). By default, ACLs are disabled. When ACLs are disabled, the NameNode rejects all RPCs related to setting or getting ACLs.",
+          "default": false
+        },
+        "lazypersist_file_scrub_interval_sec": {
+          "type": "integer",
+          "description": "The NameNode periodically scans the namespace for LazyPersist files with missing blocks and unlinks them from the namespace. This configuration key controls the interval between successive scans. Set it to a negative value to disable this behavior.",
+          "default": 300
+        },
+        "replication_min": {
+          "type": "integer",
+          "description": "Minimal block replication.",
+          "default": 1
         }
       },
       "required": [
@@ -206,7 +231,12 @@
         "replication_considerLoad",
         "name_dir_restore",
         "fs-limits_max-component-length",
-        "fs-limits_max-directory-items"
+        "fs-limits_max-directory-items",
+        "fs-limits_min-block-size",
+        "fs-limits_max-blocks-per-file",
+        "acls_enabled",
+        "lazypersist_file_scrub_interval_sec",
+        "replication_min"
       ]
     },
     "zkfc_node": {
@@ -439,6 +469,36 @@
           "description": "The number of bytes to view for a file on the browser.",
           "default": 32768
         },
+        "dfs_permissions_superusergroup": {
+          "type": "string",
+          "description": "The name of the group of super-users.",
+          "default": "supergroup"
+        },
+        "dfs_block_access_token_enable": {
+          "type": "boolean",
+          "description": "If 'true', access tokens are used as capabilities for accessing datanodes. If 'false', no access tokens are checked on accessing datanodes.",
+          "default": false
+        },
+        "dfs_block_access_key_update_interval": {
+          "type": "integer",
+          "description": "Interval in minutes at which namenode updates its access keys.",
+          "default": 600
+        },
+        "dfs_block_access_token_lifetime": {
+          "type": "integer",
+          "description": "The lifetime of access tokens in minutes.",
+          "default": 600
+        },
+        "dfs_replication": {
+          "type": "integer",
+          "description": "Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time.",
+          "default": 3
+        },
+        "dfs_replication_max": {
+          "type": "integer",
+          "description": "Maximal block replication.",
+          "default": 512
+        }
       },
       "required": [
         "name_node_rpc_port",
@@ -465,7 +525,13 @@
         "dfs_namenode_servicerpc_bind_host_namenode_0",
         "dfs_namenode_servicerpc_bind_host_namenode_1",
         "dfs_client_cached_conn_retry",
-        "dfs_default_chunk_view_size"
+        "dfs_default_chunk_view_size",
+        "dfs_permissions_superusergroup",
+        "dfs_block_access_token_enable",
+        "dfs_block_access_key_update_interval",
+        "dfs_block_access_token_lifetime",
+        "dfs_replication",
+        "dfs_replication_max"
       ]
     }
   }
