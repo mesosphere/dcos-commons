@@ -8,7 +8,7 @@
         "name": {
           "description": "Apache Kafka",
           "type": "string",
-          "default": "kafka"
+          "default": "portworx-kafka"
         },
         "user": {
           "description": "The user that the service will run as.",

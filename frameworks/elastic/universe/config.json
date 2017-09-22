@@ -8,7 +8,7 @@
         "name": {
           "description": "The name of the Elasticsearch service instance",
           "type": "string",
-          "default": "elastic"
+          "default": "portworx-elastic"
         },
         "user": {
           "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
