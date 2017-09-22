@@ -18,13 +18,21 @@ var PrintMessage = printMessage
 // PrintMessage() before exiting to allow assertions against captured output.
 var PrintMessageAndExit = printMessageAndExit
 
+// Exit is a placeholder function that wraps a call to os.Exit to allow
+// assertions against exit with an exit code.
+var Exit = exit
+
+func exit(code int) {
+	os.Exit(code)
+}
+
 func printMessage(format string, a ...interface{}) (int, error) {
 	return fmt.Println(fmt.Sprintf(format, a...))
 }
 
 func printMessageAndExit(format string, a ...interface{}) (int, error) {
 	PrintMessage(format, a...)
-	os.Exit(1)
+	Exit(1)
 	return 0, nil
 }
 
