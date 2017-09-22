@@ -202,6 +202,12 @@ pods:
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
                             -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                        result=$?
+                        if [ $result != 0 ]
+                        then
+                            echo sstableloader failed with exit code $result
+                            exit $result
+                        fi
                     done
                 done
 
