@@ -71,6 +71,16 @@
             "description": "Free form string of arguments",
             "type": "string",
             "default": "100"
+          },
+          "eventlog_enabled": {
+            "description": "Enable event logging",
+            "type": "boolean",
+            "default": false
+          },
+          "eventlog_dir": {
+            "description": "Event logging directory",
+            "type": "string",
+            "default": "hdfs://hdfs/history"
           }
         },
         "required":[
@@ -177,6 +187,16 @@
           "disk",
           "disk_type"
         ]
+      },
+      "hdfs": {
+        "description": "Spark-HDFS configuration properties",
+        "type": "object",
+        "properties": {
+          "config-url": {
+            "type": "string",
+            "description": "Base URL that serves HDFS config files (hdfs-site.xml, core-site.xml)."
+          }
+        }
       }
     }
 }

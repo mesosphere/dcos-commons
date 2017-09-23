@@ -14,6 +14,10 @@ pods:
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{SPARK_APP_URL}}
+      {{#HDFS_CONFIG_URL}}
+      - {{HDFS_CONFIG_URL}}/hdfs-site.xml
+      - {{HDFS_CONFIG_URL}}/core-site.xml
+      {{/HDFS_CONFIG_URL}}
     tasks:
       driver:
         goal: FINISHED
@@ -26,6 +30,10 @@ pods:
           --conf spark.driver.port=9000
           --conf spark.ssl.noCertVerification=true
           --conf spark.mesos.backend=sdk
+          {{#EVENTLOG_ENABLED}}
+          --conf spark.eventLog.enabled={{EVENTLOG_ENABLED}}
+          --conf spark.eventLog.dir={{EVENTLOG_DIR}}
+          {{/EVENTLOG_ENABLED}}
         cpus: {{COORDINATOR_CORES}}
         env:
           COORDINATOR_CORES: {{COORDINATOR_CORES}}
