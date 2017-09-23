@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -174,36 +174,32 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#close--">close</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#fetch-java.util.UUID-">fetch</a></span>(java.util.UUID&nbsp;id)</code>
 <div class="block">Retrieves and deserializes the <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> assigned to the provided UUID, or throws
  an exception if no config with the provided UUID was found.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#getTargetConfig--">getTargetConfig</a></span>()</code>
 <div class="block">Returns the current ID of the active target configuration, or throws an exception if none is
  set.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.util.UUID&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#list--">list</a></span>()</code>
 <div class="block">Returns a list of all stored configuration UUIDs, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></span>(java.util.UUID&nbsp;id)</code>
 <div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#store-T-">store</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&nbsp;config)</code>
 <div class="block">Serializes the provided <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> using its <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>
@@ -346,7 +342,7 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <a name="getTargetConfig--">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>getTargetConfig</h4>
 <pre>public&nbsp;java.util.UUID&nbsp;getTargetConfig()
@@ -362,15 +358,6 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-"><code>ConfigTargetStore.setTargetConfig(UUID)</code></a></dd>
 </dl>
-</li>
-</ul>
-<a name="close--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>close</h4>
-<pre>public&nbsp;void&nbsp;close()</pre>
 </li>
 </ul>
 </li>
