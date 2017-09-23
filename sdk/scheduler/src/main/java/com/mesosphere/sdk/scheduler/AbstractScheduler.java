@@ -102,7 +102,12 @@ public abstract class AbstractScheduler {
             // Start consumption of the offer queue. This will idle until offers start arriving.
             offerExecutor.execute(() -> {
                 while (true) {
-                    mesosScheduler.processQueuedOffers();
+                    try {
+                        mesosScheduler.processQueuedOffers();
+                    } catch (Exception e) {
+                        LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
+                        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
+                    }
                 }
             });
         }
@@ -198,8 +203,8 @@ public abstract class AbstractScheduler {
 
     /**
      * Performs any additional Scheduler initialization after registration has completed. The provided
-     * {@link SchedulerDriver} may be used to talk to Mesos. Returns a {@link PlanCoordinator} which will be used with
-     * matching offers to candidate workloads.
+     * {@link SchedulerDriver} may be used to talk to Mesos. Returns a {@link PlanCoordinator} which will be used to
+     * select candidate workloads.
      */
     protected abstract PlanCoordinator initialize(SchedulerDriver driver) throws Exception;
 
@@ -222,7 +227,9 @@ public abstract class AbstractScheduler {
 
         // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
         // master re-election. Avoid performing initialization multiple times, which would cause queues to be stuck.
-        private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
+        private final AtomicBoolean isRegisterStarted = new AtomicBoolean(false);
+        // Avoid attempting to process offers until initialization has completed via the first call to registered().
+        private final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
         // May be overridden in tests:
         private OfferQueue offerQueue = new OfferQueue();
@@ -235,7 +242,7 @@ public abstract class AbstractScheduler {
 
         @Override
         public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-            if (isAlreadyRegistered.getAndSet(true)) {
+            if (isRegisterStarted.getAndSet(true)) {
                 // This may occur as the result of a master election.
                 LOGGER.info("Already registered, calling reregistered()");
                 reregistered(driver, masterInfo);
@@ -262,7 +269,9 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            postRegister();
+            restartReconciliation();
+
+            isInitialized.set(true);
         }
 
         @Override
@@ -337,7 +346,7 @@ public abstract class AbstractScheduler {
         @Override
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-            postRegister();
+            restartReconciliation();
         }
 
         @Override
@@ -383,15 +392,24 @@ public abstract class AbstractScheduler {
          * appear.
          */
         private void processQueuedOffers() {
-            LOGGER.info("Pulling offers off the queue...");
+            LOGGER.info("Waiting for queued offers...");
             List<Protos.Offer> offers = offerQueue.takeAll();
-            LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
-            for (int i = 0; i < offers.size(); ++i) {
-                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+            if (offers.isEmpty() && !isInitialized.get()) {
+                // The scheduler hasn't finished registration yet, so many members haven't been initialized yet either.
+                // Avoid hitting NPE for planCoordinator, driver, etc.
+                LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
+                return;
             }
 
             // Get the current work
             Collection<Step> steps = planCoordinator.getCandidates();
+
+            LOGGER.info("Processing {} offer{} against {} step{}:",
+                    offers.size(), offers.size() == 1 ? "" : "s",
+                    steps.size(), steps.size() == 1 ? "" : "s");
+            for (int i = 0; i < offers.size(); ++i) {
+                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+            }
 
             // Match offers with work (call into implementation)
             processOffers(driver, offers, steps);
@@ -404,19 +422,19 @@ public abstract class AbstractScheduler {
                         offers.stream()
                                 .map(offer -> offer.getId())
                                 .collect(Collectors.toList()));
-                LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
+                LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",
                         offers.size(),
                         offers.size() == 1 ? "" : "s",
-                        offersInProgress.stream().collect(Collectors.toList()));
+                        offersInProgress.size(),
+                        offersInProgress.size() == 1 ? "offer remains" : "offers remain",
+                        offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
             }
         }
 
         /**
-         * Registration can occur multiple times in a scheduler's lifecycle via both
-         * {@link Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} and
-         * {@link Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)} calls.
+         * Restarts reconciliation following a registration or re-registration.
          */
-        private void postRegister() {
+        private void restartReconciliation() {
             // Task reconciliation should be (re)started on all (re-)registrations.
             reconciler.start();
             reconciler.reconcile(driver);

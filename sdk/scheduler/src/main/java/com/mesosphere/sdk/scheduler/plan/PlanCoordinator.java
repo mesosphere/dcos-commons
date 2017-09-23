@@ -5,8 +5,6 @@ import java.util.List;
 
 /**
  * PlanCoordinator's job is to coordinate offers among configured {@link PlanManager}s.
- *
- * its observers when this state changes.
  */
 public interface PlanCoordinator {
 

@@ -104,21 +104,26 @@ public class UninstallScheduler extends AbstractScheduler {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
-            LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
-                    steps.stream().map(Element::getName).collect(Collectors.toList()));
+            LOGGER.info("Attempting to process {} candidates from uninstall plan: {}",
+                    steps.size(), steps.stream().map(Element::getName).collect(Collectors.toList()));
             steps.forEach(Step::start);
         }
 
         // Destroy/Unreserve any reserved resource or volume that is offered
         final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
-        offersWithReservedResources.addAll(
-                new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                        .resourceOffers(driver, localOffers));
+        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
+
+        offersWithReservedResources.addAll(rcs.resourceOffers(driver, localOffers));
 
         // Decline remaining offers.
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        if (unusedOffers.isEmpty()) {
+            LOGGER.info("No offers to be declined.");
+        } else {
+            LOGGER.info("Declining {} unused offers", unusedOffers.size());
+            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        }
     }
 
     @Override
