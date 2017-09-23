@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -133,8 +133,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" ti
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#DefaultTaskKiller-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-SchedulerDriver-">DefaultTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a>&nbsp;taskFailureListener,
-                 SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#DefaultTaskKiller-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-">DefaultTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a>&nbsp;taskFailureListener)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -156,6 +155,12 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" ti
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">killTask</a></span>(TaskID&nbsp;taskId,
         <a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a>&nbsp;recoveryType)</code>
 <div class="block">This method should accept Tasks which the caller wishes to kill.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultTaskKiller.html#setSchedulerDriver-SchedulerDriver-">setSchedulerDriver</a></span>(SchedulerDriver&nbsp;driver)</code>
+<div class="block">Configures this instance with the <code>SchedulerDriver</code> to be invoked when killing tasks.</div>
 </td>
 </tr>
 </table>
@@ -180,14 +185,13 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" ti
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultTaskKiller-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-SchedulerDriver-">
+<a name="DefaultTaskKiller-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultTaskKiller</h4>
-<pre>public&nbsp;DefaultTaskKiller(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a>&nbsp;taskFailureListener,
-                         SchedulerDriver&nbsp;driver)</pre>
+<pre>public&nbsp;DefaultTaskKiller(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a>&nbsp;taskFailureListener)</pre>
 </li>
 </ul>
 </li>
@@ -198,6 +202,24 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" ti
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="setSchedulerDriver-SchedulerDriver-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setSchedulerDriver</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;setSchedulerDriver(SchedulerDriver&nbsp;driver)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#setSchedulerDriver-SchedulerDriver-">TaskKiller</a></code></span></div>
+<div class="block">Configures this instance with the <code>SchedulerDriver</code> to be invoked when killing tasks.
+ This must be called at least once before <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-"><code>TaskKiller.killTask(TaskID, RecoveryType)</code></a> is invoked.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#setSchedulerDriver-SchedulerDriver-">setSchedulerDriver</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>this</dd>
+</dl>
+</li>
+</ul>
 <a name="killTask-TaskID-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">
 <!--   -->
 </a>
