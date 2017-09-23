@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class StateStoreUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
-    private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";

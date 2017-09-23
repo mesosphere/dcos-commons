@@ -52,15 +52,22 @@ public class PodResource extends PrettyJsonResource {
      */
     private static final String UNKNOWN_POD_LABEL = "UNKNOWN_POD";
 
-    private final TaskKiller taskKiller;
     private final StateStore stateStore;
+
+    private TaskKiller taskKiller;
 
     /**
      * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
      */
-    public PodResource(TaskKiller taskKiller, StateStore stateStore) {
-        this.taskKiller = taskKiller;
+    public PodResource(StateStore stateStore) {
         this.stateStore = stateStore;
+    }
+
+    /**
+     * Configures the {@link TaskKiller} instance to be invoked when restart/replace operations are invoked.
+     */
+    public void setTaskKiller(TaskKiller taskKiller) {
+        this.taskKiller = taskKiller;
     }
 
     /**
@@ -197,6 +204,10 @@ public class PodResource extends PrettyJsonResource {
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
         LOGGER.info("Completing {} restart of pod {} by killing {} tasks:",
                 recoveryType, name, podTasks.size());
+        if (taskKiller == null) {
+            LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+        }
         for (TaskInfoAndStatus taskToKill : podTasks) {
             final TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {

@@ -52,7 +52,7 @@ class LabelConstants {
 
     // ExecutorInfo
 
-    /** Label used to indicate the "DC/OS Space" */
+    /** Label used to indicate the "DC/OS Space". */
     static final String DCOS_SPACE_EXECUTORINFO_LABEL = "DCOS_SPACE";
 
     // DiscoveryInfo => Port

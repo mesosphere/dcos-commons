@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.inject.Inject;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.scheduler.TaskKiller;
@@ -31,7 +30,6 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private final StateStore stateStore;
     private final TaskKiller taskKiller;
 
-    @Inject
     public DefaultPlanScheduler(
             OfferAccepter offerAccepter,
             OfferEvaluator offerEvaluator,

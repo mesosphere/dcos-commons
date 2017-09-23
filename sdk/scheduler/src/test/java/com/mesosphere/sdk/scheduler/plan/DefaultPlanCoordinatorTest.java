@@ -102,7 +102,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
-        taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
+        taskKiller = new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver);
 
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,

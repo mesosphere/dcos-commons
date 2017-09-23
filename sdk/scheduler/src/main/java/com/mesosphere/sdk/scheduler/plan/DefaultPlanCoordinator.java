@@ -17,7 +17,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
 
     private final List<PlanManager> planManagers = new LinkedList<>();
 
-    public DefaultPlanCoordinator(List<PlanManager> planManagers) {
+    public DefaultPlanCoordinator(Collection<PlanManager> planManagers) {
         if (CollectionUtils.isEmpty(planManagers)) {
             throw new IllegalArgumentException("At least one plan manager is required");
         }

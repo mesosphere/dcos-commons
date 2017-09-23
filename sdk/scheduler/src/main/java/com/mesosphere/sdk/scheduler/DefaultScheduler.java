@@ -50,21 +50,18 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
-    protected final ServiceSpec serviceSpec;
-    protected final SchedulerFlags schedulerFlags;
-    protected final Collection<Plan> plans;
-    final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
-    private final Optional<ReplacementFailurePolicy> failurePolicyOptional;
-    protected Map<String, EndpointProducer> customEndpointProducers;
-    protected TaskFailureListener taskFailureListener;
-    protected TaskKiller taskKiller;
-    protected OfferAccepter offerAccepter;
-    protected PlanScheduler planScheduler;
-    protected PlanManager deploymentPlanManager;
-    protected PlanManager recoveryPlanManager;
-    protected PlanCoordinator planCoordinator;
-    protected Collection<Object> resources;
-    private SchedulerApiServer schedulerApiServer;
+    private final ServiceSpec serviceSpec;
+    private final Collection<Plan> plans;
+    private final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
+    private final TaskKiller taskKiller;
+    private final OfferAccepter offerAccepter;
+
+    private final Collection<Object> resources;
+    private final PlansResource plansResource;
+    private final PodResource podResource;
+
+    private PlanCoordinator planCoordinator;
+    private PlanScheduler planScheduler;
 
     /**
      * Creates a new DefaultScheduler. See information about parameters in {@link Builder}.
@@ -512,10 +509,6 @@ public class DefaultScheduler extends AbstractScheduler {
         }
     }
 
-    private Plan getDeployPlan() {
-        return getDeployPlan(plans).get();
-    }
-
     private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
         if (errors.isEmpty()) {
             return plans;
@@ -551,38 +544,109 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
-        super(stateStore, configStore);
+        super(stateStore, configStore, schedulerFlags);
         this.serviceSpec = serviceSpec;
-        this.schedulerFlags = schedulerFlags;
+        this.plans = plans;
+        this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
+        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
+        this.offerAccepter = new OfferAccepter(
+                Collections.singletonList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
+
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
-        this.plans = plans;
-        this.customEndpointProducers = customEndpointProducers;
-        this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
-        this.failurePolicyOptional = serviceSpec.getReplacementFailurePolicy();
+        this.resources.add(new ArtifactResource(configStore));
+        this.resources.add(new ConfigResource<>(configStore));
+        EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
+        for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
+            endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
+        }
+        this.resources.add(endpointsResource);
+        this.plansResource = new PlansResource();
+        this.resources.add(this.plansResource);
+        this.podResource = new PodResource(stateStore);
+        this.resources.add(podResource);
+        this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
 
+    @Override
+    public Collection<Object> getResources() {
+        return resources;
+    }
 
-    protected void initialize(SchedulerDriver driver) throws InterruptedException {
-        LOGGER.info("Initializing...");
+    @Override
+    protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
-        try {
-            initializeGlobals(driver);
-        } catch (ConfigStoreException e) {
-            LOGGER.error("Failed to initialize globals.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_INITIALIZATION_FAILURE);
-        }
-        initializeDeploymentPlanManager();
-        initializeRecoveryPlanManager();
-        initializePlanCoordinator();
-        initializeResources();
-        initializeApiServer();
-        killUnneededTasks(getLaunchableTasks());
-        LOGGER.info("Done initializing.");
+
+        taskKiller.setSchedulerDriver(driver);
+        planCoordinator = buildPlanCoordinator();
+        planScheduler = new DefaultPlanScheduler(
+                        offerAccepter,
+                        new OfferEvaluator(
+                                stateStore,
+                                serviceSpec.getName(),
+                                configStore.getTargetConfig(),
+                                schedulerFlags,
+                                Capabilities.getInstance().supportsDefaultExecutor()),
+                        stateStore,
+                        taskKiller);
+        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+
+        plansResource.setPlanManagers(planCoordinator.getPlanManagers());
+        podResource.setTaskKiller(taskKiller);
+        return planCoordinator;
     }
 
-    private void killUnneededTasks(Set<String> taskToDeployNames) {
+    private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
+        final Collection<PlanManager> planManagers = new ArrayList<>();
+
+        // Deployment plan manager
+        PlanManager deploymentPlanManager = new DefaultPlanManager(getDeployPlan(plans).get());
+        // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
+        // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
+        // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
+        // whole.
+        deploymentPlanManager.getPlan().proceed();
+        planManagers.add(deploymentPlanManager);
+
+        // Recovery plan manager
+        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
+        if (recoveryPlanOverriderFactory.isPresent()) {
+            LOGGER.info("Adding overriding recovery plan manager.");
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
+        }
+        final LaunchConstrainer launchConstrainer;
+        final FailureMonitor failureMonitor;
+        if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
+            ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
+            launchConstrainer = new TimedLaunchConstrainer(
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+            failureMonitor = new TimedFailureMonitor(
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    stateStore,
+                    configStore);
+        } else {
+            launchConstrainer = new UnconstrainedLaunchConstrainer();
+            failureMonitor = new NeverFailureMonitor();
+        }
+        planManagers.add(new DefaultRecoveryPlanManager(
+                stateStore,
+                configStore,
+                PlanUtils.getLaunchableTasks(plans),
+                launchConstrainer,
+                failureMonitor,
+                overrideRecoveryPlanManagers));
+
+        // Other custom plan managers
+        planManagers.addAll(plans.stream()
+                .filter(plan -> !plan.isDeployPlan())
+                .map(DefaultPlanManager::new)
+                .collect(Collectors.toList()));
+
+        return new DefaultPlanCoordinator(planManagers);
+    }
+
+    private static void killUnneededTasks(StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
@@ -607,134 +671,12 @@ public class DefaultScheduler extends AbstractScheduler {
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
     }
 
-    private Collection<PlanManager> getOtherPlanManagers() {
-        return plans.stream()
-                .filter(plan -> !plan.isDeployPlan())
-                .map(DefaultPlanManager::new)
-                .collect(Collectors.toList());
-    }
-
-    private void initializeGlobals(SchedulerDriver driver) throws ConfigStoreException {
-        LOGGER.info("Initializing globals...");
-
-        taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
-        taskKiller = new DefaultTaskKiller(taskFailureListener, driver);
-        offerAccepter = new OfferAccepter(Collections.singletonList(new PersistentLaunchRecorder(stateStore,
-                serviceSpec)));
-        planScheduler = new DefaultPlanScheduler(
-                offerAccepter,
-                new OfferEvaluator(
-                        stateStore,
-                        serviceSpec.getName(),
-                        configStore.getTargetConfig(),
-                        schedulerFlags,
-                        Capabilities.getInstance().supportsDefaultExecutor()),
-                stateStore,
-                taskKiller);
-    }
-
-    /**
-     * Override this function to inject your own deployment plan manager.
-     */
-    protected void initializeDeploymentPlanManager() {
-        LOGGER.info("Initializing deployment plan manager...");
-        deploymentPlanManager = new DefaultPlanManager(getDeployPlan());
-
-        // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
-        // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
-        // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
-        // whole.
-        deploymentPlanManager.getPlan().proceed();
-    }
-
-    /**
-     * Override this function to inject your own recovery plan manager.
-     */
-    protected void initializeRecoveryPlanManager() {
-        LOGGER.info("Initializing recovery plan...");
-        LaunchConstrainer launchConstrainer;
-        FailureMonitor failureMonitor;
-
-        if (failurePolicyOptional.isPresent()) {
-            ReplacementFailurePolicy failurePolicy = failurePolicyOptional.get();
-            launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
-            failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
-                    stateStore,
-                    configStore);
-        } else {
-            launchConstrainer = new UnconstrainedLaunchConstrainer();
-            failureMonitor = new NeverFailureMonitor();
-        }
-
-        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
-        if (recoveryPlanOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
-        }
-
-        this.recoveryPlanManager = new DefaultRecoveryPlanManager(
-                stateStore,
-                configStore,
-                getLaunchableTasks(),
-                launchConstrainer,
-                failureMonitor,
-                overrideRecoveryPlanManagers);
-    }
-
-    protected void initializePlanCoordinator() {
-        final List<PlanManager> planManagers = new ArrayList<>();
-        planManagers.add(deploymentPlanManager);
-        planManagers.add(recoveryPlanManager);
-        planManagers.addAll(getOtherPlanManagers());
-        planCoordinator = new DefaultPlanCoordinator(planManagers);
-    }
-
-    private void initializeResources() throws InterruptedException {
-        LOGGER.info("Initializing resources...");
-        resources.add(new ArtifactResource(configStore));
-        resources.add(new ConfigResource<>(configStore));
-        EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
-        for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
-            endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
-        }
-        resources.add(endpointsResource);
-        resources.add(new PlansResource(planCoordinator));
-        resources.add(new PodResource(taskKiller, stateStore));
-        resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
-    }
-
-    private void initializeApiServer() {
-        schedulerApiServer = new SchedulerApiServer(
-                schedulerFlags.getApiServerPort(),
-                resources,
-                schedulerFlags.getApiServerInitTimeout());
-        new Thread(schedulerApiServer).start();
-    }
-
-    private Optional<ResourceCleanerScheduler> getCleanerScheduler() {
-        try {
-            ResourceCleaner cleaner = new DefaultResourceCleaner(stateStore);
-            return Optional.of(new ResourceCleanerScheduler(cleaner, offerAccepter));
-        } catch (Exception ex) {
-            LOGGER.error("Failed to construct ResourceCleaner", ex);
-            return Optional.empty();
-        }
-    }
-
     @Override
-    protected void executePlans(List<Protos.Offer> offers, Collection<Step> steps) {
-        List<Protos.Offer> localOffers = new ArrayList<>(offers);
-
-        // Coordinate amongst all the plans via PlanCoordinator.
-        final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-        acceptedOffers.addAll(planScheduler.resourceOffers(driver, localOffers, steps));
-        LOGGER.info(
-                "Offers accepted by plan coordinator: {}",
-                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
-
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
+    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+        // See which offers are useful to the plans.
+        List<Protos.OfferID> planOffers = new ArrayList<>();
+        planOffers.addAll(planScheduler.resourceOffers(driver, offers, steps));
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, planOffers);
 
         // Resource Cleaning:
         // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
@@ -744,88 +686,73 @@ public class DefaultScheduler extends AbstractScheduler {
         // UNRESERVE and DESTROY (in the case of persistent volumes) Operations.
         // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
         // offer cycle.
-        final Optional<ResourceCleanerScheduler> cleanerScheduler = getCleanerScheduler();
-        if (cleanerScheduler.isPresent()) {
-            List<Protos.OfferID> cleanedOffers = cleanerScheduler.get().resourceOffers(driver, unusedOffers);
-            LOGGER.info("Offers accepted by resource cleaner: {}", cleanedOffers);
-            acceptedOffers.addAll(cleanedOffers);
-        }
-
-        LOGGER.info(
-                "Total accepted offers: {}",
-                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
-
-        unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
-        LOGGER.info(
-                "Unused offers to be declined: {}",
-                unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
+        // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
+        ResourceCleanerScheduler cleanerScheduler =
+                new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
+        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
+        unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
         // Decline remaining offers.
-        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        if (!unusedOffers.isEmpty()) {
+            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        }
+
+        if (offers.isEmpty()) {
+            LOGGER.info("0 Offers processed.");
+        } else {
+            LOGGER.info("{} Offer{} processed:\n"
+                    + "  {} accepted by Plans: {}\n"
+                    + "  {} accepted by Resource Cleaner: {}\n"
+                    + "  {} declined: {}",
+                    offers.size(),
+                    offers.size() == 1 ? "" : "s",
+                    planOffers.size(),
+                    planOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()),
+                    cleanerOffers.size(),
+                    cleanerOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()),
+                    unusedOffers.size(),
+                    unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
+        }
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
-    }
-
-    public boolean apiServerReady() {
-        return schedulerApiServer.ready();
-    }
-
-    @Override
-    public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
-                status.getTaskId().getValue(),
-                status.getState().toString(),
-                status.getMessage(),
-                TextFormat.shortDebugString(status));
-
+    protected void processStatusUpdate(Protos.TaskStatus status) {
         // Store status, then pass status to PlanManager => Plan => Steps
-        try {
-            String taskName = StateStoreUtils.getTaskName(stateStore, status);
-            Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
+        String taskName = StateStoreUtils.getTaskName(stateStore, status);
+        Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
-            stateStore.storeStatus(taskName, status);
-            planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
-            reconciler.update(status);
+        stateStore.storeStatus(taskName, status);
+        planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
-            if (lastStatus.isPresent() &&
-                    AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
-                    TaskUtils.isRecoveryNeeded(status)) {
-                // The initial launch of this task failed. Give up and try again with a clean slate.
-                LOGGER.warn(
-                        "Task {} appears to have failed its initial launch. Marking pod for permanent recovery. " +
-                                "Last status: {}",
-                        taskName, TextFormat.shortDebugString(lastStatus.get()));
-                taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
+        if (lastStatus.isPresent() &&
+                AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
+                TaskUtils.isRecoveryNeeded(status)) {
+            // The initial launch of this task failed. Give up and try again with a clean slate.
+            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. "
+                    + "Prior status was: {}",
+                    taskName, TextFormat.shortDebugString(lastStatus.get()));
+            taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
+        }
+
+        // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
+        // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
+        // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it on TASK_RUNNINGs
+        if (status.hasContainerStatus() &&
+                status.getContainerStatus().getNetworkInfosCount() > 0 &&
+                status.getContainerStatus().getNetworkInfosList().stream()
+                        .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+            // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such TaskInfo exists.
+            try {
+                StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
+            } catch (StateStoreException e) {
+                LOGGER.warn("Unable to store network info for status update: " + status, e);
             }
-
-            // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
-            // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
-            // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
-            // on TASK_RUNNINGs
-            if (status.hasContainerStatus() &&
-                    status.getContainerStatus().getNetworkInfosCount() > 0 &&
-                    status.getContainerStatus().getNetworkInfosList().stream()
-                            .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-                // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
-                // TaskInfo exists.
-                try {
-                    StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
-                } catch (StateStoreException e) {
-                    LOGGER.warn("Unable to store network info for status update: " + status, e);
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
         }
 
     }
 
     @VisibleForTesting
-    Set<String> getLaunchableTasks() {
-        return PlanUtils.getLaunchableTasks(plans);
+    PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 }

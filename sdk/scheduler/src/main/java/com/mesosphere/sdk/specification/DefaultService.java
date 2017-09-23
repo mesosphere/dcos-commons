@@ -11,7 +11,6 @@ import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.scheduler.*;
@@ -24,13 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -49,7 +46,7 @@ public class DefaultService implements Runnable {
     protected static final Logger LOGGER = LoggerFactory.getLogger(DefaultService.class);
 
     private DefaultScheduler.Builder schedulerBuilder;
-    private Scheduler scheduler;
+    private AbstractScheduler scheduler;
     private StateStore stateStore;
 
     public DefaultService() {
@@ -111,7 +108,7 @@ public class DefaultService implements Runnable {
             }
 
             Optional<SecretsClient> secretsClient = Optional.empty();
-            if (!TaskUtils.getTasksWithTLS(getServiceSpec()).isEmpty()) {
+            if (!TaskUtils.getTasksWithTLS(schedulerBuilder.getServiceSpec()).isEmpty()) {
                 try {
                     TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(
                             schedulerBuilder.getSchedulerFlags());
@@ -129,7 +126,7 @@ public class DefaultService implements Runnable {
 
             LOGGER.info("Launching UninstallScheduler...");
             this.scheduler = new UninstallScheduler(
-                    schedulerBuilder.getServiceSpec().getName(),
+                    schedulerBuilder.getServiceSpec(),
                     stateStore,
                     schedulerBuilder.getConfigStore(),
                     schedulerBuilder.getSchedulerFlags(),
@@ -142,6 +139,7 @@ public class DefaultService implements Runnable {
             }
             this.scheduler = schedulerBuilder.build();
         }
+        this.scheduler.start();
     }
 
     @Override
@@ -149,86 +147,47 @@ public class DefaultService implements Runnable {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
         DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
 
-        initService();
-
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
-        if (allButStateStoreUninstalled()) {
-            LOGGER.info("Not registering framework because it is uninstalling.");
-        } else {
-            Protos.Status status;
-            try {
+
+        // Only create/start the scheduler (and state store, etc...) AFTER getting the curator lock above:
+        initService();
+
+        try {
+            if (scheduler.getMesosScheduler().isPresent()) {
+                Protos.Status status;
                 Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(schedulerBuilder.getServiceSpec(), stateStore);
                 LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
                 String zkUri =
                         String.format("zk://%s/mesos", schedulerBuilder.getServiceSpec().getZookeeperConnection());
                 status = new SchedulerDriverFactory()
-                        .create(scheduler, frameworkInfo, zkUri, schedulerBuilder.getSchedulerFlags())
+                        .create(
+                                scheduler.getMesosScheduler().get(),
+                                frameworkInfo,
+                                zkUri,
+                                schedulerBuilder.getSchedulerFlags())
                         .run();
                 LOGGER.error("Scheduler driver exited with status: {}", status);
-            } finally {
-                locker.unlock();
+                // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
+                // When this happens, we continue running so that we can advertise that the uninstall plan is complete.
+                if (status != null && status != Protos.Status.DRIVER_STOPPED) {
+                    SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
+                }
             }
-            // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
-            // When this happens, we continue running so that we can advertise that the uninstall plan is complete.
-            if (status != null && status != Protos.Status.DRIVER_STOPPED) {
-                SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
-            }
+        } finally {
+            locker.unlock();
         }
     }
 
-    private boolean allButStateStoreUninstalled() {
-        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
-        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
-        // have register() called after the StateStore already has the uninstall bit wiped.
-        //
-        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
-        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
-        // StateStoreUtils.isUninstalling().
-
-        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return isUninstalling() && !stateStore.fetchFrameworkId().isPresent() && tasksNeedClearing();
-    }
-
-    private boolean tasksNeedClearing() {
-        return ResourceUtils.getResourceIds(
-                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
-                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
-    }
-
-    private boolean isUninstalling() {
-        return StateStoreUtils.isUninstalling(stateStore) || schedulerBuilder.getSchedulerFlags().isUninstallEnabled();
-    }
-
-    protected ServiceSpec getServiceSpec() {
-        return this.schedulerBuilder.getServiceSpec();
-    }
-
-    private Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
-        return getFrameworkInfo(serviceSpec, stateStore, serviceSpec.getUser(), TWO_WEEK_SEC);
-    }
-
-    protected Protos.FrameworkInfo getFrameworkInfo(
-            ServiceSpec serviceSpec,
-            StateStore stateStore,
-            String userString,
-            int failoverTimeoutSec) {
-
+    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
-                .setFailoverTimeout(failoverTimeoutSec)
-                .setUser(userString)
+                .setFailoverTimeout(TWO_WEEK_SEC)
+                .setUser(serviceSpec.getUser())
                 .setCheckpoint(true);
 
-        List<String> roles = getRoles(serviceSpec);
-        if (roles.size() == 1) {
-            fwkInfoBuilder.setRole(roles.get(0));
-        } else {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
-            fwkInfoBuilder.addAllRoles(getRoles(serviceSpec));
-        }
+        setRoles(fwkInfoBuilder, serviceSpec);
 
         // The framework ID is not available when we're being started for the first time.
         Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
@@ -251,15 +210,20 @@ public class DefaultService implements Runnable {
         return fwkInfoBuilder.build();
     }
 
-    private List<String> getRoles(ServiceSpec serviceSpec) {
-        List<String> roles = new ArrayList<>();
-        roles.add(serviceSpec.getRole());
-        roles.addAll(
+    @SuppressWarnings("deprecation") // for FrameworkInfo.setRole()
+    private static void setRoles(Protos.FrameworkInfo.Builder fwkInfoBuilder, ServiceSpec serviceSpec) {
+        List<String> preReservedRoles =
                 serviceSpec.getPods().stream()
                 .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
                 .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
-                .collect(Collectors.toList()));
-
-        return roles;
+                .collect(Collectors.toList());
+        if (preReservedRoles.isEmpty()) {
+            fwkInfoBuilder.setRole(serviceSpec.getRole());
+        } else {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
+            fwkInfoBuilder.addRoles(serviceSpec.getRole());
+            fwkInfoBuilder.addAllRoles(preReservedRoles);
+        }
     }
 }

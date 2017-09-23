@@ -14,15 +14,26 @@ import org.slf4j.LoggerFactory;
 public class DefaultTaskKiller implements TaskKiller {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final TaskFailureListener taskFailureListener;
-    private final SchedulerDriver driver;
 
-    public DefaultTaskKiller(TaskFailureListener taskFailureListener, SchedulerDriver driver) {
+    private SchedulerDriver driver;
+
+    public DefaultTaskKiller(TaskFailureListener taskFailureListener) {
         this.taskFailureListener = taskFailureListener;
+    }
+
+    @Override
+    public TaskKiller setSchedulerDriver(SchedulerDriver driver) {
         this.driver = driver;
+        return this;
     }
 
     @Override
     public void killTask(TaskID taskId, RecoveryType recoveryType) {
+        if (driver == null) {
+            throw new IllegalStateException(String.format(
+                    "killTask(%s) was called without first calling setSchedulerDriver()", taskId.getValue()));
+        }
+
         // In order to update a podinstance its normal to kill all tasks in a pod.
         // Sometimes a task hasn't been launched ever but it has been recorded for
         // resource reservation footprint reasons, and therefore doesn't have a TaskID yet.

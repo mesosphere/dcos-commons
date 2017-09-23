@@ -43,8 +43,8 @@ public class TokenBucket {
         this.acquireInterval = acquireInterval;
 
         String msg = String.format(
-                "TokenBucket count: %d, capacity: %d, incrementInterval: %s, acquireInterval: %s",
-                count, capacity, incrementInterval, this.acquireInterval);
+                "Configured with count: %d, capacity: %d, incrementInterval: %ds, acquireInterval: %ds",
+                count, capacity, incrementInterval.getSeconds(), acquireInterval.getSeconds());
 
         logger.info(msg);
 
