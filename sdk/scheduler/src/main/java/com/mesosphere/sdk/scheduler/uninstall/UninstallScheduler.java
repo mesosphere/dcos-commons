@@ -84,7 +84,19 @@ public class UninstallScheduler extends AbstractScheduler {
         uninstallPlanManager.getPlan().proceed();
 
         LOGGER.info("Done initializing.");
-        return new DefaultPlanCoordinator(Collections.singletonList(uninstallPlanManager));
+
+        // Return a stub coordinator which only does work against the sole plan manager.
+        return new PlanCoordinator() {
+            @Override
+            public List<Step> getCandidates() {
+                return new ArrayList<>(uninstallPlanManager.getCandidates(Collections.emptyList()));
+            }
+
+            @Override
+            public Collection<PlanManager> getPlanManagers() {
+                return Collections.singletonList(uninstallPlanManager);
+            }
+        };
     }
 
     @Override

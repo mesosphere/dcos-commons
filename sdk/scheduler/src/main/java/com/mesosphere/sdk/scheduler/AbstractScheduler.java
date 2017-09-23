@@ -393,11 +393,11 @@ public abstract class AbstractScheduler {
             // Get the current work
             Collection<Step> steps = planCoordinator.getCandidates();
 
-            // Revive offers if necessary
-            reviveManager.revive(steps);
-
-            // Match offers with work (implementation call)
+            // Match offers with work (call into implementation)
             processOffers(driver, offers, steps);
+
+            // Revive previously suspended offers, if necessary
+            reviveManager.revive(steps);
 
             synchronized (inProgressLock) {
                 offersInProgress.removeAll(
