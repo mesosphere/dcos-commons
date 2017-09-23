@@ -203,10 +203,6 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
         }
     }
 
-    public void close() {
-        persister.close();
-    }
-
     private static String getConfigPath(UUID id) {
         return PersisterUtils.join(CONFIGURATIONS_PATH_NAME, id.toString());
     }
