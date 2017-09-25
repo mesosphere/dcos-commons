@@ -47,6 +47,13 @@ xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/ELASTIC_ENABLE_TLS}}
 
+{{#SCRIPT_ALLOWED_CONTEXTS}}
+script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}
+{{/SCRIPT_ALLOWED_CONTEXTS}}
+{{#SCRIPT_ALLOWED_TYPES}}
+script.allowed_types: {{SCRIPT_ALLOWED_TYPES}}
+{{/SCRIPT_ALLOWED_TYPES}}
+
 network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
 network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
 network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}

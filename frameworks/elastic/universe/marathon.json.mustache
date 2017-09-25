@@ -96,6 +96,12 @@
     "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
     "TASKCFG_ALL_ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
     "TASKCFG_ALL_GATEWAY_RECOVER_AFTER_TIME": "{{elasticsearch.gateway_recover_after_time}}",
+    {{#elasticsearch.script_allowed_contexts}}
+    "TASKCFG_ALL_SCRIPT_ALLOWED_CONTEXTS": "{{elasticsearch.script_allowed_contexts}}",
+    {{/elasticsearch.script_allowed_contexts}}
+    {{#elasticsearch.script_allowed_types}}
+    "TASKCFG_ALL_SCRIPT_ALLOWED_TYPES": "{{elasticsearch.script_allowed_types}}",
+    {{/elasticsearch.script_allowed_types}}
     "TASKCFG_ALL_NETWORK_TCP_NO_DELAY": "{{elasticsearch.network_tcp_no_delay}}",
     "TASKCFG_ALL_NETWORK_TCP_KEEP_ALIVE": "{{elasticsearch.network_tcp_keep_alive}}",
     "TASKCFG_ALL_NETWORK_TCP_REUSE_ADDRESS": "{{elasticsearch.network_tcp_reuse_address}}",

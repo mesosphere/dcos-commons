@@ -330,6 +330,16 @@
           "type": "string",
           "default": "5m"
         },
+        "script_allowed_types": {
+          "description": "By default all script types (inline,file,stored) are allowed to be executed. This can be modified using the setting script_allowed_types. Only the types specified as part of the setting will be allowed to be executed. To specify no types are allowed, set script.allowed_types to be none. Empty string \"\" means all types (default).",
+          "type": "string",
+          "default": ""
+        },
+        "script_allowed_contexts": {
+          "description": "By default all script contexts (search,update,aggs,plugin) are allowed to be executed. This can be modified using the setting script_allowed_contexts. Only the contexts specified as part of the setting will be allowed to be executed. To specify no contexts are allowed, set script_allowed_contexts to be none. Empty string \"\" means all contexts (default).",
+         "type": "string",
+         "default": ""
+        }, 
         "network_tcp_no_delay": {
           "description": "Enable or disable the TCP no delay setting. Defaults to true.",
           "type": "boolean",
