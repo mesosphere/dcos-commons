@@ -121,7 +121,12 @@
     "TASKCFG_ALL_HTTP_COMPRESSION": "{{elasticsearch.http_compression}}",
     "TASKCFG_ALL_HTTP_COMPRESSION_LEVEL": "{{elasticsearch.http_compression_level}}",
     "TASKCFG_ALL_HTTP_CORS_ENABLED": "{{elasticsearch.http_cors_enabled}}",
+    {{#elasticsearch.http_cors_allow_origin}}
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_ORIGIN": "{{elasticsearch.http_cors_allow_origin}}",
+    {{/elasticsearch.http_cors_allow_origin}}
     "TASKCFG_ALL_HTTP_CORS_MAX_AGE": "{{elasticsearch.http_cors_max_age}}",
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_METHODS": "{{elasticsearch.http_cors_allow_methods}}",
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_HEADERS": "{{elasticsearch.http_cors_allow_headers}}",
     "TASKCFG_ALL_HTTP_CORS_ALLOW_CREDENTIALS": "{{elasticsearch.http_cors_allow_credentials}}",
     "TASKCFG_ALL_HTTP_DETAILED_ERRORS_ENABLED": "{{elasticsearch.http_detailed_errors_enabled}}",
     "TASKCFG_ALL_HTTP_PIPELINING": "{{elasticsearch.http_pipelining}}",
