@@ -24,6 +24,7 @@ gateway.expected_master_nodes: 3
 gateway.expected_data_nodes: {{DATA_NODE_COUNT}}
 gateway.recover_after_master_nodes: 3
 gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}}
+gateway.recover_after_time: {{GATEWAY_RECOVER_AFTER_TIME}}
 node.master: true
 {{/MASTER_ENABLED}}
 {{^MASTER_ENABLED}}
@@ -45,3 +46,32 @@ xpack.security.transport.ssl.enabled: true
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/ELASTIC_ENABLE_TLS}}
+
+network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
+network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
+network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
+{{#NETWORK_TCP_SEND_BUFFER_SIZE}}
+network.tcp.send_buffer_size: {{NETWORK_TCP_SEND_BUFFER_SIZE}}
+{{/NETWORK_TCP_SEND_BUFFER_SIZE}}
+{{#NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
+network.tcp.receive_buffer_size: {{NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
+{{/NETWORK_TCP_RECEIVE_BUFFER_SIZE}}
+
+transport.tcp.connect_timeout: {{TRANSPORT_TCP_CONNECT_TIMEOUT}}
+transport.tcp.compress: {{TRANSPORT_TCP_COMPRESS}}
+transport.ping_schedule: {{TRANSPORT_PING_SCHEDULE}}
+
+#http.enabled: {{HTTP_ENABLED}}
+#http.max_content_length: {{HTTP_MAX_CONTENT_LENGTH}}
+#http.max_initial_line_length: {{HTTP_MAX_INITIAL_LINE_LENGTH}}
+#http.max_header_size: {{HTTP_MAX_HEADER_SIZE}}
+#http.compression: {{HTTP_COMPRESSION}}
+#http.compression_level: {{HTTP_COMPRESSION_LEVEL}}
+#http.cors.enabled: {{HTTP_CORS_ENABLED}}
+#http.cors.max-age: {{HTTP_CORS_MAX_AGE}}
+#http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
+#http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
+#http.pipelining: {{HTTP_PIPELINING}}
+#http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
+#http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
+

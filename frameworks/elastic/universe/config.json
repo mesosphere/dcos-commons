@@ -69,33 +69,6 @@
         "deploy_strategy"
       ]
     },
-    "elasticsearch": {
-      "description": "Elasticsearch service configuration properties",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "xpack_enabled": {
-          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
-          "type": "boolean",
-          "default": false
-        },
-        "plugins": {
-          "description": "Comma-separated list of plugins to install",
-          "type": "string",
-          "default": ""
-        },
-        "health_user": {
-          "description": "Elastic username to use for X-Pack authentication, if enabled",
-          "type": "string",
-          "default": "elastic"
-        },
-        "health_user_password": {
-          "description": "Password to use with health_user for X-Pack authentication, if enabled. Note that you are not setting the password here. You are telling the framework the credentials to use when sending in health check requests.",
-          "type": "string",
-          "default": "changeme"
-        }
-      }
-    },
     "master_nodes": {
       "description": "Configuration properties for the three (3) Elasticsearch master nodes",
       "type": "object",
@@ -326,6 +299,143 @@
         "disk",
         "count"
       ]
+    },    
+    "elasticsearch": {
+      "description": "Elasticsearch service configuration properties",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "xpack_enabled": {
+          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
+          "type": "boolean",
+          "default": false
+        },
+        "plugins": {
+          "description": "Comma-separated list of plugins to install",
+          "type": "string",
+          "default": ""
+        },
+        "health_user": {
+          "description": "Elastic username to use for X-Pack authentication, if enabled",
+          "type": "string",
+          "default": "elastic"
+        },
+        "health_user_password": {
+          "description": "Password to use with health_user for X-Pack authentication, if enabled. Note that you are not setting the password here. You are telling the framework the credentials to use when sending in health check requests.",
+          "type": "string",
+          "default": "changeme"
+        },
+        "gateway_recover_after_time": {
+          "description": "If the expected number of nodes is not achieved, the recovery process waits for the configured amount of time before trying to recover regardless. Defaults to 5m if one of the expected_nodes settings is configured.",
+          "type": "string",
+          "default": "5m"
+        },
+        "network_tcp_no_delay": {
+          "description": "Enable or disable the TCP no delay setting. Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },
+        "network_tcp_keep_alive": {
+          "description": "Enable or disable TCP keep alive. Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },
+        "network_tcp_reuse_address": {
+          "description": "Should an address be reused or not. Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },
+        "network_tcp_send_buffer_size": {
+          "description": "The size of the TCP send buffer (specified with size units). By default not explicitly set.",
+          "type": "string",
+          "default": ""  
+        },
+        "network_tcp_receive_buffer_size": {
+          "description": "The size of the TCP receive buffer (specified with size units). By default not explicitly set.",
+          "type": "string",
+          "default": ""  
+        },
+        "transport_tcp_connect_timeout": {
+          "description": "The socket connect timeout setting (in time setting format). Defaults to 30s.",
+          "type": "string",
+          "default": "30s"
+        },
+        "transport_tcp_compress": {
+          "description": "Set to true to enable compression (LZF) between all nodes. Defaults to false.",
+          "type": "boolean",
+          "default": false
+        },
+        "transport_ping_schedule": {
+          "description": "Schedule a regular ping message to ensure that connections are kept alive. Defaults to 5s in the transport client and -1 (disabled) elsewhere.",
+          "type": "string",
+          "default": "-1"
+        },
+        "http_enabled": {
+          "description": "The http module can be completely disabled and not started by setting http.enabled to false. Default is true.",
+          "type": "boolean",
+          "default": true
+        },
+         "http_max_content_length": {
+          "description": "The max content of an HTTP request. Defaults to 100mb. If set to greater than Integer.MAX_VALUE, it will be reset to 100mb.",
+          "type": "string",
+          "default": "100mb"
+        },
+         "http_max_initial_line_length": {
+          "description": "The max length of an HTTP URL. Defaults to 4kb.",
+          "type": "string",
+          "default": "4kb"
+        },
+         "http_max_header_size": {
+          "description": "The max size of allowed headers. Defaults to 8kB.",
+          "type": "string",
+          "default": "8kB"
+        },
+         "http_compression": {
+          "description": "Support for compression when possible (with Accept-Encoding). Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },          
+         "http_compression_level": {
+          "description": "Defines the compression level to use for HTTP responses. Valid values are in the range of 1 (minimum compression) and 9 (maximum compression). Defaults to 3.",
+          "type": "integer",
+          "default": 3
+        },
+          "http_cors_enabled": {
+          "description": "Enable or disable cross-origin resource sharing, i.e. whether a browser on another origin can execute requests against Elasticsearch. Set to true to enable Elasticsearch to process pre-flight CORS requests.",
+          "type": "boolean",
+          "default": true
+        },
+          "http_cors_max_age": {
+          "description": "Browsers send a \"preflight\" OPTIONS-request to determine CORS settings. Defines how long the result should be cached for. Defaults to 1728000 (20 days)",
+          "type": "integer",
+          "default": 1728000
+        },
+        "http_cors_allow_credentials": {
+          "description": "Whether the Access-Control-Allow-Credentials header should be returned. Note: This header is only returned when the setting is set to true. Defaults to false.",
+          "type": "boolean",
+          "default": false
+        },
+        "http_detailed_errors_enabled": {
+          "description": "Enables or disables the output of detailed error messages and stack traces in response output. Note: When set to false and the error_trace request parameter is specified, an error will be returned; when error_trace is not specified, a simple message will be returned. Defaults to true.",
+          "type": "boolean",
+          "default": true
+        },
+        "http_pipelining": {
+          "description": "Enable or disable HTTP pipelining, defaults to true.",
+          "type": "boolean",
+          "default": true
+        },  
+        "http_pipelining_max_events": {
+          "description": "The maximum number of events to be queued up in memory before a HTTP connection is closed, defaults to 10000.",
+          "type": "integer",
+          "default":  10000
+        },
+        "http_content_type_required": {
+          "description": "Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
+          "type": "boolean",
+          "default": true
+        }
+      }
     }
   }
 }

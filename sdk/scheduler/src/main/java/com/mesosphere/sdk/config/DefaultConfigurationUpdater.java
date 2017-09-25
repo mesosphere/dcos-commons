@@ -66,6 +66,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         Optional<ServiceSpec> targetConfig;
         if (targetConfigId != null) {
+            LOGGER.info("Loading target configuration: {}", targetConfigId);
             targetConfig = Optional.of(configStore.fetch(targetConfigId));
         } else {
             targetConfig = Optional.empty();
@@ -266,7 +267,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         } catch (Exception e) {
             LOGGER.error(String.format(
                     "Unable to get JSON representation of old target config object %s, " +
-                    "skipping diff vs new target: %s",
+                            "skipping diff vs new target: %s",
                     oldConfigId, oldConfig), e);
             // Don't add a validation error: That'd prevent the new config from replacing this one,
             // and we'd be stuck with this config forever! Hopefully the new config will fix things...
