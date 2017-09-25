@@ -99,8 +99,8 @@ def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
     # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
-    #jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
-    #old_agent = jsonobj[0]['info']['slaveId']['value']
+    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
+    # old_agent = jsonobj[0]['info']['slaveId']['value']
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
     assert len(jsonobj) == 2
@@ -112,8 +112,8 @@ def test_pod_replace():
     config.check_running()
 
     # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
-    #jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
-    #new_agent = jsonobj[0]['info']['slaveId']['value']
+    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
+    # new_agent = jsonobj[0]['info']['slaveId']['value']
     # assert old_agent != new_agent
 
 
@@ -237,3 +237,30 @@ def test_partition_master_outgoing():
     shakedown.partition_master(incoming=False, outgoing=True)
     shakedown.reconnect_master()
     config.check_running()
+
+
+@pytest.mark.recovery
+def test_all_partition():
+    hosts = shakedown.get_service_ips(config.SERVICE_NAME)
+
+    for host in hosts:
+        shakedown.partition_agent(host)
+    for host in hosts:
+        shakedown.reconnect_agent(host)
+
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_while_partitioned():
+    host = sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-server")
+    shakedown.partition_agent(host)
+    updated_cpus = config.bump_hello_cpus(config.SERVICE_NAME)
+    shakedown.reconnect_agent(host)
+
+    config.check_running()
+    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == config.hello_task_count(config.SERVICE_NAME)
+    for t in running_tasks:
+        assert config.close_enough(t['resources']['cpus'], updated_cpus)
