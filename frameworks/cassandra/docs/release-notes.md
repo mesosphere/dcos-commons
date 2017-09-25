@@ -4,6 +4,25 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+# Version 2.0.1-3.0.14
+
+## Bug Fixes
+* Corrected closing brace in cassandra mustache
+* Fixed restore-snapshot port rendering
+* Tasks will correctly bind on DC/OS 1.10
+* Fixed config generation
+
+## Improvements
+* Upgraded to [dcos-commons 0.30.1](https://github.com/mesosphere/dcos-commons/releases/tag/0.30.1)
+* Made tweaks to Cassandra endpoints: renamed node => native-client, removed VIP, showed thrift-client when enabled
+* Required a minimum node count of 3
+
+## Documentation
+* Updated limitations.md
+* Updated post-install links for package
+* Ensured previous version-policy.md content is present 
+* Updated service user section
+
 # Version 2.0.0-3.0.14
 
 ## Improvements
