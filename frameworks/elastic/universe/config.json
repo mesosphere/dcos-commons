@@ -430,15 +430,15 @@
           "type": "boolean",
           "default": false
         },
-        "http_cors_allow_methods": {
+        "http_cors_allow_headers": {
           "description": "Which headers to allow. Defaults to X-Requested-With, Content-Type, Content-Length.",
           "type": "string",
-          "default": "OPTIONS,HEAD,GET,POST,PUT,DELETE" 
+          "default": "X-Requested-With,Content-Type,Content-Length" 
         },
-        "http_cors_allow_headers": {
+        "http_cors_allow_methods": {
           "description": "Which methods to allow. Defaults to OPTIONS, HEAD, GET, POST, PUT, DELETE.",
           "type": "string",
-          "default": "X-Requested-With,Content-Type,Content-Length" 
+          "default": "OPTIONS,HEAD,GET,POST,PUT,DELETE" 
         },
         "http_detailed_errors_enabled": {
           "description": "Enables or disables the output of detailed error messages and stack traces in response output. Note: When set to false and the error_trace request parameter is specified, an error will be returned; when error_trace is not specified, a simple message will be returned. Defaults to true.",
