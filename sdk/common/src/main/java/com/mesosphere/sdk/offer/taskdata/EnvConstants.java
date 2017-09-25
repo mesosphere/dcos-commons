@@ -21,4 +21,6 @@ public class EnvConstants {
     /** Provides the host domain of the service. Pods within the service would be accessed as subdomains under this
      *  domain. For example, <TASK_NAME>.<FRAMEWORK_HOST> => pod hostname. **/
     public static final String FRAMEWORK_HOST_TASKENV = "FRAMEWORK_HOST";
+    /** Provides the converted name of the scheduler in case the service has a foldered name **/
+    public static final String FRAMEWORK_SCHEDULER_NAME_TASKENV = "FRAMEWORK_SCHEDULER_NAME";
 }

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 
@@ -11,6 +12,14 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
  * permanently replaced.
  */
 public interface TaskKiller {
+
+    /**
+     * Configures this instance with the {@link SchedulerDriver} to be invoked when killing tasks.
+     * This must be called at least once before {@link #killTask(TaskID, RecoveryType)} is invoked.
+     *
+     * @return this
+     */
+    TaskKiller setSchedulerDriver(SchedulerDriver driver);
 
     /**
      * This method should accept Tasks which the caller wishes to kill.  The kill may be destructive (for restarting at

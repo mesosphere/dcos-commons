@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.PlanInfo;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -58,8 +57,8 @@ public class PlansResourceTest {
         when(mockPlan.getStrategy()).thenReturn(mockPlanStrategy);
         when(mockPlan.getName()).thenReturn(planName);
 
-        resource = new PlansResource(
-                new DefaultPlanCoordinator(Arrays.asList(new DefaultPlanManager(mockPlan))));
+        resource = new PlansResource();
+        resource.setPlanManagers(Arrays.asList(new DefaultPlanManager(mockPlan)));
         verify(mockPlan).interrupt(); // invoked by DefaultPlanManager
     }
 

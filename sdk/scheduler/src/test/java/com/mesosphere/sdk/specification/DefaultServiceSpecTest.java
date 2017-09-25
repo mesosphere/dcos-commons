@@ -1,19 +1,10 @@
 package com.mesosphere.sdk.specification;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import org.apache.mesos.Protos;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.util.RLimit;
@@ -24,18 +15,21 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,10 +37,14 @@ import static org.mockito.Mockito.when;
 
 public class DefaultServiceSpecTest {
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
-    @Mock private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
-    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
-    @Mock private StateStore mockStateStore;
-    @Mock private Capabilities capabilities;
+    @Mock
+    private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
+    @Mock
+    private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock
+    private StateStore mockStateStore;
+    @Mock
+    private Capabilities capabilities;
 
     @Before
     public void beforeEach() {
@@ -54,7 +52,7 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
+    @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public void validExhaustive() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
 
@@ -245,7 +243,7 @@ public class DefaultServiceSpecTest {
         networkSpec = Iterables.get(podSpec.getNetworks(), 0);
         Assert.assertTrue(String.format("%s", networkSpec.getPortMappings()),
                 networkSpec.getPortMappings().size() == 2);
-        Assert.assertTrue(networkSpec.getPortMappings().get(4040)== 8080);
+        Assert.assertTrue(networkSpec.getPortMappings().get(4040) == 8080);
         Assert.assertTrue(networkSpec.getPortMappings().get(4041) == 8081);
         validateServiceSpec("valid-automatic-cni-port-forwarding.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
@@ -653,6 +651,19 @@ public class DefaultServiceSpecTest {
         when(podSpec.getUser()).thenReturn(Optional.empty());
         Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, Arrays.asList(podSpec)));
     }
+
+    @Test
+    public void getUserWithNullPodSpecListReturnsDefaultUser() {
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, null));
+    }
+
+    @Test
+    public void getListOfNullPodSpecsReturnsDefaultUser() {
+        final List<PodSpec> listOfNull = new ArrayList<>();
+        listOfNull.add(null);
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, listOfNull));
+    }
+
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();

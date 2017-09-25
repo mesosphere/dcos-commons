@@ -91,7 +91,7 @@ public class ReviveManager {
      */
     private Set<WorkItem> getCandidates(Collection<Step> steps) {
         return steps.stream()
-                .filter(step -> step.getStatus().equals(Status.PENDING) || step.getStatus().equals(Status.PREPARED))
+                .filter(step -> !step.getStatus().equals(Status.COMPLETE))
                 .map(step -> new WorkItem(step))
                 .collect(Collectors.toSet());
     }
@@ -103,12 +103,10 @@ public class ReviveManager {
     private static class WorkItem {
         private final Optional<PodInstanceRequirement> podInstanceRequirement;
         private final String name;
-        private final Status status;
 
         private WorkItem(Step step) {
             this.podInstanceRequirement = step.getPodInstanceRequirement();
             this.name = step.getName();
-            this.status = step.getStatus();
         }
 
         @Override
@@ -123,9 +121,8 @@ public class ReviveManager {
 
         @Override
         public String toString() {
-            return String.format("%s [%s][%s]",
+            return String.format("%s [%s]",
                     name,
-                    status,
                     podInstanceRequirement.isPresent() ?
                             podInstanceRequirement.get().getRecoveryType() :
                             "N/A");
