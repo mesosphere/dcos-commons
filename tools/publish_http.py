@@ -18,7 +18,7 @@ import subprocess
 import sys
 
 import github_update
-import universe_builder
+import universe
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -149,8 +149,10 @@ class HTTPPublisher(object):
 
         http_url_root = 'http://{}:{}'.format(self._http_host, port)
 
-        self._package_builder = universe_builder.UniversePackageBuilder(
-            self._pkg_name, self._pkg_version,
+        package_info = universe.Package(self._pkg_name, self._pkg_version)
+        package_manager = universe.PackageManager()
+        self._package_builder = universe.UniversePackageBuilder(
+            package_info, package_manager,
             self._input_dir_path, http_url_root, self._artifact_paths)
 
         # hack: write httpd script then run it directly
@@ -230,8 +232,9 @@ def main(argv):
     logger.info('''###
 Package:         {}
 Template path:   {}
-Artifacts:       {}
-###'''.format(package_name, package_dir_path, ', '.join(artifact_paths)))
+Artifacts:
+{}
+###'''.format(package_name, package_dir_path, '\n'.join(['- {}'.format(path) for path in artifact_paths])))
 
     publisher = HTTPPublisher(package_name, package_dir_path, artifact_paths)
     http_url_root = publisher.launch_http()

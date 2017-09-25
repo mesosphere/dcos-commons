@@ -27,11 +27,11 @@
           "contentHash": [
             {
               "algo": "sha256",
-              "value": "{{sha256:dcos-cassandra-darwin}}"
+              "value": "{{sha256:dcos-service-cli-darwin}}"
             }
           ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-cassandra-darwin"
+          "url": "{{artifact-dir}}/dcos-service-cli-darwin"
         }
       },
       "linux": {
@@ -39,11 +39,11 @@
           "contentHash": [
             {
               "algo": "sha256",
-              "value": "{{sha256:dcos-cassandra-linux}}"
+              "value": "{{sha256:dcos-service-cli-linux}}"
             }
           ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-cassandra-linux"
+          "url": "{{artifact-dir}}/dcos-service-cli-linux"
         }
       },
       "windows": {
@@ -51,11 +51,11 @@
           "contentHash": [
             {
               "algo": "sha256",
-              "value": "{{sha256:dcos-cassandra.exe}}"
+              "value": "{{sha256:dcos-service-cli.exe}}"
             }
           ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-cassandra.exe"
+          "url": "{{artifact-dir}}/dcos-service-cli.exe"
         }
       }
     }
