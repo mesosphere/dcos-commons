@@ -242,12 +242,10 @@ def test_partition_master_outgoing():
 @pytest.mark.recovery
 def test_all_partition():
     hosts = shakedown.get_service_ips(config.SERVICE_NAME)
-
     for host in hosts:
         shakedown.partition_agent(host)
     for host in hosts:
         shakedown.reconnect_agent(host)
-
     config.check_running()
 
 
@@ -257,7 +255,6 @@ def test_config_update_while_partitioned():
     shakedown.partition_agent(host)
     updated_cpus = config.bump_hello_cpus(config.SERVICE_NAME)
     shakedown.reconnect_agent(host)
-
     config.check_running()
     all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
     running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
