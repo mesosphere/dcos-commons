@@ -23,7 +23,6 @@ type PlanTestSuite struct {
 	responseBody   []byte
 	responseStatus int
 	capturedOutput bytes.Buffer
-	exitCode       int
 }
 
 func (suite *PlanTestSuite) printRecorder(format string, a ...interface{}) (n int, err error) {
@@ -37,10 +36,6 @@ func (suite *PlanTestSuite) loadFile(filename string) []byte {
 		suite.T().Fatal(err)
 	}
 	return data
-}
-
-func (suite *PlanTestSuite) exitRecorder(code int) {
-	suite.exitCode = code
 }
 
 func (suite *PlanTestSuite) exampleHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +57,6 @@ func (suite *PlanTestSuite) SetupSuite() {
 	// reassign printing functions to allow us to check output
 	client.PrintMessage = suite.printRecorder
 	client.PrintMessageAndExit = suite.printRecorder
-	client.Exit = suite.exitRecorder
 }
 
 func (suite *PlanTestSuite) SetupTest() {
