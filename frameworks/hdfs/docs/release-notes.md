@@ -4,6 +4,20 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+# Version  2.0.1-2.6.0-cdh5.11.0
+
+## Bug Fixes
+* Tasks will correctly bind on DC/OS 1.10
+
+## Improvements
+* Upgraded to [dcos-commons 0.30.1](https://github.com/mesosphere/dcos-commons/releases/tag/0.30.1)
+
+## Documentation
+* Updated post-install links for package
+* Updated formatting of command line examples
+* Updated limitations.md
+* Ensured previous version-policy.md content is present
+
 # Version 2.0.0-2.6.0-cdh5.11.0
 
 ## Improvements
