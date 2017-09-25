@@ -553,30 +553,4 @@ Errors:
 - deploy error
 `
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
-	assert.Equal(suite.T(), 1, suite.exitCode)
-}
-
-// TestPrintStatusWithErrorJson tests that the plan command handled plans that
-// return 417 when one of the phases has an error that is not registered.
-func (suite *PlanTestSuite) TestPrintStatusWithErrorJson() {
-	jsonOutput := `{
-    "phases" : [ {
-      "id" : "b35c149a-1fa2-447a-9c22-d42cc7129de4",
-      "name" : "node-deploy",
-      "steps" : [ {
-      "id" : "1a71141b-392d-4c72-924d-82b3d4cd922a",
-      "status" : "COMPLETE",
-      "name" : "node-0:[server]",
-      "message" : ""
-      } ],
-      "status" : "COMPLETE"
-    } ],
-    "errors" : [ "deploy error" ],
-    "status" : "ERROR"
-    }`
-	suite.responseBody = []byte(jsonOutput)
-	suite.responseStatus = http.StatusExpectationFailed
-
-	printStatus("deploy", true)
-	assert.Equal(suite.T(), 1, suite.exitCode)
 }

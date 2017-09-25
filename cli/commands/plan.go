@@ -15,6 +15,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
+var errPlanStatus417 = errors.New("plan endpoint returned HTTP status code 417")
+
 type planHandler struct {
 	PlanName   string
 	Parameters []string
@@ -92,7 +94,7 @@ func checkPlansResponse(response *http.Response, body []byte) error {
 	case response.StatusCode == http.StatusAlreadyReported:
 		return errors.New("Cannot execute command. Command has already been issued or the plan has completed.")
 	case response.StatusCode == http.StatusExpectationFailed:
-		return errors.New("plan has errors")
+		return errPlanStatus417
 	}
 	return nil
 }
@@ -241,12 +243,8 @@ func printStatus(planName string, rawJSON bool) {
 	client.SetCustomResponseCheck(checkPlansResponse)
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/plans/%s", planName))
 
-	if err != nil {
-		if err.Error() == "plan has errors" {
-			defer client.Exit(1)
-		} else {
-			client.PrintMessageAndExit(err.Error())
-		}
+	if err != nil && err != errPlanStatus417 {
+		client.PrintMessageAndExit(err.Error())
 	}
 	if rawJSON {
 		client.PrintJSONBytes(responseBytes)
