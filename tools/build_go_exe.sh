@@ -74,6 +74,13 @@ if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_
     ln -s "$REPO_ROOT_DIR" $REPO_NAME
 fi
 
+# Add symlink from GOPATH for the vendor deps that aren't under our repo org
+for external_vendor in github.com/containernetworking github.com/dcos github.com/vishvanada; do
+    if [ ! -h $GOPATH/src/$external_vendor ]; then
+        ln -s $REPO_ROOT_DIR/govendor/$external_vendor/ $GOPATH/src/$external_vendor
+    fi
+done
+
 # Run 'go test'/'go build' from within GOPATH:
 cd $GOPATH_EXE_DIR
 

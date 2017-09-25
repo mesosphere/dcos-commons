@@ -66,8 +66,6 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         TaskSpec taskSpec = findTaskSpec(podInfoBuilder);
 
         for (TransportEncryptionSpec transportEncryptionSpec : taskSpec.getTransportEncryption()) {
-            String transportEncryptionName = transportEncryptionSpec.getName();
-
             SecretNameGenerator secretNameGenerator;
 
             try {
@@ -77,16 +75,17 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                 secretNameGenerator = new SecretNameGenerator(
                         SecretNameGenerator.getNamespaceFromEnvironment(schedulerFlags, serviceName),
                         TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
-                        transportEncryptionName,
+                        transportEncryptionSpec.getName(),
                         certificateNamesGenerator.getSANs());
 
                 if (!tlsArtifactsPersister.isArtifactComplete(secretNameGenerator)) {
+                    // One or more secrets are missing. Start from scratch.
                     tlsArtifactsPersister.cleanUpSecrets(secretNameGenerator);
                     TLSArtifacts tlsArtifacts = this.tlsArtifactsGenerator.generate(certificateNamesGenerator);
                     tlsArtifactsPersister.persist(secretNameGenerator, tlsArtifacts);
                 } else {
                     logger.info("Task '{}' has already all secrets for '{}' TLS config",
-                            taskName, transportEncryptionName);
+                            taskName, transportEncryptionSpec.getName());
                 }
             } catch (Exception e) {
                 logger.error(String.format("Failed to get certificate %s", taskName), e);

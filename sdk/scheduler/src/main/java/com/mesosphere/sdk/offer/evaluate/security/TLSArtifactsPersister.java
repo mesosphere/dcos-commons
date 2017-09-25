@@ -92,7 +92,7 @@ public class TLSArtifactsPersister {
                 .collect(Collectors.toList());
 
         toProvision.removeAll(existing);
-        return toProvision.size() == 0;
+        return toProvision.isEmpty();
     }
 
     /**

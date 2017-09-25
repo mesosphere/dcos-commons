@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;

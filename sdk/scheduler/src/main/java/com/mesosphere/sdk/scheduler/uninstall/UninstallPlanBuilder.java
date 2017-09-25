@@ -34,7 +34,6 @@ import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -50,7 +49,7 @@ class UninstallPlanBuilder {
     private static final String TLS_CLEANUP_PHASE = "tls-cleanup";
     private static final String DEREGISTER_PHASE = "deregister-service";
 
-    private final TaskFailureListener taskFailureListener;
+    private final TaskKiller taskKiller;
 
     private final List<Step> taskKillSteps;
     private final List<Step> resourceSteps;
@@ -63,7 +62,7 @@ class UninstallPlanBuilder {
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
             Optional<SecretsClient> customSecretsClientForTests) {
-        this.taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
+        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
         if (!stateStore.fetchFrameworkId().isPresent()) {
@@ -117,11 +116,14 @@ class UninstallPlanBuilder {
                 resourceSteps.size());
         phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));
 
-        // If applicable, we also clean up any TLS secrets that we'd created before
-        // TODO(nickbp): If TLS secrets are disabled (and removed from the spec) after being added, we won't clean them!
+        // If applicable, we also clean up any TLS secrets that we'd created before.
+        // Note: This won't catch certificates where the user installed the service with TLS enabled, then disabled TLS
+        // before uninstalling the service. Ideally, at uninstall time (and no sooner, to avoid deleting certs that were
+        // only disabled temporarily) we would detect that TLS was *ever* enabled, rather than just *currently* enabled.
+        // See also INFINITY-2464.
         if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
             try {
-                // Use any provided custom client, or otherwise construct a default client
+                // Use any provided custom test client, or otherwise construct a default client
                 SecretsClient secretsClient = customSecretsClientForTests.isPresent()
                         ? customSecretsClientForTests.get()
                         : new DefaultSecretsClient(
@@ -179,7 +181,7 @@ class UninstallPlanBuilder {
         if (deregisterStep.isPresent()) {
             deregisterStep.get().setSchedulerDriver(schedulerDriver);
         }
-        TaskKiller taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
+        taskKiller.setSchedulerDriver(schedulerDriver);
         for (Step taskKillStep : taskKillSteps) {
             ((TaskKillStep) taskKillStep).setTaskKiller(taskKiller);
         }

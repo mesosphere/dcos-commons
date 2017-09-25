@@ -373,6 +373,8 @@ public class PodInfoBuilder {
 
         // Inject Pod Instance Index
         environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
+        // Inject Framework Scheduler Name in order to hit the scheduler jetty server from within the YAML
+        environmentMap.put(EnvConstants.FRAMEWORK_SCHEDULER_NAME_TASKENV, EndpointUtils.removeSlashes(serviceName));
         // Inject Framework Name (raw, not safe for use in hostnames)
         environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject Framework host domain (with hostname-safe framework name)

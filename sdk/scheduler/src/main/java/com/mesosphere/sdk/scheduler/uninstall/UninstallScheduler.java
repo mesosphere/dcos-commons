@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.dcos.SecretsClient;
 import com.mesosphere.sdk.offer.*;
@@ -13,6 +12,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,16 +29,14 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private final UninstallPlanBuilder uninstallPlanBuilder;
     private final PlanManager uninstallPlanManager;
-    private final SchedulerApiServer schedulerApiServer;
+    private final Collection<Object> resources;
 
-    // Initialized when registration completes (and when we have the SchedulerDriver):
     private OfferAccepter offerAccepter;
 
     /**
-     * Creates a new UninstallScheduler based on the provided API port and initialization timeout,
-     * and a {@link StateStore}. The UninstallScheduler builds an uninstall {@link Plan} with two {@link Phase}s:
-     * a resource phase where all reserved resources get released back to Mesos, and a deregister phase where
-     * the framework deregisters itself and cleans up its state in Zookeeper.
+     * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
+     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
+     * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(
             ServiceSpec serviceSpec,
@@ -46,66 +44,47 @@ public class UninstallScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(stateStore, configStore);
-        this.uninstallPlanBuilder = new UninstallPlanBuilder(
+        super(stateStore, configStore, schedulerFlags);
+        uninstallPlanBuilder = new UninstallPlanBuilder(
                 serviceSpec, stateStore, configStore, schedulerFlags, customSecretsClientForTests);
-        this.uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
-        LOGGER.info("Initializing plans resource...");
-        this.schedulerApiServer = new SchedulerApiServer(
-                schedulerFlags.getApiServerPort(),
-                Collections.singletonList(new PlansResource(Collections.singletonList(uninstallPlanManager))),
-                schedulerFlags.getApiServerInitTimeout());
-        new Thread(schedulerApiServer).start();
+        uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
+        resources = Collections.singletonList(new PlansResource()
+                .setPlanManagers(Collections.singletonList(uninstallPlanManager)));
     }
 
     @Override
-    protected void initialize(SchedulerDriver driver) throws InterruptedException {
-        LOGGER.info("Initializing...");
-        // NOTE: We wait until this point to perform any work using configStore/stateStore.
-        // We specifically avoid writing any data to ZK before registered() has been called.
-        initializeGlobals(driver);
-        LOGGER.info("Proceeding with uninstall plan...");
-        uninstallPlanManager.getPlan().proceed();
-        LOGGER.info("Done initializing.");
+    public Optional<Scheduler> getMesosScheduler() {
+        if (allButStateStoreUninstalled(stateStore, schedulerFlags)) {
+            LOGGER.info("Not registering framework because it is uninstalling.");
+            return Optional.empty();
+        }
+
+        return super.getMesosScheduler();
     }
 
-    private void initializeGlobals(SchedulerDriver driver) {
-        LOGGER.info("Initializing globals...");
+    @Override
+    public Collection<Object> getResources() {
+        return resources;
+    }
+
+    @Override
+    protected PlanCoordinator initialize(SchedulerDriver driver) throws InterruptedException {
+        LOGGER.info("Initializing...");
+
+        // NOTE: We wait until this point to perform any work using configStore/stateStore.
+        // We specifically avoid writing any data to ZK before registered() has been called.
+
         // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep in the Plan.
         uninstallPlanBuilder.registered(driver);
         offerAccepter = new OfferAccepter(Collections.singletonList(
                 new UninstallRecorder(stateStore, uninstallPlanBuilder.getResourceSteps())));
-    }
 
-    public boolean apiServerReady() {
-        return schedulerApiServer.ready();
-    }
+        LOGGER.info("Proceeding with uninstall plan...");
+        uninstallPlanManager.getPlan().proceed();
 
-    @Override
-    protected void executePlans(List<Protos.Offer> offers) {
-        List<Protos.Offer> localOffers = new ArrayList<>(offers);
-        // Get candidate steps to be scheduled
-        Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
-        if (!candidateSteps.isEmpty()) {
-            LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
-                    candidateSteps.stream().map(Element::getName).collect(Collectors.toList()));
-            candidateSteps.forEach(Step::start);
-        }
+        LOGGER.info("Done initializing.");
 
-        // Destroy/Unreserve any reserved resource or volume that is offered
-        final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
-
-        offersWithReservedResources.addAll(
-                new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                        .resourceOffers(driver, localOffers));
-
-        // Decline remaining offers.
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
-    }
-
-    @Override
-    protected PlanCoordinator getPlanCoordinator() {
+        // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
             public List<Step> getCandidates() {
@@ -113,33 +92,62 @@ public class UninstallScheduler extends AbstractScheduler {
             }
 
             @Override
-            public Collection<Protos.OfferID> processOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-                return Collections.emptyList();
-            }
-
-            @Override
             public Collection<PlanManager> getPlanManagers() {
-                return Arrays.asList(uninstallPlanManager);
+                return Collections.singletonList(uninstallPlanManager);
             }
         };
     }
 
     @Override
-    public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
-                status.getTaskId().getValue(),
-                status.getState().toString(),
-                status.getMessage(),
-                TextFormat.shortDebugString(status));
-
-        try {
-            stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
-            reconciler.update(status);
-        } catch (Exception e) {
-            LOGGER.warn(String.format("Failed to handle TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: %s",
-                    TextFormat.shortDebugString(status)), e);
+    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+        List<Protos.Offer> localOffers = new ArrayList<>(offers);
+        // Get candidate steps to be scheduled
+        if (!steps.isEmpty()) {
+            LOGGER.info("Attempting to process {} candidates from uninstall plan: {}",
+                    steps.size(), steps.stream().map(Element::getName).collect(Collectors.toList()));
+            steps.forEach(Step::start);
         }
+
+        // Destroy/Unreserve any reserved resource or volume that is offered
+        final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
+
+        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
+
+        offersWithReservedResources.addAll(rcs.resourceOffers(driver, localOffers));
+
+        // Decline remaining offers.
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
+        if (unusedOffers.isEmpty()) {
+            LOGGER.info("No offers to be declined.");
+        } else {
+            LOGGER.info("Declining {} unused offers", unusedOffers.size());
+            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        }
+    }
+
+    @Override
+    protected void processStatusUpdate(Protos.TaskStatus status) {
+        stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
+    }
+
+    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerFlags schedulerFlags) {
+        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
+        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
+        // have register() called after the StateStore already has the uninstall bit wiped.
+        //
+        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
+        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
+        // StateStoreUtils.isUninstalling().
+
+        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
+        return !stateStore.fetchFrameworkId().isPresent() &&
+                tasksNeedClearing(stateStore);
+    }
+
+    private static boolean tasksNeedClearing(StateStore stateStore) {
+        return ResourceUtils.getResourceIds(
+                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
+                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     @VisibleForTesting

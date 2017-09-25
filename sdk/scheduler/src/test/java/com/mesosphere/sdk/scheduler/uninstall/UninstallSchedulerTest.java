@@ -99,7 +99,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testEmptyOffers() throws Exception {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.emptyList());
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Collections.emptyList());
         verify(mockSchedulerDriver, times(1)).reconcileTasks(any());
         verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
@@ -147,7 +148,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         // Initial call to resourceOffers() will return all steps from resource phase as candidates
         // regardless of the offers sent in, and will start the steps.
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         Plan plan = uninstallScheduler.getPlan();
         // 1 task kill + 3 resources + deregister step.
@@ -155,7 +157,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(plan.toString(), expected, PlanTestUtils.getStepStatuses(plan));
 
         // Another offer cycle should get the resources pending
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         // 1 task kill + 3 resources + deregister step.
         expected = Arrays.asList(Status.COMPLETE, Status.PREPARED, Status.PREPARED, Status.PREPARED, Status.PENDING);
@@ -166,14 +169,16 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testUninstallStepsComplete() throws Exception {
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1, RESERVED_RESOURCE_2));
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
         Plan plan = uninstallScheduler.getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, PlanTestUtils.getStepStatuses(plan));
 
         offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(expected, PlanTestUtils.getStepStatuses(plan));
@@ -184,14 +189,16 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(
                 RESERVED_RESOURCE_1, RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
         Plan plan = uninstallScheduler.getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, PlanTestUtils.getStepStatuses(plan));
 
         // Turn the crank once to finish the last Step
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         plan = uninstallScheduler.getPlan();
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
@@ -211,6 +218,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         // Returns a simple placeholder plan with status COMPLETE
         Assert.assertTrue(uninstallScheduler.getPlan().toString(), uninstallScheduler.getPlan().isComplete());
         Assert.assertTrue(uninstallScheduler.getPlan().getChildren().isEmpty());
+        // Doesn't want to register with Mesos:
+        Assert.assertFalse(uninstallScheduler.getMesosScheduler().isPresent());
     }
 
     @Test
@@ -230,17 +239,20 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
 
         // Run through the task cleanup phase
-        uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+        uninstallScheduler.getMesosScheduler().get()
+                .registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(
                 RESERVED_RESOURCE_1, RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
         List<Status> expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, PlanTestUtils.getStepStatuses(plan));
 
         // Then the TLS cleanup phase
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
@@ -249,7 +261,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         verify(mockSecretsClient, times(1)).list(TestConstants.SERVICE_NAME);
 
         // Then the final Deregister phase
-        uninstallScheduler.resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
+        uninstallScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
@@ -258,11 +271,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(uninstallScheduler.getPlan().isComplete());
     }
 
-    private Protos.Offer getOffer() {
+    private static Protos.Offer getOffer() {
         return getOffer(UUID.randomUUID().toString());
     }
 
-    private Protos.Offer getOffer(String id) {
+    private static Protos.Offer getOffer(String id) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(id))
                 .setFrameworkId(TestConstants.FRAMEWORK_ID)
@@ -282,7 +295,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 mockConfigStore,
                 OfferRequirementTestUtils.getTestSchedulerFlags(),
                 Optional.of(mockSecretsClient));
-        uninstallScheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+        uninstallScheduler
+                .disableApiServer()
+                .start()
+                .getMesosScheduler().get()
+                        .registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
         return uninstallScheduler;
     }
 
