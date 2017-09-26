@@ -49,12 +49,12 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 def install(
         package_name,
-        expected_running_tasks,
         service_name,
-        additional_options,
-        package_version,
-        timeout_seconds,
-        wait_for_deployment):
+        expected_running_tasks,
+        additional_options={},
+        package_version=None,
+        timeout_seconds=5*60,
+        wait_for_deployment=True):
     test_options={
         "master_nodes": {
             "cpus": 0.25
