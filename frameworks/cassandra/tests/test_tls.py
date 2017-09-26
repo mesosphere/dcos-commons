@@ -23,6 +23,7 @@ from tests.config import (
     DEFAULT_NODE_PORT,
     DEFAULT_TASK_COUNT,
     PACKAGE_NAME,
+    SERVICE_NAME,
     _get_test_job
 )
 
@@ -57,10 +58,11 @@ def service_account():
 
 @pytest.fixture(scope='module')
 def cassandra_service_tls(service_account):
+    sdk_install.uninstall(package_name=PACKAGE_NAME, service_name=SERVICE_NAME)
     sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_TASK_COUNT,
-        service_name=service_account,
+        package_name=PACKAGE_NAME,
+        service_name=SERVICE_NAME,
+        expected_running_tasks=DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
                 "service_account_secret": service_account,
@@ -71,14 +73,14 @@ def cassandra_service_tls(service_account):
         }
     )
 
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
 
     # Wait for service health check to pass
-    shakedown.service_healthy(PACKAGE_NAME)
+    shakedown.service_healthy(SERVICE_NAME)
 
     yield
 
-    sdk_install.uninstall(PACKAGE_NAME)
+    sdk_install.uninstall(package_name=PACKAGE_NAME, service_name=SERVICE_NAME)
 
 
 def get_cqlsh_tls_rc_config(
@@ -206,6 +208,8 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.tls
 @sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
+@pytest.mark.skip
+# See https://jira.mesosphere.com/browse/CASSANDRA-650
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.

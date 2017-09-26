@@ -64,11 +64,11 @@ def is_test_failure(pytest_request):
 def is_open_dcos():
     '''Determine if the tests are being run against open DC/OS. This is presently done by
     checking the envvar DCOS_ENTERPRISE.'''
-    return os.environ.get('DCOS_ENTERPRISE', 'true').lower() != 'true'
+    return not (os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true')
 
 
 dcos_ee_only = pytest.mark.skipif(
-    'sdk_utils.is_open_dcos',
+    'sdk_utils.is_open_dcos()',
     reason="Feature only supported in DC/OS EE.")
 
 
