@@ -341,6 +341,36 @@
           "type": "integer",
           "description": "The renewal interval for delegation token in milliseconds.",
           "default": 86400000
+        },
+        "support_allow_format": {
+          "type": "boolean",
+          "description": "Does HDFS namenode allow itself to be formatted? You may consider setting this to false for any production cluster, to avoid any possibility of formatting a running DFS.",
+          "default": true
+        },
+        "avoid_read_stale_datanode": {
+          "type": "boolean",
+          "description": "Indicate whether or not to avoid reading from 'stale' datanodes whose heartbeat messages have not been received by the namenode for more than a specified time interval. Stale datanodes will be moved to the end of the node list returned for reading. See dfs.namenode.avoid.write.stale.datanode for a similar setting for writes.",
+          "default": false
+        },
+        "avoid_write_stale_datanode": {
+          "type": "boolean",
+          "description": "Indicate whether or not to avoid writing to 'stale' datanodes whose heartbeat messages have not been received by the namenode for more than a specified time interval. Writes will avoid using stale datanodes unless more than a configured ratio (dfs.namenode.write.stale.datanode.ratio) of datanodes are marked as stale. See dfs.namenode.avoid.read.stale.datanode for a similar setting for reads.",
+          "default": false
+        },
+        "stale_datanode_interval": {
+          "type": "integer",
+          "description": "Default time interval for marking a datanode as 'stale', i.e., if the namenode has not received heartbeat msg from a datanode for more than this time interval, the datanode will be marked and treated as 'stale' by default. The stale interval cannot be too small since otherwise this may cause too frequent change of stale states. We thus set a minimum stale interval value (the default value is 3 times of heartbeat interval) and guarantee that the stale interval cannot be less than the minimum value. A stale data node is avoided during lease/block recovery. It can be conditionally avoided for reads (see dfs.namenode.avoid.read.stale.datanode) and for writes (see dfs.namenode.avoid.write.stale.datanode).",
+          "default": 30000
+        },
+        "write_stale_datanode_ratio": {
+          "type": "string",
+          "description": "When the ratio of number stale datanodes to total datanodes marked is greater than this ratio, stop avoiding writing to stale nodes so as to prevent causing hotspots.",
+          "default": "0.5f"
+        },
+        "invalidate_work_pct_per_iteration": {
+          "type": "string",
+          "description": "*Note*: Advanced property. Change with caution. This determines the percentage amount of block invalidations (deletes) to do over a single DN heartbeat deletion command. The final deletion count is determined by applying this percentage to the number of live nodes in the system. The resultant number is the number of blocks from the deletion list chosen for proper invalidation over a single heartbeat of a single DN. Value should be a positive, non-zero percentage in float notation (X.Yf), with 1.0f meaning 100%.",
+          "default": "0.32f"
         }
       },
       "required": [
@@ -380,7 +410,13 @@
         "max_extra_edits_segments_retained",
         "delegation_key_update-interval",
         "delegation_token_max-lifetime",
-        "delegation_token_renew-interval"
+        "delegation_token_renew-interval",
+        "support_allow_format",
+        "avoid_read_stale_datanode",
+        "avoid_write_stale_datanode",
+        "stale_datanode_interval",
+        "write_stale_datanode_ratio",
+        "invalidate_work_pct_per_iteration"
       ]
     },
     "zkfc_node": {
@@ -476,6 +512,41 @@
           "type": "integer",
           "description": "The number of volumes that are allowed to fail before a datanode stops offering service. By default any volume failure will cause a datanode to shutdown.",
           "default": 0
+        },
+        "max_transfer_threads": {
+          "type": "integer",
+          "description": "Specifies the maximum number of threads to use for transferring data in and out of the DN.",
+          "default": 4096
+        },
+        "readahead_bytes": {
+          "type": "integer",
+          "description": "While reading block files, if the Hadoop native libraries are available, the datanode can use the posix_fadvise system call to explicitly page data into the operating system buffer cache ahead of the current reader's position. This can improve performance especially when disks are highly contended. This configuration specifies the number of bytes ahead of the current read position which the datanode will attempt to read ahead. This feature may be disabled by configuring this property to 0. If the native libraries are not available, this configuration has no effect.",
+          "default": 4193404
+        },
+        "drop_cache_behind_reads": {
+          "type": "boolean",
+          "description": "In some workloads, the data read from HDFS is known to be significantly large enough that it is unlikely to be useful to cache it in the operating system buffer cache. In this case, the DataNode may be configured to automatically purge all data from the buffer cache after it is delivered to the client. This behavior is automatically disabled for workloads which read only short sections of a block (e.g HBase random-IO workloads). This may improve performance for some workloads by freeing buffer cache spage usage for more cacheable data. If the Hadoop native libraries are not available, this configuration has no effect.",
+          "default": false
+        },
+        "drop_cache_behind_writes": {
+          "type": "boolean",
+          "description": "In some workloads, the data written to HDFS is known to be significantly large enough that it is unlikely to be useful to cache it in the operating system buffer cache. In this case, the DataNode may be configured to automatically purge all data from the buffer cache after it is written to disk. This may improve performance for some workloads by freeing buffer cache spage usage for more cacheable data. If the Hadoop native libraries are not available, this configuration has no effect.",
+          "default": false
+        },
+        "sync_behind_writes": {
+          "type": "boolean",
+          "description": "If this configuration is enabled, the datanode will instruct the operating system to enqueue all written data to the disk immediately after it is written. This differs from the usual OS policy which may wait for up to 30 seconds before triggering writeback. This may improve performance for some workloads by smoothing the IO profile for data written to disk. If the Hadoop native libraries are not available, this configuration has no effect.",
+          "default": false
+        },
+        "use_datanode_hostname": {
+          "type": "boolean",
+          "description": "Whether datanodes should use datanode hostnames when connecting to other datanodes for data transfer.",
+          "default": false
+        },
+        "shared_file_descriptor_paths": {
+          "type": "boolean",
+          "description": "A comma-separated list of paths to use when creating file descriptors that will be shared between the DataNode and the DFSClient. Typically we use /dev/shm, so that the file descriptors will not be written to disk. Systems that don't have /dev/shm will fall back to /tmp by default.",
+          "default": "/dev/shm,/tmp"
         }
       },
       "required": [
@@ -491,7 +562,14 @@
         "directoryscan_threads",
         "balance_bandwidthPerSec",
         "plugins",
-        "failed_volumes_tolerated"
+        "failed_volumes_tolerated",
+        "max_transfer_threads",
+        "readahead_bytes",
+        "drop_cache_behind_reads",
+        "drop_cache_behind_writes",
+        "sync_behind_writes",
+        "use_datanode_hostname",
+        "shared_file_descriptor_paths"
       ]
     },
     "hdfs": {
@@ -753,10 +831,80 @@
           "description": "The maximum period to keep a DN in the excluded nodes list at a client. After this period, in milliseconds, the previously excluded node(s) will be removed automatically from the cache and will be considered good for block allocations again. Useful to lower or raise in situations where you keep a file open for very long periods (such as a Write-Ahead-Log (WAL) file) to make the writer tolerant to cluster maintenance restarts. Defaults to 10 minutes.",
           "default": 600000
         },
-        "image_compress": {
+        "image_transfer_timeout": {
+          "type": "integer",
+          "description": "Socket timeout for image transfer in milliseconds. This timeout and the related dfs.image.transfer.bandwidthPerSec parameter should be configured such that normal image transfer can complete successfully. This timeout prevents client hangs when the sender fails during image transfer. This is socket timeout during image tranfer.",
+          "default": 60000
+        },
+        "image_transfer_bandwidthPerSec": {
+          "type": "integer",
+          "description": "Maximum bandwidth used for image transfer in bytes per second. This can help keep normal namenode operations responsive during checkpointing. The maximum bandwidth and timeout in dfs.image.transfer.timeout should be set such that normal image transfers can complete successfully. A default value of 0 indicates that throttling is disabled.",
+          "default": 0
+        },
+        "image_transfer_chunksize": {
+          "type": "integer",
+          "description": "Chunksize in bytes to upload the checkpoint. Chunked streaming is used to avoid internal buffering of contents of image file of huge size.",
+          "default": 65536
+        },
+        "client_failover_max_attempts": {
+          "type": "integer",
+          "description": "Expert only. The number of client failover attempts that should be made before the failover is considered failed.",
+          "default": 15
+        },
+        "client_failover_sleep_base_millis": {
+          "type": "integer",
+          "description": "Expert only. The time to wait, in milliseconds, between failover attempts increases exponentially as a function of the number of attempts made so far, with a random factor of +/- 50%. This option specifies the base value used in the failover calculation. The first failover will retry immediately. The 2nd failover attempt will delay at least dfs.client.failover.sleep.base.millis milliseconds. And so on.",
+          "default": 500
+        },
+        "client_failover_sleep_max_millis": {
+          "type": "integer",
+          "description": "Expert only. The time to wait, in milliseconds, between failover attempts increases exponentially as a function of the number of attempts made so far, with a random factor of +/- 50%. This option specifies the maximum value to wait between failovers. Specifically, the time between two failover attempts will not exceed +/- 50% of dfs.client.failover.sleep.max.millis milliseconds.",
+          "default": 15000
+        },
+        "client_failover_connection_retries": {
+          "type": "integer",
+          "description": "Expert only. Indicates the number of retries a failover IPC client will make to establish a server connection.",
+          "default": 0
+        },
+        "client_failover_connection_retries_on_timeouts": {
+          "type": "integer",
+          "description": "Expert only. The number of retry attempts a failover IPC client will make on socket timeout when establishing a server connection.",
+          "default": 0
+        },
+        "client_datanode-restart_timeout": {
+          "type": "integer",
+          "description": "Expert only. The time to wait, in seconds, from reception of an datanode shutdown notification for quick restart, until declaring the datanode dead and invoking the normal recovery mechanisms. The notification is sent by a datanode when it is being shutdown using the shutdownDatanode admin command with the upgrade option.",
+          "default": 30
+        },
+        "ha_log-roll_period": {
+          "type": "integer",
+          "description": "How often, in seconds, the StandbyNode should ask the active to roll edit logs. Since the StandbyNode only reads from finalized log segments, the StandbyNode will only be as up-to-date as how often the logs are rolled. Note that failover triggers a log roll so the StandbyNode will be up to date before it becomes active.",
+          "default": 120
+        },
+        "ha_tail-edits_period": {
+          "type": "integer",
+          "description": "How often, in seconds, the StandbyNode should check for new finalized log segments in the shared edits log.",
+          "default": 60
+        },
+        "support_append": {
           "type": "boolean",
-          "description": "Should the dfs image be compressed?",
+          "description": "Does HDFS allow appends to files?",
+          "default": true
+        },
+        "client_use_datanode_hostname": {
+          "type": "boolean",
+          "description": "Whether clients should use datanode hostnames when connecting to datanodes.",
           "default": false
+        },
+        "client_local_interfaces": {
+          "type": "string",
+          "description": "A comma separated list of network interface names to use for data transfer between the client and datanodes. When creating a connection to read from or write to a datanode, the client chooses one of the specified interfaces at random and binds its socket to the IP of that interface. Individual names may be specified as either an interface name (eg 'eth0'), a subinterface name (eg 'eth0:0'), or an IP address (which may be specified using CIDR notation to match a range of IPs).",
+          "default": ""
+        },
+        "short_circuit_shared_memory_watcher_interrupt_check_ms": {
+          "type": "integer",
+          "description": "The length of time in milliseconds that the short-circuit shared memory watcher will go between checking for java interruptions sent from other threads. This is provided mainly for unit tests",
+          "default": 60000
         }
       },
       "required": [
@@ -807,7 +955,20 @@
         "bytes-per-checksum",
         "client-write-packet-size",
         "client_write_exclude_nodes_cache_expiry_interval_millis",
-        "image_compress"
+        "image_transfer_timeout",
+        "image_transfer_bandwidthPerSec",
+        "image_transfer_chunksize",
+        "client_failover_max_attempts",
+        "client_failover_sleep_base_millis",
+        "client_failover_sleep_max_millis",
+        "client_failover_connection_retries",
+        "client_failover_connection_retries_on_timeouts",
+        "client_datanode-restart_timeout",
+        "ha_log-roll_period",
+        "ha_tail-edits_period",
+        "support_append",
+        "client_local_interfaces",
+        "short_circuit_shared_memory_watcher_interrupt_check_ms"
       ]
     }
   }

@@ -208,6 +208,30 @@
         <name>dfs.namenode.delegation.token.max-lifetime</name>
         <value>{{NAMENODE_DELEGATION_TOKEN_MAX-LIFETIME}}</value>
     </property>
+    <property>
+        <name>dfs.namenode.support.allow.format</name>
+        <value>{{NAMENODE_SUPPORT_ALLOW_FORMAT}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.avoid.read.stale.datanode</name>
+        <value>{{NAMENODE_AVOID_READ_STALE_DATANODE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.avoid.write.stale.datanode</name>
+        <value>{{NAMENODE_AVOID_WRITE_STALE_DATANODE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.stale.datanode.interval</name>
+        <value>{{NAMENODE_STALE_DATANODE_INTERVAL}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.write.stale.datanode.ratio</name>
+        <value>{{NAMENODE_WRITE_STALE_DATANODE_RATIO}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
+        <value>{{NAMENODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
+    </property>
 
     <!-- name-0-node -->
     <property>
@@ -333,6 +357,34 @@
     <property>
         <name>dfs.datanode.failed.volumes.tolerated</name>
         <value>{{DATANODE_FAILED_VOLUMES_TOLERATED}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.max.transfer.threads</name>
+        <value>{{DATANODE_MAX_TRANSFER_THREADS}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.readahead.bytes</name>
+        <value>{{DATANODE_READAHEAD_BYTES}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.drop.cache.behind.reads</name>
+        <value>{{DATANODE_DROP_CACHE_BEHIND_READS}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.drop.cache.behind.writes</name>
+        <value>{{DATANODE_DROP_CACHE_BEHIND_WRITES}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.sync.behind.writes</name>
+        <value>{{DATANODE_SYNC_BEHIND_WRITES}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.use.datanode.hostname</name>
+        <value>{{DATANODE_USE_DATANODE_HOSTNAME}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.shared.file.descriptor.paths</name>
+        <value>{{DATANODE_SHARED_FILE_DESCRIPTOR_PATHS}}</value>
     </property>
 
     <!-- HA -->
@@ -495,6 +547,66 @@
     <property>
         <name>dfs.namenode.checkpoint.dir</name>
         <value>{{CLIENT_WRITE_EXCLUDE_NODES_CACHE_EXPIRY_INTERVAL_MILLIS}}</value>
+    </property>
+    <property>
+        <name>dfs.image.transfer.timeout</name>
+        <value>{{IMAGE_TRANSFER_TIMEOUT}}</value>
+    </property>
+    <property>
+        <name>dfs.image.transfer.bandwidthPerSec</name>
+        <value>{{IMAGE_TRANSFER_BANDWIDTHPERSEC}}</value>
+    </property>
+    <property>
+        <name>dfs.image.transfer.chunksize</name>
+        <value>{{IMAGE_TRANSFER_CHUNKSIZE}}</value>
+    </property>
+    <property>
+        <name>dfs.client.failover.max.attempts</name>
+        <value>{{CLIENT_FAILOVER_MAX_ATTEMPTS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.failover.sleep.base.millis</name>
+        <value>{{CLIENT_FAILOVER_SLEEP_BASE_MILLIS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.failover.sleep.max.millis</name>
+        <value>{{CLIENT_FAILOVER_SLEEP_MAX_MILLIS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.failover.connection.retries</name>
+        <value>{{CLIENT_FAILOVER_CONNECTION_RETRIES}}</value>
+    </property>
+    <property>
+        <name>dfs.client.failover.connection.retries.on.timeouts</name>
+        <value>{{CLIENT_FAILOVER_CONNECTION_RETRIES_ON_TIMEOUTS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.datanode-restart.timeout</name>
+        <value>{{CLIENT_DATANODE-RESTART_TIMEOUT}}</value>
+    </property>
+    <property>
+        <name>dfs.ha.log-roll.period</name>
+        <value>{{HA_LOG-ROLL_PERIOD}}</value>
+    </property>
+    <property>
+        <name>dfs.ha.tail-edits.period</name>
+        <value>{{HA_TAIL-EDITS_PERIOD}}</value>
+    </property>
+    <property>
+        <name>dfs.support.append</name>
+        <value>{{SUPPORT_APPEND}}</value>
+    </property>
+    <property>
+        <name>dfs.client.use.datanode.hostname</name>
+        <value>{{CLIENT_USE_DATANODE_HOSTNAME}}</value>
+    </property>
+    <property>
+        <name>dfs.client.local.interfaces</name>
+        <value>{{CLIENT_LOCAL_INTERFACES}}</value>
+    </property>
+    <property>
+        <name>dfs.short.circuit.shared.memory.watcher.interrupt.check.ms</name>
+        <value>{{SHORT_CIRCUIT_SHARED_MEMORY_WATCHER_INTERRUPT_CHECK_MS}}</value>
     </property>
 
     {{#SECURE_MODE}}
