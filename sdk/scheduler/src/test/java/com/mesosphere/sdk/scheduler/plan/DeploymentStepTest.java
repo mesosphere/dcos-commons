@@ -176,6 +176,108 @@ public class DeploymentStepTest {
         Assert.assertFalse(step.isEligible(dirtyAssets));
     }
 
+    @Test
+    public void testPrepared() {
+        TaskSpec taskSpec0 =
+                TestPodFactory.getTaskSpec(
+                        TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
+        TaskSpec taskSpec1 =
+                TestPodFactory.getTaskSpec(
+                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
+        PodSpec podSpec = DefaultPodSpec.newBuilder("")
+                .type(TestConstants.POD_TYPE)
+                .count(1)
+                .tasks(Arrays.asList(taskSpec0, taskSpec1))
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+
+        DeploymentStep step = new DeploymentStep(
+                TEST_STEP_NAME,
+                Status.PENDING,
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                Collections.emptyList());
+
+        Assert.assertTrue(step.isPending());
+
+        step.updateOfferStatus(Collections.emptyList());
+        Assert.assertTrue(step.isPrepared());
+    }
+
+    @Test
+    public void testStepStatusCoherenceOnSuccess() {
+        // A TaskStatus update of RUNNING should not cause a backwards motion in Step status.
+        // One of multiple tasks going to its goal state (RUNNING) should mean the Step stays STARTING until, all
+        // tasks are RUNNING.
+        testStepStatusCoherence(Protos.TaskState.TASK_RUNNING, Status.STARTING);
+    }
+
+    @Test
+    public void testStepStatusCoherenceOnFailure() {
+        // A TaskStatus update of FAILED should cause a backwards motion in Step status.
+        // One of multiple tasks failing should mean the Step as a whole goes back to PENDING
+        testStepStatusCoherence(Protos.TaskState.TASK_FAILED, Status.PENDING);
+    }
+
+    private void testStepStatusCoherence(Protos.TaskState updateState, Status expectedStatus) {
+        String taskName0 = TestConstants.TASK_NAME + 0;
+        TaskSpec taskSpec0 =
+                TestPodFactory.getTaskSpec(
+                        taskName0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
+
+        String taskName1 = TestConstants.TASK_NAME + 1;
+        TaskSpec taskSpec1 =
+                TestPodFactory.getTaskSpec(
+                        taskName1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
+        PodSpec podSpec = DefaultPodSpec.newBuilder("")
+                .type(TestConstants.POD_TYPE)
+                .count(1)
+                .tasks(Arrays.asList(taskSpec0, taskSpec1))
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+
+        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TaskSpec.getInstanceName(podInstance, taskName0));
+        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(TaskSpec.getInstanceName(podInstance, taskName1));
+
+        DeploymentStep step = new DeploymentStep(
+                TEST_STEP_NAME,
+                Status.PENDING,
+                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                Collections.emptyList());
+
+        LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
+                OfferTestUtils.getEmptyOfferBuilder().build(),
+                Protos.TaskInfo.newBuilder()
+                        .setTaskId(taskId0)
+                        .setName(taskName0)
+                        .setSlaveId(TestConstants.AGENT_ID)
+                        .build(),
+                Protos.ExecutorInfo.newBuilder().setExecutorId(
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
+                true,
+                true);
+
+        LaunchOfferRecommendation launchRec1 = new LaunchOfferRecommendation(
+                OfferTestUtils.getEmptyOfferBuilder().build(),
+                Protos.TaskInfo.newBuilder()
+                        .setTaskId(taskId1)
+                        .setName(taskName1)
+                        .setSlaveId(TestConstants.AGENT_ID)
+                        .build(),
+                Protos.ExecutorInfo.newBuilder().setExecutorId(
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
+                true,
+                true);
+
+        step.updateOfferStatus(Arrays.asList(launchRec0, launchRec1));
+        Assert.assertEquals(Status.STARTING, step.getStatus());
+
+        step.update(Protos.TaskStatus.newBuilder()
+                .setTaskId(taskId0)
+                .setState(updateState)
+                .build());
+        Assert.assertEquals(expectedStatus, step.getStatus());
+    }
+
     private void testStepTransition(
             Step step,
             Protos.TaskState updateState,
