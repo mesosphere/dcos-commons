@@ -337,8 +337,8 @@
         },
         "script_allowed_contexts": {
           "description": "By default all script contexts (search,update,aggs,plugin) are allowed to be executed. This can be modified using the setting script_allowed_contexts. Only the contexts specified as part of the setting will be allowed to be executed. To specify no contexts are allowed, set script_allowed_contexts to be none. Empty string \"\" means all contexts (default).",
-         "type": "string",
-         "default": ""
+          "type": "string",
+          "default": ""
         }, 
         "network_tcp_no_delay": {
           "description": "Enable or disable the TCP no delay setting. Defaults to true.",
@@ -413,7 +413,12 @@
           "http_cors_enabled": {
           "description": "Enable or disable cross-origin resource sharing, i.e. whether a browser on another origin can execute requests against Elasticsearch. Set to true to enable Elasticsearch to process pre-flight CORS requests.",
           "type": "boolean",
-          "default": true
+          "default": false
+        },
+          "http_cors_allow_origin": {
+          "description": "Which origins to allow. Defaults to no origins allowed. If you prepend and append a / to the value, this will be treated as a regular expression, allowing you to support HTTP and HTTPs. * is a valid value but is considered a security risk as your elasticsearch instance is open to cross origin requests from anywhere.",
+          "type": "string",
+          "default": ""
         },
           "http_cors_max_age": {
           "description": "Browsers send a \"preflight\" OPTIONS-request to determine CORS settings. Defines how long the result should be cached for. Defaults to 1728000 (20 days)",
@@ -424,6 +429,16 @@
           "description": "Whether the Access-Control-Allow-Credentials header should be returned. Note: This header is only returned when the setting is set to true. Defaults to false.",
           "type": "boolean",
           "default": false
+        },
+        "http_cors_allow_headers": {
+          "description": "Which headers to allow. Defaults to X-Requested-With, Content-Type, Content-Length.",
+          "type": "string",
+          "default": "X-Requested-With,Content-Type,Content-Length" 
+        },
+        "http_cors_allow_methods": {
+          "description": "Which methods to allow. Defaults to OPTIONS, HEAD, GET, POST, PUT, DELETE.",
+          "type": "string",
+          "default": "OPTIONS,HEAD,GET,POST,PUT,DELETE" 
         },
         "http_detailed_errors_enabled": {
           "description": "Enables or disables the output of detailed error messages and stack traces in response output. Note: When set to false and the error_trace request parameter is specified, an error will be returned; when error_trace is not specified, a simple message will be returned. Defaults to true.",
@@ -443,7 +458,7 @@
         "http_content_type_required": {
           "description": "Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
           "type": "boolean",
-          "default": true
+          "default": false
         }
       }
     }
