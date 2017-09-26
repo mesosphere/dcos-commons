@@ -47,6 +47,38 @@ DEFAULT_SETTINGS_MAPPINGS = {
                 "role": {"type": "keyword"}}}}}
 
 
+def install(
+        package_name,
+        expected_running_tasks,
+        service_name,
+        additional_options,
+        package_version,
+        timeout_seconds,
+        wait_for_deployment):
+    test_options={
+        "master_nodes": {
+            "cpus": 0.25
+        },
+        "date_nodes": {
+            "cpus": 0.25
+        },
+        "ingest_nodes": {
+            "cpus": 0.25
+        },
+        "coordinator_nodes": {
+            "cpus": 0.25
+        }
+    }
+
+    sdk_install.install(package_name=package_name,
+                        expected_running_tasks=expected_running_tasks,
+                        service_name=service_name,
+                        additional_options=sdk_install.merge_dictionaries(test_options, additional_options),
+                        package_version=package_version,
+                        timeout_seconds=timeout_seconds,
+                        wait_for_deployment=wait_for_deployment)
+
+
 def as_json(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
