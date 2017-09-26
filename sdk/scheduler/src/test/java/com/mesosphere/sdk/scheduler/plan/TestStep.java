@@ -13,18 +13,19 @@ import java.util.*;
 public class TestStep extends AbstractStep {
 
     private PodInstanceRequirement podInstanceRequirement;
+    Status status = Status.PENDING;
 
     public TestStep() {
-        super("test-step", Status.PENDING);
+        super("test-step");
     }
 
     public TestStep(String name, PodInstanceRequirement podInstanceRequirement) {
-        super(name, Status.PENDING);
+        super(name);
         this.podInstanceRequirement = podInstanceRequirement;
     }
 
     public TestStep(UUID id, String name, PodInstanceRequirement podInstanceRequirement) {
-        super(name, Status.PENDING);
+        super(name);
         this.id = id;
         this.podInstanceRequirement = podInstanceRequirement;
     }
@@ -81,7 +82,12 @@ public class TestStep extends AbstractStep {
 
     @VisibleForTesting
     public void setStatus(Status status) {
-        super.setStatus(status);
+        this.status = status;
+    }
+
+    @Override
+    protected Status getStatusInternal() {
+        return status;
     }
 
     @Override

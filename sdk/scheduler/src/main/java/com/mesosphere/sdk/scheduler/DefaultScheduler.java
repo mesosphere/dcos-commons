@@ -276,7 +276,7 @@ public class DefaultScheduler extends AbstractScheduler {
                         plans = Arrays.asList(
                                 new DeployPlanFactory(
                                         new DefaultPhaseFactory(
-                                                new DefaultStepFactory(configStore, stateStore)))
+                                                new DeploymentStepFactory(configStore, stateStore)))
                                         .getPlan(configStore.fetch(configStore.getTargetConfig())));
                     } else {
                         plans = Collections.emptyList();

@@ -166,8 +166,8 @@ public class DeploymentStepTest {
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                false,
                 Collections.emptyList());
 
         Assert.assertTrue(step.isEligible(Arrays.asList()));
@@ -193,8 +193,8 @@ public class DeploymentStepTest {
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                false,
                 Collections.emptyList());
 
         Assert.assertTrue(step.isPending());
@@ -240,8 +240,8 @@ public class DeploymentStepTest {
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                false,
                 Collections.emptyList());
 
         LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
@@ -296,8 +296,8 @@ public class DeploymentStepTest {
     private DeploymentStep getPendingStep() {
         return new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                false,
                 Collections.emptyList());
     }
 

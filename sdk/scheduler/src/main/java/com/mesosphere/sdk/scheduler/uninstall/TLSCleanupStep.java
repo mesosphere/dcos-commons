@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * A {@link TLSCleanupStep} removes all provisioned {@link TLSArtifacts} from secrets service in a given namespace.
  */
-public class TLSCleanupStep extends AbstractStep {
+public class TLSCleanupStep extends UninstallStep {
 
     private static final Pattern PATTERN = createSecretNamePattern();
 
@@ -33,8 +33,8 @@ public class TLSCleanupStep extends AbstractStep {
     /**
      * Creates a new instance with initial {@code status}.
      */
-    TLSCleanupStep(Status status, SecretsClient secretsClient, String namespace) {
-        super("tls-cleanup", status);
+    TLSCleanupStep(SecretsClient secretsClient, String namespace) {
+        super("tls-cleanup");
         this.secretsClient = secretsClient;
         this.namespace = namespace;
     }

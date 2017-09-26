@@ -22,7 +22,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
     private final StepFactory stepFactory;
 
     public DefaultPlanGenerator(ConfigTargetStore configTargetStore, StateStore stateStore) {
-        this(new DefaultStepFactory(configTargetStore, stateStore));
+        this(new DeploymentStepFactory(configTargetStore, stateStore));
     }
 
     public DefaultPlanGenerator(StepFactory stepFactory) {

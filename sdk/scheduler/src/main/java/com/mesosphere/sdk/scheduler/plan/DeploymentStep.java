@@ -18,6 +18,7 @@ public class DeploymentStep extends AbstractStep {
 
     protected final PodInstanceRequirement podInstanceRequirement;
     private final List<String> errors;
+    private boolean complete;
     private Map<String, String> parameters;
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
     private final AtomicBoolean prepared = new AtomicBoolean(false);
@@ -28,12 +29,13 @@ public class DeploymentStep extends AbstractStep {
      */
     public DeploymentStep(
             String name,
-            Status status,
             PodInstanceRequirement podInstanceRequirement,
+            boolean complete,
             List<String> errors) {
-        super(name, status);
-        this.errors = errors;
+        super(name);
         this.podInstanceRequirement = podInstanceRequirement;
+        this.complete = complete;
+        this.errors = errors;
     }
 
     /**
@@ -77,7 +79,7 @@ public class DeploymentStep extends AbstractStep {
                         .build());
     }
 
-    private Set<Protos.TaskID> getTaskIds(Collection<OfferRecommendation> recommendations) {
+    private static Set<Protos.TaskID> getTaskIds(Collection<OfferRecommendation> recommendations) {
         return recommendations.stream()
                 .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
                 .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo())
@@ -102,7 +104,31 @@ public class DeploymentStep extends AbstractStep {
         }
 
         prepared.set(true);
-        setStatus(getStatus(tasks));
+    }
+
+    @Override
+    protected Status getStatusInternal() {
+        if (!errors.isEmpty()) {
+            return Status.ERROR;
+        }
+
+        if (complete) {
+            return Status.COMPLETE;
+        }
+
+        return getStatus(tasks);
+    }
+
+    @Override
+    public void restart() {
+        tasks.keySet().forEach(id -> setTaskStatus(id, Status.PENDING));
+        complete = false;
+    }
+
+    @Override
+    public void forceComplete() {
+        tasks.keySet().forEach(id -> setTaskStatus(id, Status.COMPLETE));
+        complete = true;
     }
 
     @Override
@@ -140,7 +166,7 @@ public class DeploymentStep extends AbstractStep {
                     podInstanceRequirement.getPodInstance(),
                     CommonIdUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
-            logger.error(String.format("Failed to update status for step %s, status: {} ", getName()), e, getStatus());
+            logger.error(String.format("Failed to update status for step %s", getName()), e);
             return;
         }
 
@@ -177,8 +203,6 @@ public class DeploymentStep extends AbstractStep {
             default:
                 logger.error("Failed to process unexpected state: " + status.getState());
         }
-
-        setStatus(getStatus(tasks));
     }
 
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
@@ -191,18 +215,12 @@ public class DeploymentStep extends AbstractStep {
         if (getStatus().equals(Status.PENDING)) {
             prepared.set(false);
         }
-
-        setStatus(getStatus(tasks));
     }
 
     @VisibleForTesting
     Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
-        if (tasks.isEmpty()) {
-            if (prepared.get()) {
-                return Status.PREPARED;
-            } else {
-                return Status.PENDING;
-            }
+        if (tasks.isEmpty() && prepared.get()) {
+            return Status.PREPARED;
         }
 
         Set<Status> statuses = new HashSet<>();
@@ -232,11 +250,8 @@ public class DeploymentStep extends AbstractStep {
             return Status.COMPLETE;
         }
 
-        // If we don't explicitly handle the new status,
-        // we will simply return the previous status.
-        logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
-                "Falling back to current step status: {}", statuses, super.getStatus());
-        return super.getStatus();
+        logger.error("Unexpected failure to determine Step status, falling back to PENDING, statuses: {}", statuses);
+        return Status.PENDING;
     }
 
     @VisibleForTesting

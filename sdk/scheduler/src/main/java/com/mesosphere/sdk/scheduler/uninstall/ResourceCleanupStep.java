@@ -23,7 +23,11 @@ public class ResourceCleanupStep extends UninstallStep {
      */
     public ResourceCleanupStep(String resourceId) {
         // Avoid having the step name be a pure UUID. Otherwise PlansResource will confuse this UUID with the step UUID:
-        super("unreserve-" + resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING);
+        super("unreserve-" + resourceId);
+        if (resourceId.startsWith(TOMBSTONE_MARKER)) {
+            setStatus(Status.COMPLETE);
+        }
+
         this.resourceId = resourceId;
     }
 

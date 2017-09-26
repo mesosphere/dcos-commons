@@ -278,7 +278,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         logger.info("Creating step: {}", podInstanceRequirement);
         return new DefaultRecoveryStep(
                 podInstanceRequirement.getName(),
-                Status.PENDING,
                 podInstanceRequirement,
                 launchConstrainer,
                 stateStore);

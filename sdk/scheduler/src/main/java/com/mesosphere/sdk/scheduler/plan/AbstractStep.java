@@ -21,13 +21,11 @@ public abstract class AbstractStep implements Step {
     protected UUID id = UUID.randomUUID();
     private final String name;
 
-    private final Object statusLock = new Object();
-    private Status status;
+    final Object statusLock = new Object();
     private boolean interrupted;
 
-    protected AbstractStep(String name, Status status) {
+    protected AbstractStep(String name) {
         this.name = name;
-        this.status = status;
         this.interrupted = false;
     }
 
@@ -44,26 +42,12 @@ public abstract class AbstractStep implements Step {
     @Override
     public Status getStatus() {
         synchronized (statusLock) {
-            if (interrupted && (status == Status.PENDING || status == Status.PREPARED)) {
+            Status internalStatus = getStatusInternal();
+            if (interrupted && (internalStatus == Status.PENDING || internalStatus == Status.PREPARED)) {
                 return Status.WAITING;
             }
-            return status;
-        }
-    }
 
-    /**
-     * Updates the status setting and logs the outcome. Should only be called either by tests, by
-     * {@code this}, or by subclasses.
-     *
-     * @param newStatus the new status to be set
-     */
-    protected void setStatus(Status newStatus) {
-        Status oldStatus;
-        synchronized (statusLock) {
-            oldStatus = status;
-            status = newStatus;
-            logger.info("{}: changed status from: {} to: {} (interrupted={})",
-                    getName(), oldStatus, newStatus, interrupted);
+            return internalStatus;
         }
     }
 
@@ -88,17 +72,7 @@ public abstract class AbstractStep implements Step {
         }
     }
 
-    @Override
-    public void restart() {
-        logger.warn("Restarting step: '{} [{}]'", getName(), getId());
-        setStatus(Status.PENDING);
-    }
-
-    @Override
-    public void forceComplete() {
-        logger.warn("Forcing completion of step: '{} [{}]'", getName(), getId());
-        setStatus(Status.COMPLETE);
-    }
+    protected abstract Status getStatusInternal();
 
     @Override
     public String toString() {

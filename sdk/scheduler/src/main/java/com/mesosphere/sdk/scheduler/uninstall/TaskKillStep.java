@@ -17,7 +17,7 @@ public class TaskKillStep extends UninstallStep {
     private Protos.TaskID taskID;
 
     public TaskKillStep(Protos.TaskID taskID) {
-        super("kill-task-" + taskID.getValue(), Status.PENDING);
+        super("kill-task-" + taskID.getValue());
         this.taskID = taskID;
     }
 
@@ -27,7 +27,7 @@ public class TaskKillStep extends UninstallStep {
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        setStatus(Status.IN_PROGRESS);
+        setStatus(Status.STARTING);
         taskKiller.killTask(taskID, RecoveryType.TRANSIENT);
         setStatus(Status.COMPLETE);
 
