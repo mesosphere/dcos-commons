@@ -4,6 +4,15 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+## Kafka 2.0.1-0.11.0
+### Bug Fixes
+- Tasks will correctly bind on DC/OS 1.10.
+
+### Documentation
+- Updated post-install links for package.
+- Updated `limitations.md`.
+- Ensured previous `version-policy.md` content is present.
+
 ## Kafka 1.1.27-0.11.0-beta
 ### Improvements
 - Support for Kafka's graceful shutdown.
