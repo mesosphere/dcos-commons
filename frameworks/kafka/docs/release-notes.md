@@ -6,19 +6,13 @@ enterprise: 'no'
 
 # Version 2.0.1-0.11.0
 
-## Bug Fixes
-* Tasks will correctly bind on DC/OS 1.10
-* Disabled TLS
-* Fixed `test_availability` integration test
+### Bug Fixes
+* Tasks will correctly bind on DC/OS 1.10.
 
-## Improvements
-* Upgraded to [dcos-commons 0.30.1](https://github.com/mesosphere/dcos-commons/releases/tag/0.30.1)
-
-## Documentation
-* Updated post-install links for package
-* Fixed formatting of code blocks, fixed example commands
-* Updated limitations.md
-* Ensured previous version-policy.md content is present
+### Documentation
+* Updated post-install links for package.
+* Updated `limitations.md`.
+* Ensured previous `version-policy.md` content is present.
 
 # Version 2.0.0-0.11.0
 
