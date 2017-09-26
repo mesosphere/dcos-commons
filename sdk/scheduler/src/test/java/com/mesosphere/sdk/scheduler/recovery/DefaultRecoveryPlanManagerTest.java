@@ -49,7 +49,7 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite {
-    private static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private static final List<Resource> resources = Arrays.asList(
             ResourceTestUtils.getUnreservedCpu(TestPodFactory.CPU),
@@ -96,7 +96,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         stateStore = new StateStore(persister);
 
         File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
-        serviceSpec = DefaultServiceSpec.newGenerator(recoverySpecFile, flags).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(recoverySpecFile, SCHEDULER_CONFIG).build();
 
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);

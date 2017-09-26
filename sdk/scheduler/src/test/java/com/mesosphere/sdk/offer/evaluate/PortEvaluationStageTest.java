@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
-    private static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private Protos.Value getPort(int port) {
         return Protos.Value.newBuilder()
@@ -70,7 +70,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule((offer, offerRequirement, taskInfos) ->

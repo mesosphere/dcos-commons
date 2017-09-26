@@ -466,11 +466,11 @@ public class OfferEvaluator {
     }
 
     private static Optional<TLSEvaluationStage.Builder> getTLSEvaluationStageBuilder(
-            String serviceName, SchedulerConfig flags, PodInstanceRequirement podInstanceRequirement) {
+            String serviceName, SchedulerConfig schedulerConfig, PodInstanceRequirement podInstanceRequirement) {
         // Don't create a TLS stage if there's no TLS requested.
         return TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()
                 ? Optional.empty()
-                : Optional.of(TLSEvaluationStage.newBuilder(serviceName, flags));
+                : Optional.of(TLSEvaluationStage.newBuilder(serviceName, schedulerConfig));
     }
 
     private static Protos.TaskInfo getTaskInfoSharingResourceSet(

@@ -456,7 +456,7 @@ public class DefaultScheduler extends AbstractScheduler {
      * Returns the default configuration validators used by {@link DefaultScheduler} instances. Additional custom
      * validators may be added to this list using {@link Builder#setCustomConfigValidators(Collection)}.
      */
-    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators(SchedulerConfig flags) {
+    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators(SchedulerConfig schedulerConfig) {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new ServiceNameCannotContainDoubleUnderscores(),
@@ -465,7 +465,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
                 new UserCannotChange(),
-                new TLSRequiresServiceAccount(flags));
+                new TLSRequiresServiceAccount(schedulerConfig));
     }
 
     /**

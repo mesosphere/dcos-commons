@@ -43,8 +43,8 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
     private final SchedulerConfig schedulerConfig;
 
-    public static Builder newBuilder(String serviceName, SchedulerConfig flags) {
-        return new Builder(serviceName, flags);
+    public static Builder newBuilder(String serviceName, SchedulerConfig schedulerConfig) {
+        return new Builder(serviceName, schedulerConfig);
     }
 
     @VisibleForTesting

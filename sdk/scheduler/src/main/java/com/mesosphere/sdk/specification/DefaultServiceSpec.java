@@ -120,7 +120,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      * Returns a new generator with the provided configuration.
      *
      * @param rawServiceSpec The object model representation of a Service Specification YAML file
-     * @param schedulerConfig Scheduler flags containing operator-facing knobs
+     * @param schedulerConfig Scheduler configuration containing operator-facing knobs
      * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
      *     directory as the Service Specification YAML file
      */

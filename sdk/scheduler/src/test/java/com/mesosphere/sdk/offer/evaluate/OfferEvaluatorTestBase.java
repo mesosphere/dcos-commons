@@ -23,7 +23,8 @@ import java.util.UUID;
  * A base class for use in writing offer evaluation tests.
  */
 public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
-    protected static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
+    protected static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
+
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
     protected UUID targetConfig;
@@ -34,11 +35,11 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         targetConfig = UUID.randomUUID();
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, true);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, true);
     }
 
     protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, flags, false);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, false);
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {

@@ -22,7 +22,7 @@ public class YAMLServiceSpecFactoryTest {
         YAML_ENV_MAP.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
     }
 
-    @Mock private SchedulerConfig mockFlags;
+    @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private YAMLToInternalMappers.ConfigTemplateReader mockConfigTemplateReader;
 
     @Before
@@ -38,10 +38,10 @@ public class YAMLServiceSpecFactoryTest {
         when(mockConfigTemplateReader.read("config-one.conf.mustache")).thenReturn("hello");
         when(mockConfigTemplateReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockConfigTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
-        when(mockFlags.getApiServerPort()).thenReturn(123);
-        when(mockFlags.getExecutorURI()).thenReturn("test-executor-uri");
+        when(mockSchedulerConfig.getApiServerPort()).thenReturn(123);
+        when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
 
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, mockFlags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, mockSchedulerConfig)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         Assert.assertNotNull(serviceSpec);

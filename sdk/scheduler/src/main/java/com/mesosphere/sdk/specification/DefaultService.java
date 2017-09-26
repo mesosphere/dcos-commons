@@ -72,10 +72,14 @@ public class DefaultService implements Runnable {
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerConfig flags = schedulerBuilder.getSchedulerConfig();
+        SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
-                SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+                schedulerConfig.getPackageName(),
+                schedulerConfig.getPackageVersion(),
+                Instant.ofEpochMilli(schedulerConfig.getPackageBuildTimeMs()),
+                SDKBuildInfo.VERSION,
+                SDKBuildInfo.GIT_SHA,
+                Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {

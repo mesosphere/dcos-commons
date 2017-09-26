@@ -129,8 +129,8 @@ public class SecretNameGenerator {
        return String.format("__dcos_base64__%s", name);
     }
 
-    public static String getNamespaceFromEnvironment(SchedulerConfig flags, String defaultNamespace) {
-        String secretNamespace = flags.getDcosSpace();
+    public static String getNamespaceFromEnvironment(SchedulerConfig schedulerConfig, String defaultNamespace) {
+        String secretNamespace = schedulerConfig.getDcosSpace();
 
         if (secretNamespace.startsWith("/")) {
             secretNamespace = secretNamespace.substring(1);

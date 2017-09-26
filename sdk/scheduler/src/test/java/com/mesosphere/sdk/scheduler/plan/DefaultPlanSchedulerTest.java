@@ -36,7 +36,7 @@ public class DefaultPlanSchedulerTest {
             .build());
     private static final List<OfferID> ACCEPTED_IDS =
             Arrays.asList(OfferID.newBuilder().setValue("offer").build());
-    private static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
@@ -57,7 +57,7 @@ public class DefaultPlanSchedulerTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

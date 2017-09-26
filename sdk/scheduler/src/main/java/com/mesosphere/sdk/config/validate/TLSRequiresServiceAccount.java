@@ -15,10 +15,10 @@ import java.util.Optional;
  */
 public class TLSRequiresServiceAccount implements ConfigValidator<ServiceSpec> {
 
-    private final SchedulerConfig flags;
+    private final SchedulerConfig schedulerConfig;
 
-    public TLSRequiresServiceAccount(SchedulerConfig flags) {
-        this.flags = flags;
+    public TLSRequiresServiceAccount(SchedulerConfig schedulerConfig) {
+        this.schedulerConfig = schedulerConfig;
     }
 
     @Override
@@ -26,7 +26,7 @@ public class TLSRequiresServiceAccount implements ConfigValidator<ServiceSpec> {
         if (!TaskUtils.getTasksWithTLS(newConfig).isEmpty()) {
             try {
                 // Just check that construction succeeds.
-                flags.getDcosAuthTokenProvider();
+                schedulerConfig.getDcosAuthTokenProvider();
             } catch (Exception e) {
                 String errorMessage = "Scheduler is missing a service account that is required for " +
                         "provisioning TLS artifacts. Please configure in order to continue.";

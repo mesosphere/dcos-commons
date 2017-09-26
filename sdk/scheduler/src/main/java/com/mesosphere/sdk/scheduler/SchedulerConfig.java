@@ -139,17 +139,17 @@ public class SchedulerConfig {
         return new SchedulerConfig(map);
     }
 
-    private final EnvStore flagStore;
+    private final EnvStore envStore;
 
     private SchedulerConfig(Map<String, String> flagMap) {
-        this.flagStore = new EnvStore(flagMap);
+        this.envStore = new EnvStore(flagMap);
     }
 
     /**
      * Returns the configured time to wait for the API server to come up during scheduler initialization.
      */
     public Duration getApiServerInitTimeout() {
-        return Duration.ofSeconds(flagStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
+        return Duration.ofSeconds(envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
     }
 
     /**
@@ -157,40 +157,40 @@ public class SchedulerConfig {
      * information.
      */
     public int getApiServerPort() {
-        return flagStore.getRequiredInt(MARATHON_API_PORT_ENV);
+        return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
     }
 
     public String getExecutorURI() {
-        return flagStore.getRequired(EXECUTOR_URI_ENV);
+        return envStore.getRequired(EXECUTOR_URI_ENV);
     }
 
     public String getLibmesosURI() {
-        return flagStore.getRequired(LIBMESOS_URI_ENV);
+        return envStore.getRequired(LIBMESOS_URI_ENV);
     }
 
     public String getJavaURI() {
-        return flagStore.getRequired(JAVA_URI_ENV);
+        return envStore.getRequired(JAVA_URI_ENV);
     }
 
     public String getJavaHome() {
-        return flagStore.getRequired(JAVA_HOME_ENV);
+        return envStore.getRequired(JAVA_HOME_ENV);
     }
 
     public String getDcosSpace() {
         // Try in order: DCOS_SPACE, MARATHON_APP_ID, "/"
-        String value = flagStore.getOptional(DCOS_SPACE_ENV, null);
+        String value = envStore.getOptional(DCOS_SPACE_ENV, null);
         if (value != null) {
             return value;
         }
-        return flagStore.getOptional(MARATHON_APP_ID_ENV, "/");
+        return envStore.getOptional(MARATHON_APP_ID_ENV, "/");
     }
 
     public boolean isStateCacheEnabled() {
-        return !flagStore.isPresent(DISABLE_STATE_CACHE_ENV);
+        return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
     public boolean isUninstallEnabled() {
-        return flagStore.isPresent(SDK_UNINSTALL);
+        return envStore.isPresent(SDK_UNINSTALL);
     }
 
     /**
@@ -199,7 +199,7 @@ public class SchedulerConfig {
      * Kerberos).
      */
     public boolean isSideChannelActive() {
-        return flagStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
+        return envStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
     }
 
     /**
@@ -208,7 +208,7 @@ public class SchedulerConfig {
      */
     public TokenProvider getDcosAuthTokenProvider()
             throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-        JSONObject serviceAccountObject = new JSONObject(flagStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
         PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
         try {
             PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(
@@ -220,7 +220,7 @@ public class SchedulerConfig {
                     .setPrivateKey((RSAPrivateKey) privateKey)
                     .build();
 
-            Duration authTokenRefreshThreshold = Duration.ofSeconds(flagStore.getOptionalInt(
+            Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
                     AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
 
             return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
@@ -233,21 +233,21 @@ public class SchedulerConfig {
      * Returns the package name as advertised in the scheduler environment.
      */
     public String getPackageName() {
-        return flagStore.getRequired(PACKAGE_NAME_ENV);
+        return envStore.getRequired(PACKAGE_NAME_ENV);
     }
 
     /**
      * Returns the package version as advertised in the scheduler environment.
      */
     public String getPackageVersion() {
-        return flagStore.getRequired(PACKAGE_VERSION_ENV);
+        return envStore.getRequired(PACKAGE_VERSION_ENV);
     }
 
     /**
      * Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.
      */
     public long getPackageBuildTimeMs() {
-        return flagStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
+        return envStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
     }
 
     /**

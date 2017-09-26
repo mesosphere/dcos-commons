@@ -30,7 +30,7 @@ public class TLSRequiresServiceAccountTest {
     private TaskSpec taskWithoutTLS;
 
     @Mock
-    private SchedulerConfig flags;
+    private SchedulerConfig schedulerConfig;
 
     private Optional<ServiceSpec> original = Optional.empty();
 
@@ -54,41 +54,41 @@ public class TLSRequiresServiceAccountTest {
 
     @Test
     public void testNoTLSNoServiceAccount() throws Exception {
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
+        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(schedulerConfig)
                 .validate(original, createServiceSpec(podWithoutTLS));
         assertThat(errors, is(empty()));
-        verify(flags, times(0)).getDcosAuthTokenProvider();
+        verify(schedulerConfig, times(0)).getDcosAuthTokenProvider();
     }
 
     @Test
     public void testNoTLSWithServiceAccount() throws Exception {
-        when(flags.getDcosAuthTokenProvider()).thenReturn(null); // if it doesn't throw, then it passes
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
+        when(schedulerConfig.getDcosAuthTokenProvider()).thenReturn(null); // if it doesn't throw, then it passes
+        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(schedulerConfig)
                 .validate(original, createServiceSpec(podWithoutTLS));
         assertThat(errors, is(empty()));
-        verify(flags, times(0)).getDcosAuthTokenProvider();
+        verify(schedulerConfig, times(0)).getDcosAuthTokenProvider();
     }
 
     @Test
     public void testWithTLSNoServiceAccount() throws Exception {
-        when(flags.getDcosAuthTokenProvider()).thenThrow(new IllegalStateException("boo"));
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
+        when(schedulerConfig.getDcosAuthTokenProvider()).thenThrow(new IllegalStateException("boo"));
+        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(schedulerConfig)
                 .validate(original, createServiceSpec(podWithTLS));
         assertThat(errors, hasSize(1));
-        verify(flags, times(1)).getDcosAuthTokenProvider();
+        verify(schedulerConfig, times(1)).getDcosAuthTokenProvider();
     }
 
     @Test
     public void testTLSWithServiceAccount() throws Exception {
-        when(flags.getDcosAuthTokenProvider()).thenReturn(null); // if it doesn't throw, then it passes
-        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(flags)
+        when(schedulerConfig.getDcosAuthTokenProvider()).thenReturn(null); // if it doesn't throw, then it passes
+        Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(schedulerConfig)
                 .validate(original, createServiceSpec(podWithTLS));
         assertThat(errors, is(empty()));
-        verify(flags, times(1)).getDcosAuthTokenProvider();
+        verify(schedulerConfig, times(1)).getDcosAuthTokenProvider();
     }
 
     @Test
-    public void testNullFlagsAreNotValid() {
+    public void testNullConfigInvalid() {
         // TODO(elezar): How do we guarantee that the constructor is never called with a null value?
         //               Is a @NonNull annotation sufficient?
         Collection<ConfigValidationError> errors = new TLSRequiresServiceAccount(null)
