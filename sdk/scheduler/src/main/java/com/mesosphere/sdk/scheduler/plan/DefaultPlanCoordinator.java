@@ -1,9 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,21 +16,20 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
     private final List<PlanManager> planManagers = new LinkedList<>();
-    private final PlanScheduler planScheduler;
 
-    public DefaultPlanCoordinator(Collection<PlanManager> planManagers, PlanScheduler planScheduler) {
+    public DefaultPlanCoordinator(Collection<PlanManager> planManagers) {
         if (CollectionUtils.isEmpty(planManagers)) {
             throw new IllegalArgumentException("At least one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
-        this.planScheduler = planScheduler;
     }
 
     /**
      * Returns the set of steps across all {@link PlanManager}s which are eligible for execution.  Execution normally
      * means that these steps are ready to be matched with offers and launch tasks.
      */
-    private List<Step> getCandidates() {
+    @Override
+    public List<Step> getCandidates() {
         // Assets that are being actively worked on
         final Set<PodInstanceRequirement> dirtiedAssets = new HashSet<>();
 
@@ -82,23 +78,6 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         LOGGER.info("Got total candidates: {}",
                 candidates.stream().map(step -> step.getName()).collect(Collectors.toList()));
         return candidates;
-    }
-
-    @Override
-    public Collection<OfferID> processOffers(final SchedulerDriver driver, final List<Offer> offersToProcess) {
-        return planScheduler.resourceOffers(driver, offersToProcess, getCandidates());
-    }
-
-    @Override
-    public boolean hasOperations() {
-        boolean ret = false;
-        for (final PlanManager planManager : planManagers) {
-            LOGGER.debug("Plan: name={} status={}",
-                    planManager.getPlan().getName(),
-                    planManager.getPlan().getStatus());
-            ret = ret || PlanUtils.hasOperations(planManager.getPlan());
-        }
-        return ret;
     }
 
     @Override

@@ -31,14 +31,12 @@ public class UninstallScheduler extends AbstractScheduler {
     private final PlanManager uninstallPlanManager;
     private final Collection<Object> resources;
 
-    private SchedulerDriver driver;
     private OfferAccepter offerAccepter;
 
     /**
-     * Creates a new UninstallScheduler based on the provided API port and initialization timeout,
-     * and a {@link StateStore}. The UninstallScheduler builds an uninstall {@link Plan} with two {@link Phase}s:
-     * a resource phase where all reserved resources get released back to Mesos, and a deregister phase where
-     * the framework deregisters itself and cleans up its state in Zookeeper.
+     * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
+     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
+     * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(
             ServiceSpec serviceSpec,
@@ -70,9 +68,8 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void initialize(SchedulerDriver driver) throws InterruptedException {
+    protected PlanCoordinator initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
-        this.driver = driver;
 
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
@@ -86,39 +83,51 @@ public class UninstallScheduler extends AbstractScheduler {
         uninstallPlanManager.getPlan().proceed();
 
         LOGGER.info("Done initializing.");
+
+        // Return a stub coordinator which only does work against the sole plan manager.
+        return new PlanCoordinator() {
+            @Override
+            public List<Step> getCandidates() {
+                return new ArrayList<>(uninstallPlanManager.getCandidates(Collections.emptyList()));
+            }
+
+            @Override
+            public Collection<PlanManager> getPlanManagers() {
+                return Collections.singletonList(uninstallPlanManager);
+            }
+        };
     }
 
     @Override
-    protected void executePlans(List<Protos.Offer> offers) {
+    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
-        Collection<? extends Step> candidateSteps = uninstallPlanManager.getCandidates(Collections.emptyList());
-        if (!candidateSteps.isEmpty()) {
-            LOGGER.info("Attempting to process these candidates from uninstall plan: {}",
-                    candidateSteps.stream().map(Element::getName).collect(Collectors.toList()));
-            candidateSteps.forEach(Step::start);
+        if (!steps.isEmpty()) {
+            LOGGER.info("Attempting to process {} candidates from uninstall plan: {}",
+                    steps.size(), steps.stream().map(Element::getName).collect(Collectors.toList()));
+            steps.forEach(Step::start);
         }
 
         // Destroy/Unreserve any reserved resource or volume that is offered
         final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
-        offersWithReservedResources.addAll(
-                new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter)
-                        .resourceOffers(driver, localOffers));
+        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
+
+        offersWithReservedResources.addAll(rcs.resourceOffers(driver, localOffers));
 
         // Decline remaining offers.
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        OfferUtils.declineOffers(driver, unusedOffers);
+        if (unusedOffers.isEmpty()) {
+            LOGGER.info("No offers to be declined.");
+        } else {
+            LOGGER.info("Declining {} unused offers", unusedOffers.size());
+            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        }
     }
 
     @Override
     protected void processStatusUpdate(Protos.TaskStatus status) {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
-    }
-
-    @Override
-    protected Collection<PlanManager> getPlanManagers() {
-        return Arrays.asList(uninstallPlanManager);
     }
 
     private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerFlags schedulerFlags) {

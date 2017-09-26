@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+
+import com.google.common.base.Joiner;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-
-import jersey.repackaged.com.google.common.base.Joiner;
 
 import java.util.ArrayList;
 import java.util.Collections;

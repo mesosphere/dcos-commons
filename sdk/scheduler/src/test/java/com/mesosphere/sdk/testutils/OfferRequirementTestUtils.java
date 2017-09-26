@@ -8,6 +8,7 @@ import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 
+import java.time.Duration;
 import java.util.*;
 
 import static org.mockito.Mockito.mock;
@@ -56,6 +57,7 @@ public class OfferRequirementTestUtils {
         when(schedulerFlags.getJavaURI()).thenReturn("test-java-uri");
         when(schedulerFlags.getLibmesosURI()).thenReturn("test-libmesos-uri");
         when(schedulerFlags.getDcosSpace()).thenReturn("/");
+        when(schedulerFlags.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
         return schedulerFlags;
     }
 }

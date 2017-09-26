@@ -50,8 +50,8 @@ public class DefaultScheduler extends AbstractScheduler {
     private final PlansResource plansResource;
     private final PodResource podResource;
 
-    private SchedulerDriver driver;
     private PlanCoordinator planCoordinator;
+    private PlanScheduler planScheduler;
 
     /**
      * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
@@ -96,20 +96,20 @@ public class DefaultScheduler extends AbstractScheduler {
         this.offerAccepter = new OfferAccepter(
                 Collections.singletonList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
 
-        resources = new ArrayList<>();
-        resources.addAll(customResources);
-        resources.add(new ArtifactResource(configStore));
-        resources.add(new ConfigResource<>(configStore));
+        this.resources = new ArrayList<>();
+        this.resources.addAll(customResources);
+        this.resources.add(new ArtifactResource(configStore));
+        this.resources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
         }
-        resources.add(endpointsResource);
+        this.resources.add(endpointsResource);
         this.plansResource = new PlansResource();
-        resources.add(this.plansResource);
+        this.resources.add(this.plansResource);
         this.podResource = new PodResource(stateStore);
-        resources.add(podResource);
-        resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
+        this.resources.add(podResource);
+        this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
 
     @Override
@@ -118,25 +118,33 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void initialize(SchedulerDriver driver) throws Exception {
-        this.driver = driver;
-
+    protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
 
         taskKiller.setSchedulerDriver(driver);
-        planCoordinator = getPlanCoordinator(taskKiller, offerAccepter);
+        planCoordinator = buildPlanCoordinator();
+        planScheduler = new DefaultPlanScheduler(
+                        offerAccepter,
+                        new OfferEvaluator(
+                                stateStore,
+                                serviceSpec.getName(),
+                                configStore.getTargetConfig(),
+                                schedulerFlags,
+                                Capabilities.getInstance().supportsDefaultExecutor()),
+                        stateStore,
+                        taskKiller);
         killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
+        return planCoordinator;
     }
 
-    private PlanCoordinator getPlanCoordinator(TaskKiller taskKiller, OfferAccepter offerAccepter)
-            throws ConfigStoreException {
+    private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
         final Collection<PlanManager> planManagers = new ArrayList<>();
 
-        // 1a. Deployment plan manager
+        // Deployment plan manager
         PlanManager deploymentPlanManager = new DefaultPlanManager(SchedulerUtils.getDeployPlan(plans).get());
         // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
         // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
@@ -145,7 +153,7 @@ public class DefaultScheduler extends AbstractScheduler {
         deploymentPlanManager.getPlan().proceed();
         planManagers.add(deploymentPlanManager);
 
-        // 1b. Recovery plan manager
+        // Recovery plan manager
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {
             LOGGER.info("Adding overriding recovery plan manager.");
@@ -173,25 +181,13 @@ public class DefaultScheduler extends AbstractScheduler {
                 failureMonitor,
                 overrideRecoveryPlanManagers));
 
-        // 1c. Other (non-deploy) plans
+        // Other custom plan managers
         planManagers.addAll(plans.stream()
                 .filter(plan -> !plan.isDeployPlan())
                 .map(DefaultPlanManager::new)
                 .collect(Collectors.toList()));
 
-        // 2. Finally, the Plan Scheduler
-        PlanScheduler planScheduler = new DefaultPlanScheduler(
-                offerAccepter,
-                new OfferEvaluator(
-                        stateStore,
-                        serviceSpec.getName(),
-                        configStore.getTargetConfig(),
-                        schedulerFlags,
-                        Capabilities.getInstance().supportsDefaultExecutor()),
-                stateStore,
-                taskKiller);
-
-        return new DefaultPlanCoordinator(planManagers, planScheduler);
+        return new DefaultPlanCoordinator(planManagers);
     }
 
     private static void killUnneededTasks(StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
@@ -220,16 +216,11 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void executePlans(List<Protos.Offer> offers) {
-        List<Protos.Offer> localOffers = new ArrayList<>(offers);
-
-        // Coordinate amongst all the plans via PlanCoordinator.
-        final List<Protos.OfferID> acceptedOffers = new ArrayList<>();
-        acceptedOffers.addAll(planCoordinator.processOffers(driver, localOffers));
-        LOGGER.info("Offers accepted by plan coordinator: {}",
-                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
-
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
+    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+        // See which offers are useful to the plans.
+        List<Protos.OfferID> planOffers = new ArrayList<>();
+        planOffers.addAll(planScheduler.resourceOffers(driver, offers, steps));
+        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, planOffers);
 
         // Resource Cleaning:
         // A ResourceCleaner ensures that reserved Resources are not leaked.  It is possible that an Agent may
@@ -242,19 +233,30 @@ public class DefaultScheduler extends AbstractScheduler {
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
         ResourceCleanerScheduler cleanerScheduler =
                 new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
-        List<Protos.OfferID> cleanedOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
-        LOGGER.info("Offers accepted by resource cleaner: {}", cleanedOffers);
-        acceptedOffers.addAll(cleanedOffers);
-
-        LOGGER.info("Total accepted offers: {}",
-                acceptedOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
-
-        unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, acceptedOffers);
-        LOGGER.info("Unused offers to be declined: {}",
-                unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
+        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
+        unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
         // Decline remaining offers.
-        OfferUtils.declineOffers(driver, unusedOffers);
+        if (!unusedOffers.isEmpty()) {
+            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        }
+
+        if (offers.isEmpty()) {
+            LOGGER.info("0 Offers processed.");
+        } else {
+            LOGGER.info("{} Offer{} processed:\n"
+                    + "  {} accepted by Plans: {}\n"
+                    + "  {} accepted by Resource Cleaner: {}\n"
+                    + "  {} declined: {}",
+                    offers.size(),
+                    offers.size() == 1 ? "" : "s",
+                    planOffers.size(),
+                    planOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()),
+                    cleanerOffers.size(),
+                    cleanerOffers.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()),
+                    unusedOffers.size(),
+                    unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
+        }
     }
 
     @Override
@@ -270,22 +272,20 @@ public class DefaultScheduler extends AbstractScheduler {
                 AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
                 TaskUtils.isRecoveryNeeded(status)) {
             // The initial launch of this task failed. Give up and try again with a clean slate.
-            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. " +
-                    "Prior status was: {}",
+            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. "
+                    + "Prior status was: {}",
                     taskName, TextFormat.shortDebugString(lastStatus.get()));
             taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
         }
 
         // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
         // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
-        // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it
-        // on TASK_RUNNINGs
+        // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it on TASK_RUNNINGs
         if (status.hasContainerStatus() &&
                 status.getContainerStatus().getNetworkInfosCount() > 0 &&
                 status.getContainerStatus().getNetworkInfosList().stream()
                         .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
-            // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such
-            // TaskInfo exists.
+            // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such TaskInfo exists.
             try {
                 StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
             } catch (StateStoreException e) {
@@ -294,8 +294,8 @@ public class DefaultScheduler extends AbstractScheduler {
         }
     }
 
-    @Override
-    protected Collection<PlanManager> getPlanManagers() {
-        return planCoordinator.getPlanManagers();
+    @VisibleForTesting
+    PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 }

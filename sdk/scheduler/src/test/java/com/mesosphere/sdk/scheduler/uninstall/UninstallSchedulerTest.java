@@ -271,11 +271,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(uninstallScheduler.getPlan().isComplete());
     }
 
-    private Protos.Offer getOffer() {
+    private static Protos.Offer getOffer() {
         return getOffer(UUID.randomUUID().toString());
     }
 
-    private Protos.Offer getOffer(String id) {
+    private static Protos.Offer getOffer(String id) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(id))
                 .setFrameworkId(TestConstants.FRAMEWORK_ID)

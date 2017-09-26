@@ -102,20 +102,11 @@ public class SchedulerRunner implements Runnable {
     }
 
     private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
-        return getFrameworkInfo(serviceSpec, stateStore, serviceSpec.getUser(), TWO_WEEK_SEC);
-    }
-
-    private static Protos.FrameworkInfo getFrameworkInfo(
-            ServiceSpec serviceSpec,
-            StateStore stateStore,
-            String userString,
-            int failoverTimeoutSec) {
-
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
-                .setFailoverTimeout(failoverTimeoutSec)
-                .setUser(userString)
+                .setFailoverTimeout(TWO_WEEK_SEC)
+                .setUser(serviceSpec.getUser())
                 .setCheckpoint(true);
 
         setRoles(fwkInfoBuilder, serviceSpec);
@@ -142,7 +133,7 @@ public class SchedulerRunner implements Runnable {
         return fwkInfoBuilder.build();
     }
 
-    @SuppressWarnings("deprecation") // for FrameworkInfo.setRole()
+    @SuppressWarnings("deprecation") // mute warning for FrameworkInfo.setRole()
     private static void setRoles(Protos.FrameworkInfo.Builder fwkInfoBuilder, ServiceSpec serviceSpec) {
         List<String> preReservedRoles =
                 serviceSpec.getPods().stream()

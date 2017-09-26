@@ -90,9 +90,12 @@ public class DefaultServiceSpec implements ServiceSpec {
             return user;
         }
 
-        Optional<PodSpec> podSpecOptional = podSpecs.stream()
-                .filter(podSpec -> podSpec.getUser() != null && podSpec.getUser().isPresent())
-                .findFirst();
+        Optional<PodSpec> podSpecOptional = Optional.empty();
+        if (podSpecs != null) {
+            podSpecOptional = podSpecs.stream()
+                    .filter(podSpec -> podSpec != null && podSpec.getUser() != null && podSpec.getUser().isPresent())
+                    .findFirst();
+        }
 
         if (podSpecOptional.isPresent()) {
             return podSpecOptional.get().getUser().get();

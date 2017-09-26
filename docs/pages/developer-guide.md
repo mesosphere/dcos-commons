@@ -348,9 +348,12 @@ pods:
 plans:
   deploy:
     strategy: serial
-    pod: hello
-    steps:
-      - default: [[init], [main]]
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[init], [main]]
 ```
 
 This plan indicates that by default, every instance of the hello pod should have two steps generated: one representing the `init` task and another representing the `main` task. The ServiceSpec indicates that two `hello` pods should be launched so the following tasks would be launched by steps serially:
@@ -374,10 +377,13 @@ pods:
 plans:
   deploy:
     strategy: serial
-    pod: hello
-    steps:
-      - 0: [[init], [main]]
-      - default: [[main]]
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - 0: [[init], [main]]
+          - default: [[main]]
 ```
 
 This plan would result in steps generating the following tasks:
@@ -939,7 +945,6 @@ In the example above, a server task can be accessed through the address:
 server-lb.hello-world.l4lb.thisdcos.directory:80
 ```
 
-
 ## Virtual networks
 
 The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:
@@ -987,13 +992,13 @@ Specifying that pods join a virtual network has the following indirect effects:
   * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
-  
-  
+
+
 # Secrets
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.10/security/secrets/).
 
 The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod.
 
@@ -1031,7 +1036,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
-Refer to [Secrets Tutorial](tutorials/secrets-tutorial.md) for an 
+Refer to the [Secrets Tutorial](tutorials/secrets-tutorial.md) for an
 SDK-based example service using DC/OS secrets.
 
 ### Authorization for Secrets
@@ -1088,7 +1093,7 @@ pods:
 
 # TLS
 
-**This feature works only on Mesosphere DC/OS Enterprise and is not supported on DC/OS Open.**
+**This feature works only on Mesosphere DC/OS Enterprise and is not supported on Open Source DC/OS.**
 
 The SDK provides an automated way of provisioning X.509 certificates and private keys for tasks. These TLS artifacts can be consumed by tasks to create encrypted TLS connections.
 
@@ -1477,6 +1482,7 @@ pods:
         resource-set: hello-resources
 plans:
   deploy:
+    strategy: serial
     phases:
       hello-deploy:
         strategy: serial
@@ -1521,7 +1527,8 @@ plans:
       sidecar-deploy:
         strategy: parallel
         pod: hello
-        tasks: [sidecar]
+        steps:
+          - default: [[sidecar]]
 ```
 
 The command definition for the sidecar task includes environment variables, `PLAN_PARAMETER1` and `PLAN_PARAMETER2`, that are not defined elsewhere in the service definition. You can supply these parameters when the plan is initiated.  The parameters will be propagated to the environment of every task launched by the plan.

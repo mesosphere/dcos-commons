@@ -116,5 +116,4 @@ public class TLSCleanupStepTest {
 
         Assert.assertEquals(step.getStatus(), Status.COMPLETE);
     }
-
 }

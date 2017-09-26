@@ -1,12 +1,14 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
+import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.reconciliation.Reconciler;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -26,8 +28,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * Abstract {@link Scheduler} that provides some default behaviors around Mesos lifecycle events such as
- * getting registered, reregistered, disconnected, etc.
+ * Abstract main scheduler class that ties together the main pieces of a SDK Scheduler process.
+ * Handles interaction with Mesos via an embedded {@link AbstractScheduler.MesosScheduler} object.
  */
 public abstract class AbstractScheduler {
 
@@ -42,11 +44,13 @@ public abstract class AbstractScheduler {
     // started, because when tasks launch they typically require access to ArtifactResource for config templates.
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
 
-    private final MesosScheduler mesosScheduler = new MesosScheduler();
-    private final EventBus eventBus = new AsyncEventBus(Executors.newSingleThreadExecutor());
+    // Whether we should run in multithreaded mode. Should only be disabled for tests.
+    private boolean multithreaded = true;
 
-    private Object inProgressLock = new Object();
-    private Set<Protos.OfferID> offersInProgress = new HashSet<>();
+    private final MesosScheduler mesosScheduler = new MesosScheduler();
+
+    private final Object inProgressLock = new Object();
+    private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -71,7 +75,8 @@ public abstract class AbstractScheduler {
     }
 
     /**
-     * Starts any internal threads to be used by the service. Must be called after construction.
+     * Starts any internal threads to be used by the service.
+     * Must be called after construction, once, in order for work to proceed.
      *
      * @return this
      */
@@ -93,29 +98,19 @@ public abstract class AbstractScheduler {
             });
         }
 
-        // Start consumption of the offer queue. This will idle until offers start arriving.
-        offerExecutor.execute(() -> {
-            while (true) {
-                // This is a blocking call which pulls as many elements from the offer queue as possible.
-                List<Protos.Offer> offers = mesosScheduler.offerQueue.takeAll();
-                LOGGER.info("Processing {} offer{}:", offers.size(), offers.size() == 1 ? "" : "s");
-                for (int i = 0; i < offers.size(); ++i) {
-                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+        if (multithreaded) {
+            // Start consumption of the offer queue. This will idle until offers start arriving.
+            offerExecutor.execute(() -> {
+                while (true) {
+                    try {
+                        mesosScheduler.processQueuedOffers();
+                    } catch (Exception e) {
+                        LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
+                        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
+                    }
                 }
-                executePlans(offers);
-                offers.forEach(offer -> eventBus.post(offer));
-                synchronized (inProgressLock) {
-                    offersInProgress.removeAll(
-                            offers.stream()
-                                    .map(offer -> offer.getId())
-                                    .collect(Collectors.toList()));
-                    LOGGER.info("Processed {} queued offer{}. Remaining offers in progress: {}",
-                            offers.size(),
-                            offers.size() == 1 ? "" : "s",
-                            offersInProgress.stream().collect(Collectors.toList()));
-                }
-            }
-        });
+            });
+        }
 
         return this;
     }
@@ -167,25 +162,45 @@ public abstract class AbstractScheduler {
     }
 
     /**
-     * Performs any additional Scheduler initialization after registration has completed. The provided
-     * {@link SchedulerDriver} may be used to talk to Mesos.
+     * Forces the Scheduler to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
+     * called before calling {@link #start()}.
+     *
+     * @return this
      */
-    protected abstract void initialize(SchedulerDriver driver) throws Exception;
+    @VisibleForTesting
+    public AbstractScheduler disableThreading() {
+        multithreaded = false;
+        return this;
+    }
+
+    /**
+     * Overrides the Scheduler's offer queue size. Must only be called before the scheduler has {@link #start()}ed.
+     *
+     * @param queueSize the queue size to use, zero for infinite
+     */
+    @VisibleForTesting
+    public AbstractScheduler setOfferQueueSize(int queueSize) {
+        mesosScheduler.offerQueue = new OfferQueue(queueSize);
+        return this;
+    }
 
     /**
      * Returns a list of API resources to be served by the scheduler to the local cluster.
+     * This may be called before {@link #initialize(SchedulerDriver)} has been called.
      */
     protected abstract Collection<Object> getResources();
 
     /**
-     * Returns a list of Plan Managers, one per Plan.
+     * Performs any additional Scheduler initialization after registration has completed. The provided
+     * {@link SchedulerDriver} may be used to talk to Mesos. Returns a {@link PlanCoordinator} which will be used to
+     * select candidate workloads.
      */
-    protected abstract Collection<PlanManager> getPlanManagers();
+    protected abstract PlanCoordinator initialize(SchedulerDriver driver) throws Exception;
 
     /**
      * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
      */
-    protected abstract void executePlans(List<Protos.Offer> offers);
+    protected abstract void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps);
 
     /**
      * Handles a task status update which was received from Mesos. This call is executed on a separate thread which is
@@ -195,23 +210,28 @@ public abstract class AbstractScheduler {
 
     /**
      * Implementation of Mesos' {@link Scheduler} interface.
-     * Messages received from Mesos are forwarded to the parent {@link AbstractScheduler}.
+     * Messages received from Mesos are forwarded to the parent {@link AbstractScheduler} instance.
      */
     private class MesosScheduler implements Scheduler {
 
         // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
         // master re-election. Avoid performing initialization multiple times, which would cause queues to be stuck.
-        private final AtomicBoolean isAlreadyRegistered = new AtomicBoolean(false);
-        private final OfferQueue offerQueue = new OfferQueue();
+        private final AtomicBoolean isRegisterStarted = new AtomicBoolean(false);
+        // Avoid attempting to process offers until initialization has completed via the first call to registered().
+        private final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
+        // May be overridden in tests:
+        private OfferQueue offerQueue = new OfferQueue();
+
+        // These are all (re)assigned when the scheduler has (re)registered:
         private SchedulerDriver driver;
-        private SuppressReviveManager suppressReviveManager;
-        @VisibleForTesting
-        DefaultReconciler reconciler;
+        private ReviveManager reviveManager;
+        private Reconciler reconciler;
+        private PlanCoordinator planCoordinator;
 
         @Override
         public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-            if (isAlreadyRegistered.getAndSet(true)) {
+            if (isRegisterStarted.getAndSet(true)) {
                 // This may occur as the result of a master election.
                 LOGGER.info("Already registered, calling reregistered()");
                 reregistered(driver, masterInfo);
@@ -219,9 +239,12 @@ public abstract class AbstractScheduler {
             }
 
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
+            this.driver = driver;
+            this.reviveManager = new ReviveManager(driver);
+            this.reconciler = new DefaultReconciler(stateStore);
+
             try {
-                this.reconciler = new DefaultReconciler(stateStore);
-                initialize(driver);
+                this.planCoordinator = initialize(driver);
             } catch (Exception e) {
                 LOGGER.error("Initialization failed with exception: ", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -235,8 +258,9 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            this.driver = driver;
-            postRegister();
+            restartReconciliation();
+
+            isInitialized.set(true);
         }
 
         @Override
@@ -244,7 +268,7 @@ public abstract class AbstractScheduler {
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers);
+                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
                 return;
             }
 
@@ -256,7 +280,7 @@ public abstract class AbstractScheduler {
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers);
+                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
                 return;
             }
 
@@ -269,7 +293,9 @@ public abstract class AbstractScheduler {
                 LOGGER.info("Enqueuing {} offer{}. Updated offers in progress: {}",
                         offers.size(),
                         offers.size() == 1 ? "" : "s",
-                        offersInProgress.stream().collect(Collectors.toList()));
+                        offersInProgress.stream()
+                                .map(offerID -> offerID.getValue())
+                                .collect(Collectors.toList()));
             }
 
             for (Protos.Offer offer : offers) {
@@ -277,12 +303,16 @@ public abstract class AbstractScheduler {
                 if (!queued) {
                     LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                             offer.getId().getValue());
-                    OfferUtils.declineOffers(driver, Arrays.asList(offer));
+                    OfferUtils.declineOffers(driver, Arrays.asList(offer), Constants.SHORT_DECLINE_SECONDS);
                     // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                     synchronized (inProgressLock) {
                         offersInProgress.remove(offer.getId());
                     }
                 }
+            }
+
+            if (!multithreaded) {
+                processQueuedOffers();
             }
         }
 
@@ -293,7 +323,6 @@ public abstract class AbstractScheduler {
                     status.getState().toString(),
                     status.getMessage(),
                     TextFormat.shortDebugString(status));
-            eventBus.post(status);
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
@@ -306,7 +335,7 @@ public abstract class AbstractScheduler {
         @Override
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-            postRegister();
+            restartReconciliation();
         }
 
         @Override
@@ -348,25 +377,56 @@ public abstract class AbstractScheduler {
         }
 
         /**
-         * Registration can occur multiple times in a scheduler's lifecycle via both
-         * {@link Scheduler#registered(SchedulerDriver, Protos.FrameworkID, Protos.MasterInfo)} and
-         * {@link Scheduler#reregistered(SchedulerDriver, Protos.MasterInfo)} calls.
+         * Dequeues and processes any elements which are present on the offer queue, potentially blocking for offers to
+         * appear.
          */
-        private void postRegister() {
-            // Task reconciliation should be started on all registrations.
+        private void processQueuedOffers() {
+            LOGGER.info("Waiting for queued offers...");
+            List<Protos.Offer> offers = offerQueue.takeAll();
+            if (offers.isEmpty() && !isInitialized.get()) {
+                // The scheduler hasn't finished registration yet, so many members haven't been initialized yet either.
+                // Avoid hitting NPE for planCoordinator, driver, etc.
+                LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
+                return;
+            }
+
+            // Get the current work
+            Collection<Step> steps = planCoordinator.getCandidates();
+
+            LOGGER.info("Processing {} offer{} against {} step{}:",
+                    offers.size(), offers.size() == 1 ? "" : "s",
+                    steps.size(), steps.size() == 1 ? "" : "s");
+            for (int i = 0; i < offers.size(); ++i) {
+                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+            }
+
+            // Match offers with work (call into implementation)
+            processOffers(driver, offers, steps);
+
+            // Revive previously suspended offers, if necessary
+            reviveManager.revive(steps);
+
+            synchronized (inProgressLock) {
+                offersInProgress.removeAll(
+                        offers.stream()
+                                .map(offer -> offer.getId())
+                                .collect(Collectors.toList()));
+                LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",
+                        offers.size(),
+                        offers.size() == 1 ? "" : "s",
+                        offersInProgress.size(),
+                        offersInProgress.size() == 1 ? "offer remains" : "offers remain",
+                        offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+            }
+        }
+
+        /**
+         * Restarts reconciliation following a registration or re-registration.
+         */
+        private void restartReconciliation() {
+            // Task reconciliation should be (re)started on all (re-)registrations.
             reconciler.start();
             reconciler.reconcile(driver);
-
-            // A SuppressReviveManager should be constructed only once.
-            if (suppressReviveManager == null) {
-                suppressReviveManager = new SuppressReviveManager(
-                        stateStore,
-                        configStore,
-                        driver,
-                        eventBus,
-                        getPlanManagers());
-            }
-            suppressReviveManager.start();
         }
     }
 }

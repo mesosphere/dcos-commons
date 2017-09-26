@@ -53,9 +53,8 @@ cp -R tools $PROJECT_PATH/$PROJECT_NAME/tools
 cp -R testing $PROJECT_PATH/$PROJECT_NAME/testing
 cp ./.gitignore $PROJECT_PATH/$PROJECT_NAME
 rm -rf $PROJECT_PATH/$PROJECT_NAME/build
-rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/dcos-*/*.whl
-rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/dcos-*/dcos-*
-rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/python/{build,dist}
+rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/dcos-*/*template*
+rm -rf $PROJECT_PATH/$PROJECT_NAME/cli/dcos-*/.*template*
 rm -rf $PROJECT_PATH/$PROJECT_NAME/build.sh
 
 cat > $PROJECT_PATH/$PROJECT_NAME/build.sh <<'EOF'

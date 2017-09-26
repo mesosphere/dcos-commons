@@ -45,6 +45,7 @@ public class PlansResource extends PrettyJsonResource {
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final Collection<PlanManager> planManagers = new ArrayList<>();
     private final Object planManagersLock = new Object();
 

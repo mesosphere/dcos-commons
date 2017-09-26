@@ -155,5 +155,4 @@ public class TLSArtifactsPersisterTest {
 
         verify(secretsClientMock, never()).delete(anyString());
     }
-
 }

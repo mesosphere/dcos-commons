@@ -24,7 +24,7 @@ public class CosmosRenderer {
 
     /**
      * resource.json template values that are injected by SDK tooling. We inject test values here.
-     * See also: tools/universe_builder.py
+     * See also: tools/universe/package_builder.py
      */
     private static final Map<String, String> RESOURCE_TEMPLATE_PARAMS;
     static {
@@ -40,7 +40,7 @@ public class CosmosRenderer {
 
     /**
      * marathon.json.mustache template values that are injected by SDK tooling. We inject test values here.
-     * See also: tools/universe_builder.py
+     * See also: tools/universe/package_builder.py
      */
     private static final Map<String, String> MARATHON_TEMPLATE_PARAMS;
     static {

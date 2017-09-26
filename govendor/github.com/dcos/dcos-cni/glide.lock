@@ -1,0 +1,64 @@
+hash: 1f1ed2d8d4e78b8c7c2da36db139d8d2a2451dc8951380b6de0e48919486292a
+updated: 2017-04-11T21:04:32.277408125Z
+imports:
+- name: github.com/containernetworking/cni
+  version: 0799f5732f2a11b329d9e3d51b9c8f2e3759f2ff
+  subpackages:
+  - libcni
+  - pkg/invoke
+  - pkg/ip
+  - pkg/ipam
+  - pkg/ns
+  - pkg/skel
+  - pkg/skel
+  - pkg/types
+  - pkg/types/020
+  - pkg/types/current
+  - pkg/utils
+  - pkg/utils/hwaddr
+  - pkg/utils/sysctl
+  - pkg/version
+  - pkg/version/testhelpers
+  - plugins/ipam/host-local/backend
+  - plugins/ipam/host-local/backend/allocator
+  - plugins/ipam/host-local/backend/disk
+  - plugins/test/noop/debug
+- name: github.com/coreos/go-iptables
+  version: fbb73372b87f6e89951c2b6b31470c2c9d5cfae3
+  subpackages:
+  - iptables
+- name: github.com/coreos/go-systemd
+  version: 1f9909e51b2dab2487c26d64c8f2e7e580e4c9f5
+  subpackages:
+  - activation
+- name: github.com/d2g/dhcp4
+  version: f0e4d29ff0231dce36e250b2ed9ff08412584bca
+- name: github.com/d2g/dhcp4client
+  version: bed07e1bc5b85f69c6f0fd73393aa35ec68ed892
+- name: github.com/vishvananda/netlink
+  version: fe3b5664d23a11b52ba59bece4ff29c52772a56b
+  subpackages:
+  - nl
+- name: github.com/vishvananda/netns
+  version: 8ba1072b58e0c2a240eb5f6120165c7776c3e7b8
+- name: golang.org/x/sys
+  version: 076b546753157f758b316e59bcb51e6807c04057
+  subpackages:
+  - unix
+  - windows
+  - windows/registry
+  - windows/svc
+  - windows/svc/debug
+  - windows/svc/eventlog
+  - windows/svc/mgr
+testImports:
+- name: github.com/onsi/ginkgo
+  version: 7f8ab55aaf3b86885aa55b762e803744d1674700
+  subpackages:
+  - config
+  - extensions/table
+- name: github.com/onsi/gomega
+  version: 2152b45fa28a361beba9aab0885972323a444e28
+  subpackages:
+  - gbytes
+  - gexec

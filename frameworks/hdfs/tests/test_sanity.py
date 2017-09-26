@@ -284,6 +284,7 @@ def test_modify_app_config():
     app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
     journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
     name_ids = sdk_tasks.get_task_ids(foldered_name, 'name')
+    data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     log.info('marathon config: ')
@@ -296,7 +297,7 @@ def test_modify_app_config():
     config.check_healthy(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
     sdk_tasks.check_tasks_updated(foldered_name, 'name', name_ids)
-    sdk_tasks.check_tasks_updated(foldered_name, 'data', journal_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, 'data', data_ids)
 
     sdk_plan.wait_for_completed_recovery(foldered_name)
     new_recovery_plan = sdk_plan.get_plan(foldered_name, "recovery")

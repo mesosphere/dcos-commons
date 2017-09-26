@@ -96,12 +96,13 @@ dependencies {
     testCompile "org.awaitility:awaitility:${awaitilityVer}"
 }
 
-check.finalizedBy jacocoTestReport
-
-jacocoTestReport {
+// squelch code coverage report for this project
+// check.finalizedBy jacocoTestReport
+/*jacocoTestReport {
     reports {
         xml.enabled false
         csv.enabled false
         html.destination "${buildDir}/jacocoHtml"
     }
 }
+*/

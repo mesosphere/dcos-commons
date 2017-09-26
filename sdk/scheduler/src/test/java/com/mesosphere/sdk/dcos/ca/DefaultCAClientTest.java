@@ -253,5 +253,4 @@ public class DefaultCAClientTest {
 
         client.chainWithRootCert(createCertificate());
     }
-
 }

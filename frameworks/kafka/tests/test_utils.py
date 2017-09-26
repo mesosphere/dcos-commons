@@ -7,9 +7,6 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-DEFAULT_TOPIC_NAME = 'topic1'
-EPHEMERAL_TOPIC_NAME = 'topic_2'
-
 
 def broker_count_check(count, service_name=config.SERVICE_NAME):
     def fun():
@@ -46,24 +43,39 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
     broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=service_name)
 
 
-def create_topic(service_name=config.SERVICE_NAME):
-    create_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic create {}'.format(EPHEMERAL_TOPIC_NAME), json=True)
+def create_topic(topic_name, service_name=config.SERVICE_NAME):
+    # Get the list of topics that exist before we create a new topic
+    topic_list_before = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic list', json=True)
+
+    create_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic create {}'.format(topic_name), json=True)
     log.info(create_info)
-    assert ('Created topic "%s".\n' % EPHEMERAL_TOPIC_NAME in create_info['message'])
-    assert ("topics with a period ('.') or underscore ('_') could collide." in create_info['message'])
-    topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic list', json=True)
-    assert topic_list_info == [EPHEMERAL_TOPIC_NAME]
+    assert ('Created topic "%s".\n' % topic_name in create_info['message'])
 
-    topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(EPHEMERAL_TOPIC_NAME), json=True)
+    if '.' in topic_name or '_' in topic_name:
+        assert ("topics with a period ('.') or underscore ('_') could collide." in create_info['message'])
+
+    topic_list_after = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic list', json=True)
+
+    new_topics = set(topic_list_after) - set(topic_list_before)
+    assert topic_name in new_topics
+
+    topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(topic_name), json=True)
     assert len(topic_info) == 1
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
-def delete_topic(service_name=config.SERVICE_NAME):
-    delete_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic delete {}'.format(EPHEMERAL_TOPIC_NAME), json=True)
+def delete_topic(topic_name, service_name=config.SERVICE_NAME):
+    delete_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic delete {}'.format(topic_name), json=True)
     assert len(delete_info) == 1
-    assert delete_info['message'].startswith('Output: Topic {} is marked for deletion'.format(EPHEMERAL_TOPIC_NAME))
+    assert delete_info['message'].startswith('Output: Topic {} is marked for deletion'.format(topic_name))
 
-    topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(EPHEMERAL_TOPIC_NAME), json=True)
+    topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(topic_name), json=True)
     assert len(topic_info) == 1
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
+
+
+def assert_topic_lists_are_equal_without_automatic_topics(expected, actual):
+    """Check for equality in topic lists after filtering topics that start with
+    an underscore."""
+    filtered_actual = list(filter(lambda x: not x.startswith('_'), actual))
+    assert expected == filtered_actual

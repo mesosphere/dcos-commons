@@ -308,6 +308,8 @@ The following are optional:
 - `S3_RELEASE_BUCKET` (default: `downloads.mesosphere.io`): The S3 bucket to upload the release artifacts into.
 - `HTTP_RELEASE_SERVER` (default: `https://downloads.mesosphere.com`): The HTTP base URL for paths within the above bucket.
 - `RELEASE_DIR_PATH` (default: `<package-name>/assets`): The path prefix within `S3_RELEASE_BUCKET` and `HTTP_RELEASE_SERVER` to place the release artifacts. Artifacts will be stored in a `<package-version>` subdirectory within this path.
+- `RELEASE_UNIVERSE_REPO` (default: `mesosphere/universe`): The GitHub repository to submit the automated PR to.
+- `RELEASE_BRANCH` (default: `version-3.x`): The target release branch for the automated PR.
 - `DRY_RUN`: Refrain from actually transferring/uploading anything in S3, and from actually creating a GitHub PR.
 
 ## Misc Utilities
