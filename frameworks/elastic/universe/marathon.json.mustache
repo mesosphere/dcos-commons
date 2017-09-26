@@ -102,6 +102,9 @@
     {{#elasticsearch.script_allowed_types}}
     "TASKCFG_ALL_SCRIPT_ALLOWED_TYPES": "{{elasticsearch.script_allowed_types}}",
     {{/elasticsearch.script_allowed_types}}
+    {{#elasticsearch.repositories_url_allowed_urls}}
+    TASKCFG_ALL_REPOSITORIES_URL_ALLOWED_URLS": {{elasticsearch.repositories_url_allowed_urls}}
+    {{/elasticsearch.repositories_url_allowed_urls}}
     "TASKCFG_ALL_NETWORK_TCP_NO_DELAY": "{{elasticsearch.network_tcp_no_delay}}",
     "TASKCFG_ALL_NETWORK_TCP_KEEP_ALIVE": "{{elasticsearch.network_tcp_keep_alive}}",
     "TASKCFG_ALL_NETWORK_TCP_REUSE_ADDRESS": "{{elasticsearch.network_tcp_reuse_address}}",

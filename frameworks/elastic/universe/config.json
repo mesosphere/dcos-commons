@@ -340,6 +340,11 @@
           "type": "string",
           "default": ""
         }, 
+        "repositories_url_allowed_urls": {
+          "description": "URL Repository supports the following protocols: \"http\", \"https\", \"ftp\", \"file\" and \"jar\". URL repositories with http:, https:, and ftp: URLs has to be whitelisted by specifying allowed URLs in the repositories_url_allowed_urls setting. This setting supports wildcards in the place of host, path, query, and fragment.",
+          "type": "string",
+          "default": ""
+        },
         "network_tcp_no_delay": {
           "description": "Enable or disable the TCP no delay setting. Defaults to true.",
           "type": "boolean",

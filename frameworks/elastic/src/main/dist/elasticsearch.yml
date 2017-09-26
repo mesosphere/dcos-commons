@@ -54,6 +54,10 @@ script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}
 script.allowed_types: {{SCRIPT_ALLOWED_TYPES}}
 {{/SCRIPT_ALLOWED_TYPES}}
 
+{{#REPOSITORIES_URL_ALLOWED_URLS}}
+repositories.url.allowed_urls: {{REPOSITORIES_URL_ALLOWED_URLS}}
+{{/REPOSITORIES_URL_ALLOWED_URLS}}
+
 network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
 network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
 network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
@@ -124,4 +128,4 @@ thread_pool.generic.core: {{THREAD_POOL_GENERIC_CORE}}
 {{#THREAD_POOL_GENERIC_MAX}}
 thread_pool.generic.max: {{THREAD_POOL_GENERIC_MAX}}
 {{/THREAD_POOL_GENERIC_MAX}}
-thread_pool.warmer.generic_alive: {{THREAD_POOL_GENERIC_KEEP_ALIVE}}
+thread_pool.generic.keep_alive: {{THREAD_POOL_GENERIC_KEEP_ALIVE}}
