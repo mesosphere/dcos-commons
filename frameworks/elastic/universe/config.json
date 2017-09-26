@@ -340,6 +340,11 @@
           "type": "string",
           "default": ""
         }, 
+        "repositories_url_allowed_urls": {
+          "description": "URL Repository supports the following protocols: \"http\", \"https\", \"ftp\", \"file\" and \"jar\". URL repositories with http:, https:, and ftp: URLs has to be whitelisted by specifying allowed URLs in the repositories_url_allowed_urls setting. This setting supports wildcards in the place of host, path, query, and fragment.",
+          "type": "string",
+          "default": ""
+        },
         "network_tcp_no_delay": {
           "description": "Enable or disable the TCP no delay setting. Defaults to true.",
           "type": "boolean",
@@ -459,8 +464,93 @@
           "description": "Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
           "type": "boolean",
           "default": false
+        },
+        "thread_pool_search_size": {
+          "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_search_queue_size": {
+          "description": "For count/search/suggest operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them. -1 means its unbounded. Defaults to 1000",
+          "type": "integer",
+          "default": 1000
+        },
+        "thread_pool_index_size": {
+          "description": "For index/delete operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_index_queue_size": {
+          "description": "For index/delete operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  -1 means its unbounded. Defaults to 200.",
+          "type": "integer",
+          "default": 200
+        },
+        "thread_pool_get_size": {
+          "description": "For get operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_get_queue_size": {
+          "description": "For get operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  -1 means its unbounded. Defaults to 1000.",
+          "type": "integer",
+          "default": 200
+        },
+        "thread_pool_bulk_size": {
+          "description": "For bulk operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_bulk_queue_size": {
+          "description": "For bulk operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  -1 means its unbounded. Defaults to 1000.",
+          "type": "integer",
+          "default": 200
+        },
+        "thread_pool_warmer_core": {
+          "description": "For segment warm-up operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_warmer_max": {
+          "description": "For segment warm-up operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_warmer_keep_alive": {
+          "description": "For segment warm-up operations. The keep_alive parameter determines how long a thread should be kept around in the thread pool without it doing any work.",
+          "type": "string",
+          "default": "5m"
+        },
+        "thread_pool_refresh_core": {
+          "description": "For refresh operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_refresh_max": {
+          "description": "For refresh operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_refresh_keep_alive": {
+          "description": "For refresh operations. The keep_alive parameter determines how long a thread should be kept around in the thread pool without it doing any work.",
+          "type": "string",
+          "default": "5m"
+        },
+        "thread_pool_generic_core": {
+          "description": "For generic operations (e.g., background node discovery). The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_generic_max": {
+          "description": "For generic operations (e.g., background node discovery). The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "type": "string",
+          "default": ""
+        },
+        "thread_pool_generic_keep_alive": {
+          "description": "For generic operations (e.g., background node discovery). The keep_alive parameter determines how long a thread should be kept around in the thread pool without it doing any work.",
+          "type": "string",
+          "default": "30s"
         }
-      }
+      }  
     }
   }
 }

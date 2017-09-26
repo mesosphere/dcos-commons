@@ -54,6 +54,10 @@ script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}
 script.allowed_types: {{SCRIPT_ALLOWED_TYPES}}
 {{/SCRIPT_ALLOWED_TYPES}}
 
+{{#REPOSITORIES_URL_ALLOWED_URLS}}
+repositories.url.allowed_urls: {{REPOSITORIES_URL_ALLOWED_URLS}}
+{{/REPOSITORIES_URL_ALLOWED_URLS}}
+
 network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
 network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
 network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
@@ -87,3 +91,41 @@ http.pipelining: {{HTTP_PIPELINING}}
 http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
 http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 
+
+{{#THREAD_POOL_SEARCH_SIZE}}
+thread_pool.search.size: {{THREAD_POOL_SEARCH_SIZE}}
+{{/THREAD_POOL_SEARCH_SIZE}}
+thread_pool.search.queue_size: {{THREAD_POOL_SEARCH_QUEUE_SIZE}}
+{{#THREAD_POOL_INDEX_SIZE}}
+thread_pool.index.size: {{THREAD_POOL_INDEX_SIZE}}
+{{/THREAD_POOL_INDEX_SIZE}}
+thread_pool.index.queue_size: {{THREAD_POOL_INDEX_QUEUE_SIZE}}
+{{#THREAD_POOL_GET_SIZE}}
+thread_pool.get.size: {{THREAD_POOL_GET_SIZE}}
+{{/THREAD_POOL_GET_SIZE}}
+thread_pool.get.queue_size: {{THREAD_POOL_GET_QUEUE_SIZE}}
+{{#THREAD_POOL_BULK_SIZE}}
+thread_pool.bulk.size: {{THREAD_POOL_BULK_SIZE}}
+{{/THREAD_POOL_BULK_SIZE}}
+thread_pool.bulk.queue_size: {{THREAD_POOL_BULK_QUEUE_SIZE}}
+{{#THREAD_POOL_WARMER_CORE}}
+thread_pool.warmer.core: {{THREAD_POOL_WARMER_CORE}}
+{{/THREAD_POOL_WARMER_CORE}}
+{{#THREAD_POOL_WARMER_MAX}}
+thread_pool.warmer.max: {{THREAD_POOL_WARMER_MAX}}
+{{/THREAD_POOL_WARMER_MAX}}
+thread_pool.warmer.keep_alive: {{THREAD_POOL_WARMER_KEEP_ALIVE}}
+{{#THREAD_POOL_REFRESH_CORE}}
+thread_pool.refresh.core: {{THREAD_POOL_REFRESH_CORE}}
+{{/THREAD_POOL_REFRESH_CORE}}
+{{#THREAD_POOL_REFRESH_MAX}}
+thread_pool.refresh.max: {{THREAD_POOL_REFRESH_MAX}}
+{{/THREAD_POOL_REFRESH_MAX}}
+thread_pool.refresh.keep_alive: {{THREAD_POOL_REFRESH_KEEP_ALIVE}}
+{{#THREAD_POOL_GENERIC_CORE}}
+thread_pool.generic.core: {{THREAD_POOL_GENERIC_CORE}}
+{{/THREAD_POOL_GENERIC_CORE}}
+{{#THREAD_POOL_GENERIC_MAX}}
+thread_pool.generic.max: {{THREAD_POOL_GENERIC_MAX}}
+{{/THREAD_POOL_GENERIC_MAX}}
+thread_pool.generic.keep_alive: {{THREAD_POOL_GENERIC_KEEP_ALIVE}}
