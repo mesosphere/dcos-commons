@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Before;
@@ -30,7 +30,7 @@ public class TLSRequiresServiceAccountTest {
     private TaskSpec taskWithoutTLS;
 
     @Mock
-    private SchedulerFlags flags;
+    private SchedulerConfig flags;
 
     private Optional<ServiceSpec> original = Optional.empty();
 

@@ -94,7 +94,7 @@ public class SchedulerUtils {
     /**
      * Returns the configured {@code hostname:port} to use for state storage at the scheduler.
      */
-    public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
+    public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig) {
         // If the svc.yml explicitly provided a zk host:port, use that
         if (rawServiceSpec.getScheduler() != null
                 && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getZookeeper())) {

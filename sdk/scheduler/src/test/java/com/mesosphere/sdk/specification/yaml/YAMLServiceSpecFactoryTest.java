@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
@@ -22,7 +22,7 @@ public class YAMLServiceSpecFactoryTest {
         YAML_ENV_MAP.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
     }
 
-    @Mock private SchedulerFlags mockFlags;
+    @Mock private SchedulerConfig mockFlags;
     @Mock private YAMLToInternalMappers.ConfigTemplateReader mockConfigTemplateReader;
 
     @Before

@@ -6,7 +6,7 @@ import org.apache.mesos.Protos.TaskInfo;
 
 import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 import java.time.Duration;
 import java.util.*;
@@ -50,14 +50,14 @@ public class OfferRequirementTestUtils {
         }.getReadinessCheck();
     }
 
-    public static SchedulerFlags getTestSchedulerFlags() {
-        SchedulerFlags schedulerFlags = mock(SchedulerFlags.class);
-        when(schedulerFlags.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
-        when(schedulerFlags.getExecutorURI()).thenReturn("test-executor-uri");
-        when(schedulerFlags.getJavaURI()).thenReturn("test-java-uri");
-        when(schedulerFlags.getLibmesosURI()).thenReturn("test-libmesos-uri");
-        when(schedulerFlags.getDcosSpace()).thenReturn("/");
-        when(schedulerFlags.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
-        return schedulerFlags;
+    public static SchedulerConfig getTestSchedulerConfig() {
+        SchedulerConfig schedulerConfig = mock(SchedulerConfig.class);
+        when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
+        when(schedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
+        when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
+        when(schedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
+        when(schedulerConfig.getDcosSpace()).thenReturn("/");
+        when(schedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
+        return schedulerConfig;
     }
 }

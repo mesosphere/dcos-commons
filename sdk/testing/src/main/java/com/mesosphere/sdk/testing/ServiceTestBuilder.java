@@ -12,7 +12,7 @@ import org.mockito.Mockito;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -159,7 +159,7 @@ public class ServiceTestBuilder {
      * @throws Exception if the test failed
      */
     public ServiceTestResult render() throws Exception {
-        SchedulerFlags mockFlags = Mockito.mock(SchedulerFlags.class);
+        SchedulerConfig mockFlags = Mockito.mock(SchedulerConfig.class);
         Mockito.when(mockFlags.getExecutorURI()).thenReturn("executor-test-uri");
         Mockito.when(mockFlags.getApiServerPort()).thenReturn(8080);
 

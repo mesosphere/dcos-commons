@@ -48,7 +48,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        OfferRequirementTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
                         true));
@@ -84,7 +84,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        OfferRequirementTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
                         true));

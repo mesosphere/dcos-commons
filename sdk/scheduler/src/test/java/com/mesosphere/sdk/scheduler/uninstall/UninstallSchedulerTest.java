@@ -213,7 +213,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 getServiceSpec(),
                 new StateStore(new MemPersister()),
                 mockConfigStore,
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockSecretsClient));
         // Returns a simple placeholder plan with status COMPLETE
         Assert.assertTrue(uninstallScheduler.getPlan().toString(), uninstallScheduler.getPlan().isComplete());
@@ -293,7 +293,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 serviceSpec,
                 stateStore,
                 mockConfigStore,
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockSecretsClient));
         uninstallScheduler
                 .disableApiServer()

@@ -5,7 +5,7 @@ import com.google.inject.Inject;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
@@ -36,7 +36,7 @@ public class OfferEvaluator {
     private final StateStore stateStore;
     private final String serviceName;
     private final UUID targetConfigId;
-    private final SchedulerFlags schedulerFlags;
+    private final SchedulerConfig schedulerConfig;
     private final boolean useDefaultExecutor;
 
     @Inject
@@ -44,12 +44,12 @@ public class OfferEvaluator {
             StateStore stateStore,
             String serviceName,
             UUID targetConfigId,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
-        this.schedulerFlags = schedulerFlags;
+        this.schedulerConfig = schedulerConfig;
         this.useDefaultExecutor = useDefaultExecutor;
     }
 
@@ -103,7 +103,7 @@ public class OfferEvaluator {
                     podInstanceRequirement,
                     serviceName,
                     getTargetConfig(podInstanceRequirement, thisPodTasks.values()),
-                    schedulerFlags,
+                    schedulerConfig,
                     thisPodTasks.values(),
                     stateStore.fetchFrameworkId().get(),
                     useDefaultExecutor);
@@ -279,7 +279,7 @@ public class OfferEvaluator {
         Map<String, ResourceSet> resourceSets = getNewResourceSets(podInstanceRequirement);
 
         Optional<TLSEvaluationStage.Builder> tlsBuilder =
-                getTLSEvaluationStageBuilder(serviceName, schedulerFlags, podInstanceRequirement);
+                getTLSEvaluationStageBuilder(serviceName, schedulerConfig, podInstanceRequirement);
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
@@ -402,7 +402,7 @@ public class OfferEvaluator {
             Protos.ExecutorInfo executorInfo) {
 
         Optional<TLSEvaluationStage.Builder> tlsBuilder =
-                getTLSEvaluationStageBuilder(serviceName, schedulerFlags, podInstanceRequirement);
+                getTLSEvaluationStageBuilder(serviceName, schedulerConfig, podInstanceRequirement);
 
         List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
@@ -466,7 +466,7 @@ public class OfferEvaluator {
     }
 
     private static Optional<TLSEvaluationStage.Builder> getTLSEvaluationStageBuilder(
-            String serviceName, SchedulerFlags flags, PodInstanceRequirement podInstanceRequirement) {
+            String serviceName, SchedulerConfig flags, PodInstanceRequirement podInstanceRequirement) {
         // Don't create a TLS stage if there's no TLS requested.
         return TaskUtils.getTasksWithTLS(podInstanceRequirement).isEmpty()
                 ? Optional.empty()

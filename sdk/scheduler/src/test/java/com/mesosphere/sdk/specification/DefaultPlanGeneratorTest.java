@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class DefaultPlanGeneratorTest {
 
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;

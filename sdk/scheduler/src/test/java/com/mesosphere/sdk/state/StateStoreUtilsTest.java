@@ -5,7 +5,7 @@ import com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentTyp
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -424,7 +424,7 @@ public class StateStoreUtilsTest {
     }
 
     private ConfigStore<ServiceSpec> newConfigStore(final Persister persister) throws Exception {
-        final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+        final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
 
         ClassLoader classLoader = StateStoreUtilsTest.class.getClassLoader();
         File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());

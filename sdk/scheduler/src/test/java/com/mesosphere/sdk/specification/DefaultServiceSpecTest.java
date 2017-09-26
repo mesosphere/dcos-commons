@@ -6,7 +6,7 @@ import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 
 public class DefaultServiceSpecTest {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
     @Mock
     private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
     @Mock

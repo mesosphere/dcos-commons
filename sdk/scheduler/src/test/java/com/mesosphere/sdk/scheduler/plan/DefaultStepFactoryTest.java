@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultStepFactoryTest {
 
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private StepFactory stepFactory;
     private ConfigStore<ServiceSpec> configStore;

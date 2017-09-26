@@ -95,7 +95,7 @@ public class TLSEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 tlsArtifactsPersisterMock,
                 tlsArtifactsGeneratorMock,
-                OfferRequirementTestUtils.getTestSchedulerFlags());
+                OfferRequirementTestUtils.getTestSchedulerConfig());
     }
 
     private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
@@ -110,7 +110,7 @@ public class TLSEvaluationStageTest {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true);

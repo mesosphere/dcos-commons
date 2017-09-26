@@ -6,7 +6,7 @@ import com.mesosphere.sdk.dcos.ca.DefaultCAClient;
 import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.*;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
@@ -41,9 +41,9 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     private final TLSArtifactsPersister tlsArtifactsPersister;
     private final TLSArtifactsGenerator tlsArtifactsGenerator;
 
-    private final SchedulerFlags schedulerFlags;
+    private final SchedulerConfig schedulerConfig;
 
-    public static Builder newBuilder(String serviceName, SchedulerFlags flags) {
+    public static Builder newBuilder(String serviceName, SchedulerConfig flags) {
         return new Builder(serviceName, flags);
     }
 
@@ -53,12 +53,12 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             String taskName,
             TLSArtifactsPersister tlsArtifactsPersister,
             TLSArtifactsGenerator tlsArtifactsGenerator,
-            SchedulerFlags schedulerFlags) {
+            SchedulerConfig schedulerConfig) {
         this.serviceName = serviceName;
         this.taskName = taskName;
         this.tlsArtifactsPersister = tlsArtifactsPersister;
         this.tlsArtifactsGenerator = tlsArtifactsGenerator;
-        this.schedulerFlags = schedulerFlags;
+        this.schedulerConfig = schedulerConfig;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                         getCertificateNamesGenerator(podInfoBuilder, taskSpec);
 
                 secretNameGenerator = new SecretNameGenerator(
-                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerFlags, serviceName),
+                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerConfig, serviceName),
                         TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
                         transportEncryptionSpec.getName(),
                         certificateNamesGenerator.getSANs());
@@ -190,16 +190,16 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     public static class Builder {
 
         private final String serviceName;
-        private final SchedulerFlags schedulerFlags;
+        private final SchedulerConfig schedulerConfig;
 
         @Valid
         @NotNull
         @Size(min = 1)
         private String taskName;
 
-        private Builder(String serviceName, SchedulerFlags schedulerFlags) {
+        private Builder(String serviceName, SchedulerConfig schedulerConfig) {
             this.serviceName = serviceName;
-            this.schedulerFlags = schedulerFlags;
+            this.schedulerConfig = schedulerConfig;
         }
 
         public Builder setTaskName(String taskName) {
@@ -212,7 +212,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
             Executor executor = Executor.newInstance(
                     new DcosHttpClientBuilder()
-                            .setTokenProvider(schedulerFlags.getDcosAuthTokenProvider())
+                            .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
                             .setRedirectStrategy(new LaxRedirectStrategy() {
                                 protected boolean isRedirectable(String method) {
                                     // Also treat PUT calls as redirectable
@@ -225,7 +225,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                     taskName,
                     new TLSArtifactsPersister(new DefaultSecretsClient(executor), serviceName),
                     new TLSArtifactsGenerator(KeyPairGenerator.getInstance("RSA"), new DefaultCAClient(executor)),
-                    schedulerFlags);
+                    schedulerConfig);
         }
     }
 

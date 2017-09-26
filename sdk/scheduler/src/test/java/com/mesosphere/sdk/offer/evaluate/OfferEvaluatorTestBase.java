@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -23,7 +23,7 @@ import java.util.UUID;
  * A base class for use in writing offer evaluation tests.
  */
 public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
-    protected static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    protected static final SchedulerConfig flags = OfferRequirementTestUtils.getTestSchedulerConfig();
     protected StateStore stateStore;
     protected OfferEvaluator evaluator;
     protected UUID targetConfig;

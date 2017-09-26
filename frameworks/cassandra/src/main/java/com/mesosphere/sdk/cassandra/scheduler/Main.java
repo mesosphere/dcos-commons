@@ -4,7 +4,7 @@ import com.google.common.base.Joiner;
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
 import com.mesosphere.sdk.config.validate.TaskEnvCannotChange;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -17,20 +17,22 @@ import java.util.*;
  * Cassandra Service.
  */
 public class Main {
+
     public static void main(String[] args) throws Exception {
         new DefaultService(createSchedulerBuilder(new File(args[0]))).run();
     }
 
     private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification)
             throws Exception {
-        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
         return DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
+                DefaultServiceSpec
+                        .newGenerator(rawServiceSpec, schedulerConfig, pathToYamlSpecification.getParentFile())
                         .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
                         .build(),
-                schedulerFlags)
+                schedulerConfig)
                 // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
                 // we need to allow the case where they may have previously been unset:
                 .setCustomConfigValidators(Arrays.asList(

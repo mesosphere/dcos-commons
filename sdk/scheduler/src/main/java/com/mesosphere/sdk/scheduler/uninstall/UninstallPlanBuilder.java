@@ -22,7 +22,7 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
@@ -60,7 +60,7 @@ class UninstallPlanBuilder {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
@@ -128,13 +128,13 @@ class UninstallPlanBuilder {
                         ? customSecretsClientForTests.get()
                         : new DefaultSecretsClient(
                                 Executor.newInstance(new DcosHttpClientBuilder()
-                                        .setTokenProvider(schedulerFlags.getDcosAuthTokenProvider())
+                                        .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
                                         .setRedirectStrategy(new LaxRedirectStrategy())
                                         .build()));
                 Step cleanupStep = new TLSCleanupStep(
                         Status.PENDING,
                         secretsClient,
-                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerFlags, serviceSpec.getName()));
+                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerConfig, serviceSpec.getName()));
                 phases.add(new DefaultPhase(
                         TLS_CLEANUP_PHASE,
                         Collections.singletonList(cleanupStep),

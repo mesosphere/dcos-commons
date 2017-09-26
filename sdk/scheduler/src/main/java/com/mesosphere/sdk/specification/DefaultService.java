@@ -45,34 +45,34 @@ public class DefaultService implements Runnable {
         //No initialization needed
     }
 
-    public DefaultService(File yamlSpecFile, SchedulerFlags schedulerFlags) throws Exception {
-        this(yamlSpecFile, yamlSpecFile.getParentFile(), schedulerFlags);
+    public DefaultService(File yamlSpecFile, SchedulerConfig schedulerConfig) throws Exception {
+        this(yamlSpecFile, yamlSpecFile.getParentFile(), schedulerConfig);
     }
 
-    public DefaultService(File yamlSpecFile, File configTemplateDir, SchedulerFlags schedulerFlags)
+    public DefaultService(File yamlSpecFile, File configTemplateDir, SchedulerConfig schedulerConfig)
             throws Exception {
-        this(RawServiceSpec.newBuilder(yamlSpecFile).build(), configTemplateDir, schedulerFlags);
+        this(RawServiceSpec.newBuilder(yamlSpecFile).build(), configTemplateDir, schedulerConfig);
     }
 
-    public DefaultService(RawServiceSpec rawServiceSpec, File configTemplateDir, SchedulerFlags schedulerFlags)
+    public DefaultService(RawServiceSpec rawServiceSpec, File configTemplateDir, SchedulerConfig schedulerConfig)
             throws Exception {
         this(DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configTemplateDir).build(),
-                schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configTemplateDir).build(),
+                schedulerConfig)
                 .setPlansFrom(rawServiceSpec));
     }
 
     public DefaultService(
             ServiceSpec serviceSpecification,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Plan> plans) throws Exception {
-        this(DefaultScheduler.newBuilder(serviceSpecification, schedulerFlags)
+        this(DefaultScheduler.newBuilder(serviceSpecification, schedulerConfig)
                 .setPlans(plans));
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerFlags flags = schedulerBuilder.getSchedulerFlags();
+        SchedulerConfig flags = schedulerBuilder.getSchedulerConfig();
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
                 flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
                 SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
@@ -92,7 +92,7 @@ public class DefaultService implements Runnable {
     private void initService() {
         // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
         this.stateStore = schedulerBuilder.getStateStore();
-        if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+        if (schedulerBuilder.getSchedulerConfig().isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                         "Uninstall cannot be canceled once enabled.");
@@ -104,8 +104,7 @@ public class DefaultService implements Runnable {
                     schedulerBuilder.getServiceSpec(),
                     stateStore,
                     schedulerBuilder.getConfigStore(),
-                    schedulerBuilder.getSchedulerFlags(),
-                    Optional.empty());
+                    schedulerBuilder.getSchedulerConfig());
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -120,7 +119,7 @@ public class DefaultService implements Runnable {
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerConfig().getJavaHome());
 
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
@@ -140,7 +139,7 @@ public class DefaultService implements Runnable {
                                 scheduler.getMesosScheduler().get(),
                                 frameworkInfo,
                                 zkUri,
-                                schedulerBuilder.getSchedulerFlags())
+                                schedulerBuilder.getSchedulerConfig())
                         .run();
                 LOGGER.error("Scheduler driver exited with status: {}", status);
                 // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.

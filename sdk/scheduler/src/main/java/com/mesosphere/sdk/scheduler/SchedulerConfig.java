@@ -23,12 +23,12 @@ import java.util.Map;
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  * to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.
  */
-public class SchedulerFlags {
+public class SchedulerConfig {
 
     /**
      * Exception which is thrown when failing to retrieve or parse a given flag value.
      */
-    public static class FlagException extends RuntimeException {
+    public static class ConfigException extends RuntimeException {
 
         /**
          * A machine-accessible error type.
@@ -39,17 +39,17 @@ public class SchedulerFlags {
             INVALID_VALUE
         }
 
-        public static FlagException notFound(String message) {
-            return new FlagException(Type.NOT_FOUND, message);
+        public static ConfigException notFound(String message) {
+            return new ConfigException(Type.NOT_FOUND, message);
         }
 
-        public static FlagException invalidValue(String message) {
-            return new FlagException(Type.INVALID_VALUE, message);
+        public static ConfigException invalidValue(String message) {
+            return new ConfigException(Type.INVALID_VALUE, message);
         }
 
         private final Type type;
 
-        private FlagException(Type type, String message) {
+        private ConfigException(Type type, String message) {
             super(message);
             this.type = type;
         }
@@ -126,23 +126,23 @@ public class SchedulerFlags {
     private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
 
     /**
-     * Returns a new {@link SchedulerFlags} instance which is based off the process environment.
+     * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
      */
-    public static SchedulerFlags fromEnv() {
+    public static SchedulerConfig fromEnv() {
         return fromMap(System.getenv());
     }
 
     /**
-     * Returns a new {@link SchedulerFlags} instance which is based off the provided custom environment map.
+     * Returns a new {@link SchedulerConfig} instance which is based off the provided custom environment map.
      */
-    public static SchedulerFlags fromMap(Map<String, String> map) {
-        return new SchedulerFlags(map);
+    public static SchedulerConfig fromMap(Map<String, String> map) {
+        return new SchedulerConfig(map);
     }
 
-    private final FlagStore flagStore;
+    private final EnvStore flagStore;
 
-    private SchedulerFlags(Map<String, String> flagMap) {
-        this.flagStore = new FlagStore(flagMap);
+    private SchedulerConfig(Map<String, String> flagMap) {
+        this.flagStore = new EnvStore(flagMap);
     }
 
     /**
@@ -153,7 +153,7 @@ public class SchedulerFlags {
     }
 
     /**
-     * Returns the configured API port, or throws {@link FlagException} if the environment lacked the required
+     * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
      * information.
      */
     public int getApiServerPort() {
@@ -253,12 +253,12 @@ public class SchedulerFlags {
     /**
      * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
      */
-    private static class FlagStore {
+    private static class EnvStore {
 
-        private final Map<String, String> flagMap;
+        private final Map<String, String> envMap;
 
-        private FlagStore(Map<String, String> flagMap) {
-            this.flagMap = flagMap;
+        private EnvStore(Map<String, String> envMap) {
+            this.envMap = envMap;
         }
 
         private int getOptionalInt(String envKey, int defaultValue) {
@@ -274,44 +274,44 @@ public class SchedulerFlags {
         }
 
         private String getOptional(String envKey, String defaultValue) {
-            String value = flagMap.get(envKey);
+            String value = envMap.get(envKey);
             return (value == null) ? defaultValue : value;
         }
 
         private String getRequired(String envKey) {
-            String value = flagMap.get(envKey);
+            String value = envMap.get(envKey);
             if (value == null) {
-                throw FlagException.notFound(String.format("Missing required environment variable: %s", envKey));
+                throw ConfigException.notFound(String.format("Missing required environment variable: %s", envKey));
             }
             return value;
         }
 
         private boolean isPresent(String envKey) {
-            return flagMap.containsKey(envKey);
+            return envMap.containsKey(envKey);
         }
 
         /**
          * If the value cannot be parsed as an int, this points to the source envKey, and ensures that
-         * {@link SchedulerFlags} calls only throw {@link FlagException}.
+         * {@link SchedulerConfig} calls only throw {@link ConfigException}.
          */
         private static int toInt(String envKey, String envVal) {
             try {
                 return Integer.parseInt(envVal);
             } catch (NumberFormatException e) {
-                throw FlagException.invalidValue(String.format(
+                throw ConfigException.invalidValue(String.format(
                         "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
             }
         }
 
         /**
          * If the value cannot be parsed as a long, this points to the source envKey, and ensures that
-         * {@link SchedulerFlags} calls only throw {@link FlagException}.
+         * {@link SchedulerConfig} calls only throw {@link ConfigException}.
          */
         private static long toLong(String envKey, String envVal) {
             try {
                 return Long.parseLong(envVal);
             } catch (NumberFormatException e) {
-                throw FlagException.invalidValue(String.format(
+                throw ConfigException.invalidValue(String.format(
                         "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
             }
         }

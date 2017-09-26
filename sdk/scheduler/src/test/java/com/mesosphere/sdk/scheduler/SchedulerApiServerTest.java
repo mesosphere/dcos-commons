@@ -25,8 +25,8 @@ public class SchedulerApiServerTest {
         waitForTrue(listener.apiServerStarted);
     }
 
-    private SchedulerFlags getFlags(int port, Duration timeout) {
-        SchedulerFlags mockFlags = mock(SchedulerFlags.class);
+    private SchedulerConfig getFlags(int port, Duration timeout) {
+        SchedulerConfig mockFlags = mock(SchedulerConfig.class);
         when(mockFlags.getApiServerInitTimeout()).thenReturn(timeout);
         when(mockFlags.getApiServerPort()).thenReturn(port);
         return mockFlags;

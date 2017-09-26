@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -129,7 +129,7 @@ public class SecretNameGenerator {
        return String.format("__dcos_base64__%s", name);
     }
 
-    public static String getNamespaceFromEnvironment(SchedulerFlags flags, String defaultNamespace) {
+    public static String getNamespaceFromEnvironment(SchedulerConfig flags, String defaultNamespace) {
         String secretNamespace = flags.getDcosSpace();
 
         if (secretNamespace.startsWith("/")) {
