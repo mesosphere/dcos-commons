@@ -1,5 +1,5 @@
 {
-  "packagingVersion": "2.0",
+  "packagingVersion": "4.0",
   "minDcosReleaseVersion": "1.9",
   "name": "portworx",
   "version": "{{package-version}}",
