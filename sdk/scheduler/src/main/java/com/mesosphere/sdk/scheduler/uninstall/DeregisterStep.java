@@ -20,7 +20,7 @@ public class DeregisterStep extends UninstallStep {
      * set separately.
      */
     DeregisterStep(StateStore stateStore) {
-        super("deregister", Status.PENDING);
+        super("deregister");
         this.stateStore = stateStore;
     }
 

@@ -17,9 +17,10 @@ import java.util.Optional;
  * with the mesos offer cycle and as such have stubs for most AbstractStep methods.
  */
 public abstract class UninstallStep extends AbstractStep {
+    private Status status = Status.PENDING;
 
-    public UninstallStep(String name, Status status) {
-        super(name, status);
+    public UninstallStep(String name) {
+        super(name);
     }
 
     @Override
@@ -45,4 +46,24 @@ public abstract class UninstallStep extends AbstractStep {
     public void update(Protos.TaskStatus status) {
         logger.debug("Step {} ignoring irrelevant TaskStatus: {}", getName(), TextFormat.shortDebugString(status));
     }
+
+    @Override
+    protected Status getStatusInternal() {
+        return status;
+    }
+
+    @Override
+    public void restart() {
+        status = Status.PENDING;
+    }
+
+    @Override
+    public void forceComplete() {
+        status = Status.COMPLETE;
+    }
+
+    protected void setStatus(Status status) {
+        this.status = status;
+    }
 }
+

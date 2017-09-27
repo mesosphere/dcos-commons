@@ -36,7 +36,6 @@ public class TLSCleanupStepTest {
 
     private TLSCleanupStep createTLSCleanupStep() {
         return new TLSCleanupStep(
-                Status.PENDING,
                 secretsClientMock,
                 TestConstants.SERVICE_NAME);
     }

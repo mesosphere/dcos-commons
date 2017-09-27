@@ -116,7 +116,6 @@ class UninstallPlanBuilder {
             phases.add(new DefaultPhase(
                     TLS_CLEANUP_PHASE,
                     Collections.singletonList(new TLSCleanupStep(
-                            Status.PENDING,
                             secretsClient.get(),
                             SecretNameGenerator.getNamespaceFromEnvironment(serviceSpec.getName(), schedulerFlags))),
                     new SerialStrategy<>(),

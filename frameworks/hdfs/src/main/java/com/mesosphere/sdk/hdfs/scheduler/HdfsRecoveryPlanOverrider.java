@@ -87,7 +87,6 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Step bootstrapStep =
                 new DefaultRecoveryStep(
                         inputBootstrapStep.getName(),
-                        Status.PENDING,
                         bootstrapPodInstanceRequirement,
                         new UnconstrainedLaunchConstrainer(),
                         stateStore);
@@ -103,7 +102,6 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Step nodeStep =
                 new DefaultRecoveryStep(
                         inputNodeStep.getName(),
-                        Status.PENDING,
                         nameNodePpodInstanceRequirement,
                         new UnconstrainedLaunchConstrainer(),
                         stateStore);

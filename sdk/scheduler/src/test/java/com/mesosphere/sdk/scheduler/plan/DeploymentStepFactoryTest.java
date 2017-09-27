@@ -16,9 +16,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * This class tests the {@link DefaultStepFactory} class.
+ * This class tests the {@link DeploymentStepFactory} class.
  */
-public class DefaultStepFactoryTest {
+public class DeploymentStepFactoryTest {
 
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
@@ -73,7 +73,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        stepFactory = new DefaultStepFactory(configStore, stateStore);
+        stepFactory = new DeploymentStepFactory(configStore, stateStore);
 
         return new DefaultPodInstance(podSpec, 0);
     }
@@ -107,7 +107,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        stepFactory = new DefaultStepFactory(configStore, stateStore);
+        stepFactory = new DeploymentStepFactory(configStore, stateStore);
 
         return new DefaultPodInstance(podSpec, 0);
     }

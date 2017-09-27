@@ -19,13 +19,13 @@ import java.util.stream.Collectors;
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
  */
-public class DefaultStepFactory implements StepFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
+public class DeploymentStepFactory implements StepFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentStepFactory.class);
 
     private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;
 
-    public DefaultStepFactory(
+    public DeploymentStepFactory(
             ConfigTargetStore configTargetStore,
             StateStore stateStore) {
         this.configTargetStore = configTargetStore;
@@ -46,15 +46,14 @@ public class DefaultStepFactory implements StepFactory {
                 .collect(Collectors.toList());
 
         try {
-            Status status = taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos);
             String stepName = TaskUtils.getStepName(podInstance, tasksToLaunch);
             PodInstanceRequirement podInstanceRequirement =
                     PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build();
 
             return new DeploymentStep(
                     stepName,
-                    status,
                     podInstanceRequirement,
+                    isComplete(podInstance, taskInfos),
                     Collections.emptyList());
         } catch (ConfigStoreException | TaskException e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
@@ -98,25 +97,29 @@ public class DefaultStepFactory implements StepFactory {
         return new HashSet<T>(collection).size() < collection.size();
     }
 
-    private Status getStatus(PodInstance podInstance, List<Protos.TaskInfo> taskInfos)
+    private boolean isComplete(PodInstance podInstance, List<Protos.TaskInfo> taskInfos)
             throws Step.InvalidStepException, ConfigStoreException, TaskException {
+
+        if (taskInfos.isEmpty()) {
+            return false;
+        }
 
         List<Status> statuses = new ArrayList<>();
         UUID targetConfigId = configTargetStore.getTargetConfig();
         for (Protos.TaskInfo taskInfo : taskInfos) {
-           statuses.add(getStatus(podInstance, taskInfo, targetConfigId));
+           statuses.add(isComplete(podInstance, taskInfo, targetConfigId));
         }
 
         for (Status status : statuses) {
             if (!status.equals(Status.COMPLETE)) {
-                return Status.PENDING;
+                return false;
             }
         }
 
-        return Status.COMPLETE;
+        return true;
     }
 
-    private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo, UUID targetConfigId)
+    private Status isComplete(PodInstance podInstance, Protos.TaskInfo taskInfo, UUID targetConfigId)
             throws TaskException, Step.InvalidStepException {
 
         boolean isOnTarget = isOnTarget(taskInfo, targetConfigId);

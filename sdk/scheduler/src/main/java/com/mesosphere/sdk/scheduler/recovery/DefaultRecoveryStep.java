@@ -25,11 +25,10 @@ public class DefaultRecoveryStep extends DeploymentStep {
 
     public DefaultRecoveryStep(
             String name,
-            Status status,
             PodInstanceRequirement podInstanceRequirement,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore) {
-        super(name, status, podInstanceRequirement, Collections.emptyList());
+        super(name, podInstanceRequirement, false, Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
         this.stateStore = stateStore;
     }

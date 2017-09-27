@@ -59,8 +59,8 @@ public class DefaultPhaseFactory implements PhaseFactory {
             } catch (Step.InvalidStepException | InvalidRequirementException e) {
                 steps.add(new DeploymentStep(
                         PodInstance.getName(podSpec, i),
-                        Status.ERROR,
                         PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
+                        false,
                         Arrays.asList(ExceptionUtils.getStackTrace(e))));
             }
         }
