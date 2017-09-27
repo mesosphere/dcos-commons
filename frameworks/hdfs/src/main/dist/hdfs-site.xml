@@ -46,31 +46,11 @@
     </property>
     <property>
         <name>dfs.namenode.safemode.threshold-pct</name>
-        <value>{{NAME_NODE_SAFEMODE_THRESHOLD_PCT}}</value>
+        <value>{{NAMENODE_SAFEMODE_THRESHOLD_PCT}}</value>
     </property>
     <property>
         <name>dfs.namenode.heartbeat.recheck-interval</name>
-        <value>{{NAME_NODE_HEARTBEAT_RECHECK_INTERVAL}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.handler.count</name>
-        <value>{{NAME_NODE_HANDLER_COUNT}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
-        <value>{{NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.min</name>
-        <value>{{NAME_NODE_REPLICATION_MIN}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
-        <value>{{NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
-        <value>{{NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK}}</value>
+        <value>{{NAMENODE_HEARTBEAT_RECHECK_INTERVAL}}</value>
     </property>
     <property>
         <name>dfs.namenode.replication.considerLoad</name>
@@ -412,7 +392,7 @@
     </property>
     <property>
         <name>dfs.datanode.handler.count</name>
-        <value>{{DATA_NODE_HANDLER_COUNT}}</value>
+        <value>{{DATANODE_HANDLER_COUNT}}</value>
     </property>
     <property>
         <name>dfs.datanode.dns.nameserver</name>

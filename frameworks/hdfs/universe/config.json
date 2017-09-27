@@ -177,6 +177,21 @@
           "type": "string",
           "default": "ROOT"
         },
+        "hadoop_namenode_opts": {
+          "type": "string",
+          "description": "Options to specify when running the name node.",
+          "default": ""
+        },
+        "logging_level": {
+          "type": "string",
+          "description": "The logging level for dfs namenode. Other values are 'dir' (trace namespace mutations), 'block'' (trace block under/over replications and block creations/deletions), or 'all'.",
+          "default": "info"
+        },
+        "heartbeat_recheck_interval": {
+          "type": "integer",
+          "description": "This time decides the interval to check for expired datanodes.",
+          "default": 60000
+        },
         "replication_considerLoad": {
           "description": "Decide if chooseTarget considers the target's load or not",
           "type": "boolean",
@@ -801,11 +816,6 @@
           "description": "If true, permissions checking is enabled",
           "default": false
         },
-        "name_node_heartbeat_recheck_interval": {
-          "type": "integer",
-          "description": "This time decides the interval to check for expired datanodes.",
-          "default": 60000
-        },
         "compress_image": {
           "type": "boolean",
           "description": "If true, the File System image will be compressed.",
@@ -825,11 +835,6 @@
           "type": "integer",
           "description": "Indicates the number of retries a client will make to establish a server connection.",
           "default": 300
-        },
-        "namenode_logging_level": {
-          "type": "string",
-          "description": "The logging level for dfs namenode. Other values are 'dir' (trace namespace mutations), 'block'' (trace block under/over replications and block creations/deletions), or 'all'.",
-          "default": "info"
         },
         "namenode_rpc-bind-host_name_node_0": {
           "type": "string",
