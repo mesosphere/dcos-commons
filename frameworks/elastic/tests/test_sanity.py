@@ -33,7 +33,7 @@ def configure_package(configure_security):
                 "master_nodes": {
                     "cpus": 0.25
                 },
-                "date_nodes": {
+                "data_nodes": {
                     "cpus": 0.25
                 },
                 "ingest_nodes": {

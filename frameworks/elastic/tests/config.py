@@ -54,13 +54,13 @@ def install(
         expected_running_tasks,
         additional_options={},
         package_version=None,
-        timeout_seconds=5*60,
+        timeout_seconds=25*60,
         wait_for_deployment=True):
     test_options={
         "master_nodes": {
             "cpus": 0.25
         },
-        "date_nodes": {
+        "data_nodes": {
             "cpus": 0.25
         },
         "ingest_nodes": {
