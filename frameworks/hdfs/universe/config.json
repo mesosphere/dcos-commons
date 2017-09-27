@@ -371,6 +371,111 @@
           "type": "string",
           "description": "*Note*: Advanced property. Change with caution. This determines the percentage amount of block invalidations (deletes) to do over a single DN heartbeat deletion command. The final deletion count is determined by applying this percentage to the number of live nodes in the system. The resultant number is the number of blocks from the deletion list chosen for proper invalidation over a single heartbeat of a single DN. Value should be a positive, non-zero percentage in float notation (X.Yf), with 1.0f meaning 100%.",
           "default": "0.32f"
+        },
+        "replication_work_multiplier_per_iteration": {
+          "type": "integer",
+          "description": "*Note*: Advanced property. Change with caution. This determines the total amount of block transfers to begin in parallel at a DN, for replication, when such a command list is being sent over a DN heartbeat by the NN. The actual number is obtained by multiplying this multiplier with the total number of live nodes in the cluster. The result number is the number of blocks to begin transfers immediately for, per DN heartbeat. This number can be any positive, non-zero integer.",
+          "default": 2
+        },
+        "audit_loggers": {
+          "type": "string",
+          "description": "List of classes implementing audit loggers that will receive audit events. These should be implementations of org.apache.hadoop.hdfs.server.namenode.AuditLogger. The special value 'default' can be used to reference the default audit logger, which uses the configured log system. Installing custom audit loggers may affect the performance and stability of the NameNode. Refer to the custom logger's documentation for more details.",
+          "default": "default"
+        },
+        "edits_noeditlogchannelflush": {
+          "type": "boolean",
+          "description": "Specifies whether to flush edit log file channel. When set, expensive FileChannel#force calls are skipped and synchronous disk writes are enabled instead by opening the edit log file with RandomAccessFile('rws') flags. This can significantly improve the performance of edit log writes on the Windows platform. Note that the behavior of the 'rws' flags is platform and hardware specific and might not provide the same level of guarantees as FileChannel#force. For example, the write will skip the disk-cache on SAS and SCSI devices while it might not on SATA devices. This is an expert level setting, change with caution.",
+          "default": false
+        },
+        "enable_retrycache": {
+          "type": "boolean",
+          "description": "This enables the retry cache on the namenode. Namenode tracks for non-idempotent requests the corresponding response. If a client retries the request, the response from the retry cache is sent. Such operations are tagged with annotation @AtMostOnce in namenode protocols. It is recommended that this flag be set to true. Setting it to false, will result in clients getting failure responses to retried request. This flag must be enabled in HA setup for transparent fail-overs. The entries in the cache have expiration time configurable using dfs.namenode.retrycache.expirytime.millis.",
+          "default": true
+        },
+        "retrycache_expirytime_millis": {
+          "type": "integer",
+          "description": "The time for which retry cache entries are retained.",
+          "default": 600000
+        },
+        "retrycache_heap_percent": {
+          "type": "string",
+          "description": "This parameter configures the heap size allocated for retry cache (excluding the response cached). This corresponds to approximately 4096 entries for every 64MB of namenode process java heap size. Assuming retry cache entry expiration time (configured using dfs.namenode.retrycache.expirytime.millis) of 10 minutes, this enables retry cache to support 7 operations per second sustained for 10 minutes. As the heap size is increased, the operation rate linearly increases.",
+          "default": "0.03f"
+        },
+        "path_based_cache_block_map_allocation_percent": {
+          "type": "number",
+          "description": "The percentage of the Java heap which we will allocate to the cached blocks map. The cached blocks map is a hash map which uses chained hashing. Smaller maps may be accessed more slowly if the number of cached blocks is large; larger maps will consume more memory.",
+          "default": 0.25
+        },
+        "list_cache_directives_num_responses": {
+          "type": "integer",
+          "description": "This value controls the number of cache directives that the NameNode will send over the wire in response to a listDirectives RPC.",
+          "default": 100
+        },
+        "list_cache_pools_num_responses": {
+          "type": "integer",
+          "description": "This value controls the number of cache pools that the NameNode will send over the wire in response to a listPools RPC.",
+          "default": 100
+        },
+        "path_based_cache_refresh_interval_ms": {
+          "type": "integer",
+          "description": "The amount of milliseconds between subsequent path cache rescans. Path cache rescans are when we calculate which blocks should be cached, and on what datanodes. By default, this parameter is set to 30 seconds.",
+          "default": 30000
+        },
+        "path_based_cache_retry_interval_ms": {
+          "type": "integer",
+          "description": "When the NameNode needs to uncache something that is cached, or cache something that is not cached, it must direct the DataNodes to do so by sending a DNA_CACHE or DNA_UNCACHE command in response to a DataNode heartbeat. This parameter controls how frequently the NameNode will resend these commands.",
+          "default": 30000
+        },
+        "edit_log_autoroll_multiplier_threshold": {
+          "type": "number",
+          "description": "Determines when an active namenode will roll its own edit log. The actual threshold (in number of edits) is determined by multiplying this value by dfs.namenode.checkpoint.txns. This prevents extremely large edit files from accumulating on the active namenode, which can cause timeouts during namenode startup and pose an administrative hassle. This behavior is intended as a failsafe for when the standby or secondary namenode fail to roll the edit log by the normal checkpoint threshold.",
+          "default": 2.0
+        },
+        "edit_log_autoroll_check_interval_ms": {
+          "type": "integer",
+          "description": "How often an active namenode will check if it needs to roll its edit log, in milliseconds.",
+          "default": 300000
+        },
+        "reject-unresolved-dn-topology-mapping": {
+          "type": "boolean",
+          "description": "If the value is set to true, then namenode will reject datanode registration if the topology mapping for a datanode is not resolved and NULL is returned (script defined by net.topology.script.file.name fails to execute). Otherwise, datanode will be registered and the default rack will be assigned as the topology path. Topology paths are important for data resiliency, since they define fault domains. Thus it may be unwanted behavior to allow datanode registration with the default rack if the resolving topology failed.",
+          "default": false
+        },
+        "xattrs_enabled": {
+          "type": "boolean",
+          "description": "Whether support for extended attributes is enabled on the NameNode.",
+          "default": true
+        },
+        "fs-limits_max-attrs-per-inode": {
+          "type": "integer",
+          "description": "Maximum number of extended attributes per inode.",
+          "default": 32
+        },
+        "fs-limits_max-attrs-size": {
+          "type": "integer",
+          "description": "The maximum combined size of the name and value of an extended attribute in bytes.",
+          "default": 16384
+        },
+        "startup_delay_block_deletion_sec": {
+          "type": "integer",
+          "description": "The delay in seconds at which we will pause the blocks deletion after Namenode startup. By default it's disabled. In the case a directory has large number of directories and files are deleted, suggested delay is one hour to give the administrator enough time to notice large number of pending deletion blocks and take corrective action.",
+          "default": 0
+        },
+        "list_encryption_zones_num_responses": {
+          "type": "integer",
+          "description": "When listing encryption zones, the maximum number of zones that will be returned in a batch. Fetching the list incrementally in batches improves namenode performance.",
+          "default": 100
+        },
+        "inotify_max_events_per_rpc": {
+          "type": "integer",
+          "description": "Maximum number of events that will be sent to an inotify client in a single RPC response. The default value attempts to amortize away the overhead for this RPC while avoiding huge memory requirements for the client and NameNode (1000 events should consume no more than 1 MB.)",
+          "default": 1000
+        },
+        "legacy-oiv-image_dir": {
+          "type": "string",
+          "description": "Determines where to save the namespace in the old fsimage format during checkpointing by standby NameNode or SecondaryNameNode. Users can dump the contents of the old format fsimage by oiv_legacy command. If the value is not specified, old format fsimage will not be saved in checkpoint.",
+          "default": ""
         }
       },
       "required": [
@@ -393,14 +498,12 @@
         "safemode_extension",
         "resource_check_interval",
         "resource_du_reserved",
-        "resource_checked_volumes",
         "resource_checked_volumes_minimum",
         "max_objects",
         "decommission_interval",
         "decommission_nodes_per_interval",
         "replication_interval",
         "accesstime_precision",
-        "plugins",
         "checkpoint_period",
         "checkpoint_txns",
         "checkpoint_check_period",
@@ -416,7 +519,26 @@
         "avoid_write_stale_datanode",
         "stale_datanode_interval",
         "write_stale_datanode_ratio",
-        "invalidate_work_pct_per_iteration"
+        "invalidate_work_pct_per_iteration",
+        "audit_loggers",
+        "edits_noeditlogchannelflush",
+        "enable_retrycache",
+        "retrycache_expirytime_millis",
+        "retrycache_heap_percent",
+        "path_based_cache_block_map_allocation_percent",
+        "list_cache_directives_num_responses",
+        "list_cache_pools_num_responses",
+        "path_based_cache_refresh_interval_ms",
+        "path_based_cache_retry_interval_ms",
+        "edit_log_autoroll_multiplier_threshold",
+        "edit_log_autoroll_check_interval_ms",
+        "reject-unresolved-dn-topology-mapping",
+        "xattrs_enabled",
+        "fs-limits_max-attrs-per-inode",
+        "fs-limits_max-attrs-size",
+        "startup_delay_block_deletion_sec",
+        "list_encryption_zones_num_responses",
+        "inotify_max_events_per_rpc"
       ]
     },
     "zkfc_node": {
@@ -544,9 +666,54 @@
           "default": false
         },
         "shared_file_descriptor_paths": {
-          "type": "boolean",
+          "type": "string",
           "description": "A comma-separated list of paths to use when creating file descriptors that will be shared between the DataNode and the DFSClient. Typically we use /dev/shm, so that the file descriptors will not be written to disk. Systems that don't have /dev/shm will fall back to /tmp by default.",
           "default": "/dev/shm,/tmp"
+        },
+        "hdfs-blocks-metadata_enabled": {
+          "type": "boolean",
+          "description": "Boolean which enables backend datanode-side support for the experimental DistributedFileSystem#getFileVBlockStorageLocations API.",
+          "default": false
+        },
+        "available-space-volume-choosing-policy_balanced-space-threshold": {
+          "type": "integer",
+          "description": "Only used when the dfs.datanode.fsdataset.volume.choosing.policy is set to org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy. This setting controls how much DN volumes are allowed to differ in terms of bytes of free disk space before they are considered imbalanced. If the free space of all the volumes are within this range of each other, the volumes will be considered balanced and block assignments will be done on a pure round robin basis.",
+          "default": 10737418240
+        },
+        "available-space-volume-choosing-policy_balanced-space-preference-fraction": {
+          "type": "string",
+          "description": "Only used when the dfs.datanode.fsdataset.volume.choosing.policy is set to org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy. This setting controls what percentage of new block allocations will be sent to volumes with more available disk space than others. This setting should be in the range 0.0 - 1.0, though in practice 0.5 - 1.0, since there should be no reason to prefer that volumes with less available disk space receive more block allocations.",
+          "default": "0.75f"
+        },
+        "max_locked_memory": {
+          "type": "integer",
+          "description": "The amount of memory in bytes to use for caching of block replicas in memory on the datanode. The datanode's maximum locked memory soft ulimit (RLIMIT_MEMLOCK) must be set to at least this value, else the datanode will abort on startup. By default, this parameter is set to 0, which disables in-memory caching. If the native libraries are not available to the DataNode, this configuration has no effect.",
+          "default": 0
+        },
+        "fsdatasetcache_max_threads_per_volume": {
+          "type": "integer",
+          "description": "The maximum number of threads per volume to use for caching new data on the datanode. These threads consume both I/O and CPU. This can affect normal datanode operations.",
+          "default": 4
+        },
+        "slow_io_warning_threshold_ms": {
+          "type": "integer",
+          "description": "The threshold in milliseconds at which we will log a slow io warning in a datanode. By default, this parameter is set to 300 milliseconds.",
+          "default": 300
+        },
+        "cache_revocation_timeout_ms": {
+          "type": "integer",
+          "description": "When the DFSClient reads from a block file which the DataNode is caching, the DFSClient can skip verifying checksums. The DataNode will keep the block file in cache until the client is done. If the client takes an unusually long time, though, the DataNode may need to evict the block file from the cache anyway. This value controls how long the DataNode will wait for the client to release a replica that it is reading without checksums.",
+          "default": 900000
+        },
+        "cache_revocation_polling_ms": {
+          "type": "integer",
+          "description": "How often the DataNode should poll to see if the clients have stopped using a replica that the DataNode wants to uncache.",
+          "default": 500
+        },
+        "block_id_layout_upgrade_threads": {
+          "type": "integer",
+          "description": "The number of threads to use when creating hard links from current to previous blocks during upgrade of a DataNode to block ID-based block layout (see HDFS-6482 for details on the layout).",
+          "default": 12
         }
       },
       "required": [
@@ -561,7 +728,6 @@
         "directoryscan_interval",
         "directoryscan_threads",
         "balance_bandwidthPerSec",
-        "plugins",
         "failed_volumes_tolerated",
         "max_transfer_threads",
         "readahead_bytes",
@@ -569,7 +735,16 @@
         "drop_cache_behind_writes",
         "sync_behind_writes",
         "use_datanode_hostname",
-        "shared_file_descriptor_paths"
+        "shared_file_descriptor_paths",
+        "hdfs-blocks-metadata_enabled",
+        "available-space-volume-choosing-policy_balanced-space-threshold",
+        "available-space-volume-choosing-policy_balanced-space-preference-fraction",
+        "max_locked_memory",
+        "fsdatasetcache_max_threads_per_volume",
+        "slow_io_warning_threshold_ms",
+        "cache_revocation_timeout_ms",
+        "cache_revocation_polling_ms",
+        "block_id_layout_upgrade_threads"
       ]
     },
     "hdfs": {
@@ -905,6 +1080,176 @@
           "type": "integer",
           "description": "The length of time in milliseconds that the short-circuit shared memory watcher will go between checking for java interruptions sent from other threads. This is provided mainly for unit tests",
           "default": 60000
+        },
+        "webhdfs_enabled": {
+          "type": "boolean",
+          "description": "Enable WebHDFS (REST API) in Namenodes and Datanodes.",
+          "default": true
+        },
+        "fuse_connection_timeout": {
+          "type": "integer",
+          "description": "The minimum number of seconds that we'll cache libhdfs connection objects in fuse_dfs. Lower values will result in lower memory consumption; higher values may speed up access by avoiding the overhead of creating new connection objects.",
+          "default": 300
+        },
+        "fuse_timer_period": {
+          "type": "integer",
+          "description": "The number of seconds between cache expiry checks in fuse_dfs. Lower values will result in fuse_dfs noticing changes to Kerberos ticket caches more quickly.",
+          "default": 5
+        },
+        "metrics_percentiles_intervals": {
+          "type": "string",
+          "description": "Comma-delimited set of integers denoting the desired rollover intervals (in seconds) for percentile latency metrics on the Namenode and Datanode. By default, percentile latency metrics are disabled.",
+          "default": ""
+        },
+        "encrypt_data_transfer": {
+          "type": "boolean",
+          "description": "Whether or not actual block data that is read/written from/to HDFS should be encrypted on the wire. This only needs to be set on the NN and DNs, clients will deduce this automatically. It is possible to override this setting per connection by specifying custom logic via dfs.trustedchannel.resolver.class.",
+          "default": false
+        },
+        "encrypt_data_transfer_algorithm": {
+          "type": "string",
+          "description": "This value may be set to either '3des' or 'rc4'. If nothing is set, then the configured JCE default on the system is used (usually 3DES.) It is widely believed that 3DES is more cryptographically secure, but RC4 is substantially faster. Note that if AES is supported by both the client and server then this encryption algorithm will only be used to initially transfer keys for AES. (See dfs.encrypt.data.transfer.cipher.suites.)",
+          "default": ""
+        },
+        "encrypt_data_transfer_cipher_suites": {
+          "type": "string",
+          "description": "This value may be either undefined or AES/CTR/NoPadding. If defined, then dfs.encrypt.data.transfer uses the specified cipher suite for data encryption. If not defined, then only the algorithm specified in dfs.encrypt.data.transfer.algorithm is used. By default, the property is not defined.",
+          "default": ""
+        },
+        "encrypt_data_transfer_cipher_key_bitlength": {
+          "type": "integer",
+          "description": "The key bitlength negotiated by dfsclient and datanode for encryption. This value may be set to either 128, 192 or 256.",
+          "default": 128
+        },
+        "trustedchannel_resolver_class": {
+          "type": "string",
+          "description": "TrustedChannelResolver is used to determine whether a channel is trusted for plain data transfer. The TrustedChannelResolver is invoked on both client and server side. If the resolver indicates that the channel is trusted, then the data transfer will not be encrypted even if dfs.encrypt.data.transfer is set to true. The default implementation returns false indicating that the channel is not trusted.",
+          "default": ""
+        },
+        "data_transfer_protection": {
+          "type": "string",
+          "description": "A comma-separated list of SASL protection values used for secured connections to the DataNode when reading or writing block data. Possible values are authentication, integrity and privacy. authentication means authentication only and no integrity or privacy; integrity implies authentication and integrity are enabled; and privacy implies all of authentication, integrity and privacy are enabled. If dfs.encrypt.data.transfer is set to true, then it supersedes the setting for dfs.data.transfer.protection and enforces that all connections must use a specialized encrypted SASL handshake. This property is ignored for connections to a DataNode listening on a privileged port. In this case, it is assumed that the use of a privileged port establishes sufficient trust.",
+          "default": ""
+        },
+        "data_transfer_saslproperties_resolver_class": {
+          "type": "string",
+          "description": "SaslPropertiesResolver used to resolve the QOP used for a connection to the DataNode when reading or writing block data. If not specified, the value of hadoop.security.saslproperties.resolver.class is used as the default value.",
+          "default": ""
+        },
+        "client_file-block-storage-locations_num-threads": {
+          "type": "integer",
+          "description": "Number of threads used for making parallel RPCs in DistributedFileSystem#getFileBlockStorageLocations().",
+          "default": 10
+        },
+        "client_file-block-storage-locations_timeout_millis": {
+          "type": "integer",
+          "description": "Timeout (in milliseconds) for the parallel RPCs made in DistributedFileSystem#getFileBlockStorageLocations().",
+          "default": 1000
+        },
+        "client_cache_drop_behind_writes": {
+          "type": "boolean",
+          "description": "Just like dfs.datanode.drop.cache.behind.writes, this setting causes the page cache to be dropped behind HDFS writes, potentially freeing up more memory for other uses. Unlike dfs.datanode.drop.cache.behind.writes, this is a client-side setting rather than a setting for the entire datanode. If present, this setting will override the DataNode default. If the native libraries are not available to the DataNode, this configuration has no effect.",
+          "default": false
+        },
+        "client_cache_drop_behind_reads": {
+          "type": "boolean",
+          "description": "Just like dfs.datanode.drop.cache.behind.reads, this setting causes the page cache to be dropped behind HDFS reads, potentially freeing up more memory for other uses. Unlike dfs.datanode.drop.cache.behind.reads, this is a client-side setting rather than a setting for the entire datanode. If present, this setting will override the DataNode default. If the native libraries are not available to the DataNode, this configuration has no effect.",
+          "default": false
+        },
+        "client_cache_readahead": {
+          "type": "boolean",
+          "description": "When using remote reads, this setting causes the datanode to read ahead in the block file using posix_fadvise, potentially decreasing I/O wait times. Unlike dfs.datanode.readahead.bytes, this is a client-side setting rather than a setting for the entire datanode. If present, this setting will override the DataNode default. When using local reads, this setting determines how much readahead we do in BlockReaderLocal. If the native libraries are not available to the DataNode, this configuration has no effect.",
+          "default": false
+        },
+        "client_mmap_enabled": {
+          "type": "boolean",
+          "description": "If this is set to false, the client won't attempt to perform memory-mapped reads.",
+          "default": true
+        },
+        "client_mmap_cache_size": {
+          "type": "integer",
+          "description": "When zero-copy reads are used, the DFSClient keeps a cache of recently used memory mapped regions. This parameter controls the maximum number of entries that we will keep in that cache. The larger this number is, the more file descriptors we will potentially use for memory-mapped files. mmaped files also use virtual address space. You may need to increase your ulimit virtual address space limits before increasing the client mmap cache size. Note that you can still do zero-copy reads when this size is set to 0.",
+          "default": 256
+        },
+        "client_mmap_cache_timeout_ms": {
+          "type": "integer",
+          "description": "The minimum length of time that we will keep an mmap entry in the cache between uses. If an entry is in the cache longer than this, and nobody uses it, it will be removed by a background thread.",
+          "default": 3600000
+        },
+        "client_mmap_retry_timeout_ms": {
+          "type": "integer",
+          "description": "The minimum amount of time that we will wait before retrying a failed mmap operation.",
+          "default": 300000
+        },
+        "client_short_circuit_replica_stale_threshold_ms": {
+          "type": "integer",
+          "description": "The maximum amount of time that we will consider a short-circuit replica to be valid, if there is no communication from the DataNode. After this time has elapsed, we will re-fetch the short-circuit replica even if it is in the cache.",
+          "default": 1800000
+        },
+        "cachereport_intervalmsec": {
+          "type": "integer",
+          "description": "Determines cache reporting interval in milliseconds. After this amount of time, the DataNode sends a full report of its cache state to the NameNode. The NameNode uses the cache report to update its map of cached blocks to DataNode locations. This configuration has no effect if in-memory caching has been disabled by setting dfs.datanode.max.locked.memory to 0 (which is the default). If the native libraries are not available to the DataNode, this configuration has no effect.",
+          "default": 10000
+        },
+        "webhdfs_user_provider_user_pattern": {
+          "type": "string",
+          "description": "Valid pattern for user and group names for webhdfs, it must be a valid java regex.",
+          "default": "^[A-Za-z_][A-Za-z0-9._-]*[$]?$"
+        },
+        "client_context": {
+          "type": "string",
+          "description": "The name of the DFSClient context that we should use. Clients that share a context share a socket cache and short-circuit cache, among other things. You should only change this if you don't want to share with another set of threads.",
+          "default": "default"
+        },
+        "client_read_shortcircuit": {
+          "type": "boolean",
+          "description": "This configuration parameter turns on short-circuit local reads.",
+          "default": true
+        },
+        "client_read_shortcircuit_skip_checksum": {
+          "type": "boolean",
+          "description": "If this configuration parameter is set, short-circuit local reads will skip checksums. This is normally not recommended, but it may be useful for special setups. You might consider using this if you are doing your own checksumming outside of HDFS.",
+          "default": false
+        },
+        "client_read_shortcircuit_streams_cache_size": {
+          "type": "integer",
+          "description": "The DFSClient maintains a cache of recently opened file descriptors. This parameter controls the size of that cache. Setting this higher will use more file descriptors, but potentially provide better performance on workloads involving lots of seeks.",
+          "default": 256
+        },
+        "client_read_shortcircuit_streams_cache_expiry_ms": {
+          "type": "integer",
+          "description": "This controls the minimum amount of time file descriptors need to sit in the client cache context before they can be closed for being inactive for too long.",
+          "default": 300000
+        },
+        "client_use_legacy_blockreader_local": {
+          "type": "boolean",
+          "description": "Legacy short-circuit reader implementation based on HDFS-2246 is used if this configuration parameter is true. This is for the platforms other than Linux where the new implementation based on HDFS-347 is not available.",
+          "default": false
+        },
+        "block_local-path-access_user": {
+          "type": "string",
+          "description": "Comma separated list of the users allowd to open block files on legacy short-circuit local read.",
+          "default": ""
+        },
+        "client_domain_socket_data_traffic": {
+          "type": "boolean",
+          "description": "This control whether we will try to pass normal data traffic over UNIX domain socket rather than over TCP socket on node-local data transfer. This is currently experimental and turned off by default.",
+          "default": false
+        },
+        "client_slow_io_warning_threshold_ms": {
+          "type": "integer",
+          "description": "The threshold in milliseconds at which we will log a slow io warning in a dfsclient. By default, this parameter is set to 30000 milliseconds (30 seconds).",
+          "default": 30000
+        },
+        "encryption_key_provider_uri": {
+          "type": "string",
+          "description": "The KeyProvider to use when interacting with encryption keys used when reading and writing to an encryption zone.",
+          "default": ""
+        },
+        "storage_policy_enabled": {
+          "type": "boolean",
+          "description": "Allow users to change the storage policy on files and directories.",
+          "default": true
         }
       },
       "required": [
@@ -927,10 +1272,6 @@
         "namenode_http-bind-host_name_node_0",
         "namenode_http-bind-host_name_node_1",
         "hadoop_hdfs_configuration_version",
-        "namenode_servicerpc_address_namenode_0",
-        "namenode_servicerpc_address_namenode_1",
-        "namenode_servicerpc_bind_host_namenode_0",
-        "namenode_servicerpc_bind_host_namenode_1",
         "client_cached_conn_retry",
         "default_chunk_view_size",
         "permissions_superusergroup",
@@ -948,8 +1289,6 @@
         "blockreport_initialDelay",
         "blockreport_split_threshold",
         "heartbeat_interval",
-        "hosts",
-        "hosts_exclude",
         "namenode_datanode_registration_ip-hostname-check",
         "stream-buffer-size",
         "bytes-per-checksum",
@@ -967,8 +1306,30 @@
         "ha_log-roll_period",
         "ha_tail-edits_period",
         "support_append",
-        "client_local_interfaces",
-        "short_circuit_shared_memory_watcher_interrupt_check_ms"
+        "short_circuit_shared_memory_watcher_interrupt_check_ms",
+        "webhdfs_enabled",
+        "fuse_connection_timeout",
+        "fuse_timer_period",
+        "encrypt_data_transfer",
+        "encrypt_data_transfer_cipher_key_bitlength",
+        "client_file-block-storage-locations_num-threads",
+        "client_file-block-storage-locations_timeout_millis",
+        "client_mmap_enabled",
+        "client_mmap_cache_size",
+        "client_mmap_cache_timeout_ms",
+        "client_mmap_retry_timeout_ms",
+        "client_short_circuit_replica_stale_threshold_ms",
+        "cachereport_intervalmsec",
+        "webhdfs_user_provider_user_pattern",
+        "client_context",
+        "client_read_shortcircuit",
+        "client_read_shortcircuit_skip_checksum",
+        "client_read_shortcircuit_streams_cache_size",
+        "client_read_shortcircuit_streams_cache_expiry_ms",
+        "client_use_legacy_blockreader_local",
+        "client_domain_socket_data_traffic",
+        "client_slow_io_warning_threshold_ms",
+        "storage_policy_enabled"
       ]
     }
   }

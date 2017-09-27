@@ -169,7 +169,7 @@
         <value>file://name-data/namesecondary</value>
     </property>
     <property>
-        <name>dfs.namenode.checkpoint.edits..dir</name>
+        <name>dfs.namenode.checkpoint.edits.dir</name>
         <value>file://name-data/namesecondary</value>
     </property>
     <property>
@@ -231,6 +231,90 @@
     <property>
         <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
         <value>{{NAMENODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
+        <value>{{NAMENODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.audit.loggers</name>
+        <value>{{NAMENODE_AUDIT_LOGGERS}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.edits.noeditlogchannelflush</name>
+        <value>{{NAMENODE_EDITS_NOEDITLOGCHANNELFLUSH}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.enable.retrycache</name>
+        <value>{{NAMENODE_ENABLE_RETRYCACHE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.retrycache.expirytime.millis</name>
+        <value>{{NAMENODE_RETRYCACHE_EXPIRYTIME_MILLIS}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.retrycache.heap.percent</name>
+        <value>{{NAMENODE_RETRYCACHE_HEAP_PERCENT}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.path.based.cache.block.map.allocation.percent</name>
+        <value>{{NAMENODE_PATH_BASED_CACHE_BLOCK_MAP_ALLOCATION_PERCENT}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.list.cache.directives.num.responses</name>
+        <value>{{NAMENODE_LIST_CACHE_DIRECTIVES_NUM_RESPONSES}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.list.cache.pools.num.responses</name>
+        <value>{{NAMENODE_LIST_CACHE_POOLS_NUM_RESPONSES}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.path.based.cache.refresh.interval.ms</name>
+        <value>{{NAMENODE_PATH_BASED_CACHE_REFRESH_INTERVAL_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.path.based.cache.retry.interval.ms</name>
+        <value>{{NAMENODE_PATH_BASED_CACHE_RETRY_INTERVAL_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.edit.log.autoroll.multiplier.threshold</name>
+        <value>{{NAMENODE_EDIT_LOG_AUTOROLL_MULTIPLIER_THRESHOLD}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.edit.log.autoroll.check.interval.ms</name>
+        <value>{{NAMENODE_EDIT_LOG_AUTOROLL_CHECK_INTERVAL_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.reject-unresolved-dn-topology-mapping</name>
+        <value>{{NAMENODE_REJECT-UNRESOLVED-DN-TOPOLOGY-MAPPING}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.xattrs.enabled</name>
+        <value>{{NAMENODE_XATTRS_ENABLED}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.fs-limits.max-xattrs-per-inode</name>
+        <value>{{NAMENODE_FS-LIMITS_MAX-ATTRS-PER-INODE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.fs-limits.max-xattr-size</name>
+        <value>{{NAMENODE_FS-LIMITS_MAX-ATTRS-SIZE}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.startup.delay.block.deletion.sec</name>
+        <value>{{NAMENODE_STARTUP_DELAY_BLOCK_DELETION_SEC}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.list.encryption.zones.num.responses</name>
+        <value>{{NAMENODE_LIST_ENCRYPTION_ZONES_NUM_RESPONSES}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.inotify.max.events.per.rpc</name>
+        <value>{{NAMENODE_INOTIFY_MAX_EVENTS_PER_RPC}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.legacy-oiv-image.dir</name>
+        <value>{{NAMENODE_LEGACY-OIV-IMAGE_DIR}}</value>
     </property>
 
     <!-- name-0-node -->
@@ -386,6 +470,42 @@
         <name>dfs.datanode.shared.file.descriptor.paths</name>
         <value>{{DATANODE_SHARED_FILE_DESCRIPTOR_PATHS}}</value>
     </property>
+    <property>
+        <name>dfs.datanode.hdfs-blocks-metadata.enabled</name>
+        <value>{{DATANODE_HDFS-BLOCKS-METADATA_ENABLED}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.available-space-volume-choosing-policy.balanced-space-threshold</name>
+        <value>{{DATANODE_AVAILABLE-SPACE-VOLUME-CHOOSING-POLICY_BALANCED-SPACE-THRESHOLD}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.available-space-volume-choosing-policy.balanced-space-preference-fraction</name>
+        <value>{{DATANODE_AVAILABLE-SPACE-VOLUME-CHOOSING-POLICY_BALANCED-SPACE-PREFERENCE-FRACTION}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.max.locked.memory</name>
+        <value>{{DATANODE_MAX_LOCKED_MEMORY}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.fsdatasetcache.max.threads.per.volume</name>
+        <value>{{DATANODE_FSDATASETCACHE_MAX_THREADS_PER_VOLUME}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.slow.io.warning.threshold.ms</name>
+        <value>{{DATANODE_SLOW_IO_WARNING_THRESHOLD_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.cache.revocation.timeout.ms</name>
+        <value>{{DATANODE_CACHE_REVOCATION_TIMEOUT_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.cache.revocation.polling.ms</name>
+        <value>{{DATANODE_CACHE_REVOCATION_POLLING_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.datanode.block.id.layout.upgrade.threads</name>
+        <value>{{DATANODE_BLOCK_ID_LAYOUT_UPGRADE_THREADS}}</value>
+    </property>
 
     <!-- HA -->
     <property>
@@ -421,20 +541,24 @@
         <value>{{CLIENT_READ_SHORTCIRCUIT}}</value>
     </property>
     <property>
+        <name>dfs.domain.socket.path</name>
+        <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value>
+    </property>
+    <property>
+        <name>dfs.client.read.shortcircuit.skip.checksum</name>
+        <value>{{CLIENT_READ_SHORTCIRCUIT_SKIP_CHECKSUM}}</value>
+    </property>
+    <property>
         <name>dfs.client.read.shortcircuit.streams.cache.size</name>
         <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE}}</value>
     </property>
     <property>
-        <name>dfs.client.read.shortcircuit.streams.cache.size.expiry.ms</name>
-        <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS}}</value>
+        <name>dfs.client.read.shortcircuit.streams.cache.expiry.ms</name>
+        <value>{{CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_EXPIRY_MS}}</value>
     </property>
     <property>
         <name>dfs.client.failover.proxy.provider.hdfs</name>
         <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value>
-    </property>
-    <property>
-        <name>dfs.domain.socket.path</name>
-        <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value>
     </property>
     <property>
         <name>dfs.permissions.enabled</name>
@@ -607,6 +731,130 @@
     <property>
         <name>dfs.short.circuit.shared.memory.watcher.interrupt.check.ms</name>
         <value>{{SHORT_CIRCUIT_SHARED_MEMORY_WATCHER_INTERRUPT_CHECK_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.webhdfs.enabled</name>
+        <value>{{WEBHDFS_ENABLED}}</value>
+    </property>
+    <property>
+        <name>hadoop.fuse.connection.timeout</name>
+        <value>{{FUSE_CONNECTION_TIMEOUT}}</value>
+    </property>
+    <property>
+        <name>hadoop.fuse.timer.period</name>
+        <value>{{FUSE_TIMER_PERIOD}}</value>
+    </property>
+    <property>
+        <name>dfs.metrics.percentiles.intervals</name>
+        <value>{{METRICS_PERCENTILES_INTERVALS}}</value>
+    </property>
+    <property>
+        <name>dfs.encrypt.data.transfer</name>
+        <value>{{ENCRYPT_DATA_TRANSFER}}</value>
+    </property>
+    <property>
+        <name>dfs.encrypt.data.transfer.algorithm</name>
+        <value>{{ENCRYPT_DATA_TRANSFER_ALGORITHM}}</value>
+    </property>
+    <property>
+        <name>dfs.encrypt.data.transfer.cipher.suites</name>
+        <value>{{ENCRYPT_DATA_TRANSFER_CIPHER_SUITES}}</value>
+    </property>
+    <property>
+        <name>dfs.encrypt.data.transfer.cipher.key.bitlength</name>
+        <value>{{ENCRYPT_DATA_TRANSFER_CIPHER_KEY_BITLENGTH}}</value>
+    </property>
+    <property>
+        <name>dfs.trustedchannel.resolver.class</name>
+        <value>{{TRUSTEDCHANNEL_RESOLVER_CLASS}}</value>
+    </property>
+    <property>
+        <name>dfs.data.transfer.protection</name>
+        <value>{{DATA_TRANSFER_PROTECTION}}</value>
+    </property>
+    <property>
+        <name>dfs.data.transfer.saslproperties.resolver.class</name>
+        <value>{{DATA_TRANSFER_SASLPROPERTIES_RESOLVER_CLASS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.file-block-storage-locations.num-threads</name>
+        <value>{{CLIENT_FILE-BLOCK-STORAGE-LOCATIONS_NUM-THREADS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.file-block-storage-locations.timeout.millis</name>
+        <value>{{CLIENT_FILE-BLOCK-STORAGE-LOCATIONS_TIMEOUT_MILLIS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.cache.drop.behind.writes</name>
+        <value>{{CLIENT_CACHE_DROP_BEHIND_WRITES}}</value>
+    </property>
+    <property>
+        <name>dfs.client.cache.drop.behind.reads</name>
+        <value>{{CLIENT_CACHE_DROP_BEHIND_READS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.cache.readahead</name>
+        <value>{{CLIENT_CACHE_READAHEAD}}</value>
+    </property>
+    <property>
+        <name>dfs.client.mmap.enabled</name>
+        <value>{{CLIENT_MMAP_ENABLED}}</value>
+    </property>
+    <property>
+        <name>dfs.client.mmap.cache.size</name>
+        <value>{{CLIENT_MMAP_CACHE_SIZE}}</value>
+    </property>
+    <property>
+        <name>dfs.client.mmap.cache.timeout.ms</name>
+        <value>{{CLIENT_MMAP_CACHE_TIMEOUT_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.mmap.retry.timeout.ms</name>
+        <value>{{CLIENT_MMAP_RETRY_TIMEOUT_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.client.short.circuit.replica.stale.threshold.ms</name>
+        <value>{{CLIENT_SHORT_CIRCUIT_REPLICA_STALE_THRESHOLD_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.cachereport.intervalMsec</name>
+        <value>{{CACHEREPORT_INTERVALMSEC}}</value>
+    </property>
+    <property>
+        <name>dfs.webhdfs.user.provider.user.pattern</name>
+        <value>{{WEBHDFS_USER_PROVIDER_USER_PATTERN}}</value>
+    </property>
+    <property>
+        <name>dfs.client.context</name>
+        <value>{{CLIENT_CONTEXT}}</value>
+    </property>
+    <property>
+        <name>dfs.client.use.legacy.blockreader.local</name>
+        <value>{{CLIENT_USE_LEGACY_BLOCKREADER_LOCAL}}</value>
+    </property>
+    <property>
+        <name>dfs.block.local-path-access.user</name>
+        <value>{{BLOCK_LOCAL-PATH-ACCESS_USER}}</value>
+    </property>
+    <property>
+        <name>dfs.client.domain.socket.data.traffic</name>
+        <value>{{CLIENT_DOMAIN_SOCKET_DATA_TRAFFIC}}</value>
+    </property>
+    <property>
+        <name>dfs.client.slow.io.warning.threshold.ms</name>
+        <value>{{CLIENT_SLOW_IO_WARNING_THRESHOLD_MS}}</value>
+    </property>
+    <property>
+        <name>dfs.user.home.dir.prefix</name>
+        <value>{{USER_HOME_DIR_PREFIX}}</value>
+    </property>
+    <property>
+        <name>dfs.encryption.key.provider.uri</name>
+        <value>{{ENCRYPTION_KEY_PROVIDER_URI}}</value>
+    </property>
+    <property>
+        <name>dfs.storage.policy.enabled</name>
+        <value>{{STORAGE_POLICY_ENABLED}}</value>
     </property>
 
     {{#SECURE_MODE}}
