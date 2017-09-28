@@ -315,6 +315,11 @@
           "type": "string",
           "default": ""
         },
+        "custom_yaml_block": {
+          "description": "YAML to be appended to elasticsearch.yml on each node. Specify as single line with newlines and spaces embedded in the string.",
+          "type": "string",
+          "default": ""
+        },
         "health_user": {
           "description": "Elastic username to use for X-Pack authentication, if enabled",
           "type": "string",
