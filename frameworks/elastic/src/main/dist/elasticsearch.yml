@@ -129,3 +129,5 @@ thread_pool.generic.core: {{THREAD_POOL_GENERIC_CORE}}
 thread_pool.generic.max: {{THREAD_POOL_GENERIC_MAX}}
 {{/THREAD_POOL_GENERIC_MAX}}
 thread_pool.generic.keep_alive: {{THREAD_POOL_GENERIC_KEEP_ALIVE}}
+
+{{CUSTOM_YAML_BLOCK}}
