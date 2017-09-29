@@ -129,8 +129,7 @@ public class TLSEvaluationStageTest {
 
         TLSEvaluationStage evaluationStage = getDefaultTLSEvaluationStage();
 
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar(
-                "cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(
@@ -176,8 +175,7 @@ public class TLSEvaluationStageTest {
 
         TLSEvaluationStage evaluationStage = getDefaultTLSEvaluationStage();
 
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar(
-                "cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(
@@ -226,8 +224,7 @@ public class TLSEvaluationStageTest {
 
         TLSEvaluationStage evaluationStage = getDefaultTLSEvaluationStage();
 
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar(
-                "cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(
@@ -275,8 +272,7 @@ public class TLSEvaluationStageTest {
 
         TLSEvaluationStage evaluationStage = getDefaultTLSEvaluationStage();
 
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar(
-                "cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
 
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(

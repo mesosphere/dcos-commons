@@ -52,7 +52,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
 
     private static final List<Resource> resources = Arrays.asList(
-            ResourceTestUtils.getUnreservedCpu(TestPodFactory.CPU),
+            ResourceTestUtils.getUnreservedCpus(TestPodFactory.CPU),
             ResourceTestUtils.getUnreservedMem(TestPodFactory.MEM));
 
     private TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resources);
@@ -78,7 +78,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private static List<Offer> getOffers(double cpus, double mem) {
         return OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpu(cpus),
+                        ResourceTestUtils.getUnreservedCpus(cpus),
                         ResourceTestUtils.getUnreservedMem(mem)));
     }
 

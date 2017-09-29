@@ -25,7 +25,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
     @Test
     public void testOfferPassesPlacementRule() throws Exception {
         String agent = "test-agent";
-        Protos.Resource offered = ResourceTestUtils.getUnreservedCpu(1.0);
+        Protos.Resource offered = ResourceTestUtils.getUnreservedCpus(1.0);
         PlacementRule rule = AgentRule.require(agent);
         Protos.Offer offer = offerWithAgent(agent, offered);
 
@@ -62,7 +62,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
     @Test
     public void testOfferFailsPlacementRule() throws Exception {
         String agent = "test-agent";
-        Protos.Resource offered = ResourceTestUtils.getUnreservedCpu(1.0);
+        Protos.Resource offered = ResourceTestUtils.getUnreservedCpus(1.0);
         PlacementRule rule = AgentRule.require(agent);
         Protos.Offer offer = offerWithAgent("other-agent", offered);
 

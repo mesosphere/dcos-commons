@@ -14,7 +14,7 @@ public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSui
 
     @Test
     public void testUnreserveRootDisk() {
-        Protos.Resource resource = ResourceTestUtils.getExpectedRootVolume(1);
+        Protos.Resource resource = ResourceTestUtils.getReservedRootVolume(1);
         Protos.Offer offer = OfferTestUtils.getOffer(resource);
 
         UnreserveOfferRecommendation unreserveOfferRecommendation = new UnreserveOfferRecommendation(offer, resource);
@@ -32,7 +32,7 @@ public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSui
 
     @Test
     public void testUnreserveMountDisk() {
-        Protos.Resource resource = ResourceTestUtils.getExpectedMountVolume(1);
+        Protos.Resource resource = ResourceTestUtils.getReservedMountVolume(1);
         Protos.Offer offer = OfferTestUtils.getOffer(resource);
 
         UnreserveOfferRecommendation unreserveOfferRecommendation = new UnreserveOfferRecommendation(offer, resource);
