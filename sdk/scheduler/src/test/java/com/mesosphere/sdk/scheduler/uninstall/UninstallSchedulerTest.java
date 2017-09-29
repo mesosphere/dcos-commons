@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Plan;

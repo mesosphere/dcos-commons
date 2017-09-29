@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.PlansResource;
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.*;

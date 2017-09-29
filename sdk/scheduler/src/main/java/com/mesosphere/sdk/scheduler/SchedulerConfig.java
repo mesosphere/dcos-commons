@@ -185,6 +185,15 @@ public class SchedulerConfig {
         return envStore.getOptional(MARATHON_APP_ID_ENV, "/");
     }
 
+    public String getSecretsNamespace(String serviceName) {
+        String secretNamespace = getDcosSpace();
+        if (secretNamespace.startsWith("/")) {
+            secretNamespace = secretNamespace.substring(1);
+        }
+
+        return secretNamespace.isEmpty() ? serviceName : secretNamespace;
+    }
+
     public boolean isStateCacheEnabled() {
         return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
@@ -206,8 +215,7 @@ public class SchedulerConfig {
      * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an exception if the local
      * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
      */
-    public TokenProvider getDcosAuthTokenProvider()
-            throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+    public TokenProvider getDcosAuthTokenProvider() throws IOException {
         JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
         PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
         try {
@@ -224,6 +232,10 @@ public class SchedulerConfig {
                     AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
 
             return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
         } finally {
             pemReader.close();
         }

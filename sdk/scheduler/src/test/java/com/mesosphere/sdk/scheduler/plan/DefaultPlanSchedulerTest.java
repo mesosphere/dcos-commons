@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -91,7 +92,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoRecommendations() throws InvalidRequirementException {
+    public void testEvaluateNoRecommendations() throws InvalidRequirementException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
@@ -103,7 +104,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
+    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
@@ -116,7 +117,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
+    public void testEvaluateAcceptedOffers() throws InvalidRequirementException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;

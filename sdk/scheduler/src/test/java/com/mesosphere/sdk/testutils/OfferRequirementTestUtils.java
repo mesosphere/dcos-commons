@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.testutils;
 
+import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 import com.mesosphere.sdk.offer.TaskException;
+
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
-import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
@@ -19,7 +20,7 @@ import static org.mockito.Mockito.when;
  */
 public class OfferRequirementTestUtils {
 
-    private static class TestDcosCluster extends DcosCluster {
+    private static class TestDcosCluster extends DcosVersionClient {
         private static final String RESPONSE_TEMPLATE =
                 "{ 'version': '%s', " +
                         "'dcos-image-commit': 'test-commit', " +
@@ -37,7 +38,7 @@ public class OfferRequirementTestUtils {
         }
     }
 
-    public static DcosCluster getTestCluster(String version) {
+    public static DcosVersionClient getTestCluster(String version) {
         return new TestDcosCluster(version);
     }
 
@@ -57,6 +58,7 @@ public class OfferRequirementTestUtils {
         when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         when(schedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
         when(schedulerConfig.getDcosSpace()).thenReturn("/");
+        when(schedulerConfig.getSecretsNamespace(TestConstants.SERVICE_NAME)).thenReturn(TestConstants.SERVICE_NAME);
         when(schedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
         return schedulerConfig;
     }

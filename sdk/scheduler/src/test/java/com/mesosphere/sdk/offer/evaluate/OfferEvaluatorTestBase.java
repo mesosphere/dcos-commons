@@ -14,6 +14,7 @@ import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +49,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException {
+            throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)),
                 podInstanceRequirement,
@@ -57,7 +58,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected List<Resource> recordLaunchWithOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException {
+            throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getOffer(Arrays.asList(offeredResources)),
                 podInstanceRequirement,
@@ -66,7 +67,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     private List<Resource> recordLaunchWithOfferedResources(
             Protos.Offer offer, PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException {
+            throws InvalidRequirementException, IOException {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement, Arrays.asList(offer));
 

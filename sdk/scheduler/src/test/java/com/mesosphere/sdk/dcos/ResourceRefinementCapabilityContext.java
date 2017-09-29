@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.dcos;
 
+import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
+
 /**
  * This class allows temporarily setting the global Capabilities object to support PreReservedResources
  * for testing purposes.
@@ -32,7 +34,7 @@ public class ResourceRefinementCapabilityContext {
             this(capabilities.dcosCluster);
         }
 
-        private ResourceRefinementCapabilities(DcosCluster dcosCluster) {
+        private ResourceRefinementCapabilities(DcosVersionClient dcosCluster) {
             super(dcosCluster);
         }
 
