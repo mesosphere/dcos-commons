@@ -622,6 +622,31 @@ dcos:adminrouter:ops:slave full
 </div>
 <p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
 
+<h2 id="tls">TLS</h2>
+
+<p>HDFS can be launched with TLS encryption. Enabling TLS is only possible in <code class="highlighter-rouge">permissive</code> and <code class="highlighter-rouge">strict</code> cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the <code class="highlighter-rouge">dcos:superuser</code> permission. If the permission is missing the HDFS scheduler will not abe able to provision TLS artifacts.</p>
+
+<p>Sample JSON options file named <code class="highlighter-rouge">hdfs-tls.json</code>:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"service_account_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"service_account"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
+    </span><span class="nt">"tls"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="nt">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+	</span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>For more information about TLS in the SDK see <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#tls">the TLS documentation</a>.</p>
+
+<h3 id="clients">Clients</h3>
+
+<p>Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (<code class="highlighter-rouge">journal</code>, <code class="highlighter-rouge">name</code> and <code class="highlighter-rouge">data</code>) can be configured with different port numbers for TLS connections.</p>
+
+<p>Clients can connect only over the TLS version 1.2.</p>
+
 <h1 id="changing-configuration-at-runtime">Changing Configuration at Runtime</h1>
 
 <p>You can customize your cluster in-place when it is up and running.</p>
