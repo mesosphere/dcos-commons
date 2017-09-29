@@ -43,7 +43,7 @@ pods:
                 coreos=$(uname -a | grep coreos)
 
                 if [ -z "$coreos" ];then
-                    $USR_SRC_MOUNT="/usr/src:/usr/src"
+                    USR_SRC_MOUNT="-v /usr/src:/usr/src"
                 fi
 
                 echo "[Unit]
