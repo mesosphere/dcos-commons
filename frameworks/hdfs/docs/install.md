@@ -722,7 +722,7 @@ The service configuration object contains properties that MUST be specified duri
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -741,9 +741,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The DC/OS service account for the HDFS cluster.</td>
   </tr>
 
 </table>
