@@ -20,7 +20,7 @@
     {{#TLS_ENABLED}}
     <property>
         <name>dfs.http.policy</name>
-        <value>HTTP_AND_HTTPS</value>
+        <value>HTTPS_ONLY</value>
     </property>
     {{/TLS_ENABLED}}
     <!-- namenode -->
@@ -71,10 +71,18 @@
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
+    {{^TLS_ENABLED}}
     <property>
         <name>dfs.namenode.http-address.hdfs.name-0-node</name>
         <value>name-0-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
+    {{/TLS_ENABLED}}
+    {{#TLS_ENABLED}}
+    <property>
+        <name>dfs.namenode.https-address.hdfs.name-0-node</name>
+        <value>name-0-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTPS_PORT}}</value>
+    </property>
+    {{/TLS_ENABLED}}
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
@@ -90,10 +98,18 @@
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
     </property>
+    {{^TLS_ENABLED}}
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
         <value>name-1-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
+    {{/TLS_ENABLED}}
+    {{#TLS_ENABLED}}
+    <property>
+        <name>dfs.namenode.https-address.hdfs.name-1-node</name>
+        <value>name-1-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTPS_PORT}}</value>
+    </property>
+    {{/TLS_ENABLED}}
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
@@ -109,10 +125,18 @@
         <name>dfs.journalnode.rpc-address</name>
         <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value>
     </property>
+    {{^TLS_ENABLED}}
     <property>
         <name>dfs.journalnode.http-address</name>
         <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value>
     </property>
+    {{/TLS_ENABLED}}
+    {{#TLS_ENABLED}}
+    <property>
+        <name>dfs.journalnode.https-address</name>
+        <value>0.0.0.0:{{JOURNAL_NODE_HTTPS_PORT}}</value>
+    </property>
+    {{/TLS_ENABLED}}
     <property>
         <name>dfs.journalnode.edits.dir</name>
         <value>{{MESOS_SANDBOX}}/journal-data</value>
@@ -123,10 +147,18 @@
         <name>dfs.datanode.address</name>
         <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value>
     </property>
+    {{^TLS_ENABLED}}
     <property>
         <name>dfs.datanode.http.address</name>
         <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value>
     </property>
+    {{/TLS_ENABLED}}
+    {{#TLS_ENABLED}}
+    <property>
+        <name>dfs.datanode.https.address</name>
+        <value>0.0.0.0:{{DATA_NODE_HTTPS_PORT}}</value>
+    </property>
+    {{/TLS_ENABLED}}
     <property>
         <name>dfs.datanode.ipc.address</name>
         <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value>

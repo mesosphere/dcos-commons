@@ -73,6 +73,9 @@
     {{#service.tls.enabled}}
     "TLS_ENABLED": "{{service.tls.enabled}}",
     "TASKCFG_ALL_TLS_ENABLED": "{{service.tls.enabled}}",
+    "TASKCFG_ALL_NAME_NODE_HTTPS_PORT":"{{hdfs.name_node_https_port}}",
+    "TASKCFG_ALL_JOURNAL_NODE_HTTPS_PORT":"{{hdfs.journal_node_https_port}}",
+    "TASKCFG_ALL_DATA_NODE_HTTPS_PORT":"{{hdfs.data_node_https_port}}",
     {{/service.tls.enabled}}
 
     {{#journal_node.enable_readiness_check}}

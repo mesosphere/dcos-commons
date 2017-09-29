@@ -257,6 +257,31 @@ HDFS supports deployment on virtual networks on DC/OS (including the `dcos` over
 ```
 As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.
 
+## TLS
+
+HDFS can be launched with TLS encryption. Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the HDFS scheduler will not abe able to provision TLS artifacts.
+
+Sample JSON options file named `hdfs-tls.json`:
+```json
+{
+  "service": {
+    "service_account_secret": "hdfs",
+    "service_account": "hdfs",
+    "tls": {
+		"enabled": true
+	}
+  }
+}
+```
+
+For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
+
+### Clients
+
+Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (`journal`, `name` and `data`) can be configured with different port numbers for TLS connections.
+
+Clients can connect only over the TLS version 1.2.
+
 # Changing Configuration at Runtime
 
 You can customize your cluster in-place when it is up and running.
