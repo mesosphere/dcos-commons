@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.dcos.DcosVersion;
-import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
