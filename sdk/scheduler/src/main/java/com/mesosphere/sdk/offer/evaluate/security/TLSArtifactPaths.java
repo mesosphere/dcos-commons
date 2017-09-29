@@ -92,7 +92,8 @@ public class TLSArtifactPaths {
     }
 
     /**
-     * Filters the provided list of secret paths to just the ones which have a matching {@link TLSArtifact} implementation.
+     * Filters the provided list of secret paths to just the ones which have a matching {@link TLSArtifact}
+     * implementation.
      */
     public static Collection<String> getKnownTLSArtifacts(Collection<String> secretStorePaths) {
         return secretStorePaths.stream()

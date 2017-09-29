@@ -38,7 +38,8 @@ public class TLSCleanupStep extends AbstractStep {
         logger.info("Cleaning up TLS resources in namespace {}...", namespace);
 
         try {
-            Collection<String> secretPathsToClean = TLSArtifactPaths.getKnownTLSArtifacts(secretsClient.list(namespace));
+            Collection<String> secretPathsToClean =
+                    TLSArtifactPaths.getKnownTLSArtifacts(secretsClient.list(namespace));
             if (secretPathsToClean.isEmpty()) {
                 logger.info("No TLS resources to clean up.");
             } else {
