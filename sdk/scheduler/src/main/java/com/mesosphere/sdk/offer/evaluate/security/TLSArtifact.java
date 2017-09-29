@@ -8,7 +8,7 @@ import com.mesosphere.sdk.specification.TransportEncryptionSpec;
 /**
  * The definition of a pregenerated TLS or Keystore secret.
  */
-public enum Secret {
+public enum TLSArtifact {
 
     // TLS secrets
     CERTIFICATE(TransportEncryptionSpec.Type.TLS, "certificate", "crt", "PEM encoded certificate"),
@@ -24,14 +24,14 @@ public enum Secret {
     // nested to the current DCOS_SPACE.
     // Secret path allowed characters: {secretPath:[A-Za-z0-9-/_]+}
     // More info: https://docs.mesosphere.com/1.9/security/#serv-job
-    static final String SECRET_STORE_PATH_DELIMITER = "__";
+    static final String SECRET_STORE_NAME_DELIMITER = "__";
 
     private final TransportEncryptionSpec.Type type;
     private final String name;
     private final String extension;
     private final String description;
 
-    private Secret(TransportEncryptionSpec.Type type, String name, String extension, String description) {
+    private TLSArtifact(TransportEncryptionSpec.Type type, String name, String extension, String description) {
         this.type = type;
         this.name = name;
         this.extension = extension;
@@ -58,7 +58,7 @@ public enum Secret {
                 .stream()
                 .filter(item -> item != null)
                 .filter(item -> !item.equals(""))
-                .collect(Collectors.joining(SECRET_STORE_PATH_DELIMITER));
+                .collect(Collectors.joining(SECRET_STORE_NAME_DELIMITER));
         if (type.equals(TransportEncryptionSpec.Type.KEYSTORE)) {
             // Include a prefix so that the secret will be decoded by the mesos secrets module. See: DCOS-17621
             fullName = String.format("__dcos_base64__%s", fullName);

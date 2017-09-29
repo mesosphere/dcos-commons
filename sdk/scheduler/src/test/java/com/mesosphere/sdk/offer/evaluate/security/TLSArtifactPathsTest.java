@@ -9,9 +9,9 @@ import org.junit.Test;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
 
 /**
- * Tests for {@link SecretStorePaths}.
+ * Tests for {@link TLSArtifactPaths}.
  */
-public class SecretStorePathsTest {
+public class TLSArtifactPathsTest {
 
     private static final String SANS_HASH = "a-test-hash";
     private static final String ENCRYPTION_SPEC_NAME = "exposed";
@@ -24,46 +24,46 @@ public class SecretStorePathsTest {
     private static final String SECRET_PATH_KEYSTORE_PREFIX =
             String.format("namespace/%s", SECRET_NAME_KEYSTORE_PREFIX);
 
-    private static final SecretStorePaths SECRET_PATHS = new SecretStorePaths("namespace", "pod-0-task", SANS_HASH);
+    private static final TLSArtifactPaths TLS_ARTIFACT_PATHS = new TLSArtifactPaths("namespace", "pod-0-task", SANS_HASH);
 
     @Test
     public void testGetCertificatePath() throws Exception {
         Assert.assertEquals(
                 SECRET_PATH_PREFIX + "certificate",
-                SECRET_PATHS.getSecretStorePath(Secret.CERTIFICATE, ENCRYPTION_SPEC_NAME));
+                TLS_ARTIFACT_PATHS.getSecretStorePath(TLSArtifact.CERTIFICATE, ENCRYPTION_SPEC_NAME));
     }
 
     @Test
     public void testGetPrivateKeyPath() throws Exception {
         Assert.assertEquals(
                 SECRET_PATH_PREFIX + "private-key",
-                SECRET_PATHS.getSecretStorePath(Secret.PRIVATE_KEY, ENCRYPTION_SPEC_NAME));
+                TLS_ARTIFACT_PATHS.getSecretStorePath(TLSArtifact.PRIVATE_KEY, ENCRYPTION_SPEC_NAME));
     }
 
     @Test
     public void testGetRootCACertPath() throws Exception {
         Assert.assertEquals(
                 SECRET_PATH_PREFIX + "root-ca-certificate",
-                SECRET_PATHS.getSecretStorePath(Secret.CA_CERTIFICATE, ENCRYPTION_SPEC_NAME));
+                TLS_ARTIFACT_PATHS.getSecretStorePath(TLSArtifact.CA_CERTIFICATE, ENCRYPTION_SPEC_NAME));
     }
 
     @Test
     public void testGetKeyStorePath() throws Exception {
         Assert.assertEquals(
                 SECRET_PATH_KEYSTORE_PREFIX + "keystore",
-                SECRET_PATHS.getSecretStorePath(Secret.KEYSTORE, ENCRYPTION_SPEC_NAME));
+                TLS_ARTIFACT_PATHS.getSecretStorePath(TLSArtifact.KEYSTORE, ENCRYPTION_SPEC_NAME));
     }
 
     @Test
     public void testGetTrustStorePath() throws Exception {
         Assert.assertEquals(
                 SECRET_PATH_KEYSTORE_PREFIX + "truststore",
-                SECRET_PATHS.getSecretStorePath(Secret.TRUSTSTORE, ENCRYPTION_SPEC_NAME));
+                TLS_ARTIFACT_PATHS.getSecretStorePath(TLSArtifact.TRUSTSTORE, ENCRYPTION_SPEC_NAME));
     }
 
     @Test
     public void testGetAllNames() throws Exception {
-        Collection<String> names = SECRET_PATHS.getAllNames(ENCRYPTION_SPEC_NAME);
+        Collection<String> names = TLS_ARTIFACT_PATHS.getAllNames(ENCRYPTION_SPEC_NAME);
         Assert.assertEquals(names.toString(), 5, names.size());
         Assert.assertTrue(names.contains(SECRET_NAME_PREFIX + "certificate"));
         Assert.assertTrue(names.contains(SECRET_NAME_PREFIX + "private-key"));
@@ -74,8 +74,8 @@ public class SecretStorePathsTest {
 
     @Test
     public void testGetPathsTLS() throws Exception {
-        List<SecretStorePaths.Entry> paths =
-                SECRET_PATHS.getPathsForType(TransportEncryptionSpec.Type.TLS, ENCRYPTION_SPEC_NAME);
+        List<TLSArtifactPaths.Entry> paths =
+                TLS_ARTIFACT_PATHS.getPathsForType(TransportEncryptionSpec.Type.TLS, ENCRYPTION_SPEC_NAME);
         Assert.assertEquals(paths.toString(), 3, paths.size());
         Assert.assertEquals("exposed.crt", paths.get(0).mountPath);
         Assert.assertEquals(SECRET_PATH_PREFIX + "certificate", paths.get(0).secretStorePath);
@@ -87,8 +87,8 @@ public class SecretStorePathsTest {
 
     @Test
     public void testGetPathsKeystore() throws Exception {
-        List<SecretStorePaths.Entry> paths =
-                SECRET_PATHS.getPathsForType(TransportEncryptionSpec.Type.KEYSTORE, ENCRYPTION_SPEC_NAME);
+        List<TLSArtifactPaths.Entry> paths =
+                TLS_ARTIFACT_PATHS.getPathsForType(TransportEncryptionSpec.Type.KEYSTORE, ENCRYPTION_SPEC_NAME);
         Assert.assertEquals(paths.toString(), 2, paths.size());
         Assert.assertEquals("exposed.keystore", paths.get(0).mountPath);
         Assert.assertEquals(SECRET_PATH_KEYSTORE_PREFIX + "keystore", paths.get(0).secretStorePath);

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.offer.evaluate.security.SecretStorePaths;
+import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.testutils.TestConstants;
 
@@ -20,12 +20,12 @@ import static org.mockito.Mockito.*;
 public class TLSCleanupStepTest {
 
     @Mock private SecretsClient mockSecretsClient;
-    private SecretStorePaths secretNameGenerator;
+    private TLSArtifactPaths tlsArtifactPaths;
 
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        secretNameGenerator = new SecretStorePaths(
+        tlsArtifactPaths = new TLSArtifactPaths(
                 TestConstants.SERVICE_NAME,
                 String.format("%s-%d-%s", TestConstants.POD_TYPE, 0, TestConstants.TASK_NAME),
                 "a-test-hash");
@@ -51,12 +51,12 @@ public class TLSCleanupStepTest {
     @Test
     public void testCleaningAllSecrets() throws Exception {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME))
-                .thenReturn(secretNameGenerator.getAllNames("tls-test"));
+                .thenReturn(tlsArtifactPaths.getAllNames("tls-test"));
 
         TLSCleanupStep step = createTLSCleanupStep();
         step.start();
 
-        for (String secretName: secretNameGenerator.getAllNames("tls-test")) {
+        for (String secretName: tlsArtifactPaths.getAllNames("tls-test")) {
             verify(mockSecretsClient, times(1)).delete(TestConstants.SERVICE_NAME + "/" + secretName);
         }
 
@@ -67,7 +67,7 @@ public class TLSCleanupStepTest {
     public void testKeepingNonTLSSecrets() throws Exception {
         List<String> nonTLSSecrets = Arrays.asList("test", "test/nested");
 
-        List<String> listResponse = new ArrayList<>(secretNameGenerator.getAllNames("tls-test"));
+        List<String> listResponse = new ArrayList<>(tlsArtifactPaths.getAllNames("tls-test"));
         listResponse.addAll(nonTLSSecrets);
 
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME))

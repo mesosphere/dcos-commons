@@ -22,26 +22,26 @@ import java.util.Map;
 public class TLSArtifactsUpdaterTest {
 
     private static final String SPEC_NAME = "spec-name";
-    private static final Map<Secret, String> GENERATED_SECRETS = new HashMap<>();
+    private static final Map<TLSArtifact, String> GENERATED_ARTIFACTS = new HashMap<>();
     static {
-        GENERATED_SECRETS.put(Secret.CERTIFICATE, "cert");
-        GENERATED_SECRETS.put(Secret.CA_CERTIFICATE, "ca-cert");
-        GENERATED_SECRETS.put(Secret.TRUSTSTORE, "truststore");
+        GENERATED_ARTIFACTS.put(TLSArtifact.CERTIFICATE, "cert");
+        GENERATED_ARTIFACTS.put(TLSArtifact.CA_CERTIFICATE, "ca-cert");
+        GENERATED_ARTIFACTS.put(TLSArtifact.TRUSTSTORE, "truststore");
     }
 
     @Mock private SecretsClient mockSecretsClient;
     @Mock private TLSArtifactsGenerator mockTLSArtifactsGenerator;
     @Mock private CertificateNamesGenerator mockCertificateNamesGenerator;
-    @Mock private SecretStorePaths mockSecretStorePaths;
+    @Mock private TLSArtifactPaths mockTLSArtifactPaths;
 
     private TLSArtifactsUpdater tlsArtifactsUpdater;
 
     @Before
     public void init() {
         MockitoAnnotations.initMocks(this);
-        when(mockSecretStorePaths.getTaskSecretsNamespace()).thenReturn(TestConstants.SERVICE_NAME);
-        when(mockSecretStorePaths.getAllNames(SPEC_NAME)).thenReturn(Arrays.asList("secret1", "secret2", "secret3"));
-        when(mockSecretStorePaths.getSecretStorePath(any(), eq(SPEC_NAME))).thenReturn("a-secret-path");
+        when(mockTLSArtifactPaths.getTaskSecretsNamespace()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockTLSArtifactPaths.getAllNames(SPEC_NAME)).thenReturn(Arrays.asList("secret1", "secret2", "secret3"));
+        when(mockTLSArtifactPaths.getSecretStorePath(any(), eq(SPEC_NAME))).thenReturn("a-secret-path");
         tlsArtifactsUpdater = new TLSArtifactsUpdater(TestConstants.SERVICE_NAME, mockSecretsClient, mockTLSArtifactsGenerator);
     }
 
@@ -50,7 +50,7 @@ public class TLSArtifactsUpdaterTest {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME))
                 .thenReturn(Arrays.asList("secret1", "secret2", "secret3"));
 
-        tlsArtifactsUpdater.update(mockSecretStorePaths, mockCertificateNamesGenerator, SPEC_NAME);
+        tlsArtifactsUpdater.update(mockTLSArtifactPaths, mockCertificateNamesGenerator, SPEC_NAME);
 
         verifyZeroInteractions(mockTLSArtifactsGenerator);
         verify(mockSecretsClient, only()).list(TestConstants.SERVICE_NAME);
@@ -59,9 +59,9 @@ public class TLSArtifactsUpdaterTest {
     @Test
     public void testUpdateSomeMissing() throws Exception {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Arrays.asList("secret2"));
-        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_SECRETS);
+        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_ARTIFACTS);
 
-        tlsArtifactsUpdater.update(mockSecretStorePaths, mockCertificateNamesGenerator, SPEC_NAME);
+        tlsArtifactsUpdater.update(mockTLSArtifactPaths, mockCertificateNamesGenerator, SPEC_NAME);
 
         verify(mockSecretsClient).list(TestConstants.SERVICE_NAME);
         verify(mockSecretsClient).delete(TestConstants.SERVICE_NAME + "/secret2");
@@ -72,9 +72,9 @@ public class TLSArtifactsUpdaterTest {
     @Test
     public void testUpdateAllMissing() throws Exception {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
-        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_SECRETS);
+        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_ARTIFACTS);
 
-        tlsArtifactsUpdater.update(mockSecretStorePaths, mockCertificateNamesGenerator, SPEC_NAME);
+        tlsArtifactsUpdater.update(mockTLSArtifactPaths, mockCertificateNamesGenerator, SPEC_NAME);
 
         verify(mockSecretsClient).list(TestConstants.SERVICE_NAME);
         verifyGeneratedSecretsAdded(mockSecretsClient);
@@ -86,7 +86,7 @@ public class TLSArtifactsUpdaterTest {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(
                 Arrays.asList("secret1", "secret2", "secret3", "secret4", "secret5"));
 
-        tlsArtifactsUpdater.update(mockSecretStorePaths, mockCertificateNamesGenerator, SPEC_NAME);
+        tlsArtifactsUpdater.update(mockTLSArtifactPaths, mockCertificateNamesGenerator, SPEC_NAME);
 
         verify(mockSecretsClient).list(TestConstants.SERVICE_NAME);
         verifyNoMoreInteractions(mockSecretsClient);
@@ -95,9 +95,9 @@ public class TLSArtifactsUpdaterTest {
     @Test
     public void testUpdateAllUnrecognized() throws Exception {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Arrays.asList("secret4", "secret5"));
-        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_SECRETS);
+        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_ARTIFACTS);
 
-        tlsArtifactsUpdater.update(mockSecretStorePaths, mockCertificateNamesGenerator, SPEC_NAME);
+        tlsArtifactsUpdater.update(mockTLSArtifactPaths, mockCertificateNamesGenerator, SPEC_NAME);
 
         verify(mockSecretsClient).list(TestConstants.SERVICE_NAME);
         verifyGeneratedSecretsAdded(mockSecretsClient);
@@ -107,9 +107,9 @@ public class TLSArtifactsUpdaterTest {
     @Test
     public void testUpdateMixedPresentUnrecognizedMissing() throws Exception {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Arrays.asList("secret2", "secret4"));
-        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_SECRETS);
+        when(mockTLSArtifactsGenerator.generate(mockCertificateNamesGenerator)).thenReturn(GENERATED_ARTIFACTS);
 
-        tlsArtifactsUpdater.update(mockSecretStorePaths, mockCertificateNamesGenerator, SPEC_NAME);
+        tlsArtifactsUpdater.update(mockTLSArtifactPaths, mockCertificateNamesGenerator, SPEC_NAME);
 
         verify(mockSecretsClient).list(TestConstants.SERVICE_NAME);
         verify(mockSecretsClient).delete(TestConstants.SERVICE_NAME + "/secret2");
@@ -118,7 +118,7 @@ public class TLSArtifactsUpdaterTest {
     }
 
     private void verifyGeneratedSecretsAdded(SecretsClient mockSecretsClient) throws IOException {
-        for (Map.Entry<Secret, String> entry : GENERATED_SECRETS.entrySet()) {
+        for (Map.Entry<TLSArtifact, String> entry : GENERATED_ARTIFACTS.entrySet()) {
             verify(mockSecretsClient).create(
                     "a-secret-path",
                     new SecretsClient.Payload(TestConstants.SERVICE_NAME, entry.getValue(), entry.getKey().getDescription()));

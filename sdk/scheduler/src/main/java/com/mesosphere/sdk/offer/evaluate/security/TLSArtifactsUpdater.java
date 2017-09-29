@@ -39,20 +39,20 @@ public class TLSArtifactsUpdater {
      * Checks if any TLS artifact secrets are missing, and writes them to the secret store if they are.
      */
     public void update(
-            SecretStorePaths secretStorePaths,
+            TLSArtifactPaths tlsArtifactPaths,
             CertificateNamesGenerator certificateNamesGenerator,
             String encryptionSpecName) throws Exception {
-        String namespace = secretStorePaths.getTaskSecretsNamespace();
+        String namespace = tlsArtifactPaths.getTaskSecretsNamespace();
         Collection<String> currentSecretNames = secretsClient.list(namespace);
         // Convert "namespace/secret" => "secret":
-        Set<String> expectedSecretNames = new TreeSet<>(secretStorePaths.getAllNames(encryptionSpecName));
+        Set<String> expectedSecretNames = new TreeSet<>(tlsArtifactPaths.getAllNames(encryptionSpecName));
         Set<String> missingSecrets = new TreeSet<>();
         missingSecrets.addAll(expectedSecretNames);
         missingSecrets.removeAll(currentSecretNames);
         if (missingSecrets.isEmpty()) {
             // Everything's present, nothing to do.
             logger.info("Task '{}' already has all {} expected secrets for TLS config '{}' in namespace '{}': {}",
-                    secretStorePaths.getTaskInstanceName(),
+                    tlsArtifactPaths.getTaskInstanceName(),
                     expectedSecretNames.size(),
                     encryptionSpecName,
                     namespace,
@@ -61,7 +61,7 @@ public class TLSArtifactsUpdater {
         }
         logger.info(
                 "Task '{}' is missing {}/{} expected secrets for TLS config '{}' in namespace '{}': {} (current: {})",
-                secretStorePaths.getTaskInstanceName(),
+                tlsArtifactPaths.getTaskInstanceName(),
                 missingSecrets.size(),
                 expectedSecretNames.size(),
                 encryptionSpecName,
@@ -71,7 +71,7 @@ public class TLSArtifactsUpdater {
 
         // Just in case, generate the new values BEFORE attempting to erase current values. This avoids a situation
         // where we delete old secrets, then fail to generate their replacements and leave everything in a bad state.
-        Map<Secret, String> newSecretValues = tlsArtifactsGenerator.generate(certificateNamesGenerator);
+        Map<TLSArtifact, String> newArtifactValues = tlsArtifactsGenerator.generate(certificateNamesGenerator);
 
         // One or more secrets are missing. Erase any current values and start from scratch.
         for (String secretName : currentSecretNames.stream()
@@ -83,10 +83,10 @@ public class TLSArtifactsUpdater {
         }
 
         // Generate and write new values after deleting any current values.
-        for (Map.Entry<Secret, String> entry : newSecretValues.entrySet()) {
-            String secretPath = secretStorePaths.getSecretStorePath(entry.getKey(), encryptionSpecName);
-            logger.info("Creating new secret: {}", secretPath);
-            secretsClient.create(secretPath,
+        for (Map.Entry<TLSArtifact, String> entry : newArtifactValues.entrySet()) {
+            String secretStorePath = tlsArtifactPaths.getSecretStorePath(entry.getKey(), encryptionSpecName);
+            logger.info("Creating new secret: {}", secretStorePath);
+            secretsClient.create(secretStorePath,
                     new SecretsClient.Payload(serviceName, entry.getValue(), entry.getKey().getDescription()));
         }
     }

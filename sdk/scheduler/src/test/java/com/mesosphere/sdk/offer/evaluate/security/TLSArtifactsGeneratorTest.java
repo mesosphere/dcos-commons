@@ -93,12 +93,12 @@ public class TLSArtifactsGeneratorTest {
         List<X509Certificate> chain = Arrays.asList(createCertificate(), createCertificate(), createCertificate());
         when(mockCAClient.chainWithRootCert(Matchers.<X509Certificate>any())).thenReturn(chain);
 
-        Map<Secret, String> tlsArtifacts = tlsArtifactsGenerator.generate(certificateNamesGenerator);
-        Assert.assertTrue(tlsArtifacts.get(Secret.CERTIFICATE).contains(PEMUtils.toPEM(endEntityCert)));
-        Assert.assertEquals(tlsArtifacts.get(Secret.PRIVATE_KEY), PEMUtils.toPEM(KEYPAIR.getPrivate()));
-        Assert.assertEquals(tlsArtifacts.get(Secret.CA_CERTIFICATE), PEMUtils.toPEM(chain.get(chain.size() - 1)));
-        validateEncodedKeyStore(tlsArtifacts.get(Secret.KEYSTORE));
-        validateEncodedTrustStore(tlsArtifacts.get(Secret.TRUSTSTORE));
+        Map<TLSArtifact, String> tlsArtifacts = tlsArtifactsGenerator.generate(certificateNamesGenerator);
+        Assert.assertTrue(tlsArtifacts.get(TLSArtifact.CERTIFICATE).contains(PEMUtils.toPEM(endEntityCert)));
+        Assert.assertEquals(tlsArtifacts.get(TLSArtifact.PRIVATE_KEY), PEMUtils.toPEM(KEYPAIR.getPrivate()));
+        Assert.assertEquals(tlsArtifacts.get(TLSArtifact.CA_CERTIFICATE), PEMUtils.toPEM(chain.get(chain.size() - 1)));
+        validateEncodedKeyStore(tlsArtifacts.get(TLSArtifact.KEYSTORE));
+        validateEncodedTrustStore(tlsArtifacts.get(TLSArtifact.TRUSTSTORE));
     }
 
     @Test
@@ -109,12 +109,12 @@ public class TLSArtifactsGeneratorTest {
         List<X509Certificate> chain = Arrays.asList(createCertificate());
         when(mockCAClient.chainWithRootCert(Matchers.<X509Certificate>any())).thenReturn(chain);
 
-        Map<Secret, String> tlsArtifacts = tlsArtifactsGenerator.generate(certificateNamesGenerator);
-        Assert.assertEquals(tlsArtifacts.get(Secret.CERTIFICATE), PEMUtils.toPEM(endEntityCert));
-        Assert.assertEquals(tlsArtifacts.get(Secret.PRIVATE_KEY), PEMUtils.toPEM(KEYPAIR.getPrivate()));
-        Assert.assertEquals(tlsArtifacts.get(Secret.CA_CERTIFICATE), PEMUtils.toPEM(chain.get(chain.size() - 1)));
-        validateEncodedKeyStore(tlsArtifacts.get(Secret.KEYSTORE));
-        validateEncodedTrustStore(tlsArtifacts.get(Secret.TRUSTSTORE));
+        Map<TLSArtifact, String> tlsArtifacts = tlsArtifactsGenerator.generate(certificateNamesGenerator);
+        Assert.assertEquals(tlsArtifacts.get(TLSArtifact.CERTIFICATE), PEMUtils.toPEM(endEntityCert));
+        Assert.assertEquals(tlsArtifacts.get(TLSArtifact.PRIVATE_KEY), PEMUtils.toPEM(KEYPAIR.getPrivate()));
+        Assert.assertEquals(tlsArtifacts.get(TLSArtifact.CA_CERTIFICATE), PEMUtils.toPEM(chain.get(chain.size() - 1)));
+        validateEncodedKeyStore(tlsArtifacts.get(TLSArtifact.KEYSTORE));
+        validateEncodedTrustStore(tlsArtifacts.get(TLSArtifact.TRUSTSTORE));
     }
 
     private void validateEncodedKeyStore(String encoded) throws Exception {

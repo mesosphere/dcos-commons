@@ -3,8 +3,8 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.evaluate.security.Secret;
-import com.mesosphere.sdk.offer.evaluate.security.SecretStorePaths;
+import com.mesosphere.sdk.offer.evaluate.security.TLSArtifact;
+import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -32,8 +32,7 @@ public class TLSEvaluationStageTest {
 
     @Mock private TLSArtifactsUpdater mockTLSArtifactsUpdater;
 
-    private SecretStorePaths secretPaths;
-
+    private TLSArtifactPaths tlsArtifactPaths;
     private TLSEvaluationStage tlsEvaluationStage;
 
     @Before
@@ -42,11 +41,10 @@ public class TLSEvaluationStageTest {
 
         // echo -n "pod-type-0-test-task-name.service-name.autoip.dcos.thisdcos.directory" | sha1sum
         String sanHash = "8ffc618c478beb31a043d978652d7bc571fedfe2";
-        secretPaths = new SecretStorePaths(
+        tlsArtifactPaths = new TLSArtifactPaths(
                 "test-namespace",
                 TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME,
                 sanHash);
-
         tlsEvaluationStage = new TLSEvaluationStage(
                 TestConstants.SERVICE_NAME, TestConstants.TASK_NAME, "test-namespace", mockTLSArtifactsUpdater);
     }
@@ -122,7 +120,7 @@ public class TLSEvaluationStageTest {
 
         Protos.ContainerInfo taskContainer =
                 podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getContainer();
-        assertTLSArtifacts(taskContainer, secretPaths, "test-tls");
+        assertTLSArtifacts(taskContainer, tlsArtifactPaths, "test-tls");
     }
 
     @Test
@@ -148,7 +146,7 @@ public class TLSEvaluationStageTest {
         Assert.assertEquals(0, executorContainer.getVolumesCount());
 
         Protos.ContainerInfo taskContainer = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getContainer();
-        assertKeystoreArtifacts(taskContainer, secretPaths, "test-tls");
+        assertKeystoreArtifacts(taskContainer, tlsArtifactPaths, "test-tls");
     }
 
     @Test
@@ -175,7 +173,7 @@ public class TLSEvaluationStageTest {
         Assert.assertEquals(0, executorContainer.getVolumesCount());
 
         Protos.ContainerInfo taskContainer = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getContainer();
-        assertTLSArtifacts(taskContainer, secretPaths, "test-tls");
+        assertTLSArtifacts(taskContainer, tlsArtifactPaths, "test-tls");
     }
 
     @Test
@@ -198,40 +196,40 @@ public class TLSEvaluationStageTest {
         Assert.assertFalse(outcome.isPassing());
     }
 
-    private void assertTLSArtifacts(Protos.ContainerInfo container, SecretStorePaths secretPaths, String encryptionSpecName) {
-        Protos.Volume volume = findVolumeWithContainerPath(container, Secret.CERTIFICATE.getMountPath(encryptionSpecName)).get();
+    private void assertTLSArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
+        Protos.Volume volume = findVolumeWithContainerPath(container, TLSArtifact.CERTIFICATE.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
                 volume.getSource().getSecret().getReference().getName(),
-                secretPaths.getSecretStorePath(Secret.CERTIFICATE, encryptionSpecName));
+                secretPaths.getSecretStorePath(TLSArtifact.CERTIFICATE, encryptionSpecName));
 
-        volume = findVolumeWithContainerPath(container, Secret.CA_CERTIFICATE.getMountPath(encryptionSpecName)).get();
+        volume = findVolumeWithContainerPath(container, TLSArtifact.CA_CERTIFICATE.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
                 volume.getSource().getSecret().getReference().getName(),
-                secretPaths.getSecretStorePath(Secret.CA_CERTIFICATE, encryptionSpecName));
+                secretPaths.getSecretStorePath(TLSArtifact.CA_CERTIFICATE, encryptionSpecName));
 
-        volume = findVolumeWithContainerPath(container, Secret.PRIVATE_KEY.getMountPath(encryptionSpecName)).get();
+        volume = findVolumeWithContainerPath(container, TLSArtifact.PRIVATE_KEY.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
                 volume.getSource().getSecret().getReference().getName(),
-                secretPaths.getSecretStorePath(Secret.PRIVATE_KEY, encryptionSpecName));
+                secretPaths.getSecretStorePath(TLSArtifact.PRIVATE_KEY, encryptionSpecName));
 
-        Assert.assertFalse(findVolumeWithContainerPath(container, Secret.KEYSTORE.getMountPath(encryptionSpecName)).isPresent());
-        Assert.assertFalse(findVolumeWithContainerPath(container, Secret.TRUSTSTORE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.KEYSTORE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.TRUSTSTORE.getMountPath(encryptionSpecName)).isPresent());
     }
 
-    private void assertKeystoreArtifacts(Protos.ContainerInfo container, SecretStorePaths secretPaths, String encryptionSpecName) {
-        Protos.Volume volume = findVolumeWithContainerPath(container, Secret.KEYSTORE.getMountPath(encryptionSpecName)).get();
+    private void assertKeystoreArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
+        Protos.Volume volume = findVolumeWithContainerPath(container, TLSArtifact.KEYSTORE.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
                 volume.getSource().getSecret().getReference().getName(),
-                secretPaths.getSecretStorePath(Secret.KEYSTORE, encryptionSpecName));
+                secretPaths.getSecretStorePath(TLSArtifact.KEYSTORE, encryptionSpecName));
 
-        volume = findVolumeWithContainerPath(container, Secret.TRUSTSTORE.getMountPath(encryptionSpecName)).get();
+        volume = findVolumeWithContainerPath(container, TLSArtifact.TRUSTSTORE.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
                 volume.getSource().getSecret().getReference().getName(),
-                secretPaths.getSecretStorePath(Secret.TRUSTSTORE, encryptionSpecName));
+                secretPaths.getSecretStorePath(TLSArtifact.TRUSTSTORE, encryptionSpecName));
 
-        Assert.assertFalse(findVolumeWithContainerPath(container, Secret.CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
-        Assert.assertFalse(findVolumeWithContainerPath(container, Secret.CA_CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
-        Assert.assertFalse(findVolumeWithContainerPath(container, Secret.PRIVATE_KEY.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.CA_CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.PRIVATE_KEY.getMountPath(encryptionSpecName)).isPresent());
     }
 
     private Optional<Protos.Volume> findVolumeWithContainerPath(Protos.ContainerInfo container, String path) {

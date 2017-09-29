@@ -91,14 +91,14 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
         CertificateNamesGenerator certificateNamesGenerator =
                 new CertificateNamesGenerator(serviceName, taskSpec, podInfoBuilder.getPodInstance());
-        SecretStorePaths secretPathsGenerator = new SecretStorePaths(
+        TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
                 namespace,
                 TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
                 certificateNamesGenerator.getSANsHash());
         for (TransportEncryptionSpec transportEncryptionSpec : taskSpec.getTransportEncryption()) {
             try {
                 tlsArtifactsUpdater.update(
-                        secretPathsGenerator, certificateNamesGenerator, transportEncryptionSpec.getName());
+                        tlsArtifactPaths, certificateNamesGenerator, transportEncryptionSpec.getName());
             } catch (Exception e) {
                 logger.error(String.format("Failed to process certificates for %s", taskName), e);
                 return EvaluationOutcome.fail(
@@ -110,7 +110,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             podInfoBuilder
                     .getTaskBuilder(taskName)
                     .getContainerBuilder()
-                    .addAllVolumes(getExecutorInfoSecretVolumes(transportEncryptionSpec, secretPathsGenerator));
+                    .addAllVolumes(getExecutorInfoSecretVolumes(transportEncryptionSpec, tlsArtifactPaths));
 
         }
 
@@ -118,15 +118,15 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     }
 
     private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(
-            TransportEncryptionSpec spec, SecretStorePaths secretNameGenerator) {
+            TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths) {
         Collection<Protos.Volume> volumes = new ArrayList<>();
-        for (SecretStorePaths.Entry entry : secretNameGenerator.getPathsForType(spec.getType(), spec.getName())) {
+        for (TLSArtifactPaths.Entry entry : tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName())) {
             volumes.add(getSecretVolume(entry));
         }
         return volumes;
     }
 
-    private static Protos.Volume getSecretVolume(SecretStorePaths.Entry entry) {
+    private static Protos.Volume getSecretVolume(TLSArtifactPaths.Entry entry) {
         Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder()
                 .setContainerPath(entry.mountPath)
                 .setMode(Protos.Volume.Mode.RO);

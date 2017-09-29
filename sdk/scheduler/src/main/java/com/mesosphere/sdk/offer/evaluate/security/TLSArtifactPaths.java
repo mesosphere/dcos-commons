@@ -9,9 +9,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Utility for creating paths for {@link Secret} objects within a specified per-task context.
+ * Utility for creating paths for {@link TLSArtifact} objects within a specified per-task context.
  */
-public class SecretStorePaths {
+public class TLSArtifactPaths {
 
     /**
      * Utility class for pairing paths related to a secret.
@@ -31,11 +31,11 @@ public class SecretStorePaths {
     private static final Pattern KNOWN_SECRET_NAMES_PATTERN;
     static {
         Collection<String> possibleSecretNames = new ArrayList<>();
-        for (Secret secret : Secret.values()) {
-            possibleSecretNames.add(secret.getName());
+        for (TLSArtifact tlsArtifact : TLSArtifact.values()) {
+            possibleSecretNames.add(tlsArtifact.getName());
         }
         KNOWN_SECRET_NAMES_PATTERN = Pattern.compile(String.format("^.+%s(?:%s)$",
-                Secret.SECRET_STORE_PATH_DELIMITER,
+                TLSArtifact.SECRET_STORE_NAME_DELIMITER,
                 String.join("|", possibleSecretNames)));
     }
 
@@ -43,7 +43,7 @@ public class SecretStorePaths {
     private final String taskInstanceName;
     private final String sansHash;
 
-    public SecretStorePaths(String namespace, String taskInstanceName, String sansHash) {
+    public TLSArtifactPaths(String namespace, String taskInstanceName, String sansHash) {
         this.namespace = namespace;
         this.taskInstanceName = taskInstanceName;
         this.sansHash = sansHash;
@@ -58,52 +58,52 @@ public class SecretStorePaths {
     }
 
     /**
-     * Return a list of namespaced secret names (without namespace) for all known {@link Secret}s.
+     * Return a list of namespaced secret names (without namespace) for all known {@link TLSArtifact}s.
      */
     public Collection<String> getAllNames(String encryptionSpecName) {
         Collection<String> secretPaths = new ArrayList<>();
-        for (Secret secret : Secret.values()) {
-            secretPaths.add(getSecretStoreName(secret, encryptionSpecName));
+        for (TLSArtifact tlsArtifact : TLSArtifact.values()) {
+            secretPaths.add(getSecretStoreName(tlsArtifact, encryptionSpecName));
         }
         return secretPaths;
     }
 
     /**
-     * Returns a mapping of secret store path to mount path for all {@link Secret}s with the specified
+     * Returns a mapping of secret store path to mount path for all {@link TLSArtifact}s with the specified
      * {@link TransportEncryptionSpec.Type}.
      */
     public List<Entry> getPathsForType(TransportEncryptionSpec.Type type, String encryptionSpecName) {
         List<Entry> paths = new ArrayList<>();
-        for (Secret secret : Secret.values()) {
-            if (secret.getType().equals(type)) {
+        for (TLSArtifact tlsArtifact : TLSArtifact.values()) {
+            if (tlsArtifact.getType().equals(type)) {
                 paths.add(new Entry(
-                        getSecretStorePath(secret, encryptionSpecName),
-                        secret.getMountPath(encryptionSpecName)));
+                        getSecretStorePath(tlsArtifact, encryptionSpecName),
+                        tlsArtifact.getMountPath(encryptionSpecName)));
             }
         }
         return paths;
     }
 
     /**
-     * Returns the appropriate namespaced secret store path for the provided {@link Secret}.
+     * Returns the appropriate namespaced secret store path for the provided {@link TLSArtifact}.
      */
-    public String getSecretStorePath(Secret secret, String encryptionSpecName) {
-        return String.format("%s/%s", namespace, getSecretStoreName(secret, encryptionSpecName));
+    public String getSecretStorePath(TLSArtifact tlsArtifact, String encryptionSpecName) {
+        return String.format("%s/%s", namespace, getSecretStoreName(tlsArtifact, encryptionSpecName));
     }
 
     /**
-     * Filters the provided list of secret paths to just the ones which have a matching {@link Secret} implementation.
+     * Filters the provided list of secret paths to just the ones which have a matching {@link TLSArtifact} implementation.
      */
-    public static Collection<String> getKnownSecrets(Collection<String> secretStorePaths) {
+    public static Collection<String> getKnownTLSArtifacts(Collection<String> secretStorePaths) {
         return secretStorePaths.stream()
                 .filter(secretStorePath -> KNOWN_SECRET_NAMES_PATTERN.matcher(secretStorePath).matches())
                 .collect(Collectors.toList());
     }
 
     /**
-     * Returns the appropriate name for the provided {@link Secret} to be used in a secret store.
+     * Returns the appropriate name for the provided {@link TLSArtifact} to be used in a secret store.
      */
-    private String getSecretStoreName(Secret secret, String encryptionSpecName) {
-        return secret.getSecretStoreName(sansHash, taskInstanceName, encryptionSpecName);
+    private String getSecretStoreName(TLSArtifact tlsArtifact, String encryptionSpecName) {
+        return tlsArtifact.getSecretStoreName(sansHash, taskInstanceName, encryptionSpecName);
     }
 }

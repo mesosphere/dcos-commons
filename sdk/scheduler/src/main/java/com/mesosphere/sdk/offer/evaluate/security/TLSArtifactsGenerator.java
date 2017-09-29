@@ -67,9 +67,9 @@ class TLSArtifactsGenerator {
     }
 
     /**
-     * Returns a mapping of {@link Secret} types to generated secret content, to be stored in a {@link SecretStore}.
+     * Returns a mapping of {@link TLSArtifact} types to generated secret content, to be stored in a {@link SecretStore}.
      */
-    Map<Secret, String> generate(CertificateNamesGenerator certificateNamesGenerator) throws Exception {
+    Map<TLSArtifact, String> generate(CertificateNamesGenerator certificateNamesGenerator) throws Exception {
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
         // Get new end-entity certificate from CA
@@ -87,10 +87,10 @@ class TLSArtifactsGenerator {
             endEntityCertificateWithChain.addAll(certificateChain.subList(0, certificateChain.size() - 1));
         }
 
-        Map<Secret, String> values = new HashMap<>();
+        Map<TLSArtifact, String> values = new HashMap<>();
 
         // Convert to pem and join to a single string
-        values.put(Secret.CERTIFICATE, endEntityCertificateWithChain.stream()
+        values.put(TLSArtifact.CERTIFICATE, endEntityCertificateWithChain.stream()
                 .map(cert -> {
                     try {
                         return PEMUtils.toPEM(cert);
@@ -101,8 +101,8 @@ class TLSArtifactsGenerator {
                 .collect(Collectors.joining()));
 
         // Serialize private key and Root CA cert to PEM format
-        values.put(Secret.PRIVATE_KEY, PEMUtils.toPEM(keyPair.getPrivate()));
-        values.put(Secret.CA_CERTIFICATE, PEMUtils.toPEM(certificateChain.get(certificateChain.size() - 1)));
+        values.put(TLSArtifact.PRIVATE_KEY, PEMUtils.toPEM(keyPair.getPrivate()));
+        values.put(TLSArtifact.CA_CERTIFICATE, PEMUtils.toPEM(certificateChain.get(certificateChain.size() - 1)));
 
         // KeyStore expects complete chain with end-entity certificate
         certificateChain.add(0, certificate);
@@ -114,13 +114,13 @@ class TLSArtifactsGenerator {
                 keyPair.getPrivate(),
                 KEYSTORE_PASSWORD,
                 keyStoreChain);
-        values.put(Secret.KEYSTORE, base64Encode(keyStore));
+        values.put(TLSArtifact.KEYSTORE, base64Encode(keyStore));
 
         KeyStore trustStore = createEmptyKeyStore();
         trustStore.setCertificateEntry(
                 KEYSTORE_ROOT_CA_CERT_ALIAS,
                 certificateChain.get(certificateChain.size() - 1));
-        values.put(Secret.TRUSTSTORE, base64Encode(trustStore));
+        values.put(TLSArtifact.TRUSTSTORE, base64Encode(trustStore));
 
         return values;
     }
