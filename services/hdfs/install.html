@@ -1109,7 +1109,7 @@ dcos package install --cli beta-hdfs
 <div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
         </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
-        </span><span class="nt">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs-principal"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"service_account"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs-principal"</span><span class="p">,</span><span class="w">
     </span><span class="err">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre>
@@ -1129,9 +1129,9 @@ dcos package install --cli beta-hdfs
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The DC/OS service account for the HDFS cluster.</td>
   </tr>
 
 </table>
