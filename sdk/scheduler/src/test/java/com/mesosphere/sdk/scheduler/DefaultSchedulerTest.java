@@ -76,8 +76,6 @@ public class DefaultSchedulerTest {
     private SchedulerFlags mockSchedulerFlags;
     @Mock
     private DcosCluster mockDcosCluster;
-    @Mock
-    private DcosVersion mockDcosVersion;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
@@ -180,17 +178,13 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private Capabilities getCapabilities(Boolean enableGpu) throws Exception {
-        when(mockDcosVersion.getVersion()).thenReturn("1.10-dev");
-        when(mockDcosCluster.getDcosVersion()).thenReturn(mockDcosVersion);
-        Capabilities capabilities = new Capabilities(mockDcosCluster);
-        Capabilities mockCapabilities = spy(capabilities);
-        when(mockCapabilities.supportsGpuResource()).thenReturn(enableGpu);
-        return mockCapabilities;
-    }
-
     private Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
-        return getCapabilities(DEFAULT_GPU_POLICY);
+        return new Capabilities(mockDcosCluster) {
+            @Override
+            public boolean supportsGpuResource() {
+                return DEFAULT_GPU_POLICY;
+            }
+        };
     }
 
     private StateStore stateStore;
@@ -201,6 +195,7 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
+        when(mockDcosCluster.getDcosVersion()).thenReturn(new DcosVersion("1.10-dev"));
         when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         stateStore = new StateStore(new PersisterCache(new MemPersister()));

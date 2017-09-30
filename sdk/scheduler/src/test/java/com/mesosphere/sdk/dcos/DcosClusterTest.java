@@ -39,17 +39,8 @@ public class DcosClusterTest {
     }
 
     @Test
-    public void testGetImageInfo() throws IOException, URISyntaxException {
-        DcosVersion dcosVersion = new TestDcosCluster(TEST_VERSION).getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
-        Assert.assertEquals(TEST_BOOTSTRAP_ID, dcosVersion.getBootstrapId());
-        Assert.assertEquals(TEST_DCOS_IMAGE_COMMIT, dcosVersion.getDcosImageCommit());
-    }
-
-    @Test
     public void testGetVersion() throws IOException, URISyntaxException {
         DcosVersion dcosVersion = new TestDcosCluster(TEST_VERSION).getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
         Assert.assertEquals(TEST_VERSION, dcosVersion.getVersion());
         Assert.assertEquals(1, dcosVersion.getElements().getFirstElement());
         Assert.assertEquals(9, dcosVersion.getElements().getSecondElement());
@@ -58,7 +49,6 @@ public class DcosClusterTest {
     @Test(expected = NumberFormatException.class)
     public void testGetBadVersionInt() throws IOException, URISyntaxException {
         DcosVersion dcosVersion = new TestDcosCluster("5").getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
         Assert.assertEquals("5", dcosVersion.getVersion());
         Assert.assertEquals(5, dcosVersion.getElements().getFirstElement());
         dcosVersion.getElements().getSecondElement();
@@ -67,7 +57,6 @@ public class DcosClusterTest {
     @Test(expected = NumberFormatException.class)
     public void testGetBadVersionIntDot() throws IOException, URISyntaxException {
         DcosVersion dcosVersion = new TestDcosCluster("0.").getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
         Assert.assertEquals("0.", dcosVersion.getVersion());
         Assert.assertEquals(0, dcosVersion.getElements().getFirstElement());
         dcosVersion.getElements().getSecondElement();
@@ -76,7 +65,6 @@ public class DcosClusterTest {
     @Test(expected = NumberFormatException.class)
     public void testGetBadVersionDot() throws IOException, URISyntaxException {
         DcosVersion dcosVersion = new TestDcosCluster(".").getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
         Assert.assertEquals(".", dcosVersion.getVersion());
         dcosVersion.getElements().getFirstElement();
     }
@@ -84,7 +72,6 @@ public class DcosClusterTest {
     @Test(expected = NumberFormatException.class)
     public void testGetBadVersionString() throws IOException, URISyntaxException {
         DcosVersion dcosVersion = new TestDcosCluster("0.hello").getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
         Assert.assertEquals("0.hello", dcosVersion.getVersion());
         Assert.assertEquals(0, dcosVersion.getElements().getFirstElement());
         dcosVersion.getElements().getSecondElement();
@@ -93,7 +80,6 @@ public class DcosClusterTest {
     @Test(expected = NumberFormatException.class)
     public void testGetBadVersionSuffix() throws IOException, URISyntaxException {
         DcosVersion dcosVersion = new TestDcosCluster("0.5-hey").getDcosVersion();
-        Assert.assertNotNull(dcosVersion);
         Assert.assertEquals("0.5-hey", dcosVersion.getVersion());
         Assert.assertEquals(0, dcosVersion.getElements().getFirstElement());
         dcosVersion.getElements().getSecondElement();
