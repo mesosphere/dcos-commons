@@ -53,9 +53,9 @@ def configure_package(configure_security):
     wait_fixed=10000,
     stop_max_delay=120000,
     retry_on_result=lambda res: res is False)
-def wait_for_endpoints():
+def wait_for_endpoints(foldered_service_name):
     ret = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        config.PACKAGE_NAME, foldered_service_name,
         'endpoints {}'.format(config.DEFAULT_TASK_NAME), json=True)
     if len(ret['address']) == config.DEFAULT_BROKER_COUNT:
         return ret
@@ -65,7 +65,8 @@ def wait_for_endpoints():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_address():
-    endpoints = wait_for_endpoints()
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    endpoints = wait_for_endpoints(foldered_name)
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == config.DEFAULT_BROKER_COUNT
