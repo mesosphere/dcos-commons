@@ -167,22 +167,22 @@ implements java.lang.Runnable</pre>
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-com.mesosphere.sdk.scheduler.DefaultScheduler.Builder-">DefaultService</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;schedulerBuilder)</code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-java.io.File-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">DefaultService</a></span>(java.io.File&nbsp;yamlSpecFile,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-java.io.File-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">DefaultService</a></span>(java.io.File&nbsp;yamlSpecFile,
               java.io.File&nbsp;configTemplateDir,
-              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>&nbsp;</td>
+              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">DefaultService</a></span>(java.io.File&nbsp;yamlSpecFile,
-              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">DefaultService</a></span>(java.io.File&nbsp;yamlSpecFile,
+              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>&nbsp;</td>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-com.mesosphere.sdk.specification.yaml.RawServiceSpec-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">DefaultService</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-com.mesosphere.sdk.specification.yaml.RawServiceSpec-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">DefaultService</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
               java.io.File&nbsp;configTemplateDir,
-              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>&nbsp;</td>
+              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-">DefaultService</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpecification,
-              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultService.html#DefaultService-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-">DefaultService</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpecification,
+              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
               java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)</code>&nbsp;</td>
 </tr>
 </table>
@@ -269,14 +269,14 @@ implements java.lang.Runnable</pre>
 <pre>public&nbsp;DefaultService()</pre>
 </li>
 </ul>
-<a name="DefaultService-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">
+<a name="DefaultService-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>DefaultService</h4>
 <pre>public&nbsp;DefaultService(java.io.File&nbsp;yamlSpecFile,
-                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)
+                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)
                throws java.lang.Exception</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -284,7 +284,7 @@ implements java.lang.Runnable</pre>
 </dl>
 </li>
 </ul>
-<a name="DefaultService-java.io.File-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">
+<a name="DefaultService-java.io.File-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -292,7 +292,7 @@ implements java.lang.Runnable</pre>
 <h4>DefaultService</h4>
 <pre>public&nbsp;DefaultService(java.io.File&nbsp;yamlSpecFile,
                       java.io.File&nbsp;configTemplateDir,
-                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)
+                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)
                throws java.lang.Exception</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -300,7 +300,7 @@ implements java.lang.Runnable</pre>
 </dl>
 </li>
 </ul>
-<a name="DefaultService-com.mesosphere.sdk.specification.yaml.RawServiceSpec-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">
+<a name="DefaultService-com.mesosphere.sdk.specification.yaml.RawServiceSpec-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -308,7 +308,7 @@ implements java.lang.Runnable</pre>
 <h4>DefaultService</h4>
 <pre>public&nbsp;DefaultService(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
                       java.io.File&nbsp;configTemplateDir,
-                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)
+                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)
                throws java.lang.Exception</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -316,14 +316,14 @@ implements java.lang.Runnable</pre>
 </dl>
 </li>
 </ul>
-<a name="DefaultService-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Collection-">
+<a name="DefaultService-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>DefaultService</h4>
 <pre>public&nbsp;DefaultService(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpecification,
-                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                       java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)
                throws java.lang.Exception</pre>
 <dl>

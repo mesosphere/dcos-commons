@@ -47,8 +47,8 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactPaths.Entry.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsUpdater.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../../index.html?com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html" target="_top">Frames</a></li>
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -107,15 +107,34 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">TLSArtifactsGenerator</span>
+<pre>class <span class="typeNameLabel">TLSArtifactsGenerator</span>
 extends java.lang.Object</pre>
-<div class="block">Generates all necessary artifacts for given task.</div>
+<div class="block">Handles the creation of secrets to be stored against a given namespace.</div>
 </li>
 </ul>
 </div>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static char[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#KEYSTORE_PASSWORD">KEYSTORE_PASSWORD</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -128,8 +147,11 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#TLSArtifactsGenerator-java.security.KeyPairGenerator-com.mesosphere.sdk.dcos.CertificateAuthorityClient-">TLSArtifactsGenerator</a></span>(java.security.KeyPairGenerator&nbsp;keyPairGenerator,
-                     <a href="../../../../../../com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos">CertificateAuthorityClient</a>&nbsp;certificateAuthorityClient)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#TLSArtifactsGenerator-com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient-">TLSArtifactsGenerator</a></span>(<a href="../../../../../../com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a>&nbsp;caClient)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#TLSArtifactsGenerator-com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient-java.security.KeyPairGenerator-">TLSArtifactsGenerator</a></span>(<a href="../../../../../../com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a>&nbsp;caClient,
+                     java.security.KeyPairGenerator&nbsp;keyPairGenerator)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -147,8 +169,11 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#generate-com.mesosphere.sdk.offer.evaluate.security.CertificateNamesGenerator-">generate</a></span>(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a>&nbsp;certificateNamesGenerator)</code>&nbsp;</td>
+<td class="colFirst"><code>(package private) java.util.Map&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a>,java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html#generate-com.mesosphere.sdk.offer.evaluate.security.CertificateNamesGenerator-">generate</a></span>(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a>&nbsp;certificateNamesGenerator)</code>
+<div class="block">Returns a mapping of <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a> types to generated secret content, to be stored in a
+ <code>SecretStore</code>.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -166,20 +191,46 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a name="KEYSTORE_PASSWORD">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>KEYSTORE_PASSWORD</h4>
+<pre>static final&nbsp;char[] KEYSTORE_PASSWORD</pre>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="TLSArtifactsGenerator-java.security.KeyPairGenerator-com.mesosphere.sdk.dcos.CertificateAuthorityClient-">
+<a name="TLSArtifactsGenerator-com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>TLSArtifactsGenerator</h4>
+<pre>public&nbsp;TLSArtifactsGenerator(<a href="../../../../../../com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a>&nbsp;caClient)</pre>
+</li>
+</ul>
+<a name="TLSArtifactsGenerator-com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient-java.security.KeyPairGenerator-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>TLSArtifactsGenerator</h4>
-<pre>public&nbsp;TLSArtifactsGenerator(java.security.KeyPairGenerator&nbsp;keyPairGenerator,
-                             <a href="../../../../../../com/mesosphere/sdk/dcos/CertificateAuthorityClient.html" title="interface in com.mesosphere.sdk.dcos">CertificateAuthorityClient</a>&nbsp;certificateAuthorityClient)</pre>
+<pre>TLSArtifactsGenerator(<a href="../../../../../../com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a>&nbsp;caClient,
+                      java.security.KeyPairGenerator&nbsp;keyPairGenerator)</pre>
 </li>
 </ul>
 </li>
@@ -196,8 +247,10 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>generate</h4>
-<pre>public&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a>&nbsp;generate(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a>&nbsp;certificateNamesGenerator)
-                      throws java.lang.Exception</pre>
+<pre>java.util.Map&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a>,java.lang.String&gt;&nbsp;generate(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a>&nbsp;certificateNamesGenerator)
+                                              throws java.lang.Exception</pre>
+<div class="block">Returns a mapping of <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a> types to generated secret content, to be stored in a
+ <code>SecretStore</code>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code></dd>
@@ -231,8 +284,8 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactPaths.Entry.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsUpdater.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../../index.html?com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html" target="_top">Frames</a></li>
@@ -257,13 +310,13 @@ extends java.lang.Object</pre>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

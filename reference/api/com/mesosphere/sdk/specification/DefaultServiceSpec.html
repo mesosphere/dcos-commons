@@ -290,23 +290,23 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 </tr>
 <tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">newGenerator</a></span>(java.io.File&nbsp;rawServiceSpecFile,
-            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">newGenerator</a></span>(java.io.File&nbsp;rawServiceSpecFile,
+            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Used by unit tests.</div>
 </td>
 </tr>
 <tr id="i17" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.io.File-">newGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
-            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.io.File-">newGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
             java.io.File&nbsp;configTemplateDir)</code>
 <div class="block">Returns a new generator with the provided configuration.</div>
 </td>
 </tr>
 <tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Map-java.io.File-">newGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
-            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html#newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Map-java.io.File-">newGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
             java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;schedulerEnvironment,
             java.io.File&nbsp;configTemplateDir)</code>
 <div class="block">Used by unit tests.</div>
@@ -375,33 +375,33 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
                                 java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;&nbsp;podSpecs)</pre>
 </li>
 </ul>
-<a name="newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.io.File-">
+<a name="newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.io.File-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>newGenerator</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;newGenerator(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
-                                                        <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+                                                        <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                                                         java.io.File&nbsp;configTemplateDir)</pre>
 <div class="block">Returns a new generator with the provided configuration.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>rawServiceSpec</code> - The object model representation of a Service Specification YAML file</dd>
-<dd><code>schedulerFlags</code> - Scheduler flags containing operator-facing knobs</dd>
+<dd><code>schedulerConfig</code> - Scheduler configuration containing operator-facing knobs</dd>
 <dd><code>configTemplateDir</code> - Path to the directory containing any config templates for the service, often the same
      directory as the Service Specification YAML file</dd>
 </dl>
 </li>
 </ul>
-<a name="newGenerator-java.io.File-com.mesosphere.sdk.scheduler.SchedulerFlags-">
+<a name="newGenerator-java.io.File-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>newGenerator</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;newGenerator(java.io.File&nbsp;rawServiceSpecFile,
-                                                        <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags)
+                                                        <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)
                                                  throws java.lang.Exception</pre>
 <div class="block">Used by unit tests.</div>
 <dl>
@@ -410,14 +410,14 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 </dl>
 </li>
 </ul>
-<a name="newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerFlags-java.util.Map-java.io.File-">
+<a name="newGenerator-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Map-java.io.File-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>newGenerator</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;newGenerator(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
-                                                        <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;schedulerFlags,
+                                                        <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                                                         java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;schedulerEnvironment,
                                                         java.io.File&nbsp;configTemplateDir)
                                                  throws java.lang.Exception</pre>

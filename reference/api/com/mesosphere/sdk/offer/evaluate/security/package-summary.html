@@ -83,32 +83,54 @@
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></td>
 <td class="colLast">
-<div class="block">A <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>CertificateNamesGenerator</code></a> creates relevant names for given service pod.</div>
+<div class="block">A <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>CertificateNamesGenerator</code></a> creates relevant TLS certificate names for given pod instance.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/SecretNameGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">SecretNameGenerator</a></td>
+<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/PEMUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.security">PEMUtils</a></td>
 <td class="colLast">
-<div class="block">Provides a way to generate paths for secrets storing a private key, a certificate and a keystore.</div>
+<div class="block">A <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/PEMUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>PEMUtils</code></a> allows to convert X509 certificates from and to PEM format.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifacts</a></td>
+<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactPaths.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactPaths</a></td>
 <td class="colLast">
-<div class="block">A <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifacts</code></a> is a container that holds various objects related to single private key and its X.509
- certificate.</div>
+<div class="block">Utility for creating paths for <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a> objects within a specified per-task context.</div>
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactPaths.Entry.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactPaths.Entry</a></td>
+<td class="colLast">
+<div class="block">Utility class for pairing paths related to a secret.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsGenerator</a></td>
 <td class="colLast">
-<div class="block">Generates all necessary artifacts for given task.</div>
+<div class="block">Handles the creation of secrets to be stored against a given namespace.</div>
 </td>
 </tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsPersister.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsPersister</a></td>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifactsUpdater.html" title="class in com.mesosphere.sdk.offer.evaluate.security">TLSArtifactsUpdater</a></td>
 <td class="colLast">
-<div class="block">Stores TLSArtifacts to a secret service.</div>
+<div class="block">Automatically populates a secret service with missing TLS certificate content.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li class="blockList">
+<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Enum Summary table, listing enums, and an explanation">
+<caption><span>Enum Summary</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Enum</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a></td>
+<td class="colLast">
+<div class="block">The definition of a pregenerated TLS or Keystore secret.</div>
 </td>
 </tr>
 </tbody>

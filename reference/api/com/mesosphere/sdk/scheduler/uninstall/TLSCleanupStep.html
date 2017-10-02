@@ -118,7 +118,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">TLSCleanupStep</span>
 extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></pre>
-<div class="block">A <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>TLSCleanupStep</code></a> removes all provisioned <a href="../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifacts.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifacts</code></a> from secrets service in a given namespace.</div>
+<div class="block">A <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>TLSCleanupStep</code></a> removes all provisioned <code>TLSArtifacts</code> from secrets service in a given namespace.</div>
 </li>
 </ul>
 </div>
@@ -167,8 +167,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#TLSCleanupStep-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.dcos.SecretsClient-java.lang.String-">TLSCleanupStep</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
-              <a href="../../../../../com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a>&nbsp;secretsClient,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#TLSCleanupStep-com.mesosphere.sdk.dcos.clients.SecretsClient-java.lang.String-">TLSCleanupStep</a></span>(<a href="../../../../../com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a>&nbsp;secretsClient,
               java.lang.String&nbsp;namespace)</code>
 <div class="block">Creates a new instance with initial <code>status</code>.</div>
 </td>
@@ -266,14 +265,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="TLSCleanupStep-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.dcos.SecretsClient-java.lang.String-">
+<a name="TLSCleanupStep-com.mesosphere.sdk.dcos.clients.SecretsClient-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>TLSCleanupStep</h4>
-<pre>TLSCleanupStep(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
-               <a href="../../../../../com/mesosphere/sdk/dcos/SecretsClient.html" title="interface in com.mesosphere.sdk.dcos">SecretsClient</a>&nbsp;secretsClient,
+<pre>TLSCleanupStep(<a href="../../../../../com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a>&nbsp;secretsClient,
                java.lang.String&nbsp;namespace)</pre>
 <div class="block">Creates a new instance with initial <code>status</code>.</div>
 </li>

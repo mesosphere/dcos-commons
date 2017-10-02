@@ -153,9 +153,9 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getSchedulerFlags--">getSchedulerFlags</a></span>()</code>
-<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerFlags</code></a> object which was provided via the constructor.</div>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getSchedulerConfig--">getSchedulerConfig</a></span>()</code>
+<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> object which was provided via the constructor.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
@@ -168,7 +168,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#getStateStore--">getStateStore</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a>, or a reasonable default
- created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code>.</div>
+ created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerConfig)</code>.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
@@ -229,7 +229,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-">setStateStore</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
- <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code> will be used.</div>
+ <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerConfig)</code> will be used.</div>
 </td>
 </tr>
 </table>
@@ -264,14 +264,14 @@ extends java.lang.Object</pre>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> which was provided via the constructor.</div>
 </li>
 </ul>
-<a name="getSchedulerFlags--">
+<a name="getSchedulerConfig--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getSchedulerFlags</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler">SchedulerFlags</a>&nbsp;getSchedulerFlags()</pre>
-<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerFlags.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerFlags</code></a> object which was provided via the constructor.</div>
+<h4>getSchedulerConfig</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;getSchedulerConfig()</pre>
+<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> object which was provided via the constructor.</div>
 </li>
 </ul>
 <a name="setStateStore-com.mesosphere.sdk.state.StateStore-">
@@ -282,7 +282,7 @@ extends java.lang.Object</pre>
 <h4>setStateStore</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler.Builder</a>&nbsp;setStateStore(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>, otherwise the return value of
- <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code> will be used.
+ <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerConfig)</code> will be used.
  <p>
  The state store persists copies of task information and task status for all tasks running in the service.</div>
 <dl>
@@ -300,7 +300,7 @@ extends java.lang.Object</pre>
 <h4>getStateStore</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;getStateStore()</pre>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a>, or a reasonable default
- created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)</code>.
+ created via <code>DefaultScheduler#createStateStore(ServiceSpec, SchedulerConfig)</code>.
  <p>
  In order to avoid cohesiveness issues between this setting and the <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#build--"><code>build()</code></a> step,
  <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.Builder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> may not be invoked after this has been called.</div>
