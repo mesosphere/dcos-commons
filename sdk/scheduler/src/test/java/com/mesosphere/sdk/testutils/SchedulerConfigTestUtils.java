@@ -8,7 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * This class provides utility methods for tests concerned with OfferRequirements.
+ * This class provides utility methods for tests that use {@link SchedulerConfig}s.
  */
 public class SchedulerConfigTestUtils {
 
