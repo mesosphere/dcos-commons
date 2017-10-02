@@ -69,7 +69,7 @@ public class DefaultSchedulerTest {
     @Mock
     private SchedulerDriver mockSchedulerDriver;
     @Mock
-    private SchedulerFlags mockSchedulerFlags;
+    private SchedulerConfig mockSchedulerConfig;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
@@ -191,7 +191,7 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
+        when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         stateStore = new StateStore(new PersisterCache(new MemPersister()));
         configStore = new ConfigStore<>(
@@ -971,7 +971,7 @@ public class DefaultSchedulerTest {
 
     private DefaultScheduler getScheduler(ServiceSpec serviceSpec) throws PersisterException {
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(
-                serviceSpec, OfferRequirementTestUtils.getTestSchedulerFlags(), new MemPersister())
+                serviceSpec, OfferRequirementTestUtils.getTestSchedulerConfig(), new MemPersister())
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build()

@@ -8,7 +8,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
@@ -49,13 +49,13 @@ public class Main {
             throws Exception {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
         File configDir = pathToYamlSpecification.getParentFile();
-        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configDir)
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .build();
         DefaultScheduler.Builder builder = DefaultScheduler
-                .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerFlags)
+                .newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerConfig)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec);
         return builder

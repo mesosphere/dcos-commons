@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.PlansResource;
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -34,20 +34,27 @@ public class UninstallScheduler extends AbstractScheduler {
     private OfferAccepter offerAccepter;
 
     /**
-     * Creates a new UninstallScheduler based on the provided API port and initialization timeout,
-     * and a {@link StateStore}. The UninstallScheduler builds an uninstall {@link Plan} with two {@link Phase}s:
-     * a resource phase where all reserved resources get released back to Mesos, and a deregister phase where
-     * the framework deregisters itself and cleans up its state in Zookeeper.
+     * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
+     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
+     * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags,
-            Optional<SecretsClient> secretsClient) {
-        super(stateStore, configStore, schedulerFlags);
+            SchedulerConfig schedulerConfig) {
+        this(serviceSpec, stateStore, configStore, schedulerConfig, Optional.empty());
+    }
+
+    protected UninstallScheduler(
+            ServiceSpec serviceSpec,
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            SchedulerConfig schedulerConfig,
+            Optional<SecretsClient> customSecretsClientForTests) {
+        super(stateStore, configStore, schedulerConfig);
         uninstallPlanBuilder = new UninstallPlanBuilder(
-                serviceSpec, stateStore, configStore, schedulerFlags, secretsClient);
+                serviceSpec, stateStore, configStore, schedulerConfig, customSecretsClientForTests);
         uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
         resources = Collections.singletonList(new PlansResource()
                 .setPlanManagers(Collections.singletonList(uninstallPlanManager)));
@@ -55,7 +62,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     public Optional<Scheduler> getMesosScheduler() {
-        if (allButStateStoreUninstalled(stateStore, schedulerFlags)) {
+        if (allButStateStoreUninstalled(stateStore, schedulerConfig)) {
             LOGGER.info("Not registering framework because it is uninstalling.");
             return Optional.empty();
         }
@@ -131,13 +138,13 @@ public class UninstallScheduler extends AbstractScheduler {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
     }
 
-    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerFlags schedulerFlags) {
+    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerConfig schedulerConfig) {
         // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
         // details) we have to clear everything under it. This results in a race condition, where DefaultService can
         // have register() called after the StateStore already has the uninstall bit wiped.
         //
         // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
-        // mode if schedulerFlags.isUninstallEnabled() == true. Therefore we can use it as an OR along with
+        // mode if schedulerConfig.isUninstallEnabled() == true. Therefore we can use it as an OR along with
         // StateStoreUtils.isUninstalling().
 
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
