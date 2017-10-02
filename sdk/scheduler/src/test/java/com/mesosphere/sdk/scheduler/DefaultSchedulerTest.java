@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.dcos.DcosVersion;
+import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -73,9 +73,9 @@ public class DefaultSchedulerTest {
     @Mock
     private SchedulerDriver mockSchedulerDriver;
     @Mock
-    private SchedulerFlags mockSchedulerFlags;
+    private SchedulerConfig mockSchedulerConfig;
     @Mock
-    private DcosCluster mockDcosCluster;
+    private DcosVersionClient mockDcosVersionClient;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
@@ -179,7 +179,7 @@ public class DefaultSchedulerTest {
     }
 
     private Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
-        return new Capabilities(mockDcosCluster) {
+        return new Capabilities(mockDcosVersionClient) {
             @Override
             public boolean supportsGpuResource() {
                 return DEFAULT_GPU_POLICY;
@@ -195,8 +195,8 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        when(mockDcosCluster.getDcosVersion()).thenReturn(new DcosVersion("1.10-dev"));
-        when(mockSchedulerFlags.isStateCacheEnabled()).thenReturn(true);
+        when(mockDcosVersionClient.getDcosVersion()).thenReturn(new DcosVersion("1.10-dev"));
+        when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         stateStore = new StateStore(new PersisterCache(new MemPersister()));
         configStore = new ConfigStore<>(
@@ -976,7 +976,7 @@ public class DefaultSchedulerTest {
 
     private DefaultScheduler getScheduler(ServiceSpec serviceSpec) throws PersisterException {
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(
-                serviceSpec, OfferRequirementTestUtils.getTestSchedulerFlags(), new MemPersister())
+                serviceSpec, SchedulerConfigTestUtils.getTestSchedulerConfig(), new MemPersister())
                 .setStateStore(stateStore)
                 .setConfigStore(configStore)
                 .build()

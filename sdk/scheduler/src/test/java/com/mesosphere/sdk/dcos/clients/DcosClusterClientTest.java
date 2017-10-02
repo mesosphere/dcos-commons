@@ -1,17 +1,20 @@
-package com.mesosphere.sdk.dcos;
+package com.mesosphere.sdk.dcos.clients;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.dcos.DcosVersion;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 
 /**
- * Tests for the {@link DcosCluster} class.
+ * Tests for the {@link DcosVersionClient} class.
  */
-public class DcosClusterTest {
+public class DcosClusterClientTest {
 
-    private static final String EXPECTED_URI = DcosConstants.MESOS_LEADER_URI + DcosCluster.DCOS_VERSION_PATH;
+    private static final String EXPECTED_URI = DcosConstants.MESOS_LEADER_URI + DcosVersionClient.DCOS_VERSION_PATH;
     private static final String TEST_VERSION = "1.9-dev";
     public static final String TEST_BOOTSTRAP_ID = "test-bootstrap-id";
     public static final String TEST_DCOS_IMAGE_COMMIT = "test-dcos-image-commit";
@@ -20,7 +23,7 @@ public class DcosClusterTest {
             "'dcos-image-commit': '" + TEST_DCOS_IMAGE_COMMIT + "', " +
             "'bootstrap-id': '" + TEST_BOOTSTRAP_ID + "' }";
 
-    private static class TestDcosCluster extends DcosCluster {
+    private static class TestDcosCluster extends DcosVersionClient {
 
         private final String version;
 

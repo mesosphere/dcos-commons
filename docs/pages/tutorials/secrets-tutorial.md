@@ -70,7 +70,7 @@ The `hello-world` package includes a sample YAML file for secrets. The `examples
 ```
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{SERVICE_PRINCIPAL}}
+  service_account: {{SERVICE_PRINCIPAL}}
   user: {{SERVICE_USER}}
 pods:
   hello:

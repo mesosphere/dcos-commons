@@ -68,7 +68,7 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     public static class Builder {
         private ServiceSpec serviceSpec;
-        private final SchedulerFlags schedulerFlags;
+        private final SchedulerConfig schedulerConfig;
         private final Persister persister;
 
         // When these optionals are unset, we use default values:
@@ -83,18 +83,18 @@ public class DefaultScheduler extends AbstractScheduler {
         private Collection<Object> customResources = new ArrayList<>();
         private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+        private Builder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
             this(
                     serviceSpec,
-                    schedulerFlags,
-                    schedulerFlags.isStateCacheEnabled() ?
+                    schedulerConfig,
+                    schedulerConfig.isStateCacheEnabled() ?
                             new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
                             CuratorPersister.newBuilder(serviceSpec).build());
         }
 
-        private Builder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister) {
+        private Builder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
             this.serviceSpec = serviceSpec;
-            this.schedulerFlags = schedulerFlags;
+            this.schedulerConfig = schedulerConfig;
             this.persister = persister;
         }
 
@@ -106,15 +106,15 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         /**
-         * Returns the {@link SchedulerFlags} object which was provided via the constructor.
+         * Returns the {@link SchedulerConfig} object which was provided via the constructor.
          */
-        public SchedulerFlags getSchedulerFlags() {
-            return schedulerFlags;
+        public SchedulerConfig getSchedulerConfig() {
+            return schedulerConfig;
         }
 
         /**
          * Specifies a custom {@link StateStore}, otherwise the return value of
-         * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
+         * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerConfig)} will be used.
          * <p>
          * The state store persists copies of task information and task status for all tasks running in the service.
          *
@@ -132,7 +132,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         /**
          * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-         * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
+         * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerConfig)}.
          * <p>
          * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
          * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
@@ -335,7 +335,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
             // Update/validate config as needed to reflect the new service spec:
             Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
-            configValidators.addAll(defaultConfigValidators(getSchedulerFlags()));
+            configValidators.addAll(defaultConfigValidators(getSchedulerConfig()));
             configValidators.addAll(customConfigValidators);
 
             final ConfigurationUpdater.UpdateResult configUpdateResult =
@@ -367,7 +367,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
             return new DefaultScheduler(
                     serviceSpec,
-                    getSchedulerFlags(),
+                    getSchedulerConfig(),
                     customResources,
                     plans,
                     stateStore,
@@ -421,8 +421,9 @@ public class DefaultScheduler extends AbstractScheduler {
      * details such as the service name, the pods/tasks to be deployed, and the plans describing how the deployment
      * should be organized.
      */
-    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
-        return new Builder(serviceSpec, schedulerFlags);
+    public static Builder newBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig)
+            throws PersisterException {
+        return new Builder(serviceSpec, schedulerConfig);
     }
 
     /**
@@ -433,9 +434,9 @@ public class DefaultScheduler extends AbstractScheduler {
     @VisibleForTesting
     public static Builder newBuilder(
             ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Persister persister) throws PersisterException {
-        return new Builder(serviceSpec, schedulerFlags, persister);
+        return new Builder(serviceSpec, schedulerConfig, persister);
     }
 
     /**
@@ -455,7 +456,7 @@ public class DefaultScheduler extends AbstractScheduler {
      * Returns the default configuration validators used by {@link DefaultScheduler} instances. Additional custom
      * validators may be added to this list using {@link Builder#setCustomConfigValidators(Collection)}.
      */
-    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators(SchedulerFlags flags) {
+    public static List<ConfigValidator<ServiceSpec>> defaultConfigValidators(SchedulerConfig schedulerConfig) {
         // Return a list to allow direct append by the caller.
         return Arrays.asList(
                 new ServiceNameCannotContainDoubleUnderscores(),
@@ -464,7 +465,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
                 new UserCannotChange(),
-                new TLSRequiresServiceAccount(flags));
+                new TLSRequiresServiceAccount(schedulerConfig));
     }
 
     /**
@@ -537,14 +538,14 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
-        super(stateStore, configStore, schedulerFlags);
+        super(stateStore, configStore, schedulerConfig);
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
@@ -586,7 +587,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 stateStore,
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
-                                schedulerFlags,
+                                schedulerConfig,
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);

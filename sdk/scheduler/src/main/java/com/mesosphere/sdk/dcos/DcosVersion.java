@@ -64,7 +64,7 @@ public class DcosVersion {
         this.version = version;
     }
 
-    DcosVersion(JSONObject jsonObject) {
+    public DcosVersion(JSONObject jsonObject) {
         this(jsonObject.getString(DcosVersion.VERSION_KEY));
     }
 

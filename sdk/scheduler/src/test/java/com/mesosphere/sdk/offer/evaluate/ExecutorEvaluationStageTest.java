@@ -4,7 +4,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -52,7 +52,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 stateStore.fetchFrameworkId().get(),
                                 true));
@@ -93,7 +93,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 stateStore.fetchFrameworkId().get(),
                                 false));
@@ -133,7 +133,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         stateStore.fetchFrameworkId().get(),
                         true);
@@ -179,7 +179,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         stateStore.fetchFrameworkId().get(),
                         false);
