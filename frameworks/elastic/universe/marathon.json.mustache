@@ -171,7 +171,55 @@
     {{#elasticsearch.thread_pool_generic_max}}
     "TASKCFG_ALL_THREAD_POOL_GENERIC_MAX": "{{elasticsearch.thread_pool_generic_max}}",
     {{/elasticsearch.thread_pool_generic_max}}
-    "TASKCFG_ALL_THREAD_POOL_GENERIC_KEEP_ALIVE": "{{elasticsearch.thread_pool_generic_keep_alive}}"
+    "TASKCFG_ALL_THREAD_POOL_GENERIC_KEEP_ALIVE": "{{elasticsearch.thread_pool_generic_keep_alive}}",
+    {{#elasticsearch.indices_breaker_total_limit}}
+    "TASKCFG_ALL_INDICES_BREAKER_TOTAL_LIMIT": "{{elasticsearch.indices_breaker_total_limit}}",
+    {{/elasticsearch.indices_breaker_total_limit}}
+    {{#elasticsearch.indices_breaker_fielddata_limit}}
+    "TASKCFG_ALL_INDICES_BREAKER_FIELDDATA_LIMIT": "{{elasticsearch.indices_breaker_fielddata_limit}}",
+    {{/elasticsearch.indices_breaker_fielddata_limit}}
+    {{#elasticsearch.indices_breaker_fielddata_overhead}}
+    "TASKCFG_ALL_INDICES_BREAKER_FIELDDATA_OVERHEAD": "{{elasticsearch.indices_breaker_fielddata_overhead}}",
+    {{/elasticsearch.indices_breaker_fielddata_overhead}}
+    {{#elasticsearch.network_breaker_inflight_requests_limit}}
+    "TASKCFG_ALL_NETWORK_BREAKER_INGLIGHT_REQUESTS_LIMITS": "{{elasticsearch.network_breaker_inflight_requests_limit}}",
+    {{/elasticsearch.network_breaker_inflight_requests_limit}}
+    {{#elasticsearch.network_breaker_inflight_requests_overhead}}
+    "TASKCFG_ALL_NETWORK_BREAKER_INGLIGHT_REQUESTS_OVERHEAD": "{{elasticsearch.network_breaker_inflight_requests_overhead}}",
+    {{/elasticsearch.network_breaker_inflight_requests_overhead}}
+    {{#elasticsearch.script_max_compilations_per_minute}}
+    "TASKCFG_ALL_SCRIPTS_MAX_COMPILATIONS_PER_MINUTE": "{{elasticsearch.scripts_max_compilations_per_minute}}",
+    {{/elasticsearch.script_max_compilations_per_minute}}
+    {{#elasticsearch.indices_fielddata_cache_size}}
+    "TASKCFG_ALL_INDICES_FIELDDATA_CACHE_SIZE": "{{elasticsearch.indices_fielddata_cache_size}}",
+    {{/elasticsearch.indices_fielddata_cache_size}}
+    {{#elasticsearch.indices_queries_cache_size}}
+    "TASKCFG_ALL_INDICES_QUERIES_CACHE_SIZE": "{{elasticsearch.indices_queries_cache_size}}",
+    {{/elasticsearch.indices_queries_cache_size}}
+    {{#elasticsearch.indices_memory_index_buffer_size}}
+    "TASKCFG_ALL_INDICES_MEMORY_INDEX_BUFFER_SIZE": "{{elasticsearch.indices_memory_index_buffer_size}}",
+    {{/elasticsearch.indices_memory_index_buffer_size}}
+    {{#elasticsearch.indices_memory_min_index_buffer_size}}
+    "TASKCFG_ALL_INDICES_MEMORY_MIN_INDEX_BUFFER_SIZE": "{{elasticsearch.indices_memory_min_index_buffer_size}}",
+    {{/elasticsearch.indices_memory_min_index_buffer_size}}
+    {{#elasticsearch.indices_memory_max_index_buffer_size}}
+    "TASKCFG_ALL_INDICES_MEMORY_MAX_INDEX_BUFFER_SIZE": "{{elasticsearch.indices_memory_max_index_buffer_size}}",
+    {{/elasticsearch.indices_memory_max_index_buffer_size}}
+    {{#elasticsearch.indices_recovery_max_bytes_per_sec}}
+    "TASKCFG_ALL_INDICES_RECOVERY_MAX_BYTES_PER_SEC": "{{elasticsearch.indices_recovery_max_bytes_per_sec}}",
+    {{/elasticsearch.indices_recovery_max_bytes_per_sec}}
+    {{#elasticsearch.search_remote_connections_per_cluster}}
+    "TASKCFG_ALL_SEARCH_REMOTE_CONNECTIONS_PER_CLUSTER": "{{elasticsearch.search_remote_connections_per_cluster}}",
+    {{/elasticsearch.search_remote_connections_per_cluster}}
+    {{#elasticsearch.search_remote_initial_connect_timeout}}
+    "TASKCFG_ALL_SEARCH_REMOTE_INITIAL_CONNECT_TIMEOUT": "{{elasticsearch.search_remote_initial_connect_timeout}}",
+    {{/elasticsearch.search_remote_initial_connect_timeout}}
+    {{#elasticsearch.search_remote_connect}}
+    "TASKCFG_ALL_SEARCH_REMOTE_CONNECT": "{{elasticsearch.search_remote_connect}}",
+    {{/elasticsearch.search_remote_connect}}
+    {{#elasticsearch.indices_query_bool_max_clause_count}}
+    "TASKCFG_ALL_INDICES_QUERY_BOOL_MAX_CLAUSE_COUNT": "{{elasticsearch.indices_query_bool_max_clause_count}}"
+    {{/elasticsearch.indices_query_bool_max_clause_count}} 
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
