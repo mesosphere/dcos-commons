@@ -281,3 +281,18 @@ plans:
       coordinator-deploy:
         strategy: {{DEPLOY_STRATEGY}}
         pod: coordinator
+  update:
+    strategy: {{UPDATE_STRATEGY}}
+    phases:
+      master-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: master
+      data-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: data
+      ingest-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: ingest
+      coordinator-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: coordinator

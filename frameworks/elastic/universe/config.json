@@ -46,6 +46,12 @@
           "default": "parallel",
           "enum" : ["parallel", "serial"]
         },
+        "update_strategy": {
+          "description": "Elasticsearch update strategy. [parallel, serial]",
+          "type": "string",
+          "default": "serial",
+          "enum" : ["parallel", "serial"]
+        },
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
@@ -66,7 +72,8 @@
       "required": [
         "name",
         "user",
-        "deploy_strategy"
+        "deploy_strategy",
+        "update_strategy"
       ]
     },
     "master_nodes": {
