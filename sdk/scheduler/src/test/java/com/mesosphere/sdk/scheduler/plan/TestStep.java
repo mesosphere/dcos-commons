@@ -23,6 +23,12 @@ public class TestStep extends AbstractStep {
         this.podInstanceRequirement = podInstanceRequirement;
     }
 
+    public TestStep(UUID id, String name, PodInstanceRequirement podInstanceRequirement) {
+        super(name, Status.PENDING);
+        this.id = id;
+        this.podInstanceRequirement = podInstanceRequirement;
+    }
+
     @Override
     public Optional<PodInstanceRequirement> start() {
         setStatus(Status.PREPARED);

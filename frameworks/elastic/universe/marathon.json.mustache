@@ -63,10 +63,6 @@
     {{/service.tls}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
-    "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
-    "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
-    "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
-    "TASKCFG_ALL_ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
     "MASTER_NODE_CPUS": "{{master_nodes.cpus}}",
     "MASTER_NODE_MEM": "{{master_nodes.mem}}",
     "MASTER_NODE_PLACEMENT": "{{master_nodes.placement}}",
@@ -94,7 +90,88 @@
     "COORDINATOR_NODE_PLACEMENT": "{{coordinator_nodes.placement}}",
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
-    "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}"
+    "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
+    "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
+    "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
+    "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
+    "TASKCFG_ALL_ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
+    "TASKCFG_ALL_GATEWAY_RECOVER_AFTER_TIME": "{{elasticsearch.gateway_recover_after_time}}",
+    {{#elasticsearch.script_allowed_contexts}}
+    "TASKCFG_ALL_SCRIPT_ALLOWED_CONTEXTS": "{{elasticsearch.script_allowed_contexts}}",
+    {{/elasticsearch.script_allowed_contexts}}
+    {{#elasticsearch.script_allowed_types}}
+    "TASKCFG_ALL_SCRIPT_ALLOWED_TYPES": "{{elasticsearch.script_allowed_types}}",
+    {{/elasticsearch.script_allowed_types}}
+    {{#elasticsearch.repositories_url_allowed_urls}}
+    TASKCFG_ALL_REPOSITORIES_URL_ALLOWED_URLS": {{elasticsearch.repositories_url_allowed_urls}}
+    {{/elasticsearch.repositories_url_allowed_urls}}
+    "TASKCFG_ALL_NETWORK_TCP_NO_DELAY": "{{elasticsearch.network_tcp_no_delay}}",
+    "TASKCFG_ALL_NETWORK_TCP_KEEP_ALIVE": "{{elasticsearch.network_tcp_keep_alive}}",
+    "TASKCFG_ALL_NETWORK_TCP_REUSE_ADDRESS": "{{elasticsearch.network_tcp_reuse_address}}",
+    {{#elasticsearch.network_tcp_send_buffer_size}}
+    "TASKCFG_ALL_NETWORK_TCP_SEND_BUFFER_SIZE": "{{elasticsearch.network_tcp_send_buffer_size}}",
+    {{/elasticsearch.network_tcp_send_buffer_size}}
+    {{#elasticsearch.network_tcp_receive_buffer_size}}
+    "TASKCFG_ALL_NETWORK_TCP_RECEIVE_BUFFER_SIZE": "{{elasticsearch.network_tcp_receive_buffer_size}}",
+    {{/elasticsearch.network_tcp_receive_buffer_size}}
+    "TASKCFG_ALL_TRANSPORT_TCP_CONNECT_TIMEOUT": "{{elasticsearch.transport_tcp_connect_timeout}}", 
+    "TASKCFG_ALL_TRANSPORT_TCP_COMPRESS": "{{elasticsearch.transport_tcp_compress}}",
+    "TASKCFG_ALL_TRANSPORT_PING_SCHEDULE": "{{elasticsearch.transport_ping_schedule}}",
+    "TASKCFG_ALL_HTTP_ENABLED": "{{elasticsearch.http_enabled}}",
+    "TASKCFG_ALL_HTTP_MAX_CONTENT_LENGTH": "{{elasticsearch.http_max_content_length}}",
+    "TASKCFG_ALL_HTTP_MAX_INITIAL_LINE_LENGTH": "{{elasticsearch.http_max_initial_line_length}}",
+    "TASKCFG_ALL_HTTP_MAX_HEADER_SIZE": "{{elasticsearch.http_max_header_size}}",
+    "TASKCFG_ALL_HTTP_COMPRESSION": "{{elasticsearch.http_compression}}",
+    "TASKCFG_ALL_HTTP_COMPRESSION_LEVEL": "{{elasticsearch.http_compression_level}}",
+    "TASKCFG_ALL_HTTP_CORS_ENABLED": "{{elasticsearch.http_cors_enabled}}",
+    {{#elasticsearch.http_cors_allow_origin}}
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_ORIGIN": "{{elasticsearch.http_cors_allow_origin}}",
+    {{/elasticsearch.http_cors_allow_origin}}
+    "TASKCFG_ALL_HTTP_CORS_MAX_AGE": "{{elasticsearch.http_cors_max_age}}",
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_METHODS": "{{elasticsearch.http_cors_allow_methods}}",
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_HEADERS": "{{elasticsearch.http_cors_allow_headers}}",
+    "TASKCFG_ALL_HTTP_CORS_ALLOW_CREDENTIALS": "{{elasticsearch.http_cors_allow_credentials}}",
+    "TASKCFG_ALL_HTTP_DETAILED_ERRORS_ENABLED": "{{elasticsearch.http_detailed_errors_enabled}}",
+    "TASKCFG_ALL_HTTP_PIPELINING": "{{elasticsearch.http_pipelining}}",
+    "TASKCFG_ALL_HTTP_PIPELINING_MAX_EVENTS": "{{elasticsearch.http_pipelining_max_events}}",
+    "TASKCFG_ALL_HTTP_CONTENT_TYPE_REQUIRED": "{{elasticsearch.http_content_type_required}}",
+    {{#elasticsearch.thread_pool_index_size}}
+    "TASKCFG_ALL_THREAD_POOL_INDEX_SIZE": "{{elasticsearch.thread_pool_index_size}}",
+    {{/elasticsearch.thread_pool_index_size}}
+    "TASKCFG_ALL_THREAD_POOL_INDEX_QUEUE_SIZE": "{{elasticsearch.thread_pool_index_queue_size}}",
+    {{#elasticsearch.thread_pool_search_size}}
+    "TASKCFG_ALL_THREAD_POOL_SEARCH_SIZE": "{{elasticsearch.thread_pool_search_size}}",
+    {{/elasticsearch.thread_pool_search_size}}
+    "TASKCFG_ALL_THREAD_POOL_SEARCH_QUEUE_SIZE": "{{elasticsearch.thread_pool_search_queue_size}}",
+    {{#elasticsearch.thread_pool_get_size}}
+    "TASKCFG_ALL_THREAD_POOL_GET_SIZE": "{{elasticsearch.thread_pool_get_size}}",
+    {{/elasticsearch.thread_pool_get_size}}
+    "TASKCFG_ALL_THREAD_POOL_GET_QUEUE_SIZE": "{{elasticsearch.thread_pool_get_queue_size}}",
+    {{#elasticsearch.thread_pool_bulk_size}}
+    "TASKCFG_ALL_THREAD_POOL_BULK_SIZE": "{{elasticsearch.thread_pool_bulk_size}}",
+    {{/elasticsearch.thread_pool_bulk_size}}
+    "TASKCFG_ALL_THREAD_POOL_BULK_QUEUE_SIZE": "{{elasticsearch.thread_pool_bulk_queue_size}}",
+    {{#elasticsearch.thread_pool_warmer_core}}
+    "TASKCFG_ALL_THREAD_POOL_WARMER_CORE": "{{elasticsearch.thread_pool_warmer_core}}",
+    {{/elasticsearch.thread_pool_warmer_core}}
+    {{#elasticsearch.thread_pool_warmer_max}}
+    "TASKCFG_ALL_THREAD_POOL_WARMER_MAX": "{{elasticsearch.thread_pool_warmer_max}}",
+    {{/elasticsearch.thread_pool_warmer_max}}
+    "TASKCFG_ALL_THREAD_POOL_WARMER_KEEP_ALIVE": "{{elasticsearch.thread_pool_warmer_keep_alive}}",
+    {{#elasticsearch.thread_pool_refresh_core}}
+    "TASKCFG_ALL_THREAD_POOL_REFRESH_CORE": "{{elasticsearch.thread_pool_refresh_core}}",
+    {{/elasticsearch.thread_pool_refresh_core}}
+    {{#elasticsearch.thread_pool_refresh_max}}
+    "TASKCFG_ALL_THREAD_POOL_REFRESH_MAX": "{{elasticsearch.thread_pool_refresh_max}}",
+    {{/elasticsearch.thread_pool_refresh_max}}
+    "TASKCFG_ALL_THREAD_POOL_REFRESH_KEEP_ALIVE": "{{elasticsearch.thread_pool_refresh_keep_alive}}",
+    {{#elasticsearch.thread_pool_generic_core}}
+    "TASKCFG_ALL_THREAD_POOL_GENERIC_CORE": "{{elasticsearch.thread_pool_generic_core}}",
+    {{/elasticsearch.thread_pool_generic_core}}
+    {{#elasticsearch.thread_pool_generic_max}}
+    "TASKCFG_ALL_THREAD_POOL_GENERIC_MAX": "{{elasticsearch.thread_pool_generic_max}}",
+    {{/elasticsearch.thread_pool_generic_max}}
+    "TASKCFG_ALL_THREAD_POOL_GENERIC_KEEP_ALIVE": "{{elasticsearch.thread_pool_generic_keep_alive}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

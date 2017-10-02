@@ -29,7 +29,6 @@ import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -45,7 +44,7 @@ class UninstallPlanBuilder {
     private static final String TLS_CLEANUP_PHASE = "tls-cleanup";
     private static final String DEREGISTER_PHASE = "deregister-service";
 
-    private final TaskFailureListener taskFailureListener;
+    private final TaskKiller taskKiller;
 
     private final List<Step> taskKillSteps;
     private final List<Step> resourceSteps;
@@ -53,12 +52,12 @@ class UninstallPlanBuilder {
     private final Plan plan;
 
     UninstallPlanBuilder(
-            String serviceName,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerFlags schedulerFlags,
             Optional<SecretsClient> secretsClient) {
-        this.taskFailureListener = new DefaultTaskFailureListener(stateStore, configStore);
+        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
         if (!stateStore.fetchFrameworkId().isPresent()) {
@@ -119,7 +118,7 @@ class UninstallPlanBuilder {
                     Collections.singletonList(new TLSCleanupStep(
                             Status.PENDING,
                             secretsClient.get(),
-                            SecretNameGenerator.getNamespaceFromEnvironment(serviceName, schedulerFlags))),
+                            SecretNameGenerator.getNamespaceFromEnvironment(serviceSpec.getName(), schedulerFlags))),
                     new SerialStrategy<>(),
                     Collections.emptyList()));
         }
@@ -159,7 +158,7 @@ class UninstallPlanBuilder {
         if (deregisterStep.isPresent()) {
             deregisterStep.get().setSchedulerDriver(schedulerDriver);
         }
-        TaskKiller taskKiller = new DefaultTaskKiller(taskFailureListener, schedulerDriver);
+        taskKiller.setSchedulerDriver(schedulerDriver);
         for (Step taskKillStep : taskKillSteps) {
             ((TaskKillStep) taskKillStep).setTaskKiller(taskKiller);
         }

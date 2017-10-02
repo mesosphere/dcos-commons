@@ -1,11 +1,9 @@
 package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.PlanInfo;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanScheduler;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.junit.Before;
@@ -30,7 +28,6 @@ public class PlansResourceTest {
     @Mock private Phase mockPhase;
     @Mock private Strategy<Step> mockPhaseStrategy;
     @Mock private Step mockStep;
-    @Mock private PlanScheduler planScheduler;
 
     private static final UUID stepId = UUID.randomUUID();
     private static final String stepName = "step-name";
@@ -60,8 +57,8 @@ public class PlansResourceTest {
         when(mockPlan.getStrategy()).thenReturn(mockPlanStrategy);
         when(mockPlan.getName()).thenReturn(planName);
 
-        resource = new PlansResource(
-                new DefaultPlanCoordinator(Arrays.asList(new DefaultPlanManager(mockPlan)), planScheduler));
+        resource = new PlansResource();
+        resource.setPlanManagers(Arrays.asList(new DefaultPlanManager(mockPlan)));
         verify(mockPlan).interrupt(); // invoked by DefaultPlanManager
     }
 

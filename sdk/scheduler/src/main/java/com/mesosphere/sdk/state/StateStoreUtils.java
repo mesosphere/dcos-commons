@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class StateStoreUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
-    private static final String SUPPRESSED_PROPERTY_KEY = "suppressed";
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
@@ -205,20 +204,6 @@ public class StateStoreUtils {
         repairedStatuses.entrySet().stream()
                 .filter(statusEntry -> !statusEntry.getValue().getTaskId().getValue().equals(""))
                 .forEach(statusEntry -> stateStore.storeStatus(statusEntry.getKey(), statusEntry.getValue()));
-    }
-
-    /**
-     * Returns the current value of the 'suppressed' property in the provided {@link StateStore}.
-     */
-    public static boolean isSuppressed(StateStore stateStore) throws StateStoreException {
-        return fetchBooleanProperty(stateStore, SUPPRESSED_PROPERTY_KEY);
-    }
-
-    /**
-     * Sets a 'suppressed' property in the provided {@link StateStore} to the provided value.
-     */
-    public static void setSuppressed(StateStore stateStore, boolean isSuppressed) {
-        setBooleanProperty(stateStore, SUPPRESSED_PROPERTY_KEY, isSuppressed);
     }
 
     /**

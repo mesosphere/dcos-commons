@@ -717,7 +717,7 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
 +++ ServiceSpec.new
 @@ -3,5 +3,5 @@
    "role" : "dse-role",
-   "principal" : "dse-principal",
+   "service_account" : "dse-principal",
 -  "api-port" : 18446,
 +  "api-port" : 15063,
    "web-url" : null,

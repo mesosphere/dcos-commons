@@ -116,7 +116,8 @@ public class PodResourceTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new PodResource(mockTaskKiller, mockStateStore);
+        resource = new PodResource(mockStateStore);
+        resource.setTaskKiller(mockTaskKiller);
     }
 
     @Test

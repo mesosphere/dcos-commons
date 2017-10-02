@@ -770,7 +770,7 @@ $ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configura
 {
 	name: "hdfs",
 	role: "hdfs-role",
-	principal: "hdfs-principal",
+	service_account: "hdfs-principal",
 	api - port: 10002,
 	web - url: null,
 	zookeeper: "master.mesos:2181",

@@ -8,6 +8,8 @@ import com.mesosphere.sdk.specification.GoalState;
 import org.apache.mesos.Protos;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Step which implements the deployment of a pod.
@@ -18,6 +20,7 @@ public class DeploymentStep extends AbstractStep {
     private final List<String> errors;
     private Map<String, String> parameters;
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
+    private final AtomicBoolean prepared = new AtomicBoolean(false);
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
@@ -74,6 +77,15 @@ public class DeploymentStep extends AbstractStep {
                         .build());
     }
 
+    private static Set<Protos.TaskID> getTaskIds(Collection<OfferRecommendation> recommendations) {
+        return recommendations.stream()
+                .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
+                .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo())
+                .filter(taskInfo -> !taskInfo.getTaskId().getValue().equals(""))
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
@@ -84,10 +96,13 @@ public class DeploymentStep extends AbstractStep {
         setTaskIds(recommendations);
 
         if (recommendations.isEmpty()) {
-            setStatus(Status.PREPARED);
+            tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
         } else {
-            setStatus(Status.STARTING);
+            getTaskIds(recommendations).forEach(id -> setTaskStatus(id, Status.STARTING));
         }
+
+        prepared.set(true);
+        setStatus(getStatus(tasks));
     }
 
     @Override
@@ -139,8 +154,6 @@ public class DeploymentStep extends AbstractStep {
             case TASK_KILLING:
             case TASK_LOST:
                 setTaskStatus(status.getTaskId(), Status.PENDING);
-                // Retry the step because something failed.
-                setStatus(Status.PENDING);
                 break;
             case TASK_STAGING:
             case TASK_STARTING:
@@ -175,12 +188,22 @@ public class DeploymentStep extends AbstractStep {
             tasks.replace(taskID, new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status));
             logger.info("Status for: {} is: {}", taskID.getValue(), status);
         }
+
+        if (getStatus().equals(Status.PENDING)) {
+            prepared.set(false);
+        }
+
+        setStatus(getStatus(tasks));
     }
 
     @VisibleForTesting
     Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
         if (tasks.isEmpty()) {
-            return Status.PENDING;
+            if (prepared.get()) {
+                return Status.PREPARED;
+            } else {
+                return Status.PENDING;
+            }
         }
 
         Set<Status> statuses = new HashSet<>();
