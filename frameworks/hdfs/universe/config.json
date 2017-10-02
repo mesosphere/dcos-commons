@@ -498,6 +498,8 @@
         "mem",
         "disk",
         "disk_type",
+        "logging_level",
+        "heartbeat_recheck_interval",
         "replication_considerLoad",
         "name_dir_restore",
         "fs-limits_max-component-length",
@@ -1211,6 +1213,11 @@
           "description": "This configuration parameter turns on short-circuit local reads.",
           "default": true
         },
+        "ha_fencing_methods": {
+          "type": "string",
+          "description": "List of fencing methods to use for service fencing. May contain builtin methods (eg shell and sshfence) or user-defined method.",
+          "default": "shell(/bin/true)"
+        },
         "client_read_shortcircuit_skip_checksum": {
           "type": "boolean",
           "description": "If this configuration parameter is set, short-circuit local reads will skip checksums. This is normally not recommended, but it may be useful for special setups. You might consider using this if you are doing your own checksumming outside of HDFS.",
@@ -1255,6 +1262,746 @@
           "type": "boolean",
           "description": "Allow users to change the storage policy on files and directories.",
           "default": true
+        },
+        "common_configuration_version": {
+          "type": "string",
+          "description": "Version of this configuration file.",
+          "default": "0.23.0"
+        },
+        "tmp_dir": {
+          "type": "string",
+          "description": "A base for other temporary directories.",
+          "default": "/tmp/hadoop-${user.name}"
+        },
+        "http_filter_initializer": {
+          "type": "string",
+          "description": "A comma separated list of class names. Each class in the list must extend org.apache.hadoop.http.FilterInitializer. The corresponding Filter will be initialized. Then, the Filter will be applied to all user facing jsp and servlet web pages. The ordering of the list defines the ordering of the filters.",
+          "default": "org.apache.hadoop.http.lib.StaticUserWebFilter"
+        },
+        "security_authorization": {
+          "type": "boolean",
+          "description": "Is service-level authorization enabled?",
+          "default": false
+        },
+        "security_instrumentation_requires_admin": {
+          "type": "boolean",
+          "description": "Indicates if administrator ACLs are required to access instrumentation servlets (JMX, METRICS, CONF, STACKS).",
+          "default": false
+        },
+        "security_authentication": {
+          "type": "string",
+          "description": "Possible values are simple (no authentication), and kerberos",
+          "default": "simple"
+        },
+        "security_group_mapping": {
+          "type": "string",
+          "description": "Class for user to group mapping (get groups for a given user) for ACL. The default implementation, org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback, will determine if the Java Native Interface (JNI) is available. If JNI is available the implementation will use the API within hadoop to resolve a list of groups for a user. If JNI is not available then the shell implementation, ShellBasedUnixGroupsMapping, is used. This implementation shells out to the Linux/Unix environment with the bash -c groups command to resolve a list of groups for a user.",
+          "default": "org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback"
+        },
+        "security_groups_cache_secs": {
+          "type": "integer",
+          "description": "This is the config controlling the validity of the entries in the cache containing the user->group mapping. When this duration has expired, then the implementation of the group mapping provider is invoked to get the groups of the user and then cached back.",
+          "default": 300
+        },
+        "security_groups_negative-cache_secs": {
+          "type": "integer",
+          "description": "Expiration time for entries in the the negative user-to-group mapping caching, in seconds. This is useful when invalid users are retrying frequently. It is suggested to set a small value for this expiration, since a transient error in group lookup could temporarily lock out a legitimate user. Set this to zero or negative value to disable negative user-to-group caching.",
+          "default": 30
+        },
+        "security_groups_cache_warn_after_ms": {
+          "type": "integer",
+          "description": "If looking up a single user to group takes longer than this amount of milliseconds, we will log a warning message.",
+          "default": 5000
+        },
+        "security_group_mapping_ldap_url": {
+          "type": "string",
+          "description": "The URL of the LDAP server to use for resolving user groups when using the LdapGroupsMapping user to group mapping.",
+          "default": ""
+        },
+        "security_group_mapping_ldap_ssl": {
+          "type": "boolean",
+          "description": "Whether or not to use SSL when connecting to the LDAP server.",
+          "default": false
+        },
+        "security_group_mapping_ldap_ssl_keystore": {
+          "type": "string",
+          "description": "File path to the SSL keystore that contains the SSL certificate required by the LDAP server.",
+          "default": ""
+        },
+        "security_group_mapping_ldap_ssl_keystore_password_file": {
+          "type": "string",
+          "description": "The path to a file containing the password of the LDAP SSL keystore. IMPORTANT: This file should be readable only by the Unix user running the daemons.",
+          "default": ""
+        },
+        "security_group_mapping_ldap_bind_user": {
+          "type": "string",
+          "description": "The distinguished name of the user to bind as when connecting to the LDAP server. This may be left blank if the LDAP server supports anonymous binds.",
+          "default": ""
+        },
+        "security_group_mapping_ldap_password_file": {
+          "type": "string",
+          "description": "The path to a file containing the password of the bind user. IMPORTANT: This file should be readable only by the Unix user running the daemons.",
+          "default": ""
+        },
+        "security_group_mapping_ldap_base": {
+          "type": "string",
+          "description": "The search base for the LDAP connection. This is a distinguished name, and will typically be the root of the LDAP directory.",
+          "default": ""
+        },
+        "security_group_mapping_ldap_search_filter_user": {
+          "type": "string",
+          "description": "An additional filter to use when searching for LDAP users. The default will usually be appropriate for Active Directory installations. If connecting to an LDAP server with a non-AD schema, this should be replaced with (&(objectClass=inetOrgPerson)(uid={0}). {0} is a special string used to denote where the username fits into the filter.",
+          "default": "(&(objectClass=user)(sAMAccountName={0}))"
+        },
+        "security_group_mapping_ldap_search_filter_group": {
+          "type": "string",
+          "description": "An additional filter to use when searching for LDAP groups. This should be changed when resolving groups against a non-Active Directory installation. posixGroups are currently not a supported group class.",
+          "default": "(objectClass=group)"
+        },
+        "security_group_mapping_ldap_search_attr_member": {
+          "type": "string",
+          "description": "The attribute of the group object that identifies the users that are members of the group. The default will usually be appropriate for any LDAP installation.",
+          "default": "member"
+        },
+        "security_group_mapping_ldap_search_attr_group_name": {
+          "type": "string",
+          "description": "The attribute of the group object that identifies the group name. The default will usually be appropriate for all LDAP systems.",
+          "default": "cn"
+        },
+        "security_group_mapping_ldap_directory_search_timeout": {
+          "type": "integer",
+          "description": "The attribute applied to the LDAP SearchControl properties to set a maximum time limit when searching and awaiting a result. Set to 0 if infinite wait period is desired. Default is 10 seconds. Units in milliseconds.",
+          "default": 10000
+        },
+        "security_service_user_name_key": {
+          "type": "string",
+          "description": "For those cases where the same RPC protocol is implemented by multiple servers, this configuration is required for specifying the principal name to use for the service when the client wishes to make an RPC call.",
+          "default": ""
+        },
+        "security_service_uid_cache_secs": {
+          "type": "integer",
+          "description": "This is the config controlling the validity of the entries in the cache containing the userId to userName and groupId to groupName used by NativeIO getFstat().",
+          "default": 14400
+        },
+        "rpc_protection": {
+          "type": "string",
+          "description": "A comma-separated list of protection values for secured sasl connections. Possible values are authentication, integrity and privacy. authentication means authentication only and no integrity or privacy; integrity implies authentication and integrity are enabled; and privacy implies all of authentication, integrity and privacy are enabled. hadoop.security.saslproperties.resolver.class can be used to override the hadoop.rpc.protection for a connection at the server side.",
+          "default": "authentication"
+        },
+        "security_saslproperties_resolver_class": {
+          "type": "string",
+          "description": "SaslPropertiesResolver used to resolve the QOP used for a connection. If not specified, the full set of values specified in hadoop.rpc.protection is used while determining the QOP used for the connection. If a class is specified, then the QOP values returned by the class will be used while determining the QOP used for the connection.",
+          "default": ""
+        },
+        "work_around_non_threadsafe_getpwuid": {
+          "type": "boolean",
+          "description": "Some operating systems or authentication modules are known to have broken implementations of getpwuid_r and getpwgid_r, such that these calls are not thread-safe. Symptoms of this problem include JVM crashes with a stack trace inside these functions. If your system exhibits this issue, enable this configuration parameter to include a lock around the calls as a workaround.",
+          "default": false
+        },
+        "kerberos_kinit_command": {
+          "type": "string",
+          "description": "Used to periodically renew Kerberos credentials when provided to Hadoop. The default setting assumes that kinit is in the PATH of users running the Hadoop client. Change this to the absolute path to kinit if this is not the case.",
+          "default": "kinit"
+        },
+        "security_auth_to_local": {
+          "type": "string",
+          "description": "Maps kerberos principals to local user names",
+          "default": ""
+        },
+        "io_file_buffer_size": {
+          "type": "integer",
+          "description": "The size of buffer for use in sequence files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
+          "default": 4096
+        },
+        "io_bytes_per_checksum": {
+          "type": "integer",
+          "description": "The number of bytes per checksum. Must not be larger than io.file.buffer.size.",
+          "default": 512
+        },
+        "io_skip_checksum_errors": {
+          "type": "boolean",
+          "description": "If true, when a checksum error is encountered while reading a sequence file, entries are skipped, instead of throwing an exception.",
+          "default": false
+        },
+        "io_compression_codecs": {
+          "type": "string",
+          "description": "A comma-separated list of the compression codec classes that can be used for compression/decompression. In addition to any classes specified with this property (which take precedence), codec classes on the classpath are discovered using a Java ServiceLoader.",
+          "default": ""
+        },
+        "io_compression_codec_bzip2_library": {
+          "type": "string",
+          "description": "The native-code library to be used for compression and decompression by the bzip2 codec. This library could be specified either by by name or the full pathname. In the former case, the library is located by the dynamic linker, usually searching the directories specified in the environment variable LD_LIBRARY_PATH. The value of 'system-native' indicates that the default system library should be used. To indicate that the algorithm should operate entirely in Java, specify 'java-builtin'.",
+          "default": "system-native"
+        },
+        "io_serializations": {
+          "type": "string",
+          "description": "A list of serialization classes that can be used for obtaining serializers and deserializers.",
+          "default": "org.apache.hadoop.io.serializer.WritableSerialization,org.apache.hadoop.io.serializer.avro.AvroSpecificSerialization,org.apache.hadoop.io.serializer.avro.AvroReflectSerialization"
+        },
+        "io_seqfile_local_dir": {
+          "type": "string",
+          "description": "The local directory where sequence file stores intermediate data files during merge. May be a comma-separated list of directories on different devices in order to spread disk i/o. Directories that do not exist are ignored.",
+          "default": "${hadoop.tmp.dir}/io/local"
+        },
+        "io_map_index_skip": {
+          "type": "integer",
+          "description": "Number of index entries to skip between each entry. Zero by default. Setting this to values larger than zero can facilitate opening large MapFiles using less memory.",
+          "default": 0
+        },
+        "io_map_index_interval": {
+          "type": "integer",
+          "description": "MapFile consist of two files - data file (tuples) and index file (keys). For every io.map.index.interval records written in the data file, an entry (record-key, data-file-position) is written in the index file. This is to allow for doing binary search later within the index file to look up records by their keys and get their closest positions in the data file.",
+          "default": 128
+        },
+        "fs_defaultfs": {
+          "type": "string",
+          "description": "The name of the default file system. A URI whose scheme and authority determine the FileSystem implementation. The uri's scheme determines the config property (fs.SCHEME.impl) naming the FileSystem implementation class. The uri's authority is used to determine the host, port, etc. for a filesystem.",
+          "default": "file:///"
+        },
+        "fs_trash_interval": {
+          "type": "integer",
+          "description": "Number of minutes after which the checkpoint gets deleted. If zero, the trash feature is disabled. This option may be configured both on the server and the client. If trash is disabled server side then the client side configuration is checked. If trash is enabled on the server side then the value configured on the server is used and the client configuration value is ignored.",
+          "default": 0
+        },
+        "fs_trash_checkpoint_interval": {
+          "type": "integer",
+          "description": "Number of minutes between trash checkpoints. Should be smaller or equal to fs.trash.interval. If zero, the value is set to the value of fs.trash.interval. Every time the checkpointer runs it creates a new checkpoint out of current and removes checkpoints created more than fs.trash.interval minutes ago.",
+          "default": 0
+        },
+        "fs_abstractfilesystem_file_impl": {
+          "type": "string",
+          "description": "The AbstractFileSystem for file: uris.",
+          "default": "org.apache.hadoop.fs.local.LocalFs"
+        },
+        "fs_abstractfilesystem_har_impl": {
+          "type": "string",
+          "description": "The AbstractFileSystem for har: uris.",
+          "default": "org.apache.hadoop.fs.HarFs"
+        },
+        "fs_abstractfilesystem_hdfs_impl": {
+          "type": "string",
+          "description": "The FileSystem for hdfs: uris.",
+          "default": "org.apache.hadoop.fs.Hdfs"
+        },
+        "fs_abstractfilesystem_viewfs_impl": {
+          "type": "string",
+          "description": "The AbstractFileSystem for view file system for viewfs: uris (ie client side mount table:).",
+          "default": "org.apache.hadoop.fs.viewfs.ViewFs"
+        },
+        "fs_ftp_host": {
+          "type": "string",
+          "description": "FTP filesystem connects to this server",
+          "default": "0.0.0.0"
+        },
+        "fs_ftp_host_port": {
+          "type": "integer",
+          "description": "FTP filesystem connects to fs.ftp.host on this port",
+          "default": 21
+        },
+        "fs_df_interval": {
+          "type": "integer",
+          "description": "Disk usage statistics refresh interval in msec.",
+          "default": 60000
+        },
+        "fs_du_interval": {
+          "type": "integer",
+          "description": "File space usage statistics refresh interval in msec.",
+          "default": 600000
+        },
+        "fs_s3_block_size": {
+          "type": "integer",
+          "description": "Block size to use when writing files to S3.",
+          "default": 67108864
+        },
+        "fs_s3_buffer_dir": {
+          "type": "string",
+          "description": "Determines where on the local filesystem the S3 filesystem should store files before sending them to S3 (or after retrieving them from S3).",
+          "default": "${hadoop.tmp.dir}/s3"
+        },
+        "fs_s3_maxretries": {
+          "type": "integer",
+          "description": "The maximum number of retries for reading or writing files to S3, before we signal failure to the application.",
+          "default": 4
+        },
+        "fs_s3_sleep_time_seconds": {
+          "type": "integer",
+          "description": "The number of seconds to sleep between each S3 retry.",
+          "default": 10
+        },
+        "sf_swift_impl": {
+          "type": "string",
+          "description": "The implementation class of the OpenStack Swift Filesystem.",
+          "default": "org.apache.hadoop.fs.swift.snative.SwiftNativeFileSystem"
+        },
+        "fs_automatic_close": {
+          "type": "boolean",
+          "description": "By default, FileSystem instances are automatically closed at program exit using a JVM shutdown hook. Setting this property to false disables this behavior. This is an advanced option that should only be used by server applications requiring a more carefully orchestrated shutdown sequence.",
+          "default": true
+        },
+        "fs_s3n_block_size": {
+          "type": "integer",
+          "description": "Block size to use when reading files using the native S3 filesystem (s3n: URIs).",
+          "default": 67108864
+        },
+        "fs_s3n_multipart_uploads_enabled": {
+          "type": "boolean",
+          "description": "Setting this property to true enables multiple uploads to native S3 filesystem. When uploading a file, it is split into blocks if the size is larger than fs.s3n.multipart.uploads.block.size.",
+          "default": false
+        },
+        "fs_s3n_multipart_uploads_block_size": {
+          "type": "integer",
+          "description": "	The block size for multipart uploads to native S3 filesystem. Default size is 64MB.",
+          "default": 67108864
+        },
+        "fs_s3n_multipart_copy_block_size": {
+          "type": "integer",
+          "description": "The block size for multipart copy in native S3 filesystem. Default size is 5GB.",
+          "default": 5368709120
+        },
+        "fs_s3n_server-side-encrpytion-algorithm": {
+          "type": "string",
+          "description": "Specify a server-side encryption algorithm for S3. The default is NULL, and the only other currently allowable value is AES256.",
+          "default": ""
+        },
+        "fs_s3n_access_key": {
+          "type": "string",
+          "description": "AWS access key ID. Omit for Role-based authentication.",
+          "default": ""
+        },
+        "fs_s3n_secret_key": {
+          "type": "string",
+          "description": "AWS secret key. Omit for Role-based authentication.",
+          "default": ""
+        },
+        "fs_s3n_connection_maximum": {
+          "type": "integer",
+          "description": "Controls the maximum number of simultaneous connections to S3.",
+          "default": 15
+        },
+        "fs_s3n_connection_ssl_enabled": {
+          "type": "boolean",
+          "description": "Enables or disables SSL connections to S3.",
+          "default": true
+        },
+        "fs_s3n_attempts_maximum": {
+          "type": "integer",
+          "description": "How many times we should retry commands on transient errors.",
+          "default": 10
+        },
+        "fs_s3n_connection_timeout": {
+          "type": "integer",
+          "description": "Socket connection timeout in seconds.",
+          "default": 5000
+        },
+        "fs_s3n_paging_maximum": {
+          "type": "integer",
+          "description": "How many keys to request from S3 when doing directory listings at a time.",
+          "default": 5000
+        },
+        "fs_s3n_multipart_size": {
+          "type": "integer",
+          "description": "How big (in bytes) to split upload or copy operations up into.",
+          "default": 104857600
+        },
+        "fs_s3n_multipart_threshold": {
+          "type": "integer",
+          "description": "Threshold before uploads or copies use parallel multipart operations.",
+          "default": 2147483647
+        },
+        "fs_s3n_acl_default": {
+          "type": "string",
+          "description": "Set a canned ACL for newly created and copied objects. Value may be private, public-read, public-read-write, authenticated-read, log-delivery-write, bucket-owner-read, or bucket-owner-full-control.",
+          "default": ""
+        },
+        "fs_s3n_multipart_purge": {
+          "type": "boolean",
+          "description": "True if you want to purge existing multipart uploads that may not have been completed/aborted correctly",
+          "default": false
+        },
+        "fs_s3n_multipart_purge_age": {
+          "type": "integer",
+          "description": "Minimum age in seconds of multipart uploads to purge",
+          "default": 86400
+        },
+        "fs_s3n_buffer_dir": {
+          "type": "string",
+          "description": "Comma separated list of directories that will be used to buffer file uploads to.",
+          "default": "${hadoop.tmp.dir}/s3a"
+        },
+        "fs_s3n_impl": {
+          "type": "string",
+          "description": "The implementation class of the S3A Filesystem.",
+          "default": "org.apache.hadoop.fs.s3a.S3AFileSystem"
+        },
+        "io_seqfile_compress_blocksize": {
+          "type": "integer",
+          "description": "The minimum block size for compression in block compressed SequenceFiles.",
+          "default": 1000000
+        },
+        "io_seqfile_lazydecompress": {
+          "type": "boolean",
+          "description": "Should values of block-compressed SequenceFiles be decompressed only when necessary.",
+          "default": true
+        },
+        "io_seqfile_sorter_recordlimit": {
+          "type": "integer",
+          "description": "The limit on number of records to be kept in memory in a spill in SequenceFiles.Sorter",
+          "default": 1000000
+        },
+        "io_seqfile_bloom_size": {
+          "type": "integer",
+          "description": "The size of BloomFilter-s used in BloomMapFile. Each time this many keys is appended the next BloomFilter will be created (inside a DynamicBloomFilter). Larger values minimize the number of filters, which slightly increases the performance, but may waste too much space if the total number of keys is usually much smaller than this number.",
+          "default": 1048576
+        },
+        "io_seqfile_bloom_error_rate": {
+          "type": "number",
+          "description": "The rate of false positives in BloomFilter-s used in BloomMapFile. As this value decreases, the size of BloomFilter-s increases exponentially. This value is the probability of encountering false positives (default is 0.5%).",
+          "default": 0.005
+        },
+        "hadoop_util_hash_type": {
+          "type": "string",
+          "description": "The default implementation of Hash. Currently this can take one of the two values: 'murmur' to select MurmurHash and 'jenkins' to select JenkinsHash.",
+          "default": "murmur"
+        },
+        "ipc_client_idlethreshold": {
+          "type": "integer",
+          "description": "Defines the threshold number of connections after which connections will be inspected for idleness.",
+          "default": 4000
+        },
+        "ipc_client_kill_max": {
+          "type": "integer",
+          "description": "Defines the maximum number of clients to disconnect in one go.",
+          "default": 10
+        },
+        "ipc_client_connection_maxidletime": {
+          "type": "integer",
+          "description": "The maximum time in msec after which a client will bring down the connection to the server.",
+          "default": 10000
+        },
+        "ipc_client_connect_retry_interval": {
+          "type": "integer",
+          "description": "Indicates the number of milliseconds a client will wait for before retrying to establish a server connection.",
+          "default": 1000
+        },
+        "ipc_client_connect_timeout": {
+          "type": "integer",
+          "description": "Indicates the number of milliseconds a client will wait for the socket to establish a server connection.",
+          "default": 20000
+        },
+        "ipc_client_connect_max_retries_on_timeouts": {
+          "type": "integer",
+          "description": "Indicates the number of retries a client will make on socket timeout to establish a server connection.",
+          "default": 45
+        },
+        "ipc_server_listen_queue_size": {
+          "type": "integer",
+          "description": "Indicates the number of retries a client will make on socket timeout to establish a server connection.",
+          "default": 45
+        },
+        "hadoop_security_impersonation_provider_class": {
+          "type": "string",
+          "description": "A class which implements ImpersonationProvider interface, used to authorize whether one user can impersonate a specific user. If not specified, the DefaultImpersonationProvider will be used. If a class is specified, then that class will be used to determine the impersonation capability.",
+          "default": ""
+        },
+        "hadoop_rpc_socket_factory_class_default": {
+          "type": "string",
+          "description": "Default SocketFactory to use. This parameter is expected to be formatted as 'package.FactoryClassName'.",
+          "default": "org.apache.hadoop.net.StandardSocketFactory"
+        },
+        "hadoop_rpc_socket_factory_class_client-protocol": {
+          "type": "string",
+          "description": "SocketFactory to use to connect to a DFS. If null or empty, use hadoop.rpc.socket.class.default. This socket factory is also used by DFSClient to create sockets to DataNodes.",
+          "default": ""
+        },
+        "hadoop_socks_server": {
+          "type": "string",
+          "description": "Address (host:port) of the SOCKS server to be used by the SocksSocketFactory.",
+          "default": ""
+        },
+        "net_topology_node_switch_mapping_impl": {
+          "type": "string",
+          "description": "The default implementation of the DNSToSwitchMapping. It invokes a script specified in net.topology.script.file.name to resolve node names. If the value for net.topology.script.file.name is not set, the default value of DEFAULT_RACK is returned for all node names.",
+          "default": "org.apache.hadoop.net.ScriptBasedMapping"
+        },
+        "net_topology_impl": {
+          "type": "string",
+          "description": "The default implementation of NetworkTopology which is classic three layer one.",
+          "default": "org.apache.hadoop.net.NetworkTopology"
+        },
+        "net_topology_script_file_name": {
+          "type": "string",
+          "description": "The script name that should be invoked to resolve DNS names to NetworkTopology names. Example: the script would take host.foo.bar as an argument, and return /rack1 as the output.",
+          "default": ""
+        },
+        "net_topology_script_number_args": {
+          "type": "integer",
+          "description": "The max number of args that the script configured with net.topology.script.file.name should be run with. Each arg is an IP address.",
+          "default": 100
+        },
+        "net_topology_table_file_name": {
+          "type": "string",
+          "description": "The file name for a topology file, which is used when the net.topology.node.switch.mapping.impl property is set to org.apache.hadoop.net.TableMapping. The file format is a two column text file, with columns separated by whitespace. The first column is a DNS or IP address and the second column specifies the rack where the address maps. If no entry corresponding to a host in the cluster is found, then /default-rack is assumed.",
+          "default": ""
+        },
+        "file_stream-buffer-size": {
+          "type": "integer",
+          "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
+          "default": 4096
+        },
+        "file_bytes-per-checksum": {
+          "type": "integer",
+          "description": "The number of bytes per checksum. Must not be larger than file.stream-buffer-size.",
+          "default": 512
+        },
+        "file_client-write-packet-size": {
+          "type": "integer",
+          "description": "Packet size for clients to write.",
+          "default": 65536
+        },
+        "file_blocksize": {
+          "type": "integer",
+          "description": "Block size",
+          "default": 67108864
+        },
+        "file_replication": {
+          "type": "integer",
+          "description": "Replication factor",
+          "default": 1
+        },
+        "s3_stream-buffer-size": {
+          "type": "integer",
+          "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
+          "default": 4096
+        },
+        "s3_bytes-per-checksum": {
+          "type": "integer",
+          "description": "The number of bytes per checksum. Must not be larger than s3.stream-buffer-size.",
+          "default": 512
+        },
+        "s3_client-write-packet-size": {
+          "type": "integer",
+          "description": "Packet size for clients to write.",
+          "default": 65536
+        },
+        "s3_blocksize": {
+          "type": "integer",
+          "description": "Block size",
+          "default": 67108864
+        },
+        "s3_replication": {
+          "type": "integer",
+          "description": "Replication factor",
+          "default": 3
+        },
+        "s3native_stream-buffer-size": {
+          "type": "integer",
+          "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
+          "default": 4096
+        },
+        "s3native_bytes-per-checksum": {
+          "type": "integer",
+          "description": "The number of bytes per checksum. Must not be larger than s3native.stream-buffer-size.",
+          "default": 512
+        },
+        "s3native_client-write-packet-size": {
+          "type": "integer",
+          "description": "Packet size for clients to write",
+          "default": 65536
+        },
+        "s3native_blocksize": {
+          "type": "integer",
+          "description": "Block size",
+          "default": 67108864
+        },
+        "s3native_replication": {
+          "type": "integer",
+          "description": "Replication factor",
+          "default": 3
+        },
+        "ftp_stream-buffer-size": {
+          "type": "integer",
+          "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
+          "default": 4096
+        },
+        "ftp_bytes-per-checksum": {
+          "type": "integer",
+          "description": "The number of bytes per checksum. Must not be larger than ftp.stream-buffer-size",
+          "default": 512
+        },
+        "ftp_client-write-packet-size": {
+          "type": "integer",
+          "description": "Packet size for clients to write.",
+          "default": 65536
+        },
+        "ftp_blocksize": {
+          "type": "integer",
+          "description": "Block size.",
+          "default": 67108864
+        },
+        "ftp_replication": {
+          "type": "integer",
+          "description": "Replication factor",
+          "default": 3
+        },
+        "tfile_io_chunk_size": {
+          "type": "integer",
+          "description": "Value chunk size in bytes. Default to 1MB. Values of the length less than the chunk size is guaranteed to have known value length in read time (See also TFile.Reader.Scanner.Entry.isValueLengthKnown()).",
+          "default": 1048576
+        },
+        "tfile_io_output_buffer_size": {
+          "type": "integer",
+          "description": "Buffer size used for FSDataOutputStream in bytes.",
+          "default": 262144
+        },
+        "tfile_fs_input_buffer_size": {
+          "type": "integer",
+          "description": "Buffer size used for FSDataInputStream in bytes.",
+          "default": 262144
+        },
+        "hadoop_http_authentication_type": {
+          "type": "string",
+          "description": "Defines authentication used for Oozie HTTP endpoint. Supported values are: simple | kerberos | #AUTHENTICATION_HANDLER_CLASSNAME#",
+          "default": "simple"
+        },
+        "hadoop_http_authentication_token_validity": {
+          "type": "integer",
+          "description": "Indicates how long (in seconds) an authentication token is valid before it has to be renewed.",
+          "default": 36000
+        },
+        "hadoop_http_authentication_signature_secret_file": {
+          "type": "string",
+          "description": "The signature secret for signing the authentication tokens. The same secret should be used for JT/NN/DN/TT configurations.",
+          "default": "${user.home}/hadoop-http-auth-signature-secret"
+        },
+        "hadoop_http_authentication_cookie_domain": {
+          "type": "string",
+          "description": "The domain to use for the HTTP cookie that stores the authentication token. In order to authentiation to work correctly across all Hadoop nodes web-consoles the domain must be correctly set. IMPORTANT: when using IP addresses, browsers ignore cookies with domain settings. For this setting to work properly all nodes in the cluster must be configured to generate URLs with hostname.domain names on it.",
+          "default": ""
+        },
+        "hadoop_http_authentication_simple_anonymous_allowed": {
+          "type": "boolean",
+          "description": "Indicates if anonymous requests are allowed when using 'simple' authentication.",
+          "default": true
+        },
+        "hadoop_http_authentication_kerberos_principal": {
+          "type": "string",
+          "description": "Indicates the Kerberos principal to be used for HTTP endpoint. The principal MUST start with 'HTTP/' as per Kerberos HTTP SPNEGO specification.",
+          "default": "HTTP/_HOST@LOCALHOST"
+        },
+        "hadoop_http_authentication_kerberos_keytab": {
+          "type": "string",
+          "description": "Location of the keytab file with the credentials for the principal. Referring to the same keytab file Oozie uses for its Kerberos credentials for Hadoop.",
+          "default": "${user.home}/hadoop.keytab"
+        },
+        "dfs_ha_fencing_ssh_connect-timeout": {
+          "type": "integer",
+          "description": "SSH connection timeout, in milliseconds, to use with the builtin sshfence fencer.",
+          "default": 30000
+        },
+        "dfs_ha_fencing_ssh_private-key-files": {
+          "type": "string",
+          "description": "The SSH private key files to use with the builtin sshfence fencer.",
+          "default": ""
+        },
+        "hadoop_http_staticuser_user": {
+          "type": "string",
+          "description": "The user name to filter as, on static web filters while rendering content. An example use is the HDFS web UI (user to be used for browsing files).",
+          "default": "dr.who"
+        },
+        "ha_zookeeper_session-timeout-ms": {
+          "type": "integer",
+          "description": "The session timeout to use when the ZKFC connects to ZooKeeper. Setting this value to a lower value implies that server crashes will be detected more quickly, but risks triggering failover too aggressively in the case of a transient error or network blip.",
+          "default": 5000
+        },
+        "hadoop_ssl_keystores_factory_class": {
+          "type": "string",
+          "description": "The keystores factory to use for retrieving certificates.",
+          "default": "org.apache.hadoop.security.ssl.FileBasedKeyStoresFactory"
+        },
+        "hadoop_ssl_require_client_cert": {
+          "type": "boolean",
+          "description": "Whether client certificates are required",
+          "default": false
+        },
+        "hadoop_jetty_logs_serve_aliases": {
+          "type": "string",
+          "description": "Enable/Disable aliases serving from jetty",
+          "default": false
+        },
+        "fs_permissions_umask-mode": {
+          "type": "string",
+          "description": "The umask used when creating files and directories. Can be in octal or in symbolic. Examples are: '022' (octal for u=rwx,g=r-x,o=r-x in symbolic), or 'u=rwx,g=rwx,o=' (symbolic for 007 in octal).",
+          "default": "022"
+        },
+        "ha_health-monitor_connect-retry-interval_ms": {
+          "type": "integer",
+          "description": "How often to retry connecting to the service.",
+          "default": 1000
+        },
+        "ha_health-monitor_check-interval_ms": {
+          "type": "integer",
+          "description": "How often to check the service.",
+          "default": 1000
+        },
+        "ha_health-monitor_sleep-after-disconnect_ms": {
+          "type": "integer",
+          "description": "How long to sleep after an unexpected RPC error.",
+          "default": 1000
+        },
+        "ha_health-monitor_rpc-timeout_ms": {
+          "type": "integer",
+          "description": "Timeout for the actual monitorHealth() calls.",
+          "default": 45000
+        },
+        "ha_failover-controller_new-active_rpc-timeout_ms": {
+          "type": "integer",
+          "description": "Timeout that the FC waits for the new active to become active",
+          "default": 60000
+        },
+        "ha_failover-controller_graceful-fence_rpc-timeout_ms": {
+          "type": "integer",
+          "description": "Timeout that the FC waits for the old active to go to standby.",
+          "default": 5000
+        },
+        "ha_failover-controller_graceful-fence_connection_retries": {
+          "type": "integer",
+          "description": "FC connection retries for graceful fencing",
+          "default": 1
+        },
+        "ha_failover-controller_cli-check_rpc-timeout_ms": {
+          "type": "integer",
+          "description": "Timeout that the CLI (manual) FC waits for monitorHealth, getServiceState",
+          "default": 20000
+        },
+        "ipc_client_fallback-to-simple-auth-allowed": {
+          "type": "boolean",
+          "description": "When a client is configured to attempt a secure connection, but attempts to connect to an insecure server, that server may instruct the client to switch to SASL SIMPLE (unsecure) authentication. This setting controls whether or not the client will accept this instruction from the server. When false (the default), the client will not allow the fallback to SIMPLE authentication, and will abort the connection.",
+          "default": false
+        },
+        "fs_client_resolve_remote_symlinks": {
+          "type": "boolean",
+          "description": "Whether to resolve symlinks when accessing a remote Hadoop filesystem. Setting this to false causes an exception to be thrown upon encountering a symlink. This setting does not apply to local filesystems, which automatically resolve local symlinks.",
+          "default": true
+        },
+        "nfs_exports_allowed_hosts": {
+          "type": "string",
+          "description": "By default, the export can be mounted by any client. The value string contains machine name and access privilege, separated by whitespace characters. The machine name format can be a single host, a Java regular expression, or an IPv4 address. The access privilege uses rw or ro to specify read/write or read-only access of the machines to exports. If the access privilege is not provided, the default is read-only. Entries are separated by ';'.",
+          "default": "* rw"
+        },
+        "hadoop_user_group_static_mapping_overrides": {
+          "type": "string",
+          "description": "Static mapping of user to groups. This will override the groups if available in the system for the specified user. In otherwords, groups look-up will not happen for these users, instead groups mapped in this configuration will be used. Mapping should be in this format. user1=group1,group2;user2=;user3=group2; Default, 'dr.who=;' will consider 'dr.who' as user without groups.",
+          "default": "dr.who=;"
+        },
+        "rpc_metrics_quantile_enable": {
+          "type": "boolean",
+          "description": "Setting this property to true and rpc.metrics.percentiles.intervals to a comma-separated list of the granularity in seconds, the 50/75/90/95/99th percentile latency for rpc queue/processing time in milliseconds are added to rpc metrics.",
+          "default": false
+        },
+        "rpc_metrics_percentiles_intervals": {
+          "type": "string",
+          "description": "A comma-separated list of the granularity in seconds for the metrics which describe the 50/75/90/95/99th percentile latency for rpc queue/processing time. The metrics are outputted if rpc.metrics.quantile.enable is set to true.",
+          "default": ""
         }
       },
       "required": [
@@ -1266,12 +2013,10 @@
         "data_node_http_port",
         "data_node_ipc_port",
         "permissions_enabled",
-        "name_node_heartbeat_recheck_interval",
         "compress_image",
         "image_compression_codec",
         "hadoop_root_logger",
         "ipc_client_connect_max_retries",
-        "namenode_logging_level",
         "namenode_rpc-bind-host_name_node_0",
         "namenode_rpc-bind-host_name_node_1",
         "namenode_http-bind-host_name_node_0",
@@ -1334,7 +2079,132 @@
         "client_use_legacy_blockreader_local",
         "client_domain_socket_data_traffic",
         "client_slow_io_warning_threshold_ms",
-        "storage_policy_enabled"
+        "storage_policy_enabled",
+        "common_configuration_version",
+        "tmp_dir",
+        "http_filter_initializer",
+        "security_authorization",
+        "security_instrumentation_requires_admin",
+        "security_authentication",
+        "security_group_mapping",
+        "security_groups_cache_secs",
+        "security_groups_negative-cache_secs",
+        "security_groups_cache_warn_after_ms",
+        "security_group_mapping_ldap_ssl",
+        "security_group_mapping_ldap_search_filter_user",
+        "security_group_mapping_ldap_search_filter_group",
+        "security_group_mapping_ldap_search_attr_member",
+        "security_group_mapping_ldap_search_attr_group_name",
+        "security_group_mapping_ldap_directory_search_timeout",
+        "security_service_uid_cache_secs",
+        "rpc_protection",
+        "work_around_non_threadsafe_getpwuid",
+        "kerberos_kinit_command",
+        "io_file_buffer_size",
+        "io_bytes_per_checksum",
+        "io_skip_checksum_errors",
+        "io_compression_codec_bzip2_library",
+        "io_serializations",
+        "io_seqfile_local_dir",
+        "io_map_index_skip",
+        "fs_defaultfs",
+        "fs_trash_interval",
+        "fs_trash_checkpoint_interval",
+        "fs_abstractfilesystem_file_impl",
+        "fs_abstractfilesystem_har_impl",
+        "fs_abstractfilesystem_hdfs_impl",
+        "fs_abstractfilesystem_viewfs_impl",
+        "fs_ftp_host",
+        "fs_ftp_host_port",
+        "fs_df_interval",
+        "fs_du_interval",
+        "fs_s3_block_size",
+        "fs_s3_buffer_dir",
+        "fs_s3_maxretries",
+        "fs_s3_sleep_time_seconds",
+        "sf_swift_impl",
+        "fs_automatic_close",
+        "fs_s3n_block_size",
+        "fs_s3n_multipart_uploads_enabled",
+        "fs_s3n_multipart_uploads_block_size",
+        "fs_s3n_multipart_copy_block_size",
+        "fs_s3n_connection_maximum",
+        "fs_s3n_connection_ssl_enabled",
+        "fs_s3n_attempts_maximum",
+        "fs_s3n_connection_timeout",
+        "fs_s3n_paging_maximum",
+        "fs_s3n_multipart_size",
+        "fs_s3n_multipart_threshold",
+        "fs_s3n_multipart_purge",
+        "fs_s3n_multipart_purge_age",
+        "fs_s3n_buffer_dir",
+        "fs_s3n_impl",
+        "io_seqfile_compress_blocksize",
+        "io_seqfile_lazydecompress",
+        "io_seqfile_sorter_recordlimit",
+        "io_seqfile_bloom_size",
+        "io_seqfile_bloom_error_rate",
+        "hadoop_util_hash_type",
+        "ipc_client_idlethreshold",
+        "ipc_client_kill_max",
+        "ipc_client_connection_maxidletime",
+        "ipc_client_connect_retry_interval",
+        "ipc_client_connect_timeout",
+        "ipc_client_connect_max_retries_on_timeouts",
+        "hadoop_rpc_socket_factory_class_default",
+        "net_topology_node_switch_mapping_impl",
+        "net_topology_impl",
+        "net_topology_script_number_args",
+        "file_stream-buffer-size",
+        "file_bytes-per-checksum",
+        "file_client-write-packet-size",
+        "file_blocksize",
+        "file_replication",
+        "s3_stream-buffer-size",
+        "s3_bytes-per-checksum",
+        "s3_client-write-packet-size",
+        "s3_blocksize",
+        "s3_replication",
+        "s3native_stream-buffer-size",
+        "s3native_bytes-per-checksum",
+        "s3native_client-write-packet-size",
+        "s3native_blocksize",
+        "s3native_replication",
+        "ftp_stream-buffer-size",
+        "ftp_bytes-per-checksum",
+        "ftp_client-write-packet-size",
+        "ftp_blocksize",
+        "ftp_replication",
+        "tfile_io_chunk_size",
+        "tfile_io_output_buffer_size",
+        "tfile_fs_input_buffer_size",
+        "hadoop_http_authentication_type",
+        "hadoop_http_authentication_token_validity",
+        "hadoop_http_authentication_signature_secret_file",
+        "hadoop_http_authentication_simple_anonymous_allowed",
+        "hadoop_http_authentication_kerberos_principal",
+        "hadoop_http_authentication_kerberos_keytab",
+        "dfs_ha_fencing_ssh_connect-timeout",
+        "hadoop_http_staticuser_user",
+        "ha_zookeeper_session-timeout-ms",
+        "ha_zookeeper_parent-znode",
+        "hadoop_ssl_keystores_factory_class",
+        "hadoop_ssl_require_client_cert",
+        "hadoop_ssl_hostname_verifier",
+        "hadoop_jetty_logs_serve_aliases",
+        "fs_permissions_umask-mode",
+        "ha_health-monitor_connect-retry-interval_ms",
+        "ha_health-monitor_check-interval_ms",
+        "ha_health-monitor_sleep-after-disconnect_ms",
+        "ha_health-monitor_rpc-timeout_ms",
+        "ha_failover-controller_new-active_rpc-timeout_ms",
+        "ha_failover-controller_graceful-fence_connection_retries",
+        "ha_failover_controller_cli-check_rpc-timeout_ms",
+        "ipc_client_fallback-to-simple-auth-allowed",
+        "fs_client_resolve_remote_symlinks",
+        "nfs_exports_allowed_hosts",
+        "hadoop_user_group_static_mapping_overrides",
+        "rpc_metrics_quantile_enable"
       ]
     }
   }
