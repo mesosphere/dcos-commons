@@ -1351,12 +1351,12 @@
         "security_group_mapping_ldap_search_filter_user": {
           "type": "string",
           "description": "An additional filter to use when searching for LDAP users. The default will usually be appropriate for Active Directory installations. If connecting to an LDAP server with a non-AD schema, this should be replaced with (&(objectClass=inetOrgPerson)(uid={0}). {0} is a special string used to denote where the username fits into the filter.",
-          "default": "(&(objectClass=user)(sAMAccountName={0}))"
+          "default": ""
         },
         "security_group_mapping_ldap_search_filter_group": {
           "type": "string",
           "description": "An additional filter to use when searching for LDAP groups. This should be changed when resolving groups against a non-Active Directory installation. posixGroups are currently not a supported group class.",
-          "default": "(objectClass=group)"
+          "default": ""
         },
         "security_group_mapping_ldap_search_attr_member": {
           "type": "string",
@@ -1550,7 +1550,7 @@
         },
         "fs_s3n_multipart_uploads_block_size": {
           "type": "integer",
-          "description": "	The block size for multipart uploads to native S3 filesystem. Default size is 64MB.",
+          "description": "The block size for multipart uploads to native S3 filesystem. Default size is 64MB.",
           "default": 67108864
         },
         "fs_s3n_multipart_copy_block_size": {
@@ -1924,7 +1924,7 @@
           "default": false
         },
         "hadoop_jetty_logs_serve_aliases": {
-          "type": "string",
+          "type": "boolean",
           "description": "Enable/Disable aliases serving from jetty",
           "default": false
         },
@@ -1991,7 +1991,7 @@
         "hadoop_user_group_static_mapping_overrides": {
           "type": "string",
           "description": "Static mapping of user to groups. This will override the groups if available in the system for the specified user. In otherwords, groups look-up will not happen for these users, instead groups mapped in this configuration will be used. Mapping should be in this format. user1=group1,group2;user2=;user3=group2; Default, 'dr.who=;' will consider 'dr.who' as user without groups.",
-          "default": "dr.who=;"
+          "default": ""
         },
         "rpc_metrics_quantile_enable": {
           "type": "boolean",
@@ -2091,8 +2091,6 @@
         "security_groups_negative-cache_secs",
         "security_groups_cache_warn_after_ms",
         "security_group_mapping_ldap_ssl",
-        "security_group_mapping_ldap_search_filter_user",
-        "security_group_mapping_ldap_search_filter_group",
         "security_group_mapping_ldap_search_attr_member",
         "security_group_mapping_ldap_search_attr_group_name",
         "security_group_mapping_ldap_directory_search_timeout",
@@ -2187,10 +2185,8 @@
         "dfs_ha_fencing_ssh_connect-timeout",
         "hadoop_http_staticuser_user",
         "ha_zookeeper_session-timeout-ms",
-        "ha_zookeeper_parent-znode",
         "hadoop_ssl_keystores_factory_class",
         "hadoop_ssl_require_client_cert",
-        "hadoop_ssl_hostname_verifier",
         "hadoop_jetty_logs_serve_aliases",
         "fs_permissions_umask-mode",
         "ha_health-monitor_connect-retry-interval_ms",
@@ -2199,11 +2195,10 @@
         "ha_health-monitor_rpc-timeout_ms",
         "ha_failover-controller_new-active_rpc-timeout_ms",
         "ha_failover-controller_graceful-fence_connection_retries",
-        "ha_failover_controller_cli-check_rpc-timeout_ms",
+        "ha_failover-controller_cli-check_rpc-timeout_ms",
         "ipc_client_fallback-to-simple-auth-allowed",
         "fs_client_resolve_remote_symlinks",
         "nfs_exports_allowed_hosts",
-        "hadoop_user_group_static_mapping_overrides",
         "rpc_metrics_quantile_enable"
       ]
     }
