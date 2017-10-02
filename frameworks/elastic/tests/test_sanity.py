@@ -109,6 +109,7 @@ def test_metrics():
     )
 
 
+@pytest.mark.focus
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
 def test_xpack_toggle_with_kibana(default_populated_index):
