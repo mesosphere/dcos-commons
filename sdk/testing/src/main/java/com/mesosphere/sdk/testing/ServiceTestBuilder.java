@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -191,11 +192,13 @@ public class ServiceTestBuilder {
 
         // Test 3: Does the scheduler build?
         Persister persister = new MemPersister();
-        DefaultScheduler.newBuilder(serviceSpec, mockFlags, persister)
+        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockFlags, persister)
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)
-                .build();
+                .build()
+                .disableThreading()
+                .disableApiServer();
 
         // Test 4: Can we render the per-task config templates without any missing values?
         Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
@@ -203,7 +206,8 @@ public class ServiceTestBuilder {
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
 
-        return new ServiceTestResult(serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs);
+        return new ServiceTestResult(
+                serviceSpec, rawServiceSpec, schedulerEnvironment, scheduler.getMesosScheduler().get(), taskConfigs);
     }
 
     private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(ServiceSpec serviceSpec) {
