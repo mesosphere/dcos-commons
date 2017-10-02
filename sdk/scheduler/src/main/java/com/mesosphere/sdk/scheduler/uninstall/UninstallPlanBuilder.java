@@ -7,17 +7,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
@@ -55,8 +58,8 @@ class UninstallPlanBuilder {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags,
-            Optional<SecretsClient> secretsClient) {
+            SchedulerConfig schedulerConfig,
+            Optional<SecretsClient> customSecretsClientForTests) {
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
@@ -111,16 +114,31 @@ class UninstallPlanBuilder {
                 resourceSteps.size());
         phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));
 
-        if (secretsClient.isPresent()) {
-            // If applicable, we also clean up any TLS secrets that we'd created before
-            phases.add(new DefaultPhase(
-                    TLS_CLEANUP_PHASE,
-                    Collections.singletonList(new TLSCleanupStep(
-                            Status.PENDING,
-                            secretsClient.get(),
-                            SecretNameGenerator.getNamespaceFromEnvironment(serviceSpec.getName(), schedulerFlags))),
-                    new SerialStrategy<>(),
-                    Collections.emptyList()));
+        // If applicable, we also clean up any TLS secrets that we'd created before.
+        // Note: This won't catch certificates where the user installed the service with TLS enabled, then disabled TLS
+        // before uninstalling the service. Ideally, at uninstall time (and no sooner, to avoid deleting certs that were
+        // only disabled temporarily) we would detect that TLS was *ever* enabled, rather than just *currently* enabled.
+        // See also INFINITY-2464.
+        if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
+            try {
+                // Use any provided custom test client, or otherwise construct a default client
+                SecretsClient secretsClient = customSecretsClientForTests.isPresent()
+                        ? customSecretsClientForTests.get()
+                        : new SecretsClient(
+                                Executor.newInstance(new DcosHttpClientBuilder()
+                                        .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
+                                        .setRedirectStrategy(new LaxRedirectStrategy())
+                                        .build()));
+                phases.add(new DefaultPhase(
+                        TLS_CLEANUP_PHASE,
+                        Collections.singletonList(new TLSCleanupStep(
+                                secretsClient, schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
+                        new SerialStrategy<>(),
+                        Collections.emptyList()));
+            } catch (Exception e) {
+                LOGGER.error("Failed to create a secrets store client, " +
+                        "TLS artifacts possibly won't be cleaned up from secrets store", e);
+            }
         }
 
         // Finally, we unregister the framework from Mesos.

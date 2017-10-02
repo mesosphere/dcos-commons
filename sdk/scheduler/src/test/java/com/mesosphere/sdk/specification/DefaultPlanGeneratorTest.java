@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.specification;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class DefaultPlanGeneratorTest {
 
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
@@ -34,7 +34,7 @@ public class DefaultPlanGeneratorTest {
         File file = new File(classLoader.getResource("custom-phases.yml").getFile());
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
         DefaultServiceSpec serviceSpec =
-                DefaultServiceSpec.newGenerator(rawServiceSpec, flags, file.getParentFile()).build();
+                DefaultServiceSpec.newGenerator(rawServiceSpec, SCHEDULER_CONFIG, file.getParentFile()).build();
 
         Persister persister = new MemPersister();
         stateStore = new StateStore(persister);

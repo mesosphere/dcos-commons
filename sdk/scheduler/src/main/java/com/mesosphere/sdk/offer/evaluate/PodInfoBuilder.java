@@ -10,7 +10,7 @@ import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
@@ -47,7 +47,7 @@ public class PodInfoBuilder {
             PodInstanceRequirement podInstanceRequirement,
             String serviceName,
             UUID targetConfigId,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
             boolean useDefaultExecutor) throws InvalidRequirementException {
@@ -63,7 +63,7 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
-                    schedulerFlags);
+                    schedulerConfig);
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
@@ -77,7 +77,7 @@ public class PodInfoBuilder {
         }
 
         this.executorBuilder = getExecutorInfoBuilder(
-                serviceName, podInstance, frameworkID, targetConfigId, schedulerFlags);
+                serviceName, podInstance, frameworkID, targetConfigId, schedulerConfig);
 
         this.podInstance = podInstance;
         this.portsByTask = new HashMap<>();
@@ -206,7 +206,7 @@ public class PodInfoBuilder {
             Map<String, String> environment,
             String serviceName,
             UUID targetConfigurationId,
-            SchedulerFlags schedulerFlags) throws InvalidRequirementException {
+            SchedulerConfig schedulerConfig) throws InvalidRequirementException {
         PodSpec podSpec = podInstance.getPod();
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
@@ -288,12 +288,12 @@ public class PodInfoBuilder {
             PodInstance podInstance,
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
-            SchedulerFlags schedulerFlags) throws IllegalStateException {
+            SchedulerConfig schedulerConfig) throws IllegalStateException {
         PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
-        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpaceLabelValue());
+        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerConfig.getDcosSpace());
 
         if (useDefaultExecutor) {
             executorInfoBuilder.setType(Protos.ExecutorInfo.Type.DEFAULT)
@@ -313,8 +313,8 @@ public class PodInfoBuilder {
             }
 
             // Required URIs from the scheduler environment:
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getLibmesosURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getJavaURI());
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {

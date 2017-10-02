@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -147,7 +147,7 @@ public class AbstractSchedulerTest {
     private TestScheduler getScheduler(boolean waitForApiServer, boolean multithreaded, int offerQueueSize)
             throws PersisterException {
         TestScheduler scheduler = new TestScheduler(
-                stateStore, mockConfigStore, OfferRequirementTestUtils.getTestSchedulerFlags());
+                stateStore, mockConfigStore, OfferRequirementTestUtils.getTestSchedulerConfig());
         // Customize...
         if (!waitForApiServer) {
             scheduler.disableApiServer();
@@ -172,8 +172,8 @@ public class AbstractSchedulerTest {
         private final Set<String> receivedOfferIds = new HashSet<>();
 
         protected TestScheduler(
-                StateStore stateStore, ConfigStore<ServiceSpec> configStore, SchedulerFlags schedulerFlags) {
-            super(stateStore, configStore, schedulerFlags);
+                StateStore stateStore, ConfigStore<ServiceSpec> configStore, SchedulerConfig schedulerConfig) {
+            super(stateStore, configStore, schedulerConfig);
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }

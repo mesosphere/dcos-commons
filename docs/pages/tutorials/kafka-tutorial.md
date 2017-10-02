@@ -52,7 +52,7 @@ configs:
 ```
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{FRAMEWORK_PRINCIPAL}}
+  service_account: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
   kafka:

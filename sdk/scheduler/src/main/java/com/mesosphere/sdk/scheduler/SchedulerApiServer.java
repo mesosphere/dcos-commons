@@ -27,13 +27,13 @@ public class SchedulerApiServer {
     private final Server server;
     private final Duration startTimeout;
 
-    public SchedulerApiServer(SchedulerFlags schedulerFlags, Collection<Object> resources) {
-        this.port = schedulerFlags.getApiServerPort();
+    public SchedulerApiServer(SchedulerConfig schedulerConfig, Collection<Object> resources) {
+        this.port = schedulerConfig.getApiServerPort();
         this.server = JettyHttpContainerFactory.createServer(
                 UriBuilder.fromUri("http://0.0.0.0/").port(this.port).build(),
                 new ResourceConfig(MultiPartFeature.class).registerInstances(new HashSet<>(resources)),
                 false /* don't start yet. wait for start() call below. */);
-        this.startTimeout = schedulerFlags.getApiServerInitTimeout();
+        this.startTimeout = schedulerConfig.getApiServerInitTimeout();
     }
 
     /**
