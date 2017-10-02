@@ -123,13 +123,6 @@ def _get_universe_url():
     assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
 
 
-@retrying.retry(
-    wait_fixed=10000,
-    stop_max_delay=300000)
-def wait_for_suppressed_service(service_name):
-    assert sdk_api.is_suppressed(service_name)
-
-
 def _upgrade_or_downgrade(
         package_name,
         to_package_version,
@@ -173,14 +166,6 @@ def _upgrade_or_downgrade(
         log.info("Waiting for {}/{} to finish deployment plan...".format(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
-
-        # given the above wait for plan completion, here we just wait up to 5 minutes
-        if shakedown.dcos_version_less_than("1.9"):
-            log.info("Skipping `is_suppressed` check for %s/%s as this is only suppored starting in version 1.9",
-                     package_name, service_name)
-        else:
-            log.info("Waiting for %s/%s to be suppressed...", package_name, service_name)
-            wait_for_suppressed_service(service_name)
 
 
 def _get_pkg_version(package_name):

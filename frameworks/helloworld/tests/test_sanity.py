@@ -184,20 +184,9 @@ def test_pod_info():
     assert task['status']['state'] == 'TASK_RUNNING'
 
 
-@retrying.retry(
-    wait_fixed=10000,
-    stop_max_delay=30000)
-def wait_for_nonempty_properties():
-    """'suppressed' could be missing if the scheduler recently started,
-    loop for a bit just in case
-    """
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME, 'state properties', json=True)
-    assert len(jsonobj) > 0
-
-
 @pytest.mark.sanity
 def test_state_properties_get():
-    wait_for_nonempty_properties()
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
     assert len(jsonobj) == 5
@@ -213,13 +202,13 @@ def test_state_properties_get():
     wait_fixed=10000,
     stop_max_delay=120000,
     retry_on_result=lambda res: res is False)
-def wait_for_refresh_cache_fails_409conflict():
+def wait_for_refresh_cache_fails_409conflict(foldered_service_name):
     """caching disabled, refresh_cache should fail with a
     409 error (eventually, once scheduler is up)
     """
     try:
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, FOLDERED_SERVICE_NAME, 'state refresh_cache')
+            config.PACKAGE_NAME, foldered_service_name, 'state refresh_cache')
     except Exception as ex:
         if "failed: 409 Conflict" in ex.args[0]:
             return True
@@ -229,9 +218,9 @@ def wait_for_refresh_cache_fails_409conflict():
 @retrying.retry(
     wait_fixed=10000,
     stop_max_delay=120000)
-def wait_for_cache_refresh():
+def wait_for_cache_refresh(foldered_service_name):
     return sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME, 'state refresh_cache')
+        config.PACKAGE_NAME, foldered_service_name, 'state refresh_cache')
 
 
 @pytest.mark.sanity
@@ -252,7 +241,7 @@ def test_state_refresh_disable_cache():
     sdk_tasks.check_tasks_not_updated(foldered_name, '', task_ids)
     config.check_running(foldered_name)
 
-    wait_for_refresh_cache_fails_409conflict()
+    wait_for_refresh_cache_fails_409conflict(foldered_name)
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     del marathon_config['env']['DISABLE_STATE_CACHE']
@@ -263,9 +252,6 @@ def test_state_refresh_disable_cache():
     shakedown.deployment_wait()  # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
-    def check_cache_refresh():
-        return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
-
     stdout = wait_for_cache_refresh()
     assert "Received cmd: refresh" in stdout
 
@@ -301,7 +287,7 @@ def test_lock():
         wait_fixed=10000,
         stop_max_delay=120000)
     def wait_for_second_scheduler_to_fail():
-        timestamp = marathon_client.get_app(FOLDERED_SERVICE_NAME).get("lastTaskFailure", {}).get("timestamp", None)
+        timestamp = marathon_client.get_app(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
         assert timestamp != old_timestamp
 
     wait_for_second_scheduler_to_fail()

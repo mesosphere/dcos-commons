@@ -73,20 +73,8 @@ class InstallJobContext(object):
 def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
-    sdk_cmd.run_cli('job run {}'.format(job_name))
-
-    @retrying.retry(
-        wait_fixed=10000,
-        stop_max_delay=timeout_seconds*1000,
-        retry_on_exception=lambda ex: False,
-        retry_on_result=lambda res: not res)
-    def wait_for_run_id():
-        runs = json.loads(sdk_cmd.run_cli('job show runs {} --json'.format(job_name)))
-        if len(runs) > 0:
-            return runs[0]['id']
-        return ''
-
-    run_id = wait_for_run_id()
+    # start job run, get run ID to be polled against:
+    run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
 
     @retrying.retry(
         wait_fixed=10000,
