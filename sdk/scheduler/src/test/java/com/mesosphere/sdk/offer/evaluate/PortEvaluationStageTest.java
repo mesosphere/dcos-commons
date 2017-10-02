@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -452,7 +451,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true);
@@ -476,7 +475,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
                 true);
@@ -495,7 +494,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
                 true);
