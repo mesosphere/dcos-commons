@@ -110,7 +110,7 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     """
     @retrying.retry(
         wait_fixed=5000,
-        stop_max_delay=120000,
+        stop_max_delay=timeout*1000,
         retry_on_result=lambda res: res is False)
     def check_for_service_metrics():
         try:
@@ -123,4 +123,4 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
             log.error("Caught exception trying to get metrics: {}".format(e))
             return False
 
-    shakedown.wait_for(check_for_service_metrics, timeout)
+    check_for_service_metrics()
