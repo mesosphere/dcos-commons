@@ -4,10 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -15,6 +12,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +85,12 @@ public class PodInfoBuilder {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
-            portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
+
+            // If the pod was replaced, discard any previously used ports. We want dynamic ports
+            // to re-roll.
+            if (!FailureUtils.isPermanentlyFailed(currentTask)) {
+                portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
+            }
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
