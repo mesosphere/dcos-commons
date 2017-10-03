@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultStepFactoryTest {
 
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private StepFactory stepFactory;
     private ConfigStore<ServiceSpec> configStore;
@@ -51,7 +51,7 @@ public class DefaultStepFactoryTest {
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID);
-        PodSpec podSpec = DefaultPodSpec.newBuilder(flags.getExecutorURI())
+        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
                 .type(TestConstants.POD_TYPE)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec0, taskSpec1))
@@ -85,7 +85,7 @@ public class DefaultStepFactoryTest {
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
                         TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder(flags.getExecutorURI())
+        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
                 .type(TestConstants.POD_TYPE)
                 .count(1)
                 .tasks(Arrays.asList(taskSpec0, taskSpec1))

@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.dcos.secrets;
+package com.mesosphere.sdk.dcos.clients;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -23,13 +23,15 @@ import org.mockito.MockitoAnnotations;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DefaultSecretsClientTest {
+public class SecretsClientTest {
+
+    private static final SecretsClient.Payload PAYLOAD =
+            new SecretsClient.Payload("scheduler-name", "secret-value", "description");
 
     @Mock private HttpClient httpClient;
     @Mock private HttpResponse httpResponse;
@@ -44,8 +46,8 @@ public class DefaultSecretsClientTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private DefaultSecretsClient createClientWithStatusLine(StatusLine statusLine) throws IOException {
-        DefaultSecretsClient client = new DefaultSecretsClient(Executor.newInstance(httpClient));
+    private SecretsClient createClientWithStatusLine(StatusLine statusLine) throws IOException {
+        SecretsClient client = new SecretsClient(Executor.newInstance(httpClient));
 
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(httpClient.execute(
@@ -55,8 +57,8 @@ public class DefaultSecretsClientTest {
         return client;
     }
 
-    private DefaultSecretsClient createClientWithJsonContent(String content) throws IOException {
-        DefaultSecretsClient client = new DefaultSecretsClient(Executor.newInstance(httpClient));
+    private SecretsClient createClientWithJsonContent(String content) throws IOException {
+        SecretsClient client = new SecretsClient(Executor.newInstance(httpClient));
 
         when(statusLine.getStatusCode()).thenReturn(200);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
@@ -72,20 +74,9 @@ public class DefaultSecretsClientTest {
         return client;
     }
 
-
-    private Secret createValidSecret() {
-        return new Secret.Builder()
-                .value("secret-value")
-                .author("scheduler-name")
-                .description("description")
-                .created("created")
-                .labels(Arrays.asList("one", "two"))
-                .build();
-    }
-
     @Test
     public void testListValidResponse() throws Exception {
-        DefaultSecretsClient client = createClientWithJsonContent("{'array':['one','two']}");
+        SecretsClient client = createClientWithJsonContent("{'array':['one','two']}");
         Collection<String> secrets = client.list("test");
         Assert.assertTrue(secrets.size() == 2);
         Assert.assertTrue(secrets.contains("one"));
@@ -94,31 +85,30 @@ public class DefaultSecretsClientTest {
 
     @Test
     public void testListWithoutPermission() throws Exception {
-        thrown.expect(SecretsException.class);
-        thrown.expectMessage("[403]");
+        thrown.expect(IOException.class);
+        thrown.expectMessage("code=403");
 
         when(statusLine.getStatusCode()).thenReturn(403);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
         client.list("test");
     }
 
     @Test
     public void testListNotFound() throws Exception {
-        thrown.expect(SecretsException.class);
-        thrown.expectMessage("[404]");
+        thrown.expect(IOException.class);
+        thrown.expectMessage("code=404");
 
         when(statusLine.getStatusCode()).thenReturn(404);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
         client.list("test");
     }
 
     @Test
-    public void testCreateValidRequest() throws IOException, SecretsException {
+    public void testCreateValidRequest() throws IOException {
         when(statusLine.getStatusCode()).thenReturn(201);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
 
-        Secret secret = createValidSecret();
-        client.create("scheduler-name/secret-name", secret);
+        client.create("scheduler-name/secret-name", PAYLOAD);
 
         ArgumentCaptor<HttpUriRequest> passedRequest = ArgumentCaptor.forClass(HttpUriRequest.class);
         verify(httpClient).execute(passedRequest.capture(), Mockito.any(HttpContext.class));
@@ -136,43 +126,36 @@ public class DefaultSecretsClientTest {
         httpEntity.writeTo(content);
         JSONObject jsonObject = new JSONObject(content.toString("UTF-8"));
 
-        Assert.assertEquals(jsonObject.getString("value"), secret.getValue());
-        Assert.assertEquals(jsonObject.getString("author"), secret.getAuthor());
-        Assert.assertEquals(jsonObject.getString("description"), secret.getDescription());
-        Assert.assertEquals(jsonObject.getString("created"), secret.getCreated());
-        for (Object item : jsonObject.getJSONArray("labels")) {
-           Assert.assertTrue(secret.getLabels().contains(item));
-        }
+        Assert.assertEquals(jsonObject.getString("value"), PAYLOAD.getValue());
+        Assert.assertEquals(jsonObject.getString("author"), PAYLOAD.getAuthor());
+        Assert.assertEquals(jsonObject.getString("description"), PAYLOAD.getDescription());
     }
 
-    @Test(expected = SecretsException.class)
-    public void testCreateWithoutPermission() throws IOException, SecretsException {
+    @Test(expected = IOException.class)
+    public void testCreateWithoutPermission() throws IOException {
         when(statusLine.getStatusCode()).thenReturn(403);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
 
-        Secret secret = createValidSecret();
-        client.create("scheduler-name/secret-name", secret);
+        client.create("scheduler-name/secret-name", PAYLOAD);
     }
 
     @Test
-    public void testCreateOverwriteExistingSecret() throws IOException, SecretsException {
-        thrown.expect(SecretsException.class);
-        thrown.expectMessage("Secret already exists: [409]");
+    public void testCreateOverwriteExistingSecret() throws IOException {
+        thrown.expect(IOException.class);
+        thrown.expectMessage("code=409");
 
         when(statusLine.getStatusCode()).thenReturn(409);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
 
-        Secret secret = createValidSecret();
-        client.create("scheduler-name/secret-name", secret);
+        client.create("scheduler-name/secret-name", PAYLOAD);
     }
 
     @Test
-    public void testUpdate() throws IOException, SecretsException {
+    public void testUpdate() throws IOException {
         when(statusLine.getStatusCode()).thenReturn(204);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
 
-        Secret secret = createValidSecret();
-        client.update("scheduler-name/secret-name", secret);
+        client.update("scheduler-name/secret-name", PAYLOAD);
 
         ArgumentCaptor<HttpUriRequest> passedRequest = ArgumentCaptor.forClass(HttpUriRequest.class);
         verify(httpClient).execute(passedRequest.capture(), Mockito.any(HttpContext.class));
@@ -190,37 +173,31 @@ public class DefaultSecretsClientTest {
         httpEntity.writeTo(content);
         JSONObject jsonObject = new JSONObject(content.toString("UTF-8"));
 
-        Assert.assertEquals(jsonObject.getString("value"), secret.getValue());
-        Assert.assertEquals(jsonObject.getString("author"), secret.getAuthor());
-        Assert.assertEquals(jsonObject.getString("description"), secret.getDescription());
-        Assert.assertEquals(jsonObject.getString("created"), secret.getCreated());
-        for (Object item : jsonObject.getJSONArray("labels")) {
-           Assert.assertTrue(secret.getLabels().contains(item));
-        }
+        Assert.assertEquals(jsonObject.getString("value"), PAYLOAD.getValue());
+        Assert.assertEquals(jsonObject.getString("author"), PAYLOAD.getAuthor());
+        Assert.assertEquals(jsonObject.getString("description"), PAYLOAD.getDescription());
     }
 
-    @Test(expected = SecretsException.class)
-    public void testUpdateWithoutPermission() throws IOException, SecretsException {
+    @Test(expected = IOException.class)
+    public void testUpdateWithoutPermission() throws IOException {
         when(statusLine.getStatusCode()).thenReturn(403);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
 
-        Secret secret = createValidSecret();
-        client.update("scheduler-name/secret-name", secret);
+        client.update("scheduler-name/secret-name", PAYLOAD);
     }
 
-    @Test(expected = SecretsException.class)
-    public void testUpdateNonExistingSecret() throws IOException, SecretsException {
+    @Test(expected = IOException.class)
+    public void testUpdateNonExistingSecret() throws IOException {
         when(statusLine.getStatusCode()).thenReturn(404);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
 
-        Secret secret = createValidSecret();
-        client.update("scheduler-name/secret-name", secret);
+        client.update("scheduler-name/secret-name", PAYLOAD);
     }
 
     @Test
-    public void testDelete() throws IOException, SecretsException {
+    public void testDelete() throws IOException {
         when(statusLine.getStatusCode()).thenReturn(204);
-        DefaultSecretsClient client = createClientWithStatusLine(statusLine);
+        SecretsClient client = createClientWithStatusLine(statusLine);
         client.delete("scheduler-name/secret-name");
 
         ArgumentCaptor<HttpUriRequest> passedRequest = ArgumentCaptor.forClass(HttpUriRequest.class);

@@ -15,14 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
-import com.mesosphere.sdk.dcos.SecretsClient;
-import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.evaluate.security.SecretNameGenerator;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
@@ -60,7 +58,7 @@ class UninstallPlanBuilder {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
@@ -126,18 +124,15 @@ class UninstallPlanBuilder {
                 // Use any provided custom test client, or otherwise construct a default client
                 SecretsClient secretsClient = customSecretsClientForTests.isPresent()
                         ? customSecretsClientForTests.get()
-                        : new DefaultSecretsClient(
+                        : new SecretsClient(
                                 Executor.newInstance(new DcosHttpClientBuilder()
-                                        .setTokenProvider(schedulerFlags.getDcosAuthTokenProvider())
+                                        .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
                                         .setRedirectStrategy(new LaxRedirectStrategy())
                                         .build()));
-                Step cleanupStep = new TLSCleanupStep(
-                        Status.PENDING,
-                        secretsClient,
-                        SecretNameGenerator.getNamespaceFromEnvironment(schedulerFlags, serviceSpec.getName()));
                 phases.add(new DefaultPhase(
                         TLS_CLEANUP_PHASE,
-                        Collections.singletonList(cleanupStep),
+                        Collections.singletonList(new TLSCleanupStep(
+                                secretsClient, schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
                         new SerialStrategy<>(),
                         Collections.emptyList()));
             } catch (Exception e) {

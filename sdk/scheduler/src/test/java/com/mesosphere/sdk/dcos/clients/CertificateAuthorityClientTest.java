@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.dcos.ca;
+package com.mesosphere.sdk.dcos.clients;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -14,26 +14,24 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.openssl.jcajce.JcaMiscPEMGenerator;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
-import org.bouncycastle.util.io.pem.PemWriter;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.offer.evaluate.security.PEMUtils;
+
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -47,7 +45,7 @@ import java.util.Date;
 
 import static org.mockito.Mockito.when;
 
-public class DefaultCAClientTest {
+public class CertificateAuthorityClientTest {
 
     private KeyPairGenerator KEY_PAIR_GENERATOR;
     private int RSA_KEY_SIZE = 2048;
@@ -69,8 +67,8 @@ public class DefaultCAClientTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    private DefaultCAClient createClientWithStatusLine(StatusLine statusLine) throws IOException {
-        DefaultCAClient client = new DefaultCAClient(Executor.newInstance(httpClient));
+    private CertificateAuthorityClient createClientWithStatusLine(StatusLine statusLine) throws IOException {
+        CertificateAuthorityClient client = new CertificateAuthorityClient(Executor.newInstance(httpClient));
 
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(httpResponse.getEntity()).thenReturn(httpEntity);
@@ -82,16 +80,16 @@ public class DefaultCAClientTest {
         return client;
     }
 
-    private DefaultCAClient createClientWithJsonContent(String content) throws IOException {
-        DefaultCAClient client = new DefaultCAClient(Executor.newInstance(httpClient));
+    private CertificateAuthorityClient createClientWithJsonContent(String content) throws IOException {
+        CertificateAuthorityClient client = new CertificateAuthorityClient(Executor.newInstance(httpClient));
 
         when(statusLine.getStatusCode()).thenReturn(200);
         when(httpResponse.getStatusLine()).thenReturn(statusLine);
         when(httpResponse.getEntity()).thenReturn(httpEntity);
         // Because of how CA client reads entity twice create 2 responses that represent same buffer.
         when(httpEntity.getContent()).thenReturn(
-                new ByteArrayInputStream(content.getBytes("UTF-8")),
-                new ByteArrayInputStream(content.getBytes("UTF-8")));
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)),
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
         when(httpClient.execute(
                 Mockito.any(HttpUriRequest.class),
                 Mockito.any(HttpContext.class))).thenReturn(httpResponse);
@@ -134,18 +132,8 @@ public class DefaultCAClientTest {
 
         PKCS10CertificationRequestBuilder csrBuilder = new JcaPKCS10CertificationRequestBuilder(name, keyPair.getPublic())
                 .addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
-        PKCS10CertificationRequest csr = csrBuilder.build(signer);
 
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        PemWriter writer = new PemWriter(new OutputStreamWriter(os, "UTF-8"));
-        try {
-            writer.writeObject(new JcaMiscPEMGenerator(csr));
-        } finally {
-            writer.flush();
-            writer.close();
-        }
-
-        return os.toByteArray();
+        return PEMUtils.toPEM(csrBuilder.build(signer));
     }
 
     private X509Certificate createCertificate() throws Exception {
@@ -181,20 +169,13 @@ public class DefaultCAClientTest {
 
     private String readResourceJson(String name) throws IOException {
        return new String(
-               Files.readAllBytes(
-                       Paths.get(
-                            getClass()
-                                    .getClassLoader()
-                                    .getResource(name)
-                                    .getPath()
-                       )
-               ),
-               "UTF-8");
+               Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource(name).getPath())),
+               StandardCharsets.UTF_8);
     }
 
     @Test
     public void testSignWithCorrectResponse() throws Exception {
-        DefaultCAClient client = createClientWithJsonContent(
+        CertificateAuthorityClient client = createClientWithJsonContent(
                 readResourceJson("response-ca-sign-valid.json"));
         X509Certificate certificate = client.sign(createCSR());
         Assert.assertEquals(certificate.getSerialNumber(),
@@ -204,10 +185,10 @@ public class DefaultCAClientTest {
 
     @Test
     public void testSignWithErrorInResponse() throws Exception {
-        DefaultCAClient client = createClientWithJsonContent(
+        CertificateAuthorityClient client = createClientWithJsonContent(
                 readResourceJson("response-ca-sign-with-error.json"));
 
-        thrown.expect(CAException.class);
+        thrown.expect(Exception.class);
         thrown.expectMessage("[1234] Test error");
 
         client.sign(createCSR());
@@ -216,9 +197,9 @@ public class DefaultCAClientTest {
     @Test
     public void testSignWithNon200Response() throws Exception {
         when(statusLine.getStatusCode()).thenReturn(400);
-        DefaultCAClient client = createClientWithStatusLine(statusLine);
+        CertificateAuthorityClient client = createClientWithStatusLine(statusLine);
 
-        thrown.expect(CAException.class);
+        thrown.expect(Exception.class);
         thrown.expectMessage("400 - error from CA");
 
         client.sign(createCSR());
@@ -226,7 +207,7 @@ public class DefaultCAClientTest {
 
     @Test
     public void testChainWithRootCertWithCorrectResponse() throws Exception {
-        DefaultCAClient client = createClientWithJsonContent(
+        CertificateAuthorityClient client = createClientWithJsonContent(
                 readResourceJson("response-ca-bundle-valid.json"));
         Collection<X509Certificate> chain = client.chainWithRootCert(createCertificate());
         Assert.assertTrue(chain.size() > 0);
@@ -234,10 +215,10 @@ public class DefaultCAClientTest {
 
     @Test
     public void testChainWithRootCertWithErrorInResponse() throws Exception {
-        DefaultCAClient client = createClientWithJsonContent(
+        CertificateAuthorityClient client = createClientWithJsonContent(
                 readResourceJson("response-ca-bundle-with-error.json"));
 
-        thrown.expect(CAException.class);
+        thrown.expect(Exception.class);
         thrown.expectMessage("[1234] Test message");
 
         client.chainWithRootCert(createCertificate());
@@ -246,9 +227,9 @@ public class DefaultCAClientTest {
     @Test
     public void testChainWithRootCertWithNon200Response() throws Exception {
         when(statusLine.getStatusCode()).thenReturn(400);
-        DefaultCAClient client = createClientWithStatusLine(statusLine);
+        CertificateAuthorityClient client = createClientWithStatusLine(statusLine);
 
-        thrown.expect(CAException.class);
+        thrown.expect(Exception.class);
         thrown.expectMessage("400 - error from CA");
 
         client.chainWithRootCert(createCertificate());

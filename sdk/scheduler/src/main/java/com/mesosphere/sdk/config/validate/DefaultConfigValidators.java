@@ -3,7 +3,7 @@ package com.mesosphere.sdk.config.validate;
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
 /**
@@ -15,7 +15,7 @@ public class DefaultConfigValidators {
         // do not instantiate
     }
 
-    public static Collection<ConfigValidator<ServiceSpec>> getValidators(SchedulerFlags schedulerFlags) {
+    public static Collection<ConfigValidator<ServiceSpec>> getValidators(SchedulerConfig schedulerConfig) {
         return Arrays.asList(
                 new ServiceNameCannotContainDoubleUnderscores(),
                 new PodSpecsCannotShrink(),
@@ -23,6 +23,6 @@ public class DefaultConfigValidators {
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
                 new UserCannotChange(),
-                new TLSRequiresServiceAccount(schedulerFlags));
+                new TLSRequiresServiceAccount(schedulerConfig));
     }
 }

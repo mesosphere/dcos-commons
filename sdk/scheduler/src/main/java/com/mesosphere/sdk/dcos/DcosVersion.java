@@ -70,7 +70,7 @@ public class DcosVersion {
         this.version = version;
     }
 
-    DcosVersion(JSONObject jsonObject) {
+    public DcosVersion(JSONObject jsonObject) {
         this((String) jsonObject.get(DcosVersion.BOOTSTRAP_ID_KEY),
              (String) jsonObject.get(DcosVersion.DCOS_IMAGE_COMMIT),
              (String) jsonObject.get(DcosVersion.VERSION_KEY));

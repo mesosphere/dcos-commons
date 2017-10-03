@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -27,14 +27,14 @@ public class Main {
         }
         File pathToYamlSpecification = new File(args[0]);
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
-        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         // Elastic is unhappy if cluster.name contains slashes. Replace any slashes with double-underscores:
         SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(
-                        rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
+                        rawServiceSpec, schedulerConfig, pathToYamlSpecification.getParentFile())
                         .setAllPodsEnv("CLUSTER_NAME", SchedulerUtils.withEscapedSlashes(rawServiceSpec.getName()))
                         .build(),
-                schedulerFlags)
+                schedulerConfig)
                 .setPlansFrom(rawServiceSpec);
         SchedulerRunner.fromSchedulerBuilder(schedulerBuilder).run();
     }

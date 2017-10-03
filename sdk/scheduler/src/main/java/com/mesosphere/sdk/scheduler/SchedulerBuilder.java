@@ -53,7 +53,7 @@ public class SchedulerBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerBuilder.class);
 
     private ServiceSpec serviceSpec;
-    private final SchedulerFlags schedulerFlags;
+    private final SchedulerConfig schedulerConfig;
     private final Persister persister;
 
     // When these optionals are unset, we use default values:
@@ -68,18 +68,18 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
-    SchedulerBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags) throws PersisterException {
+    SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
                 serviceSpec,
-                schedulerFlags,
-                schedulerFlags.isStateCacheEnabled() ?
+                schedulerConfig,
+                schedulerConfig.isStateCacheEnabled() ?
                         new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
                         CuratorPersister.newBuilder(serviceSpec).build());
     }
 
-    SchedulerBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, Persister persister) {
+    SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
         this.serviceSpec = serviceSpec;
-        this.schedulerFlags = schedulerFlags;
+        this.schedulerConfig = schedulerConfig;
         this.persister = persister;
     }
 
@@ -93,8 +93,8 @@ public class SchedulerBuilder {
     /**
      * Returns the {@link SchedulerFlags} object which was provided via the constructor.
      */
-    public SchedulerFlags getSchedulerFlags() {
-        return schedulerFlags;
+    public SchedulerConfig getSchedulerConfig() {
+        return schedulerConfig;
     }
 
     /**
@@ -244,14 +244,14 @@ public class SchedulerBuilder {
         final StateStore stateStore = getStateStore();
         final ConfigStore<ServiceSpec> configStore = getConfigStore();
 
-        if (getSchedulerFlags().isUninstallEnabled()) {
+        if (schedulerConfig.isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(getStateStore())) {
                 LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                         "Uninstall cannot be canceled once enabled.");
                 StateStoreUtils.setUninstalling(getStateStore());
             }
 
-            return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerFlags, Optional.empty());
+            return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerConfig);
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -259,7 +259,7 @@ public class SchedulerBuilder {
                 SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
             }
 
-            return getDefaultScheduler(stateStore, configStore, getServiceSpec(), getSchedulerFlags());
+            return getDefaultScheduler(stateStore, configStore, getServiceSpec(), schedulerConfig);
         }
     }
 
@@ -273,7 +273,7 @@ public class SchedulerBuilder {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags) {
+            SchedulerConfig schedulerConfig) {
         try {
             new CapabilityValidator().validate(serviceSpec);
         } catch (CapabilityValidator.CapabilityValidationException e) {
@@ -287,7 +287,7 @@ public class SchedulerBuilder {
 
         // Update/validate config as needed to reflect the new service spec:
         Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
-        configValidators.addAll(DefaultConfigValidators.getValidators(schedulerFlags));
+        configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
         configValidators.addAll(customConfigValidators);
         final ConfigurationUpdater.UpdateResult configUpdateResult =
                 updateConfig(serviceSpec, stateStore, configStore, configValidators);
@@ -322,7 +322,7 @@ public class SchedulerBuilder {
 
         return new DefaultScheduler(
                 serviceSpec,
-                schedulerFlags,
+                schedulerConfig,
                 customResources,
                 plans,
                 stateStore,

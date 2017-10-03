@@ -37,17 +37,17 @@ public class SchedulerRunner implements Runnable {
     private final SchedulerBuilder schedulerBuilder;
 
     public static SchedulerRunner fromRawServiceSpec(
-            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, File configTemplateDir) throws Exception {
+            RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir) throws Exception {
         return fromSchedulerBuilder(DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configTemplateDir).build(),
-                schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configTemplateDir).build(),
+                schedulerConfig)
                 .setPlansFrom(rawServiceSpec));
     }
 
     public static SchedulerRunner fromServiceSpec(
-            ServiceSpec serviceSpecification, SchedulerFlags schedulerFlags, Collection<Plan> plans)
+            ServiceSpec serviceSpecification, SchedulerConfig schedulerConfig, Collection<Plan> plans)
                     throws PersisterException {
-        return fromSchedulerBuilder(DefaultScheduler.newBuilder(serviceSpecification, schedulerFlags).setPlans(plans));
+        return fromSchedulerBuilder(DefaultScheduler.newBuilder(serviceSpecification, schedulerConfig).setPlans(plans));
     }
 
     public static SchedulerRunner fromSchedulerBuilder(SchedulerBuilder schedulerBuilder) {
@@ -56,7 +56,7 @@ public class SchedulerRunner implements Runnable {
 
     private SchedulerRunner(SchedulerBuilder schedulerBuilder) {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerFlags flags = schedulerBuilder.getSchedulerFlags();
+        SchedulerConfig flags = schedulerBuilder.getSchedulerConfig();
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
                 flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
                 SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
@@ -74,7 +74,7 @@ public class SchedulerRunner implements Runnable {
                 runScheduler(
                         mesosScheduler.get(),
                         schedulerBuilder.getServiceSpec(),
-                        schedulerBuilder.getSchedulerFlags(),
+                        schedulerBuilder.getSchedulerConfig(),
                         schedulerBuilder.getStateStore());
             }
         } finally {
@@ -83,15 +83,15 @@ public class SchedulerRunner implements Runnable {
     }
 
     private static void runScheduler(
-            Scheduler mesosScheduler, ServiceSpec serviceSpec, SchedulerFlags schedulerFlags, StateStore stateStore) {
+            Scheduler mesosScheduler, ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, StateStore stateStore) {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerFlags.getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerConfig.getJavaHome());
 
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
-                .create(mesosScheduler, frameworkInfo, zkUri, schedulerFlags)
+                .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig)
                 .run();
         LOGGER.error("Scheduler driver exited with status: {}", status);
         // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.

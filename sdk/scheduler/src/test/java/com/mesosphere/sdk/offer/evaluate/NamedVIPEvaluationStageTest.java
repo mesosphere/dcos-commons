@@ -233,7 +233,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPodInstanceRequirement(taskPort, networks),
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
                 true);

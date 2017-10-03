@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
  * This class tests {@link CapabilityValidator}.
  */
 public class CapabilityValidatorTest {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     @Mock private Capabilities mockCapabilities;
     @Mock private YAMLToInternalMappers.ConfigTemplateReader mockConfigTemplateReader;
@@ -37,7 +37,7 @@ public class CapabilityValidatorTest {
         CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .build();
 
         capabilityValidator.validate(serviceSpec);
@@ -56,7 +56,7 @@ public class CapabilityValidatorTest {
         when(mockConfigTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
 
@@ -75,7 +75,7 @@ public class CapabilityValidatorTest {
         when(mockConfigTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
 
@@ -95,14 +95,14 @@ public class CapabilityValidatorTest {
 
         // check that it works when GPUs are specified at the task level
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         capabilityValidator.validate(serviceSpec);
 
         // check that it works when GPUs are specified at the resourceSet level
         file = new File(getClass().getClassLoader().getResource("valid-gpu-resourceset.yml").getFile());
-        serviceSpec = DefaultServiceSpec.newGenerator(file, flags).setConfigTemplateReader(mockConfigTemplateReader).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).setConfigTemplateReader(mockConfigTemplateReader).build();
         capabilityValidator.validate(serviceSpec);
     }
 
@@ -117,7 +117,7 @@ public class CapabilityValidatorTest {
         when(mockConfigTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(getClass().getClassLoader().getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
 
@@ -126,7 +126,7 @@ public class CapabilityValidatorTest {
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
         when(mockCapabilities.supportsCNINetworking()).thenReturn(true);
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        serviceSpec = DefaultServiceSpec.newGenerator(file2, flags).setConfigTemplateReader(mockConfigTemplateReader).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(file2, SCHEDULER_CONFIG).setConfigTemplateReader(mockConfigTemplateReader).build();
 
         capabilityValidator.validate(serviceSpec);
     }
@@ -144,7 +144,7 @@ public class CapabilityValidatorTest {
         when(mockConfigTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file2 = new File(getClass().getClassLoader().getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file2, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file2, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         capabilityValidator.validate(serviceSpec);
@@ -159,7 +159,7 @@ public class CapabilityValidatorTest {
         CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-secrets.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         capabilityValidator.validate(serviceSpec);
@@ -174,7 +174,7 @@ public class CapabilityValidatorTest {
         CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-secrets.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         capabilityValidator.validate(serviceSpec);
@@ -188,7 +188,7 @@ public class CapabilityValidatorTest {
         CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-secrets-env.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         capabilityValidator.validate(serviceSpec);
@@ -202,7 +202,7 @@ public class CapabilityValidatorTest {
         CapabilityValidator capabilityValidator = new CapabilityValidator();
 
         File file = new File(getClass().getClassLoader().getResource("valid-secrets-env.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         capabilityValidator.validate(serviceSpec);

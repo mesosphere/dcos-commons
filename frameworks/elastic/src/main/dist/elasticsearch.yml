@@ -47,6 +47,17 @@ xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/ELASTIC_ENABLE_TLS}}
 
+{{#SCRIPT_ALLOWED_CONTEXTS}}
+script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}
+{{/SCRIPT_ALLOWED_CONTEXTS}}
+{{#SCRIPT_ALLOWED_TYPES}}
+script.allowed_types: {{SCRIPT_ALLOWED_TYPES}}
+{{/SCRIPT_ALLOWED_TYPES}}
+
+{{#REPOSITORIES_URL_ALLOWED_URLS}}
+repositories.url.allowed_urls: {{REPOSITORIES_URL_ALLOWED_URLS}}
+{{/REPOSITORIES_URL_ALLOWED_URLS}}
+
 network.tcp.no_delay: {{NETWORK_TCP_NO_DELAY}}
 network.tcp.keep_alive: {{NETWORK_TCP_KEEP_ALIVE}}
 network.tcp.reuse_address: {{NETWORK_TCP_REUSE_ADDRESS}}
@@ -61,17 +72,60 @@ transport.tcp.connect_timeout: {{TRANSPORT_TCP_CONNECT_TIMEOUT}}
 transport.tcp.compress: {{TRANSPORT_TCP_COMPRESS}}
 transport.ping_schedule: {{TRANSPORT_PING_SCHEDULE}}
 
-#http.enabled: {{HTTP_ENABLED}}
-#http.max_content_length: {{HTTP_MAX_CONTENT_LENGTH}}
-#http.max_initial_line_length: {{HTTP_MAX_INITIAL_LINE_LENGTH}}
-#http.max_header_size: {{HTTP_MAX_HEADER_SIZE}}
-#http.compression: {{HTTP_COMPRESSION}}
-#http.compression_level: {{HTTP_COMPRESSION_LEVEL}}
-#http.cors.enabled: {{HTTP_CORS_ENABLED}}
-#http.cors.max-age: {{HTTP_CORS_MAX_AGE}}
-#http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
-#http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
-#http.pipelining: {{HTTP_PIPELINING}}
-#http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
-#http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
+http.enabled: {{HTTP_ENABLED}}
+http.max_content_length: {{HTTP_MAX_CONTENT_LENGTH}}
+http.max_initial_line_length: {{HTTP_MAX_INITIAL_LINE_LENGTH}}
+http.max_header_size: {{HTTP_MAX_HEADER_SIZE}}
+http.compression: {{HTTP_COMPRESSION}}
+http.compression_level: {{HTTP_COMPRESSION_LEVEL}}
+http.cors.enabled: {{HTTP_CORS_ENABLED}}
+{{#HTTP_CORS_ALLOW_ORIGIN}}
+http.cors.allow-origin: {{HTTP_CORS_ALLOW_ORIGIN}}
+{{/HTTP_CORS_ALLOW_ORIGIN}}
+http.cors.max-age: {{HTTP_CORS_MAX_AGE}}
+http.cors.allow-methods: {{HTTP_CORS_ALLOW_METHODS}}
+http.cors.allow-headers: {{HTTP_CORS_ALLOW_HEADERS}}
+http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
+http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
+http.pipelining: {{HTTP_PIPELINING}}
+http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
+http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 
+
+{{#THREAD_POOL_SEARCH_SIZE}}
+thread_pool.search.size: {{THREAD_POOL_SEARCH_SIZE}}
+{{/THREAD_POOL_SEARCH_SIZE}}
+thread_pool.search.queue_size: {{THREAD_POOL_SEARCH_QUEUE_SIZE}}
+{{#THREAD_POOL_INDEX_SIZE}}
+thread_pool.index.size: {{THREAD_POOL_INDEX_SIZE}}
+{{/THREAD_POOL_INDEX_SIZE}}
+thread_pool.index.queue_size: {{THREAD_POOL_INDEX_QUEUE_SIZE}}
+{{#THREAD_POOL_GET_SIZE}}
+thread_pool.get.size: {{THREAD_POOL_GET_SIZE}}
+{{/THREAD_POOL_GET_SIZE}}
+thread_pool.get.queue_size: {{THREAD_POOL_GET_QUEUE_SIZE}}
+{{#THREAD_POOL_BULK_SIZE}}
+thread_pool.bulk.size: {{THREAD_POOL_BULK_SIZE}}
+{{/THREAD_POOL_BULK_SIZE}}
+thread_pool.bulk.queue_size: {{THREAD_POOL_BULK_QUEUE_SIZE}}
+{{#THREAD_POOL_WARMER_CORE}}
+thread_pool.warmer.core: {{THREAD_POOL_WARMER_CORE}}
+{{/THREAD_POOL_WARMER_CORE}}
+{{#THREAD_POOL_WARMER_MAX}}
+thread_pool.warmer.max: {{THREAD_POOL_WARMER_MAX}}
+{{/THREAD_POOL_WARMER_MAX}}
+thread_pool.warmer.keep_alive: {{THREAD_POOL_WARMER_KEEP_ALIVE}}
+{{#THREAD_POOL_REFRESH_CORE}}
+thread_pool.refresh.core: {{THREAD_POOL_REFRESH_CORE}}
+{{/THREAD_POOL_REFRESH_CORE}}
+{{#THREAD_POOL_REFRESH_MAX}}
+thread_pool.refresh.max: {{THREAD_POOL_REFRESH_MAX}}
+{{/THREAD_POOL_REFRESH_MAX}}
+thread_pool.refresh.keep_alive: {{THREAD_POOL_REFRESH_KEEP_ALIVE}}
+{{#THREAD_POOL_GENERIC_CORE}}
+thread_pool.generic.core: {{THREAD_POOL_GENERIC_CORE}}
+{{/THREAD_POOL_GENERIC_CORE}}
+{{#THREAD_POOL_GENERIC_MAX}}
+thread_pool.generic.max: {{THREAD_POOL_GENERIC_MAX}}
+{{/THREAD_POOL_GENERIC_MAX}}
+thread_pool.generic.keep_alive: {{THREAD_POOL_GENERIC_KEEP_ALIVE}}

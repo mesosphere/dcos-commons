@@ -5,6 +5,7 @@ package com.mesosphere.sdk.scheduler;
  */
 public class SchedulerErrorCode {
 
+
     // Commented items are no longer used, but their numbers may be repurposed later
     public static final SchedulerErrorCode SUCCESS = new SchedulerErrorCode(0);
     public static final SchedulerErrorCode INITIALIZATION_FAILURE = new SchedulerErrorCode(1);

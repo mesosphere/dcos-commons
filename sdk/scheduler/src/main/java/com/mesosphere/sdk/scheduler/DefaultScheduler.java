@@ -58,9 +58,9 @@ public class DefaultScheduler extends AbstractScheduler {
      * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
      * deployment should be organized.
      */
-    public static SchedulerBuilder newBuilder(ServiceSpec serviceSpec, SchedulerFlags schedulerFlags)
-            throws PersisterException {
-        return new SchedulerBuilder(serviceSpec, schedulerFlags);
+    public static SchedulerBuilder newBuilder(
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
+        return new SchedulerBuilder(serviceSpec, schedulerConfig);
     }
 
     /**
@@ -70,10 +70,8 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     @VisibleForTesting
     public static SchedulerBuilder newBuilder(
-            ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags,
-            Persister persister) throws PersisterException {
-        return new SchedulerBuilder(serviceSpec, schedulerFlags, persister);
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) throws PersisterException {
+        return new SchedulerBuilder(serviceSpec, schedulerConfig, persister);
     }
 
     /**
@@ -81,14 +79,14 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
             Collection<Plan> plans,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers,
             Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
-        super(stateStore, configStore, schedulerFlags);
+        super(stateStore, configStore, schedulerConfig);
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
@@ -130,7 +128,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 stateStore,
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
-                                schedulerFlags,
+                                schedulerConfig,
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);

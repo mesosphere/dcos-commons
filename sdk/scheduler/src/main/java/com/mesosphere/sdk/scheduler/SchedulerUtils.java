@@ -100,7 +100,7 @@ public class SchedulerUtils {
     /**
      * Returns the configured {@code hostname:port} to use for state storage at the scheduler.
      */
-    public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
+    public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig) {
         // If the svc.yml explicitly provided a zk host:port, use that
         if (rawServiceSpec.getScheduler() != null
                 && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getZookeeper())) {
@@ -128,7 +128,9 @@ public class SchedulerUtils {
      */
     @SuppressWarnings("DM_EXIT")
     public static void hardExit(SchedulerErrorCode errorCode) {
-        System.err.println(String.format("Exiting immediately with code: %d", errorCode.getValue()));
+        String message = String.format("Scheduler exiting immediately with code: %d", errorCode.getValue());
+        System.err.println(message);
+        System.out.println(message);
         System.exit(errorCode.getValue());
     }
 

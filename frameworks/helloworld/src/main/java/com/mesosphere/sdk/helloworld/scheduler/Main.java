@@ -2,8 +2,8 @@ package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerRunner;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
@@ -20,12 +20,12 @@ public class Main {
     private static final String TASK_NAME = "hello";
 
     public static void main(String[] args) throws Exception {
-        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         if (args.length > 0) {
             File pathToYamlSpecification = new File(args[0]);
             SchedulerRunner.fromRawServiceSpec(
                     RawServiceSpec.newBuilder(pathToYamlSpecification).build(),
-                    schedulerFlags,
+                    schedulerConfig,
                     pathToYamlSpecification.getParentFile()).run();
         } else {
             // Example of building a custom ServiceSpec entirely in Java without a YAML file:
@@ -34,7 +34,7 @@ public class Main {
                     .name("hello-world")
                     .principal("hello-world-principal")
                     .zookeeperConnection("master.mesos:2181")
-                    .addPod(DefaultPodSpec.newBuilder(schedulerFlags.getExecutorURI())
+                    .addPod(DefaultPodSpec.newBuilder(schedulerConfig.getExecutorURI())
                             .count(COUNT)
                             .type(POD_TYPE)
                             .addTask(DefaultTaskSpec.newBuilder()
@@ -50,7 +50,7 @@ public class Main {
                                             .memory(256.0)
                                             .addVolume("ROOT", 5000.0, "hello-container-path")
                                             .build()).build()).build()).build(),
-                    schedulerFlags,
+                    schedulerConfig,
                     Collections.emptyList())
                     .run();
         }
