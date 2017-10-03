@@ -2042,7 +2042,7 @@ You can view a specific configuration by sending a GET request to `/v1/configura
 
 CLI Example
 ```bash
-$ dcos hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+$ dcos beta-hdfs config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 HTTP Example
