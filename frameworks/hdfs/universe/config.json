@@ -1169,19 +1169,19 @@
           "default": 1000
         },
         "client_cache_drop_behind_writes": {
-          "type": "boolean",
+          "type": "string",
           "description": "Just like dfs.datanode.drop.cache.behind.writes, this setting causes the page cache to be dropped behind HDFS writes, potentially freeing up more memory for other uses. Unlike dfs.datanode.drop.cache.behind.writes, this is a client-side setting rather than a setting for the entire datanode. If present, this setting will override the DataNode default. If the native libraries are not available to the DataNode, this configuration has no effect.",
-          "default": false
+          "default": ""
         },
         "client_cache_drop_behind_reads": {
-          "type": "boolean",
+          "type": "string",
           "description": "Just like dfs.datanode.drop.cache.behind.reads, this setting causes the page cache to be dropped behind HDFS reads, potentially freeing up more memory for other uses. Unlike dfs.datanode.drop.cache.behind.reads, this is a client-side setting rather than a setting for the entire datanode. If present, this setting will override the DataNode default. If the native libraries are not available to the DataNode, this configuration has no effect.",
-          "default": false
+          "default": ""
         },
         "client_cache_readahead": {
-          "type": "boolean",
+          "type": "string",
           "description": "When using remote reads, this setting causes the datanode to read ahead in the block file using posix_fadvise, potentially decreasing I/O wait times. Unlike dfs.datanode.readahead.bytes, this is a client-side setting rather than a setting for the entire datanode. If present, this setting will override the DataNode default. When using local reads, this setting determines how much readahead we do in BlockReaderLocal. If the native libraries are not available to the DataNode, this configuration has no effect.",
-          "default": false
+          "default": ""
         },
         "client_mmap_enabled": {
           "type": "boolean",
@@ -1218,11 +1218,6 @@
           "description": "Valid pattern for user and group names for webhdfs, it must be a valid java regex.",
           "default": "^[A-Za-z_][A-Za-z0-9._-]*[$]?$"
         },
-        "client_context": {
-          "type": "string",
-          "description": "The name of the DFSClient context that we should use. Clients that share a context share a socket cache and short-circuit cache, among other things. You should only change this if you don't want to share with another set of threads.",
-          "default": "default"
-        },
         "client_read_shortcircuit": {
           "type": "boolean",
           "description": "This configuration parameter turns on short-circuit local reads.",
@@ -1247,11 +1242,6 @@
           "type": "integer",
           "description": "This controls the minimum amount of time file descriptors need to sit in the client cache context before they can be closed for being inactive for too long.",
           "default": 300000
-        },
-        "client_use_legacy_blockreader_local": {
-          "type": "boolean",
-          "description": "Legacy short-circuit reader implementation based on HDFS-2246 is used if this configuration parameter is true. This is for the platforms other than Linux where the new implementation based on HDFS-347 is not available.",
-          "default": false
         },
         "block_local-path-access_user": {
           "type": "string",
@@ -1467,11 +1457,6 @@
           "type": "integer",
           "description": "MapFile consist of two files - data file (tuples) and index file (keys). For every io.map.index.interval records written in the data file, an entry (record-key, data-file-position) is written in the index file. This is to allow for doing binary search later within the index file to look up records by their keys and get their closest positions in the data file.",
           "default": 128
-        },
-        "fs_defaultfs": {
-          "type": "string",
-          "description": "The name of the default file system. A URI whose scheme and authority determine the FileSystem implementation. The uri's scheme determines the config property (fs.SCHEME.impl) naming the FileSystem implementation class. The uri's authority is used to determine the host, port, etc. for a filesystem.",
-          "default": "file:///"
         },
         "fs_trash_interval": {
           "type": "integer",
@@ -2089,12 +2074,10 @@
         "client_short_circuit_replica_stale_threshold_ms",
         "cachereport_intervalmsec",
         "webhdfs_user_provider_user_pattern",
-        "client_context",
         "client_read_shortcircuit",
         "client_read_shortcircuit_skip_checksum",
         "client_read_shortcircuit_streams_cache_size",
         "client_read_shortcircuit_streams_cache_expiry_ms",
-        "client_use_legacy_blockreader_local",
         "client_domain_socket_data_traffic",
         "client_slow_io_warning_threshold_ms",
         "storage_policy_enabled",
@@ -2123,7 +2106,6 @@
         "io_serializations",
         "io_seqfile_local_dir",
         "io_map_index_skip",
-        "fs_defaultfs",
         "fs_trash_interval",
         "fs_trash_checkpoint_interval",
         "fs_abstractfilesystem_file_impl",

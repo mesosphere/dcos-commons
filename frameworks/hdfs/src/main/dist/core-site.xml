@@ -193,10 +193,6 @@
         <value>{{IO_MAP_INDEX_INTERVAL}}</value>
     </property>
     <property>
-        <name>fs.defaultFS</name>
-        <value>{{FS_DEFAULTFS}}</value>
-    </property>
-    <property>
         <name>fs.trash.interval</name>
         <value>{{FS_TRASH_INTERVAL}}</value>
     </property>
@@ -636,8 +632,6 @@
         <name>rpc.metrics.percentiles.intervals</name>
         <value>{{RPC_METRICS_PERCENTILES_INTERVALS}}</value>
     </property>
-
-
 
     {{#TLS_ENABLED}}
     <property>

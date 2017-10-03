@@ -41,16 +41,32 @@
         <value>{{MESOS_SANDBOX}}/name-data</value>
     </property>
     <property>
-        <name>dfs.namenode.name.dir.restore</name>
-        <value>{{NAMENODE_NAME_DIR_RESTORE}}</value>
-    </property>
-    <property>
         <name>dfs.namenode.safemode.threshold-pct</name>
         <value>{{NAMENODE_SAFEMODE_THRESHOLD_PCT}}</value>
     </property>
     <property>
         <name>dfs.namenode.heartbeat.recheck-interval</name>
         <value>{{NAMENODE_HEARTBEAT_RECHECK_INTERVAL}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.handler.count</name>
+        <value>{{NAMENODE_HANDLER_COUNT}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
+        <value>{{NAMENODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.min</name>
+        <value>{{NAMENODE_REPLICATION_MIN}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
+        <value>{{NAMENODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value>
+    </property>
+    <property>
+        <name>dfs.namenode.name.dir.restore</name>
+        <value>{{NAMENODE_NAME_DIR_RESTORE}}</value>
     </property>
     <property>
         <name>dfs.namenode.replication.considerLoad</name>
@@ -83,18 +99,6 @@
     <property>
         <name>dfs.namenode.lazypersist.file.scrub.interval.sec</name>
         <value>{{NAMENODE_LAZYPERSIST_FILE_SCRUB_INTERVAL_SEC}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.min</name>
-        <value>{{NAMENODE_REPLICATION_MIN}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.handler.count</name>
-        <value>{{NAMENODE_HANDLER_COUNT}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.safemode.threshold-pct</name>
-        <value>{{NAMENODE_SAFEMODE_THRESHOLD-PCT}}</value>
     </property>
     <property>
         <name>dfs.namenode.safemode.min.datanodes</name>
@@ -209,14 +213,6 @@
         <value>{{NAMENODE_WRITE_STALE_DATANODE_RATIO}}</value>
     </property>
     <property>
-        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
-        <value>{{NAMENODE_INVALIDATE_WORK_PCT_PER_ITERATION}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
-        <value>{{NAMENODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION}}</value>
-    </property>
-    <property>
         <name>dfs.namenode.audit.loggers</name>
         <value>{{NAMENODE_AUDIT_LOGGERS}}</value>
     </property>
@@ -304,7 +300,7 @@
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
-        <value>{{NAMENODE_RPC_BINDHOST_NAMENODE_0}}</value>
+        <value>0.0.0.0</value>
     </property>
     {{^TLS_ENABLED}}
     <property>
@@ -319,16 +315,8 @@
     </property>
     {{/TLS_ENABLED}}
     <property>
-        <name>dfs.namenode.servicerpc-address.hdfs.name-0-node</name>
-        <value>{{NAMENODE_SERVICERPC_ADDRESS_NAMENODE_0}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.servicerpc-bind-host.hdfs.name-0-node</name>
-        <value>{{NAMENODE_SERVICERPC_BIND_HOST_NAMENODE_0}}</value>
-    </property>
-    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
-        <value>{{NAMENODE_HTTP_BINDHOST_NAMENODE_1}}</value>
+        <value>0.0.0.0</value>
     </property>
 
 
@@ -339,7 +327,7 @@
     </property>
     <property>
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
-        <value>{{NAMENODE_RPC_BINDHOST_NAMENODE_1}}</value>
+        <value>0.0.0.0</value>
     </property>
     {{^TLS_ENABLED}}
     <property>
@@ -354,16 +342,8 @@
     </property>
     {{/TLS_ENABLED}}
     <property>
-        <name>dfs.namenode.servicerpc-address.hdfs.name-1-node</name>
-        <value>{{NAMENODE_SERVICERPC_ADDRESS_NAMENODE_1}}</value>
-    </property>
-    <property>
-        <name>dfs.namenode.servicerpc-bind-host.hdfs.name-1-node</name>
-        <value>{{NAMENODE_SERVICERPC_BIND_HOST_NAMENODE_1}}</value>
-    </property>
-    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
-        <value>{{NAMENODE_HTTP_BINDHOST_NAMENODE_1}}</value>
+        <value>0.0.0.0</value>
     </property>
 
     <property>
@@ -576,6 +556,7 @@
         <name>dfs.permissions.enabled</name>
         <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
+
     <property>
         <name>dfs.permissions.superusergroup</name>
         <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
@@ -724,6 +705,7 @@
         <name>dfs.ha.log-roll.period</name>
         <value>{{HA_LOG-ROLL_PERIOD}}</value>
     </property>
+
     <property>
         <name>dfs.ha.tail-edits.period</name>
         <value>{{HA_TAIL-EDITS_PERIOD}}</value>
@@ -832,17 +814,10 @@
         <name>dfs.cachereport.intervalMsec</name>
         <value>{{CACHEREPORT_INTERVALMSEC}}</value>
     </property>
+
     <property>
         <name>dfs.webhdfs.user.provider.user.pattern</name>
         <value>{{WEBHDFS_USER_PROVIDER_USER_PATTERN}}</value>
-    </property>
-    <property>
-        <name>dfs.client.context</name>
-        <value>{{CLIENT_CONTEXT}}</value>
-    </property>
-    <property>
-        <name>dfs.client.use.legacy.blockreader.local</name>
-        <value>{{CLIENT_USE_LEGACY_BLOCKREADER_LOCAL}}</value>
     </property>
     <property>
         <name>dfs.block.local-path-access.user</name>
@@ -855,10 +830,6 @@
     <property>
         <name>dfs.client.slow.io.warning.threshold.ms</name>
         <value>{{CLIENT_SLOW_IO_WARNING_THRESHOLD_MS}}</value>
-    </property>
-    <property>
-        <name>dfs.user.home.dir.prefix</name>
-        <value>{{USER_HOME_DIR_PREFIX}}</value>
     </property>
     <property>
         <name>dfs.encryption.key.provider.uri</name>
