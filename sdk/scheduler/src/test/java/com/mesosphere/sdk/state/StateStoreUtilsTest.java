@@ -5,7 +5,6 @@ import com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentTyp
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -424,19 +423,15 @@ public class StateStoreUtilsTest {
     }
 
     private ConfigStore<ServiceSpec> newConfigStore(final Persister persister) throws Exception {
-        final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
-
-        ClassLoader classLoader = StateStoreUtilsTest.class.getClassLoader();
-        File file = new File(classLoader.getResource("resource-set-seq.yml").getFile());
-        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags).build();
+        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
+                new File(StateStoreUtilsTest.class.getClassLoader().getResource("resource-set-seq.yml").getFile()),
+                OfferRequirementTestUtils.getTestSchedulerConfig())
+                .build();
 
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
-        // At startup, the the service spec must be stored, and the target config must be set to the
-        // stored spec.
-        UUID targetConfig = configStore.store(serviceSpec);
-        configStore.setTargetConfig(targetConfig);
-
+        // At startup, the the service spec must be stored, and the target config must be set to the stored spec.
+        configStore.setTargetConfig(configStore.store(serviceSpec));
         return configStore;
     }
 

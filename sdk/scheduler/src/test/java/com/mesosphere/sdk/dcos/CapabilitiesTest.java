@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
+
 import java.io.IOException;
 
 import static org.mockito.Mockito.when;
@@ -15,7 +17,7 @@ import static org.mockito.Mockito.when;
  */
 public class CapabilitiesTest {
 
-    @Mock private DcosCluster mockDcosCluster;
+    @Mock private DcosVersionClient mockDcosCluster;
     @Mock private DcosVersion mockDcosVersion;
 
     @Before

@@ -24,7 +24,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   This section contains settings related to the scheduler and its interaction with the cluster. All of these settings are optional, reasonable defaults are used if they are not manually provided.
 
-  * `principal`
+  * `service_account`
 
     The Mesos Principal to register as. Default is `<name>-principal`.
 

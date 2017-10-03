@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
 
     private Protos.Value getPort(int port) {
         return Protos.Value.newBuilder()
@@ -34,7 +34,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 useDefaultExecutor);
@@ -70,7 +70,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
                 .placementRule((offer, offerRequirement, taskInfos) ->

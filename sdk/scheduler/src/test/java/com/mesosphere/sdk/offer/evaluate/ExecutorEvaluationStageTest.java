@@ -52,7 +52,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                                OfferRequirementTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 stateStore.fetchFrameworkId().get(),
                                 true));
@@ -93,7 +93,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                                OfferRequirementTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 stateStore.fetchFrameworkId().get(),
                                 false));
@@ -133,7 +133,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        OfferRequirementTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         stateStore.fetchFrameworkId().get(),
                         true);
@@ -179,7 +179,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        OfferRequirementTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         stateStore.fetchFrameworkId().get(),
                         false);

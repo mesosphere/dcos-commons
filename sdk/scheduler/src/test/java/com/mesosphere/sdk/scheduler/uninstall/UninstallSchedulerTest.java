@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.dcos.SecretsClient;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -213,8 +213,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 getServiceSpec(),
                 new StateStore(new MemPersister()),
                 mockConfigStore,
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
-                Optional.empty());
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                Optional.of(mockSecretsClient));
         // Returns a simple placeholder plan with status COMPLETE
         Assert.assertTrue(uninstallScheduler.getPlan().toString(), uninstallScheduler.getPlan().isComplete());
         Assert.assertTrue(uninstallScheduler.getPlan().getChildren().isEmpty());
@@ -233,7 +233,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         when(mockPod.getTasks()).thenReturn(Arrays.asList(mockTask));
         when(serviceSpecWithTLSTasks.getPods()).thenReturn(Arrays.asList(mockPod));
 
-        UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks, true);
+        UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks);
         Plan plan = uninstallScheduler.getPlan();
 
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
@@ -285,16 +285,16 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     }
 
     private UninstallScheduler getUninstallScheduler() {
-        return getUninstallScheduler(getServiceSpec(), false);
+        return getUninstallScheduler(getServiceSpec());
     }
 
-    private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec, boolean withSecrets) {
+    private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec) {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
                 serviceSpec,
                 stateStore,
                 mockConfigStore,
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
-                withSecrets ? Optional.of(mockSecretsClient) : Optional.empty());
+                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                Optional.of(mockSecretsClient));
         uninstallScheduler
                 .disableApiServer()
                 .start()

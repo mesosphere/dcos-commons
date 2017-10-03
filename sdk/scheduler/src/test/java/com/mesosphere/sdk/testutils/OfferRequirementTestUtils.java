@@ -1,21 +1,26 @@
 package com.mesosphere.sdk.testutils;
 
+import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 import com.mesosphere.sdk.offer.TaskException;
+
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.TaskInfo;
 
-import com.mesosphere.sdk.dcos.DcosCluster;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
+import java.time.Duration;
 import java.util.*;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * This class provides utility methods for tests concerned with OfferRequirements.
  */
 public class OfferRequirementTestUtils {
 
-    private static class TestDcosCluster extends DcosCluster {
+    private static class TestDcosCluster extends DcosVersionClient {
         private static final String RESPONSE_TEMPLATE =
                 "{ 'version': '%s', " +
                         "'dcos-image-commit': 'test-commit', " +
@@ -33,7 +38,7 @@ public class OfferRequirementTestUtils {
         }
     }
 
-    public static DcosCluster getTestCluster(String version) {
+    public static DcosVersionClient getTestCluster(String version) {
         return new TestDcosCluster(version);
     }
 
@@ -46,12 +51,15 @@ public class OfferRequirementTestUtils {
         }.getReadinessCheck();
     }
 
-    public static SchedulerFlags getTestSchedulerFlags() {
-        Map<String, String> map = new HashMap<>();
-        map.put("PORT_API", String.valueOf(TestConstants.PORT_API_VALUE));
-        map.put("EXECUTOR_URI", "test-executor-uri");
-        map.put("JAVA_URI", "test-java-uri");
-        map.put("LIBMESOS_URI", "test-libmesos-uri");
-        return SchedulerFlags.fromMap(map);
+    public static SchedulerConfig getTestSchedulerConfig() {
+        SchedulerConfig schedulerConfig = mock(SchedulerConfig.class);
+        when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
+        when(schedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
+        when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
+        when(schedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
+        when(schedulerConfig.getDcosSpace()).thenReturn("/");
+        when(schedulerConfig.getSecretsNamespace(TestConstants.SERVICE_NAME)).thenReturn(TestConstants.SERVICE_NAME);
+        when(schedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
+        return schedulerConfig;
     }
 }

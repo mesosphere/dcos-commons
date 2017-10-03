@@ -134,7 +134,7 @@ This simple YAML definition of a DC/OS service that prints "hello world" to stdo
 ```yaml
 name: "hello-world"
 scheduler:
-  principal: "hello-world-principal"
+  service_account: "hello-world-principal"
   api-port: {{PORT_API}}
   user: {{SERVICE_USER}}
 pods:

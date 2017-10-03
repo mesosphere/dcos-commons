@@ -779,7 +779,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     private ServiceSpec getServiceSpec(String specFileName) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(specFileName).getFile());
-        return DefaultServiceSpec.newGenerator(file, flags).build();
+        return DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     static void validateRole(Resource resource) {

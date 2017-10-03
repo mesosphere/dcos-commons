@@ -1,8 +1,21 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.Credential;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
 
+import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
+import com.mesosphere.sdk.dcos.auth.ServiceAccountIAMTokenProvider;
+import com.mesosphere.sdk.dcos.auth.TokenProvider;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.util.Map;
 
@@ -10,12 +23,12 @@ import java.util.Map;
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  * to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.
  */
-public class SchedulerFlags {
+public class SchedulerConfig {
 
     /**
      * Exception which is thrown when failing to retrieve or parse a given flag value.
      */
-    public static class FlagException extends RuntimeException {
+    public static class ConfigException extends RuntimeException {
 
         /**
          * A machine-accessible error type.
@@ -26,17 +39,17 @@ public class SchedulerFlags {
             INVALID_VALUE
         }
 
-        public static FlagException notFound(String message) {
-            return new FlagException(Type.NOT_FOUND, message);
+        public static ConfigException notFound(String message) {
+            return new ConfigException(Type.NOT_FOUND, message);
         }
 
-        public static FlagException invalidValue(String message) {
-            return new FlagException(Type.INVALID_VALUE, message);
+        public static ConfigException invalidValue(String message) {
+            return new ConfigException(Type.INVALID_VALUE, message);
         }
 
         private final Type type;
 
-        private FlagException(Type type, String message) {
+        private ConfigException(Type type, String message) {
             super(message);
             this.type = type;
         }
@@ -113,84 +126,80 @@ public class SchedulerFlags {
     private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
 
     /**
-     * Returns a new {@link SchedulerFlags} instance which is based off the process environment.
+     * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
      */
-    public static SchedulerFlags fromEnv() {
+    public static SchedulerConfig fromEnv() {
         return fromMap(System.getenv());
     }
 
     /**
-     * Returns a new {@link SchedulerFlags} instance which is based off the provided custom environment map.
+     * Returns a new {@link SchedulerConfig} instance which is based off the provided custom environment map.
      */
-    public static SchedulerFlags fromMap(Map<String, String> map) {
-        return new SchedulerFlags(map);
+    public static SchedulerConfig fromMap(Map<String, String> map) {
+        return new SchedulerConfig(map);
     }
 
-    private final FlagStore flagStore;
+    private final EnvStore envStore;
 
-    private SchedulerFlags(Map<String, String> flagMap) {
-        this.flagStore = new FlagStore(flagMap);
+    private SchedulerConfig(Map<String, String> flagMap) {
+        this.envStore = new EnvStore(flagMap);
     }
 
     /**
      * Returns the configured time to wait for the API server to come up during scheduler initialization.
      */
     public Duration getApiServerInitTimeout() {
-        return Duration.ofSeconds(flagStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
+        return Duration.ofSeconds(envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
     }
 
     /**
-     * Returns the configured threshold that will trigger auth token refresh before its expiration.
-     */
-    public Duration getAuthTokenRefreshThreshold() {
-        return Duration.ofSeconds(flagStore.getOptionalInt(
-                AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
-    }
-
-    /**
-     * Returns the configured API port, or throws {@link FlagException} if the environment lacked the required
+     * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
      * information.
      */
     public int getApiServerPort() {
-        return flagStore.getRequiredInt(MARATHON_API_PORT_ENV);
+        return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
     }
 
     public String getExecutorURI() {
-        return flagStore.getRequired(EXECUTOR_URI_ENV);
+        return envStore.getRequired(EXECUTOR_URI_ENV);
     }
 
     public String getLibmesosURI() {
-        return flagStore.getRequired(LIBMESOS_URI_ENV);
+        return envStore.getRequired(LIBMESOS_URI_ENV);
     }
 
     public String getJavaURI() {
-        return flagStore.getRequired(JAVA_URI_ENV);
+        return envStore.getRequired(JAVA_URI_ENV);
     }
 
     public String getJavaHome() {
-        return flagStore.getRequired(JAVA_HOME_ENV);
+        return envStore.getRequired(JAVA_HOME_ENV);
     }
 
-    public String getDcosSpaceLabelValue() {
-        String value = flagStore.getOptional(DCOS_SPACE_ENV, null);
+    public String getDcosSpace() {
+        // Try in order: DCOS_SPACE, MARATHON_APP_ID, "/"
+        String value = envStore.getOptional(DCOS_SPACE_ENV, null);
         if (value != null) {
             return value;
         }
+        return envStore.getOptional(MARATHON_APP_ID_ENV, "/");
+    }
 
-        value = flagStore.getOptional(MARATHON_APP_ID_ENV, null);
-        if (value != null) {
-            return value;
+    public String getSecretsNamespace(String serviceName) {
+        String secretNamespace = getDcosSpace();
+        if (secretNamespace.startsWith("/")) {
+            secretNamespace = secretNamespace.substring(1);
         }
 
-        return "/"; // No Authorization for this framework
+        return secretNamespace.isEmpty() ? serviceName : secretNamespace;
     }
 
     public boolean isStateCacheEnabled() {
-        return !flagStore.isPresent(DISABLE_STATE_CACHE_ENV);
+        return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
     public boolean isUninstallEnabled() {
-        return flagStore.isPresent(SDK_UNINSTALL);
+        return envStore.isPresent(SDK_UNINSTALL);
     }
 
     /**
@@ -199,57 +208,69 @@ public class SchedulerFlags {
      * Kerberos).
      */
     public boolean isSideChannelActive() {
-        return flagStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
-    }
-
-    public String getServiceAccountUid() {
-        return getServiceAccountObject().getString("uid");
-    }
-
-    public String getServiceAccountPrivateKeyPEM() {
-        return getServiceAccountObject().getString("private_key");
+        return envStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
     }
 
     /**
-     * Gets a service account JSON object.
-     *
-     * TODO(mh): Add documentation about this JSON varaible being injected to scheduler runtime
-     * {@see https://github.com/mesosphere/mesos-modules-private/blob/master/common/bouncer.cpp#L340}
+     * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an exception if the local
+     * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
      */
-    private JSONObject getServiceAccountObject() {
-        return new JSONObject(flagStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+    public TokenProvider getDcosAuthTokenProvider() throws IOException {
+        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+        PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
+        try {
+            PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(
+                    new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
+
+            ServiceAccountIAMTokenProvider serviceAccountIAMTokenProvider =
+                    new ServiceAccountIAMTokenProvider.Builder()
+                    .setUid(serviceAccountObject.getString("uid"))
+                    .setPrivateKey((RSAPrivateKey) privateKey)
+                    .build();
+
+            Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
+                    AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
+
+            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        } finally {
+            pemReader.close();
+        }
     }
 
     /**
      * Returns the package name as advertised in the scheduler environment.
      */
     public String getPackageName() {
-        return flagStore.getRequired(PACKAGE_NAME_ENV);
+        return envStore.getRequired(PACKAGE_NAME_ENV);
     }
 
     /**
      * Returns the package version as advertised in the scheduler environment.
      */
     public String getPackageVersion() {
-        return flagStore.getRequired(PACKAGE_VERSION_ENV);
+        return envStore.getRequired(PACKAGE_VERSION_ENV);
     }
 
     /**
      * Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.
      */
     public long getPackageBuildTimeMs() {
-        return flagStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
+        return envStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
     }
 
     /**
      * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
      */
-    private static class FlagStore {
+    private static class EnvStore {
 
-        private final Map<String, String> flagMap;
+        private final Map<String, String> envMap;
 
-        private FlagStore(Map<String, String> flagMap) {
-            this.flagMap = flagMap;
+        private EnvStore(Map<String, String> envMap) {
+            this.envMap = envMap;
         }
 
         private int getOptionalInt(String envKey, int defaultValue) {
@@ -265,44 +286,44 @@ public class SchedulerFlags {
         }
 
         private String getOptional(String envKey, String defaultValue) {
-            String value = flagMap.get(envKey);
+            String value = envMap.get(envKey);
             return (value == null) ? defaultValue : value;
         }
 
         private String getRequired(String envKey) {
-            String value = flagMap.get(envKey);
+            String value = envMap.get(envKey);
             if (value == null) {
-                throw FlagException.notFound(String.format("Missing required environment variable: %s", envKey));
+                throw ConfigException.notFound(String.format("Missing required environment variable: %s", envKey));
             }
             return value;
         }
 
         private boolean isPresent(String envKey) {
-            return flagMap.containsKey(envKey);
+            return envMap.containsKey(envKey);
         }
 
         /**
          * If the value cannot be parsed as an int, this points to the source envKey, and ensures that
-         * {@link SchedulerFlags} calls only throw {@link FlagException}.
+         * {@link SchedulerConfig} calls only throw {@link ConfigException}.
          */
         private static int toInt(String envKey, String envVal) {
             try {
                 return Integer.parseInt(envVal);
             } catch (NumberFormatException e) {
-                throw FlagException.invalidValue(String.format(
+                throw ConfigException.invalidValue(String.format(
                         "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
             }
         }
 
         /**
          * If the value cannot be parsed as a long, this points to the source envKey, and ensures that
-         * {@link SchedulerFlags} calls only throw {@link FlagException}.
+         * {@link SchedulerConfig} calls only throw {@link ConfigException}.
          */
         private static long toLong(String envKey, String envVal) {
             try {
                 return Long.parseLong(envVal);
             } catch (NumberFormatException e) {
-                throw FlagException.invalidValue(String.format(
+                throw ConfigException.invalidValue(String.format(
                         "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
             }
         }
