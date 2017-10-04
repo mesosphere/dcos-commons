@@ -17,9 +17,12 @@ SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
 
-DEFAULT_TASK_COUNT = 7
-# task count without ingest node
-NO_INGEST_TASK_COUNT = DEFAULT_TASK_COUNT - 1
+DEFAULT_TASK_COUNT = 6
+# TODO: add and use throughout a method to determine expected task count based on options .
+#       the method should provide for use cases:
+#         * total count, ie 6
+#         * count for a specific type, ie 3
+#         * count by type, ie [{'ingest':1},{'data':3},...]
 
 DEFAULT_ELASTIC_TIMEOUT = 10 * 60
 DEFAULT_KIBANA_TIMEOUT = 30 * 60

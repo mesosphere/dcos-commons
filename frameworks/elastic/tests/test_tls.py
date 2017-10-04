@@ -9,7 +9,7 @@ import sdk_utils
 from tests import config
 from tests.config import (
     PACKAGE_NAME,
-    NO_INGEST_TASK_COUNT,
+    DEFAULT_TASK_COUNT,
     SERVICE_NAME,
 )
 
@@ -35,7 +35,7 @@ def elastic_service_tls(service_account):
     sdk_install.install(
         PACKAGE_NAME,
         service_name=SERVICE_NAME,
-        expected_running_tasks=NO_INGEST_TASK_COUNT,
+        expected_running_tasks=DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
                 "service_account_secret": service_account,
