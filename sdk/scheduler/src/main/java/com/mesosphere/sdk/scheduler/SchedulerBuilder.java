@@ -28,7 +28,6 @@ import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
 import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanFactory;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultPlanGenerator;
@@ -224,8 +223,9 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Sets the provided {@link PlanManager} to be the plan manager used for recovery.
-     * @param recoveryPlanOverriderFactory the factory whcih generates the custom recovery plan manager
+     * Assigns a {@link RecoveryPlanOverriderFactory} to be used for generating the recovery plan manager.
+     *
+     * @param recoveryPlanOverriderFactory the factory which generates the custom recovery plan manager
      */
     public SchedulerBuilder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
@@ -282,8 +282,16 @@ public class SchedulerBuilder {
 
         // Determine the last completed deployment type BEFORE we update the config.
         // Plans may be generated from the config content.
-        StateStoreUtils.DeploymentType lastCompletedDeploymentType = getLastCompletedDeploymentType(
-                stateStore, getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans));
+        StateStoreUtils.DeploymentType lastCompletedDeploymentType =
+                StateStoreUtils.getLastCompletedUpdateType(stateStore);
+        if (lastCompletedDeploymentType.equals(StateStoreUtils.DeploymentType.NONE)) {
+            Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
+                    getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans));
+            if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
+                lastCompletedDeploymentType = StateStoreUtils.DeploymentType.DEPLOY;
+                StateStoreUtils.setLastCompletedUpdateType(stateStore, lastCompletedDeploymentType);
+            }
+        }
 
         // Update/validate config as needed to reflect the new service spec:
         Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
@@ -308,8 +316,8 @@ public class SchedulerBuilder {
         }
 
         plans = overrideDeployPlan(plans, lastCompletedDeploymentType);
-        Optional<Plan> deployOptional = SchedulerUtils.getDeployPlan(plans);
-        if (!deployOptional.isPresent()) {
+        Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
+        if (!deployPlan.isPresent()) {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
 
@@ -317,7 +325,7 @@ public class SchedulerBuilder {
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
         if (!errors.isEmpty()) {
-            plans = updateDeployPlan(plans, errors);
+            plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
         }
 
         return new DefaultScheduler(
@@ -381,39 +389,18 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Detects whether or not the previous deployment's type was set or not and if not, sets it in the state store.
-     *
-     * @param stateStore The stateStore to get last deployment type from.
-     * @param configStore The configStore to get plans from.
-     */
-    private static StateStoreUtils.DeploymentType getLastCompletedDeploymentType(
-            StateStore stateStore, Collection<Plan> oldPlans) {
-        StateStoreUtils.DeploymentType lastDeploymentType = StateStoreUtils.getLastCompletedUpdateType(stateStore);
-        if (lastDeploymentType.equals(StateStoreUtils.DeploymentType.NONE)) {
-            Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(oldPlans);
-            if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                lastDeploymentType = StateStoreUtils.DeploymentType.DEPLOY;
-                StateStoreUtils.setLastCompletedUpdateType(stateStore, lastDeploymentType);
-            }
-        }
-        return lastDeploymentType;
-    }
-
-    /**
      * Updates the Deploy plan in the provided list of {@code plans} to contain the provided {@code errors}.
      * Returns a new list of plans containing the updates.
      */
-    private static Collection<Plan> updateDeployPlan(Collection<Plan> plans, List<String> errors) {
+    private static Collection<Plan> setDeployPlanErrors(
+            Collection<Plan> allPlans, Plan deployPlan, List<String> errors) {
         Collection<Plan> updatedPlans = new ArrayList<>();
-        Plan deployPlan = SchedulerUtils.getDeployPlan(plans).get();
-        deployPlan = new DefaultPlan(
+        updatedPlans.add(new DefaultPlan(
                 deployPlan.getName(),
                 deployPlan.getChildren(),
                 deployPlan.getStrategy(),
-                errors);
-
-        updatedPlans.add(deployPlan);
-        for (Plan plan : plans) {
+                errors));
+        for (Plan plan : allPlans) {
             if (!plan.isDeployPlan()) {
                 updatedPlans.add(plan);
             }
@@ -432,45 +419,34 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Given the plans specified and the update scenario, the deploy plan may be overriden by a specified update plan.
+     * Replaces the deploy plan with an update plan, in the case that an update deployment is being performed AND that
+     * a custom update plan has been specified.
      */
     @VisibleForTesting
-    static Collection<Plan> overrideDeployPlan(
-            Collection<Plan> plans, StateStoreUtils.DeploymentType lastCompletedDeploymentType) {
-
-        StateStoreUtils.DeploymentType deploymentType =
-                lastCompletedDeploymentType.equals(StateStoreUtils.DeploymentType.NONE) ?
-                        StateStoreUtils.DeploymentType.DEPLOY :
-                        StateStoreUtils.DeploymentType.UPDATE;
-
+    static Collection<Plan> overrideDeployPlan(Collection<Plan> plans, StateStoreUtils.DeploymentType deploymentType) {
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
 
-        LOGGER.info("Update type: '{}', Found update plan: '{}'",
-                deploymentType.name(), updatePlanOptional.isPresent());
+        LOGGER.info("Update type: {}, Found update plan: {}", deploymentType.name(), updatePlanOptional.isPresent());
 
-        if (deploymentType.equals(StateStoreUtils.DeploymentType.UPDATE)
-                && updatePlanOptional.isPresent()) {
-            LOGGER.info("Overriding deploy plan with update plan.");
-
-            Plan updatePlan = updatePlanOptional.get();
-            Plan deployPlan = new DefaultPlan(
-                    Constants.DEPLOY_PLAN_NAME,
-                    updatePlan.getChildren(),
-                    updatePlan.getStrategy(),
-                    Collections.emptyList());
-
-            plans = new ArrayList<>(
-                    plans.stream()
-                            .filter(plan -> !plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
-                            .filter(plan -> !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
-                            .collect(Collectors.toList()));
-
-            plans.add(deployPlan);
+        if (!deploymentType.equals(StateStoreUtils.DeploymentType.UPDATE)
+                || !updatePlanOptional.isPresent()) {
+            return plans;
         }
 
-        return plans;
+        LOGGER.info("Overriding deploy plan with update plan.");
+
+        Collection<Plan> newPlans = new ArrayList<>();
+        newPlans.addAll(plans.stream()
+                .filter(plan -> !plan.isDeployPlan() && !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                .collect(Collectors.toList()));
+        newPlans.add(new DefaultPlan(
+                Constants.DEPLOY_PLAN_NAME,
+                updatePlanOptional.get().getChildren(),
+                updatePlanOptional.get().getStrategy(),
+                Collections.emptyList()));
+        return newPlans;
     }
 
     /**

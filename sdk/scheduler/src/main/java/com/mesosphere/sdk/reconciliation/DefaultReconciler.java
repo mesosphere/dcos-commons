@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.reconciliation;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
@@ -60,8 +61,8 @@ public class DefaultReconciler implements Reconciler {
             // even if the scheduler thinks no tasks are launched, we should still always perform
             // implicit reconciliation:
             isImplicitReconciliationTriggered.set(false);
-            LOGGER.info("Added {} unreconciled tasks to reconciler: {} tasks to reconcile",
-                    taskStatuses.size(), unreconciled.size());
+            LOGGER.info("Added {} unreconciled tasks to reconciler: {} tasks to reconcile: {}",
+                    taskStatuses.size(), unreconciled.size(), unreconciled.keySet());
         }
     }
 
@@ -122,22 +123,14 @@ public class DefaultReconciler implements Reconciler {
 
     @Override
     public void update(final Protos.TaskStatus status) {
-        if (isReconciled()) {
-            return;
-        }
-
         synchronized (unreconciled) {
+            if (unreconciled.isEmpty()) {
+                return;
+            }
             // we've gotten a task status update callback. mark this task as reconciled, if needed
             unreconciled.remove(status.getTaskId().getValue());
             LOGGER.info("Reconciled task: {} ({} remaining tasks)",
                     status.getTaskId().getValue(), unreconciled.size());
-        }
-    }
-
-    @Override
-    public Set<String> remaining() {
-        synchronized (unreconciled) {
-            return ImmutableSet.copyOf(unreconciled.keySet());
         }
     }
 
@@ -147,8 +140,19 @@ public class DefaultReconciler implements Reconciler {
     }
 
     /**
+     * Returns the list of remaining unreconciled tasks for validation in tests.
+     */
+    @VisibleForTesting
+    Set<String> remaining() {
+        synchronized (unreconciled) {
+            return ImmutableSet.copyOf(unreconciled.keySet());
+        }
+    }
+
+    /**
      * Time retrieval broken out into a separate function to allow overriding its behavior in tests.
      */
+    @VisibleForTesting
     protected long getCurrentTimeMillis() {
         return System.currentTimeMillis();
     }
