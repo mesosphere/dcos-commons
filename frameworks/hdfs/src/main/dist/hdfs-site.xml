@@ -556,7 +556,6 @@
         <name>dfs.permissions.enabled</name>
         <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
-
     <property>
         <name>dfs.permissions.superusergroup</name>
         <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
@@ -705,7 +704,6 @@
         <name>dfs.ha.log-roll.period</name>
         <value>{{HA_LOG-ROLL_PERIOD}}</value>
     </property>
-
     <property>
         <name>dfs.ha.tail-edits.period</name>
         <value>{{HA_TAIL-EDITS_PERIOD}}</value>

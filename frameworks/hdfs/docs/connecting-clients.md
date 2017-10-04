@@ -64,16 +64,32 @@ The responses are as below.
         <value>sandboxpath/name-data</value>
     </property>
     <property>
-        <name>dfs.namenode.name.dir.restore</name>
-        <value>false</value>
-    </property>
-    <property>
         <name>dfs.namenode.safemode.threshold-pct</name>
         <value>0.999f</value>
     </property>
     <property>
         <name>dfs.namenode.heartbeat.recheck-interval</name>
         <value>60000</value>
+    </property>
+    <property>
+        <name>dfs.namenode.handler.count</name>
+        <value>10</value>
+    </property>
+    <property>
+        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
+        <value>0.32f</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.min</name>
+        <value>1</value>
+    </property>
+    <property>
+        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
+        <value>2</value>
+    </property>
+    <property>
+        <name>dfs.namenode.name.dir.restore</name>
+        <value>false</value>
     </property>
     <property>
         <name>dfs.namenode.replication.considerLoad</name>
@@ -106,18 +122,6 @@ The responses are as below.
     <property>
         <name>dfs.namenode.lazypersist.file.scrub.interval.sec</name>
         <value>300</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.min</name>
-        <value>1</value>
-    </property>
-    <property>
-        <name>dfs.namenode.handler.count</name>
-        <value>10</value>
-    </property>
-    <property>
-        <name>dfs.namenode.safemode.threshold-pct</name>
-        <value>0.999f</value>
     </property>
     <property>
         <name>dfs.namenode.safemode.min.datanodes</name>
@@ -232,14 +236,6 @@ The responses are as below.
         <value>0.5f</value>
     </property>
     <property>
-        <name>dfs.namenode.invalidate.work.pct.per.iteration</name>
-        <value>0.32f</value>
-    </property>
-    <property>
-        <name>dfs.namenode.replication.work.multiplier.per.iteration</name>
-        <value>2</value>
-    </property>
-    <property>
         <name>dfs.namenode.audit.loggers</name>
         <value>default</value>
     </property>
@@ -334,14 +330,6 @@ The responses are as below.
         <value>name-0-node.hdfs.autoip.dcos.thisdcos.directory:9002</value>
     </property>
     <property>
-        <name>dfs.namenode.servicerpc-address.hdfs.name-0-node</name>
-        <value></value>
-    </property>
-    <property>
-        <name>dfs.namenode.servicerpc-bind-host.hdfs.name-0-node</name>
-        <value></value>
-    </property>
-    <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
@@ -359,14 +347,6 @@ The responses are as below.
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
         <value>name-1-node.hdfs.autoip.dcos.thisdcos.directory:9002</value>
-    </property>
-    <property>
-        <name>dfs.namenode.servicerpc-address.hdfs.name-1-node</name>
-        <value></value>
-    </property>
-    <property>
-        <name>dfs.namenode.servicerpc-bind-host.hdfs.name-1-node</name>
-        <value></value>
     </property>
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
@@ -561,6 +541,7 @@ The responses are as below.
         <name>dfs.permissions.enabled</name>
         <value>false</value>
     </property>
+
     <property>
         <name>dfs.permissions.superusergroup</name>
         <value>supergroup</value>
@@ -646,10 +627,6 @@ The responses are as below.
         <value></value>
     </property>
     <property>
-        <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
-        <value>true</value>
-    </property>
-    <property>
         <name>dfs.stream-buffer-size</name>
         <value>4096</value>
     </property>
@@ -709,6 +686,7 @@ The responses are as below.
         <name>dfs.ha.log-roll.period</name>
         <value>120</value>
     </property>
+
     <property>
         <name>dfs.ha.tail-edits.period</name>
         <value>60</value>
@@ -783,15 +761,15 @@ The responses are as below.
     </property>
     <property>
         <name>dfs.client.cache.drop.behind.writes</name>
-        <value>false</value>
+        <value></value>
     </property>
     <property>
         <name>dfs.client.cache.drop.behind.reads</name>
-        <value>false</value>
+        <value></value>
     </property>
     <property>
         <name>dfs.client.cache.readahead</name>
-        <value>false</value>
+        <value></value>
     </property>
     <property>
         <name>dfs.client.mmap.enabled</name>
@@ -817,17 +795,10 @@ The responses are as below.
         <name>dfs.cachereport.intervalMsec</name>
         <value>10000</value>
     </property>
+
     <property>
         <name>dfs.webhdfs.user.provider.user.pattern</name>
         <value>^[A-Za-z_][A-Za-z0-9._-]*[$]?$</value>
-    </property>
-    <property>
-        <name>dfs.client.context</name>
-        <value>default</value>
-    </property>
-    <property>
-        <name>dfs.client.use.legacy.blockreader.local</name>
-        <value>false</value>
     </property>
     <property>
         <name>dfs.block.local-path-access.user</name>
@@ -842,10 +813,6 @@ The responses are as below.
         <value>30000</value>
     </property>
     <property>
-        <name>dfs.user.home.dir.prefix</name>
-        <value>user</value>
-    </property>
-    <property>
         <name>dfs.encryption.key.provider.uri</name>
         <value></value>
     </property>
@@ -853,14 +820,14 @@ The responses are as below.
         <name>dfs.storage.policy.enabled</name>
         <value>true</value>
     </property>
+
 </configuration>
 ```
 
 ### core-site.xml
 ```xml
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
-<configuration>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration>
     <property>
         <name>fs.default.name</name>
         <value>hdfs://hdfs</value>
@@ -1052,10 +1019,6 @@ The responses are as below.
     <property>
         <name>io.map.index.interval</name>
         <value>128</value>
-    </property>
-    <property>
-        <name>fs.defaultFS</name>
-        <value>file:///</value>
     </property>
     <property>
         <name>fs.trash.interval</name>
@@ -1497,6 +1460,7 @@ The responses are as below.
         <name>rpc.metrics.percentiles.intervals</name>
         <value></value>
     </property>
+
 </configuration>
 ```
 
