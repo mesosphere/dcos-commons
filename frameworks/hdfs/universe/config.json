@@ -612,16 +612,6 @@
           "type": "integer",
           "default": 10
         },
-        "dns_interface": {
-          "type": "string",
-          "description": "The name of the Network Interface from which a data node should report its IP address.",
-          "default": "default"
-        },
-        "dns_nameserver": {
-          "type": "string",
-          "description": "The host name or IP address of the name server (DNS) which a DataNode should use to determine the host name used by the NameNode for communication and display purposes.",
-          "default": "default"
-        },
         "du_reserved": {
           "type": "integer",
           "description": "Reserved space in bytes per volume. Always leave this much space free for non dfs use.",
@@ -739,8 +729,6 @@
         "disk",
         "disk_type",
         "handler_count",
-        "dns_interface",
-        "dns_nameserver",
         "du_reserved",
         "directoryscan_interval",
         "directoryscan_threads",
@@ -1002,11 +990,6 @@
           "type": "string",
           "description": "Names a file that contains a list of hosts that are not permitted to connect to the namenode. The full pathname of the file must be specified. If the value is empty, no hosts are excluded.",
           "default": ""
-        },
-        "namenode_datanode_registration_ip-hostname-check": {
-          "type": "boolean",
-          "description": "If true (the default), then the namenode requires that a connecting datanode's address must be resolved to a hostname. If necessary, a reverse DNS lookup is performed. All attempts to register a datanode from an unresolvable address are rejected. It is recommended that this setting be left on to prevent accidental registration of datanodes listed by hostname in the excludes file during a DNS outage. Only set this to false in environments where there is no infrastructure to support reverse DNS lookup.",
-          "default": true
         },
         "stream-buffer-size": {
           "type": "integer",
@@ -2042,7 +2025,6 @@
         "blockreport_initialDelay",
         "blockreport_split_threshold",
         "heartbeat_interval",
-        "namenode_datanode_registration_ip-hostname-check",
         "stream-buffer-size",
         "bytes-per-checksum",
         "client-write-packet-size",

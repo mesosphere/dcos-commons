@@ -407,10 +407,6 @@
         <value>{{DATANODE_HANDLER_COUNT}}</value>
     </property>
     <property>
-        <name>dfs.datanode.dns.nameserver</name>
-        <value>{{DATANODE_DNS_NAMESERVER}}</value>
-    </property>
-    <property>
         <name>dfs.datanode.du.reserved</name>
         <value>{{DATANODE_DU_RESERVED}}</value>
     </property>
