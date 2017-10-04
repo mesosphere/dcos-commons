@@ -91,7 +91,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
-        expectedResources.add(ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId));
+        expectedResources.add(ResourceTestUtils.getReservedPorts(555, 555, resourceId));
 
         // Launch on previously reserved resources
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -120,7 +120,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Launch on previously reserved resources
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                OfferTestUtils.getOffers(ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId)));
+                OfferTestUtils.getOffers(ResourceTestUtils.getReservedPorts(555, 555, resourceId)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
@@ -140,7 +140,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
-        expectedResources.add(ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId));
+        expectedResources.add(ResourceTestUtils.getReservedPorts(10000, 10000, resourceId));
 
 
         // Relaunch: detect (from envvar) and reuse previously reserved dynamic port 10000
@@ -170,7 +170,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Relaunch: detect (from envvar) and reuse previously reserved dynamic port 10000
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
-                OfferTestUtils.getOffers(ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId)));
+                OfferTestUtils.getOffers(ResourceTestUtils.getReservedPorts(10000, 10000, resourceId)));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
@@ -234,7 +234,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.addAll(Arrays.asList(
-                ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                ResourceTestUtils.getReservedPorts(555, 555, resourceId),
                 ResourceTestUtils.getUnreservedPorts(666, 666)));
 
         // Now lets move to port 666:
@@ -269,7 +269,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(666),
                 OfferTestUtils.getOffers(Arrays.asList(
-                        ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                        ResourceTestUtils.getReservedPorts(555, 555, resourceId),
                         ResourceTestUtils.getUnreservedPorts(666, 666))));
 
         // UNRESERVE, RESERVE, LAUNCH
@@ -296,7 +296,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.addAll(Arrays.asList(
-                ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                ResourceTestUtils.getReservedPorts(555, 555, resourceId),
                 ResourceTestUtils.getUnreservedPorts(666, 666)));
 
         // Now lets move to port 666:
@@ -331,7 +331,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(666),
                 OfferTestUtils.getOffers(Arrays.asList(
-                        ResourceTestUtils.getExpectedRanges("ports", 555, 555, resourceId),
+                        ResourceTestUtils.getReservedPorts(555, 555, resourceId),
                         ResourceTestUtils.getUnreservedPorts(666, 666))));
 
         // RESERVE, UNRESERVE, LAUNCH
@@ -360,8 +360,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.addAll(Arrays.asList(
-                ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId0),
-                ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId1)));
+                ResourceTestUtils.getReservedPorts(10000, 10000, resourceId0),
+                ResourceTestUtils.getReservedPorts(10001, 10001, resourceId1)));
 
         // Now try relaunch:
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -395,8 +395,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001),
                 OfferTestUtils.getOffers(Arrays.asList(
-                        ResourceTestUtils.getExpectedRanges("ports", 10000, 10000, resourceId0),
-                        ResourceTestUtils.getExpectedRanges("ports", 10001, 10001, resourceId1))));
+                        ResourceTestUtils.getReservedPorts(10000, 10000, resourceId0),
+                        ResourceTestUtils.getReservedPorts(10001, 10001, resourceId1))));
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
@@ -581,9 +581,9 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 .findFirst()
                 .get();
 
-        Resource expectedExecutorCpu = ResourceTestUtils.getExpectedScalar("cpus", 0.1, executorCpuId);
-        Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 32, executorMemId);
-        Resource expectedExecutorDisk = ResourceTestUtils.getExpectedScalar("disk", 256, executorDiskId);
+        Resource expectedExecutorCpu = ResourceTestUtils.getReservedCpus(0.1, executorCpuId);
+        Resource expectedExecutorMem = ResourceTestUtils.getReservedMem(32, executorMemId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getReservedDisk(256, executorDiskId);
 
         return new ArrayList<>(Arrays.asList(expectedExecutorCpu, expectedExecutorMem, expectedExecutorDisk));
     }

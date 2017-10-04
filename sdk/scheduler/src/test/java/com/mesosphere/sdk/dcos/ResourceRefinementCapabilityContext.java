@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.dcos;
 
-import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
-
 /**
  * This class allows temporarily setting the global Capabilities object to support PreReservedResources
  * for testing purposes.
@@ -17,30 +15,20 @@ import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
  */
 public class ResourceRefinementCapabilityContext {
     private final Capabilities originalCapabilities;
-    private final ResourceRefinementCapabilities testCapabilities;
+    private final Capabilities testCapabilities;
 
     public ResourceRefinementCapabilityContext(Capabilities originalCapabilities) {
         this.originalCapabilities = originalCapabilities;
-        this.testCapabilities = new ResourceRefinementCapabilities(originalCapabilities);
+        this.testCapabilities = new Capabilities(originalCapabilities.dcosCluster) {
+            @Override
+            public boolean supportsPreReservedResources() {
+                return true;
+            }
+        };
         Capabilities.overrideCapabilities(testCapabilities);
     }
 
     public void reset() {
         Capabilities.overrideCapabilities(originalCapabilities);
-    }
-
-    private static class ResourceRefinementCapabilities extends Capabilities {
-        public ResourceRefinementCapabilities(Capabilities capabilities) {
-            this(capabilities.dcosCluster);
-        }
-
-        private ResourceRefinementCapabilities(DcosVersionClient dcosCluster) {
-            super(dcosCluster);
-        }
-
-        @Override
-        public boolean supportsPreReservedResources() {
-            return true;
-        }
     }
 }

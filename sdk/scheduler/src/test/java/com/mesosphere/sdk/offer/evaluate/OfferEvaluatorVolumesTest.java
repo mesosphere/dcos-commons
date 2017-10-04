@@ -32,8 +32,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveCreateLaunchRootVolume() throws Exception {
-        Resource offeredCpuResource = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
-        Resource offeredDiskResource = ResourceTestUtils.getUnreservedRootVolume(2000);
+        Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
+        Resource offeredDiskResource = ResourceTestUtils.getUnreservedDisk(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
@@ -100,8 +100,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testExpectedRootVolume() throws Exception {
         // Launch for the first time.
-        Resource offeredCpuResource = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
-        Resource offeredDiskResource = ResourceTestUtils.getUnreservedRootVolume(2000);
+        Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
+        Resource offeredDiskResource = ResourceTestUtils.getUnreservedDisk(2000);
 
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500);
@@ -133,11 +133,11 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
 
         // Launch again on expected resources.
-        Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId);
-        Resource expectedDisk = ResourceTestUtils.getExpectedRootVolume(1500, diskResourceId, persistenceId);
-        Resource expectedExecutorCpu = ResourceTestUtils.getExpectedScalar("cpus", 0.1, executorCpuResourceId);
-        Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 32, executorMemResourceId);
-        Resource expectedExecutorDisk = ResourceTestUtils.getExpectedScalar("disk", 256, executorDiskResourceId);
+        Resource expectedCpu = ResourceTestUtils.getReservedCpus(1.0, cpuResourceId);
+        Resource expectedDisk = ResourceTestUtils.getReservedRootVolume(1500, diskResourceId, persistenceId);
+        Resource expectedExecutorCpu = ResourceTestUtils.getReservedCpus(0.1, executorCpuResourceId);
+        Resource expectedExecutorMem = ResourceTestUtils.getReservedMem(32, executorMemResourceId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getReservedDisk(256, executorDiskResourceId);
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getOffer(Arrays.asList(
@@ -173,7 +173,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testReserveCreateLaunchMountVolume() throws Exception {
-        Resource offeredCpuResource = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
         Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -222,7 +222,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testExpectedMountVolume() throws Exception {
         // Launch for the first time.
-        Resource offeredCpuResource = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
         Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         PodInstanceRequirement podInstanceRequirement =
@@ -233,6 +233,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         String cpuResourceId = ResourceTestUtils.getResourceId(
                 recommendations.get(0).getOperation().getReserve().getResources(0));
+        Resource createResource = recommendations.get(2).getOperation().getCreate().getVolumes(0);
         String executorCpuResourceId = ResourceTestUtils.getResourceId(
                 recommendations.get(3).getOperation().getReserve().getResources(0));
         String executorMemResourceId = ResourceTestUtils.getResourceId(
@@ -240,8 +241,6 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         String executorDiskResourceId = ResourceTestUtils.getResourceId(
                 recommendations.get(5).getOperation().getReserve().getResources(0));
 
-        Operation createOperation = recommendations.get(2).getOperation();
-        Resource createResource = createOperation.getCreate().getVolumes(0);
         String diskResourceId = ResourceTestUtils.getResourceId(createResource);
         String persistenceId = ResourceTestUtils.getPersistenceId(createResource);
 
@@ -254,11 +253,11 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
 
         // Launch again on expected resources.
-        Resource expectedCpu = ResourceTestUtils.getExpectedScalar("cpus", 1.0, cpuResourceId);
-        Resource expectedDisk = ResourceTestUtils.getExpectedMountVolume(2000, diskResourceId, persistenceId);
-        Resource expectedExecutorCpu = ResourceTestUtils.getExpectedScalar("cpus", 0.1, executorCpuResourceId);
-        Resource expectedExecutorMem = ResourceTestUtils.getExpectedScalar("mem", 32, executorMemResourceId);
-        Resource expectedExecutorDisk = ResourceTestUtils.getExpectedScalar("disk", 256, executorDiskResourceId);
+        Resource expectedCpu = ResourceTestUtils.getReservedCpus(1.0, cpuResourceId);
+        Resource expectedDisk = ResourceTestUtils.getReservedMountVolume(2000, diskResourceId, persistenceId);
+        Resource expectedExecutorCpu = ResourceTestUtils.getReservedCpus(0.1, executorCpuResourceId);
+        Resource expectedExecutorMem = ResourceTestUtils.getReservedMem(32, executorMemResourceId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getReservedDisk(256, executorDiskResourceId);
         recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getCompleteOffer(Arrays.asList(
@@ -308,7 +307,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
         Resource offeredDisk = ResourceTestUtils.getUnreservedDisk(3);
-        Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(1.0);
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredCpu, offeredDisk));
 
@@ -364,7 +363,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testFailCreateRootVolume() throws Exception {
-        Resource offeredResource = ResourceTestUtils.getUnreservedRootVolume(1000);
+        Resource offeredResource = ResourceTestUtils.getUnreservedDisk(1000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
@@ -375,7 +374,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testFailToCreateVolumeWithWrongResource() throws Exception {
         Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000);
-        Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(1.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getRootVolumeRequirement(1.0, 1500),
@@ -388,7 +387,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     public void testReserveCreateExecutorVolume() throws Exception {
         List<Resource> offeredResources = Arrays.asList(
                 ResourceTestUtils.getUnreservedMountVolume(2000),
-                ResourceTestUtils.getUnreservedCpu(1.0));
+                ResourceTestUtils.getUnreservedCpus(1.0));
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
@@ -447,7 +446,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         // Create for the first time.
         List<Resource> offeredResources = Arrays.asList(
                 ResourceTestUtils.getUnreservedMountVolume(2000),
-                ResourceTestUtils.getUnreservedCpu(1.0));
+                ResourceTestUtils.getUnreservedCpus(1.0));
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
@@ -479,8 +478,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Evaluation for a second time
         offeredResources = Arrays.asList(
-                ResourceTestUtils.getExpectedMountVolume(2000, resourceId, persistenceId),
-                ResourceTestUtils.getExpectedScalar("cpus", 1.0, resourceId));
+                ResourceTestUtils.getReservedMountVolume(2000, resourceId, persistenceId),
+                ResourceTestUtils.getReservedCpus(1.0, resourceId));
 
         offer = OfferTestUtils.getCompleteOffer(offeredResources);
 

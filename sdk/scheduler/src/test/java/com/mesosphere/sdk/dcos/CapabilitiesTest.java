@@ -18,12 +18,10 @@ import static org.mockito.Mockito.when;
 public class CapabilitiesTest {
 
     @Mock private DcosVersionClient mockDcosCluster;
-    @Mock private DcosVersion mockDcosVersion;
 
     @Before
     public void beforeEach() throws IOException {
         MockitoAnnotations.initMocks(this);
-        when(mockDcosCluster.getDcosVersion()).thenReturn(mockDcosVersion);
     }
 
     @Test
@@ -136,7 +134,7 @@ public class CapabilitiesTest {
     }
 
     private Capabilities testCapabilities(String version) throws IOException {
-        when(mockDcosVersion.getElements()).thenReturn(new DcosVersion.Elements(version));
+        when(mockDcosCluster.getDcosVersion()).thenReturn(new DcosVersion(version));
         return new Capabilities(mockDcosCluster);
     }
 }

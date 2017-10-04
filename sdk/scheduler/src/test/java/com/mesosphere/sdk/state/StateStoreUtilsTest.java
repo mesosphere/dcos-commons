@@ -9,7 +9,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import org.apache.mesos.Protos;
@@ -425,7 +425,7 @@ public class StateStoreUtilsTest {
     private ConfigStore<ServiceSpec> newConfigStore(final Persister persister) throws Exception {
         ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
                 new File(StateStoreUtilsTest.class.getClassLoader().getResource("resource-set-seq.yml").getFile()),
-                OfferRequirementTestUtils.getTestSchedulerConfig())
+                SchedulerConfigTestUtils.getTestSchedulerConfig())
                 .build();
 
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(

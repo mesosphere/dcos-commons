@@ -17,7 +17,7 @@ import java.util.UUID;
 public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testTaskInfoIsModifiedCorrectly() throws Exception {
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
 
         LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
@@ -26,7 +26,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true);

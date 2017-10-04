@@ -31,7 +31,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
@@ -147,7 +147,7 @@ public class AbstractSchedulerTest {
     private TestScheduler getScheduler(boolean waitForApiServer, boolean multithreaded, int offerQueueSize)
             throws PersisterException {
         TestScheduler scheduler = new TestScheduler(
-                stateStore, mockConfigStore, OfferRequirementTestUtils.getTestSchedulerConfig());
+                stateStore, mockConfigStore, SchedulerConfigTestUtils.getTestSchedulerConfig());
         // Customize...
         if (!waitForApiServer) {
             scheduler.disableApiServer();
