@@ -54,7 +54,7 @@ pods:
         cmd: "python3 http_py3responder.py server $PORT_OVERLAY_DYNPORT hello from the overlay network!"
         resource-set: hello-resource
         readiness-check:
-          cmd: "python3 http_py3responder.py GET http://hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026"
+          cmd: "python3 http_py3responder.py GET http://hello-overlay-0-server.$FRAMEWORK_HOST:1026"
           interval: 10
           delay: 15
           timeout: 10
@@ -109,10 +109,10 @@ pods:
         memory: {{HELLO_MEM}}
         cmd: |
           sleep 40 &&
-          curl -f -X GET hello-overlay-0-server.hello-world.autoip.dcos.thisdcos.directory:1026 >> output &&
-          curl -f -X GET overlay-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
-          curl -f -X GET host-vip.hello-world.l4lb.thisdcos.directory:80 >> output &&
-          curl -f -X GET hello-host-0-server.hello-world.autoip.dcos.thisdcos.directory:4044 >> output
+          curl -f -X GET hello-overlay-0-server.$FRAMEWORK_HOST:1026 >> output &&
+          curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80 >> output &&
+          curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80 >> output &&
+          curl -f -X GET hello-host-0-server.$FRAMEWORK_HOST:4044 >> output
 
 plans:
   deploy:
