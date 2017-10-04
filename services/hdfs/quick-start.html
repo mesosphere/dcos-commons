@@ -394,16 +394,16 @@
   <li>
     <p>Install the HDFS package.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install hdfs
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-hdfs
 </code></pre>
     </div>
 
-    <p><strong>Tip:</strong> Type <code class="highlighter-rouge">dcos hdfs</code> to view the HDFS CLI options.</p>
+    <p><strong>Tip:</strong> Type <code class="highlighter-rouge">dcos beta-hdfs</code> to view the HDFS CLI options.</p>
   </li>
   <li>
     <p>Show the currently configured HDFS nodes.</p>
 
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos hdfs config list
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>hdfs config list
 </code></pre>
     </div>
 
@@ -505,7 +505,7 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
       <li>
         <p>Run this command to retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> file.</p>
 
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos hdfs endpoints hdfs-site.xml
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>hdfs endpoints hdfs-site.xml
 </code></pre>
         </div>
 
@@ -526,7 +526,7 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
       <li>
         <p>Run this command to retrieve the <code class="highlighter-rouge">core-site.xml</code> file.</p>
 
-        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos hdfs endpoints core-site.xml
+        <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>hdfs endpoints core-site.xml
 </code></pre>
         </div>
 

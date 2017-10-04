@@ -434,7 +434,7 @@ See the Configuration section for a list of fields that can be customized via a 
    <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="gp">$ </span>dcos package install hdfs --options<span class="o">=</span>hdfs1.json
+<span class="gp">$ </span>dcos package install beta-hdfs --options<span class="o">=</span>hdfs1.json
 </code></pre>
 </div>
 
@@ -454,7 +454,7 @@ See the Configuration section for a list of fields that can be customized via a 
     <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.
 Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code>dcos:adminrouter:service:marathon full				
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos:adminrouter:service:marathon full
 dcos:service:marathon:marathon:services:/testing full
 dcos:adminrouter:ops:mesos full
 dcos:adminrouter:ops:slave full
