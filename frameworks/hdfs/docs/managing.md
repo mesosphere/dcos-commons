@@ -563,9 +563,6 @@ Example node configuration:
   </tr>
 </table>
 
-## Add a Data Node
-Increase the `DATA_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
-
 ### Node Info
 
 Comprehensive information is available about every node.  To list all nodes:
