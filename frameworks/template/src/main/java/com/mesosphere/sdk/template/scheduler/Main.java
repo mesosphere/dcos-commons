@@ -6,24 +6,26 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import java.io.File;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * Template service.
+ * Main entry point for the Scheduler.
  */
 public class Main {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            LOGGER.error("Missing file argument");
-            System.exit(1);
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected single file argument, got: " + args);
         }
-        File pathToYamlSpecification = new File(args[0]);
-        SchedulerRunner.fromRawServiceSpec(
-                RawServiceSpec.newBuilder(pathToYamlSpecification).build(),
-                SchedulerConfig.fromEnv(),
-                pathToYamlSpecification.getParentFile()).run();
+
+        File yamlSpecFile = new File(args[0]);
+        // Assume that any configuration template files are in the same directory as the YAML specification file:
+        File configTemplateDir = yamlSpecFile.getParentFile();
+
+        // Build and run the service:
+        SchedulerRunner
+                .fromRawServiceSpec(
+                        RawServiceSpec.newBuilder(yamlSpecFile).build(),
+                        SchedulerConfig.fromEnv(),
+                        configTemplateDir)
+                .run();
     }
 }

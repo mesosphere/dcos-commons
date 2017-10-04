@@ -15,22 +15,26 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Cassandra Service.
+ * Main entry point for the Scheduler.
  */
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        SchedulerRunner.fromSchedulerBuilder(createSchedulerBuilder(new File(args[0]))).run();
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected single file argument, got: " + args);
+        }
+        SchedulerRunner
+                .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))
+                .run();
     }
 
-    private static SchedulerBuilder createSchedulerBuilder(File pathToYamlSpecification)
-            throws Exception {
+    private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
         return DefaultScheduler.newBuilder(
                 DefaultServiceSpec
-                        .newGenerator(rawServiceSpec, schedulerConfig, pathToYamlSpecification.getParentFile())
+                        .newGenerator(rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
                         .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
                         .build(),
                 schedulerConfig)

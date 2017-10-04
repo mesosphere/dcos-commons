@@ -23,23 +23,23 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 /**
- * Apache Kafka Service.
+ * Main entry point for the Scheduler.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
     private static final String KAFKA_ZK_URI_ENV = "KAFKA_ZOOKEEPER_URI";
 
     public static void main(String[] args) throws Exception {
-        if (args.length > 0) {
-            SchedulerRunner.fromSchedulerBuilder(createSchedulerBuilder(new File(args[0]))).run();
-        } else {
-            LOGGER.error("Missing file argument");
-            System.exit(1);
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected single file argument, got: " + args);
         }
+        SchedulerRunner
+                .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))
+                .run();
     }
 
-    private static SchedulerBuilder createSchedulerBuilder(File pathToYamlSpecification) throws Exception {
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
+    private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
 
         // Allow users to manually specify a ZK location for kafka itself. Otherwise default to our service ZK location:
@@ -54,7 +54,7 @@ public class Main {
 
         SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(
                 DefaultServiceSpec
-                        .newGenerator(rawServiceSpec, schedulerConfig, pathToYamlSpecification.getParentFile())
+                        .newGenerator(rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
                         .setAllPodsEnv(KAFKA_ZK_URI_ENV, kafkaZookeeperUri)
                         .build(),
                 schedulerConfig)

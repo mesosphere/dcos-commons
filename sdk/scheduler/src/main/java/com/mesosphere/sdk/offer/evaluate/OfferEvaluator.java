@@ -174,14 +174,12 @@ public class OfferEvaluator {
                 podInstanceRequirement.getTasksToLaunch());
 
         // Only create a TLS Evaluation Stage builder if the service actually uses TLS certs.
-        // This avoids creating TLS clients in cases where the cluster may not support TLS (e.g. DC/OS Open).
-        Optional<TLSEvaluationStage.Builder> tlsStageBuilder = Optional.empty();
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                tlsStageBuilder = Optional.of(new TLSEvaluationStage.Builder(serviceName, schedulerConfig));
-                break;
-            }
-        }
+        // This avoids performing TLS cert generation in cases where the cluster may not support it (e.g. DC/OS Open).
+        boolean anyTasksWithTLS = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .anyMatch(taskSpec -> !taskSpec.getTransportEncryption().isEmpty());
+        Optional<TLSEvaluationStage.Builder> tlsStageBuilder = anyTasksWithTLS
+                ? Optional.of(new TLSEvaluationStage.Builder(serviceName, schedulerConfig))
+                : Optional.empty();
 
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));

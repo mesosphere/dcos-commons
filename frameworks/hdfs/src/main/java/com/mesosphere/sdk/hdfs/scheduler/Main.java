@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * HDFS Service.
+ * Main entry point for the Scheduler.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
@@ -38,28 +38,25 @@ public class Main {
     static final String CORE_SITE_XML = "core-site.xml";
 
     public static void main(String[] args) throws Exception {
-        if (args.length > 0) {
-            SchedulerRunner.fromSchedulerBuilder(getBuilder(new File(args[0]))).run();
-        } else {
-            LOGGER.error("Missing file argument");
-            System.exit(1);
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected single file argument, got: " + args);
         }
+        SchedulerRunner
+                .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))
+                .run();
     }
 
-    private static SchedulerBuilder getBuilder(File pathToYamlSpecification)
-            throws Exception {
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
-        File configDir = pathToYamlSpecification.getParentFile();
+    private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
+        File configDir = yamlSpecFile.getParentFile();
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .build();
-        SchedulerBuilder builder =
-                DefaultScheduler.newBuilder(serviceSpecWithCustomizedPods(serviceSpec), schedulerConfig)
+        return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
-                .setPlansFrom(rawServiceSpec);
-        return builder
+                .setPlansFrom(rawServiceSpec)
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
                         renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
@@ -88,8 +85,7 @@ public class Main {
         return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
     }
 
-
-    private static ServiceSpec serviceSpecWithCustomizedPods(DefaultServiceSpec serviceSpec) throws Exception {
+    private static ServiceSpec setPlacementRules(DefaultServiceSpec serviceSpec) throws Exception {
         // Journal nodes avoid themselves and Name nodes.
         PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "journal"))
                 .placementRule(new AndRule(TaskTypeRule.avoid("journal"), TaskTypeRule.avoid("name")))

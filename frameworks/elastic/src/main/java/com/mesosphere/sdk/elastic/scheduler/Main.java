@@ -8,34 +8,32 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
-
 
 /**
  * Main entry point for the Scheduler.
  */
 public class Main {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        if (args.length == 0) {
-            LOGGER.error("Missing file argument");
-            System.exit(1);
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected single file argument, got: " + args);
         }
-        File pathToYamlSpecification = new File(args[0]);
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
+        SchedulerRunner
+                .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))
+                .run();
+    }
+
+    private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         // Elastic is unhappy if cluster.name contains slashes. Replace any slashes with double-underscores:
-        SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(
+        return DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(
-                        rawServiceSpec, schedulerConfig, pathToYamlSpecification.getParentFile())
+                        rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
                         .setAllPodsEnv("CLUSTER_NAME", SchedulerUtils.withEscapedSlashes(rawServiceSpec.getName()))
                         .build(),
                 schedulerConfig)
                 .setPlansFrom(rawServiceSpec);
-        SchedulerRunner.fromSchedulerBuilder(schedulerBuilder).run();
     }
 }

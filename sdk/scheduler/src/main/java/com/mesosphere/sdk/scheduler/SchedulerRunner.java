@@ -36,6 +36,16 @@ public class SchedulerRunner implements Runnable {
 
     private final SchedulerBuilder schedulerBuilder;
 
+    /**
+     * Builds a new instance using a {@link RawServiceSpec} representing the raw object model of a YAML service
+     * specification file.
+     *
+     * @param rawServiceSpec the object model of a YAML service specification file
+     * @param schedulerConfig the scheduler configuration to use (usually based on process environment)
+     * @param configTemplateDir the directory where any configuration templates are located (usually the parent
+     *                          directory of the YAML service specification file)
+     * @return a new {@link SchedulerRunner} instance, which may be launched with {@link #run()}
+     */
     public static SchedulerRunner fromRawServiceSpec(
             RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir) throws Exception {
         return fromSchedulerBuilder(DefaultScheduler.newBuilder(
@@ -44,12 +54,27 @@ public class SchedulerRunner implements Runnable {
                 .setPlansFrom(rawServiceSpec));
     }
 
+    /**
+     * Builds a new instance using a {@link ServiceSpec} representing the serializable Java representation of a service
+     * specification.
+     *
+     * @param serviceSpec the service specification converted to be used by the config store
+     * @param schedulerConfig the scheduler configuration to use (usually based on process environment)
+     * @param configTemplateDir a list of one or more custom plans to be used by the service
+     * @return a new {@link SchedulerRunner} instance, which may be launched with {@link #run()}
+     */
     public static SchedulerRunner fromServiceSpec(
-            ServiceSpec serviceSpecification, SchedulerConfig schedulerConfig, Collection<Plan> plans)
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Collection<Plan> plans)
                     throws PersisterException {
-        return fromSchedulerBuilder(DefaultScheduler.newBuilder(serviceSpecification, schedulerConfig).setPlans(plans));
+        return fromSchedulerBuilder(DefaultScheduler.newBuilder(serviceSpec, schedulerConfig).setPlans(plans));
     }
 
+    /**
+     * Builds a new instance using a {@link SchedulerBuilder} instance representing the scheduler logic to be executed.
+     *
+     * @param schedulerBuilder the (likely customized) scheduler object to be run by the runner
+     * @return a new {@link SchedulerRunner} instance, which may be launched with {@link #run()}
+     */
     public static SchedulerRunner fromSchedulerBuilder(SchedulerBuilder schedulerBuilder) {
         return new SchedulerRunner(schedulerBuilder);
     }
@@ -62,6 +87,10 @@ public class SchedulerRunner implements Runnable {
                 SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
+    /**
+     * Runs the scheduler. Don't forget to call this!
+     * This should never exit, instead the entire process will be terminated internally.
+     */
     @Override
     public void run() {
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
