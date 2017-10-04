@@ -372,6 +372,8 @@
   <li>If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.</li>
 </ul>
 
+<p>ElasticSearch provides two ways of updating settings: persistent (through <code class="highlighter-rouge">elasticsearch.yml</code> file) and transient (through Elastic Settings Update API). The service’s Configuration Options are carried over to the tasks’ elasticsearch.yml file automatically. Out-of-band configuration changes (either via ElasticSearch’s Update API or externally modifying elasticsearch.yml files) will not persist in case of a restart, failure recovery, or upgrade.</p>
+
 <h2 id="scaling-in">Scaling in</h2>
 
 <p>To prevent accidental data loss, the service does not support reducing the number of pods.</p>
