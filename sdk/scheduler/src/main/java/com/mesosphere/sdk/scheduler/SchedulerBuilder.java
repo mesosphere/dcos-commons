@@ -196,10 +196,6 @@ public class SchedulerBuilder {
      * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
      * {@link DefaultPlanGenerator} to handle conversion. This is overridden by any plans manually provided by
      * {@link #setPlans(Collection)}.
-     *
-     * @throws ConfigStoreException if creating a default config store fails
-     * @throws IllegalStateException if the plans were already set either via this call or via
-     * {@link #setPlans(Collection)}
      */
     public SchedulerBuilder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
         if (rawServiceSpec.getPlans() != null) {
@@ -212,9 +208,6 @@ public class SchedulerBuilder {
     /**
      * Sets the provided {@link Plan}s to this instance. This may be used when no {@link RawServiceSpec} is
      * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
-     *
-     * @throws IllegalStateException if the plans were already set either via this call or via
-     * {@link #setPlansFrom(RawServiceSpec)}
      */
     public SchedulerBuilder setPlans(Collection<Plan> plans) {
         this.manualPlans.clear();
@@ -245,10 +238,10 @@ public class SchedulerBuilder {
         final ConfigStore<ServiceSpec> configStore = getConfigStore();
 
         if (schedulerConfig.isUninstallEnabled()) {
-            if (!StateStoreUtils.isUninstalling(getStateStore())) {
+            if (!StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                         "Uninstall cannot be canceled once enabled.");
-                StateStoreUtils.setUninstalling(getStateStore());
+                StateStoreUtils.setUninstalling(stateStore);
             }
 
             return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerConfig);
@@ -259,7 +252,7 @@ public class SchedulerBuilder {
                 SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
             }
 
-            return getDefaultScheduler(stateStore, configStore, getServiceSpec(), schedulerConfig);
+            return getDefaultScheduler(stateStore, configStore, serviceSpec, schedulerConfig);
         }
     }
 
@@ -308,6 +301,8 @@ public class SchedulerBuilder {
                     configUpdateResult.getTargetId(), configUpdateResult.getErrors());
             try {
                 // If there were errors, stick with the last accepted target configuration.
+                // Note that the plans are not stored in the config store, so we stick with the *current* plans
+                // regardless of config validation.
                 serviceSpec = configStore.fetch(configStore.getTargetConfig());
             } catch (ConfigStoreException e) {
                 LOGGER.error("Failed to retrieve previous target configuration.");
@@ -355,6 +350,10 @@ public class SchedulerBuilder {
         final String plansType;
         final Collection<Plan> plans;
         if (!manualPlans.isEmpty()) {
+            if (!yamlPlans.isEmpty()) {
+                throw new IllegalArgumentException(String.format("Cannot use both manual plans and raw YAML plans. " +
+                        "Only one or the other may be provided: manual=%s yaml=%s", manualPlans, yamlPlans));
+            }
             plansType = "manual";
             plans = new ArrayList<>(manualPlans);
         } else if (!yamlPlans.isEmpty()) {
