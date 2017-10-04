@@ -56,7 +56,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
     # and checking that the deploy/upgrade/repair plan has completed. Each serves a part in the bigger
     # atomic test, that the plan completed properly where properly includes that no old tasks remain.
     @retrying.retry(
-        wait_fixed=5000,
+        wait_fixed=1000,
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: res is False)
     def wait_for_update():
@@ -107,13 +107,12 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
 
 
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    exit_status = 0
 
     @retrying.retry(
-        wait_fixed=5000,
+        wait_fixed=1000,
         stop_max_delay=timeout_seconds*1000,
-        retry_on_result=lambda res: res is False or res is 0)
-    def fn():
+        retry_on_result=lambda res: res is False)
+    def retry_kill():
         command = (
             "sudo kill -9 "
             "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
@@ -126,7 +125,4 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         return exit_status
 
     # might not be able to connect to the agent on first try so we repeat until we can
-    fn()
-
-    if exit_status != 0:
-        raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))
+    retry_kill()

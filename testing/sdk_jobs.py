@@ -77,7 +77,7 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
 
     @retrying.retry(
-        wait_fixed=10000,
+        wait_fixed=1000,
         stop_max_delay=timeout_seconds*1000,
         retry_on_exception=lambda ex: False,
         retry_on_result=lambda res: not res)

@@ -109,7 +109,7 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     expected_metrics_exist -- serivce-specific callback that checks for service-specific metrics
     """
     @retrying.retry(
-        wait_fixed=5000,
+        wait_fixed=1000,
         stop_max_delay=timeout*1000,
         retry_on_result=lambda res: res is False)
     def check_for_service_metrics():

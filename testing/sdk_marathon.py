@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @retrying.retry(
-    wait_fixed=10000,
+    wait_fixed=1000,
     stop_max_delay=120000)
 def wait_for_app(app_name):
     return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)

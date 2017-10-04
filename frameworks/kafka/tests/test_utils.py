@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @retrying.retry(
-    wait_fixed=10000,
+    wait_fixed=1000,
     stop_max_delay=120000,
     retry_on_result=lambda res: res is False)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
