@@ -32,8 +32,8 @@ public class SchedulerDriverFactory {
      *     authentication is needed
      */
     public SchedulerDriver create(
-            Scheduler scheduler, FrameworkInfo frameworkInfo, String masterUrl, SchedulerFlags schedulerFlags) {
-        return create(scheduler, frameworkInfo, masterUrl, schedulerFlags, null /* credentialSecret */);
+            Scheduler scheduler, FrameworkInfo frameworkInfo, String masterUrl, SchedulerConfig schedulerConfig) {
+        return create(scheduler, frameworkInfo, masterUrl, schedulerConfig, null /* credentialSecret */);
     }
 
     /**
@@ -54,7 +54,7 @@ public class SchedulerDriverFactory {
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
-            final SchedulerFlags schedulerFlags,
+            final SchedulerConfig schedulerConfig,
             final byte[] credentialSecret) {
         Credential credential;
         if (credentialSecret != null && credentialSecret.length > 0) {
@@ -67,7 +67,7 @@ public class SchedulerDriverFactory {
                     .setPrincipal(getPrincipal(frameworkInfo, "secret"))
                     .setSecretBytes(ByteString.copyFrom(credentialSecret))
                     .build();
-        } else if (schedulerFlags.isSideChannelActive()) {
+        } else if (schedulerConfig.isSideChannelActive()) {
             // Sidechannel auth is enabled. Provide a Credential with only the Principal set.
             LOGGER.info("Creating sidechannel authenticated MesosSchedulerDriver for "
                     + "scheduler[{}], frameworkInfo[{}], masterUrl[{}]",

@@ -15,6 +15,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,10 +64,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         return acceptedOfferIds;
     }
 
-    private Collection<OfferID> resourceOffers(
-            SchedulerDriver driver,
-            List<Offer> offers,
-            Step step) {
+    private Collection<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Step step) {
 
         if (driver == null || offers == null) {
             logger.error("Unexpected null argument encountered: driver='{}' offers='{}'", driver, offers);
@@ -102,8 +100,8 @@ public class DefaultPlanScheduler implements PlanScheduler {
         List<OfferRecommendation> recommendations = null;
         try {
             recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
-        } catch (InvalidRequirementException e) {
-            logger.error("Failed generate OfferRequirement.", e);
+        } catch (InvalidRequirementException | IOException e) {
+            logger.error("Failed generate OfferRecommendations.", e);
             return Collections.emptyList();
         }
 

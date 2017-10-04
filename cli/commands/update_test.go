@@ -19,6 +19,7 @@ type UpdateTestSuite struct {
 	server         *httptest.Server
 	requestBody    []byte
 	responseBody   []byte
+	responseStatus int
 	capturedOutput bytes.Buffer
 }
 
@@ -43,7 +44,10 @@ func (suite *UpdateTestSuite) exampleHandler(w http.ResponseWriter, r *http.Requ
 	}
 	suite.requestBody = requestBody
 
-	w.WriteHeader(http.StatusOK)
+	if suite.responseStatus == 0 {
+		suite.responseStatus = http.StatusOK
+	}
+	w.WriteHeader(suite.responseStatus)
 	w.Write(suite.responseBody)
 }
 
@@ -65,6 +69,7 @@ func (suite *UpdateTestSuite) SetupTest() {
 func (suite *UpdateTestSuite) TearDownTest() {
 	suite.capturedOutput.Reset()
 	suite.server.Close()
+	suite.responseStatus = 0
 }
 func TestUpdateTestSuite(t *testing.T) {
 	suite.Run(t, new(UpdateTestSuite))
@@ -175,4 +180,104 @@ func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
 	doUpdate("testdata/input/malformed.json", "", false)
 	expectedOutput := fmt.Sprintf("Failed to parse JSON in specified options file testdata/input/malformed.json: unexpected end of JSON input\nContent (340 bytes): %s\n", suite.loadFile("testdata/input/malformed.json"))
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+}
+
+func (suite *UpdateTestSuite) TestUdateWithInvalidMinumum() {
+	responseJSON := `{
+    "type": "JsonSchemaMismatch",
+    "message": "Options JSON failed validation",
+    "data": {
+        "errors": [
+            {
+                "level": "error",
+                "schema": {
+                    "loadingURI": "#",
+                    "pointer": "/properties/nodes/properties/count"
+                },
+                "instance": {
+                    "pointer": "/nodes/count"
+                },
+                "domain": "validation",
+                "keyword": "minimum",
+                "message": "numeric instance is lower than the required minimum (minimum: 3, found: 2)",
+                "minimum": 3,
+                "found": 2
+            }
+        ]
+    }
+}`
+	suite.responseBody = []byte(responseJSON)
+	suite.responseStatus = http.StatusBadRequest
+
+	doUpdate("testdata/input/config.json", "stub-universe", false)
+
+	// assert CLI output is what we expect
+	expectedOutput := "Unable to update hello-world to requested configuration: options JSON failed validation.\n" +
+		"\n" +
+		"Field        Error \n" +
+		"-----        ----- \n" +
+		"/nodes/count numeric instance is lower than the required minimum (minimum: 3, found: 2)\n"
+
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+}
+
+func (suite *UpdateTestSuite) TestUpdateWithTwoValidationErrors() {
+	responseJSON := `{
+    "type": "JsonSchemaMismatch",
+    "message": "Options JSON failed validation",
+    "data": {
+        "errors": [
+            {
+                "level": "error",
+                "schema": {
+                    "loadingURI": "#",
+                    "pointer": "/properties/nodes/properties/count"
+                },
+                "instance": {
+                    "pointer": "/nodes/count"
+                },
+                "domain": "validation",
+                "keyword": "minimum",
+                "message": "numeric instance is lower than the required minimum (minimum: 3, found: 2)",
+                "minimum": 3,
+                "found": 2
+            },
+            {
+                "level": "error",
+                "schema": {
+                    "loadingURI": "#",
+                    "pointer": "/properties/nodes/properties/cpus"
+                },
+                "instance": {
+                    "pointer": "/nodes/cpus"
+                },
+                "domain": "validation",
+                "keyword": "type",
+                "message": "instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])",
+                "found": "string",
+                "expected": [
+                    "integer",
+                    "number"
+                ]
+            }
+        ]
+    }
+}
+`
+
+	suite.responseBody = []byte(responseJSON)
+	suite.responseStatus = http.StatusBadRequest
+
+	doUpdate("testdata/input/config.json", "stub-universe", false)
+
+	// assert CLI output is what we expect
+	expectedOutput := "Unable to update hello-world to requested configuration: options JSON failed validation.\n" +
+		"\n" +
+		"Field        Error                                                                      \n" +
+		"-----        -----                                                                      \n" +
+		"/nodes/count numeric instance is lower than the required minimum (minimum: 3, found: 2) \n" +
+		"/nodes/cpus  instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])\n"
+
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+
 }

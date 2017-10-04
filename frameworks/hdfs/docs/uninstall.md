@@ -15,7 +15,7 @@ If you are using DC/OS 1.10 and the installed service has a version greater than
 For example, to uninstall an HDFS instance named `hdfs-dev`, run:
 
 ```bash
-$ dcos package uninstall --app-id=hdfs-dev beta-hdfs
+$ dcos package uninstall beta-hdfs --app-id=/hdfs
 ```
 
 ### Older versions

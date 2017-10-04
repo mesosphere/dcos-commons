@@ -134,8 +134,7 @@ This simple YAML definition of a DC/OS service that prints "hello world" to stdo
 ```yaml
 name: "hello-world"
 scheduler:
-  service_account: "hello-world-principal"
-  api-port: {{PORT_API}}
+  principal: "hello-world-principal"
   user: {{SERVICE_USER}}
 pods:
   hello-world-pod:
@@ -152,9 +151,7 @@ pods:
 
 * **scheduler**: The Scheduler manages the service and keeps it running. This section contains settings which apply to the Scheduler. The `scheduler` section may be omitted to use reasonable defaults for all of these settings.
 
-    * **service_account**: This is the DC/OS service account used when registering the framework. In secure Enterprise clusters, this account must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
-
-    * **api-port**: By default, a DC/OS service written with the SDK provides a number of REST API endpoints that may be used to examine the state of a service as well as alter its operation. In order to expose the endpoints, you must define on which port the HTTP server providing those endpoints should listen. You can also add custom service-specific endpoints.  Learn more in the [Defining a Target Configuration](#defining-a-target-configuration) section. This setting may be omitted in which case it defaults to the `PORT_API` envvar provided by Marathon.
+    * **principal**: This is the DC/OS service account used when registering the framework. In secure Enterprise clusters, this account must have the necessary permission to perform the actions of a scheduler. This setting may be omitted in which case it defaults to `<svcname>-principal`.
 
     * **user** This is the account used when running the processes on the host.  The recommended default is `nobody`.
 
