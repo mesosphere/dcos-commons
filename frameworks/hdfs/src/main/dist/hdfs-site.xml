@@ -133,8 +133,8 @@
         <value>{{NAMENODE_DECOMMISSION_INTERVAL}}</value>
     </property>
     <property>
-        <name>dfs.namenode.decommission.nodes.per.interval</name>
-        <value>{{NAMENODE_DECOMMISSION_NODES_PER_INTERVAL}}</value>
+        <name>dfs.namenode.decommission.blocks.per.interval</name>
+        <value>{{NAMENODE_DECOMMISSION_BLOCKS_PER_INTERVAL}}</value>
     </property>
     <property>
         <name>dfs.namenode.replication.interval</name>

@@ -235,7 +235,8 @@
         "replication_min": {
           "type": "integer",
           "description": "Minimal block replication.",
-          "default": 1
+          "default": 1,
+          "minimum": 1
         },
         "handler_count": {
           "type": "integer",
@@ -287,10 +288,10 @@
           "description": "Namenode periodicity in seconds to check if decommission is complete.",
           "default": 30
         },
-        "decommission_nodes_per_interval": {
+        "decommission_blocks_per_interval": {
           "type": "integer",
-          "description": "The number of nodes namenode checks if decommission is complete in each dfs.namenode.decommission.interval.",
-          "default": 5
+          "description": "The approximate number of blocks to process per decommission interval, as defined in dfs.namenode.decommission.interval.",
+          "default": 500000
         },
         "replication_interval": {
           "type": "integer",
@@ -518,7 +519,7 @@
         "resource_checked_volumes_minimum",
         "max_objects",
         "decommission_interval",
-        "decommission_nodes_per_interval",
+        "decommission_blocks_per_interval",
         "replication_interval",
         "accesstime_precision",
         "checkpoint_period",

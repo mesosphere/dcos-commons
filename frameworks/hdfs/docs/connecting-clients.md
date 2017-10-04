@@ -156,8 +156,8 @@ The responses are as below.
         <value>30</value>
     </property>
     <property>
-        <name>dfs.namenode.decommission.nodes.per.interval</name>
-        <value>5</value>
+        <name>dfs.namenode.decommission.blocks.per.interval</name>
+        <value>500000</value>
     </property>
     <property>
         <name>dfs.namenode.replication.interval</name>
