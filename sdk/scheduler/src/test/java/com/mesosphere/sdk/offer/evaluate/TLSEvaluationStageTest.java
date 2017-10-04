@@ -10,9 +10,9 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -89,7 +89,7 @@ public class TLSEvaluationStageTest {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true);
@@ -104,7 +104,7 @@ public class TLSEvaluationStageTest {
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());
 
-        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedScalar("cpus", 2.0));
+        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(2.0));
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
@@ -131,7 +131,7 @@ public class TLSEvaluationStageTest {
                 .type(TransportEncryptionSpec.Type.KEYSTORE)
                 .build());
 
-        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedScalar("cpus", 2.0));
+        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(2.0));
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
@@ -158,7 +158,7 @@ public class TLSEvaluationStageTest {
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());
 
-        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedScalar("cpus", 2.0));
+        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(2.0));
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
@@ -188,7 +188,7 @@ public class TLSEvaluationStageTest {
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());
 
-        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedScalar("cpus", 2.0));
+        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(2.0));
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(

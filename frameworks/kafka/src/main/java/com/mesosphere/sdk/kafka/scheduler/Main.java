@@ -2,6 +2,7 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            throw new IllegalArgumentException("Expected single file argument, got: " + args);
+            throw new IllegalArgumentException("Expected one file argument, got: " + Arrays.toString(args));
         }
         SchedulerRunner
                 .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))

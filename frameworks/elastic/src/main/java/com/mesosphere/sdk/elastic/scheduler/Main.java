@@ -9,6 +9,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * Main entry point for the Scheduler.
@@ -17,7 +18,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
-            throw new IllegalArgumentException("Expected single file argument, got: " + args);
+            throw new IllegalArgumentException("Expected one file argument, got: " + Arrays.toString(args));
         }
         SchedulerRunner
                 .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))

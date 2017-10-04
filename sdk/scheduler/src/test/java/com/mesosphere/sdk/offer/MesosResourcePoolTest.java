@@ -3,6 +3,8 @@ package com.mesosphere.sdk.offer;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -16,7 +18,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testEmptyUnreservedAtomicPool() {
-        Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpu(1.0));
+        Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(1.0));
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
     }
@@ -32,7 +34,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testCreateSingleReservedAtomicPool() {
-        Resource resource = ResourceTestUtils.getExpectedMountVolume(1000);
+        Resource resource = ResourceTestUtils.getReservedMountVolume(1000);
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         String resourceId = new MesosResource(resource).getResourceId().get();
@@ -67,7 +69,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testConsumeReservedMergedResource() {
-        Resource resource = ResourceTestUtils.getExpectedCpu(1.0);
+        Resource resource = ResourceTestUtils.getReservedCpus(1.0, TestConstants.RESOURCE_ID);
         Protos.Value resourceValue = ValueUtils.getValue(resource);
         String resourceId = ResourceTestUtils.getResourceId(resource);
         Offer offer = OfferTestUtils.getOffer(resource);
@@ -81,7 +83,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testConsumeUnreservedMergedResource() {
-        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         Protos.Value resourceValue = ValueUtils.getValue(resource);
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
@@ -97,9 +99,9 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testConsumeInsufficientUnreservedMergedResource() {
-        Resource desiredUnreservedResource = ResourceTestUtils.getUnreservedCpu(2.0);
+        Resource desiredUnreservedResource = ResourceTestUtils.getUnreservedCpus(2.0);
         Protos.Value resourceValue = ValueUtils.getValue(desiredUnreservedResource);
-        Resource offeredUnreservedResource = ResourceTestUtils.getUnreservedScalar("cpus", 1.0);
+        Resource offeredUnreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
         Offer offer = OfferTestUtils.getOffer(offeredUnreservedResource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 

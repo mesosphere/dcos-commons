@@ -8,7 +8,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.SchedulerDriver;
@@ -37,7 +37,7 @@ public class DefaultPlanSchedulerTest {
             .build());
     private static final List<OfferID> ACCEPTED_IDS =
             Arrays.asList(OfferID.newBuilder().setValue("offer").build());
-    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;

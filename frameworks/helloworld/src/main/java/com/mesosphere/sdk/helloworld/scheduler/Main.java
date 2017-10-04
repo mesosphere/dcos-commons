@@ -8,6 +8,7 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -34,7 +35,7 @@ public class Main {
                     schedulerConfig,
                     yamlSpecFile.getParentFile());
         } else {
-            throw new IllegalArgumentException("Expected at most a single file argument, got: " + args);
+            throw new IllegalArgumentException("Expected at most one file argument, got: " + Arrays.toString(args));
         }
         runner.run();
     }

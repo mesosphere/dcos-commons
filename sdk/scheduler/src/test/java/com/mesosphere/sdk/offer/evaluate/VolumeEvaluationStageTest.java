@@ -39,7 +39,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
                                 true));
@@ -93,7 +93,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
                                 true));

@@ -6,7 +6,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Test;
 
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultStepFactoryTest {
 
-    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     private StepFactory stepFactory;
     private ConfigStore<ServiceSpec> configStore;

@@ -31,8 +31,7 @@ public class DcosVersion {
     public static class Elements {
         private final String version;
 
-        @VisibleForTesting
-        Elements(String version) {
+        private Elements(String version) {
             this.version = version;
         }
 
@@ -55,33 +54,18 @@ public class DcosVersion {
         }
     }
 
-    private static final String BOOTSTRAP_ID_KEY = "bootstrap-id";
-    private static final String DCOS_IMAGE_COMMIT = "dcos-image-commit";
     private static final String VERSION_KEY = "version";
     private static final String DEV_VERSION_SUFFIX = "-dev";
 
-    private final String bootstrapId;
-    private final String dcosImageCommit;
     private final String version;
 
-    DcosVersion(String bootstrapId, String dcosImageCommit, String version) {
-        this.bootstrapId = bootstrapId;
-        this.dcosImageCommit = dcosImageCommit;
+    @VisibleForTesting
+    public DcosVersion(String version) {
         this.version = version;
     }
 
     public DcosVersion(JSONObject jsonObject) {
-        this((String) jsonObject.get(DcosVersion.BOOTSTRAP_ID_KEY),
-             (String) jsonObject.get(DcosVersion.DCOS_IMAGE_COMMIT),
-             (String) jsonObject.get(DcosVersion.VERSION_KEY));
-    }
-
-    public String getBootstrapId() {
-        return bootstrapId;
-    }
-
-    public String getDcosImageCommit() {
-        return dcosImageCommit;
+        this(jsonObject.getString(DcosVersion.VERSION_KEY));
     }
 
     public String getVersion() {
