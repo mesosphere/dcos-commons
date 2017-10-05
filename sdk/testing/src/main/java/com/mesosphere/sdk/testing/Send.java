@@ -80,8 +80,13 @@ public interface Send extends SimulationTick {
                         offerBuilder.addResources(ResourceBuilder.fromSpec(resource, Optional.empty()).build());
                     }
                     for (VolumeSpec volume : task.getResourceSet().getVolumes()) {
-                        offerBuilder.addResources(
-                                ResourceBuilder.fromSpec(volume, Optional.empty(), Optional.empty(), Optional.empty()).build());
+                        if (volume.getType() == VolumeSpec.Type.MOUNT) {
+                            offerBuilder.addResources(
+                                    ResourceBuilder.fromMountVolumeSpec(volume, Optional.empty(), Optional.empty(), "path").build());
+                        } else {
+                            offerBuilder.addResources(
+                                    ResourceBuilder.fromRootVolumeSpec(volume, Optional.empty(), Optional.empty()).build());
+                        }
                     }
                 }
                 return offerBuilder.build();
