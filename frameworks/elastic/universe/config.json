@@ -315,8 +315,8 @@
           "type": "string",
           "default": ""
         },
-        "custom_yaml_block": {
-          "description": "YAML to be appended to elasticsearch.yml on each node. Specify as single line with newlines and spaces embedded in the string.",
+        "custom_yaml_block_base64": {
+          "description": "Base64-encoded YAML to be appended to elasticsearch.yml on each node.",
           "type": "string",
           "default": ""
         },
@@ -662,11 +662,6 @@
         },
         "indices_query_bool_max_clause_count": {
           "description": "Set the number of clauses used while querying Elasticsearch. Defaults to 1024. If any query expands into more than 1024 boolean clauses, you will get TooManyClauses exception. Empty means do not explicitly set.",
-          "type": "string",
-          "default": ""
-        },
-        "discovery_zen_ping_unicast_hosts": {
-          "description": "Either an array setting or a comma delimited setting. Each value should be in the form of host:port or host (where port defaults to the setting transport.profiles.default.port falling back to transport.tcp.port if not set). Note that IPv6 hosts must be bracketed. Defaults to 127.0.0.1, [::1]. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },

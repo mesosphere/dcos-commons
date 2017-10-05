@@ -12,10 +12,10 @@ public class ServiceTest {
         // they would normally be provided via elastic's build.sh/versions.sh.
         new ServiceTestBuilder()
                 // These are set in our Main.java:
-                .setPodEnv("master", "CLUSTER_NAME", "cluster-foo")
-                .setPodEnv("data", "CLUSTER_NAME", "cluster-foo")
-                .setPodEnv("ingest", "CLUSTER_NAME", "cluster-foo")
-                .setPodEnv("coordinator", "CLUSTER_NAME", "cluster-foo")
+                .setPodEnv("master", "CLUSTER_NAME", "cluster-foo", "CUSTOM_YAML_BLOCK", "some.thing=true")
+                .setPodEnv("data", "CLUSTER_NAME", "cluster-foo", "CUSTOM_YAML_BLOCK", "some.thing=true")
+                .setPodEnv("ingest", "CLUSTER_NAME", "cluster-foo", "CUSTOM_YAML_BLOCK", "some.thing=true")
+                .setPodEnv("coordinator", "CLUSTER_NAME", "cluster-foo", "CUSTOM_YAML_BLOCK", "some.thing=true")
                 .setBuildTemplateParams(
                         "elastic-version", "1.2.3",
                         "support-diagnostics-version", "4.5.6")

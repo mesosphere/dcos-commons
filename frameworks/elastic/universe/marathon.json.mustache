@@ -185,7 +185,7 @@
     "TASKCFG_ALL_THREAD_POOL_GENERIC_MAX": "{{elasticsearch.thread_pool_generic_max}}",
     {{/elasticsearch.thread_pool_generic_max}}
     "TASKCFG_ALL_THREAD_POOL_GENERIC_KEEP_ALIVE": "{{elasticsearch.thread_pool_generic_keep_alive}}",
-    "TASKCFG_ALL_CUSTOM_YAML_BLOCK": "{{elasticsearch.custom_yaml_block}}",
+    "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_yaml_block_base64}}",
     {{#elasticsearch.indices_breaker_total_limit}}
     "TASKCFG_ALL_INDICES_BREAKER_TOTAL_LIMIT": "{{elasticsearch.indices_breaker_total_limit}}",
     {{/elasticsearch.indices_breaker_total_limit}}
@@ -234,9 +234,6 @@
     {{#elasticsearch.indices_query_bool_max_clause_count}}
     "TASKCFG_ALL_INDICES_QUERY_BOOL_MAX_CLAUSE_COUNT": "{{elasticsearch.indices_query_bool_max_clause_count}}",
     {{/elasticsearch.indices_query_bool_max_clause_count}} 
-    {{#elasticsearch.discovery_zen_ping_unicast_hosts}}
-    "TASKCFG_ALL_DISCOVERY_ZEN_PING_UNICAST_HOSTS": "{{elasticsearch.discovery_zen_ping_unicast_hosts}}",
-    {{/elasticsearch.discovery_zen_ping_unicast_hosts}}
     {{#elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}
     "TASKCFG_ALL_DISCOVERY_ZEN_PING_UNICAST_HOSTS_RESOLVE_TIMEOUT": "{{elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}",
     {{/elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}
