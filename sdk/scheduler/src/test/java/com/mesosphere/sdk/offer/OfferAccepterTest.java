@@ -36,7 +36,7 @@ public class OfferAccepterTest {
 
     @Test
     public void testLaunchTransient() {
-        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         Offer offer = OfferTestUtils.getCompleteOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
@@ -60,7 +60,7 @@ public class OfferAccepterTest {
 
     @Test
     public void testLaunchTransientCustomExecutor() {
-        Resource resource = ResourceTestUtils.getUnreservedCpu(1.0);
+        Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());

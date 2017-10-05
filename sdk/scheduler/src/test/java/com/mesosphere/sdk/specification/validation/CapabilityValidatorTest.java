@@ -4,7 +4,7 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
  * This class tests {@link CapabilityValidator}.
  */
 public class CapabilityValidatorTest {
-    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     @Mock private Capabilities mockCapabilities;
     @Mock private YAMLToInternalMappers.ConfigTemplateReader mockConfigTemplateReader;

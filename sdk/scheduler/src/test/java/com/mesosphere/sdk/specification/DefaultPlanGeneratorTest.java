@@ -10,7 +10,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import org.junit.*;
 import java.io.File;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class DefaultPlanGeneratorTest {
 
-    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;

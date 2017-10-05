@@ -587,7 +587,7 @@ The following is an example of the configuration resource:
 {
   "name": "kafka",
   "role": "kafka-role",
-  "service_account": "kafka-principal",
+  "principal": "kafka-principal",
   "api-port": 16962,
   "web-url": null,
   "zookeeper": "master.mesos:2181",

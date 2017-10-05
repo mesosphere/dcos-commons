@@ -63,13 +63,17 @@ public class EndpointUtils {
     }
 
     /**
+     * Returns the correct DNS domain for VIPs within the service.
+     */
+    public static String toVipDomain(String serviceName) {
+        return String.format("%s.%s", removeSlashes(serviceName), Constants.VIP_HOST_TLD);
+    }
+
+    /**
      * Returns the correct L4LB VIP hostname for the provided task running within the provided service.
      */
     public static String toVipHostname(String serviceName, VipInfo vipInfo) {
-        return String.format("%s.%s.%s",
-                removeSlashes(vipInfo.getVipName()),
-                removeSlashes(serviceName),
-                Constants.VIP_HOST_TLD);
+        return String.format("%s.%s", removeSlashes(vipInfo.getVipName()), toVipDomain(serviceName));
     }
 
     /**

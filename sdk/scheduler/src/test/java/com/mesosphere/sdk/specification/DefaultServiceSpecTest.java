@@ -14,7 +14,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 
 public class DefaultServiceSpecTest {
-    private static final SchedulerConfig SCHEDULER_CONFIG = OfferRequirementTestUtils.getTestSchedulerConfig();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
     @Mock
     private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
     @Mock

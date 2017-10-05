@@ -110,7 +110,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         stateStore,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerConfig(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
                 stateStore,
                 taskKiller);
@@ -127,12 +127,12 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final ArrayList<Protos.Offer> offers = new ArrayList<>();
         offers.addAll(OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpu(cpus),
+                        ResourceTestUtils.getUnreservedCpus(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),
                         ResourceTestUtils.getUnreservedDisk(disk))));
         offers.add(Protos.Offer.newBuilder(OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpu(cpus),
+                        ResourceTestUtils.getUnreservedCpus(cpus),
                         ResourceTestUtils.getUnreservedMem(mem),
                         ResourceTestUtils.getUnreservedDisk(disk))).get(0))
                 .setId(OTHER_ID)
