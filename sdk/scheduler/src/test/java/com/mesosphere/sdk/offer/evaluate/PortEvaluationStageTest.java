@@ -451,7 +451,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true);
@@ -475,7 +475,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
                 true);
@@ -494,7 +494,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerConfig(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
                 true);

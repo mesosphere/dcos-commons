@@ -660,12 +660,12 @@
           "type": "string",
           "default": ""
         },
-        "discovery_zen_ping_unicast.hosts": {
+        "discovery_zen_ping_unicast_hosts": {
           "description": "Either an array setting or a comma delimited setting. Each value should be in the form of host:port or host (where port defaults to the setting transport.profiles.default.port falling back to transport.tcp.port if not set). Note that IPv6 hosts must be bracketed. Defaults to 127.0.0.1, [::1]. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
-        "discovery_zen_ping_unicast.hosts.resolve_timeout": {
+        "discovery_zen_ping_unicast_hosts.resolve_timeout": {
           "description": "The amount of time to wait for DNS lookups on each round of pinging. Specified as time units. Defaults to 5s. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
@@ -715,7 +715,7 @@
           "type": "string",
           "default": ""
         },
-        "cluster_routing_allocation.awareness_attributes": {
+        "cluster_routing_allocation_awareness_attributes": {
           "description": "Setup shard allocation awareness by telling Elasticsearch which attributes to use. Multiple awareness attributes can be specified, in which case the combination of values from each attribute is considered to be a separate value. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
@@ -740,12 +740,12 @@
           "type": "string",
           "default": ""
         },
-        "cluster.routing.allocation.disk.include_relocations": {
+        "cluster_routing_allocation_disk_include_relocations": {
           "description": "Defaults to true, which means that Elasticsearch will take into account shards that are currently being relocated to the target node when computing a node’s disk usage. Taking relocating shards' sizes into account may, however, mean that the disk usage for a node is incorrectly estimated on the high side, since the relocation could be 90% complete and a recently retrieved disk usage would include the total size of the relocating shard as well as the space already used by the running relocation. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
-        "cluster.routing.allocation.enable": {
+        "cluster_routing_allocation_enable": {
           "description": "Enable or disable allocation for specific kinds of shards: all, primaries, new_primaries, none. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
