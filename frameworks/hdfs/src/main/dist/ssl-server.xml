@@ -7,15 +7,15 @@
     </property>
     <property>
         <name>ssl.server.keystore.keypassword</name>
-        <value>changeit</value>
+        <value>notsecure</value>
     </property>
     <property>
         <name>ssl.server.keystore.password</name>
-        <value>changeit</value>
+        <value>notsecure</value>
     </property>
     <property>
         <name>ssl.server.keystore.location</name>
-        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
+        <value>{{MESOS_SANDBOX}}/node.keystore</value>
     </property>
     <property>
         <name>ssl.server.truststore.type</name>
@@ -23,10 +23,10 @@
     </property>
     <property>
         <name>ssl.server.truststore.location</name>
-        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
+        <value>{{MESOS_SANDBOX}}/node.truststore</value>
     </property>
     <property>
         <name>ssl.server.truststore.password</name>
-        <value>changeit</value>
+        <value>notsecure</value>
     </property>
 </configuration>

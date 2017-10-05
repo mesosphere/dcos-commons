@@ -37,7 +37,7 @@ public abstract class AbstractScheduler {
 
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
-    protected final SchedulerFlags schedulerFlags;
+    protected final SchedulerConfig schedulerConfig;
 
     private SchedulerApiServer apiServer;
     // Tracks whether apiServer has entered a started state. We avoid launching tasks until after the API server has
@@ -68,10 +68,10 @@ public abstract class AbstractScheduler {
     protected AbstractScheduler(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerFlags schedulerFlags) {
+            SchedulerConfig schedulerConfig) {
         this.stateStore = stateStore;
         this.configStore = configStore;
-        this.schedulerFlags = schedulerFlags;
+        this.schedulerConfig = schedulerConfig;
     }
 
     /**
@@ -89,7 +89,7 @@ public abstract class AbstractScheduler {
         if (apiServerStarted.get()) {
             LOGGER.info("Skipping API server setup");
         } else {
-            this.apiServer = new SchedulerApiServer(schedulerFlags, getResources());
+            this.apiServer = new SchedulerApiServer(schedulerConfig, getResources());
             this.apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {

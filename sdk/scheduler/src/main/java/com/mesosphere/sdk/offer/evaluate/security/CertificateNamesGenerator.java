@@ -2,45 +2,66 @@ package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.TaskSpec;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.util.encoders.Hex;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
-* A {@link CertificateNamesGenerator} creates relevant names for given service pod.
+* A {@link CertificateNamesGenerator} creates relevant TLS certificate names for given pod instance.
  */
 public class CertificateNamesGenerator {
 
+    private static final MessageDigest SHA1_HASHER;
+    static {
+        try {
+            SHA1_HASHER = MessageDigest.getInstance("SHA-1");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private final String serviceName;
     private final String taskInstanceName;
-    private final Optional<String> discoveryName;
+    private final String autoIpHostname;
     private final Collection<NamedVIPSpec> vipSpecs;
 
     // Based on the RFC5280 the CN cannot be longer than 64 characters
     // ub-common-name INTEGER ::= 64
     private static final int CN_MAX_LENGTH = 64;
 
-    public CertificateNamesGenerator(
-            String serviceName,
-            String taskInstanceName,
-            Optional<String> discoveryName,
-            Collection<NamedVIPSpec> vipSpecs) {
+    public CertificateNamesGenerator(String serviceName, TaskSpec taskSpec, PodInstance podInstance) {
         this.serviceName = serviceName;
-        this.taskInstanceName = taskInstanceName;
-        this.discoveryName = discoveryName;
-        this.vipSpecs = vipSpecs;
+        this.taskInstanceName = TaskSpec.getInstanceName(podInstance, taskSpec);
+        // Task can specify its own service discovery name
+        if (taskSpec.getDiscovery().isPresent() && taskSpec.getDiscovery().get().getPrefix().isPresent()) {
+            this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName,
+                    String.format("%s-%d", taskSpec.getDiscovery().get().getPrefix().get(), podInstance.getIndex()));
+        } else {
+            this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName, this.taskInstanceName);
+        }
+        this.vipSpecs = taskSpec.getResourceSet().getResources().stream()
+                .filter(resourceSpec -> resourceSpec instanceof NamedVIPSpec)
+                .map(resourceSpec -> (NamedVIPSpec) resourceSpec)
+                .collect(Collectors.toList());
     }
 
     /**
      * Returns a Subject for service certificate.
-     * @return
      */
     public X500Name getSubject() {
-        // Create subject CN as task-name.service-name
+        // Create subject CN as pod-name-0-task-name.service-name
         String cn = String.format("%s.%s",
                 EndpointUtils.removeSlashes(EndpointUtils.replaceDotsWithDashes(taskInstanceName)),
                 EndpointUtils.removeSlashes(EndpointUtils.replaceDotsWithDashes(serviceName)));
@@ -60,34 +81,31 @@ public class CertificateNamesGenerator {
 
     /**
      * Returns additional Subject Alternative Names for service certificates.
-     * @return
      */
     public GeneralNames getSANs() {
-        List<GeneralName> generalNames = new ArrayList<>(Arrays.asList(
-                new GeneralName(GeneralName.dNSName, getAutoIpHostname())
-        ));
+        List<GeneralName> generalNames = new ArrayList<>();
+        generalNames.add(new GeneralName(GeneralName.dNSName, autoIpHostname));
 
-        // Process VIP names
-        vipSpecs
-                .stream()
-                .map(vipSpec -> new EndpointUtils.VipInfo(vipSpec.getVipName(), (int) vipSpec.getPort()))
-                .map(vipInfo -> EndpointUtils.toVipHostname(serviceName, vipInfo))
-                .map(vipHostname -> new GeneralName(GeneralName.dNSName, vipHostname))
+        // Process VIP names, if any
+        vipSpecs.stream()
+                .map(vipSpec -> new GeneralName(
+                        GeneralName.dNSName,
+                        EndpointUtils.toVipHostname(
+                                serviceName,
+                                new EndpointUtils.VipInfo(vipSpec.getVipName(), (int) vipSpec.getPort()))))
                 .forEach(vipGeneralName -> generalNames.add(vipGeneralName));
 
-
-        return new GeneralNames(
-                generalNames.toArray(
-                        new GeneralName[generalNames.size()])
-        );
+        return new GeneralNames(generalNames.toArray(new GeneralName[generalNames.size()]));
     }
 
-    private String getAutoIpHostname() {
-        if (this.discoveryName.isPresent()) {
-            return EndpointUtils.toAutoIpHostname(serviceName, this.discoveryName.get());
-        } else {
-            return EndpointUtils.toAutoIpHostname(serviceName, taskInstanceName);
-        }
+    /**
+     * Creates SHA1 string representation of {@link #getSANs()}.
+     */
+    public String getSANsHash() {
+        String allSans = Arrays.stream(getSANs().getNames())
+                .map(name -> name.getName().toString())
+                .collect(Collectors.joining(";"));
+        byte[] digest = SHA1_HASHER.digest(allSans.getBytes(StandardCharsets.UTF_8));
+        return new String(Hex.encode(digest), StandardCharsets.UTF_8);
     }
-
 }

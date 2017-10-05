@@ -4,7 +4,7 @@
 <configuration>
     <property>
         <name>ssl.client.truststore.password</name>
-        <value>changeit</value>
+        <value>notsecure</value>
     </property>
     <property>
         <name>ssl.client.truststore.type</name>
@@ -12,6 +12,6 @@
     </property>
     <property>
         <name>ssl.client.truststore.location</name>
-        <value>{{MESOS_SANDBOX}}/{{JRE_VERSION}}/lib/security/cacerts</value>
+        <value>{{MESOS_SANDBOX}}/node.truststore</value>
     </property>
 </configuration>

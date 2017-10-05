@@ -78,7 +78,7 @@ $ cat hdfs1.json
    }
 }
 
-$ dcos package install hdfs --options=hdfs1.json
+$ dcos package install beta-hdfs --options=hdfs1.json
 ```
 
 Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
@@ -96,7 +96,7 @@ Steps:
    Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
    ```
-   dcos:adminrouter:service:marathon full				
+   dcos:adminrouter:service:marathon full
    dcos:service:marathon:marathon:services:/testing full
    dcos:adminrouter:ops:mesos full
    dcos:adminrouter:ops:slave full
@@ -256,6 +256,31 @@ HDFS supports deployment on virtual networks on DC/OS (including the `dcos` over
 }
 ```
 As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.
+
+## TLS
+
+HDFS can be launched with TLS encryption. Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the HDFS scheduler will not abe able to provision TLS artifacts.
+
+Sample JSON options file named `hdfs-tls.json`:
+```json
+{
+  "service": {
+    "service_account_secret": "hdfs",
+    "service_account": "hdfs",
+    "tls": {
+		"enabled": true
+	}
+  }
+}
+```
+
+For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
+
+### Clients
+
+Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (`journal`, `name` and `data`) can be configured with different port numbers for TLS connections.
+
+Clients can connect only over the TLS version 1.2.
 
 # Changing Configuration at Runtime
 
@@ -697,7 +722,7 @@ The service configuration object contains properties that MUST be specified duri
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -716,9 +741,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The DC/OS service account for the HDFS cluster.</td>
   </tr>
 
 </table>

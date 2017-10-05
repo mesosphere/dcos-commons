@@ -53,9 +53,9 @@ public class OfferTestUtils {
 
     public static Collection<Resource> getExecutorResources() {
         return Arrays.asList(
-                ResourceTestUtils.getUnreservedScalar("cpus", 0.1),
-                ResourceTestUtils.getUnreservedScalar("mem", 256),
-                ResourceTestUtils.getUnreservedScalar("disk", 512));
+                ResourceTestUtils.getUnreservedCpus(0.1),
+                ResourceTestUtils.getUnreservedMem(256),
+                ResourceTestUtils.getUnreservedDisk(512));
     }
 
     public static List<Protos.Offer> getCompleteOffers(Protos.Resource resource) {
@@ -82,7 +82,6 @@ public class OfferTestUtils {
                 .setFrameworkId(TestConstants.FRAMEWORK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setHostname(TestConstants.HOSTNAME);
-
     }
 
     /**

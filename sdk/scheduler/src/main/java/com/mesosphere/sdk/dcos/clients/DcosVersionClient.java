@@ -1,9 +1,11 @@
-package com.mesosphere.sdk.dcos;
+package com.mesosphere.sdk.dcos.clients;
 
 import org.apache.http.client.fluent.Request;
 import org.json.JSONObject;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.dcos.DcosVersion;
 
 import java.io.IOException;
 import java.net.URI;
@@ -13,18 +15,18 @@ import java.util.Optional;
 /**
  * Instances of this class represent DC/OS clusters.
  */
-public class DcosCluster {
+public class DcosVersionClient {
     @VisibleForTesting
     static final String DCOS_VERSION_PATH = "/dcos-metadata/dcos-version.json";
 
     private final URI dcosUri;
     private Optional<DcosVersion> dcosVersion = Optional.empty();
 
-    DcosCluster(URI dcosUri) {
+    DcosVersionClient(URI dcosUri) {
         this.dcosUri = dcosUri;
     }
 
-    public DcosCluster() {
+    public DcosVersionClient() {
         this(getUriUnchecked(DcosConstants.MESOS_LEADER_URI));
     }
 

@@ -1,9 +1,10 @@
-package com.mesosphere.sdk.dcos.http;
+package com.mesosphere.sdk.dcos;
 
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ import java.security.cert.X509Certificate;
  * A {@link DcosHttpClientBuilder} is a helper that simplifies common modifications
  * of {@link org.apache.http.client.HttpClient}.
  */
-public class DcosHttpClientBuilder extends org.apache.http.impl.client.HttpClientBuilder {
+public class DcosHttpClientBuilder extends HttpClientBuilder {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

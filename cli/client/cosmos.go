@@ -40,8 +40,8 @@ type cosmosErrorInstance struct {
 type cosmosError struct {
 	Keyword  string
 	Message  string
-	Found    string
-	Expected []string
+	Found    interface{}
+	Expected []interface{}
 	Instance cosmosErrorInstance
 	// deliberately omitting:
 	// level
@@ -100,7 +100,7 @@ func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 	var errorResponse cosmosErrorResponse
 	err := json.Unmarshal(body, &errorResponse)
 	if err != nil {
-		printMessage(err.Error())
+		printMessage("Error unmarshalling cosmosErrorResponse: %v", err.Error())
 		return createResponseError(response)
 	}
 	if errorResponse.ErrorType != "" {
