@@ -87,8 +87,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 return evaluationOutcome;
             }
 
-            Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult).build());
+            setProtos(podInfoBuilder, reserveEvaluationOutcome.getTaskResource().get());
             return EvaluationOutcome.pass(
                     this,
                     evaluationOutcome.getOfferRecommendations(),
@@ -96,7 +95,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     resourceId.isPresent() ? "previously reserved " : "",
                     assignedPort,
                     resourceId)
-                    .mesosResource(evaluationOutcome.getMesosResource().get())
                     .build();
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceId).build());

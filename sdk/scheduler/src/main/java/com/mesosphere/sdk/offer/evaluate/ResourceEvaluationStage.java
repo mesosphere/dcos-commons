@@ -39,10 +39,10 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             return evaluationOutcome;
         }
 
-        // Use the reservation outcome's resourceId, which is a newly generated UUID if requiredResourceId was empty.
+        // Use the reservation outcome's resource, which has a newly generated UUID if requiredResourceId was empty.
         OfferEvaluationUtils.setProtos(
                 podInfoBuilder,
-                ResourceBuilder.fromSpec(resourceSpec, reserveEvaluationOutcome.getResourceId()).build(),
+                reserveEvaluationOutcome.getTaskResource().get(),
                 Optional.ofNullable(taskName));
 
         return evaluationOutcome;

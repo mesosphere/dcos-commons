@@ -10,7 +10,6 @@ import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
@@ -405,20 +404,15 @@ public class TaskUtils {
      */
     public static boolean isRecoveryNeeded(TaskStatus taskStatus) {
         switch (taskStatus.getState()) {
-            case TASK_FINISHED:
-            case TASK_FAILED:
-            case TASK_KILLED:
-            case TASK_ERROR:
-            case TASK_LOST:
-                return true;
-            case TASK_KILLING:
-            case TASK_RUNNING:
-            case TASK_STAGING:
-            case TASK_STARTING:
-                break;
+        case TASK_FINISHED:
+        case TASK_FAILED:
+        case TASK_KILLED:
+        case TASK_ERROR:
+        case TASK_LOST:
+            return true;
+        default:
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -433,20 +427,14 @@ public class TaskUtils {
      */
     public static boolean isTerminal(TaskState taskState) {
         switch (taskState) {
-            case TASK_FINISHED:
-            case TASK_FAILED:
-            case TASK_KILLED:
-            case TASK_ERROR:
-                return true;
-            case TASK_LOST:
-            case TASK_KILLING:
-            case TASK_RUNNING:
-            case TASK_STAGING:
-            case TASK_STARTING:
-                break;
+        case TASK_FINISHED:
+        case TASK_FAILED:
+        case TASK_KILLED:
+        case TASK_ERROR:
+            return true;
+        default:
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -477,39 +465,5 @@ public class TaskUtils {
      */
     public static String getStepName(PodInstance podInstance, Collection<String> tasksToLaunch) {
         return podInstance.getName() + ":" + tasksToLaunch;
-    }
-
-    /**
-     * Returns TaskInfos will all reservations and persistence IDs removed from their Resources.
-     */
-    public static Collection<TaskInfo> clearReservations(Collection<TaskInfo> taskInfos) {
-        return taskInfos.stream()
-                .map(TaskUtils::clearReservationIds)
-                .collect(Collectors.toList());
-    }
-
-    private static TaskInfo clearReservationIds(TaskInfo taskInfo) {
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder(taskInfo)
-                .clearResources()
-                .addAllResources(clearReservationIds(taskInfo.getResourcesList()));
-
-        if (taskInfo.hasExecutor()) {
-            taskInfoBuilder.getExecutorBuilder()
-                    .clearResources()
-                    .addAllResources(clearReservationIds(taskInfoBuilder.getExecutor().getResourcesList()));
-        }
-
-        return taskInfoBuilder.build();
-    }
-
-    private static List<Resource> clearReservationIds(List<Resource> resources) {
-        List<Resource> clearedResources = new ArrayList<>();
-        for (Resource resource : resources) {
-            clearedResources.add(ResourceBuilder.fromExistingResource(resource)
-                    .clearResourceId()
-                    .clearPersistenceId()
-                    .build());
-        }
-        return clearedResources;
     }
 }

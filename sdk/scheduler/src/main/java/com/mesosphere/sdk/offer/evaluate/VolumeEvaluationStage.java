@@ -50,7 +50,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
         Resource resource;
-        final MesosResource mesosResource;
 
         boolean isRunningExecutor = podInfoBuilder.getExecutorBuilder().isPresent() &&
                 isRunningExecutor(podInfoBuilder.getExecutorBuilder().get().build(), mesosResourcePool.getOffer());
@@ -58,60 +57,45 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo as well as whatever task is being launched.
             podInfoBuilder.setExecutorVolume(volumeSpec);
-            mesosResource = new MesosResource(
-                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get()));
-
             return pass(
                     this,
                     Collections.emptyList(),
                     "Offer contains executor with existing volume with resourceId: '%s' and persistenceId: '%s'",
                     resourceId,
                     persistenceId)
-                    .mesosResource(mesosResource)
                     .build();
         }
 
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                    OfferEvaluationUtils.evaluateSimpleResource(
-                            this,
-                            volumeSpec,
-                            resourceId,
-                            mesosResourcePool);
+                    OfferEvaluationUtils.evaluateRootVolumeResource(
+                            this, volumeSpec, resourceId, persistenceId, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
 
             offerRecommendations.addAll(evaluationOutcome.getOfferRecommendations());
-            mesosResource = evaluationOutcome.getMesosResource().get();
-            resource = ResourceBuilder.fromSpec(
-                    volumeSpec,
-                    reserveEvaluationOutcome.getResourceId(),
-                    persistenceId,
-                    Optional.empty())
-                    .setMesosResource(mesosResource)
-                    .build();
+            resource = reserveEvaluationOutcome.getTaskResource().get();
         } else {
             Optional<MesosResource> mesosResourceOptional;
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
                         mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
             } else {
-                mesosResourceOptional =
-                        mesosResourcePool.getReservedResourceById(resourceId.get());
+                mesosResourceOptional = mesosResourcePool.getReservedResourceById(resourceId.get());
             }
 
             if (!mesosResourceOptional.isPresent()) {
                 return fail(this, "Failed to find MOUNT volume for '%s'.", volumeSpec).build();
             }
 
-            mesosResource = mesosResourceOptional.get();
-            resource = ResourceBuilder.fromSpec(
-                    volumeSpec,
-                    resourceId,
-                    persistenceId,
-                    Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
+            final MesosResource mesosResource = mesosResourceOptional.get();
+            resource = ResourceBuilder.fromMountVolumeSpec(
+                            volumeSpec,
+                            resourceId,
+                            persistenceId,
+                            mesosResource.getResource().getDisk().getSource().getMount().getRoot())
                     .setValue(mesosResource.getValue())
                     .setMesosResource(mesosResource)
                     .build();
@@ -146,7 +130,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 volumeSpec,
                 resourceId,
                 persistenceId)
-                .mesosResource(mesosResource)
                 .build();
     }
 

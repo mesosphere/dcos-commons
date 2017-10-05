@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -594,8 +595,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                             ResourceTestUtils.getUnreservedMem(256),
                             ResourceTestUtils.getUnreservedDisk(512),
                             ResourceTestUtils.getUnreservedCpus(3.0)).stream()
-                            .map(r -> r.toBuilder()
-                                    .setRole(Constants.ANY_ROLE)
+                            .map(r -> ResourceUtils.setRootRole(r.toBuilder(), Optional.of(Constants.ANY_ROLE))
                                     .addReservations(
                                             Resource.ReservationInfo.newBuilder()
                                                     .setRole(TestConstants.PRE_RESERVED_ROLE)
@@ -665,15 +665,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
-            Offer badOffer = OfferTestUtils.getOffer(
-                    Arrays.asList(
-                            ResourceTestUtils.getUnreservedCpus(3.0).toBuilder()
-                                    .setRole(Constants.ANY_ROLE)
-                                    .addReservations(
-                                            Resource.ReservationInfo.newBuilder()
-                                                    .setRole("different-role")
-                                                    .setType(Resource.ReservationInfo.Type.STATIC))
-                                    .build()));
+            Offer badOffer = OfferTestUtils.getOffer(Arrays.asList(
+                    ResourceUtils.setRootRole(
+                            ResourceTestUtils.getUnreservedCpus(3.0).toBuilder(), Optional.of(Constants.ANY_ROLE))
+                            .addReservations(Resource.ReservationInfo.newBuilder()
+                                    .setRole("different-role")
+                                    .setType(Resource.ReservationInfo.Type.STATIC))
+                            .build()));
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -783,10 +781,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     static void validateRole(Resource resource) {
+        String rootRole = ResourceUtils.getRootRole(resource);
         if (Capabilities.getInstance().supportsPreReservedResources()) {
-            Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
+            Assert.assertEquals(Constants.ANY_ROLE, rootRole);
         } else {
-            Assert.assertEquals(TestConstants.ROLE, resource.getRole());
+            Assert.assertEquals(TestConstants.ROLE, rootRole);
         }
     }
 }

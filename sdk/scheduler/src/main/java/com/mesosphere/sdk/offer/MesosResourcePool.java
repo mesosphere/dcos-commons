@@ -180,10 +180,9 @@ public class MesosResourcePool {
             Resource.Builder builder = ResourceBuilder.fromUnreservedValue(name, desiredValue).build().toBuilder();
             if (Capabilities.getInstance().supportsPreReservedResources() &&
                     !preReservedRole.equals(Constants.ANY_ROLE)) {
-                builder.addReservations(
-                        Resource.ReservationInfo.newBuilder()
-                                .setRole(preReservedRole)
-                                .setType(Resource.ReservationInfo.Type.STATIC));
+                builder.addReservationsBuilder()
+                        .setRole(preReservedRole)
+                        .setType(Resource.ReservationInfo.Type.STATIC);
             }
 
             return Optional.of(new MesosResource(builder.build()));
@@ -235,25 +234,22 @@ public class MesosResourcePool {
     }
 
     private void freeAtomicResource(MesosResource mesosResource) {
-        Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
-        resBuilder.clearReservation();
-        resBuilder.setRole(Constants.ANY_ROLE);
+        Resource.Builder resBuilder = mesosResource.getResource().toBuilder()
+                .clearReservation();
+        ResourceUtils.setRootRole(resBuilder, Optional.of(Constants.ANY_ROLE));
 
         if (resBuilder.hasDisk()) {
-            Resource.DiskInfo.Builder diskBuilder = Resource.DiskInfo.newBuilder(resBuilder.getDisk());
-            diskBuilder.clearPersistence();
-            diskBuilder.clearVolume();
-            resBuilder.setDisk(diskBuilder.build());
+            resBuilder.getDiskBuilder()
+                    .clearPersistence()
+                    .clearVolume();
         }
-
-        Resource releasedResource = resBuilder.build();
 
         List<MesosResource> resList = unreservedAtomicPool.get(mesosResource.getName());
         if (resList == null) {
             resList = new ArrayList<MesosResource>();
         }
 
-        resList.add(new MesosResource(releasedResource));
+        resList.add(new MesosResource(resBuilder.build()));
         unreservedAtomicPool.put(mesosResource.getName(), resList);
     }
 

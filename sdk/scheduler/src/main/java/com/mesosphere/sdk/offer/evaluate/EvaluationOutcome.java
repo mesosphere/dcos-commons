@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 
 import java.util.*;
@@ -22,7 +21,6 @@ public class EvaluationOutcome {
 
     private final Type type;
     private final String source;
-    private final MesosResource mesosResource;
     private final Collection<OfferRecommendation> offerRecommendations;
     private final Collection<EvaluationOutcome> children;
     private final String reason;
@@ -84,13 +82,11 @@ public class EvaluationOutcome {
     private EvaluationOutcome(
             Type type,
             Object source,
-            MesosResource mesosResource,
             Collection<OfferRecommendation> offerRecommendations,
             Collection<EvaluationOutcome> children,
             String reason) {
         this.type = type;
         this.source = source.getClass().getSimpleName();
-        this.mesosResource = mesosResource;
         this.offerRecommendations = offerRecommendations;
         this.children = children;
         this.reason = reason;
@@ -124,10 +120,6 @@ public class EvaluationOutcome {
         return children;
     }
 
-    public Optional<MesosResource> getMesosResource() {
-        return Optional.ofNullable(mesosResource);
-    }
-
     public List<OfferRecommendation> getOfferRecommendations() {
         List<OfferRecommendation> recommendations = new ArrayList<>();
         recommendations.addAll(offerRecommendations);
@@ -151,7 +143,6 @@ public class EvaluationOutcome {
         private final Collection<OfferRecommendation> offerRecommendations;
         private final Collection<EvaluationOutcome> children;
         private final String reason;
-        private MesosResource mesosResource;
 
         public Builder(
                 Type type,
@@ -166,11 +157,6 @@ public class EvaluationOutcome {
             this.reason = String.format(reasonFormat, reasonArgs);
         }
 
-        public Builder mesosResource(MesosResource mesosResource) {
-            this.mesosResource = mesosResource;
-            return this;
-        }
-
         public Builder addChild(EvaluationOutcome child) {
             children.add(child);
             return this;
@@ -182,7 +168,7 @@ public class EvaluationOutcome {
         }
 
         public EvaluationOutcome build() {
-            return new EvaluationOutcome(type, source, mesosResource, offerRecommendations, children, reason);
+            return new EvaluationOutcome(type, source, offerRecommendations, children, reason);
         }
     }
 }

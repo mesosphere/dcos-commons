@@ -71,13 +71,13 @@ public class MesosResource {
 
     private String getRefinedPreviousRole() {
         if (resource.getReservationsCount() <= 1) {
-            return resource.getRole();
+            return ResourceUtils.getRootRole(resource);
         } else {
             return resource.getReservations(resource.getReservationsCount() - 2).getRole();
         }
     }
 
-    private String getLegacyPreviousRole() {
+    private static String getLegacyPreviousRole() {
         return Constants.ANY_ROLE;
     }
 

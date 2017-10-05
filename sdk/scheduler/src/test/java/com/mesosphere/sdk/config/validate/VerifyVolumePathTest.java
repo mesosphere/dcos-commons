@@ -1,4 +1,5 @@
 package com.mesosphere.sdk.config.validate;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import org.junit.Test;
 
@@ -14,55 +15,55 @@ public class VerifyVolumePathTest {
     @Test(expected = Exception.class)
     public void testVolumePathEmpty() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test(expected = Exception.class)
     public void testVolumePathBlank() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, " ", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, " ", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test(expected = Exception.class)
     public void testVolumePathSlash() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "/path/to/volume0", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "/path/to/volume0", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test(expected = Exception.class)
     public void testVolumePathChar() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "@?test", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "@?test", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test(expected = Exception.class)
     public void testVolumePathBeg() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "-test", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.MOUNT, "-test", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test
     public void testVolumePathNumber() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0_1-path", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0_1-path", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test
     public void testVolumePathCorrect0() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path", "role", Constants.ANY_ROLE, "principal");
     }
 
 
     @Test(expected = Exception.class)
     public void testVolumePathSlash1() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path/path", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path/path", "role", Constants.ANY_ROLE, "principal");
     }
 
     @Test(expected = Exception.class)
     public void testVolumePathSlash2() {
         new DefaultVolumeSpec(
-                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0/1-path", "role", "*", "principal");
+                DISK_SIZE_MB, VolumeSpec.Type.ROOT, "path-0/1-path", "role", Constants.ANY_ROLE, "principal");
     }
 }

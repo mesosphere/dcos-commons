@@ -5,9 +5,12 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 
+import com.mesosphere.sdk.offer.ResourceUtils;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class provides utilities for tests concerned with Offers.
@@ -90,7 +93,7 @@ public class OfferTestUtils {
     public static void addResource(Offer.Builder o, String name, String role) {
         Resource.Builder b = o.addResourcesBuilder().setType(Value.Type.RANGES).setName(name);
         if (role != null) {
-            b.setRole(role);
+            ResourceUtils.setRootRole(b, Optional.of(role));
         }
     }
 
