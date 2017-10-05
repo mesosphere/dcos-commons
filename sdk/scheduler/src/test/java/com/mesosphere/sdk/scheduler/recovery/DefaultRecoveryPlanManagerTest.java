@@ -6,7 +6,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
@@ -49,10 +49,10 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     private static final List<Resource> resources = Arrays.asList(
-            ResourceTestUtils.getUnreservedCpu(TestPodFactory.CPU),
+            ResourceTestUtils.getUnreservedCpus(TestPodFactory.CPU),
             ResourceTestUtils.getUnreservedMem(TestPodFactory.MEM));
 
     private TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resources);
@@ -78,7 +78,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private static List<Offer> getOffers(double cpus, double mem) {
         return OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpu(cpus),
+                        ResourceTestUtils.getUnreservedCpus(cpus),
                         ResourceTestUtils.getUnreservedMem(mem)));
     }
 
@@ -96,7 +96,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         stateStore = new StateStore(persister);
 
         File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
-        serviceSpec = DefaultServiceSpec.newGenerator(recoverySpecFile, flags).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(recoverySpecFile, SCHEDULER_CONFIG).build();
 
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
@@ -128,7 +128,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         stateStore,
                         serviceSpec.getName(),
                         configTarget,
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
                 stateStore,
                 new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver));

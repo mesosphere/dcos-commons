@@ -24,7 +24,7 @@ public class PersisterCache implements Persister {
     private final Lock rwlock = internalLock.writeLock();
 
     private final Persister persister;
-    private MemPersister _cache;
+    private MemPersister cache;
 
     public PersisterCache(Persister persister) throws PersisterException {
         this.persister = persister;
@@ -100,8 +100,8 @@ public class PersisterCache implements Persister {
         rwlock.lock();
         try {
             persister.close();
-            if (_cache != null) {
-                _cache.close();
+            if (cache != null) {
+                cache.close();
             }
         } finally {
             rwlock.unlock();
@@ -114,14 +114,14 @@ public class PersisterCache implements Persister {
     public void refresh() throws PersisterException {
         rwlock.lock();
         try {
-            if (_cache != null) {
-                logger.info("Cache content before refresh:\n{}", _cache.getDebugString());
+            if (cache != null) {
+                logger.info("Cache content before refresh:\n{}", cache.getDebugString());
             }
 
             // We already have our own locking, so we can disable locking in the underlying cache:
-            _cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
+            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
 
-            logger.info("Loaded data from persister:\n{}", _cache.getDebugString());
+            logger.info("Loaded data from persister:\n{}", cache.getDebugString());
         } finally {
             rwlock.unlock();
         }
@@ -131,6 +131,6 @@ public class PersisterCache implements Persister {
         if (!inited.getAndSet(true)) {
             refresh();
         }
-        return _cache;
+        return cache;
     }
 }

@@ -4,15 +4,9 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
-import com.mesosphere.sdk.dcos.SecretsClient;
-import com.mesosphere.sdk.dcos.auth.TokenProvider;
-import com.mesosphere.sdk.dcos.http.DcosHttpClientBuilder;
-import com.mesosphere.sdk.dcos.secrets.DefaultSecretsClient;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.evaluate.TLSEvaluationStage;
 import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -20,8 +14,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,37 +45,41 @@ public class DefaultService implements Runnable {
         //No initialization needed
     }
 
-    public DefaultService(File yamlSpecFile, SchedulerFlags schedulerFlags) throws Exception {
-        this(yamlSpecFile, yamlSpecFile.getParentFile(), schedulerFlags);
+    public DefaultService(File yamlSpecFile, SchedulerConfig schedulerConfig) throws Exception {
+        this(yamlSpecFile, yamlSpecFile.getParentFile(), schedulerConfig);
     }
 
-    public DefaultService(File yamlSpecFile, File configTemplateDir, SchedulerFlags schedulerFlags)
+    public DefaultService(File yamlSpecFile, File configTemplateDir, SchedulerConfig schedulerConfig)
             throws Exception {
-        this(RawServiceSpec.newBuilder(yamlSpecFile).build(), configTemplateDir, schedulerFlags);
+        this(RawServiceSpec.newBuilder(yamlSpecFile).build(), configTemplateDir, schedulerConfig);
     }
 
-    public DefaultService(RawServiceSpec rawServiceSpec, File configTemplateDir, SchedulerFlags schedulerFlags)
+    public DefaultService(RawServiceSpec rawServiceSpec, File configTemplateDir, SchedulerConfig schedulerConfig)
             throws Exception {
         this(DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, configTemplateDir).build(),
-                schedulerFlags)
+                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configTemplateDir).build(),
+                schedulerConfig)
                 .setPlansFrom(rawServiceSpec));
     }
 
     public DefaultService(
             ServiceSpec serviceSpecification,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Plan> plans) throws Exception {
-        this(DefaultScheduler.newBuilder(serviceSpecification, schedulerFlags)
+        this(DefaultScheduler.newBuilder(serviceSpecification, schedulerConfig)
                 .setPlans(plans));
     }
 
     public DefaultService(DefaultScheduler.Builder schedulerBuilder) throws Exception {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerFlags flags = schedulerBuilder.getSchedulerFlags();
+        SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
-                SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+                schedulerConfig.getPackageName(),
+                schedulerConfig.getPackageVersion(),
+                Instant.ofEpochMilli(schedulerConfig.getPackageBuildTimeMs()),
+                SDKBuildInfo.VERSION,
+                SDKBuildInfo.GIT_SHA,
+                Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     public static Boolean serviceSpecRequestsGpuResources(ServiceSpec serviceSpec) {
@@ -100,28 +96,11 @@ public class DefaultService implements Runnable {
     private void initService() {
         // Use a single stateStore for either scheduler as the StateStoreCache requires a single instance of StateStore.
         this.stateStore = schedulerBuilder.getStateStore();
-        if (schedulerBuilder.getSchedulerFlags().isUninstallEnabled()) {
+        if (schedulerBuilder.getSchedulerConfig().isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                         "Uninstall cannot be canceled once enabled.");
                 StateStoreUtils.setUninstalling(stateStore);
-            }
-
-            Optional<SecretsClient> secretsClient = Optional.empty();
-            if (!TaskUtils.getTasksWithTLS(schedulerBuilder.getServiceSpec()).isEmpty()) {
-                try {
-                    TokenProvider tokenProvider = TLSEvaluationStage.Builder.tokenProviderFromEnvironment(
-                            schedulerBuilder.getSchedulerFlags());
-                    Executor executor = Executor.newInstance(
-                            new DcosHttpClientBuilder()
-                                    .setTokenProvider(tokenProvider)
-                                    .setRedirectStrategy(new LaxRedirectStrategy())
-                                    .build());
-                    secretsClient = Optional.of(new DefaultSecretsClient(executor));
-                } catch (Exception e) {
-                    LOGGER.error("Failed to create a secrets store client, " +
-                            "TLS artifacts possibly won't be cleaned up from secrets store", e);
-                }
             }
 
             LOGGER.info("Launching UninstallScheduler...");
@@ -129,8 +108,7 @@ public class DefaultService implements Runnable {
                     schedulerBuilder.getServiceSpec(),
                     stateStore,
                     schedulerBuilder.getConfigStore(),
-                    schedulerBuilder.getSchedulerFlags(),
-                    secretsClient);
+                    schedulerBuilder.getSchedulerConfig());
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -145,7 +123,7 @@ public class DefaultService implements Runnable {
     @Override
     public void run() {
         // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerFlags().getJavaHome());
+        DcosCertInstaller.installCertificate(schedulerBuilder.getSchedulerConfig().getJavaHome());
 
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
@@ -165,7 +143,7 @@ public class DefaultService implements Runnable {
                                 scheduler.getMesosScheduler().get(),
                                 frameworkInfo,
                                 zkUri,
-                                schedulerBuilder.getSchedulerFlags())
+                                schedulerBuilder.getSchedulerConfig())
                         .run();
                 LOGGER.error("Scheduler driver exited with status: {}", status);
                 // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.

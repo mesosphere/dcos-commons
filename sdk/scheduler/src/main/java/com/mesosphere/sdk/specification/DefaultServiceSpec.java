@@ -11,7 +11,7 @@ import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -120,23 +120,23 @@ public class DefaultServiceSpec implements ServiceSpec {
      * Returns a new generator with the provided configuration.
      *
      * @param rawServiceSpec The object model representation of a Service Specification YAML file
-     * @param schedulerFlags Scheduler flags containing operator-facing knobs
+     * @param schedulerConfig Scheduler configuration containing operator-facing knobs
      * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
      *     directory as the Service Specification YAML file
      */
     public static Generator newGenerator(
-            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, File configTemplateDir) {
-        return new Generator(rawServiceSpec, schedulerFlags, new TaskEnvRouter(), configTemplateDir);
+            RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir) {
+        return new Generator(rawServiceSpec, schedulerConfig, new TaskEnvRouter(), configTemplateDir);
     }
 
     /**
      * Used by unit tests.
      */
     @VisibleForTesting
-    public static Generator newGenerator(File rawServiceSpecFile, SchedulerFlags schedulerFlags) throws Exception {
+    public static Generator newGenerator(File rawServiceSpecFile, SchedulerConfig schedulerConfig) throws Exception {
         return new Generator(
                 RawServiceSpec.newBuilder(rawServiceSpecFile).build(),
-                schedulerFlags,
+                schedulerConfig,
                 new TaskEnvRouter(),
                 rawServiceSpecFile.getParentFile()); // assume that any configs are in the same directory as the spec
     }
@@ -147,12 +147,12 @@ public class DefaultServiceSpec implements ServiceSpec {
     @VisibleForTesting
     public static Generator newGenerator(
             RawServiceSpec rawServiceSpec,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Map<String, String> schedulerEnvironment,
             File configTemplateDir)
                     throws Exception {
         return new Generator(
-                rawServiceSpec, schedulerFlags, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
+                rawServiceSpec, schedulerConfig, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
     }
 
     public static Builder newBuilder() {
@@ -371,17 +371,17 @@ public class DefaultServiceSpec implements ServiceSpec {
     public static class Generator {
 
         private final RawServiceSpec rawServiceSpec;
-        private final SchedulerFlags schedulerFlags;
+        private final SchedulerConfig schedulerConfig;
         private final TaskEnvRouter taskEnvRouter;
         private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
 
         private Generator(
                 RawServiceSpec rawServiceSpec,
-                SchedulerFlags schedulerFlags,
+                SchedulerConfig schedulerConfig,
                 TaskEnvRouter taskEnvRouter,
                 File configTemplateDir) {
             this.rawServiceSpec = rawServiceSpec;
-            this.schedulerFlags = schedulerFlags;
+            this.schedulerConfig = schedulerConfig;
             this.taskEnvRouter = taskEnvRouter;
             this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
         }
@@ -418,7 +418,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
         public DefaultServiceSpec build() throws Exception {
             return YAMLToInternalMappers.convertServiceSpec(
-                    rawServiceSpec, schedulerFlags, taskEnvRouter, configTemplateReader);
+                    rawServiceSpec, schedulerConfig, taskEnvRouter, configTemplateReader);
         }
     }
 

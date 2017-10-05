@@ -26,7 +26,7 @@ import java.util.List;
 public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
     @Test
     public void testAvoidAgents() throws Exception {
-        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
         PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
@@ -73,7 +73,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
     @Test
     public void testAvoidAgentsCustomExecutor() throws Exception {
         useCustomExecutor();
-        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
         PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
@@ -119,7 +119,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testColocateAgents() throws Exception {
-        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
         PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
@@ -165,7 +165,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
     @Test
     public void testColocateAgentsCustomExecutor() throws Exception {
         useCustomExecutor();
-        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedScalar("cpus", 2.0);
+        Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
         PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(

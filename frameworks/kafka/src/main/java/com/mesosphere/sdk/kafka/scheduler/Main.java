@@ -15,7 +15,7 @@ import com.mesosphere.sdk.kafka.api.KafkaZKClient;
 import com.mesosphere.sdk.kafka.api.TopicResource;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultService;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -39,22 +39,23 @@ public class Main {
 
     private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification) throws Exception {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
-        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
 
         // Allow users to manually specify a ZK location for kafka itself. Otherwise default to our service ZK location:
         String kafkaZookeeperUri = System.getenv(KAFKA_ZK_URI_ENV);
         if (StringUtils.isEmpty(kafkaZookeeperUri)) {
             // "master.mesos:2181" + "/dcos-service-path__to__my__kafka":
             kafkaZookeeperUri =
-                    SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags)
+                    SchedulerUtils.getZkHost(rawServiceSpec, schedulerConfig)
                     + CuratorUtils.getServiceRootPath(rawServiceSpec.getName());
         }
         LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
 
         DefaultScheduler.Builder schedulerBuilder = DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags, pathToYamlSpecification.getParentFile())
+                DefaultServiceSpec
+                        .newGenerator(rawServiceSpec, schedulerConfig, pathToYamlSpecification.getParentFile())
                         .setAllPodsEnv(KAFKA_ZK_URI_ENV, kafkaZookeeperUri)
-                        .build(), schedulerFlags)
+                        .build(), schedulerConfig)
                 .setPlansFrom(rawServiceSpec);
 
         return schedulerBuilder

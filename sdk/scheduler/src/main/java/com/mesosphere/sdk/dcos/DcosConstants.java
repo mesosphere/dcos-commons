@@ -21,7 +21,7 @@ public class DcosConstants {
     public static final String MESOS_MASTER_ZK_CONNECTION_STRING = MESOS_MASTER + ":2181";
     public static final String MESOS_LEADER_URI = "http://" + MESOS_LEADER;
     public static final String MESOS_MASTER_URI = "http://" + MESOS_MASTER;
-    public static final String SECRETS_BASE_URI = MESOS_MASTER_URI + "/secrets/v1/";
+    public static final String DEFAULT_SECRET_STORE_URI = MESOS_MASTER_URI + "/secrets/v1/secret/default/";
     public static final String CA_BASE_URI = MESOS_MASTER_URI + "/ca/api/v2/";
     public static final String IAM_AUTH_URL = MESOS_MASTER_URI + "/acs/api/v1/auth/login";
     public static final boolean DEFAULT_GPU_POLICY = false;
