@@ -136,7 +136,7 @@ public class SchedulerBuilder {
      */
     public SchedulerBuilder setConfigStore(ConfigStore<ServiceSpec> configStore) {
         if (configStoreOptional.isPresent()) {
-            // Any customization of the state store must be applied BEFORE getConfigStore() is ever called.
+            // Any customization of the config store must be applied BEFORE getConfigStore() is ever called.
             throw new IllegalStateException(
                     "Config store is already set. Was getConfigStore() invoked before this?");
         }
