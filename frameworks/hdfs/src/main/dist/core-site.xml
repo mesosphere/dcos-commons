@@ -38,6 +38,10 @@
     </property>
     {{#TLS_ENABLED}}
     <property>
+        <name>hadoop.ssl.enabled.protocols</name>
+        <value>TLSv1.2</value>
+    </property>
+    <property>
         <name>hadoop.ssl.hostname.verifier</name>
         <value>ALLOW_ALL</value>
     </property>

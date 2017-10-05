@@ -45,7 +45,8 @@ def service_account():
     """
     Creates service account with `hello-world` name and yields the name.
     """
-    name = PACKAGE_NAME
+    # This name should be same as SERVICE_NAME as it determines scheduler DCOS_LABEL value.
+    name = SERVICE_NAME
     sdk_security.create_service_account(
         service_account_name=name, service_account_secret=name)
      # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
@@ -208,8 +209,6 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.tls
 @sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
-@pytest.mark.skip
-# See https://jira.mesosphere.com/browse/CASSANDRA-650
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
@@ -235,14 +234,14 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
         }
 
         # Run backup plan, uploading snapshots and schema to the cloudddd
-        sdk_plan.start_plan(PACKAGE_NAME, 'backup-s3', parameters=plan_parameters)
-        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'backup-s3')
+        sdk_plan.start_plan(SERVICE_NAME, 'backup-s3', parameters=plan_parameters)
+        sdk_plan.wait_for_completed_plan(SERVICE_NAME, 'backup-s3')
 
         sdk_jobs.run_job(get_delete_data_job(dcos_ca_bundle))
 
         # Run backup plan, uploading snapshots and schema to the cloudddd
-        sdk_plan.start_plan(PACKAGE_NAME, 'restore-s3', parameters=plan_parameters)
-        sdk_plan.wait_for_completed_plan(PACKAGE_NAME, 'restore-s3')
+        sdk_plan.start_plan(SERVICE_NAME, 'restore-s3', parameters=plan_parameters)
+        sdk_plan.wait_for_completed_plan(SERVICE_NAME, 'restore-s3')
 
     with sdk_jobs.InstallJobContext([
             get_verify_data_job(dcos_ca_bundle),

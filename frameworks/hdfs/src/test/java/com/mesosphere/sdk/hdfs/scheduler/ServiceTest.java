@@ -2,10 +2,13 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.specification.yaml.RawPort;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.CosmosRenderer;
 import com.mesosphere.sdk.testing.ServiceTestBuilder;
 
+import com.mesosphere.sdk.testing.ServiceTestResult;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
@@ -26,6 +29,59 @@ public class ServiceTest {
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
                 .render();
+    }
+
+    @Test
+    public void testTLS() throws Exception {
+        ServiceTestResult result = new ServiceTestBuilder()
+                .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
+                .setPodEnv("data", "SERVICE_ZK_ROOT", "")
+                .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
+                .setOptions("service.tls.enabled", "true")
+                .setOptions("hdfs.name_node_https_port", "2000")
+                .setOptions("hdfs.journal_node_https_port", "2001")
+                .setOptions("hdfs.data_node_https_port", "2002")
+                .render();
+
+        RawPort nameHttpsPort = result
+                .getRawServiceSpec()
+                .getPods()
+                .get("name")
+                .getResourceSets()
+                .get("name-resources")
+                .getPorts()
+                .get("name-https");
+        Assert.assertNotNull(nameHttpsPort);
+        Assert.assertEquals(2000, nameHttpsPort.getPort().intValue());
+        String config = result.getTaskConfig("name", "node", "hdfs-site");
+        Assert.assertTrue(config.contains("dfs.namenode.https-address.hdfs.name-0-node"));
+        Assert.assertTrue(config.contains("dfs.namenode.https-address.hdfs.name-1-node"));
+
+        RawPort journalHttpsPort = result
+                .getRawServiceSpec()
+                .getPods()
+                .get("journal")
+                .getResourceSets()
+                .get("journal-resources")
+                .getPorts()
+                .get("journal-https");
+        Assert.assertNotNull(journalHttpsPort);
+        Assert.assertEquals(2001, journalHttpsPort.getPort().intValue());
+        Assert.assertTrue(config.contains("0.0.0.0:2001"));
+        Assert.assertTrue(config.contains("dfs.journalnode.https-address"));
+
+        RawPort dataHttpsPort = result
+                .getRawServiceSpec()
+                .getPods()
+                .get("data")
+                .getTasks()
+                .get("node")
+                .getPorts()
+                .get("data-https");
+        Assert.assertNotNull(dataHttpsPort);
+        Assert.assertEquals(2002, dataHttpsPort.getPort().intValue());
+        Assert.assertTrue(config.contains("0.0.0.0:2002"));
+        Assert.assertTrue(config.contains("dfs.datanode.https.address"));
     }
 
     @Test

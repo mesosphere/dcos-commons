@@ -445,7 +445,7 @@ The service configuration object contains properties that MUST be specified duri
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -464,9 +464,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The service account for the HDFS cluster.</td>
   </tr>
 
 </table>
@@ -562,9 +562,6 @@ Example node configuration:
     <td>The number of nodes of that node type for the cluster. There are always exactly two name nodes, so the name_node object has no count property. Users may select either 3 or 5 journal nodes. The default value of 3 is sufficient for most deployments and should only be overridden after careful thought. At least 3 data nodes should be configured, but this value may be increased to meet the storage needs of the deployment.</td>
   </tr>
 </table>
-
-## Add a Data Node
-Increase the `DATA_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
 
 ### Node Info
 

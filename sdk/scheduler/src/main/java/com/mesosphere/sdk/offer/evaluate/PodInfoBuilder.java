@@ -4,17 +4,15 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +47,7 @@ public class PodInfoBuilder {
             PodInstanceRequirement podInstanceRequirement,
             String serviceName,
             UUID targetConfigId,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
             boolean useDefaultExecutor) throws InvalidRequirementException {
@@ -65,7 +63,7 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
-                    schedulerFlags);
+                    schedulerConfig);
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
@@ -79,7 +77,7 @@ public class PodInfoBuilder {
         }
 
         this.executorBuilder = getExecutorInfoBuilder(
-                serviceName, podInstance, frameworkID, targetConfigId, schedulerFlags);
+                serviceName, podInstance, frameworkID, targetConfigId, schedulerConfig);
 
         this.podInstance = podInstance;
         this.portsByTask = new HashMap<>();
@@ -87,7 +85,12 @@ public class PodInfoBuilder {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
-            portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
+
+            // If the pod was replaced, discard any previously used ports. We want dynamic ports
+            // to re-roll.
+            if (!FailureUtils.isPermanentlyFailed(currentTask)) {
+                portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
+            }
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
@@ -203,7 +206,7 @@ public class PodInfoBuilder {
             Map<String, String> environment,
             String serviceName,
             UUID targetConfigurationId,
-            SchedulerFlags schedulerFlags) throws InvalidRequirementException {
+            SchedulerConfig schedulerConfig) throws InvalidRequirementException {
         PodSpec podSpec = podInstance.getPod();
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
@@ -285,12 +288,12 @@ public class PodInfoBuilder {
             PodInstance podInstance,
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
-            SchedulerFlags schedulerFlags) throws IllegalStateException {
+            SchedulerConfig schedulerConfig) throws IllegalStateException {
         PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
-        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpaceLabelValue());
+        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerConfig.getDcosSpace());
 
         if (useDefaultExecutor) {
             executorInfoBuilder.setType(Protos.ExecutorInfo.Type.DEFAULT)
@@ -310,8 +313,8 @@ public class PodInfoBuilder {
             }
 
             // Required URIs from the scheduler environment:
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getLibmesosURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getJavaURI());
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {
@@ -373,12 +376,15 @@ public class PodInfoBuilder {
 
         // Inject Pod Instance Index
         environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
-        // Inject Framework Scheduler Name in order to hit the scheduler jetty server from within the YAML
-        environmentMap.put(EnvConstants.FRAMEWORK_SCHEDULER_NAME_TASKENV, EndpointUtils.removeSlashes(serviceName));
         // Inject Framework Name (raw, not safe for use in hostnames)
         environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
-        // Inject Framework host domain (with hostname-safe framework name)
+        // Inject Framework pod host domain (with hostname-safe framework name)
         environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
+        // Inject Framework VIP domain (with hostname-safe framework name)
+        environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, EndpointUtils.toVipDomain(serviceName));
+        // Inject Scheduler API hostname (with hostname-safe scheduler name)
+        environmentMap.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV,
+                EndpointUtils.toSchedulerApiVipHostname(serviceName));
 
         // Inject TASK_NAME as KEY:VALUE
         environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));

@@ -1,14 +1,15 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.HealthCheck;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -93,7 +94,12 @@ public class TaskLabelReaderWriterTest {
         builder.setLabels(new TaskLabelWriter(builder)
                 .setReadinessCheck(inReadinessCheck)
                 .toProto());
-        Protos.HealthCheck outReadinessCheck = OfferRequirementTestUtils.getReadinessCheck(builder.build()).get();
+        Protos.HealthCheck outReadinessCheck = new TaskLabelWriter(builder.build()) {
+            @Override
+            public Optional<HealthCheck> getReadinessCheck() throws TaskException {
+                return super.getReadinessCheck();
+            }
+        }.getReadinessCheck().get();
 
         Assert.assertEquals(inReadinessCheck.getDelaySeconds(), outReadinessCheck.getDelaySeconds(), 0.0);
     }

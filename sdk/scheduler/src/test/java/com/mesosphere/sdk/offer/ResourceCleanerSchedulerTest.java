@@ -47,13 +47,13 @@ public class ResourceCleanerSchedulerTest {
         offers = Arrays.asList(offerA, offerB);
 
         final DestroyOfferRecommendation destroyRecommendationA =
-                new DestroyOfferRecommendation(offerA, ResourceTestUtils.getUnreservedCpu(1.0));
+                new DestroyOfferRecommendation(offerA, ResourceTestUtils.getUnreservedCpus(1.0));
         final DestroyOfferRecommendation destroyRecommendationB =
-                new DestroyOfferRecommendation(offerB, ResourceTestUtils.getUnreservedCpu(1.0));
+                new DestroyOfferRecommendation(offerB, ResourceTestUtils.getUnreservedCpus(1.0));
         final UnreserveOfferRecommendation unreserveRecommendationA =
-                new UnreserveOfferRecommendation(offerA, ResourceTestUtils.getUnreservedCpu(1.0));
+                new UnreserveOfferRecommendation(offerA, ResourceTestUtils.getUnreservedCpus(1.0));
         final UnreserveOfferRecommendation unreserveRecommendationB =
-                new UnreserveOfferRecommendation(offerB, ResourceTestUtils.getUnreservedCpu(1.0));
+                new UnreserveOfferRecommendation(offerB, ResourceTestUtils.getUnreservedCpus(1.0));
 
         recommendations = Arrays.asList(
                 destroyRecommendationA,
