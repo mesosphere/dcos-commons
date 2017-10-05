@@ -8,9 +8,22 @@ import java.util.Map;
 
 import org.apache.mesos.Protos;
 
+/**
+ * Representation of the state of a cluster.
+ */
 public class ClusterState {
+
+    private final SchedulerConfigResult configResult;
     private final List<Protos.Offer> sentOffers = new ArrayList<>();
     private final List<Collection<Protos.TaskInfo>> createdPods = new ArrayList<>();
+
+    public ClusterState(SchedulerConfigResult configResult) {
+        this.configResult = configResult;
+    }
+
+    public SchedulerConfigResult getSchedulerConfig() {
+        return configResult;
+    }
 
     public void addSentOffer(Protos.Offer offer) {
         sentOffers.add(offer);
@@ -23,11 +36,11 @@ public class ClusterState {
         return sentOffers.get(sentOffers.size() - 1);
     }
 
-    public void addPod(Collection<Protos.TaskInfo> pod) {
+    public void addLaunchedPod(Collection<Protos.TaskInfo> pod) {
         createdPods.add(pod);
     }
 
-    public Collection<Protos.TaskInfo> getLastPod() {
+    public Collection<Protos.TaskInfo> getLastLaunchedPod() {
         if (createdPods.isEmpty()) {
             throw new IllegalStateException("No pods were created yet");
         }
