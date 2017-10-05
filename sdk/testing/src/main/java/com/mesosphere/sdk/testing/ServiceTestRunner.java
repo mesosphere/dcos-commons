@@ -20,7 +20,7 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -36,7 +36,6 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
  * Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it, then
@@ -181,13 +180,12 @@ public class ServiceTestRunner {
      * @throws Exception if the test failed
      */
     public SchedulerConfigResult run(Collection<SimulationTick> ticks) throws Exception {
-        SchedulerFlags mockFlags = Mockito.mock(SchedulerFlags.class);
-        Mockito.when(mockFlags.getExecutorURI()).thenReturn("test-executor-uri");
-        Mockito.when(mockFlags.getLibmesosURI()).thenReturn("test-libmesos-uri");
-        Mockito.when(mockFlags.getJavaURI()).thenReturn("test-java-uri");
-        Mockito.when(mockFlags.getApiServerPort()).thenReturn(8080);
-        Mockito.when(mockFlags.getServiceAccountUid()).thenReturn(TestConstants.PRINCIPAL);
-        Mockito.when(mockFlags.getDcosSpaceLabelValue()).thenReturn("test-space");
+        SchedulerConfig mockSchedulerConfig = Mockito.mock(SchedulerConfig.class);
+        Mockito.when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
+        Mockito.when(mockSchedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
+        Mockito.when(mockSchedulerConfig.getJavaURI()).thenReturn("test-java-uri");
+        Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
+        Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -211,11 +209,11 @@ public class ServiceTestRunner {
 
         // Test 2: Does ServiceSpec render?
         ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
-                rawServiceSpec, mockFlags, schedulerEnvironment, configTemplateDir).build();
+                rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
         Persister persister = new MemPersister();
-        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockFlags, persister)
+        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)

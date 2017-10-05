@@ -12,7 +12,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.util.RLimit;
@@ -57,7 +57,7 @@ public class YAMLToInternalMappers {
      */
     public static DefaultServiceSpec convertServiceSpec(
             RawServiceSpec rawServiceSpec,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             TaskEnvRouter taskEnvRouter,
             ConfigTemplateReader configTemplateReader) throws Exception {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
@@ -71,7 +71,7 @@ public class YAMLToInternalMappers {
                 .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
-                .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerFlags))
+                .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerConfig))
                 .webUrl(rawServiceSpec.getWebUrl())
                 .user(user);
 
@@ -88,7 +88,7 @@ public class YAMLToInternalMappers {
                     taskEnvRouter.getConfig(podName),
                     getRole(rawPod.getPreReservedRole(), role),
                     principal,
-                    schedulerFlags.getExecutorURI(),
+                    schedulerConfig.getExecutorURI(),
                     user));
 
         }

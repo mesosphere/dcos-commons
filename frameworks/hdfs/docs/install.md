@@ -78,7 +78,7 @@ $ cat hdfs1.json
    }
 }
 
-$ dcos package install hdfs --options=hdfs1.json
+$ dcos package install beta-hdfs --options=hdfs1.json
 ```
 
 Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
@@ -96,7 +96,7 @@ Steps:
    Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
    ```
-   dcos:adminrouter:service:marathon full				
+   dcos:adminrouter:service:marathon full
    dcos:service:marathon:marathon:services:/testing full
    dcos:adminrouter:ops:mesos full
    dcos:adminrouter:ops:slave full
@@ -722,7 +722,7 @@ The service configuration object contains properties that MUST be specified duri
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -741,9 +741,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The DC/OS service account for the HDFS cluster.</td>
   </tr>
 
 </table>

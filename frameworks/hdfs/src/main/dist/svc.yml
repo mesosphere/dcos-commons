@@ -40,7 +40,7 @@ pods:
           echo "Creating version directory in the journal-data persistent volume" &&
           mkdir -p journal-data/hdfs/current &&
           echo "Fetching VERSION file" &&
-          curl api.$FRAMEWORK_SCHEDULER_NAME.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION > journal-data/hdfs/current/VERSION &&
+          curl $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION > journal-data/hdfs/current/VERSION &&
           echo "VERSION has the following content:" &&
           cat journal-data/hdfs/current/VERSION
         resource-set: journal-resources
@@ -87,7 +87,7 @@ pods:
               export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
               if [ -f journal-data/hdfs/current/VERSION ] && [ ! -f journal-data/uploadedVersionFile ]; then
-                curl -X PUT -F 'file=@journal-data/hdfs/current/VERSION' api.$FRAMEWORK_SCHEDULER_NAME.marathon.l4lb.thisdcos.directory/v1/state/files/VERSION &&
+                curl -X PUT -F 'file=@journal-data/hdfs/current/VERSION' $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION &&
                 touch journal-data/uploadedVersionFile
               fi &&
               [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]

@@ -152,7 +152,9 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       <div class="noyaml"><ul>
       <li><code>TASK_NAME</code>: The name of the task, of the form <code>&lt;pod>-&lt;#>-&lt;task></code>. For example: <code>mypod-0-node</code>.</li>
       <li><code>FRAMEWORK_NAME</code>: The name of the service.</li>
-      <li><code>FRAMEWORK_HOST</code>: The host domain of the service. For example, the full hostname for the task would be [TASK_NAME].[FRAMEWORK_HOST].</li>
+      <li><code>FRAMEWORK_HOST</code>: The host domain for pods on the service. For example, the full hostname for a task would be <code>[TASK_NAME].[FRAMEWORK_HOST]</code>.</li>
+      <li><code>FRAMEWORK_VIP_HOST</code>: The host domain for VIPs on the service. For example, the full hostname for a VIP would be <code>[VIP_NAME].[FRAMEWORK_VIP_HOST]</code>.</li>
+      <li><code>SCHEDULER_API_HOSTNAME</code>: The hostname for the Scheduler HTTP API. For example, an endpoint on the scheduler would be <code>http://[SCHEDULER_API_HOSTNAME]/myendpoint</code>.</li>
       <li><code>POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
       <li><code>&lt;TASK_NAME>=true</code>: The task name as the envvar name, with <code>true</code> as the value.</li>
       </ul></div>

@@ -18,18 +18,18 @@ public class SchedulerApiServerTest {
 
     @Test
     public void testApiServerReady() throws Exception {
-        SchedulerApiServer schedulerApiServer =
-                new SchedulerApiServer(getFlags(0, Duration.ofMillis(LONG_TIMEOUT_MILLIS)), Collections.emptyList());
+        SchedulerApiServer schedulerApiServer = new SchedulerApiServer(
+                getSchedulerConfig(0, Duration.ofMillis(LONG_TIMEOUT_MILLIS)), Collections.emptyList());
         Listener listener = new Listener();
         schedulerApiServer.start(listener);
         waitForTrue(listener.apiServerStarted);
     }
 
-    private SchedulerFlags getFlags(int port, Duration timeout) {
-        SchedulerFlags mockFlags = mock(SchedulerFlags.class);
-        when(mockFlags.getApiServerInitTimeout()).thenReturn(timeout);
-        when(mockFlags.getApiServerPort()).thenReturn(port);
-        return mockFlags;
+    private SchedulerConfig getSchedulerConfig(int port, Duration timeout) {
+        SchedulerConfig mockSchedulerConfig = mock(SchedulerConfig.class);
+        when(mockSchedulerConfig.getApiServerInitTimeout()).thenReturn(timeout);
+        when(mockSchedulerConfig.getApiServerPort()).thenReturn(port);
+        return mockSchedulerConfig;
     }
 
     private static void waitForTrue(AtomicBoolean bool) throws InterruptedException {
