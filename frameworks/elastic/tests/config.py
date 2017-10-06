@@ -172,10 +172,17 @@ def disable_xpack(service_name=SERVICE_NAME):
 
 def _set_xpack(service_name, is_enabled):
     config = sdk_marathon.get_config(service_name)
-    config['env']['TASKCFG_ALL_XPACK_ENABLED'] = is_enabled
+    # Toggling X-Pack requires full cluster restart, not a rolling restart
+    options = {'TASKCFG_ALL_XPACK_ENABLED': is_enabled, 'UPDATE_STRATEGY': 'parallel'}
+    update_app(service_name, options, DEFAULT_TASK_COUNT)
+
+
+def update_app(service_name, options, expected_task_count):
+    config = sdk_marathon.get_config(service_name)
+    config['env'].update(options)
     sdk_marathon.update_app(service_name, config)
     sdk_plan.wait_for_completed_deployment(service_name)
-    sdk_tasks.check_running(service_name, DEFAULT_TASK_COUNT)
+    sdk_tasks.check_running(service_name, expected_task_count)
 
 
 def verify_xpack_license(service_name=SERVICE_NAME):
