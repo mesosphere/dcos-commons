@@ -88,7 +88,7 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
         result = _get_elasticsearch_cluster_settings(curl_api)
         setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
         log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
-        return result and setting == expected_setting
+        return result and expected_setting == int(setting)
 
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
