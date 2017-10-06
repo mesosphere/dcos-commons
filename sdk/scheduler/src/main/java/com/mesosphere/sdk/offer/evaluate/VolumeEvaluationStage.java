@@ -46,11 +46,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        String detailsClause = resourceId.isPresent() ? "previously reserved " : "";
-
-        List<OfferRecommendation> offerRecommendations = new ArrayList<>();
-        Resource resource;
-
         boolean isRunningExecutor = podInfoBuilder.getExecutorBuilder().isPresent() &&
                 isRunningExecutor(podInfoBuilder.getExecutorBuilder().get().build(), mesosResourcePool.getOffer());
         if (taskName == null && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
@@ -66,6 +61,8 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     .build();
         }
 
+        final List<OfferRecommendation> offerRecommendations = new ArrayList<>();
+        final Resource resource;
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateRootVolumeResource(
@@ -82,12 +79,25 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
                         mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
+                if (!mesosResourceOptional.isPresent()) {
+                    return fail(
+                            this,
+                            "Offer failed to satisfy MOUNT volume requirement with size [%s]: '%s'",
+                            TextFormat.shortDebugString(volumeSpec.getValue()),
+                            volumeSpec)
+                            .build();
+                }
             } else {
                 mesosResourceOptional = mesosResourcePool.getReservedResourceById(resourceId.get());
-            }
-
-            if (!mesosResourceOptional.isPresent()) {
-                return fail(this, "Failed to find MOUNT volume for '%s'.", volumeSpec).build();
+                if (!mesosResourceOptional.isPresent()) {
+                    return fail(
+                            this,
+                            "Offer failed to satisfy required MOUNT volume with resource id '%s' (size [%s]): '%s'",
+                            resourceId.get(),
+                            TextFormat.shortDebugString(volumeSpec.getValue()),
+                            volumeSpec)
+                            .build();
+                }
             }
 
             final MesosResource mesosResource = mesosResourceOptional.get();
@@ -122,15 +132,27 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             podInfoBuilder.setExecutorVolume(volumeSpec);
         }
 
-        return pass(
-                this,
-                offerRecommendations,
-                "Offer contains sufficient %s'disk': for resource: '%s' with resourceId: '%s' and persistenceId: '%s'",
-                detailsClause,
-                volumeSpec,
-                resourceId,
-                persistenceId)
-                .build();
+        if (!resourceId.isPresent()) {
+            return pass(
+                    this,
+                    offerRecommendations,
+                    "Offer contains sufficient 'disk' (need [%s]): persistence id '%s', '%s'",
+                    TextFormat.shortDebugString(volumeSpec.getValue()),
+                    persistenceId,
+                    volumeSpec)
+                    .build();
+        } else {
+            return pass(
+                    this,
+                    offerRecommendations,
+                    "Offer contains previously reserved 'disk' with resource id '%s' (need [%s]): " +
+                            "persistence id '%s', '%s'",
+                    resourceId.get(),
+                    TextFormat.shortDebugString(volumeSpec.getValue()),
+                    persistenceId,
+                    volumeSpec)
+                    .build();
+        }
     }
 
     private Optional<String> getTaskName() {

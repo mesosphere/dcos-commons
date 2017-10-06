@@ -50,7 +50,9 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
                 this,
                 Arrays.asList(new LaunchOfferRecommendation(
                         offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch, useDefaultExecutor)),
-                "Added launch information to offer requirement")
+                "Added %s information with %s executor to offer requirement",
+                shouldLaunch ? "launch" : "fake-launch",
+                useDefaultExecutor ? "default" : "custom")
                 .build();
     }
 }

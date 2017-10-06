@@ -88,14 +88,26 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             }
 
             setProtos(podInfoBuilder, reserveEvaluationOutcome.getTaskResource().get());
-            return EvaluationOutcome.pass(
-                    this,
-                    evaluationOutcome.getOfferRecommendations(),
-                    "Offer contains required %sport: '%s' with resourceId: '%s'",
-                    resourceId.isPresent() ? "previously reserved " : "",
-                    assignedPort,
-                    resourceId)
-                    .build();
+            if (!resourceId.isPresent()) {
+                return EvaluationOutcome.pass(
+                        this,
+                        evaluationOutcome.getOfferRecommendations(),
+                        "Offer contains %s port %s: '%s'",
+                        requestedPort == 0 ? "dynamic" : "exact",
+                        assignedPort,
+                        updatedPortSpec)
+                        .build();
+            } else {
+                return EvaluationOutcome.pass(
+                        this,
+                        evaluationOutcome.getOfferRecommendations(),
+                        "Offer contains previously reserved %s port %s with resource id '%s': '%s'",
+                        requestedPort == 0 ? "dynamic" : "exact",
+                        assignedPort,
+                        resourceId.get(),
+                        updatedPortSpec)
+                        .build();
+            }
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceId).build());
             return EvaluationOutcome.pass(
