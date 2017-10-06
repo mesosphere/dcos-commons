@@ -32,9 +32,10 @@ DEFAULT_INDEX_TYPE = 'entry'
 ENDPOINT_TYPES = (
     'coordinator-http', 'coordinator-transport',
     'data-http', 'data-transport',
-    'ingest-http', 'ingest-transport',
     'master-http', 'master-transport')
-
+# TODO: similar to DEFAULT_TASK_COUNT, whether or not ingest-http is present is dependent upon
+# options.
+#    'ingest-http', 'ingest-transport',
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
