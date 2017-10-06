@@ -65,6 +65,17 @@ public class PersisterCache implements Persister {
     }
 
     @Override
+    public Map<String, byte[]> getMany(Collection<String> paths) throws PersisterException {
+        MemPersister cache = getCache();
+        rwlock.lock();
+        try {
+            return cache.getMany(paths);
+        } finally {
+            rwlock.unlock();
+        }
+    }
+
+    @Override
     public void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException {
         MemPersister cache = getCache();
         rwlock.lock();

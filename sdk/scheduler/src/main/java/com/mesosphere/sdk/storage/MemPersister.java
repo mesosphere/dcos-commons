@@ -120,10 +120,36 @@ public class MemPersister implements Persister {
         lockRW();
         try {
             for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
-                getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
+                if (entry.getValue() == null) {
+                    Node node = getNode(root, entry.getKey(), false);
+                    if (node != null) {
+                        node.data = Optional.empty();
+                    }
+                } else {
+                    getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
+                }
             }
         } finally {
             unlockRW();
+        }
+    }
+
+    @Override
+    public Map<String, byte[]> getMany(Collection<String> paths) throws PersisterException {
+        lockR();
+        try {
+            Map<String, byte[]> values = new TreeMap<>(); // return consistent ordering (mainly to simplify testing)
+            for (String path : paths) {
+                Node node = getNode(root, path, false);
+                if (node == null) {
+                    values.put(path, null);
+                } else {
+                    values.put(path, node.data.orElse(null));
+                }
+            }
+            return values;
+        } finally {
+            unlockR();
         }
     }
 

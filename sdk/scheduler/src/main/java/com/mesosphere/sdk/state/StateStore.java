@@ -53,6 +53,7 @@ public class StateStore {
 
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
+    private static final String TASK_METADATA_PATH_NAME = "Metadata";
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
@@ -187,6 +188,44 @@ public class StateStore {
 
         try {
             persister.set(path, status.toByteArray());
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    public static class GoalOverride {
+        public final Optional<String> name;
+        public final boolean pending;
+
+        public GoalOverride(Optional<String> name, boolean pending) {
+            this.name = name;
+            this.pending = pending;
+        }
+    }
+
+    /**
+     * Stores the goal state override status of a particular Task. The {@link TaskInfo} for this exact task MUST have
+     * already been written via {@link #storeTasks(Collection)} beforehand.
+     */
+    public void storeGoalOverride(String taskName, GoalOverride goalOverride) throws StateStoreException {
+        try {
+            Map<String, byte[]> values = new TreeMap<>();
+            values.put(getGoalOverridePath(taskName), goalOverride.name.orElse(null));
+            values.put(getGoalOverrideStatusPath(taskName), goalOverride.pending ? "PENDING" : null);
+            persister.setMany(values);
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    public GoalOverride fetchGoalOverride(String taskName) throws StateStoreException {
+        try {
+            String goalOverridePath = getGoalOverridePath(taskName);
+            String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
+            Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
+            return new GoalOverride(
+                    values.get(goalOverridePath),
+                    values.get(goalOverrideStatusPath));
         } catch (PersisterException e) {
             throw new StateStoreException(e);
         }
@@ -466,6 +505,18 @@ public class StateStore {
 
     protected static String getTaskStatusPath(String taskName) {
         return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+    }
+
+    protected static String getGoalOverridePath(String taskName) {
+        return PersisterUtils.join(
+                PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
+                "goal-state-override");
+    }
+
+    protected static String getGoalOverrideStatusPath(String taskName) {
+        return PersisterUtils.join(
+                PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
+                "override-status");
     }
 
     protected static String getTaskPath(String taskName) {

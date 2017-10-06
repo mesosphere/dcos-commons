@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The Curator implementation of the {@link Persister} interface provides for persistence and retrieval of data from
@@ -267,10 +268,8 @@ public class CuratorPersister implements Persister {
             return;
         }
         // Convert map to translated prefixed paths:
-        Map<String, byte[]> pathBytesMap = new TreeMap<>(); // use consistent ordering
-        for (Map.Entry<String, byte[]> entry : unprefixedPathBytesMap.entrySet()) {
-            pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
-        }
+        Map<String, byte[]> pathBytesMap = unprefixedPathBytesMap.entrySet().stream()
+                .collect(Collectors.toMap(e -> withFrameworkPrefix(e.getKey()), e -> e.getValue()));
         logger.debug("Setting many entries: {}", pathBytesMap.keySet());
         try {
             for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
@@ -310,6 +309,29 @@ public class CuratorPersister implements Persister {
         } catch (Exception e) {
             throw new PersisterException(Reason.STORAGE_ERROR, e);
         }
+    }
+
+    @Override
+    public Map<String, byte[]> getMany(Collection<String> unprefixedPaths) throws PersisterException {
+        if (unprefixedPaths.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        logger.debug("Getting many entries: {}", unprefixedPaths);
+
+        Map<String, byte[]> result = new TreeMap<>();
+        // Unlike with writes, there is not an atomic read operation. Therefore we wing it with a series of plain reads.
+        for (String unprefixedPath : unprefixedPaths) {
+            String path = withFrameworkPrefix(unprefixedPath);
+            try {
+                result.put(unprefixedPath, client.getData().forPath(path));
+            } catch (KeeperException.NoNodeException e) {
+                result.put(unprefixedPath, null);
+            } catch (Exception e) {
+                throw new PersisterException(Reason.STORAGE_ERROR,
+                        String.format("Unable to retrieve data from %s", path), e);
+            }
+        }
+        return result;
     }
 
     @Override
