@@ -186,7 +186,6 @@
     "TASKCFG_ALL_THREAD_POOL_GENERIC_MAX": "{{elasticsearch.thread_pool_generic_max}}",
     {{/elasticsearch.thread_pool_generic_max}}
     "TASKCFG_ALL_THREAD_POOL_GENERIC_KEEP_ALIVE": "{{elasticsearch.thread_pool_generic_keep_alive}}",
-    "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_yaml_block_base64}}",
     {{#elasticsearch.indices_breaker_total_limit}}
     "TASKCFG_ALL_INDICES_BREAKER_TOTAL_LIMIT": "{{elasticsearch.indices_breaker_total_limit}}",
     {{/elasticsearch.indices_breaker_total_limit}}
@@ -322,7 +321,7 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "SAMPLE_VARIABLE": "example_marathon_var_value_pass"
+    "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_yaml_block_base64}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",

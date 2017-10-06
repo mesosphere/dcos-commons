@@ -80,6 +80,19 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
+def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
+    curl_api = _curl_api(service_name, "GET")
+    expected_setting = 3
+
+    def fun():
+        result = _get_elasticsearch_cluster_settings(curl_api)
+        setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
+        log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
+        return result and setting == expected_setting
+
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+
+
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     curl_api = _curl_api(service_name, "GET")
 
@@ -199,6 +212,13 @@ def _get_elasticsearch_index_health(curl_api, index_name):
 @as_json
 def _get_elasticsearch_cluster_health(curl_api):
     exit_status, output = shakedown.run_command_on_master("{}/_cluster/health'".format(curl_api))
+    return output
+
+
+@as_json
+def _get_elasticsearch_cluster_settings(curl_api):
+    curl_cluster_settings = "{}/_cluster/settings?include_defaults=true'".format(curl_api)
+    exit_status, output = shakedown.run_command_on_master(curl_cluster_settings)
     return output
 
 
