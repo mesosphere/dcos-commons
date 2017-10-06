@@ -69,9 +69,18 @@ def login_session() -> None:
     cluster_url = os.environ.get('CLUSTER_URL')
     if not cluster_url:
         raise Exception('Must have CLUSTER_URL set in environment!')
-    dcos_login_username = os.environ.get('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
-    dcos_login_password = os.environ.get('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
-    dcos_enterprise = os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true'
+
+    def ignore_empty(envvar, default):
+        # Ignore the user passing in empty ENVVARs.
+        value = os.environ.get(envvar, "").strip()
+        if not value:
+            return default
+
+        return value
+
+    dcos_login_username = ignore_empty('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
+    dcos_login_password = ignore_empty('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
+    dcos_enterprise = ignore_empty('DCOS_ENTERPRISE', 'true').lower() == 'true'
     dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
     if not dcos_acs_token:
         log.info('No ACS token provided, logging in...')
