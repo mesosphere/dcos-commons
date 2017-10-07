@@ -45,7 +45,7 @@ public interface Persister {
 
     /**
      * Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
-     * missing will have null values in the returned mapping.
+     * missing will be unset in the returned {@link Map}.
      *
      * @see #get(String)
      * @throws PersisterException in the event of an access error
@@ -53,7 +53,8 @@ public interface Persister {
     Map<String, byte[]> getMany(Collection<String> paths) throws PersisterException;
 
     /**
-     * Atomically writes many values to storage at once. {@code null} values are interpreted as delete operations.
+     * Atomically writes many values to storage at once. Entries which have {@code null} values are interpreted as calls
+     * to {@link #deleteAll(String)} for those paths.
      *
      * @see #set(String, byte[])
      * @throws PersisterException in the event of an access error, in which case no changes should have been made

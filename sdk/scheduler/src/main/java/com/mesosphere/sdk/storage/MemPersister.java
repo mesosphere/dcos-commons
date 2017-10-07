@@ -121,10 +121,7 @@ public class MemPersister implements Persister {
         try {
             for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
                 if (entry.getValue() == null) {
-                    Node node = getNode(root, entry.getKey(), false);
-                    if (node != null) {
-                        node.data = Optional.empty();
-                    }
+                    deleteAllImpl(entry.getKey());
                 } else {
                     getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
                 }
@@ -155,26 +152,9 @@ public class MemPersister implements Persister {
 
     @Override
     public void deleteAll(String path) throws PersisterException {
-        List<String> elements = new ArrayList<>();
-        elements.addAll(getPathElements(path)); // make editable version
-        if (elements.isEmpty()) {
-            // treat this as a reset operation:
-            close();
-            return;
-        }
-        String nodeName = elements.remove(elements.size() - 1);
-
         lockRW();
         try {
-            Node parent = getNode(root, elements, false);
-            if (parent == null) {
-                // Parent node didn't exist.
-                throw new PersisterException(Reason.NOT_FOUND, path);
-            }
-
-            Node removed = parent.children.remove(nodeName);
-            if (removed == null) {
-                // Node to remove didn't exist.
+            if (!deleteAllImpl(path)) {
                 throw new PersisterException(Reason.NOT_FOUND, path);
             }
         } finally {
@@ -200,6 +180,32 @@ public class MemPersister implements Persister {
         StringBuilder sb = new StringBuilder();
         nodeContent(sb, "ROOT", root, 1);
         return sb.toString();
+    }
+
+    /**
+     * Deletes the entry if present. Returns whether the entry to be removed was found.
+     *
+     * <p>Note: Caller must obtain a read-write lock before invoking this method.
+     */
+    private boolean deleteAllImpl(String path) throws PersisterException {
+        List<String> elements = new ArrayList<>();
+        elements.addAll(getPathElements(path)); // make editable version
+        if (elements.isEmpty()) {
+            // treat this as a reset operation:
+            close();
+            return true;
+        }
+        String nodeName = elements.remove(elements.size() - 1);
+
+        Node parent = getNode(root, elements, false);
+        if (parent == null) {
+            // Parent node didn't exist.
+            return false;
+        }
+
+        Node removed = parent.children.remove(nodeName);
+        // Return whether node to be removed existed.
+        return removed != null;
     }
 
     private void lockRW() {

@@ -13,6 +13,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -41,6 +42,28 @@ import java.util.*;
  */
 public class StateStore {
 
+    /**
+     * A container which pairs a {@link GoalStateOverride} state (which may be {@link GoalStateOverride#NONE}) and
+     * a boolean describing whether the task is pending on switching to that state.
+     */
+    public static class GoalOverrideStatus {
+        /**
+         * The target override state for this task. May be {@link GoalStateOverride#NONE} in the case of no override.
+         */
+        public final GoalStateOverride override;
+
+        /**
+         * Whether the task is in the process of transitioning to the {@link #override} state. If {@code false}, then
+         * the override has been committed.
+         */
+        public final boolean pending;
+
+        public GoalOverrideStatus(GoalStateOverride override, boolean pending) {
+            this.override = override;
+            this.pending = pending;
+        }
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(StateStore.class);
 
     /**
@@ -54,6 +77,11 @@ public class StateStore {
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
     private static final String TASK_METADATA_PATH_NAME = "Metadata";
+
+    private static final String TASK_GOAL_OVERRIDE_PATH_NAME = "goal-state-override";
+    private static final String TASK_GOAL_OVERRIDE_STATUS_PATH_NAME = "override-status";
+    private static final String TASK_GOAL_OVERRIDE_STATUS_PENDING_VALUE = "PENDING";
+
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
@@ -193,42 +221,70 @@ public class StateStore {
         }
     }
 
-    public static class GoalOverride {
-        public final Optional<String> name;
-        public final boolean pending;
-
-        public GoalOverride(Optional<String> name, boolean pending) {
-            this.name = name;
-            this.pending = pending;
-        }
-    }
-
     /**
      * Stores the goal state override status of a particular Task. The {@link TaskInfo} for this exact task MUST have
      * already been written via {@link #storeTasks(Collection)} beforehand.
+     *
+     * @throws StateStoreException in the event of a storage error
      */
-    public void storeGoalOverride(String taskName, GoalOverride goalOverride) throws StateStoreException {
+    public void storeGoalOverrideStatus(String taskName, GoalOverrideStatus status)
+            throws StateStoreException {
         try {
             Map<String, byte[]> values = new TreeMap<>();
-            values.put(getGoalOverridePath(taskName), goalOverride.name.orElse(null));
-            values.put(getGoalOverrideStatusPath(taskName), goalOverride.pending ? "PENDING" : null);
+            values.put(getGoalOverridePath(taskName),
+                    status.override.getSerializedName().getBytes(StandardCharsets.UTF_8));
+            values.put(getGoalOverrideStatusPath(taskName),
+                    status.pending ? TASK_GOAL_OVERRIDE_STATUS_PENDING_VALUE.getBytes(StandardCharsets.UTF_8) : null);
             persister.setMany(values);
         } catch (PersisterException e) {
             throw new StateStoreException(e);
         }
     }
 
-    public GoalOverride fetchGoalOverride(String taskName) throws StateStoreException {
+    /**
+     * Retrieves the goal state override status of a particular task. A lack of override will result in a
+     * {@link GoalOverrideStatus} with {@code override=NONE} and {@code pending=false}.
+     *
+     * @throws StateStoreException in the event of a storage error
+     */
+    public GoalOverrideStatus fetchGoalOverrideStatus(String taskName) throws StateStoreException {
         try {
             String goalOverridePath = getGoalOverridePath(taskName);
             String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
             Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
-            return new GoalOverride(
-                    values.get(goalOverridePath),
-                    values.get(goalOverrideStatusPath));
+            return new GoalOverrideStatus(
+                    findOverride(values.get(goalOverridePath)),
+                    findOverridePending(values.get(goalOverrideStatusPath)));
         } catch (PersisterException e) {
             throw new StateStoreException(e);
         }
+    }
+
+    private static GoalStateOverride findOverride(byte[] nameBytes) throws StateStoreException {
+        if (nameBytes == null) {
+            return GoalStateOverride.NONE;
+        }
+        String name = new String(nameBytes, StandardCharsets.UTF_8);
+        for (GoalStateOverride override : GoalStateOverride.values()) {
+            if (override.getSerializedName().equals(name)) {
+                return override;
+            }
+        }
+        throw new StateStoreException(Reason.SERIALIZATION_ERROR,
+                String.format("Unknown override definition with serialized name %s", name));
+    }
+
+    private static boolean findOverridePending(byte[] statusBytes) throws StateStoreException {
+        if (statusBytes == null) {
+            return false;
+        }
+        String status = new String(statusBytes, StandardCharsets.UTF_8);
+        if (!TASK_GOAL_OVERRIDE_STATUS_PENDING_VALUE.equals(status)) {
+            // Expecting either "PENDING" or an unset node.
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR,
+                    String.format("Unknown override status %s", status));
+        }
+        return true;
     }
 
     /**
@@ -510,13 +566,13 @@ public class StateStore {
     protected static String getGoalOverridePath(String taskName) {
         return PersisterUtils.join(
                 PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
-                "goal-state-override");
+                TASK_GOAL_OVERRIDE_PATH_NAME);
     }
 
     protected static String getGoalOverrideStatusPath(String taskName) {
         return PersisterUtils.join(
                 PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
-                "override-status");
+                TASK_GOAL_OVERRIDE_STATUS_PATH_NAME);
     }
 
     protected static String getTaskPath(String taskName) {

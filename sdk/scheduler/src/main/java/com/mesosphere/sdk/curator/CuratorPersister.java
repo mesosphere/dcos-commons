@@ -11,7 +11,6 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.ACLProvider;
-import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
@@ -204,13 +203,14 @@ public class CuratorPersister implements Persister {
             logger.debug("Deleting children of root {}", path);
             try {
                 CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
+                Set<String> pendingDeletePaths = new HashSet<>();
                 for (String child : client.getChildren().forPath(serviceRootPath)) {
                     // Custom logic for root-level children: don't delete the lock node
                     if (child.equals(CuratorLocker.LOCK_PATH_NAME)) {
                         continue;
                     }
                     String childPath = PersisterUtils.join(serviceRootPath, child);
-                    transaction = deleteChildrenOf(client, childPath, transaction)
+                    transaction = deleteChildrenOf(client, childPath, transaction, pendingDeletePaths)
                             .delete().forPath(childPath).and();
                 }
                 transaction.commit();
@@ -232,18 +232,6 @@ public class CuratorPersister implements Persister {
                 throw new PersisterException(Reason.STORAGE_ERROR, String.format("Unable to delete %s", path), e);
             }
         }
-    }
-
-    private static CuratorTransactionFinal deleteChildrenOf(
-            CuratorFramework client, String path, CuratorTransactionFinal curatorTransactionFinal) throws Exception {
-        // For each child: recurse into child (to delete any grandchildren, etc..), THEN delete child itself
-        for (String child : client.getChildren().forPath(path)) {
-            String childPath = PersisterUtils.join(path, child);
-            curatorTransactionFinal =
-                    deleteChildrenOf(client, childPath, curatorTransactionFinal) // RECURSE
-                    .delete().forPath(childPath).and();
-        }
-        return curatorTransactionFinal;
     }
 
     @Override
@@ -270,25 +258,32 @@ public class CuratorPersister implements Persister {
         // Convert map to translated prefixed paths:
         Map<String, byte[]> pathBytesMap = unprefixedPathBytesMap.entrySet().stream()
                 .collect(Collectors.toMap(e -> withFrameworkPrefix(e.getKey()), e -> e.getValue()));
-        logger.debug("Setting many entries: {}", pathBytesMap.keySet());
+        logger.debug("Updating many entries: {}", pathBytesMap.keySet());
         try {
             for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
-                // Phase 1: Determine which nodes already exist. This determination can be rendered
-                //          invalid by an out-of-band change to the data.
-                //TODO(nickbp): This currently doesn't correctly detect when our own transaction is creating a node.
-                //              For example, a transaction which writes both "/a" and "/a/b" entries will not detect
-                //              that "/a" will already exist by the time "/a/b" is being written. However in practice
-                //              this hasn't come up (yet...)
-                final Set<String> pathsWhichExist = selectPathsWhichExist(pathBytesMap.keySet());
-                List<String> parentPathsToCreate = getParentPathsToCreate(pathBytesMap.keySet(), pathsWhichExist);
+                Set<String> pendingCreatePaths = new HashSet<>();
+                Set<String> pendingDeletePaths = new HashSet<>();
 
-                logger.debug("Atomic write attempt {}/{}:\n-Parent paths: {}\n-All paths: {}\n-Paths which exist: {}",
-                        i + 1, ATOMIC_WRITE_ATTEMPTS, parentPathsToCreate, pathBytesMap.keySet(), pathsWhichExist);
-
-                // Phase 2: Compose a single transaction that updates and/or creates nodes according to
-                //          the above determinations (retry if there's an out-of-band modification)
-                final CuratorTransactionFinal transaction =
-                        getWriteTransaction(pathBytesMap, pathsWhichExist, parentPathsToCreate);
+                CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
+                for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
+                    String path = entry.getKey();
+                    if (entry.getValue() == null) {
+                        // null value means delete path and all children (unless already being deleted).
+                        transaction = deleteChildrenOf(client, path, transaction, pendingDeletePaths);
+                        if (!pendingDeletePaths.contains(path)) {
+                            transaction = transaction.delete().forPath(path).and();
+                            pendingDeletePaths.add(path);
+                        }
+                    } else if (!pendingCreatePaths.contains(path) && client.checkExists().forPath(path) == null) {
+                        // Path does not exist and is not being created: Create value (and any parents as needed).
+                        transaction = createParentsOf(client, path, transaction, pendingCreatePaths)
+                                .create().forPath(path, entry.getValue()).and();
+                        pendingCreatePaths.add(path);
+                    } else {
+                        // Path exists (or will exist): Update existing value.
+                        transaction = transaction.setData().forPath(path, entry.getValue()).and();
+                    }
+                }
 
                 // Attempt to run the transaction, retrying if applicable:
                 if (i + 1 < ATOMIC_WRITE_ATTEMPTS) {
@@ -340,56 +335,46 @@ public class CuratorPersister implements Persister {
     }
 
     /**
-     * Returns the subset of the provided (prefixed) paths which exist in ZK.
+     * Updates and returns a transaction which can be used to create missing parents of the provided path, if any.
      */
-    private Set<String> selectPathsWhichExist(Set<String> paths) throws Exception {
-        Set<String> pathsWhichExist = new HashSet<>();
-        for (String path : paths) {
-            if (client.checkExists().forPath(path) != null) {
-                pathsWhichExist.add(path);
+    private static CuratorTransactionFinal createParentsOf(
+            CuratorFramework client,
+            String path,
+            CuratorTransactionFinal curatorTransactionFinal,
+            Set<String> pendingCreatePaths) throws Exception {
+        for (String parentPath : PersisterUtils.getParentPaths(path)) {
+            if (!pendingCreatePaths.contains(parentPath) && client.checkExists().forPath(parentPath) == null) {
+                curatorTransactionFinal = curatorTransactionFinal.create().forPath(parentPath).and();
+                pendingCreatePaths.add(parentPath);
             }
         }
-        return pathsWhichExist;
+        return curatorTransactionFinal;
     }
 
     /**
-     * Returns the list of parent paths which need to be created, given a list of paths which already exist.
+     * Updates and returns a transaction which can be used to delete the children of the provided path, if any.
      */
-    private List<String> getParentPathsToCreate(Set<String> paths, Set<String> pathsWhichExist) throws Exception {
-        List<String> parentPathsToCreate = new ArrayList<>();
-        for (String path : paths) {
-            if (pathsWhichExist.contains(path)) {
-                continue;
-            }
-            // Transaction interface doesn't support creatingParentsIfNeeded(), so go manual.
-            for (String parentPath : PersisterUtils.getParentPaths(path)) {
-                if (client.checkExists().forPath(parentPath) == null
-                        && !parentPathsToCreate.contains(parentPath)) {
-                    parentPathsToCreate.add(parentPath);
-                }
+    private static CuratorTransactionFinal deleteChildrenOf(
+            CuratorFramework client,
+            String path,
+            CuratorTransactionFinal curatorTransactionFinal,
+            Set<String> pendingDeletePaths) throws Exception {
+        if (pendingDeletePaths.contains(path)) {
+            // Short-circuit: Path and any children are already scheduled for deletion
+            return curatorTransactionFinal;
+        }
+        // For each child: recurse into child (to delete any grandchildren, etc..), THEN delete child itself
+        for (String child : client.getChildren().forPath(path)) {
+            String childPath = PersisterUtils.join(path, child);
+            curatorTransactionFinal =
+                    deleteChildrenOf(client, childPath, curatorTransactionFinal, pendingDeletePaths); // RECURSE
+            if (!pendingDeletePaths.contains(childPath)) {
+                // Avoid attempting to delete a path twice in the same transaction, just in case we're told to delete
+                // two nodes where one is the child of the other (or something to that effect)
+                curatorTransactionFinal = curatorTransactionFinal.delete().forPath(childPath).and();
             }
         }
-        return parentPathsToCreate;
-    }
-
-    private CuratorTransactionFinal getWriteTransaction(
-            Map<String, byte[]> pathBytesMap, Set<String> pathsWhichExist, List<String> parentPathsToCreate)
-                    throws Exception {
-        CuratorTransactionFinal transactionFinal = null;
-        CuratorTransaction transaction = client.inTransaction();
-        for (String parentPath : parentPathsToCreate) {
-            transactionFinal = transaction.create().forPath(parentPath).and();
-            transaction = transactionFinal;
-        }
-        for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
-            if (pathsWhichExist.contains(entry.getKey())) {
-                transactionFinal = transaction.setData().forPath(entry.getKey(), entry.getValue()).and();
-            } else {
-                transactionFinal = transaction.create().forPath(entry.getKey(), entry.getValue()).and();
-            }
-            transaction = transactionFinal;
-        }
-        return transactionFinal;
+        return curatorTransactionFinal;
     }
 
     /**

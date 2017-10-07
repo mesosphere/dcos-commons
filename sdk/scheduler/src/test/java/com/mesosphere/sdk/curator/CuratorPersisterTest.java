@@ -5,6 +5,7 @@ import org.apache.curator.framework.api.ACLPathAndBytesable;
 import org.apache.curator.framework.api.CreateBuilder;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.PathAndBytesable;
+import org.apache.curator.framework.api.Pathable;
 import org.apache.curator.framework.api.ProtectACLCreateModePathAndBytesable;
 import org.apache.curator.framework.api.transaction.CuratorTransaction;
 import org.apache.curator.framework.api.transaction.CuratorTransactionBridge;
@@ -137,32 +138,36 @@ public class CuratorPersisterTest {
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
         mockedPersister.setMany(MANY_MAP);
-        assertEquals(transaction.operations.toString(), 7, transaction.operations.size());
+        assertEquals(transaction.operations.toString(), 8, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
+        assertEquals(TestOperation.Mode.CHECK, op.mode);
         assertEquals(INTERNAL_PATH_SERVICE, op.path);
         assertNull(op.data);
         op = transaction.operations.get(1);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_PARENT, op.path);
+        assertEquals(INTERNAL_PATH_SERVICE, op.path);
         assertNull(op.data);
         op = transaction.operations.get(2);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_PARENT, op.path);
+        assertEquals(INTERNAL_PATH_PARENT, op.path);
         assertNull(op.data);
         op = transaction.operations.get(3);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
+        assertEquals(transaction.operations.toString(), INTERNAL_PATH_SUB_PARENT, op.path);
+        assertNull(op.data);
+        op = transaction.operations.get(4);
+        assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_1, op.path);
         assertArrayEquals(DATA_1, op.data);
-        op = transaction.operations.get(4);
+        op = transaction.operations.get(5);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_2, op.path);
         assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(5);
+        op = transaction.operations.get(6);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_SUB_1, op.path);
         assertArrayEquals(DATA_SUB_1, op.data);
-        op = transaction.operations.get(6);
+        op = transaction.operations.get(7);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_SUB_2, op.path);
         assertArrayEquals(DATA_SUB_2, op.data);
@@ -181,20 +186,24 @@ public class CuratorPersisterTest {
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
         mockedPersister.setMany(MANY_MAP);
-        assertEquals(transaction.operations.toString(), 4, transaction.operations.size());
+        assertEquals(transaction.operations.toString(), 5, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
+        assertEquals(TestOperation.Mode.CHECK, op.mode);
+        assertEquals(INTERNAL_PATH_SERVICE, op.path);
+        assertNull(op.data);
+        op = transaction.operations.get(1);
+        assertEquals(transaction.operations.toString(), TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_1, op.path);
         assertArrayEquals(DATA_1, op.data);
-        op = transaction.operations.get(1);
+        op = transaction.operations.get(2);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_2, op.path);
         assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(2);
+        op = transaction.operations.get(3);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_SUB_1, op.path);
         assertArrayEquals(DATA_SUB_1, op.data);
-        op = transaction.operations.get(3);
+        op = transaction.operations.get(4);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_SUB_2, op.path);
         assertArrayEquals(DATA_SUB_2, op.data);
@@ -213,24 +222,28 @@ public class CuratorPersisterTest {
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
         mockedPersister.setMany(MANY_MAP);
-        assertEquals(transaction.operations.toString(), 5, transaction.operations.size());
+        assertEquals(transaction.operations.toString(), 6, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_PARENT, op.path);
+        assertEquals(TestOperation.Mode.CHECK, op.mode);
+        assertEquals(INTERNAL_PATH_SERVICE, op.path);
         assertNull(op.data);
         op = transaction.operations.get(1);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_1, op.path);
-        assertArrayEquals(DATA_1, op.data);
+        assertEquals(INTERNAL_PATH_PARENT, op.path);
+        assertNull(op.data);
         op = transaction.operations.get(2);
+        assertEquals(TestOperation.Mode.CREATE, op.mode);
+        assertEquals(transaction.operations.toString(), INTERNAL_PATH_1, op.path);
+        assertArrayEquals(DATA_1, op.data);
+        op = transaction.operations.get(3);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_2, op.path);
         assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(3);
+        op = transaction.operations.get(4);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_SUB_1, op.path);
         assertArrayEquals(DATA_SUB_1, op.data);
-        op = transaction.operations.get(4);
+        op = transaction.operations.get(5);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_SUB_2, op.path);
         assertArrayEquals(DATA_SUB_2, op.data);
@@ -249,24 +262,28 @@ public class CuratorPersisterTest {
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
         mockedPersister.setMany(MANY_MAP);
-        assertEquals(transaction.operations.toString(), 5, transaction.operations.size());
+        assertEquals(transaction.operations.toString(), 6, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_PARENT, op.path);
+        assertEquals(TestOperation.Mode.CHECK, op.mode);
+        assertEquals(INTERNAL_PATH_SERVICE, op.path);
         assertNull(op.data);
         op = transaction.operations.get(1);
+        assertEquals(transaction.operations.toString(), TestOperation.Mode.CREATE, op.mode);
+        assertEquals(INTERNAL_PATH_SUB_PARENT, op.path);
+        assertNull(op.data);
+        op = transaction.operations.get(2);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_1, op.path);
         assertArrayEquals(DATA_1, op.data);
-        op = transaction.operations.get(2);
+        op = transaction.operations.get(3);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_2, op.path);
         assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(3);
+        op = transaction.operations.get(4);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_SUB_1, op.path);
         assertArrayEquals(DATA_SUB_1, op.data);
-        op = transaction.operations.get(4);
+        op = transaction.operations.get(5);
         assertEquals(TestOperation.Mode.CREATE, op.mode);
         assertEquals(INTERNAL_PATH_SUB_2, op.path);
         assertArrayEquals(DATA_SUB_2, op.data);
@@ -281,20 +298,24 @@ public class CuratorPersisterTest {
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
         mockedPersister.setMany(MANY_MAP);
-        assertEquals(transaction.operations.toString(), 4, transaction.operations.size());
+        assertEquals(transaction.operations.toString(), 5, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.SET_DATA, op.mode);
-        assertEquals(INTERNAL_PATH_1, op.path);
-        assertArrayEquals(DATA_1, op.data);
+        assertEquals(TestOperation.Mode.CHECK, op.mode);
+        assertEquals(INTERNAL_PATH_SERVICE, op.path);
+        assertNull(op.data);
         op = transaction.operations.get(1);
+        assertEquals(TestOperation.Mode.SET_DATA, op.mode);
+        assertEquals(transaction.operations.toString(), INTERNAL_PATH_1, op.path);
+        assertArrayEquals(DATA_1, op.data);
+        op = transaction.operations.get(2);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_2, op.path);
         assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(2);
+        op = transaction.operations.get(3);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_SUB_1, op.path);
         assertArrayEquals(DATA_SUB_1, op.data);
-        op = transaction.operations.get(3);
+        op = transaction.operations.get(4);
         assertEquals(TestOperation.Mode.SET_DATA, op.mode);
         assertEquals(INTERNAL_PATH_SUB_2, op.path);
         assertArrayEquals(DATA_SUB_2, op.data);
@@ -445,6 +466,13 @@ public class CuratorPersisterTest {
         }
 
         @Override
+        public TransactionCheckBuilder check() {
+            TestCheck operation = new TestCheck(this);
+            operations.add(operation);
+            return operation;
+        }
+
+        @Override
         public TransactionCreateBuilder create() {
             TestCreate operation = new TestCreate(this);
             operations.add(operation);
@@ -459,28 +487,28 @@ public class CuratorPersisterTest {
         }
 
         @Override
+        public TransactionDeleteBuilder delete() {
+            TestDelete operation = new TestDelete(this);
+            operations.add(operation);
+            return operation;
+        }
+
+        @Override
         public Collection<CuratorTransactionResult> commit() throws Exception {
             if (exceptionToThrow != null) {
                 throw exceptionToThrow;
             }
             return Collections.emptyList();
         }
-
-        @Override
-        public TransactionDeleteBuilder delete() {
-            throw new UnsupportedOperationException();
-        }
-        @Override
-        public TransactionCheckBuilder check() {
-            throw new UnsupportedOperationException();
-        }
     }
 
     private static class TestOperation implements PathAndBytesable<CuratorTransactionBridge> {
 
         private enum Mode {
+            CHECK,
             CREATE,
-            SET_DATA
+            SET_DATA,
+            DELETE
         }
 
         private final CuratorTransactionBridge returnMe;
@@ -513,6 +541,16 @@ public class CuratorPersisterTest {
         }
     }
 
+    private static class TestCheck extends TestOperation implements TransactionCheckBuilder {
+        private TestCheck(CuratorTransactionFinal returnMe) {
+            super(TestOperation.Mode.CHECK, returnMe);
+        }
+        @Override
+        public Pathable<CuratorTransactionBridge> withVersion(int version) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     private static class TestCreate extends TestOperation implements TransactionCreateBuilder {
         private TestCreate(CuratorTransactionFinal returnMe) {
             super(TestOperation.Mode.CREATE, returnMe);
@@ -541,6 +579,16 @@ public class CuratorPersisterTest {
         }
         @Override
         public PathAndBytesable<CuratorTransactionBridge> compressed() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static class TestDelete extends TestOperation implements TransactionDeleteBuilder {
+        private TestDelete(CuratorTransactionFinal returnMe) {
+            super(TestOperation.Mode.DELETE, returnMe);
+        }
+        @Override
+        public Pathable<CuratorTransactionBridge> withVersion(int version) {
             throw new UnsupportedOperationException();
         }
     }
