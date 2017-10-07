@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.state;
 
+import java.util.Arrays;
+
 import com.mesosphere.sdk.specification.GoalState;
 
 /**
@@ -24,7 +26,7 @@ public enum GoalStateOverride {
             if (goalState.toString().equals(serializedName)) {
                 throw new IllegalArgumentException(String.format(
                         "Provided GoalStateOverride serialized name '%s' collides with an existing GoalState=%s",
-                        serializedName, GoalState.values()));
+                        serializedName, Arrays.asList(GoalState.values())));
             }
         }
         this.command = command;
