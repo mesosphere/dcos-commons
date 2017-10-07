@@ -5,6 +5,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
@@ -19,6 +21,8 @@ import static org.mockito.Mockito.when;
  * Tests for {@link PersisterCache}
  */
 public class PersisterCacheTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(PersisterCacheTest.class);
 
     private static final String KEY = "key";
     private static final byte[] VAL = "someval".getBytes(StandardCharsets.UTF_8);
@@ -134,7 +138,7 @@ public class PersisterCacheTest {
     }
 
     @Test
-    public void testSetManyGetDelete() throws PersisterException {
+    public void testSetManyGetDeleteMany() throws PersisterException {
         Map<String, byte[]> map = new HashMap<>();
         map.put(KEY, VAL);
         cache.setMany(map);
@@ -152,8 +156,9 @@ public class PersisterCacheTest {
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.deleteAll(KEY);
-        cache.deleteAll(KEY2);
+        map.put(KEY, null);
+        map.put(KEY2, null);
+        cache.setMany(map);
 
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
         assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
@@ -314,6 +319,7 @@ public class PersisterCacheTest {
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
                     synchronized (lock) {
+                        logger.error(t.getName(), e);
                         errors.add(e);
                     }
                 }

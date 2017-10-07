@@ -2,7 +2,6 @@ package com.mesosphere.sdk.storage;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -18,7 +17,6 @@ public class PersisterCache implements Persister {
 
     private static final Logger logger = LoggerFactory.getLogger(PersisterCache.class);
 
-    private final AtomicBoolean inited = new AtomicBoolean(false);
     private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
     private final Lock rlock = internalLock.readLock();
     private final Lock rwlock = internalLock.writeLock();
@@ -32,10 +30,9 @@ public class PersisterCache implements Persister {
 
     @Override
     public byte[] get(String path) throws PersisterException {
-        MemPersister cache = getCache();
         rlock.lock();
         try {
-            return cache.get(path);
+            return getCache().get(path);
         } finally {
             rlock.unlock();
         }
@@ -43,10 +40,9 @@ public class PersisterCache implements Persister {
 
     @Override
     public Collection<String> getChildren(String path) throws PersisterException {
-        MemPersister cache = getCache();
         rlock.lock();
         try {
-            return cache.getChildren(path);
+            return getCache().getChildren(path);
         } finally {
             rlock.unlock();
         }
@@ -54,9 +50,9 @@ public class PersisterCache implements Persister {
 
     @Override
     public void set(String path, byte[] bytes) throws PersisterException {
-        MemPersister cache = getCache();
         rwlock.lock();
         try {
+            MemPersister cache = getCache();
             persister.set(path, bytes);
             cache.set(path, bytes);
         } finally {
@@ -66,10 +62,9 @@ public class PersisterCache implements Persister {
 
     @Override
     public Map<String, byte[]> getMany(Collection<String> paths) throws PersisterException {
-        MemPersister cache = getCache();
         rwlock.lock();
         try {
-            return cache.getMany(paths);
+            return getCache().getMany(paths);
         } finally {
             rwlock.unlock();
         }
@@ -77,9 +72,9 @@ public class PersisterCache implements Persister {
 
     @Override
     public void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException {
-        MemPersister cache = getCache();
         rwlock.lock();
         try {
+            MemPersister cache = getCache();
             persister.setMany(pathBytesMap);
             cache.setMany(pathBytesMap);
         } finally {
@@ -89,9 +84,9 @@ public class PersisterCache implements Persister {
 
     @Override
     public void deleteAll(String path) throws PersisterException {
-        MemPersister cache = getCache();
         rwlock.lock();
         try {
+            MemPersister cache = getCache();
             persister.deleteAll(path);
             try {
                 cache.deleteAll(path);
@@ -128,19 +123,18 @@ public class PersisterCache implements Persister {
             if (cache != null) {
                 logger.info("Cache content before refresh:\n{}", cache.getDebugString());
             }
-
-            // We already have our own locking, so we can disable locking in the underlying cache:
-            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
-
-            logger.info("Loaded data from persister:\n{}", cache.getDebugString());
+            cache = null;
+            getCache(); // recreate cache
         } finally {
             rwlock.unlock();
         }
     }
 
     private MemPersister getCache() throws PersisterException {
-        if (!inited.getAndSet(true)) {
-            refresh();
+        if (cache == null) {
+            // We already have our own locking, so we can disable locking in the underlying MemPersister:
+            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
+            logger.info("Loaded data from persister:\n{}", cache.getDebugString());
         }
         return cache;
     }
