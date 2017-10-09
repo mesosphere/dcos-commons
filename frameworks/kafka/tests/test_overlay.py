@@ -12,7 +12,7 @@ from tests import config, test_utils
 def configure_package(configure_security):
     try:
         install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        install.install(
+        config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
