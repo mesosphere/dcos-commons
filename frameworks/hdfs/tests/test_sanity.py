@@ -281,7 +281,7 @@ def test_modify_app_config():
     sdk_plan.wait_for_completed_recovery(foldered_name)
     old_recovery_plan = sdk_plan.get_plan(foldered_name, "recovery")
 
-    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
+    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_EXPIRY_MS'
     journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
     name_ids = sdk_tasks.get_task_ids(foldered_name, 'name')
     data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
@@ -306,7 +306,7 @@ def test_modify_app_config():
 
 @pytest.mark.sanity
 def test_modify_app_config_rollback():
-    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS'
+    app_config_field = 'TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_EXPIRY_MS'
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
