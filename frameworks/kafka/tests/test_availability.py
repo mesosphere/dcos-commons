@@ -28,7 +28,7 @@ def setup_module(module):
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-    sdk_install.install(
+    config.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,

@@ -22,7 +22,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_dynamic_port_comes_online():
-    sdk_install.install(
+    config.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,
@@ -33,7 +33,7 @@ def test_dynamic_port_comes_online():
 
 @pytest.mark.sanity
 def test_static_port_comes_online():
-    sdk_install.install(
+    config.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         config.DEFAULT_BROKER_COUNT,
