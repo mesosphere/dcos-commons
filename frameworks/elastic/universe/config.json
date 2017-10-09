@@ -322,8 +322,8 @@
           "type": "string",
           "default": ""
         },
-        "custom_yaml_block_base64": {
-          "description": "Base64-encoded YAML to be appended to elasticsearch.yml on each node.",
+        "custom_elasticsearch_yml": {
+          "description": "Custom YAML to be appended to elasticsearch.yml on each node. This field must be base64 encoded.",
           "type": "string",
           "default": ""
         },
