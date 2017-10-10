@@ -39,8 +39,11 @@ def configure_package(configure_security):
                 config.PACKAGE_NAME,
                 config.DEFAULT_BROKER_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
-                additional_options={"service": {"name": FOLDERED_SERVICE_NAME} })
+                additional_options={"service": {"name": FOLDERED_SERVICE_NAME}, "brokers": {"cpus": 0.5}})
 
+        # wait for brokers to finish registering before starting tests
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
+                                      service_name=FOLDERED_SERVICE_NAME)
         yield # let the test session execute
     finally:
         install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
