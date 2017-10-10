@@ -10,6 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 
+import retrying
 import shakedown
 
 import sdk_cmd
@@ -107,6 +108,10 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     task_name -- the name of the task whose agent to run metrics commands from
     expected_metrics_exist -- serivce-specific callback that checks for service-specific metrics
     """
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout*1000,
+        retry_on_result=lambda res: res is False)
     def check_for_service_metrics():
         try:
             log.info("verifying metrics exist for {}".format(service_name))
@@ -118,4 +123,4 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
             log.error("Caught exception trying to get metrics: {}".format(e))
             return False
 
-    shakedown.wait_for(check_for_service_metrics, timeout)
+    check_for_service_metrics()

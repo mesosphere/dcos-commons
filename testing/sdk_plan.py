@@ -9,6 +9,7 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 import logging
 
 import dcos
+import retrying
 import sdk_api
 import shakedown
 
@@ -25,14 +26,12 @@ def get_recovery_plan(service_name):
     return get_plan(service_name, "recovery")
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120000,
+    retry_on_result=lambda res: not res)
 def get_plan(service_name, plan):
-    def fn():
-        output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
-        try:
-            return output.json()
-        except:
-            return False
-    return shakedown.wait_for(fn)
+    return sdk_api.get(service_name, '/v1/plans/{}'.format(plan)).json()
 
 
 def start_plan(service_name, plan, parameters=None):
@@ -92,7 +91,11 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
     else:
         statuses = status
 
-    def fn():
+    @retrying.retry(
+        wait_fixed=1000,  # some plans are short; use high-res polling
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: res is False)
+    def wait_for_plan():
         plan = get_plan(service_name, plan_name)
         log.info('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
@@ -100,11 +103,16 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
             return plan
         else:
             return False
-    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+
+    return wait_for_plan()
 
 
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
-    def fn():
+    @retrying.retry(
+        wait_fixed=1000,  # some phases are short; use high-res polling
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: res is False)
+    def wait_for_phase():
         plan = get_plan(service_name, plan_name)
         phase = get_phase(plan, phase_name)
         log.info('Waiting for {}.{} phase to have {} status:\n{}'.format(
@@ -113,11 +121,16 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
             return plan
         else:
             return False
-    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+
+    return wait_for_phase()
 
 
 def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
-    def fn():
+    @retrying.retry(
+        wait_fixed=1000,  # some steps are short; use high-res polling
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: res is False)
+    def wait_for_step():
         plan = get_plan(service_name, plan_name)
         step = get_step(get_phase(plan, phase_name), step_name)
         log.info('Waiting for {}.{}.{} step to have {} status:\n{}'.format(
@@ -126,7 +139,8 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
             return plan
         else:
             return False
-    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+
+    return wait_for_step()
 
 
 def recovery_plan_is_empty(service_name):

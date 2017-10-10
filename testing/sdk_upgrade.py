@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import re
+import retrying
 import shakedown
 import tempfile
 
@@ -191,5 +192,8 @@ def _add_last_repo(repo_name, repo_url, prev_version, default_repo_package_name)
     _wait_for_new_default_version(prev_version, default_repo_package_name)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120000)
 def _wait_for_new_default_version(prev_version, default_repo_package_name):
-    shakedown.wait_for(lambda: _get_pkg_version(default_repo_package_name) != prev_version, noisy=True)
+    assert _get_pkg_version(default_repo_package_name) != prev_version
