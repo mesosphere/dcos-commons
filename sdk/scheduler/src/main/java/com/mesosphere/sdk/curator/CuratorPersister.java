@@ -259,37 +259,10 @@ public class CuratorPersister implements Persister {
         for (Map.Entry<String, byte[]> entry : unprefixedPathBytesMap.entrySet()) {
             pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
         }
-        logger.debug("Updating many entries: {}", pathBytesMap.keySet());
+        logger.debug("Updating {} entries: {}", pathBytesMap.size(), pathBytesMap.keySet());
         try {
             for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
-                // List of paths that are known to exist, or which are about to be created by the transaction
-                // Includes "known to exist" in order to avoid repeated lookups for the same path
-                Set<String> existingAndPendingCreatePaths = new HashSet<>();
-                // List of paths which are about to be deleted by the transaction
-                Set<String> pendingDeletePaths = new HashSet<>();
-
-                CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
-                for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
-                    String path = entry.getKey();
-                    if (entry.getValue() == null) {
-                        // null value: if present, delete path and any children (unless already being deleted)
-                        if (!pendingDeletePaths.contains(path)
-                                && client.checkExists().forPath(path) != null) {
-                            transaction = deleteChildrenOf(client, path, transaction, pendingDeletePaths)
-                                    .delete().forPath(path).and();
-                            pendingDeletePaths.add(path);
-                        }
-                    } else if (!existingAndPendingCreatePaths.contains(path)
-                            && client.checkExists().forPath(path) == null) {
-                        // Path does not exist and is not being created: Create value (and any parents as needed).
-                        transaction = createParentsOf(client, path, transaction, existingAndPendingCreatePaths)
-                                .create().forPath(path, entry.getValue()).and();
-                        existingAndPendingCreatePaths.add(path);
-                    } else {
-                        // Path exists (or will exist): Update existing value.
-                        transaction = transaction.setData().forPath(path, entry.getValue()).and();
-                    }
-                }
+                CuratorTransactionFinal transaction = buildCuratorTransaction(client, serviceRootPath, pathBytesMap);
 
                 // Attempt to run the transaction, retrying if applicable:
                 if (i + 1 < ATOMIC_WRITE_ATTEMPTS) {
@@ -317,10 +290,14 @@ public class CuratorPersister implements Persister {
         if (unprefixedPaths.isEmpty()) {
             return Collections.emptyMap();
         }
-        logger.debug("Getting many entries: {}", unprefixedPaths);
+        logger.debug("Getting {} entries: {}", unprefixedPaths.size(), unprefixedPaths);
 
         Map<String, byte[]> result = new TreeMap<>();
         // Unlike with writes, there is not an atomic read operation. Therefore we wing it with a series of plain reads.
+        // We could conceivably add some form of locking here to avoid e.g. a race with another thread doing writes at
+        // the same time, but assuming the PersisterCache is enabled, this function wouldn't be getting called anyway,
+        // as the PersisterCache would have fetched all the data up-front to be served from memory. If this assumption
+        // changes, then it may make sense to look into some form of proper read locking here.
         for (String unprefixedPath : unprefixedPaths) {
             String path = withFrameworkPrefix(unprefixedPath);
             try {
@@ -338,6 +315,49 @@ public class CuratorPersister implements Persister {
     @Override
     public void close() {
         client.close();
+    }
+
+    /**
+     * Creates and returns a transaction which will set and/or remove data from the curator tree, based on the current
+     * state of that tree.
+     *
+     * @param client the curator client to query against
+     * @param serviceRootPath the root of the service (to be checked at the start of the transaction as a sanity check)
+     * @param pathBytesMap the mapping of absolute zk paths to data to be stored (or {@code null} to delete)
+     * @return the resulting transaction
+     * @throws Exception if there's an error, e.g. with querying the tree, while building the transaction
+     */
+    private static CuratorTransactionFinal buildCuratorTransaction(
+            CuratorFramework client, String serviceRootPath, Map<String, byte[]> pathBytesMap) throws Exception {
+        // List of paths that are known to exist, or which are about to be created by the transaction
+        // Includes "known to exist" in order to avoid repeated lookups for the same path
+        Set<String> existingAndPendingCreatePaths = new HashSet<>();
+        // List of paths which are about to be deleted by the transaction
+        Set<String> pendingDeletePaths = new HashSet<>();
+
+        CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
+        for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
+            String path = entry.getKey();
+            if (entry.getValue() == null) {
+                // null value: if present, delete path and any children (unless already being deleted)
+                if (!pendingDeletePaths.contains(path)
+                        && client.checkExists().forPath(path) != null) {
+                    transaction = deleteChildrenOf(client, path, transaction, pendingDeletePaths)
+                            .delete().forPath(path).and();
+                    pendingDeletePaths.add(path);
+                }
+            } else if (!existingAndPendingCreatePaths.contains(path)
+                    && client.checkExists().forPath(path) == null) {
+                // Path does not exist and is not being created: Create value (and any parents as needed).
+                transaction = createParentsOf(client, path, transaction, existingAndPendingCreatePaths)
+                        .create().forPath(path, entry.getValue()).and();
+                existingAndPendingCreatePaths.add(path);
+            } else {
+                // Path exists (or will exist): Update existing value.
+                transaction = transaction.setData().forPath(path, entry.getValue()).and();
+            }
+        }
+        return transaction;
     }
 
     /**

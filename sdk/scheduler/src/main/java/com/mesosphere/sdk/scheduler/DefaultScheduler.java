@@ -676,11 +676,9 @@ public class DefaultScheduler extends AbstractScheduler {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
             if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
                 // Enabling or disabling an override was triggered, but the task might not have been killed yet so that
-                // the override could take effect. Kill the task so that it can enter (or exit) the override, and update
-                // the status of the override.
+                // the override could take effect. Kill the task so that it can enter (or exit) the override. The
+                // override status will then be marked IN_PROGRESS once we have received a terminal TaskStatus.
                 taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
-                stateStore.storeGoalOverrideStatus(taskInfo.getName(),
-                        GoalStateOverride.withProgress(overrideStatus, GoalStateOverride.Progress.IN_PROGRESS));
             }
         }
     }
@@ -735,9 +733,24 @@ public class DefaultScheduler extends AbstractScheduler {
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
         Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
+        // StateStore updates:
+        // - TaskStatus
+        // - Override status (if applicable)
         stateStore.storeStatus(taskName, status);
+        if (TaskUtils.isTerminal(status)) {
+            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
+            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                // The task was marked PENDING before being killed. Mark it as IN_PROGRESS now that we know the kill has
+                // taken effect.
+                stateStore.storeGoalOverrideStatus(taskName,
+                        GoalStateOverride.withProgress(overrideStatus, GoalStateOverride.Progress.IN_PROGRESS));
+            }
+        }
+
+        // Notify plans of status update:
         planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
+        // Special handling: Retry launch if initial launch failed
         if (lastStatus.isPresent() &&
                 AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
                 TaskUtils.isRecoveryNeeded(status)) {

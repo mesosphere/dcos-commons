@@ -152,10 +152,11 @@ def test_pod_status_all():
         assert re.match('(hello|world)-[0-9]+', k)
         assert len(v) == 1
         task = v[0]
-        assert len(task) == 3
+        assert len(task) == 4
         assert re.match('(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
         assert re.match('(hello|world)-[0-9]+-server', task['name'])
-        assert task['state'] == 'TASK_RUNNING'
+        assert re.match('(hello|world)', task['type'])
+        assert task['state'] == 'RUNNING'
 
 
 @pytest.mark.sanity
@@ -167,7 +168,8 @@ def test_pod_status_one():
     assert len(task) == 3
     assert re.match('hello-0-server__[0-9a-f-]+', task['id'])
     assert task['name'] == 'hello-0-server'
-    assert task['state'] == 'TASK_RUNNING'
+    assert task['type'] == 'hello'
+    assert task['state'] == 'RUNNING'
 
 
 @pytest.mark.sanity

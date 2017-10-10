@@ -200,89 +200,6 @@ public class StateStore {
     }
 
     /**
-     * Stores the goal state override status of a particular Task. The {@link TaskInfo} for this exact task MUST have
-     * already been written via {@link #storeTasks(Collection)} beforehand.
-     *
-     * @throws StateStoreException in the event of a storage error
-     */
-    public void storeGoalOverrideStatus(String taskName, GoalStateOverride.Status status)
-            throws StateStoreException {
-        try {
-            Map<String, byte[]> values = new TreeMap<>();
-
-            if (GoalStateOverride.Status.INACTIVE.equals(status)) {
-                // No override is active (NONE + COMPLETE): Clear any override bits.
-                values.put(getGoalOverridePath(taskName), null);
-                values.put(getGoalOverrideStatusPath(taskName), null);
-            } else {
-                values.put(getGoalOverridePath(taskName),
-                        status.target.getSerializedName().getBytes(StandardCharsets.UTF_8));
-                values.put(getGoalOverrideStatusPath(taskName),
-                        status.progress.getSerializedName().getBytes(StandardCharsets.UTF_8));
-            }
-            persister.setMany(values);
-        } catch (PersisterException e) {
-            throw new StateStoreException(e);
-        }
-    }
-
-    /**
-     * Retrieves the goal state override status of a particular task. A lack of override will result in a
-     * {@link GoalOverrideStatus} with {@code override=NONE} and {@code state=NONE}.
-     *
-     * @throws StateStoreException in the event of a storage error
-     */
-    public GoalStateOverride.Status fetchGoalOverrideStatus(String taskName) throws StateStoreException {
-        try {
-            String goalOverridePath = getGoalOverridePath(taskName);
-            String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
-            Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
-            byte[] nameBytes = values.get(goalOverridePath);
-            byte[] statusBytes = values.get(goalOverrideStatusPath);
-            if (nameBytes == null && statusBytes == null) {
-                return GoalStateOverride.Status.INACTIVE;
-            } else if (nameBytes == null || statusBytes == null) {
-                throw new StateStoreException(Reason.SERIALIZATION_ERROR,
-                        String.format("Task is missing override name or override status. " +
-                                "Expected either both or neither: %s", values));
-            }
-            return GoalStateOverride.newStatus(parseOverrideName(nameBytes), parseOverrideProgress(statusBytes));
-        } catch (PersisterException e) {
-            throw new StateStoreException(e);
-        }
-    }
-
-    private static GoalStateOverride parseOverrideName(byte[] nameBytes) throws StateStoreException {
-        String name = new String(nameBytes, StandardCharsets.UTF_8);
-        for (GoalStateOverride override : GoalStateOverride.values()) {
-            if (override.getSerializedName().equals(name)) {
-                return override;
-            }
-        }
-        throw new StateStoreException(Reason.SERIALIZATION_ERROR,
-                String.format("Unknown override named '%s', expected one of: %s",
-                        name,
-                        Arrays.asList(GoalStateOverride.values()).stream()
-                                .map(o -> o.getSerializedName())
-                                .collect(Collectors.toList())));
-    }
-
-    private static GoalStateOverride.Progress parseOverrideProgress(byte[] statusBytes) throws StateStoreException {
-        String status = new String(statusBytes, StandardCharsets.UTF_8);
-        for (GoalStateOverride.Progress state : GoalStateOverride.Progress.values()) {
-            if (state.getSerializedName().equals(status)) {
-                return state;
-            }
-        }
-        throw new StateStoreException(Reason.SERIALIZATION_ERROR,
-                String.format("Unknown override status '%s', expected one of: %s",
-                        status,
-                        Arrays.asList(GoalStateOverride.Progress.values()).stream()
-                                .map(o -> o.getSerializedName())
-                                .collect(Collectors.toList())));
-    }
-
-    /**
      * Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.
      *
      * @param taskName The name of the task to be cleared
@@ -521,6 +438,91 @@ public class StateStore {
                 throw new StateStoreException(e);
             }
         }
+    }
+
+    // Read/Write task metadata
+
+    /**
+     * Stores the goal state override status of a particular Task. The {@link TaskInfo} for this exact task MUST have
+     * already been written via {@link #storeTasks(Collection)} beforehand.
+     *
+     * @throws StateStoreException in the event of a storage error
+     */
+    public void storeGoalOverrideStatus(String taskName, GoalStateOverride.Status status)
+            throws StateStoreException {
+        try {
+            Map<String, byte[]> values = new TreeMap<>();
+
+            if (GoalStateOverride.Status.INACTIVE.equals(status)) {
+                // No override is active (NONE + COMPLETE): Clear any override bits.
+                values.put(getGoalOverridePath(taskName), null);
+                values.put(getGoalOverrideStatusPath(taskName), null);
+            } else {
+                values.put(getGoalOverridePath(taskName),
+                        status.target.getSerializedName().getBytes(StandardCharsets.UTF_8));
+                values.put(getGoalOverrideStatusPath(taskName),
+                        status.progress.getSerializedName().getBytes(StandardCharsets.UTF_8));
+            }
+            persister.setMany(values);
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    /**
+     * Retrieves the goal state override status of a particular task. A lack of override will result in a
+     * {@link GoalOverrideStatus} with {@code override=NONE} and {@code state=NONE}.
+     *
+     * @throws StateStoreException in the event of a storage error
+     */
+    public GoalStateOverride.Status fetchGoalOverrideStatus(String taskName) throws StateStoreException {
+        try {
+            String goalOverridePath = getGoalOverridePath(taskName);
+            String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
+            Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
+            byte[] nameBytes = values.get(goalOverridePath);
+            byte[] statusBytes = values.get(goalOverrideStatusPath);
+            if (nameBytes == null && statusBytes == null) {
+                return GoalStateOverride.Status.INACTIVE;
+            } else if (nameBytes == null || statusBytes == null) {
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR,
+                        String.format("Task is missing override name or override status. " +
+                                "Expected either both or neither: %s", values));
+            }
+            return GoalStateOverride.newStatus(parseOverrideName(nameBytes), parseOverrideProgress(statusBytes));
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    private static GoalStateOverride parseOverrideName(byte[] nameBytes) throws StateStoreException {
+        String name = new String(nameBytes, StandardCharsets.UTF_8);
+        for (GoalStateOverride override : GoalStateOverride.values()) {
+            if (override.getSerializedName().equals(name)) {
+                return override;
+            }
+        }
+        throw new StateStoreException(Reason.SERIALIZATION_ERROR,
+                String.format("Unknown override named '%s', expected one of: %s",
+                        name,
+                        Arrays.asList(GoalStateOverride.values()).stream()
+                                .map(o -> o.getSerializedName())
+                                .collect(Collectors.toList())));
+    }
+
+    private static GoalStateOverride.Progress parseOverrideProgress(byte[] statusBytes) throws StateStoreException {
+        String status = new String(statusBytes, StandardCharsets.UTF_8);
+        for (GoalStateOverride.Progress state : GoalStateOverride.Progress.values()) {
+            if (state.getSerializedName().equals(status)) {
+                return state;
+            }
+        }
+        throw new StateStoreException(Reason.SERIALIZATION_ERROR,
+                String.format("Unknown override status '%s', expected one of: %s",
+                        status,
+                        Arrays.asList(GoalStateOverride.Progress.values()).stream()
+                                .map(o -> o.getSerializedName())
+                                .collect(Collectors.toList())));
     }
 
     // Uninstall Related Methods
