@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.testing;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -16,6 +19,8 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+
 
 /**
  * A type of {@link SimulationTick} that verifies the scheduler did something.
@@ -27,7 +32,7 @@ public interface Expect extends SimulationTick {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 ArgumentCaptor<Protos.OfferID> offerIdCaptor = ArgumentCaptor.forClass(Protos.OfferID.class);
-                verify(mockDriver).declineOffer(offerIdCaptor.capture(), any());
+                verify(mockDriver, atLeastOnce()).declineOffer(offerIdCaptor.capture(), any());
                 Assert.assertEquals(state.getLastOffer().getId().getValue(), offerIdCaptor.getValue().getValue());
             }
 
@@ -38,7 +43,11 @@ public interface Expect extends SimulationTick {
         };
     }
 
-    public static Expect acceptedLastOffer() {
+    public static Expect launchedPod(String... taskNames) {
+        return launchedPod(Arrays.asList(taskNames));
+    }
+
+    public static Expect launchedPod(Collection<String> taskNames) {
         return new Expect() {
             // Use this form instead of using ArgumentCaptor.forClass() to avoid problems with typecasting generics:
             @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdsCaptor;
@@ -47,25 +56,29 @@ public interface Expect extends SimulationTick {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 MockitoAnnotations.initMocks(this);
-                verify(mockDriver).acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
+                verify(mockDriver, atLeastOnce()).acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
                 Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
-                boolean foundLaunch = false;
+                Collection<String> launchedTaskNames = new ArrayList<>();
                 for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
                     if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
                         // Old-style launch with custom executor
-                        foundLaunch = true;
+                        launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
+                                .map(task -> task.getName())
+                                .collect(Collectors.toList()));
                         state.addLaunchedPod(operation.getLaunch().getTaskInfosList().stream()
                                 .map(task -> TaskPackingUtils.unpack(task))
                                 .collect(Collectors.toList()));
                     } else if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH_GROUP)) {
                         // New-style launch with default executor
-                        foundLaunch = true;
+                        launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
+                                .map(task -> task.getName())
+                                .collect(Collectors.toList()));
                         state.addLaunchedPod(operation.getLaunchGroup().getTaskGroup().getTasksList());
                     }
                 }
                 Assert.assertTrue(
-                        String.format("Missing LAUNCH or LAUNCH_GROUP in operations: %s", operationsCaptor.getValue()),
-                        foundLaunch);
+                        String.format("Expected tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
+                        launchedTaskNames.containsAll(taskNames) && taskNames.containsAll(launchedTaskNames));
             }
 
             @Override
@@ -80,8 +93,8 @@ public interface Expect extends SimulationTick {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 ArgumentCaptor<Protos.TaskID> taskIdCaptor = ArgumentCaptor.forClass(Protos.TaskID.class);
-                verify(mockDriver).killTask(taskIdCaptor.capture());
-                Assert.assertEquals(state.getTaskId(taskName), taskIdCaptor.getValue().getValue());
+                verify(mockDriver, atLeastOnce()).killTask(taskIdCaptor.capture());
+                Assert.assertEquals(state.getTaskId(taskName).getValue(), taskIdCaptor.getValue().getValue());
             }
 
             @Override
@@ -97,7 +110,7 @@ public interface Expect extends SimulationTick {
 
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
-                verify(mockDriver).reconcileTasks(statusCaptor.capture());
+                verify(mockDriver, atLeastOnce()).reconcileTasks(statusCaptor.capture());
                 Assert.assertEquals(taskStatuses, statusCaptor.getValue());
             }
 
@@ -115,12 +128,34 @@ public interface Expect extends SimulationTick {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
-                verify(mockDriver).reconcileTasks(Collections.emptyList());
+                verify(mockDriver, atLeastOnce()).reconcileTasks(Collections.emptyList());
             }
 
             @Override
             public String getDescription() {
                 return "Implicit task reconcile call occurred";
+            }
+        };
+    }
+
+    public static Expect allPlansComplete() {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                Collection<Plan> plans = state.getPlans();
+                for (Plan plan : plans) {
+                    if (!plan.isComplete()) {
+                        throw new IllegalStateException(String.format(
+                                "%s plan is not complete. Plans: %s",
+                                plan.getName(),
+                                plans.stream().map(p -> p.toString()).collect(Collectors.toList())));
+                    }
+                }
+            }
+
+            @Override
+            public String getDescription() {
+                return "All plans complete";
             }
         };
     }

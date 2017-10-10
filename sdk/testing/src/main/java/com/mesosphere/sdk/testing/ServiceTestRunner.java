@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.testing;
 
-import static org.mockito.Mockito.mock;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -165,7 +163,7 @@ public class ServiceTestRunner {
      * Exercises the service's packaging and resulting Service Specification YAML file without running any simulation
      * afterwards.
      *
-     * @return a {@link SchedulerConfigResult} containing the resulting scheduler environment and ServiceSpec/RawServiceSpec
+     * @return a {@link SchedulerConfigResult} containing the resulting scheduler environment and spec information
      * @throws Exception if the test failed
      */
     public SchedulerConfigResult run() throws Exception {
@@ -176,7 +174,7 @@ public class ServiceTestRunner {
      * Exercises the service's packaging and resulting Service Specification YAML file, then runs the provided
      * simulation ticks, if any are provided.
      *
-     * @return a {@link SchedulerConfigResult} containing the resulting scheduler environment and ServiceSpec/RawServiceSpec
+     * @return a {@link SchedulerConfigResult} containing the resulting scheduler environment and spec information
      * @throws Exception if the test failed
      */
     public SchedulerConfigResult run(Collection<SimulationTick> ticks) throws Exception {
@@ -229,8 +227,8 @@ public class ServiceTestRunner {
 
         if (!ticks.isEmpty()) {
             // Test 5: Run simulation, if any was provided
-            ClusterState state = new ClusterState(configResult);
-            SchedulerDriver mockDriver = mock(SchedulerDriver.class);
+            ClusterState state = new ClusterState(configResult, scheduler);
+            SchedulerDriver mockDriver = Mockito.mock(SchedulerDriver.class);
             for (SimulationTick tick : ticks) {
                 if (tick instanceof Expect) {
                     LOGGER.info("EXPECT: {}", tick.getDescription());
@@ -260,7 +258,7 @@ public class ServiceTestRunner {
         errorRows.add(String.format("Expectation failed: %s", failedTick.getDescription()));
         errorRows.add("Simulation steps:");
         for (SimulationTick tick : allTicks) {
-            String prefix = tick == failedTick ? "(FAIL) " : "";
+            String prefix = tick == failedTick ? ">>>FAIL<<< " : "";
             if (tick instanceof Expect) {
                 prefix += "EXPECT";
             } else if (tick instanceof Send) {
