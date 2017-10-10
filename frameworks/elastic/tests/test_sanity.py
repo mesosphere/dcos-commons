@@ -233,6 +233,7 @@ def test_coordinator_node_replace():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
+@pytest.mark.timeout(60 * 60)
 def test_plugin_install_and_uninstall(default_populated_index):
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     plugin_name = 'analysis-phonetic'
