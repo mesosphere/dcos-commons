@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,16 +24,21 @@ import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,12 +120,12 @@ public class PodResource extends PrettyJsonResource {
             // Output statuses for all tasks in each pod:
             JSONObject json = new JSONObject();
             for (Map.Entry<String, List<TaskInfoAndStatus>> podTasks : groupedTasks.byPod.entrySet()) {
-                json.put(podTasks.getKey(), getStatusesJson(podTasks.getValue()));
+                json.put(podTasks.getKey(), getStatusesJson(stateStore, podTasks.getValue()));
             }
 
             // Output 'unknown pod' for any tasks which didn't have a resolvable pod:
             if (!groupedTasks.unknownPod.isEmpty()) {
-                json.put(UNKNOWN_POD_LABEL, getStatusesJson(groupedTasks.unknownPod));
+                json.put(UNKNOWN_POD_LABEL, getStatusesJson(stateStore, groupedTasks.unknownPod));
             }
 
             return jsonOkResponse(json);
@@ -137,9 +144,9 @@ public class PodResource extends PrettyJsonResource {
         try {
             List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(name);
             if (podTasks == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+                return ResponseUtils.elementNotFoundResponse();
             }
-            return jsonOkResponse(getStatusesJson(podTasks));
+            return jsonOkResponse(getStatusesJson(stateStore, podTasks));
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch status for pod '%s'", name), e);
             return Response.serverError().build();
@@ -155,13 +162,112 @@ public class PodResource extends PrettyJsonResource {
         try {
             List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(name);
             if (podTasks == null) {
-                return Response.status(Response.Status.NOT_FOUND).build();
+                return ResponseUtils.elementNotFoundResponse();
             }
             return jsonResponseBean(podTasks, Response.Status.OK);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch info for pod '%s'", name), e);
             return Response.serverError().build();
         }
+    }
+
+    /**
+     * Restarts a pod in a "stopped" debug mode.
+     */
+    @Path("/{name}/stop")
+    @POST
+    public Response stopPod(@PathParam("name") String name, String bodyPayload) {
+        Set<String> taskFilter;
+        try {
+            taskFilter = parseJsonList(bodyPayload);
+        } catch (JSONException e) {
+            LOGGER.error(String.format("Failed to parse task filter '%s'", bodyPayload), e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            return overrideGoalState(name, taskFilter, GoalStateOverride.STOPPED);
+        } catch (Exception e) {
+            LOGGER.error(String.format("Failed to stop pod '%s' with task filter '%s'", name, taskFilter), e);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Restarts a pod in a normal state following a prior "stop" command.
+     */
+    @Path("/{name}/start")
+    @POST
+    public Response startPod(@PathParam("name") String name, String bodyPayload) {
+        Set<String> taskFilter;
+        try {
+            taskFilter = parseJsonList(bodyPayload);
+        } catch (JSONException e) {
+            LOGGER.error(String.format("Failed to parse task filter '%s'", bodyPayload), e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            return overrideGoalState(name, taskFilter, GoalStateOverride.NONE);
+        } catch (Exception e) {
+            LOGGER.error(String.format("Failed to start pod '%s' with task filter '%s'", name, taskFilter), e);
+            return Response.serverError().build();
+        }
+    }
+
+    private static Set<String> parseJsonList(String payload) throws JSONException {
+        if (StringUtils.isBlank(payload)) {
+            return Collections.emptySet();
+        }
+        Set<String> strings = new HashSet<>();
+        Iterator<Object> iter = new JSONArray(payload).iterator();
+        while (iter.hasNext()) {
+            strings.add(iter.next().toString());
+        }
+        return strings;
+    }
+
+    private Response overrideGoalState(String podName, Set<String> taskNameFilter, GoalStateOverride override) {
+        // look up all tasks in the provided pod name:
+        List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(podName);
+        if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
+            return ResponseUtils.elementNotFoundResponse();
+        }
+        if (!taskNameFilter.isEmpty()) {
+            // Convert filter to match task names: ["foo", "bar", ...] => ["pod-0-foo", "pod-0-bar", ...]
+            final Set<String> updatedTaskNameFilter = taskNameFilter.stream()
+                    .map(t -> String.format("%s-%s", podName, t))
+                    .collect(Collectors.toSet());
+            podTasks = podTasks.stream()
+                    .filter(task -> updatedTaskNameFilter.contains(task.getInfo().getName()))
+                    .collect(Collectors.toList());
+            if (podTasks.size() < taskNameFilter.size()) {
+                // one or more requested tasks were not found.
+                LOGGER.error("Request had task filter: '{}', but pod '{}' tasks are: '{}'",
+                        updatedTaskNameFilter,
+                        podName,
+                        podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
+                return ResponseUtils.elementNotFoundResponse();
+            }
+        }
+
+        // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
+        // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
+        LOGGER.info("Performing {} goal state override of {} tasks in pod {}:",
+                override, podTasks.size(), podName);
+        if (taskKiller == null) {
+            LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+        }
+
+        // First pass: Store the desired override for each task
+        GoalStateOverride.Status statusToSet =
+                GoalStateOverride.newStatus(override, GoalStateOverride.Progress.PENDING);
+        for (TaskInfoAndStatus taskToOverride : podTasks) {
+            stateStore.storeGoalOverrideStatus(taskToOverride.getInfo().getName(), statusToSet);
+        }
+
+        // Second pass: Restart the tasks, updating the override state for each to PENDING as we go.
+        statusToSet = GoalStateOverride.withProgress(statusToSet, GoalStateOverride.Progress.IN_PROGRESS);
+        return killTasks(taskKiller, stateStore, podName, podTasks, RecoveryType.TRANSIENT, Optional.of(statusToSet));
     }
 
     /**
@@ -196,19 +302,28 @@ public class PodResource extends PrettyJsonResource {
         // look up all tasks in the provided pod name:
         List<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).byPod.get(name);
         if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return ResponseUtils.elementNotFoundResponse();
         }
 
-        final List<String> restartedTaskNames = new ArrayList<>();
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
-        LOGGER.info("Completing {} restart of pod {} by killing {} tasks:",
+        LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
                 recoveryType, name, podTasks.size());
         if (taskKiller == null) {
             LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
         }
-        for (TaskInfoAndStatus taskToKill : podTasks) {
+        return killTasks(taskKiller, stateStore, name, podTasks, recoveryType, Optional.empty());
+    }
+
+    private static Response killTasks(
+            TaskKiller taskKiller,
+            StateStore stateStore,
+            String podName,
+            Collection<TaskInfoAndStatus> tasksToKill,
+            RecoveryType recoveryType,
+            Optional<GoalStateOverride.Status> overrideToStoreAfterKills) {
+        for (TaskInfoAndStatus taskToKill : tasksToKill) {
             final TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {
                 LOGGER.info("  {} ({}): currently in state {}",
@@ -221,12 +336,14 @@ public class PodResource extends PrettyJsonResource {
                         taskInfo.getTaskId().getValue());
             }
             taskKiller.killTask(taskInfo.getTaskId(), recoveryType);
-            restartedTaskNames.add(taskInfo.getName());
+            if (overrideToStoreAfterKills.isPresent()) {
+                stateStore.storeGoalOverrideStatus(taskInfo.getName(), overrideToStoreAfterKills.get());
+            }
         }
 
         JSONObject json = new JSONObject();
-        json.put("pod", name);
-        json.put("tasks", restartedTaskNames);
+        json.put("pod", podName);
+        json.put("tasks", tasksToKill.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
         return jsonOkResponse(json);
     }
 
@@ -277,20 +394,51 @@ public class PodResource extends PrettyJsonResource {
         }
     }
 
-    private static JSONArray getStatusesJson(List<TaskInfoAndStatus> tasks) {
+    private static JSONArray getStatusesJson(StateStore stateStore, List<TaskInfoAndStatus> tasks) {
         JSONArray jsonPod = new JSONArray();
         for (TaskInfoAndStatus task : tasks) {
             JSONObject jsonTask = new JSONObject();
             jsonTask.put("id", task.getInfo().getTaskId().getValue());
             jsonTask.put("name", task.getInfo().getName());
             if (task.hasStatus()) {
-                jsonTask.put("state", task.getStatus().get().getState().toString());
-            } else {
-                jsonTask.put("state", "No state defined");
+                Protos.TaskState state = task.getStatus().get().getState();
+                jsonTask.put("state", state.toString()); // raw mesos status
+                jsonTask.put("status", getSDKTaskState(stateStore, task.getInfo().getName(), state)); // sdk context
+            }
+            try {
+                jsonTask.put("type", new TaskLabelReader(task.getInfo()).getType());
+            } catch (TaskException e) {
+                // no type found, omit from response
             }
             jsonPod.put(jsonTask);
         }
         return jsonPod;
+    }
+
+    private static String getSDKTaskState(StateStore stateStore, String taskName, Protos.TaskState mesosState) {
+        GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
+        if (GoalStateOverride.Status.INACTIVE.equals(overrideStatus)) {
+            // This task is affected by an override. Use the override status as applicable.
+            switch (mesosState) {
+            case TASK_KILLING:
+            case TASK_KILLED:
+            case TASK_STAGING:
+            case TASK_STARTING:
+                // Task appears to be entering the desired goal state
+                return overrideStatus.target.getTransitioningName();
+            case TASK_RUNNING:
+                // Task appears to be in the desired goal state
+                return overrideStatus.target.getSerializedName();
+            default:
+                break;
+            }
+        }
+        String stateString = mesosState.toString();
+        if (stateString.startsWith("TASK_")) {
+            // Trim "TASK_" prefix ("TASK_RUNNING" => "RUNNING"):
+            stateString = stateString.substring("TASK_".length(), stateString.length());
+        }
+        return stateString;
     }
 
     private static Optional<String> getPodInstanceName(TaskInfo taskInfo) {

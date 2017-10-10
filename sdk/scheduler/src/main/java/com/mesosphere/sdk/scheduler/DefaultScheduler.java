@@ -591,7 +591,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+        killUnneededAndOverriddenTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
@@ -647,7 +647,8 @@ public class DefaultScheduler extends AbstractScheduler {
         return new DefaultPlanCoordinator(planManagers);
     }
 
-    private static void killUnneededTasks(StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
+    private static void killUnneededAndOverriddenTasks(
+            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
@@ -670,6 +671,18 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
+
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
+            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                // Enabling or disabling an override was triggered, but the task might not have been killed yet so that
+                // the override could take effect. Kill the task so that it can enter (or exit) the override, and update
+                // the status of the override.
+                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+                stateStore.storeGoalOverrideStatus(taskInfo.getName(),
+                        GoalStateOverride.withProgress(overrideStatus, GoalStateOverride.Progress.IN_PROGRESS));
+            }
+        }
     }
 
     @Override
