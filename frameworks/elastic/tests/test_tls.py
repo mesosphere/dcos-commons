@@ -11,6 +11,7 @@ from tests.config import (
     PACKAGE_NAME,
     NO_INGEST_TASK_COUNT,
     SERVICE_NAME,
+    install
 )
 
 
@@ -32,7 +33,7 @@ def service_account():
 
 @pytest.fixture(scope='module')
 def elastic_service_tls(service_account):
-    sdk_install.install(
+    install(
         PACKAGE_NAME,
         service_name=SERVICE_NAME,
         expected_running_tasks=NO_INGEST_TASK_COUNT,

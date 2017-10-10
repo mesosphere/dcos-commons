@@ -11,7 +11,7 @@ from tests import config
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        sdk_install.install(
+        config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.NO_INGEST_TASK_COUNT,

@@ -30,8 +30,21 @@ def configure_package(configure_security):
             foldered_name,
             current_expected_task_count,
             additional_options={
-                "service": {"name": foldered_name},
-                "ingest_nodes": {"count": 1} })
+                "master_nodes": {
+                    "cpus": 0.25
+                },
+                "data_nodes": {
+                    "cpus": 0.25
+                },
+                "ingest_nodes": {
+                    "cpus": 0.25,
+                    "count": 1
+                },
+                "coordinator_nodes": {
+                    "cpus": 0.25
+                },
+                "service": {"name": foldered_name}
+            })
 
         yield  # let the test session execute
     finally:

@@ -9,6 +9,7 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
+import sdk_install
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +46,38 @@ DEFAULT_SETTINGS_MAPPINGS = {
             "properties": {
                 "name": {"type": "keyword"},
                 "role": {"type": "keyword"}}}}}
+
+
+def install(
+        package_name,
+        service_name,
+        expected_running_tasks,
+        additional_options={},
+        package_version=None,
+        timeout_seconds=25*60,
+        wait_for_deployment=True):
+    test_options={
+        "master_nodes": {
+            "cpus": 0.25
+        },
+        "data_nodes": {
+            "cpus": 0.25
+        },
+        "ingest_nodes": {
+            "cpus": 0.25
+        },
+        "coordinator_nodes": {
+            "cpus": 0.25
+        }
+    }
+
+    sdk_install.install(package_name=package_name,
+                        expected_running_tasks=expected_running_tasks,
+                        service_name=service_name,
+                        additional_options=sdk_install.merge_dictionaries(test_options, additional_options),
+                        package_version=package_version,
+                        timeout_seconds=timeout_seconds,
+                        wait_for_deployment=wait_for_deployment)
 
 
 def as_json(fn):
