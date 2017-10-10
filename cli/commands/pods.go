@@ -100,11 +100,11 @@ func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastTask b
 	if !ok {
 		taskName = "<UNKNOWN>"
 	}
-	taskStatus, ok := task["status"]
+	taskState, ok := task["state"]
 	if !ok {
-		taskStatus = "<UNKNOWN>"
+		taskState = "<UNKNOWN>"
 	}
-	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", taskPrefix, taskName, taskStatus))
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", taskPrefix, taskName, taskState))
 }
 
 func (cmd *podHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {

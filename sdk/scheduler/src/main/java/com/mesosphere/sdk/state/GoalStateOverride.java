@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.specification.GoalState;
 
@@ -95,6 +96,7 @@ public enum GoalStateOverride {
 
         @Override
         public boolean equals(Object o) {
+            LoggerFactory.getLogger(GoalStateOverride.class).error("{} vs {}", this, o); // TODO TEMP
             return EqualsBuilder.reflectionEquals(this, o);
         }
 
@@ -104,12 +106,8 @@ public enum GoalStateOverride {
         }
     }
 
-    public static Status newStatus(GoalStateOverride target, Progress progress) {
-        return new Status(target, progress);
-    }
-
-    public static Status withProgress(Status status, Progress progress) {
-        return newStatus(status.target, progress);
+    public Status newStatus(Progress progress) {
+        return new Status(this, progress);
     }
 
     private final String serializedName;

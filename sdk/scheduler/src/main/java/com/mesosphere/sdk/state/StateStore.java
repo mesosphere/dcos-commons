@@ -489,7 +489,7 @@ public class StateStore {
                         String.format("Task is missing override name or override status. " +
                                 "Expected either both or neither: %s", values));
             }
-            return GoalStateOverride.newStatus(parseOverrideName(nameBytes), parseOverrideProgress(statusBytes));
+            return parseOverrideName(nameBytes).newStatus(parseOverrideProgress(statusBytes));
         } catch (PersisterException e) {
             throw new StateStoreException(e);
         }

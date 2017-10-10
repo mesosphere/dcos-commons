@@ -259,8 +259,7 @@ public class PodResource extends PrettyJsonResource {
         }
 
         // First pass: Store the desired override for each task
-        GoalStateOverride.Status pendingStatus =
-                GoalStateOverride.newStatus(override, GoalStateOverride.Progress.PENDING);
+        GoalStateOverride.Status pendingStatus = override.newStatus(GoalStateOverride.Progress.PENDING);
         for (TaskInfoAndStatus taskToOverride : podTasks) {
             stateStore.storeGoalOverrideStatus(taskToOverride.getInfo().getName(), pendingStatus);
         }
@@ -412,22 +411,18 @@ public class PodResource extends PrettyJsonResource {
         GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
         if (!GoalStateOverride.Status.INACTIVE.equals(overrideStatus)) {
             // This task is affected by an override. Use the override status as applicable.
-            switch (mesosState) {
-            case TASK_KILLING:
-            case TASK_KILLED:
-            case TASK_STAGING:
-            case TASK_STARTING:
-                // Task appears to be entering the desired goal state
-                return overrideStatus.target.getTransitioningName();
-            case TASK_RUNNING:
-                // Task appears to be in the desired goal state
+            switch (overrideStatus.progress) {
+            case COMPLETE:
                 return overrideStatus.target.getSerializedName();
+            case IN_PROGRESS:
+            case PENDING:
+                return overrideStatus.target.getTransitioningName();
             default:
-                break;
+                throw new IllegalStateException("Unsupported progress state: " + overrideStatus.progress);
             }
         }
         String stateString = mesosState.toString();
-        if (stateString.startsWith("TASK_")) {
+        if (stateString.startsWith("TASK_")) { // should always be the case
             // Trim "TASK_" prefix ("TASK_RUNNING" => "RUNNING"):
             stateString = stateString.substring("TASK_".length());
         }

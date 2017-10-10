@@ -165,7 +165,7 @@ def test_pod_status_one():
         sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status hello-0', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
-    assert len(task) == 3
+    assert len(task) == 4
     assert re.match('hello-0-server__[0-9a-f-]+', task['id'])
     assert task['name'] == 'hello-0-server'
     assert task['type'] == 'hello'

@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -138,7 +139,18 @@ public class PodResourceTest {
     public void testGetAllPodStatuses() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME)).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("a")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("b"))
+                .thenReturn(GoalStateOverride.NONE.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
+        when(mockStateStore.fetchGoalOverrideStatus("c"))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING));
+        // d lacks TaskStatus, so no override fetch
+        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.COMPLETE));
         Response response = resource.getPodStatuses();
+        verify(mockStateStore, times(0)).fetchGoalOverrideStatus("d");
+
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 4, json.length());
@@ -147,27 +159,24 @@ public class PodResourceTest {
         assertEquals(4, pod.length());
 
         JSONObject task = pod.getJSONObject(0);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("TASK_RUNNING", task.getString("state"));
-        assertEquals("RUNNING", task.getString("status"));
+        assertEquals("RUNNING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(1);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
-        assertEquals("TASK_STAGING", task.getString("state"));
-        assertEquals("STAGING", task.getString("status"));
+        assertEquals("STARTING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(2);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("c", task.getString("name"));
         assertTrue(task.getString("id").startsWith("c__"));
-        assertEquals("TASK_RUNNING", task.getString("state"));
-        assertEquals("RUNNING", task.getString("status"));
+        assertEquals("STOPPING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(3);
@@ -180,66 +189,63 @@ public class PodResourceTest {
         assertEquals(2, pod.length());
 
         task = pod.getJSONObject(0);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("TASK_FINISHED", task.getString("state"));
-        assertEquals("FINISHED", task.getString("status"));
+        assertEquals("FINISHED", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(1);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
-        assertEquals("TASK_RUNNING", task.getString("state"));
-        assertEquals("RUNNING", task.getString("status"));
+        assertEquals("STARTING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         pod = json.getJSONArray("test-2");
         assertEquals(1, pod.length());
 
         task = pod.getJSONObject(0);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("TASK_FINISHED", task.getString("state"));
-        assertEquals("FINISHED", task.getString("status"));
+        assertEquals("FINISHED", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         pod = json.getJSONArray("UNKNOWN_POD");
         assertEquals(1, pod.length());
 
         task = pod.getJSONObject(0);
-        assertEquals(4, task.length());
+        assertEquals(3, task.length());
         assertEquals("test-task-name", task.getString("name"));
         assertTrue(task.getString("id").startsWith("test-task-name__"));
-        assertEquals("TASK_RUNNING", task.getString("state"));
-        assertEquals("RUNNING", task.getString("status"));
+        assertEquals("STOPPED", task.getString("state"));
     }
 
     @Test
     public void testGetPodStatus() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        when(mockStateStore.fetchGoalOverrideStatus("a")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("b"))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
         Response response = resource.getPodStatus("test-1");
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(json.toString(), 2, json.length());
 
         JSONObject task = json.getJSONObject(0);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("TASK_FINISHED", task.getString("state"));
-        assertEquals("FINISHED", task.getString("status"));
+        assertEquals("FINISHED", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = json.getJSONObject(1);
-        assertEquals(5, task.length());
+        assertEquals(4, task.length());
         assertEquals("b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
-        assertEquals("TASK_RUNNING", task.getString("state"));
-        assertEquals("RUNNING", task.getString("status"));
+        assertEquals("STOPPING", task.getString("state"));
         assertEquals("test", task.getString("type"));
     }
 

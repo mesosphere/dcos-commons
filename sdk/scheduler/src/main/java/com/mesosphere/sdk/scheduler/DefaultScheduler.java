@@ -591,7 +591,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededAndOverriddenTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+        killUnneededAndPendingOverrideTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
@@ -647,7 +647,7 @@ public class DefaultScheduler extends AbstractScheduler {
         return new DefaultPlanCoordinator(planManagers);
     }
 
-    private static void killUnneededAndOverriddenTasks(
+    private static void killUnneededAndPendingOverrideTasks(
             StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
@@ -675,9 +675,9 @@ public class DefaultScheduler extends AbstractScheduler {
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
             if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
-                // Enabling or disabling an override was triggered, but the task might not have been killed yet so that
-                // the override could take effect. Kill the task so that it can enter (or exit) the override. The
-                // override status will then be marked IN_PROGRESS once we have received a terminal TaskStatus.
+                // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
+                // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
+                // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
                 taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
             }
         }
@@ -743,7 +743,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 // The task was marked PENDING before being killed. Mark it as IN_PROGRESS now that we know the kill has
                 // taken effect.
                 stateStore.storeGoalOverrideStatus(taskName,
-                        GoalStateOverride.withProgress(overrideStatus, GoalStateOverride.Progress.IN_PROGRESS));
+                        overrideStatus.target.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
             }
         }
 
