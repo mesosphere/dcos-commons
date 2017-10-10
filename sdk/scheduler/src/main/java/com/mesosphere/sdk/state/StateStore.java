@@ -454,7 +454,7 @@ public class StateStore {
             Map<String, byte[]> values = new TreeMap<>();
 
             if (GoalStateOverride.Status.INACTIVE.equals(status)) {
-                // No override is active (NONE + COMPLETE): Clear any override bits.
+                // Mark inactive state by clearing any override bits.
                 values.put(getGoalOverridePath(taskName), null);
                 values.put(getGoalOverrideStatusPath(taskName), null);
             } else {
@@ -480,12 +480,14 @@ public class StateStore {
             String goalOverridePath = getGoalOverridePath(taskName);
             String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
             Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
+            logger.error(values.toString());
             byte[] nameBytes = values.get(goalOverridePath);
             byte[] statusBytes = values.get(goalOverrideStatusPath);
             if (nameBytes == null && statusBytes == null) {
+                // Cleared override bits => Inactive state
                 return GoalStateOverride.Status.INACTIVE;
             } else if (nameBytes == null || statusBytes == null) {
-                throw new StateStoreException(Reason.SERIALIZATION_ERROR,
+                throw new StateStoreException(Reason.LOGIC_ERROR,
                         String.format("Task is missing override name or override status. " +
                                 "Expected either both or neither: %s", values));
             }

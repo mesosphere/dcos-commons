@@ -232,21 +232,25 @@ public class PodResource extends PrettyJsonResource {
             return ResponseUtils.elementNotFoundResponse();
         }
         if (!taskNameFilter.isEmpty()) {
-            // Convert filter to match task names: ["foo", "bar", ...] => ["pod-0-foo", "pod-0-bar", ...]
-            final Set<String> updatedTaskNameFilter = taskNameFilter.stream()
+            // given a task named "foo" in "pod-0", allow either "foo" or "pod-0-foo" to match:
+            final Set<String> prefixedTaskNameFilter = taskNameFilter.stream()
                     .map(t -> String.format("%s-%s", podName, t))
                     .collect(Collectors.toSet());
-            podTasks = podTasks.stream()
-                    .filter(task -> updatedTaskNameFilter.contains(task.getInfo().getName()))
+            List<TaskInfoAndStatus> filteredPodTasks = podTasks.stream()
+                    .filter(task ->
+                            prefixedTaskNameFilter.contains(task.getInfo().getName()) ||
+                            taskNameFilter.contains(task.getInfo().getName()))
                     .collect(Collectors.toList());
-            if (podTasks.size() < taskNameFilter.size()) {
+            if (filteredPodTasks.size() < taskNameFilter.size()) {
                 // one or more requested tasks were not found.
-                LOGGER.error("Request had task filter: '{}', but pod '{}' tasks are: '{}'",
-                        updatedTaskNameFilter,
+                LOGGER.error("Request had task filter: '{}', but pod '{}' tasks are: {} (matching: {})",
+                        taskNameFilter,
                         podName,
-                        podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
+                        podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()),
+                        filteredPodTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
                 return ResponseUtils.elementNotFoundResponse();
             }
+            podTasks = filteredPodTasks;
         }
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via

@@ -4,7 +4,6 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.specification.GoalState;
 
@@ -16,7 +15,7 @@ import com.mesosphere.sdk.specification.GoalState;
 public enum GoalStateOverride {
 
     /** The definition of the default no-override state. Refer to the task's {@link GoalState} setting. */
-    NONE(null, "STARTING"),
+    NONE("NONE", "STARTING"),
     /** The definition of the "STOPPED" override state, where commands are replaced with sleep()s.*/
     STOPPED("STOPPED", "STOPPING");
 
@@ -96,7 +95,6 @@ public enum GoalStateOverride {
 
         @Override
         public boolean equals(Object o) {
-            LoggerFactory.getLogger(GoalStateOverride.class).error("{} vs {}", this, o); // TODO TEMP
             return EqualsBuilder.reflectionEquals(this, o);
         }
 

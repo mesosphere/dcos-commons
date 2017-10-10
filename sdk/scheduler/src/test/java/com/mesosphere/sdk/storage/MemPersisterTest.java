@@ -229,12 +229,19 @@ public class MemPersisterTest {
     }
 
     @Test
-    public void testSetManyGetDeleteMany() throws PersisterException {
-        Map<String, byte[]> map = new HashMap<>();
+    public void testSetManyGetManyDeleteMany() throws PersisterException {
+        Map<String, byte[]> map = persister.getMany(Arrays.asList(KEY, KEY2));
+        assertEquals(2, map.size());
+        assertArrayEquals(null, map.get(KEY));
+        assertArrayEquals(null, map.get(KEY2));
+
+        map = new HashMap<>();
         map.put(KEY, VAL);
         persister.setMany(map);
 
-        assertArrayEquals(VAL, persister.get(KEY));
+        map = persister.getMany(Arrays.asList(KEY));
+        assertEquals(1, map.size());
+        assertArrayEquals(VAL, map.get(KEY));
         assertEquals(KEY_SET, PersisterUtils.getAllKeys(persister));
 
         map.put(KEY, VAL2); // overwrite prior value
@@ -243,24 +250,40 @@ public class MemPersisterTest {
 
         assertArrayEquals(VAL2, persister.get(KEY));
         assertArrayEquals(VAL2, persister.get(KEY2));
+        map = persister.getMany(Arrays.asList(KEY, KEY2));
+        assertEquals(2, map.size());
+        assertArrayEquals(VAL2, map.get(KEY));
+        assertArrayEquals(VAL2, map.get(KEY2));
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
 
         map.put(KEY, null);
         map.put(KEY2, null);
         persister.setMany(map);
 
+        map = persister.getMany(Arrays.asList(KEY, KEY2));
+        assertEquals(2, map.size());
+        assertArrayEquals(null, map.get(KEY));
+        assertArrayEquals(null, map.get(KEY2));
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
 
         map.put(KEY, VAL);
         persister.setMany(map);
 
         assertArrayEquals(VAL, persister.get(KEY));
+        map = persister.getMany(Arrays.asList(KEY, KEY2));
+        assertEquals(2, map.size());
+        assertArrayEquals(VAL, map.get(KEY));
+        assertArrayEquals(null, map.get(KEY2));
         assertEquals(KEY_SET, PersisterUtils.getAllKeys(persister));
 
         map.put(KEY, null);
         map.put(KEY2, null);
         persister.setMany(map);
 
+        map = persister.getMany(Arrays.asList(KEY, KEY2));
+        assertEquals(2, map.size());
+        assertArrayEquals(null, map.get(KEY));
+        assertArrayEquals(null, map.get(KEY2));
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
     }
 
@@ -279,7 +302,7 @@ public class MemPersisterTest {
                             persister.set(key, VAL2);
                             assertArrayEquals(VAL2, persister.get(key));
                             persister.setMany(Collections.singletonMap(key, VAL));
-                            assertArrayEquals(VAL, persister.get(key));
+                            assertArrayEquals(VAL, persister.getMany(Arrays.asList(key)).get(key));
                             persister.deleteAll(key);
                             try {
                                 persister.get(key);
