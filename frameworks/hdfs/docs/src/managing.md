@@ -27,11 +27,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install $packagename --cli`.
+  + You can install just the subcommand CLI by running `dcos package install --cli $packagename`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    $ dcos package uninstall $packagename --cli
-    $ dcos package install $packagename --cli
+    $ dcos package uninstall --cli $packagename
+    $ dcos package install --cli $packagename
     ```
 
 ### Preparing configuration
@@ -108,7 +108,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 1. Visit <dcos-url> to access the DC/OS web interface.
-1. Navigate to `Services` and click on the service to be configured (default `$packagename`).
+1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
@@ -1230,7 +1230,7 @@ $ dcos $packagename update package-versions
 1. Before updating the service itself, update its CLI subcommand to the new version:
 ```bash
 $ dcos package uninstall --cli $packagename
-$ dcos package install $packagename --cli --package-version="1.1.6-5.0.7"
+$ dcos package install --cli $packagename --package-version="1.1.6-5.0.7"
 ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS HDFS Service to version `1.1.6-5.0.7`:
 ```bash

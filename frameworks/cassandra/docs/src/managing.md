@@ -28,11 +28,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `$packagename --cli`.
+  + You can install just the subcommand CLI by running `dcos package install --cli $packagename`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli
-    $packagename --cli
+    dcos package uninstall --cli $packagename
+    dcos package install --cli $packagename
     ```
 
 #### Preparing configuration
@@ -220,8 +220,8 @@ $ dcos $packagename update package-versions
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
 ```bash
-$ dcos package uninstall --cli
-$ $packagename --cli --package-version="1.1.6-5.0.7"
+$ dcos package uninstall --cli $packagename
+$ dcos package install --cli $packagename --package-version="1.1.6-5.0.7"
 ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Apache Cassandra Service to version `1.1.6-5.0.7`:
 ```bash

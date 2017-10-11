@@ -52,7 +52,7 @@ Sample JSON options file named `sample-hdfs.json`:
 The command below creates a cluster using `sample-hdfs.json`:
 
 ```bash
-$ dcos package install $packagename --options=sample-hdfs.json
+$ dcos package install --options=sample-hdfs.json hdfs
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -300,11 +300,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install $packagename --cli`.
+  + You can install just the subcommand CLI by running `dcos package install --cli $packagename`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall $packagename --cli
-    dcos package install $packagename --cli
+    dcos package uninstall --cli $packagename
+    dcos package install --cli $packagename
     ```
 
 ### Preparing configuration
