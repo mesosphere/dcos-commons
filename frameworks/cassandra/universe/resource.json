@@ -2,7 +2,7 @@
   "assets": {
     "container": {
       "docker": {
-        "cassandra": "mesosphere/cassandra:1.0.26-3.0.10"
+        "cassandra": "mbdcos/centos:centos7"
       }
     },
     "uris": {
