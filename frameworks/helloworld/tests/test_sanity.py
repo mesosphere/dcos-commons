@@ -32,12 +32,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
-def close_enough(val0, val1):
-    epsilon = 0.00001
-    diff = abs(val0 - val1)
-    return diff < epsilon
-
-
 @pytest.mark.smoke
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
@@ -86,7 +80,7 @@ def test_bump_hello_cpus():
     running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
     assert len(running_tasks) == config.hello_task_count(foldered_name)
     for t in running_tasks:
-        assert close_enough(t['resources']['cpus'], updated_cpus)
+        assert config.close_enough(t['resources']['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -106,7 +100,7 @@ def test_bump_world_cpus():
     running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
     assert len(running_tasks) == config.world_task_count(foldered_name)
     for t in running_tasks:
-        assert close_enough(t['resources']['cpus'], updated_cpus)
+        assert config.close_enough(t['resources']['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
