@@ -35,7 +35,7 @@ def configure_package(configure_security):
                 config.PACKAGE_NAME,
                 foldered_name,
                 config.DEFAULT_BROKER_COUNT,
-                additional_options={"service": {"name": foldered_name}})
+                additional_options={"service": {"name": foldered_name}, "brokers": {"cpus": 0.5}})
 
         # wait for brokers to finish registering before starting tests
         test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,

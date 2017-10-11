@@ -1,5 +1,6 @@
 import pytest
 import sdk_cmd
+import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_tasks
@@ -98,8 +99,8 @@ def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
     # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
-    #jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
-    #old_agent = jsonobj[0]['info']['slaveId']['value']
+    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
+    # old_agent = jsonobj[0]['info']['slaveId']['value']
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
     assert len(jsonobj) == 2
@@ -111,8 +112,8 @@ def test_pod_replace():
     config.check_running()
 
     # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
-    #jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
-    #new_agent = jsonobj[0]['info']['slaveId']['value']
+    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
+    # new_agent = jsonobj[0]['info']['slaveId']['value']
     # assert old_agent != new_agent
 
 
@@ -207,3 +208,63 @@ def test_config_update_then_zk_killed():
     sdk_tasks.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
     config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition():
+    host = sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-server")
+    shakedown.partition_agent(host)
+    shakedown.reconnect_agent(host)
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition_master_both_ways():
+    shakedown.partition_master()
+    shakedown.reconnect_master()
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition_master_incoming():
+    shakedown.partition_master(incoming=True, outgoing=False)
+    shakedown.reconnect_master()
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_partition_master_outgoing():
+    shakedown.partition_master(incoming=False, outgoing=True)
+    shakedown.reconnect_master()
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_all_partition():
+    hosts = shakedown.get_service_ips(config.SERVICE_NAME)
+    for host in hosts:
+        shakedown.partition_agent(host)
+    for host in hosts:
+        shakedown.reconnect_agent(host)
+    config.check_running()
+
+
+@pytest.mark.recovery
+def test_config_update_while_partitioned():
+    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
+    host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
+    shakedown.partition_agent(host)
+
+    service_config = sdk_marathon.get_config(config.SERVICE_NAME)
+    updated_cpus = float(service_config['env']['WORLD_CPUS']) + 0.1
+    service_config['env']['WORLD_CPUS'] = str(updated_cpus)
+    sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
+
+    shakedown.reconnect_agent(host)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
+    config.check_running()
+    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == config.world_task_count(config.SERVICE_NAME)
+    for t in running_tasks:
+        assert config.close_enough(t['resources']['cpus'], updated_cpus)
