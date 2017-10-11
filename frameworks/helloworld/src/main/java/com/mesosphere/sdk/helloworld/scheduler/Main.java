@@ -28,14 +28,14 @@ public class Main {
             runner = SchedulerRunner.fromServiceSpec(
                     createSampleServiceSpec(schedulerConfig), schedulerConfig, Collections.emptyList());
         } else if (args.length == 1) {
-            // Read config from provided file, assume any config templates are in the same directory as the file
+            // Read config from provided file, and assume any config templates are in the same directory as the file:
             File yamlSpecFile = new File(args[0]);
             runner = SchedulerRunner.fromRawServiceSpec(
                     RawServiceSpec.newBuilder(yamlSpecFile).build(),
                     schedulerConfig,
                     yamlSpecFile.getParentFile());
         } else {
-            throw new IllegalArgumentException("Expected at most one file argument, got: " + Arrays.toString(args));
+            throw new IllegalArgumentException("Expected zero or one file argument, got: " + Arrays.toString(args));
         }
         runner.run();
     }

@@ -20,6 +20,7 @@ public class DefaultConfigValidators {
                 new ServiceNameCannotContainDoubleUnderscores(),
                 new PodSpecsCannotShrink(),
                 new TaskVolumesCannotChange(),
+                new PodSpecsCannotUseUnsupportedFeatures(),
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
                 new UserCannotChange(),

@@ -131,12 +131,14 @@ public class DefaultStepFactory implements StepFactory {
         }
 
         boolean hasPermanentlyFailed = FailureUtils.isPermanentlyFailed(taskInfo);
-        LOGGER.info("Task: '{}' is on target: {} and has reached goal: {} or has permanently failed: {}.",
-                taskInfo.getName(), isOnTarget, hasReachedGoal, hasPermanentlyFailed);
 
+        String bitsLog = String.format("onTarget=%s reachedGoal=%s permanentlyFailed=%s",
+                isOnTarget, hasReachedGoal, hasPermanentlyFailed);
         if ((isOnTarget && hasReachedGoal) || hasPermanentlyFailed) {
+            LOGGER.info("Deployment of task '{}' is COMPLETE: {}", taskInfo.getName(), bitsLog);
             return Status.COMPLETE;
         } else {
+            LOGGER.info("Deployment of task '{}' is PENDING: {}", taskInfo.getName(), bitsLog);
             return Status.PENDING;
         }
 

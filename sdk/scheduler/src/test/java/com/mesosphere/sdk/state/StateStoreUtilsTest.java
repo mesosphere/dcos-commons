@@ -65,13 +65,13 @@ public class StateStoreUtilsTest {
 
     @Test
     public void testEmptyStateStoreHasNoLastCompletedUpdateType() {
-        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(StateStoreUtils.DeploymentType.NONE));
+        assertThat(StateStoreUtils.getHasCompletedDeployment(stateStore), is(false));
     }
 
     @Test
     public void testLastCompletedUpdateTypeGetsSet() {
-        StateStoreUtils.setLastCompletedUpdateType(stateStore, StateStoreUtils.DeploymentType.DEPLOY);
-        assertThat(StateStoreUtils.getLastCompletedUpdateType(stateStore), is(StateStoreUtils.DeploymentType.DEPLOY));
+        StateStoreUtils.setHasCompletedDeployment(stateStore);
+        assertThat(StateStoreUtils.getHasCompletedDeployment(stateStore), is(true));
     }
 
     @Test

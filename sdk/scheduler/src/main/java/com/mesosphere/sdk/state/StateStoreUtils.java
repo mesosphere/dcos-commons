@@ -27,6 +27,7 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
+    private static final byte[] DEPLOYMENT_TYPE = "DEPLOY".getBytes(StandardCharsets.UTF_8);
 
     private StateStoreUtils() {
         // do not instantiate
@@ -264,34 +265,19 @@ public class StateStoreUtils {
     }
 
     /**
-     * Two types of deployments are differentiated by this type.  Either a services is
-     * being deployed for the first time "DEPLOY", or it is updating a previously deployed
-     * version of the service, "UPDATE"
+     * Sets whether the service has previously completed deployment.
      */
-    public enum DeploymentType {
-        NONE,
-        DEPLOY,
-        UPDATE
+    public static void setHasCompletedDeployment(StateStore stateStore) {
+        stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
     }
 
     /**
-     * Sets the last completed update type.
+     * Gets whether the service has previously completed deployment. If this is {@code true}, then any configuration
+     * changes should be treated as an update rather than a new deployment.
      */
-    public static void setLastCompletedUpdateType(StateStore stateStore, DeploymentType updateResultDeploymentType) {
-        stateStore.storeProperty(
-                LAST_COMPLETED_UPDATE_TYPE_KEY,
-                updateResultDeploymentType.name().getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Gets the last completed update type.
-     */
-    public static DeploymentType getLastCompletedUpdateType(StateStore stateStore) {
-        byte[] bytes = fetchPropertyOrEmptyArray(
+    public static boolean getHasCompletedDeployment(StateStore stateStore) {
+        return fetchPropertyOrEmptyArray(
                 stateStore,
-                LAST_COMPLETED_UPDATE_TYPE_KEY);
-        return bytes.length == 0
-                ? DeploymentType.NONE
-                : DeploymentType.valueOf(new String(bytes, StandardCharsets.UTF_8));
+                LAST_COMPLETED_UPDATE_TYPE_KEY).equals(DEPLOYMENT_TYPE);
     }
 }

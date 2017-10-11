@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosCertInstaller;
@@ -9,7 +10,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.validation.CapabilityValidator;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -149,7 +149,7 @@ public class SchedulerRunner implements Runnable {
         }
 
         if (Capabilities.getInstance().supportsGpuResource()
-                && CapabilityValidator.serviceSpecRequestsGpuResources(serviceSpec)) {
+                && PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec)) {
             fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
                     .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
         }

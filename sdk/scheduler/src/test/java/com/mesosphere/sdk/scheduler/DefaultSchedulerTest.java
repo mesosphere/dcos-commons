@@ -748,8 +748,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testDeployPlanOverriddenDuringUpdate() {
-        Collection<Plan> plans =
-                SchedulerBuilder.overrideDeployPlan(getDeployUpdatePlans(), StateStoreUtils.DeploymentType.UPDATE);
+        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), true);
 
         Assert.assertEquals(1, plans.size());
         Plan deployPlan = plans.stream()
@@ -761,8 +760,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testDeployPlanPreservedDuringInstall() {
-        Collection<Plan> plans =
-                SchedulerBuilder.overrideDeployPlan(getDeployUpdatePlans(), StateStoreUtils.DeploymentType.DEPLOY);
+        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), false);
 
         Assert.assertEquals(2, plans.size());
         Plan deployPlan = plans.stream()

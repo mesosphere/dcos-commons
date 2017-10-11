@@ -17,16 +17,13 @@ public class Main {
             throw new IllegalArgumentException("Expected one file argument, got: " + Arrays.toString(args));
         }
 
+        // Read config from provided file, and assume any config templates are in the same directory as the file:
         File yamlSpecFile = new File(args[0]);
-        // Assume that any configuration template files are in the same directory as the YAML specification file:
-        File configTemplateDir = yamlSpecFile.getParentFile();
-
-        // Build and run the service:
         SchedulerRunner
                 .fromRawServiceSpec(
                         RawServiceSpec.newBuilder(yamlSpecFile).build(),
                         SchedulerConfig.fromEnv(),
-                        configTemplateDir)
+                        yamlSpecFile.getParentFile())
                 .run();
     }
 }
