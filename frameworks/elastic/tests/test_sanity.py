@@ -6,6 +6,7 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_metrics
+import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
@@ -107,15 +108,6 @@ def test_metrics():
         config.DEFAULT_ELASTIC_TIMEOUT,
         expected_metrics_exist
     )
-
-
-@pytest.mark.recovery
-@pytest.mark.sanity
-def test_unchanged_scheduler_restarts_without_restarting_tasks():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    initial_task_ids = sdk_tasks.get_task_ids(foldered_name, '')
-    shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(foldered_name), "elastic.scheduler.Main")
-    sdk_tasks.check_tasks_not_updated(foldered_name, '', initial_task_ids)
 
 
 @pytest.mark.sanity
@@ -246,15 +238,20 @@ def test_coordinator_node_replace():
 def test_plugin_install_and_uninstall(default_populated_index):
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     plugin_name = 'analysis-phonetic'
-    marathon_config = sdk_marathon.get_config(foldered_name)
-    marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    config.update_app(foldered_name, {'TASKCFG_ALL_ELASTICSEARCH_PLUGINS': plugin_name}, current_expected_task_count)
     config.check_plugin_installed(plugin_name, service_name=foldered_name)
 
-    marathon_config = sdk_marathon.get_config(foldered_name)
-    marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = ""
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    config.update_app(foldered_name, {'TASKCFG_ALL_ELASTICSEARCH_PLUGINS': ''}, current_expected_task_count)
     config.check_plugin_uninstalled(plugin_name, service_name=foldered_name)
+
+
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_unchanged_scheduler_restarts_without_restarting_tasks():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    initial_task_ids = sdk_tasks.get_task_ids(foldered_name, '')
+    shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(foldered_name), "elastic.scheduler.Main")
+    sdk_tasks.check_tasks_not_updated(foldered_name, '', initial_task_ids)
 
 
 @pytest.mark.recovery
@@ -269,6 +266,7 @@ def test_bump_node_counts():
     coordinator_nodes = int(marathon_config['env']['COORDINATOR_NODE_COUNT'])
     marathon_config['env']['COORDINATOR_NODE_COUNT'] = str(coordinator_nodes + 1)
     sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
     current_expected_task_count += 3
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
@@ -285,6 +283,7 @@ def test_adding_data_nodes_only_restarts_masters():
     data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
     marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
     sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
     current_expected_task_count += 1
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
