@@ -12,13 +12,13 @@ Clients communicating with Apache Cassandra use the Cassandra Query Language (CQ
 
 Once the service is running, you may view information about its endpoints via either of the following methods:
 - CLI:
-  - List endpoint types: `dcos beta-cassandra endpoints`
-  - View endpoints for an endpoint type: `dcos beta-cassandra endpoints <endpoint>`
+  - List endpoint types: `dcos $packagename endpoints`
+  - View endpoints for an endpoint type: `dcos $packagename endpoints <endpoint>`
 - Web:
   - List endpoint types: `<dcos-url>/service/cassandra/v1/endpoints`
   - View endpoints for an endpoint type: `<dcos-url>/service/cassandra/v1/endpoints/<endpoint>`
 
-By default, the DC/OS Apache Cassandra Service exposes only the `native-client` endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a `thrift-client` endpoint will also be listed. To see node addresses for use by native clients, such as `cqlsh`, run `dcos beta-cassandra endpoints native-client`. A typical response will look like the following:
+By default, the DC/OS Apache Cassandra Service exposes only the `native-client` endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a `thrift-client` endpoint will also be listed. To see node addresses for use by native clients, such as `cqlsh`, run `dcos $packagename endpoints native-client`. A typical response will look like the following:
 
 ```json
 {

@@ -1,290 +1,17 @@
 ---
-post_title: Install and Customize
-menu_order: 20
+post_title: Managing
+menu_order: 60
 enterprise: 'no'
 ---
 
-Beta-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
+# Updating Configuration
+You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying DC/OS HDFS Service itself.
 
-## Prerequisites
+After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `_NODEPOD_-0`, then `_NODEPOD_-1`, and so on.
 
-- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/) before installing HDFS. Only someone with `superuser` permission can create the service account.
-	- `strict` [security mode](https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security) requires a service account.
-	- `permissive` security mode a service account is optional.
-	- `disabled` security mode does not require a service account.
-- A minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
-- Each agent node must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
+Nodes are configured with a "Readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
 
-# Installation
-
-Install Beta-HDFS from the DC/OS web interface. Find the package in Universe and perform an advanced installation. On the **Service** tab, scroll to the bottom and click the box next to **AGREE TO BETA TERMS**. Then, click **REVIEW AND INSTALL**.
-
-This command creates a new HDFS cluster with two name nodes, three journal nodes, and five data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the `name` at install time for each additional instance. See the Custom Installation section for more information.
-
-The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.
-
-Once you have installed Beta-HDFS, install the CLI.
-
-```bash
-$ dcos package install $packagename --cli
-```
-
-# Service Settings
-
-## Service Name
-
-Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `$packagename`.
-
-# Custom Installation
-
-If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to `dcos package install` using the `--options` parameter.
-
-Sample JSON options file named `sample-hdfs.json`:
-
-```json
-{
-    "data_node": {
-        "count": 10
-    }
-}
-```
-
-The command below creates a cluster using `sample-hdfs.json`:
-
-```bash
-$ dcos package install --options=sample-hdfs.json hdfs
-```
-
-**Recommendation:** Store your custom configuration in source control.
-
-This cluster will have 10 data nodes instead of the default value of 3.
-See the Configuration section for a list of fields that can be customized via a options JSON file when the HDFS cluster is created.
-
-# Minimal Installation
-Many of the other Infinity services currently support DC/OS Vagrant deployment. However, DC/OS HDFS currently only supports deployment with an HA name service managed by a Quorum Journal. The resource requirements for such a deployment make it prohibitive to install on a local development machine. The default deployment, is the minimal safe deployment for a DC/OS HDFS cluster. Community contributions to support deployment of a non-HA cluster, e.g. a single name node and data node with no failure detector, would be welcome.
-
-<a name="multiple-install"></a>
-
-# Multiple HDFS cluster Installation
-
-Installing multiple HDFS clusters is identical to installing an HDFS cluster with a custom configuration, as described above. Use a JSON options file to specify a unique `name` for each installation:
-
-```bash
-$ cat hdfs1.json
-
-{
-   "service": {
-       "name": "hdfs1"
-   }
-}
-
-$ dcos package install $packagename --options=hdfs1.json
-```
-
-Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos $packagename` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
-
-<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
-
-## Integration with DC/OS access controls
-
-In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/hdfs` and `production/hdfs`.
-
-Steps:
-
-1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
-1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
-   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
-
-   ```
-   dcos:adminrouter:service:marathon full
-   dcos:service:marathon:marathon:services:/testing full
-   dcos:adminrouter:ops:mesos full
-   dcos:adminrouter:ops:slave full
-   ```
-1. Install your service into a folder called `test`. Go to **Catalog**, then search for **$packagename**.
-1. Click **CONFIGURE** and change the service name to `/testing/hdfs`, then deploy.
-
-   The slashes in your service name are interpreted as folders. You are deploying HDFS in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
-
-**Important:**
-- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
-- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
-
-### Interacting with your foldered service
-
-- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
-- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/hdfs/v1/endpoints`.
-
-<!-- END DUPLICATE BLOCK -->
-
-# Colocation
-
-An individual HDFS deployment will colocate name nodes with journal nodes, but it will not colocate two name nodes or two journal nodes on the same agent node in the cluster. Data nodes may be colocated with both name nodes and journal nodes. If multiple clusters are installed, they may share the same agent nodes in the cluster provided that no ports specified in the service configurations conflict for those node types.
-
-# Installation Plan
-
-When the DC/OS HDFS service is initially installed, it generates an installation plan as shown below.
-
-```json
-{
-	phases: [{
-		id: "0c64b701-6b8b-440e-93e1-6c43b05abfc2",
-		name: "jn-deploy",
-		steps: [{
-			id: "ba608f90-32c6-42e0-93c7-a6b51fc2e52b",
-			status: "COMPLETE",
-			name: "journal-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-0:[node] [ba608f90-32c6-42e0-93c7-a6b51fc2e52b]' has status: 'COMPLETE'."
-		}, {
-			id: "f29c13d8-a477-4e2b-84ac-046cd8a7d283",
-			status: "COMPLETE",
-			name: "journal-1:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-1:[node] [f29c13d8-a477-4e2b-84ac-046cd8a7d283]' has status: 'COMPLETE'."
-		}, {
-			id: "75da5719-9296-4872-887a-cc1ab157191b",
-			status: "COMPLETE",
-			name: "journal-2:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-2:[node] [75da5719-9296-4872-887a-cc1ab157191b]' has status: 'COMPLETE'."
-		}],
-		status: "COMPLETE"
-	}, {
-		id: "967aadc8-ef25-402e-b81a-9fcab0e57463",
-		name: "nn-deploy",
-		steps: [{
-			id: "33d02aa7-0927-428b-82d7-cec93cfde090",
-			status: "COMPLETE",
-			name: "name-0:[format]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[format] [33d02aa7-0927-428b-82d7-cec93cfde090]' has status: 'COMPLETE'."
-		}, {
-			id: "62f048f4-7b6c-4ea0-8509-82b328d40e61",
-			status: "STARTING",
-			name: "name-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[node] [62f048f4-7b6c-4ea0-8509-82b328d40e61]' has status: 'STARTING'."
-		}, {
-			id: "e7b8aa27-39b2-4aba-9d87-3b47c752878f",
-			status: "PENDING",
-			name: "name-1:[bootstrap]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[bootstrap] [e7b8aa27-39b2-4aba-9d87-3b47c752878f]' has status: 'PENDING'."
-		}, {
-			id: "cd633e0d-6aac-45a9-b764-296676fc228d",
-			status: "PENDING",
-			name: "name-1:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[node] [cd633e0d-6aac-45a9-b764-296676fc228d]' has status: 'PENDING'."
-		}],
-		status: "IN_PROGRESS"
-	}, {
-		id: "248fa719-dc57-4ef9-9c48-5e6e1218b6c2",
-		name: "zkfc-deploy",
-		steps: [{
-			id: "812ae290-e6a4-4128-b486-7288e855bfe6",
-			status: "PENDING",
-			name: "zkfc-0:[format]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[format] [812ae290-e6a4-4128-b486-7288e855bfe6]' has status: 'PENDING'."
-		}, {
-			id: "8a401585-a5af-4540-94f0-dada95093329",
-			status: "PENDING",
-			name: "zkfc-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[node] [8a401585-a5af-4540-94f0-dada95093329]' has status: 'PENDING'."
-		}, {
-			id: "7eabc15d-7feb-4546-8699-0fadac1f303b",
-			status: "PENDING",
-			name: "zkfc-1:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-1:[node] [7eabc15d-7feb-4546-8699-0fadac1f303b]' has status: 'PENDING'."
-		}],
-		status: "PENDING"
-	}, {
-		id: "ddb20a39-830b-417b-a901-5b9027e459f7",
-		name: "dn-deploy",
-		steps: [{
-			id: "018deb17-8853-4d3b-820c-6b2caa55743f",
-			status: "PENDING",
-			name: "data-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'data-0:[node] [018deb17-8853-4d3b-820c-6b2caa55743f]' has status: 'PENDING'."
-		}],
-		status: "PENDING"
-	}],
-	errors: [],
-	status: "IN_PROGRESS"
-}
-```
-
-## Viewing the Installation Plan
-The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
-
-```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
-```
-
-## Plan Errors
-The plan will display any errors that prevent installation in the errors list. The presence of any error indicates that the installation cannot progress. See the Troubleshooting section for information on resolving errors.
-
-## Quorum Journal
-The first phase of the installation is the Quorum Journal phase. This phase will deploy three journal nodes to provide a Quorum Journal for the HA name service. Each step in the phase represents an individual journal node.
-
-## Name Service
-The second phase of the installation is deployment of the HA name service. This phase deploys two name nodes.  Needed format and bootstrap operations occur as necessary.
-
-## ZKFC
-The third phase of the installation is deployment of the ZKFC nodes. This phase deploys two ZKFC nodes to enable ZooKeeper failure detection. Each step represents an individual ZKFC node, and there are always exactly two.
-
-## Distributed Storage
-The final phase of the installation is deployment of the distributed storage service. This phase deploys the data nodes that are configured to act as storage for the cluster. The number of data nodes can be reconfigured post installation.
-
-## Pausing Installation
-To pause installation, issue a REST API request as shown below. The installation will pause after completing installation of the current node and wait for user input.
-
-
-```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
-```
-
-## Resuming Installation
-If the installation has been paused, the REST API request below will resume installation at the next pending node.
-
-```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
-```
-
-
-## Virtual networks
-HDFS supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each container to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
-```json
-{
-    "service": {
-        "virtual_network_enabled": true
-    }
-}
-```
-As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.
-
-## TLS
-
-HDFS can be launched with TLS encryption. Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the HDFS scheduler will not abe able to provision TLS artifacts.
-
-Sample JSON options file named `hdfs-tls.json`:
-```json
-{
-  "service": {
-    "service_account_secret": "hdfs",
-    "service_account": "hdfs",
-    "tls": {
-		"enabled": true
-	}
-  }
-}
-```
-
-For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
-
-### Clients
-
-Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (`journal`, `name` and `data`) can be configured with different port numbers for TLS connections.
-
-Clients can connect only over the TLS version 1.2.
-
-# Changing Configuration at Runtime
-
-You can customize your cluster in-place when it is up and running.
+Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
@@ -300,11 +27,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli $packagename`.
+  + You can install just the subcommand CLI by running `dcos package install $packagename --cli`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli $packagename
-    dcos package install --cli $packagename
+    $ dcos package uninstall $packagename --cli
+    $ dcos package install $packagename --cli
     ```
 
 ### Preparing configuration
@@ -319,7 +46,7 @@ Make any configuration changes to this `options.json` file.
 
 If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
 
-**Note:** You must specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
+<strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
 #### Recreating `options.json` (optional)
 
@@ -378,21 +105,17 @@ See [Advanced update actions](#advanced-update-actions) for commands you can use
 If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
 <!-- END DUPLICATE BLOCK -->
-These are the general steps to follow:
 
-1.  Go to the **Services** tab of the DC/OS GUI and click the name of the HDFS service to be updated.
+To make configuration changes via scheduler environment updates, perform the following steps:
+1. Visit <dcos-url> to access the DC/OS web interface.
+1. Navigate to `Services` and click on the service to be configured (default `$packagename`).
+1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
+1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
+1. Update the option value and click `Review and run` (or `Deploy changes`).
+1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
+1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-	![HFDS in DC/OS GUI](/img/hdfs-service-gui.png)
-
-1.  Within the HDFS instance details view, click the vertical ellipsis menu in the upper right, then choose **Edit**.
-
-	![Edit tab](/img/hdfs-service-gui2.png)
-
-1.  Click the **Environment** tab and make your updates. For example, to increase the number of nodes, edit the value for `DATA_COUNT`.
-
-	![Edit environment](/img/hdfs-service-gui3.png)
-
-1. Click **REVIEW & RUN** to apply any changes and cleanly reload the HDFS scheduler. The HDFS cluster itself will persist across the change.
+To see a full listing of available options, run `dcos package describe --config $packagename` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
 
 ## Configuration Deployment Strategy
 
@@ -712,7 +435,7 @@ After you execute the continue operation, the plan will look like this:
 
 # Configuration Options
 
-The following describes the most commonly used features of DC/OS Apache HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
+The following describes the most commonly used features of Beta-HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
 
 ## Service Configuration
 
@@ -743,7 +466,7 @@ The service configuration object contains properties that MUST be specified duri
   <tr>
     <td>service_account</td>
     <td>string</td>
-    <td>The DC/OS service account for the HDFS cluster.</td>
+    <td>The service account for the HDFS cluster.</td>
   </tr>
 
 </table>
@@ -840,6 +563,540 @@ Example node configuration:
   </tr>
 </table>
 
+### Node Info
+
+Comprehensive information is available about every node.  To list all nodes:
+
+```bash
+dcos $packagename --name=<service-name> pod list
+```
+
+Result:
+```json
+[
+  "data-0",
+  "data-1",
+  "data-2",
+  "journal-0",
+  "journal-1",
+  "journal-2",
+  "name-0",
+  "name-1",
+  "zkfc-0",
+  "zkfc-1"
+]
+```
+
+To view information about a node, run the following command from the CLI.
+```bash
+$ dcos $packagename --name=<service-name> pod info <node-id>
+```
+
+For example:
+```bash
+$ dcos $packagename pod info journal-0
+```
+
+Result:
+```json
+[
+  {
+    "info": {
+      "name": "journal-0-node",
+      "taskId": {
+        "value": "journal-0-node__b31a70f4-73c5-4065-990c-76c0c704b8e4"
+      },
+      "slaveId": {
+        "value": "0060634a-aa2b-4fcc-afa6-5569716b533a-S5"
+      },
+      "resources": [
+        {
+          "name": "cpus",
+          "type": "SCALAR",
+          "scalar": {
+            "value": 0.3
+          },
+          "ranges": null,
+          "set": null,
+          "role": "hdfs-role",
+          "reservation": {
+            "principal": "hdfs-principal",
+            "labels": {
+              "labels": [
+                {
+                  "key": "resource_id",
+                  "value": "4208f1ea-586f-4157-81fd-dfa0877e7472"
+                }
+              ]
+            }
+          },
+          "disk": null,
+          "revocable": null,
+          "shared": null
+        },
+        {
+          "name": "mem",
+          "type": "SCALAR",
+          "scalar": {
+            "value": 512.0
+          },
+          "ranges": null,
+          "set": null,
+          "role": "hdfs-role",
+          "reservation": {
+            "principal": "hdfs-principal",
+            "labels": {
+              "labels": [
+                {
+                  "key": "resource_id",
+                  "value": "a0be3c2c-3c7c-47ad-baa9-be81fb5d5f2e"
+                }
+              ]
+            }
+          },
+          "disk": null,
+          "revocable": null,
+          "shared": null
+        },
+        {
+          "name": "ports",
+          "type": "RANGES",
+          "scalar": null,
+          "ranges": {
+            "range": [
+              {
+                "begin": 8480,
+                "end": 8480
+              },
+              {
+                "begin": 8485,
+                "end": 8485
+              }
+            ]
+          },
+          "set": null,
+          "role": "hdfs-role",
+          "reservation": {
+            "principal": "hdfs-principal",
+            "labels": {
+              "labels": [
+                {
+                  "key": "resource_id",
+                  "value": "d50b3deb-97c7-4960-89e5-ac4e508e4564"
+                }
+              ]
+            }
+          },
+          "disk": null,
+          "revocable": null,
+          "shared": null
+        },
+        {
+          "name": "disk",
+          "type": "SCALAR",
+          "scalar": {
+            "value": 5000.0
+          },
+          "ranges": null,
+          "set": null,
+          "role": "hdfs-role",
+          "reservation": {
+            "principal": "hdfs-principal",
+            "labels": {
+              "labels": [
+                {
+                  "key": "resource_id",
+                  "value": "3e624468-11fb-4fcf-9e67-ddb883b1718e"
+                }
+              ]
+            }
+          },
+          "disk": {
+            "persistence": {
+              "id": "6bf7fcf1-ccdf-41a3-87ba-459162da1f03",
+              "principal": "hdfs-principal"
+            },
+            "volume": {
+              "mode": "RW",
+              "containerPath": "journal-data",
+              "hostPath": null,
+              "image": null,
+              "source": null
+            },
+            "source": null
+          },
+          "revocable": null,
+          "shared": null
+        }
+      ],
+      "executor": {
+        "type": null,
+        "executorId": {
+          "value": "journal__e42893b5-9d96-4dfb-8e85-8360d483a122"
+        },
+        "frameworkId": null,
+        "command": {
+          "uris": [
+            {
+              "value": "https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/executor.zip",
+              "executable": null,
+              "extract": null,
+              "cache": null,
+              "outputFile": null
+            },
+            {
+              "value": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9-argus-1.1.x-2.tar.gz",
+              "executable": null,
+              "extract": null,
+              "cache": null,
+              "outputFile": null
+            },
+            {
+              "value": "https://downloads.mesosphere.com/java/jre-8u112-linux-x64-jce-unlimited.tar.gz",
+              "executable": null,
+              "extract": null,
+              "cache": null,
+              "outputFile": null
+            },
+            {
+              "value": "https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos.tar.gz",
+              "executable": null,
+              "extract": null,
+              "cache": null,
+              "outputFile": null
+            },
+            {
+              "value": "https://downloads.mesosphere.com/hdfs/assets/1.0.0-2.6.0/bootstrap.zip",
+              "executable": null,
+              "extract": null,
+              "cache": null,
+              "outputFile": null
+            },
+            {
+              "value": "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/artifacts/template/25f791d8-4d42-458f-84fb-9d82842ffb3e/journal/node/core-site",
+              "executable": null,
+              "extract": false,
+              "cache": null,
+              "outputFile": "config-templates/core-site"
+            },
+            {
+              "value": "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/artifacts/template/25f791d8-4d42-458f-84fb-9d82842ffb3e/journal/node/hdfs-site",
+              "executable": null,
+              "extract": false,
+              "cache": null,
+              "outputFile": "config-templates/hdfs-site"
+            },
+            {
+              "value": "http://api.hdfs.marathon.l4lb.thisdcos.directory/v1/artifacts/template/25f791d8-4d42-458f-84fb-9d82842ffb3e/journal/node/hadoop-metrics2",
+              "executable": null,
+              "extract": false,
+              "cache": null,
+              "outputFile": "config-templates/hadoop-metrics2"
+            }
+          ],
+          "environment": null,
+          "shell": null,
+          "value": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./executor/bin/executor",
+          "arguments": [],
+          "user": null
+        },
+        "container": null,
+        "resources": [],
+        "name": "journal",
+        "source": null,
+        "data": null,
+        "discovery": null,
+        "shutdownGracePeriod": null,
+        "labels": null
+      },
+      "command": {
+        "uris": [],
+        "environment": {
+          "variables": [
+            {
+              "name": "PERMISSIONS_ENABLED",
+              "value": "false"
+            },
+            {
+              "name": "DATA_NODE_BALANCE_BANDWIDTH_PER_SEC",
+              "value": "41943040"
+            },
+            {
+              "name": "NAME_NODE_HANDLER_COUNT",
+              "value": "20"
+            },
+            {
+              "name": "CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE",
+              "value": "1000"
+            },
+            {
+              "name": "HADOOP_ROOT_LOGGER",
+              "value": "INFO,console"
+            },
+            {
+              "name": "HA_FENCING_METHODS",
+              "value": "shell(/bin/true)"
+            },
+            {
+              "name": "SERVICE_ZK_ROOT",
+              "value": "dcos-service-hdfs"
+            },
+            {
+              "name": "HADOOP_PROXYUSER_HUE_GROUPS",
+              "value": "*"
+            },
+            {
+              "name": "NAME_NODE_HEARTBEAT_RECHECK_INTERVAL",
+              "value": "60000"
+            },
+            {
+              "name": "HADOOP_PROXYUSER_HUE_HOSTS",
+              "value": "*"
+            },
+            {
+              "name": "CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_SIZE_EXPIRY_MS",
+              "value": "1000"
+            },
+            {
+              "name": "JOURNAL_NODE_RPC_PORT",
+              "value": "8485"
+            },
+            {
+              "name": "CLIENT_FAILOVER_PROXY_PROVIDER_HDFS",
+              "value": "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+            },
+            {
+              "name": "DATA_NODE_HANDLER_COUNT",
+              "value": "10"
+            },
+            {
+              "name": "HA_AUTOMATIC_FAILURE",
+              "value": "true"
+            },
+            {
+              "name": "JOURNALNODE",
+              "value": "true"
+            },
+            {
+              "name": "NAME_NODE_REPLICATION_WORK_MULTIPLIER_PER_ITERATION",
+              "value": "4"
+            },
+            {
+              "name": "HADOOP_PROXYUSER_HTTPFS_HOSTS",
+              "value": "*"
+            },
+            {
+              "name": "POD_INSTANCE_INDEX",
+              "value": "0"
+            },
+            {
+              "name": "DATA_NODE_IPC_PORT",
+              "value": "9005"
+            },
+            {
+              "name": "JOURNAL_NODE_HTTP_PORT",
+              "value": "8480"
+            },
+            {
+              "name": "NAME_NODE_DATA_NODE_REGISTRATION_IP_HOSTNAME_CHECK",
+              "value": "false"
+            },
+            {
+              "name": "TASK_USER",
+              "value": "root"
+            },
+            {
+              "name": "journal-0-node",
+              "value": "true"
+            },
+            {
+              "name": "HADOOP_PROXYUSER_ROOT_GROUPS",
+              "value": "*"
+            },
+            {
+              "name": "TASK_NAME",
+              "value": "journal-0-node"
+            },
+            {
+              "name": "HADOOP_PROXYUSER_ROOT_HOSTS",
+              "value": "*"
+            },
+            {
+              "name": "IMAGE_COMPRESS",
+              "value": "true"
+            },
+            {
+              "name": "CLIENT_READ_SHORTCIRCUIT",
+              "value": "true"
+            },
+            {
+              "name": "FRAMEWORK_NAME",
+              "value": "hdfs"
+            },
+            {
+              "name": "IMAGE_COMPRESSION_CODEC",
+              "value": "org.apache.hadoop.io.compress.SnappyCodec"
+            },
+            {
+              "name": "NAME_NODE_SAFEMODE_THRESHOLD_PCT",
+              "value": "0.9"
+            },
+            {
+              "name": "NAME_NODE_INVALIDATE_WORK_PCT_PER_ITERATION",
+              "value": "0.95"
+            },
+            {
+              "name": "HADOOP_PROXYUSER_HTTPFS_GROUPS",
+              "value": "*"
+            },
+            {
+              "name": "CLIENT_READ_SHORTCIRCUIT_PATH",
+              "value": "dn_socket"
+            },
+            {
+              "name": "DATA_NODE_HTTP_PORT",
+              "value": "9004"
+            },
+            {
+              "name": "DATA_NODE_RPC_PORT",
+              "value": "9003"
+            },
+            {
+              "name": "NAME_NODE_HTTP_PORT",
+              "value": "9002"
+            },
+            {
+              "name": "NAME_NODE_RPC_PORT",
+              "value": "9001"
+            },
+            {
+              "name": "CONFIG_TEMPLATE_CORE_SITE",
+              "value": "config-templates/core-site,hadoop-2.6.0-cdh5.9.1/etc/hadoop/core-site.xml"
+            },
+            {
+              "name": "CONFIG_TEMPLATE_HDFS_SITE",
+              "value": "config-templates/hdfs-site,hadoop-2.6.0-cdh5.9.1/etc/hadoop/hdfs-site.xml"
+            },
+            {
+              "name": "CONFIG_TEMPLATE_HADOOP_METRICS2",
+              "value": "config-templates/hadoop-metrics2,hadoop-2.6.0-cdh5.9.1/etc/hadoop/hadoop-metrics2.properties"
+            },
+            {
+              "name": "PORT_JOURNAL_RPC",
+              "value": "8485"
+            },
+            {
+              "name": "PORT_JOURNAL_HTTP",
+              "value": "8480"
+            }
+          ]
+        },
+        "shell": null,
+        "value": "./bootstrap && ./hadoop-2.6.0-cdh5.9.1/bin/hdfs journalnode",
+        "arguments": [],
+        "user": null
+      },
+      "container": null,
+      "healthCheck": null,
+      "killPolicy": null,
+      "data": null,
+      "labels": {
+        "labels": [
+          {
+            "key": "goal_state",
+            "value": "RUNNING"
+          },
+          {
+            "key": "offer_attributes",
+            "value": ""
+          },
+          {
+            "key": "task_type",
+            "value": "journal"
+          },
+          {
+            "key": "index",
+            "value": "0"
+          },
+          {
+            "key": "offer_hostname",
+            "value": "10.0.1.23"
+          },
+          {
+            "key": "target_configuration",
+            "value": "4bdb3f97-96b0-4e78-8d47-f39edc33f6e3"
+          }
+        ]
+      },
+      "discovery": null
+    },
+    "status": {
+      "taskId": {
+        "value": "journal-0-node__b31a70f4-73c5-4065-990c-76c0c704b8e4"
+      },
+      "state": "TASK_RUNNING",
+      "message": "Reconciliation: Latest task state",
+      "source": "SOURCE_MASTER",
+      "reason": "REASON_RECONCILIATION",
+      "data": null,
+      "slaveId": {
+        "value": "0060634a-aa2b-4fcc-afa6-5569716b533a-S5"
+      },
+      "executorId": null,
+      "timestamp": 1.486694618923135E9,
+      "uuid": null,
+      "healthy": null,
+      "labels": null,
+      "containerStatus": {
+        "containerId": {
+          "value": "a4c8433f-2648-4ba7-a8b8-5fe5df20e8af",
+          "parent": null
+        },
+        "networkInfos": [
+          {
+            "ipAddresses": [
+              {
+                "protocol": null,
+                "ipAddress": "10.0.1.23"
+              }
+            ],
+            "name": null,
+            "groups": [],
+            "labels": null,
+            "portMappings": []
+          }
+        ],
+        "cgroupInfo": null,
+        "executorPid": 5594
+      },
+      "unreachableTime": null
+    }
+  }
+]
+```
+
+### Node Status
+Similarly, the status for any node may also be queried.
+
+```bash
+$ dcos $packagename --name=<service-name> pod status <node-id>
+```
+
+For example:
+
+```bash
+$ dcos $packagename pod status journal-0
+```
+
+```json
+[
+  {
+    "name": "journal-0-node",
+    "id": "journal-0-node__b31a70f4-73c5-4065-990c-76c0c704b8e4",
+    "state": "TASK_RUNNING"
+  }
+]
+```
 
 ## HDFS File System Configuration
 
@@ -952,3 +1209,163 @@ HDFS requires OS-level configuration settings typical of a production storage se
   </tr>
 
 </table>
+
+# Upgrading Service Version
+
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+
+The instructions below show how to safely update one version of DC/OS HDFS Service to the next.
+
+## Viewing available versions
+
+The `update package-versions` command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).
+
+For example, run:
+```bash
+$ dcos $packagename update package-versions
+```
+
+## Upgrading or downgrading a service
+
+1. Before updating the service itself, update its CLI subcommand to the new version:
+```bash
+$ dcos package uninstall --cli $packagename
+$ dcos package install $packagename --cli --package-version="1.1.6-5.0.7"
+```
+1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS HDFS Service to version `1.1.6-5.0.7`:
+```bash
+$ dcos $packagename update start --package-version="1.1.6-5.0.7"
+```
+
+If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
+```bash
+$ dcos $packagename update start --options=options.json --package-version="1.1.6-5.0.7"
+```
+
+See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
+
+<!-- END DUPLICATE BLOCK -->
+
+# Advanced update actions
+
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+
+The following sections describe advanced commands that be used to interact with an update in progress.
+
+## Monitoring the update
+
+Once the Scheduler has been restarted, it will begin a new deployment plan as individual pods are restarted with the new configuration. Depending on the high availability characteristics of the service being updated, you may experience a service disruption.
+
+You can query the status of the update as follows:
+
+```bash
+$ dcos $packagename update status
+```
+
+If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
+
+## Pause
+
+To pause an ongoing update, issue a pause command:
+
+```bash
+$ dcos $packagename update pause
+```
+
+You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
+
+## Resume
+
+If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
+
+```bash
+$ dcos $packagename update resume
+```
+
+You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
+
+## Force Complete
+
+In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
+
+```bash
+$ dcos $packagename update force-complete service-phase service-0:[node]
+```
+
+## Force Restart
+
+Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase, or just for a specific step.
+
+To restart the entire plan:
+```bash
+$ dcos $packagename update force-restart
+```
+
+Or for all steps in a single phase:
+```bash
+$ dcos $packagename update force-restart service-phase
+```
+
+Or for a specific step within a specific phase:
+```bash
+$ dcos $packagename update force-restart service-phase service-0:[node]
+```
+
+<!-- END DUPLICATE BLOCK -->
+
+# Replacing Journal Nodes
+The following section describes how to perform a `replace` of a Journal Node. This guide uses Journal Node 0 to
+refer to the unhealthy Journal Node as it's the replaced Journal Node.
+
+## Replace Command
+
+Replace the Journal Node via:
+```bash
+$ dcos $packagename pod replace journal-0
+```
+
+## Detecting an unhealthy Journal Node after `replace`
+
+Once the replaced Journal Node is up and running, you should see the following in the `stderr` log:
+```
+org.apache.hadoop.hdfs.qjournal.protocol.JournalNotFormattedException: Journal Storage Directory
+```
+
+This indicates this Journal Node is unhealthy.
+
+## Determining a healthy Journal Node
+
+From the non-replaced Journal Nodes, confirm that a Journal Node is healthy:
+  - Inspect the `stderr` log and check for absence of errors.
+  - In `journal-data/hdfs/current`, check for:
+    - consecutive `edits_xxxxx-edits_xxxxx` files with timestamps between each differing by ~2 minutes.
+    - An `edits_inprogess_` file modified within the past 2 minutes.
+
+Once identified, make a note of which Journal Node is healthy.
+
+## Fixing the unhealthy Journal Node
+
+1. SSH into the sandbox of the unhealthy Journal Node via
+```bash
+$ dcos task exec -it journal-0 /bin/bash
+```
+
+2. In this sandbox, create the directory `journal-data/hdfs/current`:
+```bash
+$ mkdir -p journal-data/hdfs/current
+```
+
+3. From the healthy Journal Node identified previously, copy the contents of the `VERSION` file into `journal-data/hdfs/current/VERSION`.
+
+4. On the unhealthy Journal Node, create a file with the same path as the `VERSION` file on the healthy Journal Node:
+`journal-data/hdfs/current/VERSION`. Paste the copied contents into this file.
+
+5. Restart the unhealthy Journal Node via:
+```bash
+$ dcos $packagename pod restart journal-0
+```
+
+6. Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the `stderr` log. You should see:
+```bash
+INFO namenode.FileJournalManager: Finalizing edits file
+```

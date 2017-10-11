@@ -30,11 +30,11 @@ For example, to uninstall a Kafka instance named `kakfa-dev`, run:
 
 ```bash
 $ MY_SERVICE_NAME=kafka-dev
-$ dcos package uninstall $packagename --app-id=$MY_SERVICE_NAME`
+$ dcos package uninstall $packagename --app-id=`
 $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
-    -r $MY_SERVICE_NAME-role \
-    -p $MY_SERVICE_NAME-principal \
-    -z dcos-service-$MY_SERVICE_NAME"
+    -r -role \
+    -p -principal \
+    -z dcos-service-"
 ```
 
 <!-- END DUPLICATE BLOCK -->

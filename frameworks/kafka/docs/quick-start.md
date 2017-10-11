@@ -11,7 +11,7 @@ enterprise: 'no'
 1. Install a Kafka cluster. If you are using open source DC/OS, install a Kafka cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
    ```bash
-   dcos package install beta-kafka
+   dcos package install $packagename
    ```
 
    Alternatively, you can install Kafka from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
@@ -21,17 +21,17 @@ enterprise: 'no'
 1. Create a new topic.
 
         ```bash
-        $ dcos beta-kafka topic create topic1
+        $ dcos $packagename topic create topic1
         ```
 
 
 1. Find Zookeeper and broker endpoint information.
 
         ```bash
-        $ dcos beta-kafka endpoints zookeeper
+        $ dcos $packagename endpoints zookeeper
         master.mesos:2181/dcos-service-kafka
 
-        $ dcos beta-kafka endpoints broker
+        $ dcos $packagename endpoints broker
         {
           "address": [
             "10.0.3.226:1000",

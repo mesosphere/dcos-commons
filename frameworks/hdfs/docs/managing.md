@@ -27,11 +27,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli beta-hdfs`.
+  + You can install just the subcommand CLI by running `dcos package install --cli $packagename`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    $ dcos package uninstall --cli beta-hdfs
-    $ dcos package install --cli beta-hdfs
+    $ dcos package uninstall --cli $packagename
+    $ dcos package install --cli $packagename
     ```
 
 ### Preparing configuration
@@ -39,7 +39,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
 
 ```bash
-$ dcos beta-hdfs describe > options.json
+$ dcos $packagename describe > options.json
 ```
 
 Make any configuration changes to this `options.json` file.
@@ -57,7 +57,7 @@ First, we'll fetch the default application's environment, current application's 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Set the service name that you're using, for example:
 ```bash
-$ SERVICE_NAME=beta-hdfs
+$ SERVICE_NAME=$packagename
 ```
 1. Get the version of the package that is currently installed:
 ```bash
@@ -93,7 +93,7 @@ $ less marathon.json.mustache
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
 ```bash
-$ dcos beta-hdfs update start --options=options.json
+$ dcos $packagename update start --options=options.json
 ```
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
@@ -115,7 +115,7 @@ To make configuration changes via scheduler environment updates, perform the fol
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config beta-hdfs` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config $packagename` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
 
 ## Configuration Deployment Strategy
 
@@ -568,7 +568,7 @@ Example node configuration:
 Comprehensive information is available about every node.  To list all nodes:
 
 ```bash
-dcos beta-hdfs --name=<service-name> pod list
+dcos $packagename --name=<service-name> pod list
 ```
 
 Result:
@@ -589,12 +589,12 @@ Result:
 
 To view information about a node, run the following command from the CLI.
 ```bash
-$ dcos hdfs --name=<service-name> pod info <node-id>
+$ dcos $packagename --name=<service-name> pod info <node-id>
 ```
 
 For example:
 ```bash
-$ dcos beta-hdfs pod info journal-0
+$ dcos $packagename pod info journal-0
 ```
 
 Result:
@@ -1079,13 +1079,13 @@ Result:
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos beta-hdfs --name=<service-name> pod status <node-id>
+$ dcos $packagename --name=<service-name> pod status <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos beta-hdfs pod status journal-0
+$ dcos $packagename pod status journal-0
 ```
 
 ```json
@@ -1222,24 +1222,24 @@ The `update package-versions` command allows you to view the versions of a servi
 
 For example, run:
 ```bash
-$ dcos beta-hdfs update package-versions
+$ dcos $packagename update package-versions
 ```
 
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
 ```bash
-$ dcos package uninstall --cli beta-hdfs
-$ dcos package install --cli beta-hdfs --package-version="1.1.6-5.0.7"
+$ dcos package uninstall --cli $packagename
+$ dcos package install --cli $packagename --package-version="1.1.6-5.0.7"
 ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS HDFS Service to version `1.1.6-5.0.7`:
 ```bash
-$ dcos beta-hdfs update start --package-version="1.1.6-5.0.7"
+$ dcos $packagename update start --package-version="1.1.6-5.0.7"
 ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 ```bash
-$ dcos beta-hdfs update start --options=options.json --package-version="1.1.6-5.0.7"
+$ dcos $packagename update start --options=options.json --package-version="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
@@ -1259,7 +1259,7 @@ Once the Scheduler has been restarted, it will begin a new deployment plan as in
 You can query the status of the update as follows:
 
 ```bash
-$ dcos beta-hdfs update status
+$ dcos $packagename update status
 ```
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
@@ -1269,7 +1269,7 @@ If the Scheduler is still restarting, DC/OS will not be able to route to it and 
 To pause an ongoing update, issue a pause command:
 
 ```bash
-$ dcos beta-hdfs update pause
+$ dcos $packagename update pause
 ```
 
 You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
@@ -1279,7 +1279,7 @@ You will receive an error message if the plan has already completed or has been 
 If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
 
 ```bash
-$ dcos beta-hdfs update resume
+$ dcos $packagename update resume
 ```
 
 You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
@@ -1289,7 +1289,7 @@ You will receive an error message if you attempt to `resume` a plan that is alre
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
 ```bash
-$ dcos beta-hdfs update force-complete service-phase service-0:[node]
+$ dcos $packagename update force-complete service-phase service-0:[node]
 ```
 
 ## Force Restart
@@ -1298,17 +1298,17 @@ Similar to force complete, you can also force a restart. This can either be done
 
 To restart the entire plan:
 ```bash
-$ dcos beta-hdfs update force-restart
+$ dcos $packagename update force-restart
 ```
 
 Or for all steps in a single phase:
 ```bash
-$ dcos beta-hdfs update force-restart service-phase
+$ dcos $packagename update force-restart service-phase
 ```
 
 Or for a specific step within a specific phase:
 ```bash
-$ dcos beta-hdfs update force-restart service-phase service-0:[node]
+$ dcos $packagename update force-restart service-phase service-0:[node]
 ```
 
 <!-- END DUPLICATE BLOCK -->
@@ -1321,7 +1321,7 @@ refer to the unhealthy Journal Node as it's the replaced Journal Node.
 
 Replace the Journal Node via:
 ```bash
-$ dcos beta-hdfs pod replace journal-0
+$ dcos $packagename pod replace journal-0
 ```
 
 ## Detecting an unhealthy Journal Node after `replace`
@@ -1362,7 +1362,7 @@ $ mkdir -p journal-data/hdfs/current
 
 5. Restart the unhealthy Journal Node via:
 ```bash
-$ dcos beta-hdfs pod restart journal-0
+$ dcos $packagename pod restart journal-0
 ```
 
 6. Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the `stderr` log. You should see:

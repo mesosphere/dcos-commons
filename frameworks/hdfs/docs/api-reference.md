@@ -290,7 +290,7 @@ A list of available node ids can be retrieved by sending a GET request to `/v1/p
 
 CLI Example
 ```bash
-$ dcos beta-hdfs --name=hdfs pod list
+$ dcos $packagename --name=hdfs pod list
 ```
 
 HTTP Example
@@ -320,7 +320,7 @@ $ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<nod
 
 CLI Example
 ```bash
-$ dcos beta-hdfs pod info --name=hdfs journal-0
+$ dcos $packagename pod info --name=hdfs journal-0
 ```
 
 HTTP Example
@@ -725,7 +725,7 @@ The replace endpoint can be used to replace a node with an instance running on a
 
 CLI Example
 ```bash
-$ dcos beta-hdfs --name=hdfs pod replace <node-id>
+$ dcos $packagename --name=hdfs pod replace <node-id>
 ```
 
 HTTP Example
@@ -741,7 +741,7 @@ The restart endpoint can be used to restart a node in place on the same agent no
 
 CLI Example
 ```bash
-$ dcos beta-hdfs pod --name=hdfs restart <node-id>
+$ dcos $packagename pod --name=hdfs restart <node-id>
 ```
 
 HTTP Example
@@ -761,7 +761,7 @@ You can view the current target configuration by sending a GET request to `/v1/c
 
 CLI Example
 ```bash
-$ dcos beta-hdfs config --name=hdfs target
+$ dcos $packagename config --name=hdfs target
 ```
 
 HTTP Example
@@ -2025,7 +2025,7 @@ You can list all configuration IDs by sending a GET request to `/v1/configuratio
 
 CLI Example
 ```bash
-$ dcos beta-hdfs config --name=hdfs list
+$ dcos $packagename config --name=hdfs list
 ```
 
 HTTP Example
@@ -2042,7 +2042,7 @@ You can view a specific configuration by sending a GET request to `/v1/configura
 
 CLI Example
 ```bash
-$ dcos beta-hdfs config --name=hdfs show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+$ dcos $packagename config --name=hdfs show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 ```
 
 HTTP Example

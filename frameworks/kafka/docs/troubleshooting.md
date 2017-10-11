@@ -4,9 +4,9 @@ menu_order: 90
 enterprise: 'no'
 ---
 
-The Kafka service will be listed as "Unhealthy" when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the `dcos beta-kafka topic under_replicated_partitions` and `dcos beta-kafka topic describe <topic-name>` commands to find the problem broker and determine what actions are required.
+The Kafka service will be listed as "Unhealthy" when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the `dcos $packagename topic under_replicated_partitions` and `dcos $packagename topic describe <topic-name>` commands to find the problem broker and determine what actions are required.
 
-Possible repair actions include `dcos beta-kafka broker restart <broker-id>` and `dcos beta-kafka broker replace <broker-id>`. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.
+Possible repair actions include `dcos $packagename broker restart <broker-id>` and `dcos $packagename broker replace <broker-id>`. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.
 
 # Configuration Update Errors
 
@@ -71,7 +71,7 @@ If a machine has permanently failed, manual intervention is required to replace 
 In the example below, the broker with id `0` will be replaced on new machine as long as cluster resources are sufficient to satisfy the service’s placement constraints and resource requirements.
 
     ```bash
-    $ dcos beta-kafka broker replace 0
+    $ dcos $packagename broker replace 0
     ```
 
 # Extending the Kill Grace Period

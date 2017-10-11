@@ -32,7 +32,7 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start backup-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
+dcos $packagename plan start backup-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
 ```
 
 If you're backing up multiple keyspaces, they must be separated by spaces and wrapped in quotation marks when supplied to the `plan start` command, as in the example above. If the `CASSANDRA_KEYSPACES` parameter isn't supplied, then every keyspace in your cluster will be backed up.
@@ -54,7 +54,7 @@ You can also back up to Microsoft Azure using the `backup-azure` plan. This plan
 
 You can initiate this plan from the command line in the same way as the Amazon S3 backup plan:
 ```
-dcos cassandra plan start backup-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
+dcos $packagename plan start backup-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
 ```
 
 # Restore
@@ -78,7 +78,7 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start restore-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
+dcos $packagename plan start restore-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
 ```
 
 ## Restoring From Azure
@@ -95,5 +95,5 @@ You can restore from Microsoft Azure using the `restore-azure` plan. This plan r
 
 You can initiate this plan from the command line in the same way as the Amazon S3 restore plan:
 ```
-dcos cassandra plan start restore-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
+dcos $packagename plan start restore-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
 ```

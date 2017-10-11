@@ -28,11 +28,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli beta-cassandra`.
+  + You can install just the subcommand CLI by running `dcos package install --cli $packagename`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli beta-cassandra
-    dcos package install --cli beta-cassandra
+    dcos package uninstall --cli $packagename
+    dcos package install --cli $packagename
     ```
 
 #### Preparing configuration
@@ -40,7 +40,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
 
 ```bash
-$ dcos beta-cassandra describe > options.json
+$ dcos $packagename describe > options.json
 ```
 
 Make any configuration changes to this `options.json` file.
@@ -58,7 +58,7 @@ First, we'll fetch the default application's environment, current application's 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Set the service name that you're using, for example:
 ```bash
-$ SERVICE_NAME=beta-cassandra
+$ SERVICE_NAME=$packagename
 ```
 1. Get the version of the package that is currently installed:
 ```bash
@@ -94,7 +94,7 @@ $ less marathon.json.mustache
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
 ```bash
-$ dcos beta-cassandra update start --options=options.json
+$ dcos $packagename update start --options=options.json
 ```
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
@@ -109,14 +109,14 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 1. Visit <dcos-url> to access the DC/OS web interface.
-1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
+1. Navigate to `Services` and click on the service to be configured (default `$packagename`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config beta-cassandra` in the CLI, or browse the DC/OS Apache Cassandra Service install dialog in the DC/OS Dashboard.
+To see a full listing of available options, run `dcos package describe --config $packagename` in the CLI, or browse the DC/OS Apache Cassandra Service install dialog in the DC/OS Dashboard.
 
 ## Adding a Node
 
@@ -153,14 +153,14 @@ Let's say we have the following deployment of our nodes
 	```
 	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
 	```
-1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos beta-cassandra pod replace node-1`
+1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos $packagename pod replace node-1`
 1. Wait for `node-1` to be up and healthy before continuing with any other replacement operations.
 
 # Restarting a Node
 
 This operation will restart a node, while keeping it at its current location and with its current persistent volume data. This may be thought of as similar to restarting a system process, but it also deletes any data that is not on a persistent volume.
 
-1. Run `dcos beta-cassandra pod restart node-<NUM>`, e.g. `node-2`.
+1. Run `dcos $packagename pod restart node-<NUM>`, e.g. `node-2`.
 
 # Replacing a Node
 
@@ -168,11 +168,11 @@ This operation will move a node to a new system and will discard the persistent 
 
 **Note:** Nodes are not moved automatically. You must perform the following steps manually to move nodes to new systems. You can automate node replacement according to your own preferences.
 
-1. Run `dcos beta-cassandra pod replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
+1. Run `dcos $packagename pod replace node-<NUM>` to halt the current instance with id `<NUM>` (if still running) and launch a new instance elsewhere.
 
 For example, let's say `node-2`'s host system has died and `node-2` needs to be moved.
 ```
-dcos beta-cassandra pod replace node-2
+dcos $packagename pod replace node-2
 ```
 
 ## Seed nodes
@@ -184,13 +184,13 @@ operation is performed automatically.
 For example if `node-0` needed to be replaced we would execute:
 
 ```bash
-dcos beta-cassandra pod replace node-0
+dcos $packagename pod replace node-0
 ```
 
 which would result in a recovery plan like the following:
 
 ```bash
-$ dcos beta-cassandra --name=cassandra plan show recovery
+$ dcos $packagename --name=cassandra plan show recovery
 recovery (IN_PROGRESS)
 └─ permanent-node-failure-recovery (IN_PROGRESS)
    ├─ node-0:[server] (COMPLETE)
@@ -213,24 +213,24 @@ The `update package-versions` command allows you to view the versions of a servi
 
 For example, for DC/OS Apache Cassandra Service, run:
 ```bash
-$ dcos beta-cassandra update package-versions
+$ dcos $packagename update package-versions
 ```
 
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
 ```bash
-$ dcos package uninstall --cli beta-cassandra
-$ dcos package install --cli beta-cassandra --package-version="1.1.6-5.0.7"
+$ dcos package uninstall --cli $packagename
+$ dcos package install --cli $packagename --package-version="1.1.6-5.0.7"
 ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Apache Cassandra Service to version `1.1.6-5.0.7`:
 ```bash
-$ dcos beta-cassandra update start --package-version="1.1.6-5.0.7"
+$ dcos $packagename update start --package-version="1.1.6-5.0.7"
 ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 ```bash
-$ dcos beta-cassandra update start --options=options.json --package-version="1.1.6-5.0.7"
+$ dcos $packagename update start --options=options.json --package-version="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
@@ -250,7 +250,7 @@ Once the Scheduler has been restarted, it will begin a new deployment plan as in
 You can query the status of the update as follows:
 
 ```bash
-$ dcos beta-cassandra update status
+$ dcos $packagename update status
 ```
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
@@ -260,7 +260,7 @@ If the Scheduler is still restarting, DC/OS will not be able to route to it and 
 To pause an ongoing update, issue a pause command:
 
 ```bash
-$ dcos beta-cassandra update pause
+$ dcos $packagename update pause
 ```
 
 You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
@@ -270,7 +270,7 @@ You will receive an error message if the plan has already completed or has been 
 If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
 
 ```bash
-$ dcos beta-cassandra update resume
+$ dcos $packagename update resume
 ```
 
 You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
@@ -280,7 +280,7 @@ You will receive an error message if you attempt to `resume` a plan that is alre
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
 ```bash
-$ dcos beta-cassandra update force-complete service-phase service-0:[node]
+$ dcos $packagename update force-complete service-phase service-0:[node]
 ```
 
 ## Force Restart
@@ -289,17 +289,17 @@ Similar to force complete, you can also force a restart. This can either be done
 
 To restart the entire plan:
 ```bash
-$ dcos beta-cassandra update force-restart
+$ dcos $packagename update force-restart
 ```
 
 Or for all steps in a single phase:
 ```bash
-$ dcos beta-cassandra update force-restart service-phase
+$ dcos $packagename update force-restart service-phase
 ```
 
 Or for a specific step within a specific phase:
 ```bash
-$ dcos beta-cassandra update force-restart service-phase service-0:[node]
+$ dcos $packagename update force-restart service-phase service-0:[node]
 ```
 
 <!-- END DUPLICATE BLOCK -->

@@ -20,16 +20,16 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Install the HDFS package.
 
     ```bash
-    $ dcos package install beta-hdfs
+    $ dcos package install $packagename
     ```
 
-    **Tip:** Type `dcos beta-hdfs` to view the HDFS CLI options.
+    **Tip:** Type `dcos $packagename` to view the HDFS CLI options.
 
 
 1.  Show the currently configured HDFS nodes.
 
     ```bash
-    $ dcos beta-hdfs --name=hdfs config list
+    $ dcos $packagename --name=hdfs config list
     ```
 
     The output should resemble:
@@ -122,7 +122,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `hdfs-site.xml` file.
 
         ```bash
-        $ dcos beta-hdfs --name=hdfs endpoints hdfs-site.xml
+        $ dcos $packagename --name=hdfs endpoints hdfs-site.xml
         ```
 
         The output should resemble:
@@ -142,7 +142,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `core-site.xml` file.
 
         ```bash
-        $ dcos beta-hdfs --name=hdfs endpoints core-site.xml
+        $ dcos $packagename --name=hdfs endpoints core-site.xml
         ```
 
         The output should resemble:
