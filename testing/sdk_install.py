@@ -102,7 +102,7 @@ def _uninstall(
         zk=None):
     start = time.time()
 
-    if shakedown.dcos_version_less_than("1.10"):
+    if sdk_utils.dcos_version_less_than("1.10"):
         log.info('Uninstalling/janitoring {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(

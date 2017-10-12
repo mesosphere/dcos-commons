@@ -82,6 +82,17 @@ def pytest_runtest_makereport(item, call):
             log.exception('Mesos state collection failed!')
 
 
+def pytest_runtest_setup(item):
+    min_version_mark = item.get_marker('dcos_min_version')
+    if min_version_mark:
+        min_version = min_version_mark.args[0]
+        message = 'Feature only supported in DC/OS {} and up'.format(min_version)
+        if 'reason' in min_version_mark.kwargs:
+            message += ': {}'.format(min_version_mark.kwargs['reason'])
+        if sdk_utils.dcos_version_less_than(min_version):
+            pytest.skip(message)
+
+
 def get_rotating_task_log_lines(task_id: str, task_file: str):
     rotated_filenames = [task_file,]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])

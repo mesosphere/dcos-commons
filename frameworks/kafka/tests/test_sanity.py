@@ -23,7 +23,7 @@ def configure_package(configure_security):
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
-        if shakedown.dcos_version_less_than("1.9"):
+        if sdk_utils.dcos_version_less_than("1.9"):
             # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
             sdk_install.install(
                 config.PACKAGE_NAME,
@@ -327,7 +327,7 @@ def test_pod_cli():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     expected_metrics = [
         "kafka.network.RequestMetrics.ResponseQueueTimeMs.max",

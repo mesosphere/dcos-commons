@@ -40,14 +40,14 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_service_health():
     assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_indexing(default_populated_index):
     def fun():
         indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
@@ -62,7 +62,7 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(config.SERVICE_NAME)
     assert len(elastic_tasks) == config.NO_INGEST_TASK_COUNT, \
@@ -73,7 +73,7 @@ def test_tasks_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_endpoints_on_overlay():
     endpoint_types_without_ingest = (
         'coordinator-http', 'coordinator-transport',
