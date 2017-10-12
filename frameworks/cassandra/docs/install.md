@@ -102,7 +102,7 @@ Get the list of seed node addresses for the first cluster from the scheduler HTT
 ```json
 DCOS_AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
 DCOS_URL=$(dcos config show core.dcos_url)
-curl -H "authorization:token=" /service/cassandra/v1/seeds
+curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra/v1/seeds
 {"seeds": ["10.0.0.1", "10.0.0.2"]}
 ```
 
@@ -110,7 +110,7 @@ In the DC/OS UI, go to the configuration dialog for the second cluster (whose se
 
 Get the seed node addresses for the second cluster the same way:
 ```
-curl -H "authorization:token=" /service/cassandra2/v1/seeds
+curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra2/v1/seeds
 {"seeds": ["10.0.0.3", "10.0.0.4"]}
 ```
 

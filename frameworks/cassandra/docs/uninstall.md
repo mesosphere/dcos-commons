@@ -30,11 +30,11 @@ For example, to uninstall a Cassandra instance named `cassandra-dev`, run:
 
 ```bash
 $ MY_SERVICE_NAME=cassandra-dev
-$ dcos package uninstall --app-id= beta-cassandra`.
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME beta-cassandra`.
 $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
-    -r -role \
-    -p -principal \
-    -z dcos-service-"
+    -r $MY_SERVICE_NAME-role \
+    -p $MY_SERVICE_NAME-principal \
+    -z dcos-service-$MY_SERVICE_NAME"
 ```
 
 <!-- END DUPLICATE BLOCK -->
