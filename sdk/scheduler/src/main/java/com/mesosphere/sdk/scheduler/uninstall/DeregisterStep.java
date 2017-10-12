@@ -43,7 +43,8 @@ public class DeregisterStep extends UninstallStep {
         schedulerDriver.stop(false);
         logger.info("Deleting service root path for framework...");
         stateStore.clearAllData();
-        logger.info("Finished deleting service root path for framework");
+        logger.info("### UNINSTALL IS COMPLETE! ###");
+        logger.info("Scheduler should be cleaned up shortly...");
         setStatus(Status.COMPLETE);
         return Optional.empty();
     }
