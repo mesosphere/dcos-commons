@@ -257,6 +257,8 @@ def test_bump_journal_cpus():
 
     sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
     # journal node update should not cause any of the name nodes to crash
+    # if the name nodes crashed, then it implies the journal nodes were updated in parallel, when they should've been updated serially
+    # for journal nodes, the deploy plan is parallel, while the update plan is serial. maybe the deploy plan was mistakenly used?
     sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
     config.check_healthy(service_name=foldered_name)
 

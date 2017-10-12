@@ -15,19 +15,21 @@ tools/cluster-*.properties
 tools/*.pem
 tools/dcostests_env/
 tools/shakedown_env/
+tools/*/shakedown_env/
 tools/cassandra
 tools/hdfs
 tools/kafka
 tools/elastic
 tools/helloworld
 tools/template
+/test_*.json
+*.log
 
 # idea
 *.i??
 .idea/
 out/
 classes/
-*.log
 
 # eclipse
 .classpath
@@ -54,6 +56,3 @@ frameworks/*/*-universe-url*
 
 # OS X
 .DS_Store
-
-# ignore shakedown_env
-tools/*/shakedown_env
