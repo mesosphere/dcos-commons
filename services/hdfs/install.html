@@ -356,7 +356,7 @@
 </ul>
 <h1>HDFS: Install and Customize</h1>
 <div id="content">
-<p>Beta-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.</p>
+<p>HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
 
@@ -374,13 +374,13 @@
 
 <h1 id="installation">Installation</h1>
 
-<p>Install Beta-HDFS from the DC/OS web interface. Find the package in Universe and perform an advanced installation. On the <strong>Service</strong> tab, scroll to the bottom and click the box next to <strong>AGREE TO BETA TERMS</strong>. Then, click <strong>REVIEW AND INSTALL</strong>.</p>
+<p>Install HDFS from the DC/OS web interface. Find the package in Universe and perform an advanced installation. On the <strong>Service</strong> tab, scroll to the bottom and click the box next to <strong>AGREE TO BETA TERMS</strong>. Then, click <strong>REVIEW AND INSTALL</strong>.</p>
 
 <p>This command creates a new HDFS cluster with two name nodes, three journal nodes, and five data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the <code class="highlighter-rouge">name</code> at install time for each additional instance. See the Custom Installation section for more information.</p>
 
 <p>The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.</p>
 
-<p>Once you have installed Beta-HDFS, install the CLI.</p>
+<p>Once you have installed HDFS, install the CLI.</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install beta-hdfs --cli
 </code></pre>
@@ -390,7 +390,7 @@
 
 <h2 id="service-name">Service Name</h2>
 
-<p>Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See <a href="#multiple-install">Multiple HDFS Cluster Installation</a> for more information. The default service name (used in many examples here) is <code class="highlighter-rouge">beta-hdfs</code>.</p>
+<p>Each instance of HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See <a href="#multiple-install">Multiple HDFS Cluster Installation</a> for more information. The default service name (used in many examples here) is <code class="highlighter-rouge">beta-hdfs</code>.</p>
 
 <h1 id="custom-installation">Custom Installation</h1>
 
