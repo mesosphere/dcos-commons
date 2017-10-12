@@ -23,7 +23,7 @@ current_dir=$(dirname $0)
 for i in $current_dir/$frameworkname/docs/src/* ;
 do
   echo $i
-  envsubst <$i> $i.tmp
+  envsubst '$packagename' <$i> $i.tmp
   mv $i.tmp $current_dir/$frameworkname/docs/$(echo $i | sed 's:.*/::')
 done
 
