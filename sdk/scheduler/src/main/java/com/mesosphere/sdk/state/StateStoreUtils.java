@@ -2,7 +2,6 @@ package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -28,6 +27,7 @@ public class StateStoreUtils {
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
+    private static final byte[] DEPLOYMENT_TYPE = "DEPLOY".getBytes(StandardCharsets.UTF_8);
 
     private StateStoreUtils() {
         // do not instantiate
@@ -265,28 +265,17 @@ public class StateStoreUtils {
     }
 
     /**
-     * Sets the last completed update type.
+     * Sets whether the service has previously completed deployment.
      */
-    public static void setLastCompletedUpdateType(
-            StateStore stateStore,
-            ConfigurationUpdater.UpdateResult.DeploymentType updateResultDeploymentType) {
-        stateStore.storeProperty(
-                LAST_COMPLETED_UPDATE_TYPE_KEY,
-                updateResultDeploymentType.name().getBytes(StandardCharsets.UTF_8));
+    public static void setDeploymentWasCompleted(StateStore stateStore) {
+        stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
     }
 
     /**
-     * Gets the last completed update type.
+     * Gets whether the service has previously completed deployment. If this is {@code true}, then any configuration
+     * changes should be treated as an update rather than a new deployment.
      */
-    public static ConfigurationUpdater.UpdateResult.DeploymentType getLastCompletedUpdateType(StateStore stateStore) {
-        byte[] bytes = fetchPropertyOrEmptyArray(
-                stateStore,
-                LAST_COMPLETED_UPDATE_TYPE_KEY);
-        if (bytes.length == 0) {
-            return ConfigurationUpdater.UpdateResult.DeploymentType.NONE;
-        } else {
-            String value = new String(bytes, StandardCharsets.UTF_8);
-            return ConfigurationUpdater.UpdateResult.DeploymentType.valueOf(value);
-        }
+    public static boolean getDeploymentWasCompleted(StateStore stateStore) {
+        return Arrays.equals(fetchPropertyOrEmptyArray(stateStore, LAST_COMPLETED_UPDATE_TYPE_KEY), DEPLOYMENT_TYPE);
     }
 }

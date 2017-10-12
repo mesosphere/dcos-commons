@@ -18,7 +18,7 @@ import java.util.*;
  */
 public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-    private static final String PHASE_NAME = "permanent-%s-failure-recovery";
+    private static final String PHASE_NAME_TEMPLATE = "permanent-%s-failure-recovery";
     private static final String NN_PHASE_NAME = "name";
     private static final String JN_PHASE_NAME = "journal";
     private final StateStore stateStore;
@@ -109,7 +109,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
                         stateStore);
 
         return new DefaultPhase(
-                PHASE_NAME.format(phaseName),
+                String.format(PHASE_NAME_TEMPLATE, phaseName),
                 Arrays.asList(bootstrapStep, nodeStep),
                 new SerialStrategy<>(),
                 Collections.emptyList());

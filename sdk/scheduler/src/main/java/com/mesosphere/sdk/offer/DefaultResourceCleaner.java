@@ -20,10 +20,7 @@ import java.util.stream.Collectors;
 public class DefaultResourceCleaner implements ResourceCleaner {
     private static final Logger logger = LoggerFactory.getLogger(DefaultResourceCleaner.class);
 
-    // Only Persistent Volumes are DESTROYed
-    private final Set<String> expectedPersistentVolumeIds;
-    // Both Persistent Volumes AND Reserved Resources are UNRESERVEd
-    private final Set<String> expectedReservedResourceIds;
+    private final Collection<Resource> expectedResources;
 
     /**
      * Creates a new {@link DefaultResourceCleaner} which retrieves expected resource
@@ -33,9 +30,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      *             if there's a failure when retrieving resource information
      */
     public DefaultResourceCleaner(StateStore stateStore) {
-        Collection<Resource> expectedResources = getExpectedResources(stateStore);
-        this.expectedPersistentVolumeIds = getPersistentVolumeIds(expectedResources);
-        this.expectedReservedResourceIds = getReservedResourceIds(expectedResources);
+        expectedResources = getExpectedResources(stateStore);
     }
 
     /**
@@ -46,7 +41,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     @Override
     public Collection<? extends Resource> getReservedResourcesToBeUnreserved(Offer offer) {
-        return selectUnexpectedResources(expectedReservedResourceIds, getReservedResourcesById(offer));
+        return selectUnexpectedResources(getReservedResourceIds(expectedResources), getReservedResourcesById(offer));
     }
 
     /**
@@ -57,7 +52,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      */
     @Override
     public Collection<? extends Resource> getPersistentVolumesToBeDestroyed(Offer offer) {
-        return selectUnexpectedResources(expectedPersistentVolumeIds, getPersistentVolumesById(offer));
+        return selectUnexpectedResources(getPersistentVolumeIds(expectedResources), getPersistentVolumesById(offer));
     }
 
     /**

@@ -3,17 +3,19 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Iterables;
+import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.mesos.Protos;
@@ -81,7 +83,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec) ==
+        Assert.assertTrue(PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec) ==
                 DcosConstants.DEFAULT_GPU_POLICY);
         validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
@@ -92,8 +94,8 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
-        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
-        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
+        Assert.assertTrue("Expected serviceSpec to request support GPUs",
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
         validateServiceSpec("valid-gpu-resource.yml", true);
     }
 
@@ -103,8 +105,8 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
-        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
-        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
+        Assert.assertTrue("Expected serviceSpec to request support GPUs",
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
     }
 
     @Test
@@ -350,6 +352,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
+        when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "prior config not found"));
         DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawSpec, SCHEDULER_CONFIG, file.getParentFile()).build(), SCHEDULER_CONFIG, new MemPersister())
                 .setConfigStore(mockConfigStore)
@@ -525,14 +528,14 @@ public class DefaultServiceSpecTest {
         }
     }
 
-    @Test(expected = RLimit.InvalidRLimitException.class)
+    @Test(expected = RLimitSpec.InvalidRLimitException.class)
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
-    @Test(expected = RLimit.InvalidRLimitException.class)
+    @Test(expected = RLimitSpec.InvalidRLimitException.class)
     public void invalidRLimitNameLegacy() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-legacy-name.yml").getFile());
