@@ -267,7 +267,7 @@ public class StateStoreUtils {
     /**
      * Sets whether the service has previously completed deployment.
      */
-    public static void setHasCompletedDeployment(StateStore stateStore) {
+    public static void setDeploymentWasCompleted(StateStore stateStore) {
         stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
     }
 
@@ -275,9 +275,7 @@ public class StateStoreUtils {
      * Gets whether the service has previously completed deployment. If this is {@code true}, then any configuration
      * changes should be treated as an update rather than a new deployment.
      */
-    public static boolean getHasCompletedDeployment(StateStore stateStore) {
-        return fetchPropertyOrEmptyArray(
-                stateStore,
-                LAST_COMPLETED_UPDATE_TYPE_KEY).equals(DEPLOYMENT_TYPE);
+    public static boolean getDeploymentWasCompleted(StateStore stateStore) {
+        return Arrays.equals(fetchPropertyOrEmptyArray(stateStore, LAST_COMPLETED_UPDATE_TYPE_KEY), DEPLOYMENT_TYPE);
     }
 }

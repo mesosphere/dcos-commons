@@ -264,7 +264,7 @@ public class SchedulerBuilder {
     private DefaultScheduler getDefaultScheduler(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
         // Determine whether deployment had previously completed BEFORE we update the config.
         // Plans may be generated from the config content.
-        boolean hasCompletedDeployment = StateStoreUtils.getHasCompletedDeployment(stateStore);
+        boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
         if (!hasCompletedDeployment) {
             try {
                 // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
@@ -274,7 +274,7 @@ public class SchedulerBuilder {
                         getPlans(stateStore, configStore, lastServiceSpec, manualPlans, yamlPlans));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
                     LOGGER.info("Marking deployment as having been previously completed");
-                    StateStoreUtils.setHasCompletedDeployment(stateStore);
+                    StateStoreUtils.setDeploymentWasCompleted(stateStore);
                     hasCompletedDeployment = true;
                 }
             } catch (ConfigStoreException e) {
