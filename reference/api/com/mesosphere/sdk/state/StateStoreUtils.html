@@ -165,9 +165,9 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-">getLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Gets the last completed update type.</div>
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getDeploymentWasCompleted-com.mesosphere.sdk.state.StateStore-">getDeploymentWasCompleted</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Gets whether the service has previously completed deployment.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
@@ -200,9 +200,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">setLastCompletedUpdateType</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                          <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;updateResultDeploymentType)</code>
-<div class="block">Sets the last completed update type.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#setDeploymentWasCompleted-com.mesosphere.sdk.state.StateStore-">setDeploymentWasCompleted</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<div class="block">Sets whether the service has previously completed deployment.</div>
 </td>
 </tr>
 <tr id="i11" class="rowColor">
@@ -415,25 +414,25 @@ extends java.lang.Object</pre>
  task name.</div>
 </li>
 </ul>
-<a name="setLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.config.ConfigurationUpdater.UpdateResult.DeploymentType-">
+<a name="setDeploymentWasCompleted-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setLastCompletedUpdateType</h4>
-<pre>public static&nbsp;void&nbsp;setLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                              <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;updateResultDeploymentType)</pre>
-<div class="block">Sets the last completed update type.</div>
+<h4>setDeploymentWasCompleted</h4>
+<pre>public static&nbsp;void&nbsp;setDeploymentWasCompleted(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<div class="block">Sets whether the service has previously completed deployment.</div>
 </li>
 </ul>
-<a name="getLastCompletedUpdateType-com.mesosphere.sdk.state.StateStore-">
+<a name="getDeploymentWasCompleted-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getLastCompletedUpdateType</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.DeploymentType.html" title="enum in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult.DeploymentType</a>&nbsp;getLastCompletedUpdateType(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-<div class="block">Gets the last completed update type.</div>
+<h4>getDeploymentWasCompleted</h4>
+<pre>public static&nbsp;boolean&nbsp;getDeploymentWasCompleted(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<div class="block">Gets whether the service has previously completed deployment. If this is <code>true</code>, then any configuration
+ changes should be treated as an update rather than a new deployment.</div>
 </li>
 </ul>
 </li>

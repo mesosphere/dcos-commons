@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -151,43 +151,37 @@ implements <a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.htm
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#forceComplete--">forceComplete</a></span>()</code>
-<div class="block">Forces reconciliation into a complete state.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#getCurrentTimeMillis--">getCurrentTimeMillis</a></span>()</code>
 <div class="block">Time retrieval broken out into a separate function to allow overriding its behavior in tests.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#isReconciled--">isReconciled</a></span>()</code>
 <div class="block">Returns whether reconciliation is complete.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#reconcile-SchedulerDriver-">reconcile</a></span>(SchedulerDriver&nbsp;driver)</code>
 <div class="block">This function is expected to be called repeatedly.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>java.util.Set&lt;java.lang.String&gt;</code></td>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>(package private) java.util.Set&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#remaining--">remaining</a></span>()</code>
-<div class="block">Returns the set of known unreconciled task ids as <code>String</code>s.</div>
+<div class="block">Returns the list of remaining unreconciled tasks for validation in tests.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#start--">start</a></span>()</code>
 <div class="block">Starts reconciliation against the provided tasks, which should represent what the Scheduler
  currently knows about task status.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/reconciliation/DefaultReconciler.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Used to update the Reconciler with current task status.</div>
@@ -298,45 +292,6 @@ implements <a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.htm
 </dl>
 </li>
 </ul>
-<a name="remaining--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>remaining</h4>
-<pre>public&nbsp;java.util.Set&lt;java.lang.String&gt;&nbsp;remaining()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#remaining--">Reconciler</a></code></span></div>
-<div class="block">Returns the set of known unreconciled task ids as <code>String</code>s. Note that an empty list
- does NOT mean that reconciliation is complete. Use <a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#isReconciled--"><code>Reconciler.isReconciled()</code></a> to determine
- completeness.
- <p>
- NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#remaining--">remaining</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation">Reconciler</a></code></dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#isReconciled--"><code>Reconciler.isReconciled()</code></a></dd>
-</dl>
-</li>
-</ul>
-<a name="forceComplete--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>forceComplete</h4>
-<pre>public&nbsp;void&nbsp;forceComplete()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#forceComplete--">Reconciler</a></code></span></div>
-<div class="block">Forces reconciliation into a complete state. This may result in inconsistent task state
- between Mesos and the Framework Scheduler, so calling it is not recommended.
- <p>
- NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#forceComplete--">forceComplete</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation">Reconciler</a></code></dd>
-</dl>
-</li>
-</ul>
 <a name="isReconciled--">
 <!--   -->
 </a>
@@ -352,6 +307,16 @@ implements <a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.htm
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html#isReconciled--">isReconciled</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/reconciliation/Reconciler.html" title="interface in com.mesosphere.sdk.reconciliation">Reconciler</a></code></dd>
 </dl>
+</li>
+</ul>
+<a name="remaining--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>remaining</h4>
+<pre>java.util.Set&lt;java.lang.String&gt;&nbsp;remaining()</pre>
+<div class="block">Returns the list of remaining unreconciled tasks for validation in tests.</div>
 </li>
 </ul>
 <a name="getCurrentTimeMillis--">
