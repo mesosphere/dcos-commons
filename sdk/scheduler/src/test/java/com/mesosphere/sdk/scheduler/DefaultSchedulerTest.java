@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
@@ -12,6 +11,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -212,7 +212,7 @@ public class DefaultSchedulerTest {
                         .placementRule(TestPlacementUtils.PASS)
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
+        SchedulerBuilder.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
     }
 
     @Test(expected = ConfigStoreException.class)
@@ -222,7 +222,7 @@ public class DefaultSchedulerTest {
                         .placementRule(new PlacementRuleMissingEquality())
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
+        SchedulerBuilder.createConfigStore(
                 serviceSpecification, Arrays.asList(PlacementRuleMissingEquality.class), new MemPersister());
     }
 
@@ -233,7 +233,7 @@ public class DefaultSchedulerTest {
                         .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
+        SchedulerBuilder.createConfigStore(
                 serviceSpecification, Arrays.asList(PlacementRuleMismatchedAnnotations.class), new MemPersister());
     }
 
@@ -244,7 +244,7 @@ public class DefaultSchedulerTest {
                         .placementRule(TestPlacementUtils.PASS)
                         .build());
         Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        DefaultScheduler.createConfigStore(
+        SchedulerBuilder.createConfigStore(
                 serviceSpecification, Arrays.asList(TestPlacementUtils.PASS.getClass()), new MemPersister());
     }
 
@@ -594,7 +594,6 @@ public class DefaultSchedulerTest {
         // Perform Configuration Update
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = getScheduler(getServiceSpec(updatedPodA, podB));
-        defaultScheduler.forceReconciliationComplete();
         plan = getDeploymentPlan();
         stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
@@ -603,12 +602,29 @@ public class DefaultSchedulerTest {
         Protos.Resource neededAdditionalResource = ResourceTestUtils.getUnreservedCpus(UPDATED_TASK_A_CPU - TASK_A_CPU);
         expectedResources.add(neededAdditionalResource);
 
-        // Start update Step
+
+        // Start update Step: check behavior before and after reconciliation completes
         Protos.Offer insufficientOffer = OfferTestUtils.getCompleteOffer(neededAdditionalResource);
+
+        // First attempt doesn't do anything because reconciliation hadn't completed yet
+        defaultScheduler.getMesosScheduler().get()
+                .resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
+        verify(mockSchedulerDriver, times(0)).killTask(any());
+        verify(mockSchedulerDriver, times(1)).declineOffer(eq(insufficientOffer.getId()), any());
+        Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
+
+        // Check that the scheduler had requested reconciliation of its sole task, then finish that reconciliation:
+        verify(mockSchedulerDriver, times(1)).reconcileTasks(
+                Arrays.asList(getTaskStatus(launchedTaskId, Protos.TaskState.TASK_RUNNING)));
+        statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
+        // When explicit reconciliation completes, the scheduler should trigger implicit reconciliation:
+        verify(mockSchedulerDriver, times(1)).reconcileTasks(Collections.emptyList());
+
+        // Second attempt after reconciliation results in triggering task relaunch
         defaultScheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, times(1)).killTask(launchedTaskId);
-        verify(mockSchedulerDriver, times(1)).declineOffer(eq(insufficientOffer.getId()), any());
+        verify(mockSchedulerDriver, times(2)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
 
         // Sent TASK_KILLED status
@@ -731,28 +747,24 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testOverrideDeployWithUpdate() {
-        Collection<Plan> plans = getDeployUpdatePlans();
-        ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
-        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.UPDATE);
-        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+    public void testDeployPlanOverriddenDuringUpdate() {
+        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), true);
 
+        Assert.assertEquals(1, plans.size());
         Plan deployPlan = plans.stream()
-                .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                .filter(plan -> plan.isDeployPlan())
                 .findFirst().get();
 
         Assert.assertEquals(1, deployPlan.getChildren().size());
     }
 
     @Test
-    public void testNoOverrideOfDeployPlanOnInstall() {
-        Collection<Plan> plans = getDeployUpdatePlans();
-        ConfigurationUpdater.UpdateResult updateResult = mock(ConfigurationUpdater.UpdateResult.class);
-        when(updateResult.getDeploymentType()).thenReturn(ConfigurationUpdater.UpdateResult.DeploymentType.DEPLOY);
-        plans = DefaultScheduler.Builder.overrideDeployPlan(plans, updateResult);
+    public void testDeployPlanPreservedDuringInstall() {
+        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), false);
 
+        Assert.assertEquals(2, plans.size());
         Plan deployPlan = plans.stream()
-                .filter(plan -> plan.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                .filter(plan -> plan.isDeployPlan())
                 .findFirst().get();
 
         Assert.assertEquals(2, deployPlan.getChildren().size());
@@ -761,16 +773,13 @@ public class DefaultSchedulerTest {
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
     private static Collection<Plan> getDeployUpdatePlans() {
         Phase phase = mock(Phase.class);
-        Plan deployPlan = mock(Plan.class);
-        when(deployPlan.getName()).thenReturn(Constants.DEPLOY_PLAN_NAME);
-        when(deployPlan.getChildren()).thenReturn(Arrays.asList(phase, phase));
 
-        Plan updatePlan = mock(Plan.class);
-        when(updatePlan.getName()).thenReturn(Constants.UPDATE_PLAN_NAME);
-        when(updatePlan.getChildren()).thenReturn(Arrays.asList(phase));
-
+        Plan deployPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Arrays.asList(phase, phase));
         Assert.assertEquals(2, deployPlan.getChildren().size());
+
+        Plan updatePlan = new DefaultPlan(Constants.UPDATE_PLAN_NAME, Arrays.asList(phase));
         Assert.assertEquals(1, updatePlan.getChildren().size());
+
         return Arrays.asList(deployPlan, updatePlan);
     }
 

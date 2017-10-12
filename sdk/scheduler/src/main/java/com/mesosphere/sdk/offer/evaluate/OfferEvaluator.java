@@ -59,8 +59,6 @@ public class OfferEvaluator {
                 .map(taskName -> allTasks.get(taskName))
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
-        logger.info("Pod: {}, taskInfos for evaluation.", podInstanceRequirement.getPodInstance().getName());
-        thisPodTasks.values().forEach(info -> logger.info(TextFormat.shortDebugString(info)));
 
         boolean noTasksRunning = thisPodTasks.values().stream()
                 .map(taskInfo -> taskInfo.getName())
@@ -78,12 +76,6 @@ public class OfferEvaluator {
             }
 
             executorInfo = Optional.of(execInfoBuilder.build());
-        }
-
-        if (executorInfo.isPresent()) {
-            logger.info("Pod: {}, executorInfo for evaluation: {}",
-                    podInstanceRequirement.getPodInstance().getName(),
-                    TextFormat.shortDebugString(executorInfo.get()));
         }
 
         for (int i = 0; i < offers.size(); ++i) {
@@ -174,13 +166,12 @@ public class OfferEvaluator {
                 podInstanceRequirement.getTasksToLaunch());
 
         // Only create a TLS Evaluation Stage builder if the service actually uses TLS certs.
-        // This avoids creating TLS clients in cases where the cluster may not support TLS (e.g. DC/OS Open).
-        Optional<TLSEvaluationStage.Builder> tlsStageBuilder = Optional.empty();
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                tlsStageBuilder = Optional.of(new TLSEvaluationStage.Builder(serviceName, schedulerConfig));
-            }
-        }
+        // This avoids performing TLS cert generation in cases where the cluster may not support it (e.g. DC/OS Open).
+        boolean anyTasksWithTLS = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .anyMatch(taskSpec -> !taskSpec.getTransportEncryption().isEmpty());
+        Optional<TLSEvaluationStage.Builder> tlsStageBuilder = anyTasksWithTLS
+                ? Optional.of(new TLSEvaluationStage.Builder(serviceName, schedulerConfig))
+                : Optional.empty();
 
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));

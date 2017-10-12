@@ -94,7 +94,7 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     task_ids = get_task_ids(service_name, prefix)
     task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(sorted(old_task_ids), sorted(task_ids))
     log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
-    assert set(old_task_ids).issubset(set(task_ids)), "Tasks got updated:{}".format(task_sets)
+    assert set(old_task_ids).issubset(set(task_ids)), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
 
 
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):

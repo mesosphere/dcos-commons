@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.specification.util.RLimit;
 
 import java.net.URI;
 import java.util.Collection;
@@ -24,13 +23,13 @@ public interface PodSpec {
 
     @JsonProperty("image")
     Optional<String> getImage();
-    
+
     @JsonProperty("networks")
     Collection<NetworkSpec> getNetworks();
-    
+
     @JsonProperty("rlimits")
-    Collection<RLimit> getRLimits();
-    
+    Collection<RLimitSpec> getRLimits();
+
     @JsonProperty("uris")
     Collection<URI> getUris();
 

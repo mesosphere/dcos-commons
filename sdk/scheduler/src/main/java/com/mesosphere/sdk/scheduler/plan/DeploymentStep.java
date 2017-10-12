@@ -89,10 +89,12 @@ public class DeploymentStep extends AbstractStep {
     @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
-        logger.info("Updated step '{} [{}]' with {} recommendations:", getName(), getId(), recommendations.size());
-        for (OfferRecommendation recommendation : recommendations) {
-            logger.info("  {}", TextFormat.shortDebugString(recommendation.getOperation()));
-        }
+        logger.info("Updated step '{} [{}]' to reflect {} recommendation{}: {}",
+                getName(),
+                getId(),
+                recommendations.size(),
+                recommendations.size() == 1 ? "" : "s",
+                recommendations.stream().map(r -> r.getOperation().getType()));
         setTaskIds(recommendations);
 
         if (recommendations.isEmpty()) {

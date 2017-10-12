@@ -116,7 +116,7 @@ To make configuration changes via scheduler environment updates, perform the fol
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config beta-elastic` in the CLI, or browse the Beta Elastic install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config beta-elastic` in the CLI, or browse the Elastic install dialog in the DC/OS web interface.
 
 # Add a Data/Ingest/Coordinator Node
 Increase the `DATA_NODE_COUNT`/`INGEST_NODE_COUNT`/`COORDINATOR_NODE_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
