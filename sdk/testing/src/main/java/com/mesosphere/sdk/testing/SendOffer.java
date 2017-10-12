@@ -98,7 +98,7 @@ public class SendOffer implements Send {
         for (TaskSpec taskSpec : matchingSpec.get().getTasks()) {
             if (podToReuseResources.isPresent()) {
                 // Copy resources from prior pod launch:
-                for (Protos.TaskInfo task : state.getPod(podToReuseResources.get())) {
+                for (Protos.TaskInfo task : state.getLastLaunchedPod(podToReuseResources.get())) {
                     offerBuilder.addAllResources(task.getResourcesList());
                 }
             } else {
