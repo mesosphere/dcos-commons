@@ -169,14 +169,7 @@ public class CertificateAuthorityClientTest {
 
     private String readResourceJson(String name) throws IOException {
        return new String(
-               Files.readAllBytes(
-                       Paths.get(
-                            getClass()
-                                    .getClassLoader()
-                                    .getResource(name)
-                                    .getPath()
-                       )
-               ),
+               Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource(name).getPath())),
                StandardCharsets.UTF_8);
     }
 

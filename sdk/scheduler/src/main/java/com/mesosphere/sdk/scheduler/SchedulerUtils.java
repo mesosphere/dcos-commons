@@ -1,6 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -122,6 +128,21 @@ public class SchedulerUtils {
      */
     @SuppressWarnings("DM_EXIT")
     public static void hardExit(SchedulerErrorCode errorCode) {
+        String message = String.format("Scheduler exiting immediately with code: %d", errorCode.getValue());
+        System.err.println(message);
+        System.out.println(message);
         System.exit(errorCode.getValue());
+    }
+
+    static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans = plans.stream().filter(Plan::isDeployPlan).collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            throw new IllegalStateException(String.format("Found multiple deploy plans: %s", deployPlans));
+        }
     }
 }

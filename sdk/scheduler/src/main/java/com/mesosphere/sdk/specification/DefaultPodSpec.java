@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.specification.util.RLimit;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -34,7 +33,7 @@ public class DefaultPodSpec implements PodSpec {
     @Valid
     private Collection<NetworkSpec> networks;
     @Valid
-    private Collection<RLimit> rlimits;
+    private Collection<RLimitSpec> rlimits;
     @NotNull
     @Valid
     @Size(min = 1)
@@ -59,7 +58,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("count") Integer count,
             @JsonProperty("image") String image,
             @JsonProperty("networks") Collection<NetworkSpec> networks,
-            @JsonProperty("rlimits") Collection<RLimit> rlimits,
+            @JsonProperty("rlimits") Collection<RLimitSpec> rlimits,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
             @JsonProperty("placement-rule") PlacementRule placementRule,
@@ -149,7 +148,7 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<RLimit> getRLimits() {
+    public Collection<RLimitSpec> getRLimits() {
         return rlimits;
     }
 
@@ -216,7 +215,7 @@ public class DefaultPodSpec implements PodSpec {
         private PlacementRule placementRule;
         public String preReservedRole = Constants.ANY_ROLE;
         private Collection<NetworkSpec> networks = new ArrayList<>();
-        private Collection<RLimit> rlimits =  new ArrayList<>();
+        private Collection<RLimitSpec> rlimits =  new ArrayList<>();
         private Collection<URI> uris = new ArrayList<>();
         private List<TaskSpec> tasks = new ArrayList<>();
         private Collection<VolumeSpec> volumes = new ArrayList<>();
@@ -296,7 +295,7 @@ public class DefaultPodSpec implements PodSpec {
          * @param rlimits the {@code rlimits} to set
          * @return a reference to this Builder
          */
-        public Builder rlimits(Collection<RLimit> rlimits) {
+        public Builder rlimits(Collection<RLimitSpec> rlimits) {
             if (rlimits == null) {
                 this.rlimits = new ArrayList<>();
             } else {

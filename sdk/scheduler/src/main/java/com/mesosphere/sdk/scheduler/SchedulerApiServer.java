@@ -17,7 +17,6 @@ import java.util.TimerTask;
 import javax.ws.rs.core.UriBuilder;
 
 /**
-- * The SchedulerApiServer runs the {@link JettyApiServer} that exposes the Scheduler's API.
  * The SchedulerApiServer runs the Jetty {@link Server} that exposes the Scheduler's API.
  */
 public class SchedulerApiServer {

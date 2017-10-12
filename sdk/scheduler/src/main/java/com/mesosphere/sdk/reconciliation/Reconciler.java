@@ -3,8 +3,6 @@ package com.mesosphere.sdk.reconciliation;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
 
-import java.util.Set;
-
 /**
  * Interface for a task Reconciler, which synchronizes the Framework's task state with what Mesos
  * reports (with Mesos treated as source of truth).
@@ -47,23 +45,4 @@ public interface Reconciler {
      * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
      */
     boolean isReconciled();
-
-    /**
-     * Returns the set of known unreconciled task ids as {@code String}s. Note that an empty list
-     * does NOT mean that reconciliation is complete. Use {@link #isReconciled()} to determine
-     * completeness.
-     * <p>
-     * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
-     *
-     * @see #isReconciled()
-     */
-    Set<String> remaining();
-
-    /**
-     * Forces reconciliation into a complete state. This may result in inconsistent task state
-     * between Mesos and the Framework Scheduler, so calling it is not recommended.
-     * <p>
-     * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
-     */
-    void forceComplete();
 }

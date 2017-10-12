@@ -424,7 +424,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
 
     /**
-     * {@code DefaultServiceSpec} builder static inner class.
+     * {@link DefaultServiceSpec} builder static inner class.
      */
     public static final class Builder {
         private String name;

@@ -192,22 +192,6 @@ public class DefaultReconcilerTest {
     }
 
     @Test
-    public void testForceCompleteReconciler() throws Exception {
-        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        reconciler.start();
-
-        assertFalse(reconciler.isReconciled());
-        assertEquals(2, reconciler.remaining().size());
-
-        reconciler.forceComplete();
-
-        assertTrue(reconciler.isReconciled());
-        assertEquals(0, reconciler.remaining().size());
-
-        verifyZeroInteractions(mockDriver);
-    }
-
-    @Test
     public void testTaskLostToTaskRunningTransition() throws Exception {
         when(mockStateStore.fetchStatuses()).thenReturn(Arrays.asList(TASK_STATUS_2));
         reconciler.start();
