@@ -480,7 +480,6 @@ public class StateStore {
             String goalOverridePath = getGoalOverridePath(taskName);
             String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
             Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
-            logger.error(values.toString());
             byte[] nameBytes = values.get(goalOverridePath);
             byte[] statusBytes = values.get(goalOverrideStatusPath);
             if (nameBytes == null && statusBytes == null) {
