@@ -56,7 +56,8 @@ public interface Expect extends SimulationTick {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 MockitoAnnotations.initMocks(this);
-                verify(mockDriver, atLeastOnce()).acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
+                verify(mockDriver, atLeastOnce())
+                        .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
                 Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
                 Collection<String> launchedTaskNames = new ArrayList<>();
                 for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {

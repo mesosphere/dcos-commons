@@ -17,7 +17,8 @@ import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
- * A {@link Send} for offers which target a given pod's resource requirements.
+ * A {@link Send} for sending a {@link Protos.Offer} which matches a specified pod's requirements to a scheduler under
+ * test.
  */
 public class SendOffer implements Send {
 
@@ -25,6 +26,9 @@ public class SendOffer implements Send {
     private final Optional<String> podToReuseResources;
     private final String hostname;
 
+    /**
+     * Builder for {@link SendOffer}.
+     */
     public static class Builder {
         private final String podType;
         private Optional<String> podToReuseResources;

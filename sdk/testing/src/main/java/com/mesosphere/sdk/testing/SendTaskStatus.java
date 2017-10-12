@@ -6,12 +6,18 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
+/**
+ * A {@link Send} for sending a {@link Protos.TaskStatus} to a scheduler under test.
+ */
 public class SendTaskStatus implements Send {
 
     private final String taskName;
     private final Protos.TaskState taskState;
     private final Optional<Integer> readinessCheckExitCode;
 
+    /**
+     * Builder for {@link SendTaskStatus}.
+     */
     public static class Builder {
         private final String taskName;
         private final Protos.TaskState taskState;
