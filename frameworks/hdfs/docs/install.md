@@ -4,7 +4,7 @@ menu_order: 20
 enterprise: 'no'
 ---
 
-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
+Beta-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
 
 ## Prerequisites
 
@@ -17,13 +17,13 @@ HDFS is available in the Universe and can be installed by using either the web i
 
 # Installation
 
-Install HDFS from the DC/OS web interface. Find the package in Universe and click **INSTALL**.
+Install Beta-HDFS from the DC/OS web interface. Find the package in Universe and perform an advanced installation. On the **Service** tab, scroll to the bottom and click the box next to **AGREE TO BETA TERMS**. Then, click **REVIEW AND INSTALL**.
 
 This command creates a new HDFS cluster with two name nodes, three journal nodes, and five data nodes. Two clusters cannot share the same name. To install more than one HDFS cluster, customize the `name` at install time for each additional instance. See the Custom Installation section for more information.
 
 The default installation may not be sufficient for a production deployment, but all cluster operations will work. If you are planning a production deployment with 3 replicas of each value and with local quorum consistency for read and write operations (a very common use case), this configuration is sufficient for development and testing purposes, and it can be scaled to a production deployment.
 
-Once you have installed HDFS, install the CLI.
+Once you have installed Beta-HDFS, install the CLI.
 
 ```bash
 $ dcos package install hdfs --cli
@@ -33,9 +33,9 @@ $ dcos package install hdfs --cli
 
 ## Service Name
 
-Each instance of HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `hdfs`.
+Each instance of Beta-HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `hdfs`.
 
-## Custom Installation
+# Custom Installation
 
 If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to `dcos package install` using the `--options` parameter.
 
@@ -82,6 +82,40 @@ $ dcos package install hdfs --options=hdfs1.json
 ```
 
 Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
+
+<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
+
+## Integration with DC/OS access controls
+
+In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/hdfs` and `production/hdfs`.
+
+Steps:
+
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
+1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
+
+   ```
+   dcos:adminrouter:service:marathon full
+   dcos:service:marathon:marathon:services:/testing full
+   dcos:adminrouter:ops:mesos full
+   dcos:adminrouter:ops:slave full
+   ```
+1. Install your service into a folder called `test`. Go to **Catalog**, then search for **hdfs**.
+1. Click **CONFIGURE** and change the service name to `/testing/hdfs`, then deploy.
+
+   The slashes in your service name are interpreted as folders. You are deploying HDFS in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+
+**Important:**
+- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
+- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
+
+### Interacting with your foldered service
+
+- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/hdfs/v1/endpoints`.
+
+<!-- END DUPLICATE BLOCK -->
 
 # Colocation
 
@@ -223,11 +257,128 @@ HDFS supports deployment on virtual networks on DC/OS (including the `dcos` over
 ```
 As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.
 
+## TLS
+
+HDFS can be launched with TLS encryption. Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the HDFS scheduler will not abe able to provision TLS artifacts.
+
+Sample JSON options file named `hdfs-tls.json`:
+```json
+{
+  "service": {
+    "service_account_secret": "hdfs",
+    "service_account": "hdfs",
+    "tls": {
+		"enabled": true
+	}
+  }
+}
+```
+
+For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
+
+### Clients
+
+Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (`journal`, `name` and `data`) can be configured with different port numbers for TLS connections.
+
+Clients can connect only over the TLS version 1.2.
+
 # Changing Configuration at Runtime
 
 You can customize your cluster in-place when it is up and running.
 
-The HDFS scheduler runs as a Marathon process and can be reconfigured by changing values for the service from the DC/OS dashboard. These are the general steps to follow:
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+
+The instructions below describe how to update the configuration for a running DC/OS service.
+
+## Enterprise DC/OS 1.10
+
+Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.
+
+### Prerequisites
+
++ Enterprise DC/OS 1.10 or newer.
++ Service with a version greater than 2.0.0-x.
++ [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
++ The service's subcommand available and installed on your local machine.
+  + You can install just the subcommand CLI by running `dcos package install --cli hdfs`.
+  + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
+    ```bash
+    dcos package uninstall --cli hdfs
+    dcos package install --cli hdfs
+    ```
+
+### Preparing configuration
+
+If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
+
+```bash
+$ dcos hdfs describe > options.json
+```
+
+Make any configuration changes to this `options.json` file.
+
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
+
+**Note:** You must specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
+
+#### Recreating `options.json` (optional)
+
+If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
+
+First, we'll fetch the default application's environment, current application's environment, and the actual template that maps config values to the environment:
+
+1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
+1. Set the service name that you're using, for example:
+```bash
+$ SERVICE_NAME=hdfs
+```
+1. Get the version of the package that is currently installed:
+```bash
+$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
+```
+1. Then fetch and save the environment variables that have been set for the service:
+```bash
+$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
+```
+1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
+```bash
+$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
+```
+1. We'll also get the entire application template:
+```bash
+$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
+```
+
+Now that you have these files, we'll attempt to recreate the `options.json`.
+
+1. Use JQ and `diff` to compare the two:
+```bash
+$ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
+```
+1. Now compare these values to the values contained in the `env` section in application template:
+```bash
+$ less marathon.json.mustache
+```
+1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
+
+### Starting the update
+
+Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
+
+```bash
+$ dcos hdfs update start --options=options.json
+```
+
+You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
+
+See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
+
+### Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier
+
+If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
+
+<!-- END DUPLICATE BLOCK -->
+These are the general steps to follow:
 
 1.  Go to the **Services** tab of the DC/OS GUI and click the name of the HDFS service to be updated.
 
@@ -255,13 +406,13 @@ This configuration update strategy is analogous to the installation procedure ab
 
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
-```
-curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
+```bash
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
 ```
 
 The response will look similar to this:
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -356,14 +507,14 @@ The response will look similar to this:
 
 If you want to interrupt a configuration update that is in progress, enter the `interrupt` command.
 
-```
-curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+```bash
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 
 If you query the plan again, the response will look like this (notice `status: "Waiting"`):
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -460,13 +611,13 @@ If you query the plan again, the response will look like this (notice `status: "
 
 Enter the `continue` command to resume the update process.
 
-```
-curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+```bash
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
 
 After you execute the continue operation, the plan will look like this:
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -561,17 +712,17 @@ After you execute the continue operation, the plan will look like this:
 
 # Configuration Options
 
-The following describes the most commonly used features of DC/OS Apache Cassandra and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring a HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
+The following describes the most commonly used features of DC/OS Apache HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
 
 ## Service Configuration
 
 The service configuration object contains properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
 
-```
+```json
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -590,9 +741,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The DC/OS service account for the HDFS cluster.</td>
   </tr>
 
 </table>
@@ -606,7 +757,7 @@ The service configuration object contains properties that MUST be specified duri
 The node configuration objects correspond to the configuration for nodes in the HDFS cluster. Node configuration MUST be specified during installation and MAY be modified during configuration updates. All of the properties except `disk` and `disk_type` MAY be modified during the configuration update process.
 
 Example node configuration:
-```
+```json
 	"journal_node": {
 		"cpus": 0.5,
 		"mem": 4096,
@@ -695,7 +846,7 @@ Example node configuration:
 The HDFS file system network configuration, permissions, and compression is configured via the `hdfs` JSON object. Once these properties are set at installation time they can not be reconfigured.
 Example HDFS configuration:
 
-```
+```json
 {
     "hdfs": {
 		"name_node_rpc_port": 9001,

@@ -56,25 +56,25 @@ First, we'll fetch the default application's environment, current application's 
 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Set the service name that you're using, for example:
-  ```bash
-  $ SERVICE_NAME=hdfs
-  ```
+```bash
+$ SERVICE_NAME=hdfs
+```
 1. Get the version of the package that is currently installed:
-  ```bash
-  $ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
-  ```
+```bash
+$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
+```
 1. Then fetch and save the environment variables that have been set for the service:
-  ```bash
-  $ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
-  ```
+```bash
+$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
+```
 1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
-  ```bash
-  $ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
-  ```
+```bash
+$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
+```
 1. We'll also get the entire application template:
-  ```bash
-  $ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
-  ```
+```bash
+$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
+```
 
 Now that you have these files, we'll attempt to recreate the `options.json`.
 
@@ -435,7 +435,7 @@ After you execute the continue operation, the plan will look like this:
 
 # Configuration Options
 
-The following describes the most commonly used features of HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
+The following describes the most commonly used features of Beta-HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
 
 ## Service Configuration
 
@@ -445,7 +445,7 @@ The service configuration object contains properties that MUST be specified duri
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -464,9 +464,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The service account for the HDFS cluster.</td>
   </tr>
 
 </table>
@@ -562,9 +562,6 @@ Example node configuration:
     <td>The number of nodes of that node type for the cluster. There are always exactly two name nodes, so the name_node object has no count property. Users may select either 3 or 5 journal nodes. The default value of 3 is sufficient for most deployments and should only be overridden after careful thought. At least 3 data nodes should be configured, but this value may be increased to meet the storage needs of the deployment.</td>
   </tr>
 </table>
-
-## Add a Data Node
-Increase the `DATA_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
 
 ### Node Info
 
@@ -1082,13 +1079,13 @@ Result:
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos hdfs --name=<service-name> pod info <node-id>
+$ dcos hdfs --name=<service-name> pod status <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos hdfs pod info journal-0
+$ dcos hdfs pod status journal-0
 ```
 
 ```json

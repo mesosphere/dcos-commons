@@ -39,11 +39,9 @@ First, we retrieve `uSeR_t0k3n` with our user credentials and store the token as
 
 ```bash
 $ curl --data '{"uid":"username", "password":"password"}' -H "Content-Type:application/json" "<dcos_url>/acs/api/v1/auth/login"
-
 {
   "token": "uSeR_t0k3n"
 }
-
 $ export auth_token=uSeR_t0k3n
 ```
 
@@ -76,6 +74,8 @@ The response, for both the CLI and the REST API is as below.
 ```
 
 This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.9/networking/).
+
+When [the TLS][15] is enabled you can request details for `broker-tls` port. To verify a TLS connection from a client the [DC/OS trust bundle with a CA certificate](https://docs.mesosphere.com/1.9/networking/tls-ssl/get-cert/) is required.
 
 # Configuring the Kafka Client Library
 
@@ -161,7 +161,7 @@ The code snippet below demonstrates how to connect a Kafka Consumer to the clust
 
 The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-console-producer.sh` and `bin/kafka-console-consumer.sh` as an example:
 
-```bash
+```bvash
 $ dcos kafka endpoints broker
 {
   "address": [
@@ -184,8 +184,9 @@ core@ip-10-0-6-153 ~ $ docker run -it mesosphere/kafka-client
 root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list 10.0.0.49:1025, 10.0.2.253:1025, 10.0.1.27:1025 --topic topic1
 
 root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/kafka --topic topic1 --from-beginning
-Hello, World.
+    Hello, World.
 ```
 
  [13]: https://docs.mesosphere.com/1.9/security/users-groups/
  [14]: https://docs.mesosphere.com/1.9/security/iam-api/
+ [15]: https://docs.mesosphere.com/service-docs/kafka/configure/#tls
