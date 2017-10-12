@@ -1,4 +1,3 @@
-import json
 import os
 import textwrap
 import uuid
@@ -6,13 +5,11 @@ from typing import List
 
 import dcos.http
 import pytest
-import requests
 import shakedown
 
 import sdk_cmd
 import sdk_install
 import sdk_jobs
-import sdk_networks
 import sdk_plan
 import sdk_security
 import sdk_utils
@@ -49,7 +46,7 @@ def service_account():
     name = SERVICE_NAME
     sdk_security.create_service_account(
         service_account_name=name, service_account_secret=name)
-     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
     yield name
@@ -61,9 +58,9 @@ def service_account():
 def cassandra_service_tls(service_account):
     sdk_install.uninstall(package_name=PACKAGE_NAME, service_name=SERVICE_NAME)
     sdk_install.install(
-        package_name=PACKAGE_NAME,
-        service_name=SERVICE_NAME,
-        expected_running_tasks=DEFAULT_TASK_COUNT,
+        PACKAGE_NAME,
+        service_account,
+        DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
                 "service_account_secret": service_account,
@@ -87,8 +84,7 @@ def cassandra_service_tls(service_account):
 def get_cqlsh_tls_rc_config(
         certfile='/mnt/mesos/sandbox/ca-bundle.crt',
         hostname=DEFAULT_NODE_ADDRESS,
-        port=DEFAULT_NODE_PORT
-    ):
+        port=DEFAULT_NODE_PORT):
     """
     Returns a content of `cqlshrc` configuration file with provided hostname,
     port and certfile location. The configuration can be used for connecting
@@ -207,7 +203,7 @@ def _get_cqlsh_for_query(query: str):
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """

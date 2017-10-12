@@ -98,8 +98,8 @@ def hello_world_service(service_account):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.10')
 def test_java_truststore(hello_world_service):
     """
     Make an HTTP request from CLI to nginx exposed service.
@@ -127,8 +127,8 @@ def test_java_truststore(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.10')
 def test_tls_basic_artifacts(hello_world_service):
     task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'artifacts')[0]
     assert task_id
@@ -161,8 +161,8 @@ def test_tls_basic_artifacts(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.10')
 def test_java_keystore(hello_world_service):
     """
     Java `keystore-app` presents itself with provided TLS certificate
@@ -195,8 +195,8 @@ def test_java_keystore(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.10')
 def test_tls_nginx(hello_world_service):
     """
     Checks that NGINX exposes TLS service with correct PEM encoded end-entity
@@ -224,8 +224,8 @@ def test_tls_nginx(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
 @sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.10')
 def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     """
     Update service configuration to change discovery prefix of a task.

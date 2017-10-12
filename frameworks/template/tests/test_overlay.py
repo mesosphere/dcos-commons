@@ -4,7 +4,6 @@ import pytest
 import sdk_install
 import sdk_networks
 import sdk_utils
-import shakedown  # required by @sdk_utils.dcos_X_Y_or_higher
 from tests import config
 
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
@@ -29,6 +28,6 @@ def configure_package(configure_security):
 @pytest.mark.smoke
 @pytest.mark.overlay
 @overlay_nostrict
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_install():
     sdk_networks.check_task_network("template-0-node")
