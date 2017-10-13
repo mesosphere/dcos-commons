@@ -1,21 +1,26 @@
 package com.mesosphere.sdk.scheduler;
 
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
 
+import com.auth0.jwt.algorithms.Algorithm;
+import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
-import com.mesosphere.sdk.dcos.auth.ServiceAccountIAMTokenProvider;
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
+import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.util.Map;
 
@@ -74,6 +79,8 @@ public class SchedulerConfig {
      * token refresh.
      */
     private static final String AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV = "AUTH_TOKEN_REFRESH_THRESHOLD_S";
+    /** The default number of seconds to set a connection timeout when refreshing an auth token. */
+    private static final int DEFAULT_AUTH_TOKEN_REFRESH_TIMEOUT_S = 30;
     /** The default number of seconds before auth token expiration that will trigger auth token refresh. */
     private static final int DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S = 30;
 
@@ -219,14 +226,18 @@ public class SchedulerConfig {
         JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
         PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
         try {
-            PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(
+            RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(
                     new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
+            RSAPublicKey publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(
+                    new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPrivateExponent()));
 
-            ServiceAccountIAMTokenProvider serviceAccountIAMTokenProvider =
-                    new ServiceAccountIAMTokenProvider.Builder()
-                    .setUid(serviceAccountObject.getString("uid"))
-                    .setPrivateKey((RSAPrivateKey) privateKey)
-                    .build();
+            ServiceAccountIAMTokenClient serviceAccountIAMTokenProvider =
+                    new ServiceAccountIAMTokenClient(
+                            new DcosHttpExecutor(new DcosHttpClientBuilder()
+                                    .setDefaultConnectionTimeout(DEFAULT_AUTH_TOKEN_REFRESH_TIMEOUT_S)
+                                    .setRedirectStrategy(new LaxRedirectStrategy())),
+                            serviceAccountObject.getString("uid"),
+                            Algorithm.RSA256(publicKey, privateKey));
 
             Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
                     AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));

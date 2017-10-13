@@ -89,7 +89,7 @@ public class SchedulerRunner implements Runnable {
         // certificate error. Therefore we do this as early as possible in the startup sequence.
         DcosCertInstaller.installCertificate(schedulerConfig.getJavaHome());
 
-        LOGGER.info("Environment information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
+        LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
                 schedulerConfig.getPackageName(),
                 schedulerConfig.getPackageVersion(),
                 Instant.ofEpochMilli(schedulerConfig.getPackageBuildTimeMs()),

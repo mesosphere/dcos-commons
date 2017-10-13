@@ -19,7 +19,7 @@ public class ResourceRefinementCapabilityContext {
 
     public ResourceRefinementCapabilityContext(Capabilities originalCapabilities) {
         this.originalCapabilities = originalCapabilities;
-        this.testCapabilities = new Capabilities(originalCapabilities.dcosCluster) {
+        this.testCapabilities = new Capabilities(originalCapabilities.getDcosVersion()) {
             @Override
             public boolean supportsPreReservedResources() {
                 return true;

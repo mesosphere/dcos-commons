@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
-import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -74,8 +73,6 @@ public class DefaultSchedulerTest {
     private SchedulerDriver mockSchedulerDriver;
     @Mock
     private SchedulerConfig mockSchedulerConfig;
-    @Mock
-    private DcosVersionClient mockDcosVersionClient;
     @Captor
     private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
     @Captor
@@ -179,7 +176,7 @@ public class DefaultSchedulerTest {
     }
 
     private Capabilities getCapabilitiesWithDefaultGpuSupport() throws Exception {
-        return new Capabilities(mockDcosVersionClient) {
+        return new Capabilities(new DcosVersion("1.10-dev")) {
             @Override
             public boolean supportsGpuResource() {
                 return DEFAULT_GPU_POLICY;
@@ -195,7 +192,6 @@ public class DefaultSchedulerTest {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        when(mockDcosVersionClient.getDcosVersion()).thenReturn(new DcosVersion("1.10-dev"));
         when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         stateStore = new StateStore(new PersisterCache(new MemPersister()));

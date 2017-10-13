@@ -3,10 +3,7 @@ package com.mesosphere.sdk.dcos.clients;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.protocol.HttpContext;
+import org.apache.http.client.fluent.Response;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -25,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.offer.evaluate.security.PEMUtils;
 
 import java.io.ByteArrayInputStream;
@@ -52,10 +50,11 @@ public class CertificateAuthorityClientTest {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private String TEST_IP_ADDR = "127.0.0.1";
 
-    @Mock private HttpClient httpClient;
-    @Mock private HttpResponse httpResponse;
-    @Mock private HttpEntity httpEntity;
-    @Mock private StatusLine statusLine;
+    @Mock private DcosHttpExecutor mockHttpExecutor;
+    @Mock private Response mockResponse;
+    @Mock private HttpResponse mockHttpResponse;
+    @Mock private HttpEntity mockHttpEntity;
+    @Mock private StatusLine mockStatusLine;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -68,31 +67,29 @@ public class CertificateAuthorityClientTest {
     }
 
     private CertificateAuthorityClient createClientWithStatusLine(StatusLine statusLine) throws IOException {
-        CertificateAuthorityClient client = new CertificateAuthorityClient(Executor.newInstance(httpClient));
+        CertificateAuthorityClient client = new CertificateAuthorityClient(mockHttpExecutor);
 
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(httpResponse.getEntity()).thenReturn(httpEntity);
-        when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream(new byte[0]));
-        when(httpClient.execute(
-                Mockito.any(HttpUriRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(httpResponse);
+        when(mockHttpExecutor.execute(Mockito.any())).thenReturn(mockResponse);
+        when(mockResponse.returnResponse()).thenReturn(mockHttpResponse);
+        when(mockHttpResponse.getStatusLine()).thenReturn(statusLine);
+        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
+        when(mockHttpEntity.getContent()).thenReturn(new ByteArrayInputStream(new byte[0]));
 
         return client;
     }
 
     private CertificateAuthorityClient createClientWithJsonContent(String content) throws IOException {
-        CertificateAuthorityClient client = new CertificateAuthorityClient(Executor.newInstance(httpClient));
+        CertificateAuthorityClient client = new CertificateAuthorityClient(mockHttpExecutor);
 
-        when(statusLine.getStatusCode()).thenReturn(200);
-        when(httpResponse.getStatusLine()).thenReturn(statusLine);
-        when(httpResponse.getEntity()).thenReturn(httpEntity);
+        when(mockHttpExecutor.execute(Mockito.any())).thenReturn(mockResponse);
+        when(mockResponse.returnResponse()).thenReturn(mockHttpResponse);
+        when(mockStatusLine.getStatusCode()).thenReturn(200);
+        when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
+        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
         // Because of how CA client reads entity twice create 2 responses that represent same buffer.
-        when(httpEntity.getContent()).thenReturn(
+        when(mockHttpEntity.getContent()).thenReturn(
                 new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)),
                 new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
-        when(httpClient.execute(
-                Mockito.any(HttpUriRequest.class),
-                Mockito.any(HttpContext.class))).thenReturn(httpResponse);
 
         return client;
     }
@@ -196,8 +193,8 @@ public class CertificateAuthorityClientTest {
 
     @Test
     public void testSignWithNon200Response() throws Exception {
-        when(statusLine.getStatusCode()).thenReturn(400);
-        CertificateAuthorityClient client = createClientWithStatusLine(statusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(400);
+        CertificateAuthorityClient client = createClientWithStatusLine(mockStatusLine);
 
         thrown.expect(Exception.class);
         thrown.expectMessage("400 - error from CA");
@@ -226,8 +223,8 @@ public class CertificateAuthorityClientTest {
 
     @Test
     public void testChainWithRootCertWithNon200Response() throws Exception {
-        when(statusLine.getStatusCode()).thenReturn(400);
-        CertificateAuthorityClient client = createClientWithStatusLine(statusLine);
+        when(mockStatusLine.getStatusCode()).thenReturn(400);
+        CertificateAuthorityClient client = createClientWithStatusLine(mockStatusLine);
 
         thrown.expect(Exception.class);
         thrown.expectMessage("400 - error from CA");

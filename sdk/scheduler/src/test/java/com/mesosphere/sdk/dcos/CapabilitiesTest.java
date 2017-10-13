@@ -1,28 +1,14 @@
 package com.mesosphere.sdk.dcos;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 
 import java.io.IOException;
-
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for the {@link Capabilities} class
  */
 public class CapabilitiesTest {
-
-    @Mock private DcosVersionClient mockDcosCluster;
-
-    @Before
-    public void beforeEach() throws IOException {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     public void test_090() throws IOException {
@@ -134,7 +120,6 @@ public class CapabilitiesTest {
     }
 
     private Capabilities testCapabilities(String version) throws IOException {
-        when(mockDcosCluster.getDcosVersion()).thenReturn(new DcosVersion(version));
-        return new Capabilities(mockDcosCluster);
+        return new Capabilities(new DcosVersion(version));
     }
 }
