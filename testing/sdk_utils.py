@@ -67,10 +67,14 @@ def is_open_dcos():
     return not (os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true')
 
 
+def is_strict_mode():
+    '''Determine if the tests are being run on a strict mode cluster.'''
+    return os.environ.get('SECURITY', '') == 'strict'
+
+
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
-
 
 # def dcos_min_version(min_version, reason=None):
 #     '''Skip tests if running against a cluster older than `min_version`.
