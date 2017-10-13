@@ -234,9 +234,6 @@
     {{#elasticsearch.indices_query_bool_max_clause_count}}
     "TASKCFG_ALL_INDICES_QUERY_BOOL_MAX_CLAUSE_COUNT": "{{elasticsearch.indices_query_bool_max_clause_count}}",
     {{/elasticsearch.indices_query_bool_max_clause_count}} 
-    {{#elasticsearch.discovery_zen_ping_unicast_hosts}}
-    "TASKCFG_ALL_DISCOVERY_ZEN_PING_UNICAST_HOSTS": "{{elasticsearch.discovery_zen_ping_unicast_hosts}}",
-    {{/elasticsearch.discovery_zen_ping_unicast_hosts}}
     {{#elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}
     "TASKCFG_ALL_DISCOVERY_ZEN_PING_UNICAST_HOSTS_RESOLVE_TIMEOUT": "{{elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}",
     {{/elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}
@@ -324,7 +321,7 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "SAMPLE_VARIABLE": "example_marathon_var_value_pass"
+    "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
   },
   "uris": [
     "{{resource.assets.uris.jre-tar-gz}}",
