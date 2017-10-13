@@ -105,7 +105,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.resources.add(endpointsResource);
         this.plansResource = new PlansResource();
         this.resources.add(this.plansResource);
-        this.podResource = new PodResource(stateStore);
+        this.podResource = new PodResource(stateStore, serviceSpec.getName());
         this.resources.add(podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
