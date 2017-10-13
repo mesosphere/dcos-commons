@@ -320,7 +320,7 @@ def test_pod_cli():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'pod status {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
+        'pod status --json {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
         'pod info {}-0'.format(config.DEFAULT_POD_TYPE), print_output=False)  # noisy output
 

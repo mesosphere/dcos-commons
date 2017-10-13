@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
@@ -24,29 +23,80 @@ func (cmd *podHandler) handleList(a *kingpin.Application, e *kingpin.ParseElemen
 }
 
 func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	endpointPath := "v1/pod/status"
+	var endpointPath string
 	if len(cmd.PodName) > 0 {
 		endpointPath = fmt.Sprintf("v1/pod/%s/status", cmd.PodName)
+	} else {
+		endpointPath = "v1/pod/status"
 	}
 	body, err := client.HTTPServiceGet(endpointPath)
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
-	client.PrintJSONBytes(body)
+	if cmd.RawJSON {
+		client.PrintJSONBytes(body)
+	} else {
+		client.PrintMessage(toPodTree(body))
+	}
 	return nil
 }
 
+/*
+{
+  "service": "hello-world",
+  "pods": [
+    {
+      "instances": [{
+        "name": "hello-0",
+        "tasks": [{
+          "name": "hello-0-server",
+          "id": "hello-0-server__35915c74-b2ad-48b3-ae56-74cab66e8654",
+          "status": "RUNNING"
+        }]
+      }],
+      "name": "hello"
+    },
+    {
+      "instances": [
+        {
+          "name": "world-0",
+          "tasks": [{
+            "name": "world-0-server",
+            "id": "world-0-server__acbac042-a456-4fb0-b75e-ea3bcd235261",
+            "status": "RUNNING"
+          }]
+        },
+        {
+          "name": "world-1",
+          "tasks": [{
+            "name": "world-1-server",
+            "id": "world-1-server__3791c51d-de84-47de-9c03-9245541085cc",
+            "status": "RUNNING"
+          }]
+        }
+      ],
+      "name": "world"
+    }
+  ]
+}
+*/
+
 func toPodTree(podsJSONBytes []byte) string {
-	podsJSON, err := client.UnmarshalJSON(podsJSONBytes)
+	response, err := client.UnmarshalJSON(podsJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in pods response: %s", err))
 	}
+
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("%s\n", config.ServiceName))
+	buf.WriteString(fmt.Sprintf("%s\n", response["service"]))
 
 	i := 0
-	for podName, rawPod := range podsJSON {
-		appendPod(&buf, podName, rawPod, i == len(podsJSON)-1)
+	rawPods, ok := response["pods"].([]interface{})
+	if !ok {
+		client.PrintMessageAndExit("Failed to parse JSON pods in response")
+	}
+	for _, rawPod := range rawPods {
+		appendPod(&buf, rawPod, i == len(rawPods)-1)
 		i++
 	}
 
@@ -56,55 +106,108 @@ func toPodTree(podsJSONBytes []byte) string {
 	return buf.String()
 }
 
-func appendPod(buf *bytes.Buffer, podName string, rawPod interface{}, lastPod bool) {
-	var podPrefix string
-	if lastPod {
-		podPrefix = "└─ "
-	} else {
-		podPrefix = "├─ "
+func appendPod(buf *bytes.Buffer, rawPod interface{}, lastPod bool) {
+	pod, ok := rawPod.(map[string]interface{})
+	if !ok {
+		return
 	}
 
-	buf.WriteString(fmt.Sprintf("%s%s\n", podPrefix, podName))
+	var prefix string
+	if lastPod {
+		prefix = "└─ "
+	} else {
+		prefix = "├─ "
+	}
 
-	tasks, ok := rawPod.([]interface{})
+	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, pod["name"]))
+
+	rawPodInstances, ok := pod["instances"].([]interface{})
+	if !ok {
+		return
+	}
+	for i, rawPodInstance := range rawPodInstances {
+		appendPodInstance(buf, rawPodInstance, lastPod, i == len(rawPodInstances)-1)
+	}
+}
+
+func appendPodInstance(buf *bytes.Buffer, rawPodInstance interface{}, lastPod bool, lastPodInstance bool) {
+	podInstance, ok := rawPodInstance.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	var prefix string
+	if lastPod {
+		if lastPodInstance {
+			prefix = "   └─ "
+		} else {
+			prefix = "   ├─ "
+		}
+	} else {
+		if lastPodInstance {
+			prefix = "│  └─ "
+		} else {
+			prefix = "│  ├─ "
+		}
+	}
+
+	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, podInstance["name"]))
+
+	tasks, ok := podInstance["tasks"].([]interface{})
 	if !ok {
 		return
 	}
 	for i, rawTask := range tasks {
-		appendTask(buf, rawTask, lastPod, i == len(tasks)-1)
+		appendTask(buf, rawTask, lastPod, lastPodInstance, i == len(tasks)-1)
 	}
 }
 
-func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastTask bool) {
-	var taskPrefix string
-	if lastPod {
-		if lastTask {
-			taskPrefix = "   └─ "
-		} else {
-			taskPrefix = "   ├─ "
-		}
-	} else {
-		if lastTask {
-			taskPrefix = "│  └─ "
-		} else {
-			taskPrefix = "│  ├─ "
-		}
-	}
-
+func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastPodInstance bool, lastTask bool) {
 	task, ok := rawTask.(map[string]interface{})
 	if !ok {
 		return
+	}
+
+	var prefix string
+	if lastPod {
+		if lastPodInstance {
+			if lastTask {
+				prefix = "      └─ "
+			} else {
+				prefix = "      ├─ "
+			}
+		} else {
+			if lastTask {
+				prefix = "   │  └─ "
+			} else {
+				prefix = "   │  ├─ "
+			}
+		}
+	} else {
+		if lastPodInstance {
+			if lastTask {
+				prefix = "│     └─ "
+			} else {
+				prefix = "│     ├─ "
+			}
+		} else {
+			if lastTask {
+				prefix = "│  │  └─ "
+			} else {
+				prefix = "│  │  ├─ "
+			}
+		}
 	}
 
 	taskName, ok := task["name"]
 	if !ok {
 		taskName = "<UNKNOWN>"
 	}
-	taskState, ok := task["state"]
+	taskState, ok := task["status"]
 	if !ok {
 		taskState = "<UNKNOWN>"
 	}
-	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", taskPrefix, taskName, taskState))
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", prefix, taskName, taskState))
 }
 
 func (cmd *podHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -145,6 +248,7 @@ func HandlePodSection(app *kingpin.Application) {
 
 	status := pod.Command("status", "Display the status for tasks in one pod or all pods").Action(cmd.handleStatus)
 	status.Arg("pod", "Name of a specific pod instance to display").StringVar(&cmd.PodName)
+	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
 
 	info := pod.Command("info", "Display the full state information for tasks in a pod").Action(cmd.handleInfo)
 	info.Arg("pod", "Name of the pod instance to display").Required().StringVar(&cmd.PodName)

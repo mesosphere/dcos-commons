@@ -440,7 +440,7 @@ public class PodResource extends PrettyJsonResource {
      *   "tasks": [ {
      *     "id": "pod-0-server",
      *     "name": "server",
-     *     "status": "RUNNING"
+     *     "state": "RUNNING"
      *   }, ... ]
      * }</code>
      */
@@ -452,16 +452,16 @@ public class PodResource extends PrettyJsonResource {
             JSONObject jsonTask = new JSONObject();
             jsonTask.put("id", task.getInfo().getTaskId().getValue());
             jsonTask.put("name", task.getInfo().getName());
-            Optional<String> statusString = getTaskStatusString(stateStore, task.getInfo().getName(), task.getStatus());
-            if (statusString.isPresent()) {
-                jsonTask.put("status", statusString.get());
+            Optional<String> stateString = getTaskStateString(stateStore, task.getInfo().getName(), task.getStatus());
+            if (stateString.isPresent()) {
+                jsonTask.put("state", stateString.get());
             }
             jsonPod.append("tasks", jsonTask);
         }
         return jsonPod;
     }
 
-    private static Optional<String> getTaskStatusString(
+    private static Optional<String> getTaskStateString(
             StateStore stateStore, String taskName, Optional<Protos.TaskStatus> mesosStatus) {
         GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
         if (!GoalStateOverride.Status.INACTIVE.equals(overrideStatus)) {

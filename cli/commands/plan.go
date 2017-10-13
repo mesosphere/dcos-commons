@@ -249,7 +249,7 @@ func printStatus(planName string, rawJSON bool) {
 	if rawJSON {
 		client.PrintJSONBytes(responseBytes)
 	} else {
-		client.PrintMessage(toStatusTree(planName, responseBytes))
+		client.PrintMessage(toPlanStatusTree(planName, responseBytes))
 	}
 }
 
@@ -308,7 +308,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 }
 
-func toStatusTree(planName string, planJSONBytes []byte) string {
+func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 	planJSON, err := client.UnmarshalJSON(planJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in plan response: %s", err))
