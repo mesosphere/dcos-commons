@@ -7,7 +7,6 @@ import sdk_hosts
 import sdk_install
 import sdk_networks
 import sdk_plan
-import sdk_utils
 import shakedown
 from dcos.http import DCOSHTTPException
 from shakedown.dcos.spinner import TimeoutExpired
@@ -47,7 +46,7 @@ EXPECTED_NETWORK_LABELS = {
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.smoke
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
@@ -131,7 +130,7 @@ def test_overlay_network():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_cni_labels():
     def check_labels(labels, idx):
         k = labels[idx]["key"]
@@ -156,7 +155,7 @@ def test_cni_labels():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_port_names():
     def check_task_ports(task_name, expected_port_count, expected_port_names):
         endpoint = "/v1/tasks/info/{}".format(task_name)
@@ -175,7 +174,7 @@ def test_port_names():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_srv_records():
     def check_port_record(task_records, task_name, record_name):
         record_name_prefix = "_{}.".format(record_name)

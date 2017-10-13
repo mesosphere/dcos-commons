@@ -5,7 +5,6 @@ import sdk_install
 import sdk_jobs
 import sdk_networks
 import sdk_plan
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -36,7 +35,7 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_service_overlay_health():
     shakedown.service_healthy(config.PACKAGE_NAME)
     node_tasks = (
@@ -51,7 +50,7 @@ def test_service_overlay_health():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
@@ -75,7 +74,7 @@ def test_functionality():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_endpoints():
     endpoints = sdk_networks.get_and_test_endpoints("", config.PACKAGE_NAME, 1)  # tests that the correct number of endpoints are found, should just be "node"
     assert "node" in endpoints, "Cassandra endpoints should contain only 'node', got {}".format(endpoints)

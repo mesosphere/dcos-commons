@@ -67,7 +67,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @pytest.mark.skip(reason="TLS not supported in stable.")
 @sdk_utils.dcos_ee_only
 def test_tls_endpoints(kafka_service_tls):
@@ -84,7 +84,7 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @pytest.mark.skip(reason="TLS not supported in stable.")
 @sdk_utils.dcos_ee_only
 def test_producer_over_tls(kafka_service_tls):

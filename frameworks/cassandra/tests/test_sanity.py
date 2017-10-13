@@ -9,7 +9,6 @@ import sdk_jobs
 import sdk_metrics
 import sdk_plan
 import sdk_upgrade
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -78,7 +77,7 @@ def test_repair_cleanup_plans_complete():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(
         config.get_foldered_service_name(), "node-0-server", config.DEFAULT_CASSANDRA_TIMEOUT)

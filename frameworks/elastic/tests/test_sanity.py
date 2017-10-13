@@ -79,7 +79,7 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "data-0-node", config.DEFAULT_ELASTIC_TIMEOUT)
 

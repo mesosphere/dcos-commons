@@ -8,7 +8,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -30,7 +29,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-@sdk_utils.dcos_1_9_or_higher  # dcos task exec not supported < 1.9
+@pytest.mark.dcos_min_version('1.9', reason='dcos task exec not supported < 1.9')
 def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
 
@@ -42,7 +41,7 @@ def test_node_replace_replaces_seed_node():
 
 @pytest.mark.sanity
 @pytest.mark.local
-@sdk_utils.dcos_1_9_or_higher  # dcos task exec not supported < 1.9
+@pytest.mark.dcos_min_version('1.9', reason='dcos task exec not supported < 1.9')
 def test_node_replace_replaces_node():
     pod_to_replace = 'node-2'
     pod_host = get_pod_host(pod_to_replace)

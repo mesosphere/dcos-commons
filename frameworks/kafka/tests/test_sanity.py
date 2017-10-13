@@ -26,7 +26,7 @@ def configure_package(configure_security):
     try:
         install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
-        if shakedown.dcos_version_less_than("1.9"):
+        if sdk_utils.dcos_version_less_than("1.9"):
             # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
             install.install(
                 config.PACKAGE_NAME,
@@ -287,7 +287,7 @@ def test_pod_cli():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "kafka-0-broker", config.DEFAULT_KAFKA_TIMEOUT)
 

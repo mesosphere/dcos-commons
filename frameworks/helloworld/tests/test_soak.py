@@ -2,13 +2,11 @@ import logging
 import os
 
 import pytest
-import shakedown
 
 import sdk_cmd
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
-import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -32,7 +30,7 @@ def test_soak_upgrade_downgrade():
 
 
 @pytest.mark.soak_secrets_update
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 def test_soak_secrets_update():
 
     secret_content_alternative = "hello-world-secret-data-alternative"
@@ -67,7 +65,7 @@ def test_soak_secrets_update():
 
 
 @pytest.mark.soak_secrets_alive
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 def test_soak_secrets_framework_alive():
 
     sdk_plan.wait_for_completed_deployment(FRAMEWORK_NAME)

@@ -7,7 +7,6 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -60,7 +59,7 @@ def test_pod_restart():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_pods_restart_graceful_shutdown():
     options = {
         "world": {

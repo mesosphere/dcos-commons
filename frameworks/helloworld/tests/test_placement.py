@@ -7,7 +7,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -26,7 +25,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME)
 
 
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_rack_not_found():

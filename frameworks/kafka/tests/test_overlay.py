@@ -2,7 +2,6 @@ import pytest
 import sdk_install as install
 import sdk_networks
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config, test_utils
 
@@ -25,7 +24,7 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_service_overlay_health():
     """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
     and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
@@ -43,7 +42,7 @@ def test_service_overlay_health():
 @pytest.mark.smoke
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_overlay_network_deployment_and_endpoints():
     # double check
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
@@ -59,7 +58,7 @@ def test_overlay_network_deployment_and_endpoints():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_pod_restart_on_overlay():
     test_utils.restart_broker_pods()
     test_overlay_network_deployment_and_endpoints()
@@ -67,7 +66,7 @@ def test_pod_restart_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_pod_replace_on_overlay():
     test_utils.replace_broker_pod()
     test_overlay_network_deployment_and_endpoints()
@@ -75,13 +74,13 @@ def test_pod_replace_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_topic_create_overlay():
     test_utils.create_topic()
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_topic_delete_overlay():
     test_utils.delete_topic()
