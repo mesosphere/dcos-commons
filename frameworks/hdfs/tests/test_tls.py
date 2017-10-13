@@ -72,7 +72,7 @@ def hdfs_service_tls(service_account):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_healthy(hdfs_service_tls):
     config.check_healthy(service_name=config.SERVICE_NAME)
@@ -81,7 +81,7 @@ def test_healthy(hdfs_service_tls):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_write_and_read_data_over_tls(hdfs_service_tls):
     config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
@@ -90,7 +90,7 @@ def test_write_and_read_data_over_tls(hdfs_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.parametrize("node_type,port", [
     ('journal', DEFAULT_JOURNAL_NODE_TLS_PORT),

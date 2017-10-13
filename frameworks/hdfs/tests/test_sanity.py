@@ -23,7 +23,7 @@ def configure_package(configure_security):
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
-        if shakedown.dcos_version_less_than("1.9"):
+        if sdk_utils.dcos_version_less_than("1.9"):
             # HDFS upgrade in 1.8 is not supported.
             sdk_install.install(
                 config.PACKAGE_NAME,
@@ -257,6 +257,8 @@ def test_bump_journal_cpus():
 
     sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
     # journal node update should not cause any of the name nodes to crash
+    # if the name nodes crashed, then it implies the journal nodes were updated in parallel, when they should've been updated serially
+    # for journal nodes, the deploy plan is parallel, while the update plan is serial. maybe the deploy plan was mistakenly used?
     sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
     config.check_healthy(service_name=foldered_name)
 
@@ -343,7 +345,7 @@ def test_modify_app_config_rollback():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     expected_metrics = [
         "JournalNode.jvm.JvmMetrics.ThreadsRunnable",

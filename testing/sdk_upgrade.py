@@ -16,6 +16,7 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -131,7 +132,7 @@ def _upgrade_or_downgrade(
         timeout_seconds,
         wait_for_deployment):
     task_ids = sdk_tasks.get_task_ids(service_name, '')
-    if shakedown.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
+    if sdk_utils.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
         log.info('Using marathon upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(

@@ -41,7 +41,7 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_service_overlay_health():
     shakedown.service_healthy(config.SERVICE_NAME)
     node_tasks = (
@@ -56,7 +56,7 @@ def test_service_overlay_health():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_functionality():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
@@ -80,7 +80,7 @@ def test_functionality():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_endpoints():
     # tests that the correct number of endpoints are found, should just be "native-client":
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)

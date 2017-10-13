@@ -162,17 +162,6 @@ public abstract class AbstractScheduler {
     }
 
     /**
-     * Forces the offer cycle reconciliation stage to be complete. Useful for testing the offer cycle.
-     *
-     * @return this
-     */
-    @VisibleForTesting
-    AbstractScheduler forceReconciliationComplete() {
-        mesosScheduler.reconciler.forceComplete();
-        return this;
-    }
-
-    /**
      * Forces the Scheduler to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
      * called before calling {@link #start()}.
      *

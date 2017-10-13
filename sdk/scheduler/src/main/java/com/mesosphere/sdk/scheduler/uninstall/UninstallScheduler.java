@@ -63,7 +63,7 @@ public class UninstallScheduler extends AbstractScheduler {
     @Override
     public Optional<Scheduler> getMesosScheduler() {
         if (allButStateStoreUninstalled(stateStore, schedulerConfig)) {
-            LOGGER.info("Not registering framework because it is uninstalling.");
+            LOGGER.info("Not registering framework because there are no resources left to unreserve.");
             return Optional.empty();
         }
 
@@ -149,13 +149,9 @@ public class UninstallScheduler extends AbstractScheduler {
 
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
         return !stateStore.fetchFrameworkId().isPresent() &&
-                tasksNeedClearing(stateStore);
-    }
-
-    private static boolean tasksNeedClearing(StateStore stateStore) {
-        return ResourceUtils.getResourceIds(
-                ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
-                .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+                ResourceUtils.getResourceIds(
+                        ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
+                        .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 
     @VisibleForTesting

@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 # global pytest variable applicable to whole module
-pytestmark = sdk_utils.dcos_1_9_or_higher
+pytestmark = pytest.mark.dcos_min_version('1.9')
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):

@@ -18,34 +18,11 @@ public interface ConfigurationUpdater<C extends Configuration> {
      */
     class UpdateResult {
         private final UUID targetId;
-        private final DeploymentType deploymentType;
         private final Collection<ConfigValidationError> errors;
 
-        public UpdateResult(
-                UUID targetId,
-                DeploymentType deploymentType,
-                Collection<ConfigValidationError> errors) {
+        public UpdateResult(UUID targetId, Collection<ConfigValidationError> errors) {
             this.targetId = targetId;
             this.errors = errors;
-            this.deploymentType = deploymentType;
-        }
-
-        /**
-         * Two types of deployments are differentiated by this type.  Either a services is
-         * being deployed for the first time "DEPLOY", or it is updating a previously deployed
-         * version of the service, "UPDATE"
-         */
-        public enum DeploymentType {
-            NONE,
-            DEPLOY,
-            UPDATE
-        }
-
-        /**
-         * Gets the {@link DeploymentType} detected during this update.
-         */
-        public DeploymentType getDeploymentType() {
-            return deploymentType;
         }
 
         /**

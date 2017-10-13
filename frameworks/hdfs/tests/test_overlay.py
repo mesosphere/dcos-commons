@@ -34,7 +34,7 @@ def pre_test_setup():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_tasks_on_overlay():
     hdfs_tasks = shakedown.shakedown.get_service_task_ids(config.SERVICE_NAME)
     assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, "Not enough tasks got launched,"\
@@ -45,7 +45,7 @@ def test_tasks_on_overlay():
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_endpoints_on_overlay():
     observed_endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
@@ -58,7 +58,7 @@ def test_endpoints_on_overlay():
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_write_and_read_data_on_overlay():
     config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
     config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
