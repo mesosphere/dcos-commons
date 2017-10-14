@@ -112,7 +112,7 @@ public class DefaultReconciler implements Reconciler {
                 // PHASE 2: no unreconciled tasks remain, trigger a single implicit reconciliation,
                 // where we get the list of all tasks currently known to Mesos.
                 LOGGER.info("Triggering implicit final reconciliation of all tasks");
-                driver.reconcileTasks(Collections.<TaskStatus>emptyList());
+                driver.reconcileTasks(Collections.emptyList());
 
                 // reset the timer values in case we're started again in the future
                 resetTimerValues();

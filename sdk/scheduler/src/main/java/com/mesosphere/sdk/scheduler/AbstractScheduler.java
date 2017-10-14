@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
+import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -182,6 +183,16 @@ public abstract class AbstractScheduler {
     public AbstractScheduler setOfferQueueSize(int queueSize) {
         mesosScheduler.offerQueue = new OfferQueue(queueSize);
         return this;
+    }
+
+    /**
+     * Returns the plans defined for this scheduler. Useful for scheduler tests.
+     */
+    @VisibleForTesting
+    public Collection<Plan> getPlans() {
+        return mesosScheduler.planCoordinator.getPlanManagers().stream()
+                .map(planManager -> planManager.getPlan())
+                .collect(Collectors.toList());
     }
 
     /**

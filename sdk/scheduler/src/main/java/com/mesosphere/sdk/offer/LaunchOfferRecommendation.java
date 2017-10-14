@@ -78,14 +78,6 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
 
     private Protos.Offer.Operation getLaunchOperation() {
         Protos.Offer.Operation.Builder builder = Protos.Offer.Operation.newBuilder();
-        Protos.TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
-
-        if (!shouldLaunch) {
-            new TaskLabelWriter(taskBuilder).setTransient();
-            taskBuilder.getTaskIdBuilder().setValue("");
-        }
-        taskBuilder.setSlaveId(offer.getSlaveId());
-
         if (useDefaultExecutor) {
             builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
                     .getLaunchGroupBuilder()
