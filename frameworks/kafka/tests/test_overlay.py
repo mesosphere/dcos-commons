@@ -12,9 +12,9 @@ def configure_package(configure_security):
     try:
         install.uninstall(config.SERVICE_NAME, config.PACKAGE_NAME)
         config.install(
-            config.PACKAGE_NAME,
-            config.DEFAULT_BROKER_COUNT,
+            package_name=config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
+            expected_running_tasks=config.DEFAULT_BROKER_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute

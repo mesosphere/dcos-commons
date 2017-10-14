@@ -22,9 +22,9 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 def test_dynamic_port_comes_online():
     config.install(
-        config.PACKAGE_NAME,
-        config.DEFAULT_BROKER_COUNT,
+        package_name=config.PACKAGE_NAME,
         service_name=config.SERVICE_NAME,
+        expected_running_tasks=config.DEFAULT_BROKER_COUNT,
         additional_options=DYNAMIC_PORT_OPTIONS_DICT)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
     sdk_install.uninstall(config.SERVICE_NAME, config.PACKAGE_NAME)

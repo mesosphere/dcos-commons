@@ -39,9 +39,9 @@ def service_account():
 @pytest.fixture(scope='module')
 def kafka_service_tls(service_account):
     config.install(
-        config.PACKAGE_NAME,
-        config.DEFAULT_BROKER_COUNT,
+        package_name=config.PACKAGE_NAME,
         service_name=service_account,
+        expected_running_tasks=config.DEFAULT_BROKER_COUNT,
         additional_options={
             "service": {
                 "service_account": service_account,
