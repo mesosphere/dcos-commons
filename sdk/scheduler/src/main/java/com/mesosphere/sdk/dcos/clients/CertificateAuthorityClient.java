@@ -14,7 +14,6 @@ import java.util.stream.StreamSupport;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.fluent.ContentResponseHandler;
-import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
@@ -23,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.offer.evaluate.security.PEMUtils;
 
 /**
@@ -33,11 +33,11 @@ public class CertificateAuthorityClient {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Executor httpExecutor;
+    private DcosHttpExecutor httpExecutor;
     private CertificateFactory certificateFactory;
 
-    public CertificateAuthorityClient(Executor executor) {
-        this.httpExecutor = executor;
+    public CertificateAuthorityClient(DcosHttpExecutor httpExecutor) {
+        this.httpExecutor = httpExecutor;
 
         try {
             this.certificateFactory = CertificateFactory.getInstance("X.509");

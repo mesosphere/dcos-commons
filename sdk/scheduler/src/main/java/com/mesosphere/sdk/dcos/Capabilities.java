@@ -15,12 +15,19 @@ public class Capabilities {
     private static final Logger LOGGER = LoggerFactory.getLogger(Capabilities.class);
     private static final Object lock = new Object();
     private static Capabilities capabilities;
-    DcosVersionClient dcosCluster;
+
+    private final DcosVersion dcosVersion;
 
     public static Capabilities getInstance() {
         synchronized (lock) {
             if (capabilities == null) {
-                capabilities = new Capabilities(new DcosVersionClient());
+                try {
+                    DcosVersionClient client = new DcosVersionClient(new DcosHttpExecutor(new DcosHttpClientBuilder()));
+                    capabilities = new Capabilities(client.getDcosVersion());
+                } catch (IOException e) {
+                    LOGGER.error("Unable to fetch DC/OS version.");
+                    throw new IllegalStateException(e);
+                }
             }
 
             return capabilities;
@@ -34,8 +41,12 @@ public class Capabilities {
     }
 
     @VisibleForTesting
-    public Capabilities(DcosVersionClient dcosCluster) {
-        this.dcosCluster = dcosCluster;
+    public Capabilities(DcosVersion dcosVersion) {
+        this.dcosVersion = dcosVersion;
+    }
+
+    public DcosVersion getDcosVersion() {
+        return dcosVersion;
     }
 
     public boolean supportsDefaultExecutor() {
@@ -85,14 +96,6 @@ public class Capabilities {
     }
 
     private boolean hasOrExceedsVersion(int major, int minor) {
-        DcosVersion dcosVersion = null;
-        try {
-            dcosVersion = dcosCluster.getDcosVersion();
-        } catch (IOException e) {
-            LOGGER.error("Unable to fetch DC/OS version.");
-            throw new IllegalStateException(e);
-        }
-
         DcosVersion.Elements versionElements = dcosVersion.getElements();
         try {
             if (versionElements.getFirstElement() > major) {
