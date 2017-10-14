@@ -29,10 +29,10 @@ def setup_module(module):
 
     sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
 
-    sdk_install.install(
-        PACKAGE_NAME,
-        DEFAULT_BROKER_COUNT,
-        service_name=SERVICE_NAME,
+    config.install(
+        package_name=config.PACKAGE_NAME,
+        service_name=config.SERVICE_NAME,
+        expected_running_tasks=config.DEFAULT_BROKER_COUNT,
         additional_options=options)
     sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
 
