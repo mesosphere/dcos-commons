@@ -35,6 +35,7 @@
 <li><a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html" title="class in com.mesosphere.sdk.executor">CheckHandler.ProcessRunner</a></li>
 <li><a href="com/mesosphere/sdk/executor/CheckMonitor.html" title="class in com.mesosphere.sdk.executor">CheckMonitor</a></li>
 <li><a href="com/mesosphere/sdk/executor/CheckStats.html" title="class in com.mesosphere.sdk.executor">CheckStats</a></li>
+<li><a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></li>
 <li><a href="com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">CommandSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/CommonIdUtils.html" title="class in com.mesosphere.sdk.offer">CommonIdUtils</a></li>
 <li><a href="com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">ConfigFileSpec</span></a></li>
@@ -143,6 +144,7 @@
 <li><a href="com/mesosphere/sdk/executor/ExecutorTaskFactory.html" title="interface in com.mesosphere.sdk.executor"><span class="interfaceName">ExecutorTaskFactory</span></a></li>
 <li><a href="com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">ExecutorTaskLabelReader</a></li>
 <li><a href="com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">ExecutorTaskLabelWriter</a></li>
+<li><a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing"><span class="interfaceName">Expect</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><span class="interfaceName">FailureMonitor</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery">FailureUtils</a></li>
 <li><a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></li>
@@ -283,6 +285,8 @@
 <li><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.ConfigException.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig.ConfigException</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.ConfigException.Type.html" title="enum in com.mesosphere.sdk.scheduler">SchedulerConfig.ConfigException.Type</a></li>
+<li><a href="com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult</a></li>
+<li><a href="com/mesosphere/sdk/testing/SchedulerConfigResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult.TaskConfig</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.scheduler">SchedulerDriverFactory</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler">SchedulerRunner</a></li>
@@ -291,6 +295,11 @@
 <li><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a></li>
 <li><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient.Payload</a></li>
 <li><a href="com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">SecretSpec</span></a></li>
+<li><a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing"><span class="interfaceName">Send</span></a></li>
+<li><a href="com/mesosphere/sdk/testing/SendOffer.html" title="class in com.mesosphere.sdk.testing">SendOffer</a></li>
+<li><a href="com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></li>
+<li><a href="com/mesosphere/sdk/testing/SendTaskStatus.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus</a></li>
+<li><a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus.Builder</a></li>
 <li><a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></li>
 <li><a href="com/mesosphere/sdk/state/Serializer.html" title="interface in com.mesosphere.sdk.state"><span class="interfaceName">Serializer</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">SerialStrategy</a></li>
@@ -299,9 +308,8 @@
 <li><a href="com/mesosphere/sdk/dcos/auth/ServiceAccountIAMTokenProvider.Builder.html" title="class in com.mesosphere.sdk.dcos.auth">ServiceAccountIAMTokenProvider.Builder</a></li>
 <li><a href="com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html" title="class in com.mesosphere.sdk.config.validate">ServiceNameCannotContainDoubleUnderscores</a></li>
 <li><a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="interfaceName">ServiceSpec</span></a></li>
-<li><a href="com/mesosphere/sdk/testing/ServiceTestBuilder.html" title="class in com.mesosphere.sdk.testing">ServiceTestBuilder</a></li>
-<li><a href="com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a></li>
-<li><a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult.TaskConfig</a></li>
+<li><a href="com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></li>
+<li><a href="com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing"><span class="interfaceName">SimulationTick</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/StageBuilder.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="interfaceName">StageBuilder</span></a></li>
 <li><a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></li>
 <li><a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></li>

@@ -73,6 +73,35 @@
 <div class="contentContainer">
 <ul class="blockList">
 <li class="blockList">
+<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Interface Summary table, listing interfaces, and an explanation">
+<caption><span>Interface Summary</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Interface</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></td>
+<td class="colLast">
+<div class="block">A type of <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing"><code>SimulationTick</code></a> that verifies the scheduler did something.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></td>
+<td class="colLast">
+<div class="block">A type of <code>Tick</code> that performs an operation against the scheduler.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing">SimulationTick</a></td>
+<td class="colLast">
+<div class="block">A step in a cluster simulation.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li class="blockList">
 <table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Class Summary table, listing classes, and an explanation">
 <caption><span>Class Summary</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
@@ -81,27 +110,59 @@
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></td>
+<td class="colLast">
+<div class="block">Representation of the state of a cluster.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/CosmosRenderer.html" title="class in com.mesosphere.sdk.testing">CosmosRenderer</a></td>
 <td class="colLast">
 <div class="block">Reads a service's Universe packaging configuration, and uses that to generate the resulting Scheduler environment.</div>
 </td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestBuilder.html" title="class in com.mesosphere.sdk.testing">ServiceTestBuilder</a></td>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult</a></td>
 <td class="colLast">
-<div class="block">Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it.</div>
+<div class="block">An object which contains the generated results from rendering a Service via <a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing"><code>ServiceTestRunner</code></a>.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult.TaskConfig</a></td>
+<td class="colLast">
+<div class="block">An internal-only object for the result of generating a config file.</div>
 </td>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a></td>
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.html" title="class in com.mesosphere.sdk.testing">SendOffer</a></td>
 <td class="colLast">
-<div class="block">An object which contains the generated results from rendering a Service via <a href="../../../../com/mesosphere/sdk/testing/ServiceTestBuilder.html" title="class in com.mesosphere.sdk.testing"><code>ServiceTestBuilder</code></a>.</div>
+<div class="block">A <a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing"><code>Send</code></a> for sending a <code>Protos.Offer</code> which matches a specified pod's requirements to a scheduler under
+ test.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult.TaskConfig</a></td>
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></td>
 <td class="colLast">
-<div class="block">An internal-only object for the result of generating a config file.</div>
+<div class="block">Builder for <a href="../../../../com/mesosphere/sdk/testing/SendOffer.html" title="class in com.mesosphere.sdk.testing"><code>SendOffer</code></a>.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SendTaskStatus.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus</a></td>
+<td class="colLast">
+<div class="block">A <a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing"><code>Send</code></a> for sending a <code>Protos.TaskStatus</code> to a scheduler under test.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus.Builder</a></td>
+<td class="colLast">
+<div class="block">Builder for <a href="../../../../com/mesosphere/sdk/testing/SendTaskStatus.html" title="class in com.mesosphere.sdk.testing"><code>SendTaskStatus</code></a>.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></td>
+<td class="colLast">
+<div class="block">Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it, then
+ optionally running a series of <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing"><code>SimulationTick</code></a>s against the result.</div>
 </td>
 </tr>
 </tbody>
