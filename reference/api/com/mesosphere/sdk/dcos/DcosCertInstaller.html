@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -168,12 +168,26 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-">installCertificate</a></span>(java.lang.String&nbsp;pathToJRE)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-">installCertificate</a></span>(java.lang.String&nbsp;pathToJRE)</code>
+<div class="block">Updates the JRE certificate store to include any DC/OS certificates.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-com.mesosphere.sdk.dcos.DcosCertInstaller.ProcessRunner-">installCertificate</a></span>(java.lang.String&nbsp;pathToJRE,
                   <a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.ProcessRunner.html" title="class in com.mesosphere.sdk.dcos">DcosCertInstaller.ProcessRunner</a>&nbsp;processRunner)</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#isInitialized--">isInitialized</a></span>()</code>
+<div class="block">Returns whether <a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-"><code>installCertificate(String)</code></a> has been invoked.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#setInitialized-boolean-">setInitialized</a></span>(boolean&nbsp;value)</code>
+<div class="block">Overrides whether <a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-"><code>installCertificate(String)</code></a> has been invoked, for testing.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -214,6 +228,26 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="isInitialized--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isInitialized</h4>
+<pre>public static&nbsp;boolean&nbsp;isInitialized()</pre>
+<div class="block">Returns whether <a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-"><code>installCertificate(String)</code></a> has been invoked.</div>
+</li>
+</ul>
+<a name="setInitialized-boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setInitialized</h4>
+<pre>public static&nbsp;void&nbsp;setInitialized(boolean&nbsp;value)</pre>
+<div class="block">Overrides whether <a href="../../../../com/mesosphere/sdk/dcos/DcosCertInstaller.html#installCertificate-java.lang.String-"><code>installCertificate(String)</code></a> has been invoked, for testing.</div>
+</li>
+</ul>
 <a name="installCertificate-java.lang.String-">
 <!--   -->
 </a>
@@ -221,6 +255,11 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>installCertificate</h4>
 <pre>public static&nbsp;boolean&nbsp;installCertificate(java.lang.String&nbsp;pathToJRE)</pre>
+<div class="block">Updates the JRE certificate store to include any DC/OS certificates.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>whether any work was performed</dd>
+</dl>
 </li>
 </ul>
 <a name="installCertificate-java.lang.String-com.mesosphere.sdk.dcos.DcosCertInstaller.ProcessRunner-">

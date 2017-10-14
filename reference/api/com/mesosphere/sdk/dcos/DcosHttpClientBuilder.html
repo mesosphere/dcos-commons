@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpExecutor.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" target="_top">Frames</a></li>
@@ -153,26 +153,14 @@ extends HttpClientBuilder</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html#disableTLSVerification--">disableTLSVerification</a></span>()</code>
-<div class="block">Disable TLS verification on built HTTP client.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html#setDefaultConnectionTimeout-int-">setDefaultConnectionTimeout</a></span>(int&nbsp;connectionTimeout)</code>
+<div class="block">Assigns a request connection timeout to be used by requests.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html#setDefaultConnectionTimeout-int-">setDefaultConnectionTimeout</a></span>(int&nbsp;connectionTimeout)</code>
-<div class="block">Set default request connection timeout.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html#setLogger-Logger-">setLogger</a></span>(Logger&nbsp;logger)</code>
-<div class="block">Set custom logger that will log all requests.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html#setTokenProvider-com.mesosphere.sdk.dcos.auth.TokenProvider-">setTokenProvider</a></span>(<a href="../../../../com/mesosphere/sdk/dcos/auth/TokenProvider.html" title="interface in com.mesosphere.sdk.dcos.auth">TokenProvider</a>&nbsp;provider)</code>
-<div class="block">Enable authentication token.</div>
+<div class="block">Assigns a token provider which will produce HTTP auth tokens to be included in requests.</div>
 </td>
 </tr>
 </table>
@@ -214,22 +202,6 @@ extends HttpClientBuilder</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="disableTLSVerification--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>disableTLSVerification</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a>&nbsp;disableTLSVerification()
-                                             throws java.security.NoSuchAlgorithmException</pre>
-<div class="block">Disable TLS verification on built HTTP client.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.security.NoSuchAlgorithmException</code></dd>
-</dl>
-</li>
-</ul>
 <a name="setTokenProvider-com.mesosphere.sdk.dcos.auth.TokenProvider-">
 <!--   -->
 </a>
@@ -237,26 +209,10 @@ extends HttpClientBuilder</pre>
 <li class="blockList">
 <h4>setTokenProvider</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a>&nbsp;setTokenProvider(<a href="../../../../com/mesosphere/sdk/dcos/auth/TokenProvider.html" title="interface in com.mesosphere.sdk.dcos.auth">TokenProvider</a>&nbsp;provider)</pre>
-<div class="block">Enable authentication token.</div>
+<div class="block">Assigns a token provider which will produce HTTP auth tokens to be included in requests.</div>
 <dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>provider</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-</dl>
-</li>
-</ul>
-<a name="setLogger-Logger-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setLogger</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a>&nbsp;setLogger(Logger&nbsp;logger)</pre>
-<div class="block">Set custom logger that will log all requests.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>logger</code> - </dd>
-<dt><span class="returnLabel">Returns:</span></dt>
+<dd>this</dd>
 </dl>
 </li>
 </ul>
@@ -267,11 +223,10 @@ extends HttpClientBuilder</pre>
 <li class="blockList">
 <h4>setDefaultConnectionTimeout</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a>&nbsp;setDefaultConnectionTimeout(int&nbsp;connectionTimeout)</pre>
-<div class="block">Set default request connection timeout.</div>
+<div class="block">Assigns a request connection timeout to be used by requests.</div>
 <dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>connectionTimeout</code> - </dd>
 <dt><span class="returnLabel">Returns:</span></dt>
+<dd>this</dd>
 </dl>
 </li>
 </ul>
@@ -303,7 +258,7 @@ extends HttpClientBuilder</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpExecutor.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" target="_top">Frames</a></li>

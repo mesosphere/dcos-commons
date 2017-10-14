@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,7 +109,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">DcosVersionClient</span>
 extends java.lang.Object</pre>
-<div class="block">Instances of this class represent DC/OS clusters.</div>
+<div class="block">Fetches the DC/OS cluster version from the cluster itself.</div>
 </li>
 </ul>
 </div>
@@ -129,8 +129,8 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#DCOS_VERSION_PATH">DCOS_VERSION_PATH</a></span></code>&nbsp;</td>
+<td class="colFirst"><code>(package private) static Request</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#DCOS_VERSION_REQUEST">DCOS_VERSION_REQUEST</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -147,10 +147,7 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#DcosVersionClient--">DcosVersionClient</a></span>()</code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#DcosVersionClient-java.net.URI-">DcosVersionClient</a></span>(java.net.URI&nbsp;dcosUri)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#DcosVersionClient-com.mesosphere.sdk.dcos.DcosHttpExecutor-">DcosVersionClient</a></span>(<a href="../../../../../com/mesosphere/sdk/dcos/DcosHttpExecutor.html" title="class in com.mesosphere.sdk.dcos">DcosHttpExecutor</a>&nbsp;httpExecutor)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -168,16 +165,6 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>protected java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#fetchUri-java.lang.String-">fetchUri</a></span>(java.lang.String&nbsp;path)</code>
-<div class="block">Broken out into a separate function to allow stubbing out in tests.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.net.URI</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#getDcosUri--">getDcosUri</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#getDcosVersion--">getDcosVersion</a></span>()</code>&nbsp;</td>
 </tr>
@@ -203,17 +190,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a name="DCOS_VERSION_PATH">
+<a name="DCOS_VERSION_REQUEST">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>DCOS_VERSION_PATH</h4>
-<pre>static final&nbsp;java.lang.String DCOS_VERSION_PATH</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.dcos.clients.DcosVersionClient.DCOS_VERSION_PATH">Constant Field Values</a></dd>
-</dl>
+<h4>DCOS_VERSION_REQUEST</h4>
+<pre>static final&nbsp;Request DCOS_VERSION_REQUEST</pre>
 </li>
 </ul>
 </li>
@@ -224,22 +207,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DcosVersionClient-java.net.URI-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>DcosVersionClient</h4>
-<pre>DcosVersionClient(java.net.URI&nbsp;dcosUri)</pre>
-</li>
-</ul>
-<a name="DcosVersionClient--">
+<a name="DcosVersionClient-com.mesosphere.sdk.dcos.DcosHttpExecutor-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DcosVersionClient</h4>
-<pre>public&nbsp;DcosVersionClient()</pre>
+<pre>public&nbsp;DcosVersionClient(<a href="../../../../../com/mesosphere/sdk/dcos/DcosHttpExecutor.html" title="class in com.mesosphere.sdk.dcos">DcosHttpExecutor</a>&nbsp;httpExecutor)</pre>
 </li>
 </ul>
 </li>
@@ -250,38 +224,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getDcosUri--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDcosUri</h4>
-<pre>public&nbsp;java.net.URI&nbsp;getDcosUri()</pre>
-</li>
-</ul>
 <a name="getDcosVersion--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDcosVersion</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a>&nbsp;getDcosVersion()
-                           throws java.io.IOException</pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
-</dl>
-</li>
-</ul>
-<a name="fetchUri-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>fetchUri</h4>
-<pre>protected&nbsp;java.lang.String&nbsp;fetchUri(java.lang.String&nbsp;path)
-                             throws java.io.IOException</pre>
-<div class="block">Broken out into a separate function to allow stubbing out in tests.</div>
+<h4>getDcosVersion</h4>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a>&nbsp;getDcosVersion()
+                           throws java.io.IOException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code></dd>
