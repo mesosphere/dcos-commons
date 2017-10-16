@@ -256,12 +256,12 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     assert expected_san in sans
 
     # Run task update with new discovery prefix
-    marathon_config = sdk_marathon.get_config(config.PACKAGE_NAME)
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['DISCOVERY_TASK_PREFIX'] = DISCOVERY_TASK_PREFIX + '-new'
-    sdk_marathon.update_app(config.PACKAGE_NAME, marathon_config)
-    sdk_tasks.check_tasks_updated(config.PACKAGE_NAME, 'discovery', original_tasks)
-    new_task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, "discovery")[0]
-
+    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'discovery', original_tasks)
+    sdk_tasks.check_running(config.SERVICE_NAME, 4)
+    new_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
     assert task_id != new_task_id
 
     new_cert = x509.load_pem_x509_certificate(
