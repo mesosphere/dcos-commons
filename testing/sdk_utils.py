@@ -50,6 +50,11 @@ def is_open_dcos():
     return not (os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true')
 
 
+def is_strict_mode():
+    '''Determine if the tests are being run on a strict mode cluster.'''
+    return os.environ.get('SECURITY', '') == 'strict'
+
+
 dcos_ee_only = pytest.mark.skipif(
     'sdk_utils.is_open_dcos()',
     reason="Feature only supported in DC/OS EE.")
