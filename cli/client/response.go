@@ -50,7 +50,7 @@ func defaultResponseCheck(response *http.Response) error {
 	switch {
 	case response.StatusCode == http.StatusUnauthorized:
 		errorString := `Got 401 Unauthorized response from %s
-"- Bad auth token? Run 'dcos auth login' to log in.`
+- Bad auth token? Run 'dcos auth login' to log in`
 		return fmt.Errorf(errorString, response.Request.URL)
 	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway || response.StatusCode == http.StatusNotFound:
 		return createServiceNameError()

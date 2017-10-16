@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.MesosResourcePool;
@@ -9,7 +10,6 @@ import com.mesosphere.sdk.offer.evaluate.security.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
-import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
@@ -50,20 +50,16 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         public Builder(String serviceName, SchedulerConfig schedulerConfig) throws IOException {
             this.serviceName = serviceName;
             this.namespace = schedulerConfig.getSecretsNamespace(serviceName);
-            Executor executor = Executor.newInstance(
-                    new DcosHttpClientBuilder()
+            DcosHttpExecutor executor = new DcosHttpExecutor(new DcosHttpClientBuilder()
                     .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
                     .setRedirectStrategy(new LaxRedirectStrategy() {
                         protected boolean isRedirectable(String method) {
                             // Also treat PUT calls as redirectable
                             return method.equalsIgnoreCase(HttpPut.METHOD_NAME) || super.isRedirectable(method);
                         }
-                    })
-                    .build());
+                    }));
             this.tlsArtifactsUpdater = new TLSArtifactsUpdater(
-                    serviceName,
-                    new SecretsClient(executor),
-                    new CertificateAuthorityClient(executor));
+                    serviceName, new SecretsClient(executor), new CertificateAuthorityClient(executor));
         }
 
         public TLSEvaluationStage build(String taskName) {

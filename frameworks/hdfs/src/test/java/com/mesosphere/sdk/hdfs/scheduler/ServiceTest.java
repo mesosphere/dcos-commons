@@ -5,9 +5,9 @@ import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.yaml.RawPort;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.CosmosRenderer;
-import com.mesosphere.sdk.testing.ServiceTestBuilder;
+import com.mesosphere.sdk.testing.ServiceTestRunner;
 
-import com.mesosphere.sdk.testing.ServiceTestResult;
+import com.mesosphere.sdk.testing.SchedulerConfigResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -24,16 +24,16 @@ public class ServiceTest {
     public void testSpec() throws Exception {
         // Our Main.java only defines SERVICE_ZK_ROOT in our name nodes.
         // However, the test utilities are strict about missing template params so we set something for all pods:
-        new ServiceTestBuilder()
+        new ServiceTestRunner()
                 .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
-                .render();
+                .run();
     }
 
     @Test
     public void testTLS() throws Exception {
-        ServiceTestResult result = new ServiceTestBuilder()
+        SchedulerConfigResult result = new ServiceTestRunner()
                 .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
@@ -41,7 +41,7 @@ public class ServiceTest {
                 .setOptions("hdfs.name_node_https_port", "2000")
                 .setOptions("hdfs.journal_node_https_port", "2001")
                 .setOptions("hdfs.data_node_https_port", "2002")
-                .render();
+                .run();
 
         RawPort nameHttpsPort = result
                 .getRawServiceSpec()
@@ -86,12 +86,12 @@ public class ServiceTest {
 
     @Test
     public void testRenderHdfsSiteXml() throws IOException {
-        renderEndpointTemplate(ServiceTestBuilder.getDistFile(Main.HDFS_SITE_XML));
+        renderEndpointTemplate(ServiceTestRunner.getDistFile(Main.HDFS_SITE_XML));
     }
 
     @Test
     public void testRenderCoreSiteXml() throws IOException {
-        renderEndpointTemplate(ServiceTestBuilder.getDistFile(Main.CORE_SITE_XML));
+        renderEndpointTemplate(ServiceTestRunner.getDistFile(Main.CORE_SITE_XML));
     }
 
     private void renderEndpointTemplate(File templateFile) throws IOException {

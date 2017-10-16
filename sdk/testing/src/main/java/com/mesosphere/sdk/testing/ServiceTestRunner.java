@@ -3,14 +3,20 @@ package com.mesosphere.sdk.testing;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.StringJoiner;
 
+import org.apache.mesos.SchedulerDriver;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -30,11 +36,12 @@ import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
 /**
- * Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it.
- *
- * @see ServiceTestUtils for shortcuts in common usage scenarios
+ * Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it, then
+ * optionally running a series of {@link SimulationTick}s against the result.
  */
-public class ServiceTestBuilder {
+public class ServiceTestRunner {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTestRunner.class);
     private static final Random RANDOM = new Random();
 
     /**
@@ -62,18 +69,18 @@ public class ServiceTestBuilder {
      *
      * <p>WARNING: If you do not invoke the {@link test()} method, your test will not run!
      */
-    public ServiceTestBuilder() {
+    public ServiceTestRunner() {
         this("svc.yml");
     }
 
     /**
      * Creates a new instance against the provided Service Specification YAML path.
      *
-     * <p>WARNING: If you do not invoke the {@link #render()} method, your test will not run!
+     * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
      *
      * @param specPath path to the Service Specification YAML file, relative to the {@code dist} directory
      */
-    public ServiceTestBuilder(String specPath) {
+    public ServiceTestRunner(String specPath) {
         this.specPath = getDistFile(specPath);
         this.configTemplateDir = this.specPath.getParentFile();
         this.cosmosOptions = new HashMap<>();
@@ -90,7 +97,7 @@ public class ServiceTestBuilder {
      *     keys should be in {@code section1.section2.section3.name} form as an {@code options.json} file would have
      * @return {@code this}
      */
-    public ServiceTestBuilder setOptions(String... optionKeyVals) {
+    public ServiceTestRunner setOptions(String... optionKeyVals) {
         this.cosmosOptions.putAll(toMap(optionKeyVals));
         return this;
     }
@@ -103,7 +110,7 @@ public class ServiceTestBuilder {
      * @param paramKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
      * @return {@code this}
      */
-    public ServiceTestBuilder setBuildTemplateParams(String... paramKeyVals) {
+    public ServiceTestRunner setBuildTemplateParams(String... paramKeyVals) {
         this.buildTemplateParams.putAll(toMap(paramKeyVals));
         return this;
     }
@@ -114,7 +121,7 @@ public class ServiceTestBuilder {
      *
      * @return {@code this}
      */
-    public ServiceTestBuilder setConfigTemplateDir(File configTemplateDir) {
+    public ServiceTestRunner setConfigTemplateDir(File configTemplateDir) {
         this.configTemplateDir = configTemplateDir;
         return this;
     }
@@ -128,7 +135,7 @@ public class ServiceTestBuilder {
      * @param schedulerEnvKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
      * @return {@code this}
      */
-    public ServiceTestBuilder setSchedulerEnv(String... schedulerEnvKeyVals) {
+    public ServiceTestRunner setSchedulerEnv(String... schedulerEnvKeyVals) {
         this.customSchedulerEnv.putAll(toMap(schedulerEnvKeyVals));
         return this;
     }
@@ -142,7 +149,7 @@ public class ServiceTestBuilder {
      * @param podEnvKeyVals an even number of strings which will be unpacked as (key, value, key, value, ...)
      * @return {@code this}
      */
-    public ServiceTestBuilder setPodEnv(String podType, String... podEnvKeyVals) {
+    public ServiceTestRunner setPodEnv(String podType, String... podEnvKeyVals) {
         Map<String, String> podEnv = this.customPodEnvs.get(podType);
         if (podEnv == null) {
             podEnv = new HashMap<>();
@@ -153,15 +160,30 @@ public class ServiceTestBuilder {
     }
 
     /**
-     * Exercises the service's packaging and resulting Service Specification YAML file.
+     * Exercises the service's packaging and resulting Service Specification YAML file without running any simulation
+     * afterwards.
      *
-     * @return a {@link ServiceTestResult} containing the resulting scheduler environment and ServiceSpec/RawServiceSpec
+     * @return a {@link SchedulerConfigResult} containing the resulting scheduler environment and spec information
      * @throws Exception if the test failed
      */
-    public ServiceTestResult render() throws Exception {
+    public SchedulerConfigResult run() throws Exception {
+        return run(Collections.emptyList());
+    }
+
+    /**
+     * Exercises the service's packaging and resulting Service Specification YAML file, then runs the provided
+     * simulation ticks, if any are provided.
+     *
+     * @return a {@link SchedulerConfigResult} containing the resulting scheduler environment and spec information
+     * @throws Exception if the test failed
+     */
+    public SchedulerConfigResult run(Collection<SimulationTick> ticks) throws Exception {
         SchedulerConfig mockSchedulerConfig = Mockito.mock(SchedulerConfig.class);
-        Mockito.when(mockSchedulerConfig.getExecutorURI()).thenReturn("executor-test-uri");
+        Mockito.when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
+        Mockito.when(mockSchedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
+        Mockito.when(mockSchedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
+        Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -189,23 +211,70 @@ public class ServiceTestBuilder {
 
         // Test 3: Does the scheduler build?
         Persister persister = new MemPersister();
-        DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
+        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)
-                .build();
+                .build()
+                .disableThreading()
+                .disableApiServer();
 
         // Test 4: Can we render the per-task config templates without any missing values?
-        Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
+        Collection<SchedulerConfigResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
+
+        SchedulerConfigResult configResult =
+                new SchedulerConfigResult(serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs);
+
+        if (!ticks.isEmpty()) {
+            // Test 5: Run simulation, if any was provided
+            ClusterState state = new ClusterState(configResult, scheduler);
+            SchedulerDriver mockDriver = Mockito.mock(SchedulerDriver.class);
+            for (SimulationTick tick : ticks) {
+                if (tick instanceof Expect) {
+                    LOGGER.info("EXPECT: {}", tick.getDescription());
+                    try {
+                        ((Expect) tick).expect(state, mockDriver);
+                    } catch (Throwable e) {
+                        throw buildSimulationError(ticks, tick, e);
+                    }
+                } else if (tick instanceof Send) {
+                    LOGGER.info("SEND:   {}", tick.getDescription());
+                    ((Send) tick).run(state, mockDriver, scheduler.getMesosScheduler().get());
+                } else {
+                    throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
+                }
+            }
+        }
 
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
 
-        return new ServiceTestResult(serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs);
+        return configResult;
     }
 
-    private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(ServiceSpec serviceSpec) {
-        Collection<ServiceTestResult.TaskConfig> taskConfigs = new ArrayList<>();
+    private static AssertionError buildSimulationError(
+            Collection<SimulationTick> allTicks, SimulationTick failedTick, Throwable originalError) {
+        StringJoiner errorRows = new StringJoiner("\n");
+        errorRows.add(String.format("Expectation failed: %s", failedTick.getDescription()));
+        errorRows.add("Simulation steps:");
+        for (SimulationTick tick : allTicks) {
+            String prefix = tick == failedTick ? ">>>FAIL<<< " : "";
+            if (tick instanceof Expect) {
+                prefix += "EXPECT";
+            } else if (tick instanceof Send) {
+                prefix += "SEND";
+            } else {
+                prefix += "???";
+            }
+            errorRows.add(String.format("- %s %s", prefix, tick.getDescription()));
+        }
+        // Print the original message last, because junit output will truncate based on its content:
+        errorRows.add(String.format("Failure was: %s", originalError.getMessage()));
+        return new AssertionError(errorRows.toString(), originalError);
+    }
+
+    private Collection<SchedulerConfigResult.TaskConfig> getTaskConfigs(ServiceSpec serviceSpec) {
+        Collection<SchedulerConfigResult.TaskConfig> taskConfigs = new ArrayList<>();
         for (PodSpec podSpec : serviceSpec.getPods()) {
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
             Map<String, String> customEnv = customPodEnvs.get(podSpec.getType());
@@ -221,7 +290,7 @@ public class ServiceTestBuilder {
                                     podSpec.getType(), taskSpec.getName(), configFileSpec.getName()),
                             configFileSpec.getTemplateContent(),
                             taskEnv);
-                    taskConfigs.add(new ServiceTestResult.TaskConfig(
+                    taskConfigs.add(new SchedulerConfigResult.TaskConfig(
                             podSpec.getType(), taskSpec.getName(), configFileSpec.getName(), content));
                 }
             }

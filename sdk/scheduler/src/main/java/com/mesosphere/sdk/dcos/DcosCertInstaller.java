@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Facilitates installation of DC/OS cert inside framework's JRE.
@@ -29,7 +30,31 @@ public class DcosCertInstaller {
      */
     private static final String POST_110_CERT_PATH = ".ssl/ca-bundle.crt";
 
+    private static AtomicBoolean initialized = new AtomicBoolean(false);
+
+    /**
+     * Returns whether {@link #installCertificate(String)} has been invoked.
+     */
+    public static boolean isInitialized() {
+        return initialized.get();
+    }
+
+    /**
+     * Overrides whether {@link #installCertificate(String)} has been invoked, for testing.
+     */
+    public static void setInitialized(boolean value) {
+        initialized.set(value);
+    }
+
+    /**
+     * Updates the JRE certificate store to include any DC/OS certificates.
+     *
+     * @return whether any work was performed
+     */
     public static boolean installCertificate(String pathToJRE) {
+        if (initialized.getAndSet(true)) {
+            return false;
+        }
         if (StringUtils.isEmpty(pathToJRE)) {
             LOGGER.error("No JRE specified, skipping certificate installation.");
             return false;
@@ -74,7 +99,7 @@ public class DcosCertInstaller {
             return exitCode == 0;
         } catch (Throwable t) {
             LOGGER.error(String.format("Error installing cert inside JRE: %s", pathToJRE), t);
-            return false;
+            return true;
         }
     }
 

@@ -31,8 +31,7 @@ def configure_package(configure_security):
             foldered_name,
             current_expected_task_count,
             additional_options={
-                "service": {"name": foldered_name},
-                "ingest_nodes": {"count": 1} })
+                "service": {"name": foldered_name} })
 
         yield  # let the test session execute
     finally:
@@ -68,6 +67,20 @@ def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
+        # TODO: if an endpoint isn't present this call fails w/ the following:
+        # 》dcos beta-elastic --name=/test/integration/elastic endpoints ingest-http
+        # *** snip ***
+        # Could not reach the service scheduler with name '/test/integration/elastic'.capitalizeDid you provide the correct service name? Specify a different name with '--name=<name>'.absWas the service recently installed or updated? It may still be initializing, wait a bit and try again.abs  1
+        # *** snip ***
+        # Please consider using the CLI endpoints (list) command to determine which endpoints are present
+        # rather than a hardcoded set in config.py .
+        # Also please consider either fixing the CLI+API to emit an error message that is more meaningful.
+        # The service is up, the error condition is that the user requested an endpoint that isn't present
+        # that should be a 404, (specific resource) not found, not that the service is down or that the
+        # service name is not found.
+        #
+        # further, since we expect the endpoints to differ if ingest nodes A) is zero ; or B) positive integer, we
+        # should have a test for each case.
         endpoints = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints {}'.format(endpoint), json=True)
         host = endpoint.split('-')[0] # 'coordinator-http' => 'coordinator'
         assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(foldered_name, host + '-0-node'))
