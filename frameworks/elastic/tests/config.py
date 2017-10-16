@@ -77,6 +77,19 @@ def check_elasticsearch_index_health(index_name, color, service_name=PACKAGE_NAM
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
 
+def check_custom_elasticsearch_cluster_setting(service_name=PACKAGE_NAME):
+    curl_api = _curl_api(service_name, "GET")
+    expected_setting = 3
+
+    def fun():
+        result = _get_elasticsearch_cluster_settings(curl_api)
+        setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
+        log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
+        return result and expected_setting == int(setting)
+
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+
+
 def wait_for_expected_nodes_to_exist(service_name=PACKAGE_NAME, task_count=DEFAULT_TASK_COUNT):
     curl_api = _curl_api(service_name, "GET")
     def expected_nodes():
@@ -166,11 +179,16 @@ def disable_xpack(service_name=PACKAGE_NAME):
 
 
 def _set_xpack(service_name, is_enabled):
+    options = {'TASKCFG_ALL_XPACK_ENABLED': is_enabled}
+    update_app(service_name, options, DEFAULT_TASK_COUNT)
+
+
+def update_app(service_name, options, expected_task_count):
     config = sdk_marathon.get_config(service_name)
-    config['env']['TASKCFG_ALL_XPACK_ENABLED'] = is_enabled
+    config['env'].update(options)
     sdk_marathon.update_app(service_name, config)
     sdk_plan.wait_for_completed_deployment(service_name)
-    sdk_tasks.check_running(service_name, DEFAULT_TASK_COUNT)
+    sdk_tasks.check_running(service_name, expected_task_count)
 
 
 def verify_xpack_license(service_name=PACKAGE_NAME):
@@ -187,6 +205,13 @@ def _get_elasticsearch_index_health(curl_api, index_name):
 @as_json
 def _get_elasticsearch_cluster_health(curl_api):
     exit_status, output = shakedown.run_command_on_master("{}/_cluster/health'".format(curl_api))
+    return output
+
+
+@as_json
+def _get_elasticsearch_cluster_settings(curl_api):
+    curl_cluster_settings = "{}/_cluster/settings?include_defaults=true'".format(curl_api)
+    exit_status, output = shakedown.run_command_on_master(curl_cluster_settings)
     return output
 
 

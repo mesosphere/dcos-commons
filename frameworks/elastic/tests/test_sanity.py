@@ -53,7 +53,6 @@ def default_populated_index():
     config.create_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1, {"name": "Loren", "role": "developer"}, service_name=FOLDERED_SERVICE_NAME)
 
 
-@pytest.mark.focus
 @pytest.mark.smoke
 def test_service_health():
     assert shakedown.service_healthy(FOLDERED_SERVICE_NAME)
@@ -82,6 +81,23 @@ def test_indexing(default_populated_index):
 @sdk_utils.dcos_1_9_or_higher
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(FOLDERED_SERVICE_NAME, "data-0-node", config.DEFAULT_ELASTIC_TIMEOUT)
+
+
+@pytest.mark.sanity
+def test_custom_yaml_base64():
+    # apply this custom YAML block as a base64-encoded string:
+    # cluster:
+    #   routing:
+    #     allocation:
+    #       node_initial_primaries_recoveries: 3
+    # The default value is 4. We're just testing to make sure the YAML formatting survived intact and the setting
+    # got updated in the config.
+    base64_str = 'Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KIC' \
+                 'AgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz'
+
+    config.update_app(FOLDERED_SERVICE_NAME, {'TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64': base64_str},
+                      config.DEFAULT_TASK_COUNT)
+    config.check_custom_elasticsearch_cluster_setting(service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.sanity
@@ -168,23 +184,20 @@ def test_master_node_replace():
 @pytest.mark.sanity
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
-    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
+    config.update_app(FOLDERED_SERVICE_NAME, {'TASKCFG_ALL_ELASTICSEARCH_PLUGINS': plugin_name},
+                      config.DEFAULT_TASK_COUNT)
     config.check_plugin_installed(plugin_name, service_name=FOLDERED_SERVICE_NAME)
 
-    marathon_config = sdk_marathon.get_config(FOLDERED_SERVICE_NAME)
-    marathon_config['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = ""
-    sdk_marathon.update_app(FOLDERED_SERVICE_NAME, marathon_config)
+    config.update_app(FOLDERED_SERVICE_NAME, {'TASKCFG_ALL_ELASTICSEARCH_PLUGINS': ''}, config.DEFAULT_TASK_COUNT)
     config.check_plugin_uninstalled(plugin_name, service_name=FOLDERED_SERVICE_NAME)
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
-    initial_task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, "master")
+    initial_task_ids = sdk_tasks.get_task_ids(FOLDERED_SERVICE_NAME, '')
     shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(FOLDERED_SERVICE_NAME), "elastic.scheduler.Main")
-    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, "master", initial_task_ids)
+    sdk_tasks.check_tasks_not_updated(FOLDERED_SERVICE_NAME, '', initial_task_ids)
 
 
 @pytest.mark.recovery
