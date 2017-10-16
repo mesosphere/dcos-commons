@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 
 import java.io.ByteArrayInputStream;
@@ -59,7 +58,6 @@ public class SecretsClientTest {
         when(mockHttpResponse.getStatusLine()).thenReturn(mockStatusLine);
         when(mockStatusLine.getStatusCode()).thenReturn(200);
 
-        DcosCertInstaller.installCertificate(null); // ensure initialized bit is enabled
         client = new SecretsClient(new DcosHttpExecutor(mockHttpClientBuilder));
     }
 
