@@ -209,19 +209,19 @@ $ SERVICE_NAME=beta-elastic
 ```
 1. Get the version of the package that is currently installed:
 ```bash
-$ PACKAGE_VERSION=$(dcos package list | grep  | awk '{print $2}')
+$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
 ```
 1. Then fetch and save the environment variables that have been set for the service:
 ```bash
-$ dcos marathon app show  | jq .env > current_env.json
+$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
 ```
 1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
 ```bash
-$ dcos package describe --package-version= --render --app  | jq .env > default_env.json
+$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
 ```
 1. We'll also get the entire application template:
 ```bash
-$ dcos package describe  --app > marathon.json.mustache
+$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
 ```
 
 Now that you have these files, we'll attempt to recreate the `options.json`.
@@ -256,7 +256,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 These are the general steps to follow:
 
-1.  View your DC/OS dashboard at `http:///#/services/overview`
+1.  View your DC/OS dashboard at `http://$DCOS_URI/#/services/overview`
 1.  In the list of `Applications`, click the name of the Elastic service to be updated.
 1.  Within the Elastic instance details view, click the `Configuration` tab, then click `Edit`.
 1.  In the dialog that appears, expand the `Environment Variables` section and update any field(s) to their desired value(s). For example, to increase the number of data nodes, edit the value for `DATA_NODE_COUNT`. Do not edit the value for `FRAMEWORK_NAME`, `MASTER_NODE_TRANSPORT_PORT`, or any of the disk type/size fields.
@@ -299,7 +299,7 @@ Any other modifiable settings are covered by the various Elasticsearch APIs (clu
 
 # Viewing Plans via the CLI
 
-You can view the deploy plan for the DC/OS Elastic Service via the service URL: `http:///service//v1/plans`
+You can view the deploy plan for the DC/OS Elastic Service via the service URL: `http://$DCOS_URL/service/$SERVICE_NAME/v1/plans`
 
 # Topology
 
