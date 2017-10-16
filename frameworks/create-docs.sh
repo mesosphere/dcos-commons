@@ -20,7 +20,7 @@ export frameworkname
 current_dir=$(dirname $0)
 
 # replace the variables in the files with the values supplied and move the files to the docs directory
-for i in $current_dir/$frameworkname/docs/src/* ;
+for i in $current_dir/$frameworkname/docs/src/*.md ;
 do
   echo $i
   envsubst '$packagename' <$i> $i.tmp
