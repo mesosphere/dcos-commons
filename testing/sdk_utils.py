@@ -51,14 +51,5 @@ def is_open_dcos():
 
 
 dcos_ee_only = pytest.mark.skipif(
-    'sdk_utils.is_open_dcos()',
+    is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
-
-
-# WARNING: Any file that uses these must also "import shakedown" in the same file.
-dcos_1_9_or_higher = pytest.mark.skipif(
-    'sdk_utils.dcos_version_less_than("1.9")',
-    reason="Feature only supported in DC/OS 1.9 and up")
-dcos_1_10_or_higher = pytest.mark.skipif(
-    'sdk_utils.dcos_version_less_than("1.10")',
-    reason="Feature only supported in DC/OS 1.10 and up")

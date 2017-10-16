@@ -22,7 +22,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
-        if shakedown.dcos_version_less_than("1.9"):
+        if sdk_utils.dcos_version_less_than("1.9"):
             # HDFS upgrade in 1.8 is not supported.
             sdk_install.install(
                 config.PACKAGE_NAME,
@@ -328,7 +328,7 @@ def test_modify_app_config_rollback():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_metrics():
     sdk_metrics.wait_for_any_metrics(config.FOLDERED_SERVICE_NAME, "journal-0-node", config.DEFAULT_HDFS_TIMEOUT)
 

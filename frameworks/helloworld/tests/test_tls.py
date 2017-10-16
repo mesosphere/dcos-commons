@@ -99,7 +99,7 @@ def hello_world_service(service_account):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_java_truststore(hello_world_service):
     """
@@ -128,7 +128,7 @@ def test_java_truststore(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_tls_basic_artifacts(hello_world_service):
     task_id = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'artifacts')[0]
@@ -162,7 +162,7 @@ def test_tls_basic_artifacts(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_java_keystore(hello_world_service):
     """
@@ -196,7 +196,7 @@ def test_java_keystore(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_tls_nginx(hello_world_service):
     """
@@ -225,7 +225,7 @@ def test_tls_nginx(hello_world_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@sdk_utils.dcos_1_10_or_higher
+@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     """

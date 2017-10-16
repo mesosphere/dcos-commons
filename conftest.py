@@ -9,6 +9,7 @@ import os
 import subprocess
 
 import pytest
+import sdk_utils
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 
@@ -62,6 +63,17 @@ def pytest_runtest_makereport(item, call):
     # be "setup", "call", "teardown"
 
     setattr(item, "rep_" + rep.when, rep)
+
+
+def pytest_runtest_setup(item):
+    min_version_mark = item.get_marker('dcos_min_version')
+    if min_version_mark:
+        min_version = min_version_mark.args[0]
+        message = 'Feature only supported in DC/OS {} and up'.format(min_version)
+        if 'reason' in min_version_mark.kwargs:
+            message += ': {}'.format(min_version_mark.kwargs['reason'])
+        if sdk_utils.dcos_version_less_than(min_version):
+            pytest.skip(message)
 
 
 @pytest.fixture(autouse=True)
