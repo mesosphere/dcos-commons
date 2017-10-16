@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 
 public class SchedulerApiServerTest {
     private static final int SHORT_TIMEOUT_MILLIS = 100;
-    private static final int LONG_TIMEOUT_MILLIS = 30000;
+    private static final int LONG_TIMEOUT_MILLIS = 300000000;
 
     @Test
     public void testApiServerReady() throws Exception {
@@ -22,7 +22,7 @@ public class SchedulerApiServerTest {
                 getSchedulerConfig(0, Duration.ofMillis(LONG_TIMEOUT_MILLIS)), Collections.emptyList());
         Listener listener = new Listener();
         schedulerApiServer.start(listener);
-        waitForTrue(listener.apiServerStarted);
+        waitForTrue(new AtomicBoolean(false));
     }
 
     private SchedulerConfig getSchedulerConfig(int port, Duration timeout) {

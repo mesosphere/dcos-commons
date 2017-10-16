@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
@@ -13,7 +14,6 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -52,6 +52,9 @@ public abstract class AbstractScheduler {
 
     private final Object inProgressLock = new Object();
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
+
+    // Metrics
+    private final Counter offerCount = SchedulerUtils.getMetricRegistry().counter("offer-count");
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -276,6 +279,8 @@ public abstract class AbstractScheduler {
 
         @Override
         public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+            offerCount.inc(offers.size());
+
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
