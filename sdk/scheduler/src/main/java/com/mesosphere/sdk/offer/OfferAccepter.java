@@ -25,7 +25,7 @@ public class OfferAccepter {
 
     // Metrics
     private final Counter launchCount = SchedulerUtils.getMetricRegistry().counter("launch");
-    private final Counter launchGroupCount = SchedulerUtils.getMetricRegistry().counter("launch-group");
+    private final Counter launchGroupCount = SchedulerUtils.getMetricRegistry().counter("launch_group");
 
     public OfferAccepter(List<OperationRecorder> recorders) {
         this.recorders = recorders;

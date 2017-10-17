@@ -55,8 +55,9 @@ public abstract class AbstractScheduler {
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     // Metrics
-    private final Counter offerCount = SchedulerUtils.getMetricRegistry().counter("offer");
-    private final Timer processOffers = SchedulerUtils.getMetricRegistry().timer("process-offers");
+    private final Counter receivedOffers = SchedulerUtils.getMetricRegistry().counter("received_offers");
+    private final Counter processedOffers = SchedulerUtils.getMetricRegistry().counter("processed_offers");
+    private final Timer processOffersDuration = SchedulerUtils.getMetricRegistry().timer("process_offers");
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -281,12 +282,12 @@ public abstract class AbstractScheduler {
 
         @Override
         public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-            offerCount.inc(offers.size());
+            receivedOffers.inc(offers.size());
 
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
+                OfferUtils.declineShort(driver, offers);
                 return;
             }
 
@@ -298,7 +299,7 @@ public abstract class AbstractScheduler {
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
+                OfferUtils.declineShort(driver, offers);
                 return;
             }
 
@@ -321,7 +322,7 @@ public abstract class AbstractScheduler {
                 if (!queued) {
                     LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                             offer.getId().getValue());
-                    OfferUtils.declineOffers(driver, Arrays.asList(offer), Constants.SHORT_DECLINE_SECONDS);
+                    OfferUtils.declineShort(driver, Arrays.asList(offer));
                     // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                     synchronized (inProgressLock) {
                         offersInProgress.remove(offer.getId());
@@ -419,12 +420,13 @@ public abstract class AbstractScheduler {
             }
 
             // Match offers with work (call into implementation)
-            final Timer.Context context = processOffers.time();
+            final Timer.Context context = processOffersDuration.time();
             try {
                 processOffers(driver, offers, steps);
             } finally {
                 context.stop();
             }
+            processedOffers.inc(offers.size());
 
             // Revive previously suspended offers, if necessary
             reviveManager.revive(steps);

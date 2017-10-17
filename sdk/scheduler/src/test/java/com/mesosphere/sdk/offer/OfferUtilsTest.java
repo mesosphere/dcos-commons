@@ -75,7 +75,7 @@ public class OfferUtilsTest {
     public void testDeclineOffers() {
         final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
         final List<Protos.OfferID> offerIds = offers.stream().map(Protos.Offer::getId).collect(Collectors.toList());
-        OfferUtils.declineOffers(mockSchedulerDriver, offers, Constants.LONG_DECLINE_SECONDS);
+        OfferUtils.declineLong(mockSchedulerDriver, offers);
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
     }

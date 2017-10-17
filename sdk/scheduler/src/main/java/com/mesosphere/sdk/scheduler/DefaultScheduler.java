@@ -236,7 +236,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Decline remaining offers.
         if (!unusedOffers.isEmpty()) {
-            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+            OfferUtils.declineLong(driver, unusedOffers);
         }
 
         if (offers.isEmpty()) {
