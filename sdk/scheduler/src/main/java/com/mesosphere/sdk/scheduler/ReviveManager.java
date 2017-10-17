@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.Counter;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -24,6 +25,7 @@ public class ReviveManager {
     private final SchedulerDriver driver;
     private final TokenBucket tokenBucket;
     private Set<WorkItem> candidates = new HashSet<>();
+    private final Counter reviveCount = SchedulerUtils.getMetricRegistry().counter("revive");
 
     public ReviveManager(SchedulerDriver driver) {
         this(driver, TokenBucket.newBuilder().build());
@@ -77,6 +79,7 @@ public class ReviveManager {
             if (tokenBucket.tryAcquire()) {
                 logger.info("Reviving offers.");
                 driver.reviveOffers();
+                reviveCount.inc();
             } else {
                 logger.warn("Revive attempt has been throttled.");
                 return;

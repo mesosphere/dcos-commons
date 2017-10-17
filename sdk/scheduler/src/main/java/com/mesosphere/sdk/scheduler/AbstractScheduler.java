@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
@@ -54,7 +55,8 @@ public abstract class AbstractScheduler {
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     // Metrics
-    private final Counter offerCount = SchedulerUtils.getMetricRegistry().counter("offer-count");
+    private final Counter offerCount = SchedulerUtils.getMetricRegistry().counter("offer");
+    private final Timer processOffers = SchedulerUtils.getMetricRegistry().timer("process-offers");
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -417,7 +419,12 @@ public abstract class AbstractScheduler {
             }
 
             // Match offers with work (call into implementation)
-            processOffers(driver, offers, steps);
+            final Timer.Context context = processOffers.time();
+            try {
+                processOffers(driver, offers, steps);
+            } finally {
+                context.stop();
+            }
 
             // Revive previously suspended offers, if necessary
             reviveManager.revive(steps);

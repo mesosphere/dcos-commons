@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import com.codahale.metrics.Counter;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
  */
 public class OfferUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferUtils.class);
+    private static final Counter declineCount = SchedulerUtils.getMetricRegistry().counter("decline");
 
     /**
      * Filters out accepted offers and returns back a list of unused offers.
@@ -62,5 +65,6 @@ public class OfferUtils {
             LOGGER.info("  {}", offerId.getValue());
             driver.declineOffer(offerId, filters);
         });
+        declineCount.inc(unusedOffers.size());
     }
 }

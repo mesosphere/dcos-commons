@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.offer;
 
+import com.codahale.metrics.Counter;
 import com.google.protobuf.TextFormat;
-
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -10,11 +11,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The OfferAccepter extracts the Mesos Operations encapsulated by the OfferRecommendation and accepts Offers with those
@@ -25,6 +22,10 @@ public class OfferAccepter {
     private static final Filters FILTERS = Filters.newBuilder().setRefuseSeconds(1).build();
 
     private Collection<OperationRecorder> recorders;
+
+    // Metrics
+    private final Counter launchCount = SchedulerUtils.getMetricRegistry().counter("launch");
+    private final Counter launchGroupCount = SchedulerUtils.getMetricRegistry().counter("launch-group");
 
     public OfferAccepter(List<OperationRecorder> recorders) {
         this.recorders = recorders;
@@ -53,6 +54,14 @@ public class OfferAccepter {
         } else {
             LOGGER.warn("No Operations to perform.");
         }
+
+        launchCount.inc(
+                operations.stream()
+                        .filter(operation -> operation.getType().equals(Operation.Type.LAUNCH))
+                        .count());
+        launchGroupCount.inc(operations.stream()
+                .filter(operation -> operation.getType().equals(Operation.Type.LAUNCH_GROUP))
+                .count());
 
         return offerIds;
     }
