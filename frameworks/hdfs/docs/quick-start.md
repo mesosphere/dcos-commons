@@ -9,7 +9,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 **Prerequisites:**
 
 -  [DC/OS and DC/OS CLI installed](https://docs.mesosphere.com/1.9/installing/) with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.
--  Depending on your [security mode](https://docs.mesosphere.com/1.9/overview/security/security-modes/), HDFS requires a service authentication for access to DC/OS. For more information, see [Configuring DC/OS Access for HDFS](https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/).
+-  Depending on your [security mode](https://docs.mesosphere.com/1.9/overview/security/security-modes/), HDFS requires a service authentication token for access to DC/OS. For more information, see [Configuring DC/OS Access for HDFS](https://docs.mesosphere.com/service-docs/hdfs/hdfs-auth/).
 
    | Security mode | Service Account |
    |---------------|-----------------------|
@@ -29,7 +29,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Show the currently configured HDFS nodes.
 
     ```bash
-    $ dcos hdfs config list
+    $ dcos hdfs --name=hdfs config list
     ```
 
     The output should resemble:
@@ -78,7 +78,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     $ HDFS_SERVICE_NAME=<hdfs-name> ./configure-hdfs.sh
     ```
 
-1.  Navigate to the Hadoop installation directory and list the contents.
+1.  List the contents.
 
     ```bash
     $ ./bin/hdfs dfs -ls /
@@ -112,39 +112,17 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     ```
 
     The output should resemble:
-
     ```bash
-    Found 22 items
-    -rwxr-xr-x   1 root  root           0 2017-06-15 18:23 /.dockerenv
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /bin
-    drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /boot
-    -rw-rw-r--   1 root  root         364 2016-08-25 01:01 /configure-hdfs.sh
-    drwxr-xr-x   - root  root         380 2017-06-15 18:23 /dev
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /etc
-    drwxr-xr-x   - 10021 10021       4096 2017-06-15 18:23 /hadoop-2.6.4
-    drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /home
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /lib64
-    drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /media
-    drwxr-xr-x   - root  root        4096 2014-04-10 22:12 /mnt
-    drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /opt
-    dr-xr-xr-x   - root  root           0 2017-06-15 18:23 /proc
-    drwx------   - root  root        4096 2017-06-15 18:23 /root
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /run
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /sbin
-    drwxr-xr-x   - root  root        4096 2015-12-08 09:38 /srv
-    dr-xr-xr-x   - root  root           0 2017-06-15 16:11 /sys
-    drwxrwxrwt   - root  root        4096 2017-06-15 18:23 /tmp
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /usr
-    drwxr-xr-x   - root  root        4096 2017-06-15 18:23 /var
+    Test
     ```
+
 
 1.  To configure other clients, return to the DC/OS CLI and retrieve the `hdfs-site.xml` and `core-site.xml` files. Use these XML files to configure client nodes of the HDFS cluster.
 
     1.  Run this command to retrieve the `hdfs-site.xml` file.
 
         ```bash
-        $ dcos hdfs endpoints hdfs-site.xml
+        $ dcos hdfs --name=hdfs endpoints hdfs-site.xml
         ```
 
         The output should resemble:
@@ -164,7 +142,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `core-site.xml` file.
 
         ```bash
-        $ dcos hdfs endpoints core-site.xml
+        $ dcos hdfs --name=hdfs endpoints core-site.xml
         ```
 
         The output should resemble:
