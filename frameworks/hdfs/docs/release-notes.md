@@ -4,6 +4,16 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+# Version 2.0.2-2.6.0-cdh5.11.0
+
+### Bug Fixes
+N/A
+
+### Improvements
+
+* Added many additional configuration options.
+* Improved handling of error codes in service CLI.
+
 # Version  2.0.1-2.6.0-cdh5.11.0
 
 ### Bug Fixes
