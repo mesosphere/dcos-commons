@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.codahale.metrics.servlets.MetricsServlet;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.component.LifeCycle;
@@ -44,10 +45,19 @@ public class SchedulerApiServer {
         MetricsServlet metricsServlet = new MetricsServlet(SchedulerUtils.getMetricRegistry());
         ServletHolder metricsHolder = new ServletHolder("default", metricsServlet);
 
+        // Prometheus
+        CollectorRegistry collectorRegistry = new CollectorRegistry();
+        collectorRegistry.register(new DropwizardExports(SchedulerUtils.getMetricRegistry()));
+        io.prometheus.client.exporter.MetricsServlet prometheusServlet =
+                new io.prometheus.client.exporter.MetricsServlet(collectorRegistry);
+        ServletHolder prometheusHolder = new ServletHolder("prometheus", prometheusServlet);
+
+        // Resources
         ResourceConfig resourceConfig = new ResourceConfig(MultiPartFeature.class).registerInstances(new HashSet<>(resources));
         ServletHolder resourceHolder = new ServletHolder(new ServletContainer(resourceConfig));
 
         context.addServlet(metricsHolder,"/v1/metrics");
+        context.addServlet(prometheusHolder,"/v1/metrics/prometheus");
         context.addServlet(resourceHolder,"/*");
 
         server.getHandlers();
