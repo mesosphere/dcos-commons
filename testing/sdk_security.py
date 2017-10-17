@@ -11,6 +11,7 @@ from typing import List, Tuple
 import requests
 import shakedown
 import sdk_cmd
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -215,6 +216,16 @@ def setup_security(framework_name: str) -> None:
 def cleanup_security(framework_name: str) -> None:
     # log.info('Cleaning up strict-mode security')
     revoke_permissions(
+        linux_user='nobody',
+        role_name='{}-role'.format(framework_name),
+        service_account_name='service-acct'
+    )
+    revoke_permissions(
+        linux_user='nobody',
+        role_name='test__integration__{}-role'.format(framework_name),
+        service_account_name='service-acct'
+    )
+    revoke_permissions(
         linux_user='root',
         role_name='test__integration__{}-role'.format(framework_name),
         service_account_name='service-acct'
@@ -238,10 +249,10 @@ def security_session(framework_name: str) -> None:
         yield from sdk_security.security_session(framework_name)
     """
     try:
-        security_mode = os.environ.get('SECURITY')
-        if security_mode == 'strict':
+        is_strict = sdk_utils.is_strict_mode()
+        if is_strict:
             setup_security(framework_name)
         yield
     finally:
-        if security_mode == 'strict':
+        if is_strict:
             cleanup_security(framework_name)

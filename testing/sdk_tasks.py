@@ -65,7 +65,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         new_set = set(task_ids)
         newly_launched_set = new_set.difference(old_set)
         old_remaining_set = old_set.intersection(new_set)
-        # the constrainst of old and new task cardinality match should be covered by completion of
+        # the constraints of old and new task cardinality match should be covered by completion of
         # deploy/recovery/whatever plan, not task cardinality, but some uses of this method are not
         # using the plan, so not the definitive source, so will fail when the finished state of a
         # plan yields more or less tasks per pod.

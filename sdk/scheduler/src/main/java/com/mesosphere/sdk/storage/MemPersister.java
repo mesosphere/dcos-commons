@@ -120,11 +120,19 @@ public class MemPersister implements Persister {
         lockRW();
         try {
             for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
-                if (entry.getValue() == null) {
-                    deleteAllImpl(entry.getKey());
-                } else {
-                    getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
-                }
+                getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
+            }
+        } finally {
+            unlockRW();
+        }
+    }
+
+    @Override
+    public void recursiveDeleteMany(Collection<String> paths) throws PersisterException {
+        lockRW();
+        try {
+            for (String path: paths) {
+                deleteAllImpl(path);
             }
         } finally {
             unlockRW();
@@ -151,7 +159,7 @@ public class MemPersister implements Persister {
     }
 
     @Override
-    public void deleteAll(String path) throws PersisterException {
+    public void recursiveDelete(String path) throws PersisterException {
         lockRW();
         try {
             if (!deleteAllImpl(path)) {

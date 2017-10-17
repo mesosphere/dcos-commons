@@ -166,27 +166,28 @@ public class PodResourceTest {
         assertEquals(4, task.length());
         assertEquals("test-0-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("RUNNING", task.getString("state"));
+        assertEquals("TASK_RUNNING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(1);
         assertEquals(4, task.length());
         assertEquals("test-0-b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
-        assertEquals("STARTING", task.getString("state"));
+        assertEquals("TASK_STAGING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(2);
         assertEquals(4, task.length());
         assertEquals("test-0-c", task.getString("name"));
         assertTrue(task.getString("id").startsWith("c__"));
-        assertEquals("STOPPING", task.getString("state"));
+        assertEquals("TASK_RUNNING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(3);
-        assertEquals(3, task.length());
+        assertEquals(4, task.length());
         assertEquals("test-0-d", task.getString("name"));
         assertTrue(task.getString("id").startsWith("d__"));
+        assertEquals("No state defined", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         pod = json.getJSONArray("test-1");
@@ -196,14 +197,14 @@ public class PodResourceTest {
         assertEquals(4, task.length());
         assertEquals("test-1-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("FINISHED", task.getString("state"));
+        assertEquals("TASK_FINISHED", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = pod.getJSONObject(1);
         assertEquals(4, task.length());
         assertEquals("test-1-b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
-        assertEquals("STARTING", task.getString("state"));
+        assertEquals("TASK_RUNNING", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         pod = json.getJSONArray("test-2");
@@ -213,7 +214,7 @@ public class PodResourceTest {
         assertEquals(4, task.length());
         assertEquals("test-2-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("FINISHED", task.getString("state"));
+        assertEquals("TASK_FINISHED", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         pod = json.getJSONArray("UNKNOWN_POD");
@@ -223,7 +224,7 @@ public class PodResourceTest {
         assertEquals(3, task.length());
         assertEquals("test-task-name", task.getString("name"));
         assertTrue(task.getString("id").startsWith("test-task-name__"));
-        assertEquals("STOPPED", task.getString("state"));
+        assertEquals("TASK_RUNNING", task.getString("state"));
     }
 
     @Test
@@ -242,14 +243,14 @@ public class PodResourceTest {
         assertEquals(4, task.length());
         assertEquals("test-1-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("FINISHED", task.getString("state"));
+        assertEquals("TASK_FINISHED", task.getString("state"));
         assertEquals("test", task.getString("type"));
 
         task = json.getJSONObject(1);
         assertEquals(4, task.length());
         assertEquals("test-1-b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
-        assertEquals("STOPPING", task.getString("state"));
+        assertEquals("TASK_RUNNING", task.getString("state"));
         assertEquals("test", task.getString("type"));
     }
 

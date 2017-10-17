@@ -114,7 +114,7 @@ To make configuration changes via scheduler environment updates, perform the fol
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config beta-kafka` in the CLI, or browse the Beta Kafka install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config beta-kafka` in the CLI, or browse the Kafka install dialog in the DC/OS web interface.
 
 # Upgrade Software
 

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * The Curator implementation of the {@link Persister} interface provides for persistence and retrieval of data from
@@ -175,7 +176,7 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
-    public void deleteAll(String unprefixedPath) throws PersisterException {
+    public void recursiveDelete(String unprefixedPath) throws PersisterException {
         final String path = withFrameworkPrefix(unprefixedPath);
         if (path.equals(serviceRootPath)) {
             // Special case: If we're being told to delete root, we should instead delete the contents OF root. We don't
@@ -260,9 +261,25 @@ public class CuratorPersister implements Persister {
             pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
         }
         logger.debug("Updating {} entries: {}", pathBytesMap.size(), pathBytesMap.keySet());
+        runTransactionWithRetries(new SetTransactionFactory(pathBytesMap));
+    }
+
+    @Override
+    public void recursiveDeleteMany(Collection<String> unprefixedPaths) throws PersisterException {
+        if (unprefixedPaths.isEmpty()) {
+            return;
+        }
+        Collection<String> paths = unprefixedPaths.stream()
+                .map(unprefixedPath -> withFrameworkPrefix(unprefixedPath))
+                .collect(Collectors.toList());
+        logger.debug("Deleting {} entries: {}", paths.size(), paths);
+        runTransactionWithRetries(new ClearTransactionFactory(paths));
+    }
+
+    private void runTransactionWithRetries(TransactionFactory factory) throws PersisterException {
         try {
             for (int i = 0; i < ATOMIC_WRITE_ATTEMPTS; ++i) {
-                CuratorTransactionFinal transaction = buildCuratorTransaction(client, serviceRootPath, pathBytesMap);
+                CuratorTransactionFinal transaction = factory.build(client, serviceRootPath);
 
                 // Attempt to run the transaction, retrying if applicable:
                 if (i + 1 < ATOMIC_WRITE_ATTEMPTS) {
@@ -317,47 +334,70 @@ public class CuratorPersister implements Persister {
         client.close();
     }
 
-    /**
-     * Creates and returns a transaction which will set and/or remove data from the curator tree, based on the current
-     * state of that tree.
-     *
-     * @param client the curator client to query against
-     * @param serviceRootPath the root of the service (to be checked at the start of the transaction as a sanity check)
-     * @param pathBytesMap the mapping of absolute zk paths to data to be stored (or {@code null} to delete)
-     * @return the resulting transaction
-     * @throws Exception if there's an error, e.g. with querying the tree, while building the transaction
-     */
-    private static CuratorTransactionFinal buildCuratorTransaction(
-            CuratorFramework client, String serviceRootPath, Map<String, byte[]> pathBytesMap) throws Exception {
-        // List of paths that are known to exist, or which are about to be created by the transaction
-        // Includes "known to exist" in order to avoid repeated lookups for the same path
-        Set<String> existingAndPendingCreatePaths = new HashSet<>();
-        // List of paths which are about to be deleted by the transaction
-        Set<String> pendingDeletePaths = new HashSet<>();
+    private interface TransactionFactory {
+        public CuratorTransactionFinal build(CuratorFramework client, String serviceRootPath) throws Exception;
+    }
 
-        CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
-        for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
-            String path = entry.getKey();
-            if (entry.getValue() == null) {
-                // null value: if present, delete path and any children (unless already being deleted)
+    /**
+     * Creates and returns a transaction that will create and/or update data in the curator tree, based on the current
+     * tree state.
+     */
+    private static class SetTransactionFactory implements TransactionFactory {
+        private final Map<String, byte[]> pathBytesMap;
+
+        private SetTransactionFactory(Map<String, byte[]> pathBytesMap) {
+            this.pathBytesMap = pathBytesMap;
+        }
+
+        public CuratorTransactionFinal build(CuratorFramework client, String serviceRootPath) throws Exception {
+            // List of paths that are known to exist, or which are about to be created by the transaction
+            // Includes "known to exist" in order to avoid repeated lookups for the same path
+            Set<String> existingAndPendingCreatePaths = new HashSet<>();
+
+            CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
+            for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
+                String path = entry.getKey();
+                if (!existingAndPendingCreatePaths.contains(path)
+                        && client.checkExists().forPath(path) == null) {
+                    // Path does not exist and is not being created: Create value (and any parents as needed).
+                    transaction = createParentsOf(client, path, transaction, existingAndPendingCreatePaths)
+                            .create().forPath(path, entry.getValue()).and();
+                    existingAndPendingCreatePaths.add(path);
+                } else {
+                    // Path exists (or will exist): Update existing value.
+                    transaction = transaction.setData().forPath(path, entry.getValue()).and();
+                }
+            }
+            return transaction;
+        }
+    }
+
+    /**
+     * Creates and returns a transaction that will remove data from the curator tree, based on the current tree state.
+     */
+    private static class ClearTransactionFactory implements TransactionFactory {
+        private final Collection<String> pathsToClear;
+
+        private ClearTransactionFactory(Collection<String> pathsToClear) {
+            this.pathsToClear = pathsToClear;
+        }
+
+        public CuratorTransactionFinal build(CuratorFramework client, String serviceRootPath) throws Exception {
+            // List of paths which are about to be deleted by the transaction
+            Set<String> pendingDeletePaths = new HashSet<>();
+
+            CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
+            for (String path : pathsToClear) {
+                // if present, delete path and any children (unless already being deleted)
                 if (!pendingDeletePaths.contains(path)
                         && client.checkExists().forPath(path) != null) {
                     transaction = deleteChildrenOf(client, path, transaction, pendingDeletePaths)
                             .delete().forPath(path).and();
                     pendingDeletePaths.add(path);
                 }
-            } else if (!existingAndPendingCreatePaths.contains(path)
-                    && client.checkExists().forPath(path) == null) {
-                // Path does not exist and is not being created: Create value (and any parents as needed).
-                transaction = createParentsOf(client, path, transaction, existingAndPendingCreatePaths)
-                        .create().forPath(path, entry.getValue()).and();
-                existingAndPendingCreatePaths.add(path);
-            } else {
-                // Path exists (or will exist): Update existing value.
-                transaction = transaction.setData().forPath(path, entry.getValue()).and();
             }
+            return transaction;
         }
-        return transaction;
     }
 
     /**

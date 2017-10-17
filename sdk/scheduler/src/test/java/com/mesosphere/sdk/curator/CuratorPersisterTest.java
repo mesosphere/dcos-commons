@@ -84,21 +84,14 @@ public class CuratorPersisterTest {
     private static final byte[] DATA_SUB_2 = "sub_two".getBytes(Charset.defaultCharset());
 
     private static final Map<String, byte[]> SET_MANY_MAP = new TreeMap<>();
-    private static final Map<String, byte[]> DELETE_MANY_MAP = new TreeMap<>();
-    private static final Map<String, byte[]> MIXED_MANY_MAP = new TreeMap<>();
     static {
         SET_MANY_MAP.put(PATH_1, DATA_1);
         SET_MANY_MAP.put(PATH_2, DATA_2);
         SET_MANY_MAP.put(PATH_SUB_1, DATA_SUB_1);
         SET_MANY_MAP.put(PATH_SUB_2, DATA_SUB_2);
-
-        // the nested deletes will be autodetected, depending on the scenario
-        DELETE_MANY_MAP.put("/", null);
-
-        MIXED_MANY_MAP.put(PATH_1, DATA_1);
-        MIXED_MANY_MAP.put(PATH_2, DATA_2);
-        MIXED_MANY_MAP.put(PATH_SUB_PARENT, null);
     }
+    // the nested deletes will be autodetected, depending on the scenario
+    private static final Collection<String> DELETE_MANY_LIST = Arrays.asList("/");
 
     @BeforeClass
     public static void beforeAll() throws Exception {
@@ -311,7 +304,7 @@ public class CuratorPersisterTest {
         setupEmpty();
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(DELETE_MANY_MAP);
+        mockedPersister.recursiveDeleteMany(DELETE_MANY_LIST);
         assertEquals(transaction.operations.toString(), 1, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
         assertEquals(TestOperation.Mode.CHECK, op.mode);
@@ -323,7 +316,7 @@ public class CuratorPersisterTest {
         setupOnesMissing();
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(DELETE_MANY_MAP);
+        mockedPersister.recursiveDeleteMany(DELETE_MANY_LIST);
         assertEquals(transaction.operations.toString(), 6, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
         assertEquals(TestOperation.Mode.CHECK, op.mode);
@@ -350,7 +343,7 @@ public class CuratorPersisterTest {
         setupRootsMissing();
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(DELETE_MANY_MAP);
+        mockedPersister.recursiveDeleteMany(DELETE_MANY_LIST);
         assertEquals(transaction.operations.toString(), 6, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
         assertEquals(TestOperation.Mode.CHECK, op.mode);
@@ -377,7 +370,7 @@ public class CuratorPersisterTest {
         setupSubsMissing();
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(DELETE_MANY_MAP);
+        mockedPersister.recursiveDeleteMany(DELETE_MANY_LIST);
         assertEquals(transaction.operations.toString(), 5, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
         assertEquals(TestOperation.Mode.CHECK, op.mode);
@@ -401,7 +394,7 @@ public class CuratorPersisterTest {
         setupFull();
         TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
         when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(DELETE_MANY_MAP);
+        mockedPersister.recursiveDeleteMany(DELETE_MANY_LIST);
         assertEquals(transaction.operations.toString(), 8, transaction.operations.size());
         TestOperation op = transaction.operations.get(0);
         assertEquals(TestOperation.Mode.CHECK, op.mode);
@@ -427,105 +420,6 @@ public class CuratorPersisterTest {
         op = transaction.operations.get(7);
         assertEquals(TestOperation.Mode.DELETE, op.mode);
         assertEquals(INTERNAL_PATH_SERVICE, op.path);
-    }
-
-    @Test
-    public void testMixedManyAgainstOnesMissing() throws Exception {
-        setupOnesMissing();
-        TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
-        when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(MIXED_MANY_MAP);
-        assertEquals(transaction.operations.toString(), 5, transaction.operations.size());
-        TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CHECK, op.mode);
-        assertEquals(INTERNAL_PATH_SERVICE, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(1);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_1, op.path);
-        assertArrayEquals(DATA_1, op.data);
-        op = transaction.operations.get(2);
-        assertEquals(TestOperation.Mode.SET_DATA, op.mode);
-        assertEquals(INTERNAL_PATH_2, op.path);
-        assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(3);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_2, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(4);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_PARENT, op.path);
-        assertNull(op.data);
-    }
-
-    @Test
-    public void testMixedManyAgainstRootsMissing() throws Exception {
-        setupRootsMissing();
-        TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
-        when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(MIXED_MANY_MAP);
-        assertEquals(transaction.operations.toString(), 7, transaction.operations.size());
-        TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CHECK, op.mode);
-        assertEquals(INTERNAL_PATH_SERVICE, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(1);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_PARENT, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(2);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_1, op.path);
-        assertArrayEquals(DATA_1, op.data);
-        op = transaction.operations.get(3);
-        assertEquals(TestOperation.Mode.CREATE, op.mode);
-        assertEquals(INTERNAL_PATH_2, op.path);
-        assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(4);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_1, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(5);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_2, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(6);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_PARENT, op.path);
-        assertNull(op.data);
-    }
-
-    @Test
-    public void testMixedManyAgainstFull() throws Exception {
-        setupFull();
-        TestTransaction transaction = new TestTransaction(TestTransaction.Result.SUCCESS);
-        when(mockClient.inTransaction()).thenReturn(transaction);
-        mockedPersister.setMany(MIXED_MANY_MAP);
-        assertEquals(transaction.operations.toString(), 6, transaction.operations.size());
-        TestOperation op = transaction.operations.get(0);
-        assertEquals(TestOperation.Mode.CHECK, op.mode);
-        assertEquals(INTERNAL_PATH_SERVICE, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(1);
-        assertEquals(TestOperation.Mode.SET_DATA, op.mode);
-        assertEquals(INTERNAL_PATH_1, op.path);
-        assertArrayEquals(DATA_1, op.data);
-        op = transaction.operations.get(2);
-        assertEquals(TestOperation.Mode.SET_DATA, op.mode);
-        assertEquals(INTERNAL_PATH_2, op.path);
-        assertArrayEquals(DATA_2, op.data);
-        op = transaction.operations.get(3);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_1, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(4);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_2, op.path);
-        assertNull(op.data);
-        op = transaction.operations.get(5);
-        assertEquals(TestOperation.Mode.DELETE, op.mode);
-        assertEquals(INTERNAL_PATH_SUB_PARENT, op.path);
-        assertNull(op.data);
     }
 
     @Test(expected=PersisterException.class)
@@ -582,7 +476,7 @@ public class CuratorPersisterTest {
         }
 
         // Delete ACL'ed data so that other tests don't have ACL problems trying to clear it:
-        aclPersister.deleteAll(PATH_PARENT);
+        aclPersister.recursiveDelete(PATH_PARENT);
     }
 
     // Uses a real ZK instance to ensure that our integration works as expected:
@@ -603,7 +497,7 @@ public class CuratorPersisterTest {
         persister.set("c", DATA_1);
         persister.set("d/1/a/1", DATA_2);
 
-        persister.deleteAll("");
+        persister.recursiveDelete("");
 
         // The root-level "lock" is preserved (it's special):
         assertEquals(Collections.singleton("lock"), persister.getChildren(""));
