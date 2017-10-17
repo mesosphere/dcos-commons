@@ -26,7 +26,7 @@ public class OfferOutcomeResource {
     @GET
     public Response getOfferOutcomes(@QueryParam("json") boolean json) {
         if (json) {
-            return ResponseUtils.htmlOkResponse(offerOutcomeTracker.toJson());
+            return ResponseUtils.jsonOkResponse(offerOutcomeTracker.toJson());
         } else {
             return ResponseUtils.htmlOkResponse(offerOutcomeTracker.toHtml());
         }

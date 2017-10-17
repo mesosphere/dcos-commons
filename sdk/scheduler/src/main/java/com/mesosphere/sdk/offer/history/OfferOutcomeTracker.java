@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.history;
 
 import com.google.common.collect.EvictingQueue;
+import j2html.tags.DomContent;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.json.JSONArray;
@@ -43,11 +44,16 @@ public class OfferOutcomeTracker {
         return recentFirst;
     }
 
-    private String newLineToHtmlBreak(String newLined) {
-        return StringUtils.join(newLined, "<br>");
+    private DomContent newLineToHtmlBreak(String newLined) {
+        return each(Arrays.asList(newLined.split("\\n")), line ->
+            div(
+                    div(line),
+                    br()
+            )
+        );
     }
 
-    public String toJson() {
+    public JSONObject toJson() {
         JSONArray outcomes = new JSONArray();
         reverseList().stream().forEach(offerOutcome -> {
             JSONObject outcome = new JSONObject();
@@ -56,14 +62,18 @@ public class OfferOutcomeTracker {
                     .append("outcome", offerOutcome.pass() ? "pass" : "fail")
                     .append("explanation", offerOutcome.getOutcomeDetails())
                     .append("offer", offerOutcome.getOffer().toString());
+            outcomes.put(outcome);
         });
 
-        return new JSONObject().append("outcomes", outcomes).toString();
+        return new JSONObject().append("outcomes", outcomes);
     }
 
     public String toHtml() {
         // Construct a table of the current outcomes.
         return html(
+                style("table, th, td { border: 1px solid black; }" +
+                        "\ntbody tr:nth-child(odd) { background-color: #E8E8E8 }" +
+                        "\nth, td { padding: 10px }"),
                 body(
                         table(
                                 tr(
@@ -75,14 +85,14 @@ public class OfferOutcomeTracker {
                                 ),
                                 each(reverseList(), offerOutcome ->
                                     tr(
-                                            td(new Date(offerOutcome.getTimestamp()).toString()),
-                                            td(offerOutcome.getPodInstanceName()),
+                                            td(new Date(offerOutcome.getTimestamp()).toString()).withStyle("white-space: nowrap"),
+                                            td(offerOutcome.getPodInstanceName()).withStyle("white-space: nowrap"),
                                             td(offerOutcome.pass() ? "PASS" : "FAIL"),
-                                            td(newLineToHtmlBreak(offerOutcome.getOutcomeDetails())),
-                                            td(newLineToHtmlBreak(offerOutcome.getOffer().toString()))
+                                            td(newLineToHtmlBreak(offerOutcome.getOutcomeDetails())).withStyle("width: 500px"),
+                                            td(offerOutcome.getOffer().toString()).withStyle("width: 500px")
                                     )
                                 )
-                        )
+                        ).withStyle("border: 1px solid black")
                 )
         ).render();
     }
