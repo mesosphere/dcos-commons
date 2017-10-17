@@ -1,5 +1,6 @@
 import pytest
 import sdk_install
+import sdk_utils
 from tests import config
 
 pytestmark = pytest.mark.skipif(sdk_utils.is_strict_mode(),
