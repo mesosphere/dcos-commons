@@ -4,6 +4,7 @@ import os
 
 import dcos.cluster
 import requests
+import retrying
 
 from dcos_test_utils import logger
 
@@ -14,6 +15,7 @@ __CLI_LOGIN_EE_PASSWORD = 'deleteme'
 log = logging.getLogger(__name__)
 
 
+@retrying.retry(wait_fixed=2000, stop_max_delay=120 * 1000)
 def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> str:
     if is_enterprise:
         log.info('logging into {} as {}'.format(dcosurl, username))
