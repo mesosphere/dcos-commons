@@ -2,20 +2,20 @@ package com.mesosphere.sdk.offer.history;
 
 import com.google.common.collect.EvictingQueue;
 import j2html.tags.DomContent;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import static j2html.TagCreator.*;
 
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Tracks the outcome of offers as they are evaluated against a PodInstanceRequirement.
+ */
 public class OfferOutcomeTracker {
     private final EvictingQueue<OfferOutcome> outcomes;
     private static final int DEFAULT_CAPACITY = 100;
@@ -85,10 +85,12 @@ public class OfferOutcomeTracker {
                                 ),
                                 each(reverseList(), offerOutcome ->
                                     tr(
-                                            td(new Date(offerOutcome.getTimestamp()).toString()).withStyle("white-space: nowrap"),
+                                            td(new Date(offerOutcome.getTimestamp()).toString())
+                                                    .withStyle("white-space: nowrap"),
                                             td(offerOutcome.getPodInstanceName()).withStyle("white-space: nowrap"),
                                             td(offerOutcome.pass() ? "PASS" : "FAIL"),
-                                            td(newLineToHtmlBreak(offerOutcome.getOutcomeDetails())).withStyle("width: 500px"),
+                                            td(newLineToHtmlBreak(offerOutcome.getOutcomeDetails()))
+                                                    .withStyle("width: 500px"),
                                             td(offerOutcome.getOffer().toString()).withStyle("width: 500px")
                                     )
                                 )
