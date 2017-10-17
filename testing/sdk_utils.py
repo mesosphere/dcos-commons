@@ -44,6 +44,20 @@ def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
 
+def is_test_failure(pytest_request):
+    '''Determine if the test run failed using the request object from pytest.
+    The reports being evaluated are set in conftest.py:pytest_runtest_makereport()
+    https://docs.pytest.org/en/latest/builtin.html#_pytest.fixtures.FixtureRequest
+    '''
+    for report in ('rep_setup', 'rep_call', 'rep_teardown'):
+        if not hasattr(pytest_request.node, report):
+            continue
+        if not getattr(pytest_request.node, report).failed:
+            continue
+        return True
+    return False
+
+
 def is_open_dcos():
     '''Determine if the tests are being run against open DC/OS. This is presently done by
     checking the envvar DCOS_ENTERPRISE.'''
