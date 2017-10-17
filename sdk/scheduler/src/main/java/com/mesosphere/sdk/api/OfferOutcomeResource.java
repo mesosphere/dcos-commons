@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 @Path("/v1/debug/offers")
@@ -23,7 +24,11 @@ public class OfferOutcomeResource {
      * @return HTML response of the table.
      */
     @GET
-    public Response getOfferOutcomes() {
-        return ResponseUtils.htmlOkResponse(offerOutcomeTracker.toHtml());
+    public Response getOfferOutcomes(@QueryParam("json") boolean json) {
+        if (json) {
+            return ResponseUtils.htmlOkResponse(offerOutcomeTracker.toJson());
+        } else {
+            return ResponseUtils.htmlOkResponse(offerOutcomeTracker.toHtml());
+        }
     }
 }

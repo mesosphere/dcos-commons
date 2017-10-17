@@ -3,12 +3,14 @@ package com.mesosphere.sdk.offer.history;
 import org.apache.mesos.Protos;
 
 public class OfferOutcome {
+    private final long timestamp;
     private final String podInstanceName;
     private final boolean pass;
     private final Protos.Offer offer;
     private final String outcomeDetails;
 
     public OfferOutcome(String podInstanceName, boolean pass, Protos.Offer offer, String outcomeDetails) {
+        this.timestamp = System.currentTimeMillis();
         this.podInstanceName = podInstanceName;
         this.pass = pass;
         this.offer = offer;
@@ -29,5 +31,9 @@ public class OfferOutcome {
 
     public String getOutcomeDetails() {
         return outcomeDetails;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 }
