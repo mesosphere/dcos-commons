@@ -8,6 +8,7 @@ import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
@@ -126,6 +127,7 @@ public class DefaultScheduler extends AbstractScheduler {
                         offerAccepter,
                         new OfferEvaluator(
                                 stateStore,
+                                new OfferOutcomeTracker(),
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
                                 schedulerConfig,
