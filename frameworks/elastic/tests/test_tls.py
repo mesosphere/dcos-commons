@@ -8,7 +8,7 @@ import sdk_security
 import sdk_utils
 from tests import config
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos,
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
                                 reason='Feature only supported in DC/OS EE')
 
 
