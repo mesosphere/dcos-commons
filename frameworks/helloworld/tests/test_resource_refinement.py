@@ -17,7 +17,6 @@ def configure_package(configure_security):
         }
 
         sdk_install.install(config.PACKAGE_NAME,
-                            config.SERVICE_NAME,
                             config.DEFAULT_TASK_COUNT,
                             additional_options=options)
 
