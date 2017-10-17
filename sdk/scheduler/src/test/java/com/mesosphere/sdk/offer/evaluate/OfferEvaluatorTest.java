@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -141,16 +142,16 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testIncreaseReservationScalar() throws Exception {
-        // Launch for the first time.
+        // Launch for the first time. Offered 3 cpus, want 0.5 cpus
         String resourceId = getFirstResourceId(
                 recordLaunchWithCompleteOfferedResources(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0),
-                        ResourceTestUtils.getUnreservedCpus(2.0)));
+                        PodInstanceRequirementTestUtils.getCpuRequirement(0.5),
+                        ResourceTestUtils.getUnreservedCpus(3.0)));
 
-        // Launch again with more resources.
+        // Launch again with more resources: 0.5 -> 2.0 cpus
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
-        Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
-        Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
+        Resource offeredResource = ResourceTestUtils.getReservedCpus(0.5, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(2.5);
 
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
@@ -165,15 +166,16 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Operation reserveOperation = recommendations.get(0).getOperation();
         Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
+        // Validate increment of additional 1.5 cpus:
         Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
-        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(1.5, reserveResource.getScalar().getValue(), 0.0);
         validateRole(reserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
 
-        // Validate LAUNCH Operation
+        // Validate LAUNCH Operation with resulting 2.0 cpus:
         Operation launchOperation = recommendations.get(1).getOperation();
         Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
@@ -194,17 +196,17 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testDecreaseReservationScalar() throws Exception {
-        // Launch for the first time.
+        // Launch for the first time. Offered 3.0 cpus, want 2.0 cpus
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 PodInstanceRequirementTestUtils.getCpuRequirement(2.0),
-                ResourceTestUtils.getUnreservedCpus(2.0))
+                ResourceTestUtils.getUnreservedCpus(3.0))
                 .get(0);
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> offeredResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
 
-        // Launch again with fewer resources.
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
+        // Launch again with fewer resources: 2.0 -> 0.5 cpus
+        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(0.5);
         Resource offeredResource = ResourceTestUtils.getReservedCpus(2.0, resourceId);
         Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
         offeredResources.addAll(Arrays.asList(offeredResource, unreservedResource));
@@ -214,25 +216,25 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(OfferTestUtils.getOffer(offeredResources)));
         Assert.assertEquals(2, recommendations.size());
 
-        // Validate UNRESERVE Operation
+        // Validate UNRESERVE Operation subtracting 1.5 cpus:
         Operation unreserveOperation = recommendations.get(0).getOperation();
         Resource unreserveResource = unreserveOperation.getUnreserve().getResources(0);
 
         Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
-        Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(1.5, unreserveResource.getScalar().getValue(), 0.0);
         validateRole(unreserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(unreserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(unreserveResource));
 
-        // Validate LAUNCH Operation
+        // Validate LAUNCH Operation with resulting 0.5 cpus:
         Operation launchOperation = recommendations.get(1).getOperation();
         Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
-        Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
+        Assert.assertEquals(0.5, launchResource.getScalar().getValue(), 0.0);
     }
 
     @Test
@@ -594,8 +596,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                             ResourceTestUtils.getUnreservedMem(256),
                             ResourceTestUtils.getUnreservedDisk(512),
                             ResourceTestUtils.getUnreservedCpus(3.0)).stream()
-                            .map(r -> r.toBuilder()
-                                    .setRole(Constants.ANY_ROLE)
+                            .map(r -> ResourceUtils.setRootRole(r.toBuilder(), Optional.of(Constants.ANY_ROLE))
                                     .addReservations(
                                             Resource.ReservationInfo.newBuilder()
                                                     .setRole(TestConstants.PRE_RESERVED_ROLE)
@@ -665,15 +666,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
-            Offer badOffer = OfferTestUtils.getOffer(
-                    Arrays.asList(
-                            ResourceTestUtils.getUnreservedCpus(3.0).toBuilder()
-                                    .setRole(Constants.ANY_ROLE)
-                                    .addReservations(
-                                            Resource.ReservationInfo.newBuilder()
-                                                    .setRole("different-role")
-                                                    .setType(Resource.ReservationInfo.Type.STATIC))
-                                    .build()));
+            Offer badOffer = OfferTestUtils.getOffer(Arrays.asList(
+                    ResourceUtils.setRootRole(
+                            ResourceTestUtils.getUnreservedCpus(3.0).toBuilder(), Optional.of(Constants.ANY_ROLE))
+                            .addReservations(Resource.ReservationInfo.newBuilder()
+                                    .setRole("different-role")
+                                    .setType(Resource.ReservationInfo.Type.STATIC))
+                            .build()));
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -783,10 +782,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     static void validateRole(Resource resource) {
+        String rootRole = ResourceUtils.getRootRole(resource);
         if (Capabilities.getInstance().supportsPreReservedResources()) {
-            Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
+            Assert.assertEquals(Constants.ANY_ROLE, rootRole);
         } else {
-            Assert.assertEquals(TestConstants.ROLE, resource.getRole());
+            Assert.assertEquals(TestConstants.ROLE, rootRole);
         }
     }
 }

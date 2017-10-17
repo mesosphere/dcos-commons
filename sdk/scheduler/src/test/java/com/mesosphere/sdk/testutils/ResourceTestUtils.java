@@ -58,11 +58,8 @@ public class ResourceTestUtils {
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
-        return ResourceBuilder.fromSpec(
-                volumeSpec,
-                Optional.of(resourceId),
-                Optional.of(persistenceId),
-                Optional.empty())
+        return ResourceBuilder
+                .fromRootVolumeSpec(volumeSpec, Optional.of(resourceId), Optional.of(persistenceId))
                 .build();
     }
 
@@ -111,7 +108,6 @@ public class ResourceTestUtils {
         return getUnreservedResource("ports", builder.build());
     }
 
-    @SuppressWarnings("deprecation") // for Resource.setRole()
     private static Protos.Resource.Builder addReservation(
             Protos.Resource.Builder builder, String resourceId) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
@@ -120,7 +116,7 @@ public class ResourceTestUtils {
                     .setPrincipal(TestConstants.PRINCIPAL);
             AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         } else {
-            builder.setRole(TestConstants.ROLE);
+            ResourceUtils.setRootRole(builder, Optional.of(TestConstants.ROLE));
             Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.getReservationBuilder()
                     .setPrincipal(TestConstants.PRINCIPAL);
             AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
@@ -128,10 +124,9 @@ public class ResourceTestUtils {
         return builder;
     }
 
-    @SuppressWarnings("deprecation") // for Resource.setRole()
     private static Protos.Resource getUnreservedResource(String name, Protos.Value value) {
-        Protos.Resource.Builder resBuilder = Protos.Resource.newBuilder()
-                .setRole("*")
+        Protos.Resource.Builder resBuilder =
+                ResourceUtils.setRootRole(Protos.Resource.newBuilder(), Optional.of(Constants.ANY_ROLE))
                 .setName(name)
                 .setType(value.getType());
         switch (value.getType()) {

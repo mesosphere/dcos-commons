@@ -60,6 +60,23 @@ public class ResourceUtils {
         return new MesosResource(resource).getRole();
     }
 
+    @SuppressWarnings("deprecation") // For access to the deprecated 'role' field, used by older Mesos
+    public static String getRootRole(Protos.Resource resource) {
+        return resource.getRole();
+    }
+
+    /**
+     * Assigns or clears the role in the provided builder, and returns the builder.
+     */
+    @SuppressWarnings("deprecation") // For access to the deprecated 'role' field, used by older Mesos
+    public static Protos.Resource.Builder setRootRole(Protos.Resource.Builder builder, Optional<String> role) {
+        if (role.isPresent()) {
+            return builder.setRole(role.get());
+        } else {
+            return builder.clearRole();
+        }
+    }
+
     public static Optional<String> getPrincipal(Resource resource) {
         Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
 

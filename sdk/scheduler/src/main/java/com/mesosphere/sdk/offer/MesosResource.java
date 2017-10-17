@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.offer;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Resource.DiskInfo.Source;
+
+import com.google.protobuf.TextFormat;
+
 import org.apache.mesos.Protos.Value;
 
 import java.util.Optional;
@@ -71,13 +73,13 @@ public class MesosResource {
 
     private String getRefinedPreviousRole() {
         if (resource.getReservationsCount() <= 1) {
-            return resource.getRole();
+            return ResourceUtils.getRootRole(resource);
         } else {
             return resource.getReservations(resource.getReservationsCount() - 2).getRole();
         }
     }
 
-    private String getLegacyPreviousRole() {
+    private static String getLegacyPreviousRole() {
         return Constants.ANY_ROLE;
     }
 
@@ -89,6 +91,6 @@ public class MesosResource {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+        return TextFormat.shortDebugString(resource);
     }
 }

@@ -87,17 +87,27 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                 return evaluationOutcome;
             }
 
-            Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult).build());
-            return EvaluationOutcome.pass(
-                    this,
-                    evaluationOutcome.getOfferRecommendations(),
-                    "Offer contains required %sport: '%s' with resourceId: '%s'",
-                    resourceId.isPresent() ? "previously reserved " : "",
-                    assignedPort,
-                    resourceId)
-                    .mesosResource(evaluationOutcome.getMesosResource().get())
-                    .build();
+            setProtos(podInfoBuilder, reserveEvaluationOutcome.getTaskResource().get());
+            if (!resourceId.isPresent()) {
+                return EvaluationOutcome.pass(
+                        this,
+                        evaluationOutcome.getOfferRecommendations(),
+                        "Offer contains %s port %s: '%s'",
+                        requestedPort == 0 ? "dynamic" : "exact",
+                        assignedPort,
+                        updatedPortSpec)
+                        .build();
+            } else {
+                return EvaluationOutcome.pass(
+                        this,
+                        evaluationOutcome.getOfferRecommendations(),
+                        "Offer contains previously reserved %s port %s with resource id '%s': '%s'",
+                        requestedPort == 0 ? "dynamic" : "exact",
+                        assignedPort,
+                        resourceId.get(),
+                        updatedPortSpec)
+                        .build();
+            }
         } else {
             setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceId).build());
             return EvaluationOutcome.pass(

@@ -162,40 +162,15 @@ public class PodInfoBuilder {
         }
     }
 
-    public static Protos.Resource getExistingExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar());
-
-        Protos.Resource.DiskInfo.Builder diskInfoBuilder = resourceBuilder.getDiskBuilder();
-        diskInfoBuilder.getPersistenceBuilder()
-                .setId(persistenceId)
-                .setPrincipal(volumeSpec.getPrincipal());
-        diskInfoBuilder.getVolumeBuilder()
-                .setContainerPath(volumeSpec.getContainerPath())
-                .setMode(Protos.Volume.Mode.RW);
-
-        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
-        reservationBuilder
-                .setPrincipal(volumeSpec.getPrincipal())
-                .setRole(volumeSpec.getRole());
-        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
-
-        return resourceBuilder.build();
-    }
-
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {
-        Protos.Volume.Builder builder = Protos.Volume.newBuilder();
-        builder.setMode(Protos.Volume.Mode.RW)
-                .setContainerPath(volumeSpec.getContainerPath())
-                .setSource(Protos.Volume.Source.newBuilder()
-                        .setType(Protos.Volume.Source.Type.SANDBOX_PATH)
-                        .setSandboxPath(Protos.Volume.Source.SandboxPath.newBuilder()
-                                .setType(Protos.Volume.Source.SandboxPath.Type.PARENT)
-                                .setPath(volumeSpec.getContainerPath())));
-
+        Protos.Volume.Builder builder = Protos.Volume.newBuilder()
+                .setMode(Protos.Volume.Mode.RW)
+                .setContainerPath(volumeSpec.getContainerPath());
+        builder.getSourceBuilder()
+                .setType(Protos.Volume.Source.Type.SANDBOX_PATH)
+                .getSandboxPathBuilder()
+                        .setType(Protos.Volume.Source.SandboxPath.Type.PARENT)
+                        .setPath(volumeSpec.getContainerPath());
         return builder.build();
     }
 

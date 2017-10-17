@@ -51,25 +51,20 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
-                OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)),
-                podInstanceRequirement,
-                offeredResources);
+                OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)), podInstanceRequirement);
     }
 
     protected List<Resource> recordLaunchWithOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
-                OfferTestUtils.getOffer(Arrays.asList(offeredResources)),
-                podInstanceRequirement,
-                offeredResources);
+                OfferTestUtils.getOffer(Arrays.asList(offeredResources)), podInstanceRequirement);
     }
 
     private List<Resource> recordLaunchWithOfferedResources(
-            Protos.Offer offer, PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
+            Protos.Offer offer, PodInstanceRequirement podInstanceRequirement)
             throws InvalidRequirementException, IOException {
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement, Arrays.asList(offer));
+        List<OfferRecommendation> recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
 
         List<Resource> reservedResources = new ArrayList<>();
         for (OfferRecommendation recommendation : recommendations) {
@@ -85,11 +80,11 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         return reservedResources;
     }
 
-    protected String getResourceId(Resource resource) {
+    protected static String getResourceId(Resource resource) {
         return ResourceUtils.getResourceId(resource).get();
     }
 
-    protected String getPrincipal(Resource resource) {
+    protected static String getPrincipal(Resource resource) {
         return ResourceUtils.getPrincipal(resource).get();
     }
 }

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.config.validate;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -26,21 +27,21 @@ public class TaskVolumesCannotChangeTest {
             VolumeSpec.Type.MOUNT,
             "some_path",
             "role",
-            "*",
+            Constants.ANY_ROLE,
             "principal");
     private static final VolumeSpec VOLUME2 = new DefaultVolumeSpec(
             DISK_SIZE_MB + 3,
             VolumeSpec.Type.MOUNT,
             "some_path",
             "role",
-            "*",
+            Constants.ANY_ROLE,
             "principal");
     private static final VolumeSpec VOLUME3 = new DefaultVolumeSpec(
             DISK_SIZE_MB,
             VolumeSpec.Type.ROOT,
             "some_path",
             "role",
-            "*",
+            Constants.ANY_ROLE,
             "principal");
 
     @Mock private PodSpec mockPodSpec1;
