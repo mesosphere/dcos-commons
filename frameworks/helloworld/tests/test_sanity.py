@@ -146,11 +146,10 @@ def test_pod_status_all():
         assert re.match('(hello|world)-[0-9]+', k)
         assert len(v) == 1
         task = v[0]
-        assert len(task) == 4
+        assert len(task) == 3
         assert re.match('(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
         assert re.match('(hello|world)-[0-9]+-server', task['name'])
-        assert re.match('(hello|world)', task['type'])
-        assert task['state'] == 'RUNNING'
+        assert task['state'] == 'TASK_RUNNING'
 
 
 @pytest.mark.sanity
@@ -159,11 +158,10 @@ def test_pod_status_one():
         sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status hello-0', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
-    assert len(task) == 4
+    assert len(task) == 3
     assert re.match('hello-0-server__[0-9a-f-]+', task['id'])
     assert task['name'] == 'hello-0-server'
-    assert task['type'] == 'hello'
-    assert task['state'] == 'RUNNING'
+    assert task['state'] == 'TASK_RUNNING'
 
 
 @pytest.mark.sanity

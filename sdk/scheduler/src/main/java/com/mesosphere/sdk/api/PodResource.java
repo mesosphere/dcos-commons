@@ -19,8 +19,6 @@ import javax.ws.rs.core.Response;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.api.types.GroupedTasks;
-import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.state.GoalStateOverride;
@@ -316,13 +314,6 @@ public class PodResource extends PrettyJsonResource {
             jsonTask.put("name", task.getInfo().getName());
             if (task.hasStatus()) {
                 jsonTask.put("state", task.getStatus().get().getState().toString());
-            } else {
-                jsonTask.put("state", "No state defined");
-            }
-            try {
-                jsonTask.put("type", new TaskLabelReader(task.getInfo()).getType());
-            } catch (TaskException e) {
-                // no type found, just omit type field from response
             }
             jsonPod.put(jsonTask);
         }
