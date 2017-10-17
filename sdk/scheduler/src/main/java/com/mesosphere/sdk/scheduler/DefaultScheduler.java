@@ -54,6 +54,8 @@ public class DefaultScheduler extends AbstractScheduler {
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
 
+    private final OfferOutcomeTracker offerOutcomeTracker;
+
     /**
      * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
      * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
@@ -109,6 +111,9 @@ public class DefaultScheduler extends AbstractScheduler {
         this.podResource = new PodResource(stateStore);
         this.resources.add(podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
+
+        this.offerOutcomeTracker = new OfferOutcomeTracker();
+        this.resources.add(new OfferOutcomeResource(offerOutcomeTracker));
     }
 
     @Override
@@ -127,7 +132,7 @@ public class DefaultScheduler extends AbstractScheduler {
                         offerAccepter,
                         new OfferEvaluator(
                                 stateStore,
-                                new OfferOutcomeTracker(),
+                                offerOutcomeTracker,
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
                                 schedulerConfig,
