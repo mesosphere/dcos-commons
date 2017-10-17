@@ -25,7 +25,7 @@ public class Capabilities {
                     DcosVersionClient client = new DcosVersionClient(new DcosHttpExecutor(new DcosHttpClientBuilder()));
                     capabilities = new Capabilities(client.getDcosVersion());
                 } catch (IOException e) {
-                    LOGGER.error("Unable to fetch DC/OS version.");
+                    LOGGER.error("Unable to fetch DC/OS version.", e);
                     throw new IllegalStateException(e);
                 }
             }

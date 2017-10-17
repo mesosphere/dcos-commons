@@ -4,7 +4,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -82,12 +81,6 @@ public class SchedulerRunner implements Runnable {
     private SchedulerRunner(SchedulerBuilder schedulerBuilder) {
         this.schedulerBuilder = schedulerBuilder;
         SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
-
-        // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        // On strict mode clusters, this MUST be performed before any HTTP calls to the DC/OS cluster are made,
-        // e.g. via Capabilities which fetches the cluster version over HTTP. Otherwise those calls will fail with a
-        // certificate error. Therefore we do this as early as possible in the startup sequence.
-        DcosCertInstaller.installCertificate(schedulerConfig.getJavaHome());
 
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
                 schedulerConfig.getPackageName(),
