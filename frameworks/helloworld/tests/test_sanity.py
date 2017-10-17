@@ -51,6 +51,7 @@ def test_install():
 # Note: presently the mesos v1 api does _not_ work in strict mode.
 # As such, we expect this test to fail until it does in fact work in strict mode.
 @pytest.mark.sanity
+@pytest.mark.skipif(sdk_utils.is_strict_mode(), reason='v1 API is not yet supported in strict mode')
 def test_mesos_v1_api():
     # Install Hello World using the v1 api.
     # Then, clean up afterwards.
