@@ -20,8 +20,8 @@ current_expected_task_count = config.DEFAULT_TASK_COUNT
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         log.info("Ensure elasticsearch and kibana are uninstalled...")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -210,6 +210,8 @@ def test_master_reelection():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     initial_master = config.get_elasticsearch_master(service_name=foldered_name)
     shakedown.kill_process_on_host(sdk_hosts.system_host(foldered_name, initial_master), "master__.*Elasticsearch")
+    sdk_plan.wait_for_in_progress_recovery(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
     config.wait_for_expected_nodes_to_exist(service_name=foldered_name)
     new_master = config.get_elasticsearch_master(service_name=foldered_name)
     assert new_master.startswith("master") and new_master != initial_master
@@ -221,28 +223,27 @@ def test_master_node_replace():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
     # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
-    master_ids = sdk_tasks.get_task_ids(foldered_name, 'master-0')
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace master-0')
-    sdk_tasks.check_tasks_updated(foldered_name, 'master-0', master_ids)
-    # pre_test_setup will verify that the cluster becomes healthy again.
+    sdk_plan.wait_for_in_progress_recovery(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_data_node_replace():
-    data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data-0')
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace data-0')
-    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data-0', data_ids)
-    # pre_test_setup will verify that the cluster becomes healthy again.
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace data-0')
+    sdk_plan.wait_for_in_progress_recovery(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_coordinator_node_replace():
-    coordinator_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'coordinator-0')
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod replace coordinator-0')
-    sdk_tasks.check_tasks_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'coordinator-0', coordinator_ids)
-    # pre_test_setup will verify that the cluster becomes healthy again.
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace coordinator-0')
+    sdk_plan.wait_for_in_progress_recovery(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery

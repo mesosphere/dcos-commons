@@ -20,13 +20,6 @@ public class DcosHttpExecutor {
      * {@link #execute(Request)}.
      */
     public DcosHttpExecutor(HttpClientBuilder clientBuilder) {
-        if (!DcosCertInstaller.isInitialized()) {
-            // Sanity check: Always verify that we at least *attempted* to install certs.
-            // This allows us to consistently detect failures which would otherwise only manifest on strict clusters.
-            throw new IllegalStateException(
-                    "Internal error: HTTP client is being created before certificates were installed.");
-        }
-
         this.executor = Executor.newInstance(clientBuilder.build());
     }
 
