@@ -5,10 +5,11 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import json
-
+import logging
 import shakedown
 import sdk_cmd
 
+log = logging.getLogger(__name__)
 
 ENABLE_VIRTUAL_NETWORKS_OPTIONS = {'service': {'virtual_network_enabled': True}}
 
@@ -71,9 +72,16 @@ def check_endpoints_on_overlay(endpoints):
 
 def get_framework_srv_records(package_name):
     cmd = "curl localhost:8123/v1/enumerate"
+    log.info("Running '%s' on master", cmd)
     ok, out = shakedown.run_command_on_master(cmd)
+    log.info("Running command returned: ok=%s\n\tout=%s", ok, out)
     assert ok, "Failed to get srv records. command was {}".format(cmd)
-    srvs = json.loads(out)
+    try:
+        srvs = json.loads(out)
+    except Exception as e:
+        log.error("Error converting out=%s to json", out)
+        raise e
+
     framework_srvs = [f for f in srvs["frameworks"] if f["name"] == package_name]
     assert len(framework_srvs) == 1, "Got too many srv records matching package {}, got {}"\
         .format(package_name, framework_srvs)
