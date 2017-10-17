@@ -4,6 +4,18 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+# Version 2.0.2-3.0.14
+
+### Bug Fixes
+
+* Further fixes to scheduler behavior during task status transitions.
+
+### Improvements
+
+* Updated JRE version to 8u144.
+* Improved handling of error codes in service CLI.
+
+
 # Version 2.0.1-3.0.14
 
 ## Bug Fixes
