@@ -33,53 +33,13 @@ func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElem
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
-	if cmd.RawJSON {
+	if cmd.RawJSON || len(cmd.PodName) > 0 {
 		client.PrintJSONBytes(body)
 	} else {
 		client.PrintMessage(toPodTree(body))
 	}
 	return nil
 }
-
-/*
-{
-  "service": "hello-world",
-  "pods": [
-    {
-      "instances": [{
-        "name": "hello-0",
-        "tasks": [{
-          "name": "hello-0-server",
-          "id": "hello-0-server__35915c74-b2ad-48b3-ae56-74cab66e8654",
-          "status": "RUNNING"
-        }]
-      }],
-      "name": "hello"
-    },
-    {
-      "instances": [
-        {
-          "name": "world-0",
-          "tasks": [{
-            "name": "world-0-server",
-            "id": "world-0-server__acbac042-a456-4fb0-b75e-ea3bcd235261",
-            "status": "RUNNING"
-          }]
-        },
-        {
-          "name": "world-1",
-          "tasks": [{
-            "name": "world-1-server",
-            "id": "world-1-server__3791c51d-de84-47de-9c03-9245541085cc",
-            "status": "RUNNING"
-          }]
-        }
-      ],
-      "name": "world"
-    }
-  ]
-}
-*/
 
 func toPodTree(podsJSONBytes []byte) string {
 	response, err := client.UnmarshalJSON(podsJSONBytes)
