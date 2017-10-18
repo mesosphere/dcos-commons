@@ -4,6 +4,22 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+# Version 2.0.2-5.6.2
+
+### Bug Fixes
+
+* Dynamic ports are no longer sticky across pod replaces
+* Further fixes to scheduler behavior during task status transitions.
+
+### Improvements
+
+* Added many additional configuration options.
+* Updated JRE version to 8u144.
+* Updated Elastic to version 5.6.2
+* Updated Kibana to version 5.6.2
+* Improved handling of error codes in service CLI.
+
+
 # Version 2.0.1-5.5.1
 
 ### Bug Fixes
