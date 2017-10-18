@@ -3,34 +3,25 @@ package com.mesosphere.sdk.scheduler;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import org.apache.mesos.Protos;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * This class encapsulates the components necessary for tracking Scheduler metrics.
  */
 public class Metrics {
-    private static final MetricRegistry metrics = new MetricRegistry();
+    private static MetricRegistry metrics = new MetricRegistry();
+
+    @VisibleForTesting
+    static void reset() {
+        metrics = new MetricRegistry();
+    }
 
     public static MetricRegistry getRegistry() {
         return metrics;
-    }
-
-    // Generated counters
-    private static Map<String, Counter> counters = new HashMap<>();
-    private static Counter getCounter(String name) {
-        Counter counter = counters.get(name);
-        if (counter == null) {
-            counter = metrics.counter(name);
-            counters.put(name, counter);
-        }
-
-        return counter;
     }
 
     // Offers
@@ -38,20 +29,16 @@ public class Metrics {
     private static final String PROCESSED_OFFERS = "offers.processed";
     private static final String PROCESS_OFFERS = "offers.process";
 
-    private static final Counter receivedOffers = metrics.counter(RECEIVED_OFFERS);
-    private static final Counter processedOffers = metrics.counter(PROCESSED_OFFERS);
-    private static final Timer processOffersDuration = metrics.timer(PROCESS_OFFERS);
-
     public static Counter getReceivedOffers() {
-        return receivedOffers;
+        return metrics.counter(RECEIVED_OFFERS);
     }
 
     public static Counter getProcessedOffers() {
-        return processedOffers;
+        return metrics.counter(PROCESSED_OFFERS);
     }
 
     public static Timer getProcessOffersDuration() {
-        return processOffersDuration;
+        return metrics.timer(PROCESS_OFFERS);
     }
 
     // Decline / Revive
@@ -60,25 +47,20 @@ public class Metrics {
     private static final String DECLINE_SHORT = "declines.short";
     private static final String DECLINE_LONG = "declines.long";
 
-    private static final Counter revives = metrics.counter(Metrics.REVIVES);
-    private static final Counter reviveThrottles = metrics.counter(Metrics.REVIVE_THROTTLES);
-    private static final Counter declinesShort = metrics.counter(DECLINE_SHORT);
-    private static final Counter declinesLong = metrics.counter(DECLINE_LONG);
-
     public static Counter getRevives() {
-        return revives;
+        return metrics.counter(REVIVES);
     }
 
     public static Counter getReviveThrottles() {
-        return reviveThrottles;
+        return metrics.counter(REVIVE_THROTTLES);
     }
 
     public static Counter getDeclinesShort() {
-        return declinesShort;
+        return metrics.counter(DECLINE_SHORT);
     }
 
     public static Counter getDeclinesLong() {
-        return declinesLong;
+        return metrics.counter(DECLINE_LONG);
     }
 
     /**
@@ -110,7 +92,7 @@ public class Metrics {
                     PREFIX,
                     offerRecommendation.getOperation().getType().name().toLowerCase());
 
-            getCounter(metricName).inc();
+            metrics.counter(metricName).inc();
         }
     }
 
@@ -124,6 +106,6 @@ public class Metrics {
                 prefix,
                 taskStatus.getState().name().toLowerCase());
 
-        getCounter(metricName).inc();
+        metrics.counter(metricName).inc();
     }
 }
