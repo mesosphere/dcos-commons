@@ -17,11 +17,14 @@ SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
 
-DEFAULT_TASK_COUNT = 7
-# task count without ingest node
-NO_INGEST_TASK_COUNT = DEFAULT_TASK_COUNT - 1
+DEFAULT_TASK_COUNT = 6
+# TODO: add and use throughout a method to determine expected task count based on options .
+#       the method should provide for use cases:
+#         * total count, ie 6
+#         * count for a specific type, ie 3
+#         * count by type, ie [{'ingest':1},{'data':3},...]
 
-DEFAULT_ELASTIC_TIMEOUT = 10 * 60
+DEFAULT_ELASTIC_TIMEOUT = 30 * 60
 DEFAULT_KIBANA_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
@@ -29,9 +32,10 @@ DEFAULT_INDEX_TYPE = 'entry'
 ENDPOINT_TYPES = (
     'coordinator-http', 'coordinator-transport',
     'data-http', 'data-transport',
-    'ingest-http', 'ingest-transport',
     'master-http', 'master-transport')
-
+# TODO: similar to DEFAULT_TASK_COUNT, whether or not ingest-http is present is dependent upon
+# options.
+#    'ingest-http', 'ingest-transport',
 
 DEFAULT_NUMBER_OF_SHARDS = 1
 DEFAULT_NUMBER_OF_REPLICAS = 1
@@ -76,6 +80,19 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
     def fun():
         result = _get_elasticsearch_index_health(curl_api, index_name)
         return result and result["status"] == color
+
+    return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
+
+
+def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
+    curl_api = _curl_api(service_name, "GET")
+    expected_setting = 3
+
+    def fun():
+        result = _get_elasticsearch_cluster_settings(curl_api)
+        setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
+        log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
+        return result and expected_setting == int(setting)
 
     return shakedown.wait_for(fun, timeout_seconds=DEFAULT_ELASTIC_TIMEOUT)
 
@@ -171,7 +188,6 @@ def disable_xpack(service_name=SERVICE_NAME):
 
 
 def _set_xpack(service_name, is_enabled):
-    config = sdk_marathon.get_config(service_name)
     # Toggling X-Pack requires full cluster restart, not a rolling restart
     options = {'TASKCFG_ALL_XPACK_ENABLED': is_enabled, 'UPDATE_STRATEGY': 'parallel'}
     update_app(service_name, options, DEFAULT_TASK_COUNT)
@@ -199,6 +215,13 @@ def _get_elasticsearch_index_health(curl_api, index_name):
 @as_json
 def _get_elasticsearch_cluster_health(curl_api):
     exit_status, output = shakedown.run_command_on_master("{}/_cluster/health'".format(curl_api))
+    return output
+
+
+@as_json
+def _get_elasticsearch_cluster_settings(curl_api):
+    curl_cluster_settings = "{}/_cluster/settings?include_defaults=true'".format(curl_api)
+    exit_status, output = shakedown.run_command_on_master(curl_cluster_settings)
     return output
 
 

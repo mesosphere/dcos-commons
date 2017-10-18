@@ -10,7 +10,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.fluent.ContentResponseHandler;
-import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
@@ -19,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 
 /**
  * Client for communicating with DC/OS secret service API.
@@ -74,10 +74,10 @@ public class SecretsClient {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private Executor httpExecutor;
+    private DcosHttpExecutor httpExecutor;
 
-    public SecretsClient(Executor executor) {
-        this.httpExecutor = executor;
+    public SecretsClient(DcosHttpExecutor httpExecutor) {
+        this.httpExecutor = httpExecutor;
     }
 
     /**

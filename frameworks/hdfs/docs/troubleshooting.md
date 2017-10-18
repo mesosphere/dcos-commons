@@ -5,7 +5,7 @@ enterprise: 'no'
 ---
 
 # Replacing a Permanently Failed Node
-The DC/OS Beta-HDFS Service is resilient to temporary node failures. However, if a DC/OS agent hosting an HDFS node is permanently lost, manual intervention is required to replace the failed node. The following command should be used to replace the node residing on the failed server.
+The DC/OS HDFS Service is resilient to temporary node failures. However, if a DC/OS agent hosting an HDFS node is permanently lost, manual intervention is required to replace the failed node. The following command should be used to replace the node residing on the failed server.
 
 ```bash
 $ dcos beta-hdfs --name=<service-name> pod replace <node_id>

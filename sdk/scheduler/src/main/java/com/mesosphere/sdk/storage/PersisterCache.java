@@ -83,13 +83,25 @@ public class PersisterCache implements Persister {
     }
 
     @Override
-    public void deleteAll(String path) throws PersisterException {
+    public void recursiveDeleteMany(Collection<String> paths) throws PersisterException {
         rwlock.lock();
         try {
             MemPersister cache = getCache();
-            persister.deleteAll(path);
+            persister.recursiveDeleteMany(paths);
+            cache.recursiveDeleteMany(paths);
+        } finally {
+            rwlock.unlock();
+        }
+    }
+
+    @Override
+    public void recursiveDelete(String path) throws PersisterException {
+        rwlock.lock();
+        try {
+            MemPersister cache = getCache();
+            persister.recursiveDelete(path);
             try {
-                cache.deleteAll(path);
+                cache.recursiveDelete(path);
             } catch (PersisterException e) {
                 // We don't throw an exception here if our 'data' cache lacks the value. In theory 'persister' should've
                 // thrown in that case anyway -- so we're effectively replicating what the underlying persister does.

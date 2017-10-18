@@ -2,14 +2,14 @@ package com.mesosphere.sdk.kafka.scheduler;
 
 import org.junit.Test;
 
-import com.mesosphere.sdk.testing.ServiceTestBuilder;
+import com.mesosphere.sdk.testing.ServiceTestRunner;
 
 public class ServiceTest {
 
     @Test
     public void testSpec() throws Exception {
-        new ServiceTestBuilder()
+        new ServiceTestRunner()
                 .setPodEnv("kafka", "KAFKA_ZOOKEEPER_URI", "/path/to/zk") // set by our Main.java
-                .render();
+                .run();
     }
 }

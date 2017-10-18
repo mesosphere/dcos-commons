@@ -3,16 +3,12 @@ package com.mesosphere.sdk.api;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
@@ -24,6 +20,7 @@ import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
+import com.mesosphere.sdk.api.types.GroupedTasks;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
@@ -31,11 +28,7 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,7 +79,7 @@ public class PodResource extends PrettyJsonResource {
         try {
             Set<String> podNames = new TreeSet<>();
             List<String> unknownTaskNames = new ArrayList<>();
-            for (TaskInfo taskInfo : stateStore.fetchTasks()) {
+            for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
                 TaskLabelReader labels = new TaskLabelReader(taskInfo);
                 try {
                     podNames.add(PodInstance.getName(labels.getType(), labels.getIndex()));
@@ -95,6 +88,7 @@ public class PodResource extends PrettyJsonResource {
                     unknownTaskNames.add(taskInfo.getName());
                 }
             }
+
             JSONArray jsonArray = new JSONArray(podNames);
             if (!unknownTaskNames.isEmpty()) {
                 Collections.sort(unknownTaskNames);
@@ -196,18 +190,18 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/stop")
     @POST
-    public Response stopPod(@PathParam("name") String name, String bodyPayload) {
+    public Response stopPod(@PathParam("name") String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
-            taskFilter = parseJsonList(bodyPayload);
+            taskFilter = new HashSet<>(RequestUtils.parseJsonList(bodyPayload));
         } catch (JSONException e) {
             LOGGER.error(String.format("Failed to parse task filter '%s'", bodyPayload), e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            return overrideGoalState(name, taskFilter, GoalStateOverride.STOPPED);
+            return overrideGoalState(podName, taskFilter, GoalStateOverride.STOPPED);
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to stop pod '%s' with task filter '%s'", name, taskFilter), e);
+            LOGGER.error(String.format("Failed to stop pod '%s' with task filter '%s'", podName, taskFilter), e);
             return Response.serverError().build();
         }
     }
@@ -217,60 +211,38 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/start")
     @POST
-    public Response startPod(@PathParam("name") String name, String bodyPayload) {
+    public Response startPod(@PathParam("name") String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
-            taskFilter = parseJsonList(bodyPayload);
+            taskFilter = new HashSet<>(RequestUtils.parseJsonList(bodyPayload));
         } catch (JSONException e) {
             LOGGER.error(String.format("Failed to parse task filter '%s'", bodyPayload), e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            return overrideGoalState(name, taskFilter, GoalStateOverride.NONE);
+            return overrideGoalState(podName, taskFilter, GoalStateOverride.NONE);
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to start pod '%s' with task filter '%s'", name, taskFilter), e);
+            LOGGER.error(String.format("Failed to start pod '%s' with task filter '%s'", podName, taskFilter), e);
             return Response.serverError().build();
         }
     }
 
-    private static Set<String> parseJsonList(String payload) throws JSONException {
-        if (StringUtils.isBlank(payload)) {
-            return Collections.emptySet();
-        }
-        Set<String> strings = new HashSet<>();
-        Iterator<Object> iter = new JSONArray(payload).iterator();
-        while (iter.hasNext()) {
-            strings.add(iter.next().toString());
-        }
-        return strings;
-    }
-
     private Response overrideGoalState(String podInstanceName, Set<String> taskNameFilter, GoalStateOverride override) {
-        // look up all tasks in the provided pod name:
-        Collection<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
-        if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
+        Collection<TaskInfoAndStatus> allPodTasks =
+                GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
+        if (allPodTasks == null) {
             return ResponseUtils.elementNotFoundResponse();
         }
-        if (!taskNameFilter.isEmpty()) {
-            // given a task named "foo" in "pod-0", allow either "foo" or "pod-0-foo" to match:
-            final Set<String> prefixedTaskNameFilter = taskNameFilter.stream()
-                    .map(t -> String.format("%s-%s", podInstanceName, t))
-                    .collect(Collectors.toSet());
-            Collection<TaskInfoAndStatus> filteredPodTasks = podTasks.stream()
-                    .filter(task ->
-                            prefixedTaskNameFilter.contains(task.getInfo().getName()) ||
-                            taskNameFilter.contains(task.getInfo().getName()))
-                    .collect(Collectors.toList());
-            if (filteredPodTasks.size() < taskNameFilter.size()) {
-                // one or more requested tasks were not found.
-                LOGGER.error("Request had task filter: '{}', but pod '{}' tasks are: {} (matching: {})",
-                        taskNameFilter,
-                        podInstanceName,
-                        podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()),
-                        filteredPodTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
-                return ResponseUtils.elementNotFoundResponse();
-            }
-            podTasks = filteredPodTasks;
+        Collection<TaskInfoAndStatus> podTasks =
+                RequestUtils.filterPodTasks(podInstanceName, allPodTasks, taskNameFilter);
+        if (podTasks.isEmpty() || podTasks.size() < taskNameFilter.size()) {
+            // one or more requested tasks were not found.
+            LOGGER.error("Request had task filter: {} but pod '{}' tasks are: {} (matching: {})",
+                    taskNameFilter,
+                    podInstanceName,
+                    allPodTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()),
+                    podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
+            return ResponseUtils.elementNotFoundResponse();
         }
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
@@ -344,7 +316,7 @@ public class PodResource extends PrettyJsonResource {
             Collection<TaskInfoAndStatus> tasksToKill,
             RecoveryType recoveryType) {
         for (TaskInfoAndStatus taskToKill : tasksToKill) {
-            final TaskInfo taskInfo = taskToKill.getInfo();
+            final Protos.TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {
                 LOGGER.info("  {} ({}): currently in state {}",
                         taskInfo.getName(),
@@ -362,75 +334,6 @@ public class PodResource extends PrettyJsonResource {
         json.put("pod", podName);
         json.put("tasks", tasksToKill.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
         return jsonOkResponse(json);
-    }
-
-    /**
-     * Utility class for sorting/grouping {@link TaskInfo}s and/or {@link TaskStatus}es into pods.
-     */
-    private static class GroupedTasks {
-        /** pod type => pod index => tasks in pod. */
-        private final Map<String, Map<Integer, List<TaskInfoAndStatus>>> byPodTypeAndIndex = new TreeMap<>();
-        /** tasks for which the pod instance couldn't be determined. */
-        private final List<TaskInfoAndStatus> unknownPod = new ArrayList<>();
-
-        private static GroupedTasks create(StateStore stateStore) {
-            return new GroupedTasks(stateStore.fetchTasks(), stateStore.fetchStatuses());
-        }
-
-        private GroupedTasks(Collection<TaskInfo> taskInfos, Collection<TaskStatus> taskStatuses) {
-            Map<TaskID, TaskStatus> taskStatusesById = taskStatuses.stream()
-                    .collect(Collectors.toMap(status -> status.getTaskId(), Function.identity()));
-
-            // map TaskInfos (and TaskStatuses if available) into pod instances:
-            for (TaskInfo taskInfo : taskInfos) {
-                TaskInfoAndStatus taskInfoAndStatus = TaskInfoAndStatus.create(
-                        taskInfo, Optional.ofNullable(taskStatusesById.get(taskInfo.getTaskId())));
-                TaskLabelReader labels = new TaskLabelReader(taskInfo);
-                try {
-                    String podType = labels.getType();
-                    Map<Integer, List<TaskInfoAndStatus>> podInstances = byPodTypeAndIndex.get(podType);
-                    if (podInstances == null) {
-                        podInstances = new TreeMap<>();
-                        byPodTypeAndIndex.put(podType, podInstances);
-                    }
-
-                    int podIndex = labels.getIndex();
-                    List<TaskInfoAndStatus> tasks = podInstances.get(podIndex);
-                    if (tasks == null) {
-                        tasks = new ArrayList<>();
-                        podInstances.put(podIndex, tasks);
-                    }
-
-                    tasks.add(taskInfoAndStatus);
-                } catch (Exception e) {
-                    LOGGER.warn(String.format("Failed to extract pod information from task %s", taskInfo.getName()), e);
-                    unknownPod.add(taskInfoAndStatus);
-                }
-            }
-
-            // sort the tasks within each pod by the task names (for user convenience):
-            for (Map<Integer, List<TaskInfoAndStatus>> podInstances : byPodTypeAndIndex.values()) {
-                for (List<TaskInfoAndStatus> tasks : podInstances.values()) {
-                    tasks.sort(new Comparator<TaskInfoAndStatus>() {
-                        @Override
-                        public int compare(TaskInfoAndStatus a, TaskInfoAndStatus b) {
-                            return a.getInfo().getName().compareTo(b.getInfo().getName());
-                        }
-                    });
-                }
-            }
-        }
-
-        private Collection<TaskInfoAndStatus> getPodInstanceTasks(String podInstanceName) {
-            for (Map.Entry<String, Map<Integer, List<TaskInfoAndStatus>>> pod : byPodTypeAndIndex.entrySet()) {
-                for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : pod.getValue().entrySet()) {
-                    if (PodInstance.getName(pod.getKey(), podInstance.getKey()).equals(podInstanceName)) {
-                        return podInstance.getValue();
-                    }
-                }
-            }
-            return null;
-        }
     }
 
     /**

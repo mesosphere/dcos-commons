@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.config;
 
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -105,10 +106,12 @@ public class ConfigurationUpdaterTest {
     @Mock private StateStore mockStateStore;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private ServiceSpec mockUnknownConfig;
+    @Mock private Capabilities mockCapabilities;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        Capabilities.overrideCapabilities(mockCapabilities);
     }
 
     @Test

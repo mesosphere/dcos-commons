@@ -42,7 +42,7 @@ def teardown_module(module):
 
 @pytest.mark.availability
 @pytest.mark.soak_availability
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_service_startup_rapid():
     max_restart_seconds = EXPECTED_KAFKA_STARTUP_SECONDS
     startup_padding_seconds = EXPECTED_DCOS_STARTUP_SECONDS

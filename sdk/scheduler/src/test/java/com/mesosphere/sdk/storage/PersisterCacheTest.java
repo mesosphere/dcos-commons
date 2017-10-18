@@ -116,7 +116,7 @@ public class PersisterCacheTest {
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.deleteAll(KEY);
+        cache.recursiveDelete(KEY);
         try {
             cache.get(KEY);
             fail("Expected exception");
@@ -126,7 +126,7 @@ public class PersisterCacheTest {
         assertEquals(KEY2_SET, PersisterUtils.getAllKeys(persister));
         assertEquals(KEY2_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.deleteAll(KEY2);
+        cache.recursiveDelete(KEY2);
         try {
             cache.get(KEY2);
             fail("Expected exception");
@@ -156,9 +156,7 @@ public class PersisterCacheTest {
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        map.put(KEY, null);
-        map.put(KEY2, null);
-        cache.setMany(map);
+        cache.recursiveDeleteMany(Arrays.asList(KEY, KEY2));
 
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
         assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
@@ -236,15 +234,15 @@ public class PersisterCacheTest {
     public void testDeleteFailsCacheUnchanged() throws PersisterException {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
-                .when(mockPersister).deleteAll(KEY2);
+                .when(mockPersister).recursiveDelete(KEY2);
         cache = new PersisterCache(mockPersister);
         cache.set(KEY, VAL);
         cache.set(KEY2, VAL2);
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.deleteAll(KEY);
+        cache.recursiveDelete(KEY);
         try {
-            cache.deleteAll(KEY2);
+            cache.recursiveDelete(KEY2);
             fail("Expected exception");
         } catch (PersisterException e) {
             // expected
@@ -267,13 +265,13 @@ public class PersisterCacheTest {
         cache.set(KEY2, VAL2);
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
 
-        cache.deleteAll(KEY);
-        cache.deleteAll(KEY2);
+        cache.recursiveDelete(KEY);
+        cache.recursiveDelete(KEY2);
         assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
 
         // mockPersister doesn't throw despite missing keys. cache then logs error but doesn't throw (noop):
-        cache.deleteAll(KEY);
-        cache.deleteAll(KEY2);
+        cache.recursiveDelete(KEY);
+        cache.recursiveDelete(KEY2);
     }
 
     @Test
@@ -292,7 +290,7 @@ public class PersisterCacheTest {
                             assertArrayEquals(VAL2, cache.get(key));
                             cache.setMany(Collections.singletonMap(key, VAL));
                             assertArrayEquals(VAL, cache.get(key));
-                            cache.deleteAll(key);
+                            cache.recursiveDelete(key);
                             try {
                                 cache.get(key);
                                 fail("Expected exception");

@@ -14,7 +14,7 @@ def configure_package(configure_security):
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
-            config.NO_INGEST_TASK_COUNT,
+            config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
         yield # let the test session execute
@@ -25,8 +25,8 @@ def configure_package(configure_security):
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
-    sdk_tasks.check_running(config.SERVICE_NAME, config.NO_INGEST_TASK_COUNT)
-    config.wait_for_expected_nodes_to_exist(task_count=config.NO_INGEST_TASK_COUNT)
+    sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist(task_count=config.DEFAULT_TASK_COUNT)
 
 
 @pytest.fixture
@@ -40,14 +40,14 @@ def default_populated_index():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_service_health():
     assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_indexing(default_populated_index):
     def fun():
         indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
@@ -62,18 +62,18 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(config.SERVICE_NAME)
-    assert len(elastic_tasks) == config.NO_INGEST_TASK_COUNT, \
-        "Incorrect number of tasks should be {} got {}".format(config.NO_INGEST_TASK_COUNT, len(elastic_tasks))
+    assert len(elastic_tasks) == config.DEFAULT_TASK_COUNT, \
+        "Incorrect number of tasks should be {} got {}".format(config.DEFAULT_TASK_COUNT, len(elastic_tasks))
     for task in elastic_tasks:
         sdk_networks.check_task_network(task)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@sdk_utils.dcos_1_9_or_higher
+@pytest.mark.dcos_min_version('1.9')
 def test_endpoints_on_overlay():
     endpoint_types_without_ingest = (
         'coordinator-http', 'coordinator-transport',

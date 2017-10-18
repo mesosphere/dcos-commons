@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.http.client.fluent.Executor;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
@@ -15,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -125,10 +125,9 @@ class UninstallPlanBuilder {
                 SecretsClient secretsClient = customSecretsClientForTests.isPresent()
                         ? customSecretsClientForTests.get()
                         : new SecretsClient(
-                                Executor.newInstance(new DcosHttpClientBuilder()
+                                new DcosHttpExecutor(new DcosHttpClientBuilder()
                                         .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
-                                        .setRedirectStrategy(new LaxRedirectStrategy())
-                                        .build()));
+                                        .setRedirectStrategy(new LaxRedirectStrategy())));
                 phases.add(new DefaultPhase(
                         TLS_CLEANUP_PHASE,
                         Collections.singletonList(new TLSCleanupStep(

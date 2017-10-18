@@ -85,7 +85,7 @@ public class MemPersisterTest {
 
     @Test(expected = PersisterException.class)
     public void testDeleteMissing() throws PersisterException {
-        persister.deleteAll(KEY);
+        persister.recursiveDelete(KEY);
     }
 
     @Test
@@ -152,19 +152,19 @@ public class MemPersisterTest {
         persister.set("/c", VAL);
         persister.set("/d/1/a/1", VAL);
 
-        persister.deleteAll("/a/1");
+        persister.recursiveDelete("/a/1");
         checkChildren(Arrays.asList("2", "3"), persister, "a");
-        persister.deleteAll("/a/3/a");
+        persister.recursiveDelete("/a/3/a");
         checkChildren(Arrays.asList("2", "3"), persister, "a");
-        persister.deleteAll("/b");
+        persister.recursiveDelete("/b");
         checkChildren(Arrays.asList("a", "c", "d"), persister, "");
-        persister.deleteAll("/c");
+        persister.recursiveDelete("/c");
         checkChildren(Arrays.asList("a", "d"), persister, "");
-        persister.deleteAll("/d/1");
+        persister.recursiveDelete("/d/1");
         checkChildren(Arrays.asList("a", "d"), persister, "");
-        persister.deleteAll("/a");
+        persister.recursiveDelete("/a");
         checkChildren(Arrays.asList("d"), persister, "");
-        persister.deleteAll("/d");
+        persister.recursiveDelete("/d");
         checkChildren(Collections.emptyList(), persister, "");
     }
 
@@ -191,7 +191,7 @@ public class MemPersisterTest {
         persister.set("/c", VAL);
         persister.set("/d/1/a/1", VAL);
 
-        persister.deleteAll(rootPathToDelete);
+        persister.recursiveDelete(rootPathToDelete);
 
         byte[] dat = persister.get("");
         String desc = dat == null ? "NULL" : String.format("%d bytes", dat.length);
@@ -209,7 +209,7 @@ public class MemPersisterTest {
         assertArrayEquals(VAL2, persister.get(KEY2));
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
 
-        persister.deleteAll(KEY);
+        persister.recursiveDelete(KEY);
         try {
             persister.get(KEY);
             fail("Expected exception");
@@ -218,7 +218,7 @@ public class MemPersisterTest {
         }
         assertEquals(KEY2_SET, PersisterUtils.getAllKeys(persister));
 
-        persister.deleteAll(KEY2);
+        persister.recursiveDelete(KEY2);
         try {
             persister.get(KEY2);
             fail("Expected exception");
@@ -256,9 +256,7 @@ public class MemPersisterTest {
         assertArrayEquals(VAL2, map.get(KEY2));
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(persister));
 
-        map.put(KEY, null);
-        map.put(KEY2, null);
-        persister.setMany(map);
+        persister.recursiveDeleteMany(Arrays.asList(KEY, KEY2));
 
         map = persister.getMany(Arrays.asList(KEY, KEY2));
         assertEquals(2, map.size());
@@ -266,6 +264,7 @@ public class MemPersisterTest {
         assertArrayEquals(null, map.get(KEY2));
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
 
+        map.remove(KEY2);
         map.put(KEY, VAL);
         persister.setMany(map);
 
@@ -276,9 +275,7 @@ public class MemPersisterTest {
         assertArrayEquals(null, map.get(KEY2));
         assertEquals(KEY_SET, PersisterUtils.getAllKeys(persister));
 
-        map.put(KEY, null);
-        map.put(KEY2, null);
-        persister.setMany(map);
+        persister.recursiveDeleteMany(Arrays.asList(KEY, KEY2));
 
         map = persister.getMany(Arrays.asList(KEY, KEY2));
         assertEquals(2, map.size());
@@ -303,7 +300,7 @@ public class MemPersisterTest {
                             assertArrayEquals(VAL2, persister.get(key));
                             persister.setMany(Collections.singletonMap(key, VAL));
                             assertArrayEquals(VAL, persister.getMany(Arrays.asList(key)).get(key));
-                            persister.deleteAll(key);
+                            persister.recursiveDelete(key);
                             try {
                                 persister.get(key);
                                 fail("Expected exception");

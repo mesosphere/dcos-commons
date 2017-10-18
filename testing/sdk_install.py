@@ -102,7 +102,7 @@ def _uninstall(
         zk=None):
     start = time.time()
 
-    if shakedown.dcos_version_less_than("1.10"):
+    if sdk_utils.dcos_version_less_than("1.10"):
         log.info('Uninstalling/janitoring {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(
@@ -178,7 +178,7 @@ def _uninstall(
 
 def get_package_options(additional_options={}):
     # expected SECURITY values: 'permissive', 'strict', 'disabled'
-    if os.environ.get('SECURITY', '') == 'strict':
+    if sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
         # see also: tools/setup_permissions.sh and tools/create_service_account.sh
         return merge_dictionaries({

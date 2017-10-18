@@ -4,7 +4,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.dcos.DcosCertInstaller;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -81,10 +80,16 @@ public class SchedulerRunner implements Runnable {
 
     private SchedulerRunner(SchedulerBuilder schedulerBuilder) {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerConfig flags = schedulerBuilder.getSchedulerConfig();
+        SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
+
         LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                flags.getPackageName(), flags.getPackageVersion(), Instant.ofEpochMilli(flags.getPackageBuildTimeMs()),
-                SDKBuildInfo.VERSION, SDKBuildInfo.GIT_SHA, Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+                schedulerConfig.getPackageName(),
+                schedulerConfig.getPackageVersion(),
+                Instant.ofEpochMilli(schedulerConfig.getPackageBuildTimeMs()),
+
+                SDKBuildInfo.VERSION,
+                SDKBuildInfo.GIT_SHA,
+                Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     /**
@@ -93,6 +98,7 @@ public class SchedulerRunner implements Runnable {
      */
     @Override
     public void run() {
+
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
@@ -113,9 +119,6 @@ public class SchedulerRunner implements Runnable {
 
     private static void runScheduler(
             Scheduler mesosScheduler, ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, StateStore stateStore) {
-        // Install the certs from "$MESOS_SANDBOX/.ssl" (if present) inside the JRE being used to run the scheduler.
-        DcosCertInstaller.installCertificate(schedulerConfig.getJavaHome());
-
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.state;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -61,18 +62,19 @@ public enum GoalStateOverride {
      *
      * The state of the override itself. Sample flow for enabling and disabling an override:
      *
-     * <ol><li>NONE + COMPLETE (!isActive())</li>
-     * <li>STOPPED + PENDING</li>
-     * <li>STOPPED + IN_PROGRESS</li>
-     * <li>STOPPED + COMPLETE</li>
-     * <li>NONE + PENDING</li>
-     * <li>NONE + IN_PROGRESS</li>
-     * <li>NONE + COMPLETE (!isActive())</li></ol>
+     * <table><tr><td>Operation</td><td>Resulting status (override + progress)</td></tr>
+     * <tr><td>(Initial state)</td><td>NONE + COMPLETE (==INACTIVE)</td></tr>
+     * <tr><td>"Stop" triggered, kill command issued</td><td>STOPPED + PENDING</td></tr>
+     * <tr><td>TASK_KILLED status received</td><td>STOPPED + IN_PROGRESS</td></tr>
+     * <tr><td>Task relaunch in stopped state has been triggered</td><td>STOPPED + COMPLETE</td></tr>
+     * <tr><td>"Start" triggered, kill command issued</td><td>NONE + PENDING</td></tr>
+     * <tr><td>TASK_KILLED status received</td><td>NONE + IN_PROGRESS</td></tr>
+     * <tr><td>Task relaunch in normal state has been triggered</td><td>NONE + COMPLETE (==INACTIVE)</td></tr></table>
      */
     public static class Status {
 
         /**
-         * The status of a task for which no overrides are applicable.
+         * The override status of a task for which no overrides are applicable, and which has reached its goal state.
          * The task is not entering, exiting, or currently in an override state.
          */
         public static final Status INACTIVE = new Status(GoalStateOverride.NONE, Progress.COMPLETE);
@@ -112,13 +114,24 @@ public enum GoalStateOverride {
     private final String pendingName;
 
     private GoalStateOverride(String serializedName, String pendingName) {
-        // Validation: Overrides may not overlap with existing GoalStates
+        // Validation: By convention all state labels must be all caps/no spaces
+        Pattern validLabelPattern = Pattern.compile("^[A-Z_]+$"); // cannot use a static final member here
+        if (!validLabelPattern.matcher(this.name()).matches()
+                || !validLabelPattern.matcher(serializedName).matches()
+                || !validLabelPattern.matcher(pendingName).matches()) {
+            throw new IllegalArgumentException(String.format(
+                    "Provided GoalStateOverride names '%s'/'%s'/'%s' do not validate against pattern: %s",
+                    this.name(), serializedName, pendingName, validLabelPattern.pattern()));
+        }
+
+        // Validation: Overrides may not overlap with existing GoalStates (RUNNING, FINISHED)
         for (GoalState goalState : GoalState.values()) {
             if (goalState.toString().equals(serializedName)) {
                 throw new IllegalArgumentException(String.format(
                         "Provided GoalStateOverride serialized name '%s' collides with an existing GoalState=%s",
                         serializedName, Arrays.asList(GoalState.values())));
             }
+
         }
         this.serializedName = serializedName;
         this.pendingName = pendingName;
