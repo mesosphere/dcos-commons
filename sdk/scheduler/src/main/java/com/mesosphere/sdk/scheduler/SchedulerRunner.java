@@ -136,7 +136,6 @@ public class SchedulerRunner implements Runnable {
     private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
-                .setPrincipal(serviceSpec.getPrincipal())
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setUser(serviceSpec.getUser())
                 .setCheckpoint(true);
