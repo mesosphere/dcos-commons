@@ -41,6 +41,7 @@ def test_install():
 # As such, we expect this test to fail until it does in fact work in strict mode.
 @pytest.mark.sanity
 @pytest.mark.smoke
+@pytest.mark.mesos_v1
 @pytest.mark.skipif(sdk_utils.is_strict_mode(), reason='v1 API is not yet supported in strict mode')
 def test_mesos_v1_api():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
