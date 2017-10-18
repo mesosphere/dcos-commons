@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer;
 
-import com.codahale.metrics.Counter;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.scheduler.Metrics;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -16,8 +15,6 @@ import java.util.stream.Collectors;
  */
 public class OfferUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferUtils.class);
-    private static final Counter shortDeclineCount = SchedulerUtils.getMetricRegistry().counter("decline_short");
-    private static final Counter longDeclineCount = SchedulerUtils.getMetricRegistry().counter("decline_long");
 
     /**
      * Filters out accepted offers and returns back a list of unused offers.
@@ -51,12 +48,12 @@ public class OfferUtils {
 
     public static void declineShort(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {
         OfferUtils.declineOffers(driver, unusedOffers, Constants.SHORT_DECLINE_SECONDS);
-        shortDeclineCount.inc(unusedOffers.size());
+        Metrics.getDeclinesShort().inc(unusedOffers.size());
     }
 
     public static void declineLong(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {
         OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
-        longDeclineCount.inc(unusedOffers.size());
+        Metrics.getDeclinesLong().inc(unusedOffers.size());
     }
 
     /**
@@ -66,7 +63,9 @@ public class OfferUtils {
      * @param unusedOffers The collection of Offers to decline
      * @param refuseSeconds The number of seconds for which the offers should be refused
      */
-    private static void declineOffers(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
+    private static void declineOffers(
+            SchedulerDriver driver, Collection<Protos.Offer> unusedOffers,
+            int refuseSeconds) {
         LOGGER.info("Declining {} unused offers for {} seconds:", unusedOffers.size(), refuseSeconds);
         final Protos.Filters filters = Protos.Filters.newBuilder()
                 .setRefuseSeconds(refuseSeconds)

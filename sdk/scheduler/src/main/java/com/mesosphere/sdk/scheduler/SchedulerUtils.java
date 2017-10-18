@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.codahale.metrics.MetricRegistry;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -27,8 +26,6 @@ public class SchedulerUtils {
      * confuse ZK with those.
      */
     private static final String FRAMEWORK_NAME_SLASH_ESCAPE = "__";
-
-    private static final MetricRegistry metrics = new MetricRegistry();
 
     /**
      * Returns the configured service name (aka framework name) to use for running the service.
@@ -133,10 +130,6 @@ public class SchedulerUtils {
         System.err.println(message);
         System.out.println(message);
         System.exit(errorCode.getValue());
-    }
-
-    public static MetricRegistry getMetricRegistry() {
-        return metrics;
     }
 
     static Optional<Plan> getDeployPlan(Collection<Plan> plans) {

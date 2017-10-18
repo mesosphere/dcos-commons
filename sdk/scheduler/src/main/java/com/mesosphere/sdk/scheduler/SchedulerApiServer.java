@@ -42,23 +42,24 @@ public class SchedulerApiServer {
 
         // Metrics
         ServletContextHandler context = new ServletContextHandler();
-        MetricsServlet metricsServlet = new MetricsServlet(SchedulerUtils.getMetricRegistry());
+        MetricsServlet metricsServlet = new MetricsServlet(Metrics.getRegistry());
         ServletHolder metricsHolder = new ServletHolder("default", metricsServlet);
 
         // Prometheus
         CollectorRegistry collectorRegistry = new CollectorRegistry();
-        collectorRegistry.register(new DropwizardExports(SchedulerUtils.getMetricRegistry()));
+        collectorRegistry.register(new DropwizardExports(Metrics.getRegistry()));
         io.prometheus.client.exporter.MetricsServlet prometheusServlet =
                 new io.prometheus.client.exporter.MetricsServlet(collectorRegistry);
         ServletHolder prometheusHolder = new ServletHolder("prometheus", prometheusServlet);
 
         // Resources
-        ResourceConfig resourceConfig = new ResourceConfig(MultiPartFeature.class).registerInstances(new HashSet<>(resources));
+        ResourceConfig resourceConfig = new ResourceConfig(MultiPartFeature.class)
+                .registerInstances(new HashSet<>(resources));
         ServletHolder resourceHolder = new ServletHolder(new ServletContainer(resourceConfig));
 
-        context.addServlet(metricsHolder,"/v1/metrics");
-        context.addServlet(prometheusHolder,"/v1/metrics/prometheus");
-        context.addServlet(resourceHolder,"/*");
+        context.addServlet(metricsHolder, "/v1/metrics");
+        context.addServlet(prometheusHolder, "/v1/metrics/prometheus");
+        context.addServlet(resourceHolder, "/*");
 
         server.getHandlers();
         server.setHandler(context);
@@ -91,7 +92,7 @@ public class SchedulerApiServer {
                 try {
                     LOGGER.info("Starting API server at port {}", port);
                     server.start();
-                    int localPort = ((ServerConnector)server.getConnectors()[0]).getLocalPort();
+                    int localPort = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
                     LOGGER.info("API server started at port {}", localPort);
                     startTimer.cancel();
                     server.join();

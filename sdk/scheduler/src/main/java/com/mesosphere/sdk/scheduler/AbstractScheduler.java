@@ -1,10 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -53,11 +51,6 @@ public abstract class AbstractScheduler {
 
     private final Object inProgressLock = new Object();
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
-
-    // Metrics
-    private final Counter receivedOffers = SchedulerUtils.getMetricRegistry().counter("received_offers");
-    private final Counter processedOffers = SchedulerUtils.getMetricRegistry().counter("processed_offers");
-    private final Timer processOffersDuration = SchedulerUtils.getMetricRegistry().timer("process_offers");
 
     /**
      * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
@@ -282,7 +275,7 @@ public abstract class AbstractScheduler {
 
         @Override
         public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-            receivedOffers.inc(offers.size());
+            Metrics.getReceivedOffers().inc(offers.size());
 
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
@@ -345,6 +338,7 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+                Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -420,13 +414,13 @@ public abstract class AbstractScheduler {
             }
 
             // Match offers with work (call into implementation)
-            final Timer.Context context = processOffersDuration.time();
+            final Timer.Context context = Metrics.getProcessOffersDuration().time();
             try {
                 processOffers(driver, offers, steps);
             } finally {
                 context.stop();
             }
-            processedOffers.inc(offers.size());
+            Metrics.getProcessedOffers().inc(offers.size());
 
             // Revive previously suspended offers, if necessary
             reviveManager.revive(steps);

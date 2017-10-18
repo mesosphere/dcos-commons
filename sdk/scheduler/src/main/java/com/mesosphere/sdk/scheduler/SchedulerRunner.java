@@ -59,7 +59,7 @@ public class SchedulerRunner implements Runnable {
      *
      * @param serviceSpec the service specification converted to be used by the config store
      * @param schedulerConfig the scheduler configuration to use (usually based on process environment)
-     * @param configTemplateDir a list of one or more custom plans to be used by the service
+     * @param plans a list of one or more custom plans to be used by the service
      * @return a new {@link SchedulerRunner} instance, which may be launched with {@link #run()}
      */
     public static SchedulerRunner fromServiceSpec(
