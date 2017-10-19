@@ -52,7 +52,7 @@ public class SendTaskStatus implements Send {
     }
 
     @Override
-    public void run(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
+    public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
         Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
                 .setTaskId(state.getTaskId(taskName))
                 .setState(taskState)
