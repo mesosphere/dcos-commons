@@ -239,7 +239,7 @@ public class ServiceTestRunner {
                     }
                 } else if (tick instanceof Send) {
                     LOGGER.info("SEND:   {}", tick.getDescription());
-                    ((Send) tick).run(state, mockDriver, scheduler.getMesosScheduler().get());
+                    ((Send) tick).send(state, mockDriver, scheduler.getMesosScheduler().get());
                 } else {
                     throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
                 }

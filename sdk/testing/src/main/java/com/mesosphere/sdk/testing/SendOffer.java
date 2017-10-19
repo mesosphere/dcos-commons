@@ -34,17 +34,30 @@ public class SendOffer implements Send {
         private Optional<String> podToReuseResources;
         private String hostname;
 
+        /**
+         * Creates a new offer which matches the resource requirements for the specified pod. By default, new unreserved
+         * resources will be used for the offer.
+         */
         public Builder(String podType) {
             this.podType = podType;
             this.podToReuseResources = Optional.empty();
             this.hostname = TestConstants.HOSTNAME;
         }
 
+        /**
+         * Specifies that the previously reserved resources from a previously launched pod should be used in this offer,
+         * instead of new unreserved resources.
+         *
+         * @param podIndex the index of the previous pod to be offered
+         */
         public Builder setResourcesFromPod(int podIndex) {
             this.podToReuseResources = Optional.of(String.format("%s-%d", podType, podIndex));
             return this;
         }
 
+        /**
+         * Assigns a custom hostname to be used in the offer. Otherwise a common default will be used.
+         */
         public Builder setHostname(String hostname) {
             this.hostname = hostname;
             return this;
@@ -62,7 +75,7 @@ public class SendOffer implements Send {
     }
 
     @Override
-    public void run(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
+    public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
         Protos.Offer offer = getOfferForPod(state);
         state.addSentOffer(offer);
         scheduler.resourceOffers(mockDriver, Arrays.asList(offer));

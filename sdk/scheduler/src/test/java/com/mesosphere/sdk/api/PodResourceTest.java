@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -63,30 +64,30 @@ public class PodResourceTest {
                 .setType("test")
                 .setIndex(0)
                 .toProto());
-        POD_0_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
+        POD_0_TASK_A = infoBuilder.setName("test-0-a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_0_STATUS_A = TaskTestUtils.generateStatus(POD_0_TASK_A.getTaskId(), TaskState.TASK_RUNNING);
 
-        POD_0_TASK_B = POD_0_TASK_A.toBuilder().setName("b").setTaskId(CommonIdUtils.toTaskId("b")).build();
+        POD_0_TASK_B = POD_0_TASK_A.toBuilder().setName("test-0-b").setTaskId(CommonIdUtils.toTaskId("b")).build();
         POD_0_STATUS_B = TaskTestUtils.generateStatus(POD_0_TASK_B.getTaskId(), TaskState.TASK_STAGING);
 
-        POD_0_TASK_C = POD_0_TASK_A.toBuilder().setName("c").setTaskId(CommonIdUtils.toTaskId("c")).build();
+        POD_0_TASK_C = POD_0_TASK_A.toBuilder().setName("test-0-c").setTaskId(CommonIdUtils.toTaskId("c")).build();
         POD_0_STATUS_C = TaskTestUtils.generateStatus(POD_0_TASK_C.getTaskId(), TaskState.TASK_RUNNING);
 
-        POD_0_TASK_D = POD_0_TASK_A.toBuilder().setName("d").setTaskId(CommonIdUtils.toTaskId("d")).build();
+        POD_0_TASK_D = POD_0_TASK_A.toBuilder().setName("test-0-d").setTaskId(CommonIdUtils.toTaskId("d")).build();
 
         // pod 1
         infoBuilder = POD_0_TASK_A.toBuilder();
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(1).toProto());
-        POD_1_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
+        POD_1_TASK_A = infoBuilder.setName("test-1-a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_1_STATUS_A = TaskTestUtils.generateStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
 
-        POD_1_TASK_B = POD_1_TASK_A.toBuilder().setName("b").setTaskId(CommonIdUtils.toTaskId("b")).build();
+        POD_1_TASK_B = POD_1_TASK_A.toBuilder().setName("test-1-b").setTaskId(CommonIdUtils.toTaskId("b")).build();
         POD_1_STATUS_B = TaskTestUtils.generateStatus(POD_1_TASK_B.getTaskId(), TaskState.TASK_RUNNING);
 
         // pod 2
         infoBuilder = POD_0_TASK_A.toBuilder();
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(2).toProto());
-        POD_2_TASK_A = infoBuilder.setName("a").setTaskId(CommonIdUtils.toTaskId("a")).build();
+        POD_2_TASK_A = infoBuilder.setName("test-2-a").setTaskId(CommonIdUtils.toTaskId("a")).build();
         POD_2_STATUS_A = TaskTestUtils.generateStatus(POD_2_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
     }
     private static final Collection<TaskInfo> TASK_INFOS = Arrays.asList(
@@ -138,7 +139,22 @@ public class PodResourceTest {
     public void testGetAllPodStatuses() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME)).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("test-0-a")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("test-0-b"))
+                .thenReturn(GoalStateOverride.NONE.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
+        when(mockStateStore.fetchGoalOverrideStatus("test-0-c"))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING));
+        // test-0-d lacks TaskStatus, so no override fetch
+        when(mockStateStore.fetchGoalOverrideStatus("test-1-a")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("test-1-b"))
+                .thenReturn(GoalStateOverride.NONE.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
+        when(mockStateStore.fetchGoalOverrideStatus("test-2-a")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.COMPLETE));
         Response response = resource.getPodStatuses();
+        verify(mockStateStore, times(0)).fetchGoalOverrideStatus("test-0-d");
+
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 4, json.length());
@@ -148,40 +164,39 @@ public class PodResourceTest {
 
         JSONObject task = pod.getJSONObject(0);
         assertEquals(3, task.length());
-        assertEquals("a", task.getString("name"));
+        assertEquals("test-0-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
         assertEquals("TASK_RUNNING", task.getString("state"));
 
         task = pod.getJSONObject(1);
         assertEquals(3, task.length());
-        assertEquals("b", task.getString("name"));
+        assertEquals("test-0-b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
         assertEquals("TASK_STAGING", task.getString("state"));
 
         task = pod.getJSONObject(2);
         assertEquals(3, task.length());
-        assertEquals("c", task.getString("name"));
+        assertEquals("test-0-c", task.getString("name"));
         assertTrue(task.getString("id").startsWith("c__"));
         assertEquals("TASK_RUNNING", task.getString("state"));
 
         task = pod.getJSONObject(3);
-        assertEquals(3, task.length());
-        assertEquals("d", task.getString("name"));
+        assertEquals(2, task.length());
+        assertEquals("test-0-d", task.getString("name"));
         assertTrue(task.getString("id").startsWith("d__"));
-        assertEquals("No state defined", task.getString("state"));
 
         pod = json.getJSONArray("test-1");
         assertEquals(2, pod.length());
 
         task = pod.getJSONObject(0);
         assertEquals(3, task.length());
-        assertEquals("a", task.getString("name"));
+        assertEquals("test-1-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
         assertEquals("TASK_FINISHED", task.getString("state"));
 
         task = pod.getJSONObject(1);
         assertEquals(3, task.length());
-        assertEquals("b", task.getString("name"));
+        assertEquals("test-1-b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
         assertEquals("TASK_RUNNING", task.getString("state"));
 
@@ -190,7 +205,7 @@ public class PodResourceTest {
 
         task = pod.getJSONObject(0);
         assertEquals(3, task.length());
-        assertEquals("a", task.getString("name"));
+        assertEquals("test-2-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
         assertEquals("TASK_FINISHED", task.getString("state"));
 
@@ -208,6 +223,9 @@ public class PodResourceTest {
     public void testGetPodStatus() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        when(mockStateStore.fetchGoalOverrideStatus("test-1-a")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("test-1-b"))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
         Response response = resource.getPodStatus("test-1");
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
@@ -215,13 +233,13 @@ public class PodResourceTest {
 
         JSONObject task = json.getJSONObject(0);
         assertEquals(3, task.length());
-        assertEquals("a", task.getString("name"));
+        assertEquals("test-1-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
         assertEquals("TASK_FINISHED", task.getString("state"));
 
         task = json.getJSONObject(1);
         assertEquals(3, task.length());
-        assertEquals("b", task.getString("name"));
+        assertEquals("test-1-b", task.getString("name"));
         assertTrue(task.getString("id").startsWith("b__"));
         assertEquals("TASK_RUNNING", task.getString("state"));
     }
@@ -257,6 +275,82 @@ public class PodResourceTest {
         assertEquals(404, response.getStatus());
     }
 
+    // stop
+
+    @Test
+    public void testStopEntirePod() {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        Response response = resource.stopPod("test-0", null);
+        assertEquals(200, response.getStatus());
+
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(2, json.length());
+        assertEquals("test-0", json.getString("pod"));
+        assertEquals(4, json.getJSONArray("tasks").length());
+        assertEquals("test-0-a", json.getJSONArray("tasks").get(0));
+        assertEquals("test-0-b", json.getJSONArray("tasks").get(1));
+        assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
+        assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
+
+        GoalStateOverride.Status expectedStatus =
+                GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING);
+        verify(mockStateStore).storeGoalOverrideStatus("test-0-a", expectedStatus);
+        verify(mockStateStore).storeGoalOverrideStatus("test-0-b", expectedStatus);
+        verify(mockStateStore).storeGoalOverrideStatus("test-0-c", expectedStatus);
+        verify(mockStateStore).storeGoalOverrideStatus("test-0-d", expectedStatus);
+    }
+
+    @Test
+    public void testStopEntirePodNotFound() {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        Response response = resource.stopPod("aaa", null);
+        assertEquals(404, response.getStatus());
+
+        verify(mockStateStore, times(0)).storeGoalOverrideStatus(any(), any());
+    }
+
+    @Test
+    public void testStopPodTasks() {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        JSONArray jsonReq = new JSONArray();
+        // allow both task names with and without a "pod-#-" prefix:
+        jsonReq.put("a");
+        jsonReq.put("test-0-c");
+        Response response = resource.stopPod("test-0", jsonReq.toString());
+        assertEquals(200, response.getStatus());
+
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(2, json.length());
+        assertEquals("test-0", json.getString("pod"));
+        assertEquals(2, json.getJSONArray("tasks").length());
+        assertEquals("test-0-a", json.getJSONArray("tasks").get(0));
+        assertEquals("test-0-c", json.getJSONArray("tasks").get(1));
+
+        GoalStateOverride.Status expectedStatus =
+                GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING);
+        verify(mockStateStore).storeGoalOverrideStatus("test-0-a", expectedStatus);
+        verify(mockStateStore, times(0)).storeGoalOverrideStatus("test-0-b", expectedStatus);
+        verify(mockStateStore).storeGoalOverrideStatus("test-0-c", expectedStatus);
+        verify(mockStateStore, times(0)).storeGoalOverrideStatus("test-0-d", expectedStatus);
+    }
+
+    @Test
+    public void testStopPodTasksNotFound() {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
+        JSONArray jsonReq = new JSONArray();
+        jsonReq.put("a");
+        jsonReq.put("test-0-c");
+        jsonReq.put("e");
+        Response response = resource.stopPod("test-0", jsonReq.toString());
+        assertEquals(404, response.getStatus());
+
+        verify(mockStateStore, times(0)).storeGoalOverrideStatus(any(), any());
+    }
+
     // restart
 
     @Test
@@ -278,10 +372,10 @@ public class PodResourceTest {
         assertEquals(2, json.length());
         assertEquals("test-0", json.getString("pod"));
         assertEquals(4, json.getJSONArray("tasks").length());
-        assertEquals("a", json.getJSONArray("tasks").get(0));
-        assertEquals("b", json.getJSONArray("tasks").get(1));
-        assertEquals("c", json.getJSONArray("tasks").get(2));
-        assertEquals("d", json.getJSONArray("tasks").get(3));
+        assertEquals("test-0-a", json.getJSONArray("tasks").get(0));
+        assertEquals("test-0-b", json.getJSONArray("tasks").get(1));
+        assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
+        assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
         verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
         verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
@@ -301,8 +395,8 @@ public class PodResourceTest {
         assertEquals(2, json.length());
         assertEquals("test-1", json.getString("pod"));
         assertEquals(2, json.getJSONArray("tasks").length());
-        assertEquals("a", json.getJSONArray("tasks").get(0));
-        assertEquals("b", json.getJSONArray("tasks").get(1));
+        assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
+        assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
         verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
@@ -330,10 +424,10 @@ public class PodResourceTest {
         assertEquals(2, json.length());
         assertEquals("test-0", json.getString("pod"));
         assertEquals(4, json.getJSONArray("tasks").length());
-        assertEquals("a", json.getJSONArray("tasks").get(0));
-        assertEquals("b", json.getJSONArray("tasks").get(1));
-        assertEquals("c", json.getJSONArray("tasks").get(2));
-        assertEquals("d", json.getJSONArray("tasks").get(3));
+        assertEquals("test-0-a", json.getJSONArray("tasks").get(0));
+        assertEquals("test-0-b", json.getJSONArray("tasks").get(1));
+        assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
+        assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
         verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.PERMANENT);
         verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.PERMANENT);
@@ -353,8 +447,8 @@ public class PodResourceTest {
         assertEquals(2, json.length());
         assertEquals("test-1", json.getString("pod"));
         assertEquals(2, json.getJSONArray("tasks").length());
-        assertEquals("a", json.getJSONArray("tasks").get(0));
-        assertEquals("b", json.getJSONArray("tasks").get(1));
+        assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
+        assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
         verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.PERMANENT);
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.PERMANENT);

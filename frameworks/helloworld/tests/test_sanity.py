@@ -40,6 +40,8 @@ def test_install():
 # Note: presently the mesos v1 api does _not_ work in strict mode.
 # As such, we expect this test to fail until it does in fact work in strict mode.
 @pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v1
 @pytest.mark.skipif(sdk_utils.is_strict_mode(), reason='v1 API is not yet supported in strict mode')
 def test_mesos_v1_api():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
@@ -181,13 +183,18 @@ def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
-    assert len(jsonobj) == 5
-    # alphabetical ordering:
-    assert jsonobj[0] == "hello-0-server:task-status"
-    assert jsonobj[1] == "hello-1-server:task-status"
-    assert jsonobj[2] == "last-completed-update-type"
-    assert jsonobj[3] == "world-0-server:task-status"
-    assert jsonobj[4] == "world-1-server:task-status"
+    # should be in alphabetical order:
+    expected = [
+        "hello-0-server:task-status",
+        "hello-1-server:task-status",
+        "last-completed-update-type",
+        "world-0-server:task-status",
+        "world-1-server:task-status"]
+    # the properties list may also have a 'suppressed' bit, which would have been left behind by the
+    # prior version when upgrades were being tested during suite setup
+    expected_with_suppressed = list(expected)
+    expected_with_suppressed.insert(3, 'suppressed')
+    assert jsonobj == expected or jsonobj == expected_with_suppressed
 
 
 @pytest.mark.sanity

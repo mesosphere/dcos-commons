@@ -132,7 +132,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+        killUnneededAndPendingOverrideTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
@@ -188,7 +188,8 @@ public class DefaultScheduler extends AbstractScheduler {
         return new DefaultPlanCoordinator(planManagers);
     }
 
-    private static void killUnneededTasks(StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
+    private static void killUnneededAndPendingOverrideTasks(
+            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
@@ -211,6 +212,16 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
+
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
+            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
+                // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
+                // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
+                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+            }
+        }
     }
 
     @Override
@@ -263,9 +274,24 @@ public class DefaultScheduler extends AbstractScheduler {
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
         Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
+        // StateStore updates:
+        // - TaskStatus
+        // - Override status (if applicable)
         stateStore.storeStatus(taskName, status);
+        if (TaskUtils.isTerminal(status)) {
+            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
+            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                // The task was marked PENDING before being killed. Mark it as IN_PROGRESS now that we know the kill has
+                // taken effect.
+                stateStore.storeGoalOverrideStatus(taskName,
+                        overrideStatus.target.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
+            }
+        }
+
+        // Notify plans of status update:
         planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
+        // Special handling: Retry launch if initial launch failed
         if (lastStatus.isPresent() &&
                 AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
                 TaskUtils.isRecoveryNeeded(status)) {

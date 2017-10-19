@@ -123,13 +123,13 @@ public class ClusterState {
     }
 
     /**
-     * Returns the last task id for a task of the specified name
+     * Returns the last task launched with the specified name
      *
      * @param taskName the task name to be found
-     * @return the task id
+     * @return the task's info
      * @throws IllegalStateException if no such task was found
      */
-    public Protos.TaskID getTaskId(String taskName) {
+    public Protos.TaskInfo getLastLaunchedTask(String taskName) {
         // Iterate over pods in sequential order, so that the newer version of a given task (by name) takes precedence
         // over an older version.
         // For example, given two versions of podX:
@@ -139,17 +139,28 @@ public class ClusterState {
         //   {A: 2, B: 1, C: 3}
         // Note: We COULD have just filtered against the task name up-front here, but it'd be more helpful to have a
         // mapping of all tasks available for the error message below.
-        Map<String, Protos.TaskID> taskIdsByName = new HashMap<>();
+        Map<String, Protos.TaskInfo> taskInfosByName = new HashMap<>();
         for (Collection<Protos.TaskInfo> pod : createdPods) {
             for (Protos.TaskInfo task : pod) {
-                taskIdsByName.put(task.getName(), task.getTaskId());
+                taskInfosByName.put(task.getName(), task);
             }
         }
-        Protos.TaskID taskId = taskIdsByName.get(taskName);
-        if (taskId == null) {
+        Protos.TaskInfo taskInfo = taskInfosByName.get(taskName);
+        if (taskInfo == null) {
             throw new IllegalStateException(String.format(
-                    "Unable to find task named %s, known tasks were: %s", taskName, taskIdsByName));
+                    "Unable to find task named %s, known tasks were: %s", taskName, taskInfosByName.keySet()));
         }
-        return taskId;
+        return taskInfo;
+    }
+
+    /**
+     * Returns the last task id for a task of the specified name
+     *
+     * @param taskName the task name to be found
+     * @return the task id
+     * @throws IllegalStateException if no such task was found
+     */
+    public Protos.TaskID getTaskId(String taskName) {
+        return getLastLaunchedTask(taskName).getTaskId();
     }
 }

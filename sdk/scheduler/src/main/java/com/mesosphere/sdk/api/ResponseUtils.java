@@ -76,7 +76,7 @@ public class ResponseUtils {
     }
 
     /**
-     * Returns a response containing the provided plaintext {@link String} with the 
+     * Returns a response containing the provided plaintext {@link String} with the
      * provided status {@link Response.Status}.
      */
     public static Response plainResponse(String plaintext, Response.Status status) {
@@ -85,7 +85,7 @@ public class ResponseUtils {
 
 
     /**
-     * Returns a response containing the provided plaintext {@link String} with the 
+     * Returns a response containing the provided plaintext {@link String} with the
      * provided statusCode.
      */
     public static Response plainResponse(String plaintext, int statusCode) {
