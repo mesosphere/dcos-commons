@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -284,18 +285,6 @@ public abstract class AbstractScheduler {
                 return;
             }
 
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
-                        offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineShort(driver, offers);
-                return;
-            }
-
             synchronized (inProgressLock) {
                 offersInProgress.addAll(
                         offers.stream()
@@ -400,6 +389,18 @@ public abstract class AbstractScheduler {
                 // The scheduler hasn't finished registration yet, so many members haven't been initialized yet either.
                 // Avoid hitting NPE for planCoordinator, driver, etc.
                 LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
+                return;
+            }
+
+            // Task Reconciliation:
+            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+            // http://mesos.apache.org/documentation/latest/reconciliation/
+            reconciler.reconcile(driver);
+            if (!reconciler.isReconciled()) {
+                LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
+                        offers.size(), offers.size() == 1 ? "" : "s");
+                OfferUtils.declineShort(driver, offers);
                 return;
             }
 
