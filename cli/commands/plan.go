@@ -231,7 +231,7 @@ func (cmd *planHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElem
 		payload = parameterPayload
 	}
 	client.SetCustomResponseCheck(checkPlansResponse)
-	responseBytes, err := client.HTTPServicePostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
+	responseBytes, err := client.HTTPServicePostJSON(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload)
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
@@ -309,26 +309,26 @@ func HandlePlanSection(app *kingpin.Application) {
 }
 
 func toStatusTree(planName string, planJSONBytes []byte) string {
-	optionsJSON, err := client.UnmarshalJSON(planJSONBytes)
+	planJSON, err := client.UnmarshalJSON(planJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in plan response: %s", err))
 	}
 	var buf bytes.Buffer
 
-	planStatus, ok := optionsJSON["status"]
+	planStatus, ok := planJSON["status"]
 	if !ok {
 		planStatus = "<UNKNOWN>"
 	}
 	buf.WriteString(fmt.Sprintf("%s (%s)\n", planName, planStatus))
 
-	phases, ok := optionsJSON["phases"].([]interface{})
+	phases, ok := planJSON["phases"].([]interface{})
 	if ok {
 		for i, rawPhase := range phases {
 			appendPhase(&buf, rawPhase, i == len(phases)-1)
 		}
 	}
 
-	errors, ok := optionsJSON["errors"].([]interface{})
+	errors, ok := planJSON["errors"].([]interface{})
 	if ok && len(errors) > 0 {
 		buf.WriteString("\nErrors:\n")
 		for _, error := range errors {

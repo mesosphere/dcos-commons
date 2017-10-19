@@ -44,6 +44,15 @@ public interface Persister {
     void set(String path, byte[] bytes) throws PersisterException;
 
     /**
+     * Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
+     * missing will be unset in the returned {@link Map}.
+     *
+     * @see #get(String)
+     * @throws PersisterException in the event of an access error
+     */
+    Map<String, byte[]> getMany(Collection<String> paths) throws PersisterException;
+
+    /**
      * Atomically writes many values to storage at once.
      *
      * @see #set(String, byte[])
@@ -52,13 +61,22 @@ public interface Persister {
     void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException;
 
     /**
+     * Atomically deletes many values from storage at once, with each path entry being treated as a call to
+     * {@link #recursiveDelete(String)} for those paths.
+     *
+     * @see #recursiveDelete(String)
+     * @throws PersisterException in the event of an access error, in which case no changes should have been made
+     */
+    void recursiveDeleteMany(Collection<String> paths) throws PersisterException;
+
+    /**
      * Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
      *
      * <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.
      *
      * @throws PersisterException if the data at the requested path didn't exist, or for other access errors
      */
-    void deleteAll(String path) throws PersisterException;
+    void recursiveDelete(String path) throws PersisterException;
 
     /**
      * Closes this storage and cleans up any local client resources. No other operations should be performed against the

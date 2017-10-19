@@ -13,6 +13,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -53,6 +54,11 @@ public class StateStore {
 
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
     private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
+    private static final String TASK_METADATA_PATH_NAME = "Metadata";
+
+    private static final String TASK_GOAL_OVERRIDE_PATH_NAME = "goal-state-override";
+    private static final String TASK_GOAL_OVERRIDE_STATUS_PATH_NAME = "override-status";
+
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
@@ -103,7 +109,7 @@ public class StateStore {
      */
     public void clearFrameworkId() throws StateStoreException {
         try {
-            persister.deleteAll(FWK_ID_PATH_NAME);
+            persister.recursiveDelete(FWK_ID_PATH_NAME);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent FrameworkID should not result in an exception from us.
@@ -200,7 +206,7 @@ public class StateStore {
      */
     public void clearTask(String taskName) throws StateStoreException {
         try {
-            persister.deleteAll(getTaskPath(taskName));
+            persister.recursiveDelete(getTaskPath(taskName));
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Task should not result in an exception from us.
@@ -422,7 +428,7 @@ public class StateStore {
         try {
             final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
-            persister.deleteAll(path);
+            persister.recursiveDelete(path);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Property should not result in an exception from us.
@@ -433,6 +439,94 @@ public class StateStore {
         }
     }
 
+    // Read/Write task metadata
+
+    /**
+     * Stores the goal state override status of a particular Task. The {@link TaskInfo} for this exact task MUST have
+     * already been written via {@link #storeTasks(Collection)} beforehand.
+     *
+     * @throws StateStoreException in the event of a storage error
+     */
+    public void storeGoalOverrideStatus(String taskName, GoalStateOverride.Status status)
+            throws StateStoreException {
+        try {
+            if (GoalStateOverride.Status.INACTIVE.equals(status)) {
+                // Mark inactive state by clearing any override bits.
+                persister.recursiveDeleteMany(Arrays.asList(
+                        getGoalOverridePath(taskName),
+                        getGoalOverrideStatusPath(taskName)));
+            } else {
+                Map<String, byte[]> values = new TreeMap<>();
+                values.put(getGoalOverridePath(taskName),
+                        status.target.getSerializedName().getBytes(StandardCharsets.UTF_8));
+                values.put(getGoalOverrideStatusPath(taskName),
+                        status.progress.getSerializedName().getBytes(StandardCharsets.UTF_8));
+                persister.setMany(values);
+            }
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    /**
+     * Retrieves the goal state override status of a particular task. A lack of override will result in a
+     * {@link GoalOverrideStatus} with {@code override=NONE} and {@code state=NONE}.
+     *
+     * @throws StateStoreException in the event of a storage error
+     */
+    public GoalStateOverride.Status fetchGoalOverrideStatus(String taskName) throws StateStoreException {
+        try {
+            String goalOverridePath = getGoalOverridePath(taskName);
+            String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
+            Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
+            byte[] nameBytes = values.get(goalOverridePath);
+            byte[] statusBytes = values.get(goalOverrideStatusPath);
+            if (nameBytes == null && statusBytes == null) {
+                // Cleared override bits => Inactive state
+                return GoalStateOverride.Status.INACTIVE;
+            } else if (nameBytes == null || statusBytes == null) {
+                // This shouldn't happen, but let's just play it safe and assume that the override shouldn't be set.
+                logger.error("Task is missing override name or override status. Expected either both or neither: {}",
+                        values);
+                return GoalStateOverride.Status.INACTIVE;
+            }
+            return parseOverrideName(taskName, nameBytes).newStatus(parseOverrideProgress(taskName, statusBytes));
+        } catch (PersisterException e) {
+            throw new StateStoreException(e);
+        }
+    }
+
+    private static GoalStateOverride parseOverrideName(String taskName, byte[] nameBytes) throws StateStoreException {
+        String overrideName = new String(nameBytes, StandardCharsets.UTF_8);
+        for (GoalStateOverride override : GoalStateOverride.values()) {
+            if (override.getSerializedName().equals(overrideName)) {
+                return override;
+            }
+        }
+        // The override name isn't recognized. This could happen during a downgrade or similar scenario where a task
+        // previously has an override that is no longer recognized by the scheduler. The most reasonable thing in this
+        // case would be to fall back to a no-override state.
+        logger.warn("Task '{}' has unrecognized override named '{}'. Left over from a recent upgrade/downgrade? "
+                + "Falling back to inactive override target.", taskName, overrideName);
+        return GoalStateOverride.Status.INACTIVE.target;
+    }
+
+    private static GoalStateOverride.Progress parseOverrideProgress(String taskName, byte[] progressBytes)
+            throws StateStoreException {
+        String progressName = new String(progressBytes, StandardCharsets.UTF_8);
+        for (GoalStateOverride.Progress state : GoalStateOverride.Progress.values()) {
+            if (state.getSerializedName().equals(progressName)) {
+                return state;
+            }
+        }
+        // The progress name isn't recognized. This could happen during a downgrade or similar scenario where a task
+        // previously has a state that is no longer recognized by the scheduler. The most reasonable thing in this
+        // case is to fall back to a no-override state.
+        logger.warn("Task '{}' has unrecognized override progress '{}'. Left over from a recent upgrade/downgrade? "
+                + "Falling back to inactive override progress.", taskName, progressName);
+        return GoalStateOverride.Status.INACTIVE.progress;
+    }
+
     // Uninstall Related Methods
 
     /**
@@ -440,7 +534,7 @@ public class StateStore {
      */
     public void clearAllData() throws StateStoreException {
         try {
-            persister.deleteAll(PersisterUtils.PATH_DELIM_STR);
+            persister.recursiveDelete(PersisterUtils.PATH_DELIM_STR);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Nothing to delete, apparently. Treat as a no-op
@@ -466,6 +560,18 @@ public class StateStore {
 
     protected static String getTaskStatusPath(String taskName) {
         return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+    }
+
+    protected static String getGoalOverridePath(String taskName) {
+        return PersisterUtils.join(
+                PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
+                TASK_GOAL_OVERRIDE_PATH_NAME);
+    }
+
+    protected static String getGoalOverrideStatusPath(String taskName) {
+        return PersisterUtils.join(
+                PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
+                TASK_GOAL_OVERRIDE_STATUS_PATH_NAME);
     }
 
     protected static String getTaskPath(String taskName) {

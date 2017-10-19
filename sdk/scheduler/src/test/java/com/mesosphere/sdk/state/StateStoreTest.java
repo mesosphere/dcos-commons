@@ -439,6 +439,39 @@ public class StateStoreTest {
     }
 
     @Test
+    public void testFetchStoreFetchOverride() {
+        String taskName = "hello";
+        assertEquals(GoalStateOverride.Status.INACTIVE, store.fetchGoalOverrideStatus(taskName));
+
+        GoalStateOverride.Status status = GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING);
+        store.storeGoalOverrideStatus(taskName, status);
+        assertEquals(status, store.fetchGoalOverrideStatus(taskName));
+
+        status = GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS);
+        store.storeGoalOverrideStatus(taskName, status);
+        assertEquals(status, store.fetchGoalOverrideStatus(taskName));
+
+        status = GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.COMPLETE);
+        store.storeGoalOverrideStatus(taskName, status);
+        assertEquals(status, store.fetchGoalOverrideStatus(taskName));
+
+        status = GoalStateOverride.NONE.newStatus(GoalStateOverride.Progress.PENDING);
+        store.storeGoalOverrideStatus(taskName, status);
+        assertEquals(status, store.fetchGoalOverrideStatus(taskName));
+
+        status = GoalStateOverride.NONE.newStatus(GoalStateOverride.Progress.IN_PROGRESS);
+        store.storeGoalOverrideStatus(taskName, status);
+        assertEquals(status, store.fetchGoalOverrideStatus(taskName));
+
+        status = GoalStateOverride.NONE.newStatus(GoalStateOverride.Progress.COMPLETE);
+        store.storeGoalOverrideStatus(taskName, status);
+        assertEquals(status, store.fetchGoalOverrideStatus(taskName));
+
+        store.storeGoalOverrideStatus(taskName, GoalStateOverride.Status.INACTIVE);
+        assertEquals(GoalStateOverride.Status.INACTIVE, store.fetchGoalOverrideStatus(taskName));
+    }
+
+    @Test
     public void testMissingTaskStatus() {
         store.storeTasks(Arrays.asList(TestConstants.TASK_INFO));
         assertEquals(0, store.fetchStatuses().size());

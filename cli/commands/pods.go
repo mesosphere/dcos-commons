@@ -1,18 +1,20 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
+	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
 type podHandler struct {
 	PodName string
+	RawJSON bool
 }
 
 func (cmd *podHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet("v1/pod")
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -22,7 +24,6 @@ func (cmd *podHandler) handleList(a *kingpin.Application, e *kingpin.ParseElemen
 }
 
 func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
 	endpointPath := "v1/pod/status"
 	if len(cmd.PodName) > 0 {
 		endpointPath = fmt.Sprintf("v1/pod/%s/status", cmd.PodName)
@@ -35,8 +36,78 @@ func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElem
 	return nil
 }
 
+func toPodTree(podsJSONBytes []byte) string {
+	podsJSON, err := client.UnmarshalJSON(podsJSONBytes)
+	if err != nil {
+		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in pods response: %s", err))
+	}
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("%s\n", config.ServiceName))
+
+	i := 0
+	for podName, rawPod := range podsJSON {
+		appendPod(&buf, podName, rawPod, i == len(podsJSON)-1)
+		i++
+	}
+
+	// Trim extra newline from end:
+	buf.Truncate(buf.Len() - 1)
+
+	return buf.String()
+}
+
+func appendPod(buf *bytes.Buffer, podName string, rawPod interface{}, lastPod bool) {
+	var podPrefix string
+	if lastPod {
+		podPrefix = "└─ "
+	} else {
+		podPrefix = "├─ "
+	}
+
+	buf.WriteString(fmt.Sprintf("%s%s\n", podPrefix, podName))
+
+	tasks, ok := rawPod.([]interface{})
+	if !ok {
+		return
+	}
+	for i, rawTask := range tasks {
+		appendTask(buf, rawTask, lastPod, i == len(tasks)-1)
+	}
+}
+
+func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastTask bool) {
+	var taskPrefix string
+	if lastPod {
+		if lastTask {
+			taskPrefix = "   └─ "
+		} else {
+			taskPrefix = "   ├─ "
+		}
+	} else {
+		if lastTask {
+			taskPrefix = "│  └─ "
+		} else {
+			taskPrefix = "│  ├─ "
+		}
+	}
+
+	task, ok := rawTask.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	taskName, ok := task["name"]
+	if !ok {
+		taskName = "<UNKNOWN>"
+	}
+	taskState, ok := task["state"]
+	if !ok {
+		taskState = "<UNKNOWN>"
+	}
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", taskPrefix, taskName, taskState))
+}
+
 func (cmd *podHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/pod/%s/info", cmd.PodName))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -46,7 +117,6 @@ func (cmd *podHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElemen
 }
 
 func (cmd *podHandler) handleRestart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pod/%s/restart", cmd.PodName))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -57,7 +127,6 @@ func (cmd *podHandler) handleRestart(a *kingpin.Application, e *kingpin.ParseEle
 }
 
 func (cmd *podHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
 	body, err := client.HTTPServicePost(fmt.Sprintf("v1/pod/%s/replace", cmd.PodName))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())

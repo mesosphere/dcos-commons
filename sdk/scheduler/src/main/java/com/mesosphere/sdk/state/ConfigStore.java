@@ -126,7 +126,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
     public void clear(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
-            persister.deleteAll(path);
+            persister.recursiveDelete(path);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Configuration should not result in an exception.
