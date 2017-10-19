@@ -86,6 +86,8 @@ public class SchedulerConfig {
 
     /** Specifies the URI of the executor artifact to be used when launching tasks. */
     private static final String EXECUTOR_URI_ENV = "EXECUTOR_URI";
+    /** Specifies the URI of the bootstrap artifact to be used when launching stopped tasks. */
+    private static final String BOOTSTRAP_URI_ENV = "BOOTSTRAP_URI";
     /** Specifies the URI of the libmesos package used by the scheduler itself. */
     private static final String LIBMESOS_URI_ENV = "LIBMESOS_URI";
     /** Specifies the Java URI to be used when launching tasks. */
@@ -169,6 +171,10 @@ public class SchedulerConfig {
 
     public String getExecutorURI() {
         return envStore.getRequired(EXECUTOR_URI_ENV);
+    }
+
+    public String getBootstrapURI() {
+        return envStore.getRequired(BOOTSTRAP_URI_ENV);
     }
 
     public String getLibmesosURI() {

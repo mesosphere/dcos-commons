@@ -12,7 +12,7 @@ public interface Send extends SimulationTick {
     public static Send register() {
         return new Send() {
             @Override
-            public void run(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
+            public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
                 scheduler.registered(
                         mockDriver,
                         Protos.FrameworkID.newBuilder()
@@ -43,6 +43,11 @@ public interface Send extends SimulationTick {
     /**
      * Performs an action against the provided scheduler, optionally updating the provided cluster state to reflect
      * the action.
+     *
+     * @param state the cluster's current state, containing a history of e.g. recent offers and launched tasks
+     * @param mockDriver a mock {@link SchedulerDriver} which should be passed through to the {@code scheduler} when
+     *     making any calls
+     * @param scheduler the Mesos {@link Scheduler} under test
      */
-    public void run(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler);
+    public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler);
 }
