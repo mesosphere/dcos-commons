@@ -7,6 +7,7 @@ go:
   - 1.8.3
 before_install:
   - sudo apt-get install -y awscli
+  - sudo apt-get update -yq
 script:
   - ./gradlew assemble
   - ./gradlew check
