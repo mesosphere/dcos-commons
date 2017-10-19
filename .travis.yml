@@ -3,3 +3,21 @@ sudo: false
 dist: trusty
 jdk:
   - openjdk8
+before_install:
+  - sudo apt-get install -y awscli
+script:
+  - ./gradlew assemble
+  - ./gradlew check
+  - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+      frameworks/cassandra/build.sh aws;
+      frameworks/elastic/build.sh aws;
+      frameworks/hdfs/build.sh aws;
+      frameworks/kafka/build.sh aws;
+      frameworks/portworx/build.sh aws;
+    fi
+notifications:
+  email:
+    on_success: always
+    on_failure: always
+
+  
