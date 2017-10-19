@@ -155,12 +155,12 @@ public class PodResource extends PrettyJsonResource {
     @GET
     public Response getPodStatus(@PathParam("name") String podInstanceName) {
         try {
-            Collection<TaskInfoAndStatus> podTasks =
+            Optional<Collection<TaskInfoAndStatus>> podTasks =
                     GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
-            if (podTasks == null) {
+            if (!podTasks.isPresent()) {
                 return ResponseUtils.elementNotFoundResponse();
             }
-            return jsonOkResponse(getPodInstanceStatusJson(stateStore, podInstanceName, podTasks));
+            return jsonOkResponse(getPodInstanceStatusJson(stateStore, podInstanceName, podTasks.get()));
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch status for pod '%s'", podInstanceName), e);
             return Response.serverError().build();
@@ -174,9 +174,9 @@ public class PodResource extends PrettyJsonResource {
     @GET
     public Response getPodInfo(@PathParam("name") String podInstanceName) {
         try {
-            Collection<TaskInfoAndStatus> podTasks =
+            Optional<Collection<TaskInfoAndStatus>> podTasks =
                     GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
-            if (podTasks == null) {
+            if (!podTasks.isPresent()) {
                 return ResponseUtils.elementNotFoundResponse();
             }
             return jsonResponseBean(podTasks, Response.Status.OK);
@@ -229,19 +229,19 @@ public class PodResource extends PrettyJsonResource {
     }
 
     private Response overrideGoalState(String podInstanceName, Set<String> taskNameFilter, GoalStateOverride override) {
-        Collection<TaskInfoAndStatus> allPodTasks =
+        Optional<Collection<TaskInfoAndStatus>> allPodTasks =
                 GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
-        if (allPodTasks == null) {
+        if (!allPodTasks.isPresent()) {
             return ResponseUtils.elementNotFoundResponse();
         }
         Collection<TaskInfoAndStatus> podTasks =
-                RequestUtils.filterPodTasks(podInstanceName, allPodTasks, taskNameFilter);
+                RequestUtils.filterPodTasks(podInstanceName, allPodTasks.get(), taskNameFilter);
         if (podTasks.isEmpty() || podTasks.size() < taskNameFilter.size()) {
             // one or more requested tasks were not found.
             LOGGER.error("Request had task filter: {} but pod '{}' tasks are: {} (matching: {})",
                     taskNameFilter,
                     podInstanceName,
-                    allPodTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()),
+                    allPodTasks.get().stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()),
                     podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
             return ResponseUtils.elementNotFoundResponse();
         }
@@ -295,20 +295,21 @@ public class PodResource extends PrettyJsonResource {
 
     private Response restartPod(String podInstanceName, RecoveryType recoveryType) {
         // look up all tasks in the provided pod name:
-        Collection<TaskInfoAndStatus> podTasks = GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
-        if (podTasks == null || podTasks.isEmpty()) { // shouldn't ever be empty, but just in case
+        Optional<Collection<TaskInfoAndStatus>> podTasks =
+                GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
+        if (!podTasks.isPresent() || podTasks.get().isEmpty()) { // shouldn't ever be empty, but just in case
             return ResponseUtils.elementNotFoundResponse();
         }
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
         LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
-                recoveryType, podInstanceName, podTasks.size());
+                recoveryType, podInstanceName, podTasks.get().size());
         if (taskKiller == null) {
             LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
         }
-        return killTasks(taskKiller, podInstanceName, podTasks, recoveryType);
+        return killTasks(taskKiller, podInstanceName, podTasks.get(), recoveryType);
     }
 
     private static Response killTasks(

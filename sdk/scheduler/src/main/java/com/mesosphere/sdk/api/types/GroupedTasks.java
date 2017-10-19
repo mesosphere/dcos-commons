@@ -44,15 +44,15 @@ public class GroupedTasks {
         return new GroupedTasks(stateStore.fetchTasks(), stateStore.fetchStatuses());
     }
 
-    public Collection<TaskInfoAndStatus> getPodInstanceTasks(String podInstanceName) {
+    public Optional<Collection<TaskInfoAndStatus>> getPodInstanceTasks(String podInstanceName) {
         for (Map.Entry<String, Map<Integer, List<TaskInfoAndStatus>>> pod : byPodTypeAndIndex.entrySet()) {
             for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : pod.getValue().entrySet()) {
                 if (PodInstance.getName(pod.getKey(), podInstance.getKey()).equals(podInstanceName)) {
-                    return podInstance.getValue();
+                    return Optional.of(podInstance.getValue());
                 }
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private GroupedTasks(Collection<TaskInfo> taskInfos, Collection<TaskStatus> taskStatuses) {
