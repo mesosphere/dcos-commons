@@ -90,6 +90,7 @@ public class PodResource extends PrettyJsonResource {
             }
 
             JSONArray jsonArray = new JSONArray(podNames);
+
             if (!unknownTaskNames.isEmpty()) {
                 Collections.sort(unknownTaskNames);
                 for (String unknownName : unknownTaskNames) {

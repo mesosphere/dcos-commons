@@ -98,7 +98,6 @@ public class SchedulerRunner implements Runnable {
      */
     @Override
     public void run() {
-
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
