@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -158,30 +158,43 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#deleteAll-java.lang.String-">deleteAll</a></span>(java.lang.String&nbsp;path)</code>
-<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#get-java.lang.String-">get</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Retrieves the previously stored data at the specified path, or throws an exception if the path doesn't exist.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#getChildren-java.lang.String-">getChildren</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Returns the names of child nodes at the provided path.</div>
 </td>
 </tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,byte[]&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#getMany-java.util.Collection-">getMany</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)</code>
+<div class="block">Atomically reads many values from storage at once, returning a mapping of paths to values.</div>
+</td>
+</tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#recursiveDelete-java.lang.String-">recursiveDelete</a></span>(java.lang.String&nbsp;path)</code>
+<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#recursiveDeleteMany-java.util.Collection-">recursiveDeleteMany</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)</code>
+<div class="block">Atomically deletes many values from storage at once, with each path entry being treated as a call to
+ <a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a> for those paths.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#refresh--">refresh</a></span>()</code>
 <div class="block">Refreshes the cache with the underlying persister's data.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;path,
    byte[]&nbsp;bytes)</code>
@@ -189,7 +202,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterCache.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
@@ -302,6 +315,27 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </dl>
 </li>
 </ul>
+<a name="getMany-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMany</h4>
+<pre>public&nbsp;java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;getMany(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)
+                                               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getMany-java.util.Collection-">Persister</a></code></span></div>
+<div class="block">Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
+ missing will be unset in the returned <code>Map</code>.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getMany-java.util.Collection-">getMany</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a></dd>
+</dl>
+</li>
+</ul>
 <a name="setMany-java.util.Map-">
 <!--   -->
 </a>
@@ -322,21 +356,42 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </dl>
 </li>
 </ul>
-<a name="deleteAll-java.lang.String-">
+<a name="recursiveDeleteMany-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>deleteAll</h4>
-<pre>public&nbsp;void&nbsp;deleteAll(java.lang.String&nbsp;path)
-               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">Persister</a></code></span></div>
+<h4>recursiveDeleteMany</h4>
+<pre>public&nbsp;void&nbsp;recursiveDeleteMany(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)
+                         throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDeleteMany-java.util.Collection-">Persister</a></code></span></div>
+<div class="block">Atomically deletes many values from storage at once, with each path entry being treated as a call to
+ <a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a> for those paths.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDeleteMany-java.util.Collection-">recursiveDeleteMany</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error, in which case no changes should have been made</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="recursiveDelete-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recursiveDelete</h4>
+<pre>public&nbsp;void&nbsp;recursiveDelete(java.lang.String&nbsp;path)
+                     throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
 
  <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#deleteAll-java.lang.String-">deleteAll</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the data at the requested path didn't exist, or for other access errors</dd>
 </dl>
