@@ -3,11 +3,10 @@ sudo: false
 dist: trusty
 jdk:
   - openjdk8
-go:
-  - 1.8.3
 before_install:
   - sudo apt-get install -y awscli
   - sudo apt-get update -yq
+  - eval "$(gimme 1.8.3)"
 script:
   - ./gradlew assemble
   - ./gradlew check
