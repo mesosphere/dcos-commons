@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
@@ -18,6 +19,7 @@ import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 
@@ -27,6 +29,9 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
  */
 public interface Expect extends SimulationTick {
 
+    /**
+     * Verifies that the last offer sent to the scheduler was declined.
+     */
     public static Expect declinedLastOffer() {
         return new Expect() {
             @Override
@@ -43,11 +48,17 @@ public interface Expect extends SimulationTick {
         };
     }
 
-    public static Expect launchedPod(String... taskNames) {
-        return launchedPod(Arrays.asList(taskNames));
+    /**
+     * Verifies that a pod was launched with exactly the provided task names.
+     */
+    public static Expect launchedTasks(String... taskNames) {
+        return launchedTasks(Arrays.asList(taskNames));
     }
 
-    public static Expect launchedPod(Collection<String> taskNames) {
+    /**
+     * Verifies that a pod was launched with exactly the provided task names.
+     */
+    public static Expect launchedTasks(Collection<String> taskNames) {
         return new Expect() {
             // Use this form instead of using ArgumentCaptor.forClass() to avoid problems with typecasting generics:
             @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdsCaptor;
@@ -78,17 +89,75 @@ public interface Expect extends SimulationTick {
                     }
                 }
                 Assert.assertTrue(
-                        String.format("Expected tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
+                        String.format("Expected launched tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
                         launchedTaskNames.containsAll(taskNames) && taskNames.containsAll(launchedTaskNames));
             }
 
             @Override
             public String getDescription() {
-                return "Last offer was accepted";
+                return String.format("Tasks were launched in a new pod: %s", taskNames);
             }
         };
     }
 
+    /**
+     * Verifies that the resources for the provided task names have been unreserved.
+     */
+    public static Expect unreservedTasks(String... taskNames) {
+        return unreservedTasks(Arrays.asList(taskNames));
+    }
+
+    /**
+     * Verifies that the resources for the provided task names have been unreserved.
+     */
+    public static Expect unreservedTasks(Collection<String> taskNames) {
+        return new Expect() {
+            // Use this form instead of using ArgumentCaptor.forClass() to avoid problems with typecasting generics:
+            @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdsCaptor;
+            @Captor private ArgumentCaptor<Collection<Protos.Offer.Operation>> operationsCaptor;
+
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                MockitoAnnotations.initMocks(this);
+                verify(mockDriver, atLeastOnce())
+                        .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
+                Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
+                Collection<String> expectedResourceIds = taskNames.stream()
+                        .map(taskName ->
+                                ResourceUtils.getResourceIds(state.getLastLaunchedTask(taskName).getResourcesList()))
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
+                Assert.assertFalse(String.format("Expected some resource ids for tasks: %s, got none", taskNames),
+                        expectedResourceIds.isEmpty());
+                Collection<String> unreservedResourceIds = new ArrayList<>();
+                for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
+                    if (operation.getType().equals(Protos.Offer.Operation.Type.DESTROY)) {
+                        // Destroy volume(s)
+                        unreservedResourceIds.addAll(
+                                ResourceUtils.getResourceIds(operation.getDestroy().getVolumesList()));
+                    } else if (operation.getType().equals(Protos.Offer.Operation.Type.UNRESERVE)) {
+                        // Unreserve resource(s)
+                        unreservedResourceIds.addAll(
+                                ResourceUtils.getResourceIds(operation.getUnreserve().getResourcesList()));
+                    }
+                }
+                Assert.assertTrue(
+                        String.format("Expected unreserved resource ids: %s, got ids: %s",
+                                expectedResourceIds, unreservedResourceIds),
+                        unreservedResourceIds.containsAll(expectedResourceIds)
+                        && expectedResourceIds.containsAll(unreservedResourceIds));
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Resources for tasks have been unreserved: %s", taskNames);
+            }
+        };
+    }
+
+    /**
+     * Verifies that the specified task was killed.
+     */
     public static Expect killedTask(String taskName) {
         return new Expect() {
             @Override
@@ -105,6 +174,9 @@ public interface Expect extends SimulationTick {
         };
     }
 
+    /**
+     * Verifies that an explicit task reconciliation for the specified task statuses was invoked.
+     */
     public static Expect reconciledExplicitly(Collection<Protos.TaskStatus> taskStatuses) {
         return new Expect() {
             @Captor private ArgumentCaptor<Collection<Protos.TaskStatus>> statusCaptor;
@@ -125,6 +197,9 @@ public interface Expect extends SimulationTick {
         };
     }
 
+    /**
+     * Verifies that an implicit task reconciliation was invoked.
+     */
     public static Expect reconciledImplicitly() {
         return new Expect() {
             @Override
@@ -139,6 +214,9 @@ public interface Expect extends SimulationTick {
         };
     }
 
+    /**
+     * Verifies that the scheduler's plans are all complete -- that there's no pending work.
+     */
     public static Expect allPlansComplete() {
         return new Expect() {
             @Override
@@ -146,7 +224,7 @@ public interface Expect extends SimulationTick {
                 Collection<Plan> plans = state.getPlans();
                 for (Plan plan : plans) {
                     if (!plan.isComplete()) {
-                        throw new IllegalStateException(String.format(
+                        Assert.fail(String.format(
                                 "%s plan is not complete. Plans: %s",
                                 plan.getName(),
                                 plans.stream().map(p -> p.toString()).collect(Collectors.toList())));
@@ -162,11 +240,11 @@ public interface Expect extends SimulationTick {
     }
 
     /**
-     * Validates that a certain event had occurred, optionally updating the provided {@link ClusterState} with a result.
+     * Verifies that a certain event had occurred, optionally updating the provided {@link ClusterState} with a result.
      *
      * @param state the simulated cluster's state
      * @param mockDriver a mockito mock which was passed to the Scheduler under test
-     * @throws AssertionError if validation failed
+     * @throws AssertionError containing a descriptive error if the validation failed
      */
-    public void expect(ClusterState state, SchedulerDriver mockDriver);
+    public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError;
 }
