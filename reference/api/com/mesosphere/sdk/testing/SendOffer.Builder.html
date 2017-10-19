@@ -132,7 +132,9 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#Builder-java.lang.String-">Builder</a></span>(java.lang.String&nbsp;podType)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#Builder-java.lang.String-">Builder</a></span>(java.lang.String&nbsp;podType)</code>
+<div class="block">Creates a new offer which matches the resource requirements for the specified pod.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -155,11 +157,16 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setHostname-java.lang.String-">setHostname</a></span>(java.lang.String&nbsp;hostname)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setHostname-java.lang.String-">setHostname</a></span>(java.lang.String&nbsp;hostname)</code>
+<div class="block">Assigns a custom hostname to be used in the offer.</div>
+</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setResourcesFromPod-int-">setResourcesFromPod</a></span>(int&nbsp;podIndex)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setResourcesFromPod-int-">setResourcesFromPod</a></span>(int&nbsp;podIndex)</code>
+<div class="block">Specifies that the previously reserved resources from a previously launched pod should be used in this offer,
+ instead of new unreserved resources.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -190,6 +197,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>Builder</h4>
 <pre>public&nbsp;Builder(java.lang.String&nbsp;podType)</pre>
+<div class="block">Creates a new offer which matches the resource requirements for the specified pod. By default, new unreserved
+ resources will be used for the offer.</div>
 </li>
 </ul>
 </li>
@@ -207,6 +216,12 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setResourcesFromPod</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a>&nbsp;setResourcesFromPod(int&nbsp;podIndex)</pre>
+<div class="block">Specifies that the previously reserved resources from a previously launched pod should be used in this offer,
+ instead of new unreserved resources.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>podIndex</code> - the index of the previous pod to be offered</dd>
+</dl>
 </li>
 </ul>
 <a name="setHostname-java.lang.String-">
@@ -216,6 +231,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setHostname</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a>&nbsp;setHostname(java.lang.String&nbsp;hostname)</pre>
+<div class="block">Assigns a custom hostname to be used in the offer. Otherwise a common default will be used.</div>
 </li>
 </ul>
 <a name="build--">
