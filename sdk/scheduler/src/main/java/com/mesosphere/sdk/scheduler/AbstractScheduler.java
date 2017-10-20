@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -13,7 +13,6 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -276,10 +275,12 @@ public abstract class AbstractScheduler {
 
         @Override
         public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+            Metrics.getReceivedOffers().inc(offers.size());
+
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
+                OfferUtils.declineShort(driver, offers);
                 return;
             }
 
@@ -291,7 +292,7 @@ public abstract class AbstractScheduler {
             if (!reconciler.isReconciled()) {
                 LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
+                OfferUtils.declineShort(driver, offers);
                 return;
             }
 
@@ -314,7 +315,7 @@ public abstract class AbstractScheduler {
                 if (!queued) {
                     LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                             offer.getId().getValue());
-                    OfferUtils.declineOffers(driver, Arrays.asList(offer), Constants.SHORT_DECLINE_SECONDS);
+                    OfferUtils.declineShort(driver, Arrays.asList(offer));
                     // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                     synchronized (inProgressLock) {
                         offersInProgress.remove(offer.getId());
@@ -337,6 +338,7 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+                Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -412,7 +414,13 @@ public abstract class AbstractScheduler {
             }
 
             // Match offers with work (call into implementation)
-            processOffers(driver, offers, steps);
+            final Timer.Context context = Metrics.getProcessOffersDuration().time();
+            try {
+                processOffers(driver, offers, steps);
+            } finally {
+                context.stop();
+            }
+            Metrics.getProcessedOffers().inc(offers.size());
 
             // Revive previously suspended offers, if necessary
             reviveManager.revive(steps);

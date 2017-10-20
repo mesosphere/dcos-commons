@@ -34,6 +34,7 @@ ext {
     elVer = "2.2.4"
     jwtVer = "3.2.0"
     bouncyCastleVer = "1.57"
+    dropWizardMetricsVer = "3.2.5"
 }
 
 task sourceJar(type: Jar) {
@@ -98,6 +99,7 @@ dependencies {
     compile "com.google.inject.extensions:guice-assistedinject:${guiceVer}"
     compile "com.googlecode.java-diff-utils:diffutils:${javaDiffUtilsVer}"
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVer}"
+    compile "org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-multipart:${jerseyVer}"
     compile "org.jvnet.mimepull:mimepull:${mimepullVer}"
@@ -113,6 +115,11 @@ dependencies {
     }
     compile "org.bouncycastle:bcprov-jdk15on:${bouncyCastleVer}"
     compile "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVer}"
+    compile "io.dropwizard.metrics:metrics-core:${dropWizardMetricsVer}"
+    compile "io.dropwizard.metrics:metrics-servlet:${dropWizardMetricsVer}"
+    compile "io.dropwizard.metrics:metrics-servlets:${dropWizardMetricsVer}"
+    compile "io.prometheus:simpleclient_dropwizard:0.0.26"
+    compile "io.prometheus:simpleclient_servlet:0.0.26"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"

@@ -2,16 +2,14 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.storage.PersisterUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * This class provides utilities common to the construction and operation of Mesos Schedulers.
