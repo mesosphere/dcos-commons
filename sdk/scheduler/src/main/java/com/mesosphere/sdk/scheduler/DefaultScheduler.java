@@ -92,7 +92,9 @@ public class DefaultScheduler extends AbstractScheduler {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
         this.offerAccepter = new OfferAccepter(
-                Collections.singletonList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
+                Arrays.asList(
+                        new PersistentLaunchRecorder(stateStore, serviceSpec),
+                        Metrics.OperationsCounter.getInstance()));
 
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
@@ -247,7 +249,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Decline remaining offers.
         if (!unusedOffers.isEmpty()) {
-            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+            OfferUtils.declineLong(driver, unusedOffers);
         }
 
         if (offers.isEmpty()) {

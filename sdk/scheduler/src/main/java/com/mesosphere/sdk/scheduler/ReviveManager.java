@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
  * This class determines whether offers should be revived based on changes to the work being processed by the scheduler.
  */
 public class ReviveManager {
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
     private final TokenBucket tokenBucket;
@@ -77,8 +76,10 @@ public class ReviveManager {
             if (tokenBucket.tryAcquire()) {
                 logger.info("Reviving offers.");
                 driver.reviveOffers();
+                Metrics.getRevives().inc();
             } else {
                 logger.warn("Revive attempt has been throttled.");
+                Metrics.getReviveThrottles().inc();
                 return;
             }
         }

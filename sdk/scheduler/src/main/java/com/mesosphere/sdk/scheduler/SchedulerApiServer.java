@@ -1,20 +1,26 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.servlets.MetricsServlet;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.UriBuilder;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import javax.ws.rs.core.UriBuilder;
 
 /**
  * The SchedulerApiServer runs the Jetty {@link Server} that exposes the Scheduler's API.
@@ -33,6 +39,30 @@ public class SchedulerApiServer {
                 new ResourceConfig(MultiPartFeature.class).registerInstances(new HashSet<>(resources)),
                 false /* don't start yet. wait for start() call below. */);
         this.startTimeout = schedulerConfig.getApiServerInitTimeout();
+
+        // Metrics
+        ServletContextHandler context = new ServletContextHandler();
+        MetricsServlet metricsServlet = new MetricsServlet(Metrics.getRegistry());
+        ServletHolder metricsHolder = new ServletHolder("default", metricsServlet);
+
+        // Prometheus
+        CollectorRegistry collectorRegistry = new CollectorRegistry();
+        collectorRegistry.register(new DropwizardExports(Metrics.getRegistry()));
+        io.prometheus.client.exporter.MetricsServlet prometheusServlet =
+                new io.prometheus.client.exporter.MetricsServlet(collectorRegistry);
+        ServletHolder prometheusHolder = new ServletHolder("prometheus", prometheusServlet);
+
+        // Resources
+        ResourceConfig resourceConfig = new ResourceConfig(MultiPartFeature.class)
+                .registerInstances(new HashSet<>(resources));
+        ServletHolder resourceHolder = new ServletHolder(new ServletContainer(resourceConfig));
+
+        context.addServlet(metricsHolder, "/v1/metrics");
+        context.addServlet(prometheusHolder, "/v1/metrics/prometheus");
+        context.addServlet(resourceHolder, "/*");
+
+        server.getHandlers();
+        server.setHandler(context);
     }
 
     /**
@@ -62,7 +92,8 @@ public class SchedulerApiServer {
                 try {
                     LOGGER.info("Starting API server at port {}", port);
                     server.start();
-                    LOGGER.info("API server started at port {}", port);
+                    int localPort = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+                    LOGGER.info("API server started at port {}", localPort);
                     startTimer.cancel();
                     server.join();
                 } catch (Exception e) {

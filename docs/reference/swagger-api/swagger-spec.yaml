@@ -18,6 +18,8 @@ tags:
   description: "Historical and current target configurations for the service"
 - name: "state"
   description: "Additional persisted state"
+- name: "metrics"
+  description: "Scheduler metrics"
 schemes:
 - "http"
 paths:
@@ -544,3 +546,14 @@ paths:
           description: "The scheduler isn't using a state cache so there's nothing to do."
         500:
           description: "Failed to retrieve state data from zk."
+  /metrics:
+    get:
+      tags:
+      - "metrics"
+      summary: "Returns a snapshot of the current scheduler metrics."
+      operationId: "metrics"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "The metrics snapshot has been returned."
