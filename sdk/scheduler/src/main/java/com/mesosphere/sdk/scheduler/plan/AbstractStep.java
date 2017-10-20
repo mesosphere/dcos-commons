@@ -52,6 +52,14 @@ public abstract class AbstractStep implements Step {
     }
 
     /**
+     * Override this to provide custom displayed status labels in plan RPCs.
+     */
+    @Override
+    public String getDisplayStatus() {
+        return getStatus().toString();
+    }
+
+    /**
      * Updates the status setting and logs the outcome. Should only be called either by tests, by
      * {@code this}, or by subclasses.
      *

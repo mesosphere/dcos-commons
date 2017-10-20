@@ -5,6 +5,9 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.state.GoalStateOverride;
+import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -16,11 +19,17 @@ import java.util.stream.Collectors;
  */
 public class DeploymentStep extends AbstractStep {
 
+    private static final String DISPLAY_STATUS_STOPPED = "STOPPED";
+    private static final String DISPLAY_STATUS_STOPPING = "STOPPING";
+
+    protected final StateStore stateStore;
     protected final PodInstanceRequirement podInstanceRequirement;
+
     private final List<String> errors;
     private Map<String, String> parameters;
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
     private final AtomicBoolean prepared = new AtomicBoolean(false);
+    private String displayStatus;
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
@@ -30,33 +39,14 @@ public class DeploymentStep extends AbstractStep {
             String name,
             Status status,
             PodInstanceRequirement podInstanceRequirement,
+            StateStore stateStore,
             List<String> errors) {
         super(name, status);
-        this.errors = errors;
         this.podInstanceRequirement = podInstanceRequirement;
-    }
-
-    /**
-     * This method may be triggered by external components via the {@link #updateOfferStatus(Collection)} method in
-     * particular, so it is synchronized to avoid inconsistent expectations regarding what TaskIDs are relevant to it.
-     *
-     * @param recommendations The {@link OfferRecommendation}s returned in response to the
-     *                        {@link PodInstanceRequirement} provided by {@link #start()}
-     */
-    private synchronized void setTaskIds(Collection<OfferRecommendation> recommendations) {
-        tasks.clear();
-
-        for (OfferRecommendation recommendation : recommendations) {
-            if (!(recommendation instanceof LaunchOfferRecommendation)) {
-                continue;
-            }
-            Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo();
-            if (!taskInfo.getTaskId().getValue().equals("")) {
-                tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
-            }
-        }
-
-        logger.info("Step '{} [{}]' is now waiting for updates for task IDs: {}", getName(), getId(), tasks);
+        this.stateStore = stateStore;
+        this.errors = errors;
+        // Fill in an arbitrary value to start with. To be updated once we know what tasks we're tied to.
+        this.displayStatus = status.toString();
     }
 
     @Override
@@ -86,8 +76,11 @@ public class DeploymentStep extends AbstractStep {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Synchronized to ensure consistency between this and {@link #update(Protos.TaskStatus)}.
+     */
     @Override
-    public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
+    public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
         logger.info("Updated step '{} [{}]' to reflect {} recommendation{}: {}",
                 getName(),
@@ -95,7 +88,20 @@ public class DeploymentStep extends AbstractStep {
                 recommendations.size(),
                 recommendations.size() == 1 ? "" : "s",
                 recommendations.stream().map(r -> r.getOperation().getType()));
-        setTaskIds(recommendations);
+
+        tasks.clear();
+
+        for (OfferRecommendation recommendation : recommendations) {
+            if (!(recommendation instanceof LaunchOfferRecommendation)) {
+                continue;
+            }
+            Protos.TaskInfo taskInfo = ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo();
+            if (!taskInfo.getTaskId().getValue().equals("")) {
+                tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED));
+            }
+        }
+
+        logger.info("Step '{} [{}]' is now waiting for updates for task IDs: {}", getName(), getId(), tasks.keySet());
 
         if (recommendations.isEmpty()) {
             tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
@@ -104,7 +110,7 @@ public class DeploymentStep extends AbstractStep {
         }
 
         prepared.set(true);
-        setStatus(getStatus(tasks));
+        updateStatus();
     }
 
     @Override
@@ -115,6 +121,11 @@ public class DeploymentStep extends AbstractStep {
     @Override
     public List<String> getErrors() {
         return errors;
+    }
+
+    @Override
+    public String getDisplayStatus() {
+        return displayStatus;
     }
 
     /**
@@ -181,7 +192,7 @@ public class DeploymentStep extends AbstractStep {
                 logger.error("Failed to process unexpected state: " + status.getState());
         }
 
-        setStatus(getStatus(tasks));
+        updateStatus();
     }
 
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
@@ -191,11 +202,14 @@ public class DeploymentStep extends AbstractStep {
             logger.info("Status for: {} is: {}", taskID.getValue(), status);
         }
 
-        if (getStatus().equals(Status.PENDING)) {
+        if (isPending()) {
             prepared.set(false);
         }
+    }
 
+    private void updateStatus() {
         setStatus(getStatus(tasks));
+        displayStatus = getDisplayStatus(tasks.values());
     }
 
     @VisibleForTesting
@@ -210,10 +224,8 @@ public class DeploymentStep extends AbstractStep {
 
         Set<Status> statuses = new HashSet<>();
         for (Map.Entry<Protos.TaskID, TaskStatusPair> entry : tasks.entrySet()) {
-            String taskId = entry.getKey().getValue();
             Status status = entry.getValue().getStatus();
-            logger.info("TaskId: {} has status: {}", taskId, status);
-
+            logger.info("TaskId: {} has status: {}", entry.getKey().getValue(), status);
             statuses.add(status);
         }
 
@@ -240,6 +252,20 @@ public class DeploymentStep extends AbstractStep {
         logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
                 "Falling back to current step status: {}", statuses, super.getStatus());
         return super.getStatus();
+    }
+
+    private String getDisplayStatus(Collection<TaskStatusPair> tasks) {
+        boolean allTasksStopped = tasks.stream()
+                .map(pair -> stateStore.fetchGoalOverrideStatus(pair.getTaskInfo().getName()))
+                .allMatch(overrideStatus -> overrideStatus.target == GoalStateOverride.STOPPED);
+        if (allTasksStopped) {
+            if (isInProgress()) {
+                return DISPLAY_STATUS_STOPPING;
+            } else if (isComplete()) {
+                return DISPLAY_STATUS_STOPPED;
+            }
+        }
+        return getStatus().toString();
     }
 
     @VisibleForTesting

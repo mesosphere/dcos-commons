@@ -179,7 +179,7 @@ public class PodResource extends PrettyJsonResource {
             if (!podTasks.isPresent()) {
                 return ResponseUtils.elementNotFoundResponse();
             }
-            return jsonResponseBean(podTasks, Response.Status.OK);
+            return jsonResponseBean(podTasks.get(), Response.Status.OK);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to fetch info for pod '%s'", podInstanceName), e);
             return Response.serverError().build();

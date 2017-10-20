@@ -8,6 +8,8 @@ import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -26,24 +28,26 @@ public class DefaultStepFactoryTest {
     private ConfigStore<ServiceSpec> configStore;
     private StateStore stateStore;
 
-    @Test(expected = Step.InvalidStepException.class)
+    @Test
     public void testGetStepFailsOnMultipleResourceSetReferences() throws Exception {
 
         PodInstance podInstance = getPodInstanceWithSameResourceSets();
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
                 .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
-        stepFactory.getStep(podInstance, tasksToLaunch);
+        Step step = stepFactory.getStep(podInstance, tasksToLaunch);
+        Assert.assertEquals(Status.ERROR, step.getStatus());
     }
 
-    @Test(expected = Step.InvalidStepException.class)
+    @Test
     public void testGetStepFailsOnDuplicateDNSNames() throws Exception {
 
         PodInstance podInstance = getPodInstanceWithSameDnsPrefixes();
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
                 .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
-        stepFactory.getStep(podInstance, tasksToLaunch);
+        Step step = stepFactory.getStep(podInstance, tasksToLaunch);
+        Assert.assertEquals(Status.ERROR, step.getStatus());
     }
 
     private PodInstance getPodInstanceWithSameResourceSets() throws Exception {

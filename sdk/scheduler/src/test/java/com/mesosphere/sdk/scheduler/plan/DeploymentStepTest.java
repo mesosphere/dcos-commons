@@ -4,6 +4,8 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.GoalStateOverride;
+import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
@@ -18,28 +20,36 @@ import java.util.*;
 import static org.mockito.Mockito.when;
 
 /**
- * This class tests the DefaultStep class.
+ * Tests for {@link DeploymentStep}.
  */
 public class DeploymentStepTest {
     private static final String TEST_STEP_NAME = "test-step";
 
-    @Mock private PodSpec podSpec;
-    @Mock private PodInstance podInstance;
-    @Mock private TaskSpec taskSpec;
+    @Mock private PodSpec mockPodSpec;
+    @Mock private PodInstance mockPodInstance;
+    @Mock private TaskSpec mockTaskSpec;
+    @Mock private StateStore mockStateStore;
     private String taskName;
     private Protos.TaskID taskID;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(podSpec.getTasks()).thenReturn(Arrays.asList(taskSpec));
-        when(podSpec.getType()).thenReturn(TestConstants.POD_TYPE);
-        when(taskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
-        when(taskSpec.getGoal()).thenReturn(GoalState.RUNNING);
-        when(podInstance.getPod()).thenReturn(podSpec);
-        when(podInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
-        taskName = TaskSpec.getInstanceName(podInstance, taskSpec);
+        when(mockPodSpec.getTasks()).thenReturn(Arrays.asList(mockTaskSpec));
+        when(mockPodSpec.getType()).thenReturn(TestConstants.POD_TYPE);
+        when(mockTaskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
+        when(mockTaskSpec.getGoal()).thenReturn(GoalState.RUNNING);
+        when(mockPodInstance.getPod()).thenReturn(mockPodSpec);
+        when(mockPodInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
+        taskName = TaskSpec.getInstanceName(mockPodInstance, mockTaskSpec);
         taskID = CommonIdUtils.toTaskId(taskName);
+
+        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME + 0))
+                .thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME + 1))
+                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
+        when(mockStateStore.fetchGoalOverrideStatus(taskName))
+                .thenReturn(GoalStateOverride.Status.INACTIVE);
     }
 
     @Test
@@ -168,6 +178,7 @@ public class DeploymentStepTest {
                 TEST_STEP_NAME,
                 Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                mockStateStore,
                 Collections.emptyList());
 
         Assert.assertTrue(step.isEligible(Arrays.asList()));
@@ -195,6 +206,7 @@ public class DeploymentStepTest {
                 TEST_STEP_NAME,
                 Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                mockStateStore,
                 Collections.emptyList());
 
         Assert.assertTrue(step.isPending());
@@ -242,6 +254,7 @@ public class DeploymentStepTest {
                 TEST_STEP_NAME,
                 Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                mockStateStore,
                 Collections.emptyList());
 
         LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
@@ -297,7 +310,8 @@ public class DeploymentStepTest {
         return new DeploymentStep(
                 TEST_STEP_NAME,
                 Status.PENDING,
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
+                PodInstanceRequirement.newBuilder(mockPodInstance, TaskUtils.getTaskNames(mockPodInstance)).build(),
+                mockStateStore,
                 Collections.emptyList());
     }
 

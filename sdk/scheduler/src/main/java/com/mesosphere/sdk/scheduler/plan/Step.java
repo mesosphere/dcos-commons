@@ -42,6 +42,12 @@ public interface Step extends Element, Interruptible {
     Optional<PodInstanceRequirement> getAsset();
 
     /**
+     * Returns a user-facing display status of this step, which may provide additional context on the work being
+     * performed beyond the underlying progress {@link Status} returned by {@link Element#getStatus()}.
+     */
+    String getDisplayStatus();
+
+    /**
      * Reports whether the Asset associated with this Step is dirty.
      */
     default boolean isAssetDirty() {
@@ -55,16 +61,9 @@ public interface Step extends Element, Interruptible {
                 !(getAsset().isPresent() && PlanUtils.assetConflicts(getAsset().get(), dirtyAssets));
     }
 
-    /**
-     * Thrown on invalid Step construction attempt.
-     */
-    class InvalidStepException extends Exception {
-        public InvalidStepException(Exception e) {
-            super(e);
-        }
-
-        public InvalidStepException(String s) {
-            super(s);
-        }
+    @Override
+    default String getMessage() {
+        // Include the display status:
+        return Element.super.getMessage() + "/" + getDisplayStatus();
     }
 }

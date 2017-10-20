@@ -532,6 +532,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 "test-step",
                 Status.PENDING,
                 podInstanceRequirement,
+                stateStore,
                 Collections.emptyList());
 
         Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(

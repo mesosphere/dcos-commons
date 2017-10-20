@@ -26,7 +26,7 @@ public interface Element {
     String getName();
 
     /**
-     * Returns the Status of this Element.
+     * Returns the {@link Status} of this Element, used to determine if the element still has work to be completed.
      */
     Status getStatus();
 
@@ -116,7 +116,7 @@ public interface Element {
      * Returns a reasonable user-visible status message.
      */
     default String getMessage() {
-        return String.format("%s: '%s [%s]' has status: '%s'.",
+        return String.format("%s: %s [%s] with status: %s",
                 getClass().getName(), getName(), getId(), getStatus());
     }
 }

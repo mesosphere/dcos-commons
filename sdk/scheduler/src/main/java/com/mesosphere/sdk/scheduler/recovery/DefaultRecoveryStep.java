@@ -21,7 +21,6 @@ import java.util.Optional;
 public class DefaultRecoveryStep extends DeploymentStep {
 
     private final LaunchConstrainer launchConstrainer;
-    private final StateStore stateStore;
 
     public DefaultRecoveryStep(
             String name,
@@ -29,9 +28,8 @@ public class DefaultRecoveryStep extends DeploymentStep {
             PodInstanceRequirement podInstanceRequirement,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore) {
-        super(name, status, podInstanceRequirement, Collections.emptyList());
+        super(name, status, podInstanceRequirement, stateStore, Collections.emptyList());
         this.launchConstrainer = launchConstrainer;
-        this.stateStore = stateStore;
     }
 
     @Override

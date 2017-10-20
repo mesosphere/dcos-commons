@@ -6,21 +6,20 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.Status;
 
 /**
  * Immutable JSON serialization object for a Step.
  */
 class StepInfo {
     private final String id;
-    private final Status status;
+    private final String status;
     private final String name;
     private final String message;
 
     public static StepInfo forStep(final Step step) {
         return new StepInfo(
                 step.getId().toString(),
-                step.getStatus(),
+                step.getDisplayStatus(),
                 step.getName(),
                 step.getMessage());
     }
@@ -28,7 +27,7 @@ class StepInfo {
     @JsonCreator
     public StepInfo(
             @JsonProperty("id") final String id,
-            @JsonProperty("status") final Status status,
+            @JsonProperty("status") final String status,
             @JsonProperty("name") final String name,
             @JsonProperty("message") final String message) {
         this.id = id;
@@ -53,7 +52,7 @@ class StepInfo {
     }
 
     @JsonProperty("status")
-    public Status getStatus() {
+    public String getStatus() {
         return status;
     }
 
