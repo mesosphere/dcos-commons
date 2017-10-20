@@ -30,6 +30,7 @@ import java.util.Map;
  */
 public class SchedulerConfig {
 
+
     /**
      * Exception which is thrown when failing to retrieve or parse a given flag value.
      */
@@ -133,6 +134,13 @@ public class SchedulerConfig {
     private static final String PACKAGE_NAME_ENV = "PACKAGE_NAME";
     private static final String PACKAGE_VERSION_ENV = "PACKAGE_VERSION";
     private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
+
+    /**
+     * Environment variables for configuring metrics reporting behavior.
+     */
+    private String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
+    private String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
+    private String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
 
     /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -280,6 +288,27 @@ public class SchedulerConfig {
     }
 
     /**
+     * Returns the interval in seconds between StatsD reports
+     */
+    public long getStatsDPollIntervalS() {
+        return envStore.getOptionalLong(STATSD_POLL_INTERVAL_S_ENV, 10);
+    }
+
+    /**
+     * Returns the StatsD host.
+     */
+    public String getStatsdHost() {
+        return envStore.getRequired(STATSD_UDP_HOST_ENV);
+    }
+
+    /**
+     * Returns the StatsD port.
+     */
+    public int getStatsdPort() {
+        return envStore.getRequiredInt(STATSD_UDP_PORT_ENV);
+    }
+
+    /**
      * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
      */
     private static class EnvStore {
@@ -292,6 +321,10 @@ public class SchedulerConfig {
 
         private int getOptionalInt(String envKey, int defaultValue) {
             return toInt(envKey, getOptional(envKey, String.valueOf(defaultValue)));
+        }
+
+        private long getOptionalLong(String envKey, long defaultValue) {
+            return toLong(envKey, getOptional(envKey, String.valueOf(defaultValue)));
         }
 
         private int getRequiredInt(String envKey) {
