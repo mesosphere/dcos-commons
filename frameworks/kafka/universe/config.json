@@ -77,6 +77,17 @@
           "deploy_strategy"
         ]
       },
+      "security": {
+        "description": "Kafka security settings",
+        "type": "object",
+        "properties": {
+            "sasl_enabled": {
+              "description": "Enable SASL (e.g. Kerberos) security",
+               "type": "boolean",
+               "default": false
+            }
+        }
+      },
       "brokers": {
         "description": "Kafka broker configuration properties",
         "type": "object",

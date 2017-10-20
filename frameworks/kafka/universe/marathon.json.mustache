@@ -72,6 +72,11 @@
     {{/service.tls_allow_plaintext}}
     {{/service.tls}}
 
+    {{#security.sasl_enabled}}
+    "TASKCFG_ALL_SECURITY_SASL_ENABLED": "{{security.sasl_enabled}}}}",
+    {{/security.sasl_enabled}}
+
+
     "KAFKA_VERSION_PATH": "kafka_2.11-0.11.0.1",
 
     "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",

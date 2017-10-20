@@ -63,11 +63,20 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
           ./bootstrap -resolve=false &&
-          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
+          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
+          {{#SECURITY_SASL_ENABLED}}
+               -Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_client_jaas.conf
+          {{/SECURITY_SASL_ENABLED}}
+               $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
           server-properties:
             template: server.properties.mustache
             dest: {{KAFKA_VERSION_PATH}}/config/server.properties
+        {{#SECURITY_SASL_ENABLED}}
+          jaas-properties:
+            template: kafka_server_jaas.conf.mustache
+            dest: {{KAFAK_VERSION_PATH}}/config/kafka_server_jaas.conf
+        {{/SECURITY_SASL_ENABLED}}
         readiness-check:
           cmd: |
             # since the server is just started, the starting and started log lines
