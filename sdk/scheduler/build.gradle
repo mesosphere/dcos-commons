@@ -120,6 +120,7 @@ dependencies {
     compile "io.dropwizard.metrics:metrics-servlets:${dropWizardMetricsVer}"
     compile "io.prometheus:simpleclient_dropwizard:0.0.26"
     compile "io.prometheus:simpleclient_servlet:0.0.26"
+    compile "com.readytalk:metrics3-statsd:4.2.0"
     testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
     testCompile "junit:junit:${junitVer}"
     testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
