@@ -1,0 +1,9 @@
+{{#SECURITY_SASL_ENABLED}}
+KafkaServer {
+   org.apache.kafka.common.security.plain.PlainLoginModule required
+   username="admin"
+   password="admin-secret"
+   user_admin="admin-secret"
+   user_alice="alice-secret";
+};
+{{/SECURITY_SASL_ENABLED}}
