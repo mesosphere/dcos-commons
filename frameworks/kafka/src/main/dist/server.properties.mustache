@@ -27,10 +27,13 @@ broker.id={{POD_INSTANCE_INDEX}}
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
+{{^SECURITY_SASL_ENABLED}}
 {{^KAFKA_ENABLE_TLS}}
 listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
 port={{KAFKA_BROKER_PORT}}
 {{/KAFKA_ENABLE_TLS}}
+{{/SECURITY_SASL_ENABLED}}
+
 
 {{#KAFKA_ENABLE_TLS}}
 ############################# TLS Settings #############################
@@ -69,6 +72,7 @@ port={{KAFKA_BROKER_PORT_TLS}}
 {{#SECURITY_SASL_ENABLED}}
 ############################# SASL Settings #############################
 listeners=SASL_PLAINTEXT://:{{KAFKA_BROKER_PORT}}
+advertised.listeners=SASL_PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
 security.inter.broker.protocol=SASL_PLAINTEXT
 sasl.mechanism.inter.broker.protocol=PLAIN
 sasl.enabled.mechanisms=PLAIN
