@@ -167,7 +167,7 @@ public class PlansResource extends PrettyJsonResource {
             }
 
             boolean allInProgress = phases.stream()
-                    .filter(phz -> phz.isInProgress())
+                    .filter(phz -> phz.isRunning())
                     .count() == phases.size();
 
             boolean allComplete = phases.stream()
@@ -180,7 +180,7 @@ public class PlansResource extends PrettyJsonResource {
             phases.forEach(ParentElement::proceed);
         } else {
             Plan plan = planManagerOptional.get().getPlan();
-            if (plan.isInProgress() || plan.isComplete()) {
+            if (plan.isRunning() || plan.isComplete()) {
                 return alreadyReportedResponse();
             }
             plan.proceed();

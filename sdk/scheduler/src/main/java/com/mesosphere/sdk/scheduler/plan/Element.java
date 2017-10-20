@@ -86,10 +86,10 @@ public interface Element {
     }
 
     /**
-     * Indicates whether this Element is in progress.
+     * Indicates whether this Element is prepared, starting, or in progress.
      */
-    default boolean isInProgress() {
-        return isPrepared() || isStarting() || getStatus().equals(Status.IN_PROGRESS);
+    default boolean isRunning() {
+        return getStatus().isRunning();
     }
 
     /**
@@ -97,13 +97,6 @@ public interface Element {
      */
     default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return !isComplete() && !hasErrors();
-    }
-
-    /**
-     * Indicates whether this Element is running.
-     */
-    default boolean isRunning() {
-        return getStatus().isRunning();
     }
 
     /**

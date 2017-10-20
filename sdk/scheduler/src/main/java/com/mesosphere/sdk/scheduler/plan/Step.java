@@ -24,6 +24,11 @@ public interface Step extends Element, Interruptible {
      */
     Optional<PodInstanceRequirement> start();
 
+    /**
+     * Return the pod instance that this Step intends to work on.
+     *
+     * @return The information about the pod that this Step intends to work on, Optional.empty() otherwise.
+     */
     Optional<PodInstanceRequirement> getPodInstanceRequirement();
 
     /**
@@ -34,12 +39,6 @@ public interface Step extends Element, Interruptible {
      * {@link PodInstanceRequirement}.
      */
     void updateOfferStatus(Collection<OfferRecommendation> recommendations);
-
-    /**
-     * Return the Asset that this Step intends to work on.
-     * @return The name of the Asset this Step intends to work on if one exists, Optional.empty() otherwise.
-     */
-    Optional<PodInstanceRequirement> getAsset();
 
     /**
      * Returns a user-facing display status of this step, which may provide additional context on the work being
@@ -58,7 +57,8 @@ public interface Step extends Element, Interruptible {
     default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return Element.super.isEligible(dirtyAssets) &&
                 !isInterrupted() &&
-                !(getAsset().isPresent() && PlanUtils.assetConflicts(getAsset().get(), dirtyAssets));
+                !(getPodInstanceRequirement().isPresent()
+                        && PlanUtils.assetConflicts(getPodInstanceRequirement().get(), dirtyAssets));
     }
 
     @Override

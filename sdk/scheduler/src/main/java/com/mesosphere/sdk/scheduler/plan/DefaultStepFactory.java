@@ -37,40 +37,28 @@ public class DefaultStepFactory implements StepFactory {
     @Override
     public Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch) {
         try {
-            return getStepImpl(podInstance, tasksToLaunch);
+            LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
+            validate(podInstance, tasksToLaunch);
+
+            List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance, tasksToLaunch).stream()
+                    .map(taskName -> stateStore.fetchTask(taskName))
+                    .filter(taskInfoOptional -> taskInfoOptional.isPresent())
+                    .map(taskInfoOptional -> taskInfoOptional.get())
+                    .collect(Collectors.toList());
+
+            return new DeploymentStep(
+                    TaskUtils.getStepName(podInstance, tasksToLaunch),
+                    PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build(),
+                    stateStore)
+                    .updateInitialStatus(taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos));
         } catch (Exception e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
             return new DeploymentStep(
                     podInstance.getName(),
-                    Status.ERROR,
                     PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
-                    stateStore,
-                    Arrays.asList(ExceptionUtils.getStackTrace(e)));
+                    stateStore)
+                    .addError(ExceptionUtils.getStackTrace(e));
         }
-    }
-
-    private Step getStepImpl(PodInstance podInstance, Collection<String> tasksToLaunch) throws Exception {
-
-        LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
-        validate(podInstance, tasksToLaunch);
-
-        List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance, tasksToLaunch).stream()
-                .map(taskName -> stateStore.fetchTask(taskName))
-                .filter(taskInfoOptional -> taskInfoOptional.isPresent())
-                .map(taskInfoOptional -> taskInfoOptional.get())
-                .collect(Collectors.toList());
-
-        Status status = taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos);
-        String stepName = TaskUtils.getStepName(podInstance, tasksToLaunch);
-        PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build();
-
-        return new DeploymentStep(
-                stepName,
-                status,
-                podInstanceRequirement,
-                stateStore,
-                Collections.emptyList());
     }
 
     private void validate(PodInstance podInstance, Collection<String> tasksToLaunch) throws Exception {

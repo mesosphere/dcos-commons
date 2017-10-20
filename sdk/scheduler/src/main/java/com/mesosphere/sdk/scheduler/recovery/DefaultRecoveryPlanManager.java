@@ -278,7 +278,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         logger.info("Creating step: {}", podInstanceRequirement);
         return new DefaultRecoveryStep(
                 podInstanceRequirement.getName(),
-                Status.PENDING,
                 podInstanceRequirement,
                 launchConstrainer,
                 stateStore);
@@ -286,7 +285,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        return PlanUtils.getDirtyAsseets(plan);
+        return PlanUtils.getDirtyAssets(plan);
     }
 
     private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {

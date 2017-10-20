@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
  */
 public class DeploymentStepTest {
     private static final String TEST_STEP_NAME = "test-step";
+    private static final String TASK_NAME_0 = TestConstants.TASK_NAME + 0;
+    private static final String TASK_NAME_1 = TestConstants.TASK_NAME + 1;
 
     @Mock private PodSpec mockPodSpec;
     @Mock private PodInstance mockPodInstance;
@@ -40,13 +42,14 @@ public class DeploymentStepTest {
         when(mockTaskSpec.getName()).thenReturn(TestConstants.TASK_NAME);
         when(mockTaskSpec.getGoal()).thenReturn(GoalState.RUNNING);
         when(mockPodInstance.getPod()).thenReturn(mockPodSpec);
-        when(mockPodInstance.getName()).thenReturn(TestConstants.POD_TYPE + "-" + 0);
+        String podInstanceName = PodInstance.getName(TestConstants.POD_TYPE, 0);
+        when(mockPodInstance.getName()).thenReturn(podInstanceName);
         taskName = TaskSpec.getInstanceName(mockPodInstance, mockTaskSpec);
         taskID = CommonIdUtils.toTaskId(taskName);
 
-        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME + 0))
+        when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_0))
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
-        when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME + 1))
+        when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_1))
                 .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
         when(mockStateStore.fetchGoalOverrideStatus(taskName))
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
@@ -54,81 +57,82 @@ public class DeploymentStepTest {
 
     @Test
     public void testGetStatusReturnsMinimumState() {
-        // No tasks
-        Map<Protos.TaskID, DeploymentStep.TaskStatusPair> tasks = new HashMap<>();
-        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+        Assert.assertEquals(Status.PENDING, DeploymentStep.getStatus(Collections.emptySet(), false, false).get());
+        Assert.assertEquals(Status.PREPARED, DeploymentStep.getStatus(Collections.emptySet(), false, true).get());
+        Assert.assertEquals(Status.ERROR, DeploymentStep.getStatus(Collections.emptySet(), true, false).get());
+        Assert.assertEquals(Status.ERROR, DeploymentStep.getStatus(Collections.emptySet(), true, true).get());
 
-        // 1 PREPARED and 1 ERROR and 1 COMPLETE tasks
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.ERROR));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        Assert.assertEquals(Status.ERROR, getPendingStep().getStatus(tasks));
+        Assert.assertEquals(Status.ERROR,
+                DeploymentStep.getStatus(toSet(Status.PREPARED, Status.ERROR, Status.COMPLETE), false, false).get());
 
+        Assert.assertEquals(Status.PENDING,
+                DeploymentStep.getStatus(toSet(Status.PREPARED, Status.PENDING, Status.PENDING), false, false).get());
 
-        // 1 PREPARED and 2 PENDING tasks
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
-        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+        Assert.assertEquals(Status.PREPARED,
+                DeploymentStep.getStatus(toSet(Status.PREPARED, Status.STARTING, Status.PREPARED), false, false).get());
 
-        // 2 PREPARED and 1 STARTING tasks
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.PREPARED));
-        Assert.assertEquals(Status.PREPARED, getPendingStep().getStatus(tasks));
+        Assert.assertEquals(Status.PENDING,
+                DeploymentStep.getStatus(toSet(Status.PENDING, Status.STARTING, Status.STARTING), false, false).get());
 
-        // 1 PENDING and 2 STARTING tasks
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.PENDING));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
-        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+        Assert.assertEquals(Status.STARTING,
+                DeploymentStep.getStatus(toSet(Status.STARTING, Status.STARTING, Status.COMPLETE), false, false).get());
 
-        // 2 STARTING and 1 COMPLETE task
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.STARTING));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        Assert.assertEquals(Status.STARTING, getPendingStep().getStatus(tasks));
+        Assert.assertEquals(Status.COMPLETE,
+                DeploymentStep.getStatus(toSet(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE), false, false).get());
 
-        // 3 COMPLETE tasks
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        Assert.assertEquals(Status.COMPLETE, getPendingStep().getStatus(tasks));
+        // Invalid state
+        Assert.assertFalse(DeploymentStep.getStatus(
+                toSet(Status.COMPLETE, Status.COMPLETE, Status.IN_PROGRESS), false, false).isPresent());
+    }
 
-        // 2 COMPLETE and 1 IN_PROGRESS tasks (yes, IN_PROGRESS is not a valid status for a task
-        // but this is just testing the fallback logic).
-        tasks = new HashMap<>();
-        tasks.put(CommonIdUtils.toTaskId("test1"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        tasks.put(CommonIdUtils.toTaskId("test2"),
-                new DeploymentStep.TaskStatusPair(null, Status.COMPLETE));
-        tasks.put(CommonIdUtils.toTaskId("test3"),
-                new DeploymentStep.TaskStatusPair(null, Status.IN_PROGRESS));
-        Assert.assertEquals(Status.PENDING, getPendingStep().getStatus(tasks));
+    @Test
+    public void testGetDisplayStatus() {
+        when(mockStateStore.fetchGoalOverrideStatus("no-override-0")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        when(mockStateStore.fetchGoalOverrideStatus("no-override-1")).thenReturn(GoalStateOverride.Status.INACTIVE);
+        // Note that the override progress shouldn't have any effect:
+        when(mockStateStore.fetchGoalOverrideStatus("stopped-0")).thenReturn(
+                GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING));
+        when(mockStateStore.fetchGoalOverrideStatus("stopped-1")).thenReturn(
+                GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.COMPLETE));
+
+        Assert.assertEquals("IN_PROGRESS",
+                DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS, Collections.emptyList()));
+        Assert.assertEquals("COMPLETE",
+                DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE, Collections.emptyList()));
+
+        Assert.assertEquals("STOPPING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("stopped-0")));
+        Assert.assertEquals("STOPPING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("stopped-1")));
+        Assert.assertEquals("STOPPING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("stopped-0", "stopped-1")));
+        Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("no-override-0", "no-override-1")));
+        Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("no-override-0", "stopped-0")));
+        Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("no-override-0", "stopped-1")));
+        Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("no-override-0", "stopped-0", "stopped-1")));
+
+        Assert.assertEquals("STOPPED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("stopped-0")));
+        Assert.assertEquals("STOPPED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("stopped-1")));
+        Assert.assertEquals("STOPPED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("stopped-0", "stopped-1")));
+        Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("no-override-0", "no-override-1")));
+        Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("no-override-0", "stopped-0")));
+        Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("no-override-0", "stopped-1")));
+        Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("no-override-0", "stopped-0", "stopped-1")));
+    }
+
+    private static Set<Status> toSet(Status... elems) {
+        return new HashSet<>(Arrays.asList(elems));
     }
 
     @Test
@@ -142,6 +146,7 @@ public class DeploymentStepTest {
                 .build());
 
         Assert.assertTrue(step.isComplete());
+        Assert.assertEquals(Status.COMPLETE.toString(), step.getDisplayStatus());
     }
 
     @Test
@@ -163,10 +168,10 @@ public class DeploymentStepTest {
     public void testIsEligible() {
         TaskSpec taskSpec0 =
                 TestPodFactory.getTaskSpec(
-                        TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
+                        TASK_NAME_0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
-                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
+                        TASK_NAME_1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec = DefaultPodSpec.newBuilder("")
                 .type(TestConstants.POD_TYPE)
                 .count(1)
@@ -176,14 +181,12 @@ public class DeploymentStepTest {
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore,
-                Collections.emptyList());
+                mockStateStore);
 
         Assert.assertTrue(step.isEligible(Arrays.asList()));
 
-        Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getAsset().get());
+        Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getPodInstanceRequirement().get());
         Assert.assertFalse(step.isEligible(dirtyAssets));
     }
 
@@ -191,10 +194,10 @@ public class DeploymentStepTest {
     public void testPrepared() {
         TaskSpec taskSpec0 =
                 TestPodFactory.getTaskSpec(
-                        TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
+                        TASK_NAME_0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
-                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
+                        TASK_NAME_1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec = DefaultPodSpec.newBuilder("")
                 .type(TestConstants.POD_TYPE)
                 .count(1)
@@ -204,10 +207,8 @@ public class DeploymentStepTest {
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore,
-                Collections.emptyList());
+                mockStateStore);
 
         Assert.assertTrue(step.isPending());
 
@@ -231,12 +232,12 @@ public class DeploymentStepTest {
     }
 
     private void testStepStatusCoherence(Protos.TaskState updateState, Status expectedStatus) {
-        String taskName0 = TestConstants.TASK_NAME + 0;
+        String taskName0 = TASK_NAME_0;
         TaskSpec taskSpec0 =
                 TestPodFactory.getTaskSpec(
                         taskName0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
 
-        String taskName1 = TestConstants.TASK_NAME + 1;
+        String taskName1 = TASK_NAME_1;
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
                         taskName1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
@@ -252,10 +253,8 @@ public class DeploymentStepTest {
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore,
-                Collections.emptyList());
+                mockStateStore);
 
         LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
@@ -283,12 +282,14 @@ public class DeploymentStepTest {
 
         step.updateOfferStatus(Arrays.asList(launchRec0, launchRec1));
         Assert.assertEquals(Status.STARTING, step.getStatus());
+        Assert.assertEquals(Status.STARTING.toString(), step.getDisplayStatus());
 
         step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(taskId0)
                 .setState(updateState)
                 .build());
         Assert.assertEquals(expectedStatus, step.getStatus());
+        Assert.assertEquals(expectedStatus.toString(), step.getDisplayStatus());
     }
 
     private void testStepTransition(
@@ -298,21 +299,21 @@ public class DeploymentStepTest {
             Status endStatus) {
 
         Assert.assertEquals(startStatus, step.getStatus());
+        Assert.assertEquals(startStatus.toString(), step.getDisplayStatus());
         step.update(Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
                 .setState(updateState)
                 .build());
 
         Assert.assertEquals(endStatus, step.getStatus());
+        Assert.assertEquals(endStatus.toString(), step.getDisplayStatus());
     }
 
     private DeploymentStep getPendingStep() {
         return new DeploymentStep(
                 TEST_STEP_NAME,
-                Status.PENDING,
                 PodInstanceRequirement.newBuilder(mockPodInstance, TaskUtils.getTaskNames(mockPodInstance)).build(),
-                mockStateStore,
-                Collections.emptyList());
+                mockStateStore);
     }
 
     private Step getStartingStep() {

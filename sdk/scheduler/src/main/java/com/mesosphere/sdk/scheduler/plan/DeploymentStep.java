@@ -25,8 +25,8 @@ public class DeploymentStep extends AbstractStep {
     protected final StateStore stateStore;
     protected final PodInstanceRequirement podInstanceRequirement;
 
-    private final List<String> errors;
-    private Map<String, String> parameters;
+    private final List<String> errors = new ArrayList<>();
+    private final Map<String, String> parameters = new HashMap<>();
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
     private final AtomicBoolean prepared = new AtomicBoolean(false);
     private String displayStatus;
@@ -36,22 +36,39 @@ public class DeploymentStep extends AbstractStep {
      * by the step, and any {@code errors} to be displayed to the user.
      */
     public DeploymentStep(
-            String name,
-            Status status,
-            PodInstanceRequirement podInstanceRequirement,
-            StateStore stateStore,
-            List<String> errors) {
-        super(name, status);
+            String name, PodInstanceRequirement podInstanceRequirement, StateStore stateStore) {
+        super(name, Status.PENDING);
         this.podInstanceRequirement = podInstanceRequirement;
         this.stateStore = stateStore;
-        this.errors = errors;
-        // Fill in an arbitrary value to start with. To be updated once we know what tasks we're tied to.
-        this.displayStatus = status.toString();
+        updateStatus();
+    }
+
+    /**
+     * Sets the step to an {@code ERROR} state with the provided error message.
+     *
+     * @return this
+     */
+    public DeploymentStep addError(String error) {
+        this.errors.add(error);
+        updateStatus();
+        return this;
+    }
+
+    /**
+     * Sets an initial status (other than {@code PENDING}) for the step. This status may later be updated as
+     * Offers/TaskStatuses are received.
+     *
+     * @return this
+     */
+    public DeploymentStep updateInitialStatus(Status status) {
+        super.setStatus(status);
+        return this;
     }
 
     @Override
     public void updateParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
+        this.parameters.clear();
+        this.parameters.putAll(parameters);
     }
 
     @Override
@@ -114,11 +131,6 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> getAsset() {
-        return Optional.of(podInstanceRequirement);
-    }
-
-    @Override
     public List<String> getErrors() {
         return errors;
     }
@@ -153,8 +165,8 @@ public class DeploymentStep extends AbstractStep {
                     podInstanceRequirement.getPodInstance(),
                     CommonIdUtils.toTaskName(status.getTaskId()));
         } catch (TaskException e) {
-            logger.error(String.format("Failed to update status for step %s", getName()), e);
-            setStatus(super.getStatus()); // Log status
+            logger.error(String.format("Failed to get goal state for step %s with status %s",
+                    getName(), getStatus()), e);
             return;
         }
 
@@ -208,64 +220,68 @@ public class DeploymentStep extends AbstractStep {
     }
 
     private void updateStatus() {
-        setStatus(getStatus(tasks));
-        displayStatus = getDisplayStatus(tasks.values());
+        Set<Status> taskStatuses = tasks.values().stream()
+                .map(task -> task.getStatus())
+                .collect(Collectors.toSet());
+        Optional<Status> status = getStatus(taskStatuses, !getErrors().isEmpty(), prepared.get());
+        if (status.isPresent()) {
+            super.setStatus(status.get());
+        } else {
+            logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
+                    "Leaving current step status as-is: {} {}", taskStatuses, super.getName(), super.getStatus());
+        }
+
+        displayStatus = getDisplayStatus(stateStore, super.getStatus(), podInstanceRequirement.getTasksToLaunch());
     }
 
     @VisibleForTesting
-    Status getStatus(Map<Protos.TaskID, TaskStatusPair> tasks) {
-        if (tasks.isEmpty()) {
-            if (prepared.get()) {
-                return Status.PREPARED;
-            } else {
-                return Status.PENDING;
+    static String getDisplayStatus(StateStore stateStore, Status stepStatus, Collection<String> tasksToLaunch) {
+        // It is valid for some tasks to be stopped and not others, i.e. user specified specific task(s) to stop.
+        // Only display a STOPPING/STOPPED state in the plan if ALL the tasks are marked as stopped.
+        boolean allTasksStopped = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
+                .map(taskName -> stateStore.fetchGoalOverrideStatus(taskName))
+                .allMatch(goalOverrideStatus -> goalOverrideStatus.target == GoalStateOverride.STOPPED);
+        if (allTasksStopped) {
+            // Show a custom display status when the task is in or entering a stopped state:
+            if (stepStatus.isRunning()) {
+                return DISPLAY_STATUS_STOPPING;
+            } else if (stepStatus == Status.COMPLETE) {
+                return DISPLAY_STATUS_STOPPED;
             }
         }
+        return stepStatus.toString();
+    }
 
-        Set<Status> statuses = new HashSet<>();
-        for (Map.Entry<Protos.TaskID, TaskStatusPair> entry : tasks.entrySet()) {
-            Status status = entry.getValue().getStatus();
-            logger.info("TaskId: {} has status: {}", entry.getKey().getValue(), status);
-            statuses.add(status);
-        }
-
+    @VisibleForTesting
+    static Optional<Status> getStatus(Set<Status> statuses, boolean hasErrors, boolean isPrepared) {
         // A DeploymentStep should have the "least" status of its consituent tasks.
         // 1 PENDING task and 2 STARTING tasks => PENDING step state
         // 2 STARTING tasks and 1 COMPLETE task=> STARTING step state
         // 3 COMPLETE tasks => COMPLETE step state
-        if (statuses.contains(Status.ERROR)) {
-            return Status.ERROR;
+        if (hasErrors) {
+            return Optional.of(Status.ERROR);
+        } else if (statuses.isEmpty()) {
+            if (isPrepared) {
+                return Optional.of(Status.PREPARED);
+            } else {
+                return Optional.of(Status.PENDING);
+            }
+        } else if (statuses.contains(Status.ERROR)) {
+            return Optional.of(Status.ERROR);
         } else if (statuses.contains(Status.PENDING)) {
-            return Status.PENDING;
+            return Optional.of(Status.PENDING);
         } else if (statuses.contains(Status.PREPARED)) {
-            return Status.PREPARED;
+            return Optional.of(Status.PREPARED);
         } else if (statuses.contains(Status.STARTING)) {
-            return Status.STARTING;
+            return Optional.of(Status.STARTING);
         } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
             // If the size of the set statuses == 1, then all tasks have the same status.
             // In this case, the status COMPLETE.
-            return Status.COMPLETE;
+            return Optional.of(Status.COMPLETE);
         }
 
-        // If we don't explicitly handle the new status,
-        // we will simply return the previous status.
-        logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
-                "Falling back to current step status: {}", statuses, super.getStatus());
-        return super.getStatus();
-    }
-
-    private String getDisplayStatus(Collection<TaskStatusPair> tasks) {
-        boolean allTasksStopped = tasks.stream()
-                .map(pair -> stateStore.fetchGoalOverrideStatus(pair.getTaskInfo().getName()))
-                .allMatch(overrideStatus -> overrideStatus.target == GoalStateOverride.STOPPED);
-        if (allTasksStopped) {
-            if (isInProgress()) {
-                return DISPLAY_STATUS_STOPPING;
-            } else if (isComplete()) {
-                return DISPLAY_STATUS_STOPPED;
-            }
-        }
-        return getStatus().toString();
+        // If we don't explicitly handle the new status, we will fall back to the existing parent status.
+        return Optional.empty();
     }
 
     @VisibleForTesting

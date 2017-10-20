@@ -141,9 +141,9 @@ public class PlansResourceTest {
     public void testContinueAlreadyInProgress() {
         StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
 
-        when(mockPlan.isInProgress()).thenReturn(true);
-        when(mockPhase.isInProgress()).thenReturn(true);
-        when(mockStep.isInProgress()).thenReturn(true);
+        when(mockPlan.isRunning()).thenReturn(true);
+        when(mockPhase.isRunning()).thenReturn(true);
+        when(mockStep.isRunning()).thenReturn(true);
 
         Response response = resource.continueCommand(planName, null);
         assertTrue(response.getStatusInfo().equals(expectedStatus));

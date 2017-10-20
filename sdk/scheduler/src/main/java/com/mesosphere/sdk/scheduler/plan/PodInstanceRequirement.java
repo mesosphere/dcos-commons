@@ -7,7 +7,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +57,7 @@ public class PodInstanceRequirement {
      * pod.
      */
     public Map<String, String> getEnvironment() {
-        return environment == null ? Collections.emptyMap() : environment;
+        return environment;
     }
 
     public RecoveryType getRecoveryType() {
@@ -107,8 +106,8 @@ public class PodInstanceRequirement {
      * {@link PodInstanceRequirement} builder static inner class.
      */
     public static final class Builder {
-        private PodInstance podInstance;
-        private Collection<String> tasksToLaunch;
+        private final PodInstance podInstance;
+        private final Collection<String> tasksToLaunch;
         private Map<String, String> environment = new HashMap<>();
         private RecoveryType recoveryType = RecoveryType.NONE;
 
@@ -121,16 +120,6 @@ public class PodInstanceRequirement {
         private Builder(PodInstance podInstance, Collection<String> tasksToLaunch) {
             this.podInstance = podInstance;
             this.tasksToLaunch = tasksToLaunch;
-        }
-
-        public Builder podInstance(PodInstance podInstance) {
-            this.podInstance = podInstance;
-            return this;
-        }
-
-        public Builder tasksToLaunch(Collection<String> tasksToLaunch) {
-            this.tasksToLaunch = tasksToLaunch;
-            return this;
         }
 
         public Builder environment(Map<String, String> environment) {

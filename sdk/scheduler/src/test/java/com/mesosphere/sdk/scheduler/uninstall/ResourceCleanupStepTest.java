@@ -61,7 +61,7 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testGetAsset() throws Exception {
-        assert resourceCleanupStep.getAsset().equals(Optional.empty());
+        assert resourceCleanupStep.getPodInstanceRequirement().equals(Optional.empty());
     }
 
     @Test

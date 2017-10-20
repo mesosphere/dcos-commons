@@ -528,12 +528,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("task-name")).build();
-        DeploymentStep deploymentStep = new DeploymentStep(
-                "test-step",
-                Status.PENDING,
-                podInstanceRequirement,
-                stateStore,
-                Collections.emptyList());
+        DeploymentStep deploymentStep = new DeploymentStep("test-step", podInstanceRequirement, stateStore);
 
         Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
