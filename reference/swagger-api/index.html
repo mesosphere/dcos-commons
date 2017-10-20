@@ -210,6 +210,10 @@ font-style: italic;
   <li><a href="#endpointsGet"><code><span class="http-method">get</span> /endpoints/{name}</code></a></li>
   <li><a href="#endpointsList"><code><span class="http-method">get</span> /endpoints</code></a></li>
   </ul>
+  <h4><a href="#Metrics">Metrics</a></h4>
+  <ul>
+  <li><a href="#metrics"><code><span class="http-method">get</span> /metrics</code></a></li>
+  </ul>
   <h4><a href="#Plans">Plans</a></h4>
   <ul>
   <li><a href="#plansContinue"><code><span class="http-method">post</span> /plans/{plan}/continue</code></a></li>
@@ -525,6 +529,37 @@ font-style: italic;
         <a href="#"></a>
     <h4 class="field-label">500</h4>
     Failed to retrieve connection information.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <h1><a name="Metrics">Metrics</a></h1>
+  <div class="method"><a name="metrics"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /metrics</code></pre></div>
+    <div class="method-summary">Returns a snapshot of the current scheduler metrics. (<span class="nickname">metrics</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The metrics snapshot has been returned.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
