@@ -78,21 +78,18 @@ public class PlansResource extends PrettyJsonResource {
     @Path("/plans/{planName}")
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-
-            Response.Status response = Response.Status.ACCEPTED;
-            if (plan.hasErrors()) {
-                response = Response.Status.EXPECTATION_FAILED;
-            } else if (plan.isComplete()) {
-                response = Response.Status.OK;
-            }
-            return jsonResponseBean(
-                    PlanInfo.forPlan(plan),
-                    response);
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return elementNotFoundResponse();
         }
+
+        Plan plan = planManagerOptional.get().getPlan();
+        Response.Status response = Response.Status.ACCEPTED;
+        if (plan.hasErrors()) {
+            response = Response.Status.EXPECTATION_FAILED;
+        } else if (plan.isComplete()) {
+            response = Response.Status.OK;
+        }
+        return jsonResponseBean(PlanInfo.forPlan(plan), response);
     }
 
     /**
@@ -140,14 +137,13 @@ public class PlansResource extends PrettyJsonResource {
     @Path("/plans/{planName}/stop")
     public Response stopPlan(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-            plan.interrupt();
-            plan.restart();
-            return jsonOkResponse(getCommandResult("stop"));
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return elementNotFoundResponse();
         }
+        Plan plan = planManagerOptional.get().getPlan();
+        plan.interrupt();
+        plan.restart();
+        return jsonOkResponse(getCommandResult("stop"));
     }
 
     @POST

@@ -77,7 +77,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         }
 
         if (!(step.isPending() || step.isPrepared())) {
-            logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getDisplayStatus());
+            logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return Collections.emptyList();
         }
 

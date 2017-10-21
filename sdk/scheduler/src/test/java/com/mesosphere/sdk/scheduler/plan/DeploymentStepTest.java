@@ -150,6 +150,21 @@ public class DeploymentStepTest {
     }
 
     @Test
+    public void testErrorRetainedAcrossUpdates() {
+        // once an ERROR, always an ERROR
+        Step step = getStartingStep().addError("an error");
+        testStepTransition(step, Protos.TaskState.TASK_RUNNING, Status.ERROR, Status.ERROR);
+
+        step.update(Protos.TaskStatus.newBuilder()
+                .setTaskId(taskID)
+                .setState(Protos.TaskState.TASK_FAILED)
+                .build());
+
+        Assert.assertEquals(Status.ERROR, step.getStatus());
+        Assert.assertEquals(Status.ERROR.toString(), step.getDisplayStatus());
+    }
+
+    @Test
     public void testErrorCausesStartingToPending() {
         Protos.TaskState[] errorStates = {
                 Protos.TaskState.TASK_ERROR,
@@ -316,8 +331,8 @@ public class DeploymentStepTest {
                 mockStateStore);
     }
 
-    private Step getStartingStep() {
-        Step step = getPendingStep();
+    private DeploymentStep getStartingStep() {
+        DeploymentStep step = getPendingStep();
         LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()

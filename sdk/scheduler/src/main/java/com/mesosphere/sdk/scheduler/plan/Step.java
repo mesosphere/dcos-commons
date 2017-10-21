@@ -44,7 +44,9 @@ public interface Step extends Element, Interruptible {
      * Returns a user-facing display status of this step, which may provide additional context on the work being
      * performed beyond the underlying progress {@link Status} returned by {@link Element#getStatus()}.
      */
-    String getDisplayStatus();
+    default String getDisplayStatus() {
+        return getStatus().toString();
+    }
 
     /**
      * Reports whether the Asset associated with this Step is dirty.
@@ -63,7 +65,11 @@ public interface Step extends Element, Interruptible {
 
     @Override
     default String getMessage() {
-        // Include the display status:
-        return Element.super.getMessage() + "/" + getDisplayStatus();
+        if (!getStatus().toString().equals(getDisplayStatus())) {
+            // Include the custom display status:
+            return Element.super.getMessage() + String.format(" (display:%s)", getDisplayStatus());
+        } else {
+            return Element.super.getMessage();
+        }
     }
 }

@@ -33,15 +33,19 @@ func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElem
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
-	if cmd.RawJSON || len(cmd.PodName) > 0 {
+	if cmd.RawJSON {
 		client.PrintJSONBytes(body)
 	} else {
-		client.PrintMessage(toPodTree(body))
+		if len(cmd.PodName) > 0 {
+			client.PrintMessage(toPodTree(body))
+		} else {
+			client.PrintMessage(toServiceTree(body))
+		}
 	}
 	return nil
 }
 
-func toPodTree(podsJSONBytes []byte) string {
+func toServiceTree(podsJSONBytes []byte) string {
 	response, err := client.UnmarshalJSON(podsJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in pods response: %s", err))
@@ -56,7 +60,7 @@ func toPodTree(podsJSONBytes []byte) string {
 		client.PrintMessageAndExit("Failed to parse JSON pods in response")
 	}
 	for _, rawPod := range rawPods {
-		appendPod(&buf, rawPod, i == len(rawPods)-1)
+		appendServicePod(&buf, rawPod, i == len(rawPods)-1)
 		i++
 	}
 
@@ -66,7 +70,7 @@ func toPodTree(podsJSONBytes []byte) string {
 	return buf.String()
 }
 
-func appendPod(buf *bytes.Buffer, rawPod interface{}, lastPod bool) {
+func appendServicePod(buf *bytes.Buffer, rawPod interface{}, lastPod bool) {
 	pod, ok := rawPod.(map[string]interface{})
 	if !ok {
 		return
@@ -86,11 +90,11 @@ func appendPod(buf *bytes.Buffer, rawPod interface{}, lastPod bool) {
 		return
 	}
 	for i, rawPodInstance := range rawPodInstances {
-		appendPodInstance(buf, rawPodInstance, lastPod, i == len(rawPodInstances)-1)
+		appendServicePodInstance(buf, rawPodInstance, lastPod, i == len(rawPodInstances)-1)
 	}
 }
 
-func appendPodInstance(buf *bytes.Buffer, rawPodInstance interface{}, lastPod bool, lastPodInstance bool) {
+func appendServicePodInstance(buf *bytes.Buffer, rawPodInstance interface{}, lastPod bool, lastPodInstance bool) {
 	podInstance, ok := rawPodInstance.(map[string]interface{})
 	if !ok {
 		return
@@ -118,11 +122,11 @@ func appendPodInstance(buf *bytes.Buffer, rawPodInstance interface{}, lastPod bo
 		return
 	}
 	for i, rawTask := range tasks {
-		appendTask(buf, rawTask, lastPod, lastPodInstance, i == len(tasks)-1)
+		appendServiceTask(buf, rawTask, lastPod, lastPodInstance, i == len(tasks)-1)
 	}
 }
 
-func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastPodInstance bool, lastTask bool) {
+func appendServiceTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastPodInstance bool, lastTask bool) {
 	task, ok := rawTask.(map[string]interface{})
 	if !ok {
 		return
@@ -157,6 +161,55 @@ func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastPodIns
 				prefix = "│  │  ├─ "
 			}
 		}
+	}
+
+	taskName, ok := task["name"]
+	if !ok {
+		taskName = "<UNKNOWN>"
+	}
+	taskState, ok := task["status"]
+	if !ok {
+		taskState = "<UNKNOWN>"
+	}
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", prefix, taskName, taskState))
+}
+
+func toPodTree(podsJSONBytes []byte) string {
+	response, err := client.UnmarshalJSON(podsJSONBytes)
+	if err != nil {
+		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in pod response: %s", err))
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("%s\n", response["name"]))
+
+	i := 0
+	rawTasks, ok := response["tasks"].([]interface{})
+	if !ok {
+		client.PrintMessageAndExit("Failed to parse JSON pods in response")
+	}
+	for _, rawPod := range rawTasks {
+		appendPodTask(&buf, rawPod, i == len(rawTasks)-1)
+		i++
+	}
+
+	// Trim extra newline from end:
+	buf.Truncate(buf.Len() - 1)
+
+	return buf.String()
+}
+
+func appendPodTask(buf *bytes.Buffer, rawTask interface{}, lastTask bool) {
+	task, ok := rawTask.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	var prefix string
+	if lastTask {
+		prefix = "└─ "
+	} else {
+		prefix = "├─ "
 	}
 
 	taskName, ok := task["name"]

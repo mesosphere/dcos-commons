@@ -5,6 +5,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -29,7 +30,6 @@ public class DeploymentStep extends AbstractStep {
     private final Map<String, String> parameters = new HashMap<>();
     private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
     private final AtomicBoolean prepared = new AtomicBoolean(false);
-    private String displayStatus;
 
     /**
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
@@ -137,7 +137,15 @@ public class DeploymentStep extends AbstractStep {
 
     @Override
     public String getDisplayStatus() {
-        return displayStatus;
+        // NOTE: This is obtained on the fly because it's only effectively needed when someone is actually fetching
+        // plan status. Similarly, it can be incorrect for non-recovery deployment steps, as they're only getting
+        // updates while they're still deploying.
+
+        // Extract full names of the defined tasks, e.g. "pod-0-task":
+        Collection<String> taskFullNames = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+                .collect(Collectors.toList());
+        return getDisplayStatus(stateStore, super.getStatus(), taskFullNames);
     }
 
     /**
@@ -230,8 +238,6 @@ public class DeploymentStep extends AbstractStep {
             logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
                     "Leaving current step status as-is: {} {}", taskStatuses, super.getName(), super.getStatus());
         }
-
-        displayStatus = getDisplayStatus(stateStore, super.getStatus(), podInstanceRequirement.getTasksToLaunch());
     }
 
     @VisibleForTesting

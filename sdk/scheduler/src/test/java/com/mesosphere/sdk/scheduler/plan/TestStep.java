@@ -55,8 +55,8 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public String getMessage() {
-        return "test-message";
+    public String getDisplayStatus() {
+        return getStatus().toString();
     }
 
     @Override

@@ -35,7 +35,6 @@ public class PlanInfoTest {
 
         UUID step0Id = UUID.randomUUID();
         when(mockStep0.getId()).thenReturn(step0Id);
-        when(mockStep0.isPending()).thenReturn(true);
         String step0Name = "step-0";
         when(mockStep0.getName()).thenReturn(step0Name);
         String step0Message = "hi";

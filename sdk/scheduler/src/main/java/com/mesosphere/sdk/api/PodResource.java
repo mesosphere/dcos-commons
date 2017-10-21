@@ -320,7 +320,7 @@ public class PodResource extends PrettyJsonResource {
         for (TaskInfoAndStatus taskToKill : tasksToKill) {
             final Protos.TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {
-                LOGGER.info("  {} ({}): currently in state {}",
+                LOGGER.info("  {} ({}): currently has status {}",
                         taskInfo.getName(),
                         taskInfo.getTaskId().getValue(),
                         taskToKill.getStatus().get().getState());
@@ -345,7 +345,7 @@ public class PodResource extends PrettyJsonResource {
      *   "tasks": [ {
      *     "id": "pod-0-server",
      *     "name": "server",
-     *     "state": "RUNNING"
+     *     "status": "RUNNING"
      *   }, ... ]
      * }</code>
      */
@@ -359,7 +359,7 @@ public class PodResource extends PrettyJsonResource {
             jsonTask.put("name", task.getInfo().getName());
             Optional<String> stateString = getTaskStateString(stateStore, task.getInfo().getName(), task.getStatus());
             if (stateString.isPresent()) {
-                jsonTask.put("state", stateString.get());
+                jsonTask.put("status", stateString.get());
             }
             jsonPod.append("tasks", jsonTask);
         }

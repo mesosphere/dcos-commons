@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api.types;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -8,7 +7,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
 /**
- * Immutable JSON serialization object for a Step.
+ * Immutable JSON serialization object for a {@link Step}.
  */
 class StepInfo {
     private final String id;
@@ -24,12 +23,7 @@ class StepInfo {
                 step.getMessage());
     }
 
-    @JsonCreator
-    public StepInfo(
-            @JsonProperty("id") final String id,
-            @JsonProperty("status") final String status,
-            @JsonProperty("name") final String name,
-            @JsonProperty("message") final String message) {
+    private StepInfo(final String id, final String status, final String name, final String message) {
         this.id = id;
         this.status = status;
         this.name = name;

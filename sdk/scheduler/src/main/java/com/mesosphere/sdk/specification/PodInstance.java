@@ -18,11 +18,7 @@ public interface PodInstance {
     int getIndex();
 
     default String getName() {
-        return getName(getPod(), getIndex());
-    }
-
-    static String getName(PodSpec podSpec, int index) {
-        return getName(podSpec.getType(), index);
+        return getName(getPod().getType(), getIndex());
     }
 
     public static String getName(String podType, int index) {
