@@ -356,6 +356,35 @@ paths:
           description: "Custom replace hook rejected pod replace."
         500:
           description: "Failed to replace pod."
+  /pod/{name}/start:
+    get:
+      tags:
+      - "pod"
+      summary: "Restarts a pod's tasks in normal execution mode following a prior 'stop' request."
+      operationId: "podStart"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name of the pod."
+        required: true
+        type: "string"
+      - name: "tasks"
+        in: "body"
+        description: "List of specific tasks in the pod to be started, otherwise all tasks are started"
+        required: false
+        schema:
+          type: "array"
+          items:
+            type: "string"
+      responses:
+        200:
+          description: "Pod started."
+        404:
+          description: "Requested pod was not found."
+        500:
+          description: "Failed to start pod."
   /pod/{name}/status:
     get:
       tags:
@@ -377,6 +406,35 @@ paths:
           description: "Requested pod was not found."
         500:
           description: "Failed to fetch requested status for pod."
+  /pod/{name}/stop:
+    get:
+      tags:
+      - "pod"
+      summary: "Restarts a pod's tasks in a stopped state, allowing the tasks to be debugged. They may be resumed with a 'start' request."
+      operationId: "podStop"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name of the pod."
+        required: true
+        type: "string"
+      - name: "tasks"
+        in: "body"
+        description: "List of specific tasks in the pod to be stopped, otherwise all tasks are stopped"
+        required: false
+        schema:
+          type: "array"
+          items:
+            type: "string"
+      responses:
+        200:
+          description: "Pod stopped."
+        404:
+          description: "Requested pod was not found."
+        500:
+          description: "Failed to stop pod."
   /artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}:
     get:
       tags:
