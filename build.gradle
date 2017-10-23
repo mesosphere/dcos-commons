@@ -51,6 +51,7 @@ allprojects {
     targetCompatibility = '1.8'
 
     repositories {
+        jcenter()
         mavenLocal()
         mavenCentral()
         maven {

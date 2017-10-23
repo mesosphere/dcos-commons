@@ -129,7 +129,7 @@ public class UninstallScheduler extends AbstractScheduler {
             LOGGER.info("No offers to be declined.");
         } else {
             LOGGER.info("Declining {} unused offers", unusedOffers.size());
-            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+            OfferUtils.declineLong(driver, unusedOffers);
         }
     }
 
