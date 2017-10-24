@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import re
+import retrying
 import shakedown
 import tempfile
 
@@ -123,6 +124,24 @@ def _get_universe_url():
     assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
 
 
+
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=30000,
+                retry_on_result=lambda result: result is None)
+def get_config(package_name, service_name):
+    """Return the active config for the current service.
+    This is retried 5 times, waiting 30s between retries."""
+
+    try:
+        target_config = sdk_cmd.svc_cli(package_name, service_name,
+                                        'config target', json=True)
+    except Exception as e:
+        log.error("Could not determine target config: %s", str(e))
+        return None
+
+    return target_config
+
+
 def _upgrade_or_downgrade(
         package_name,
         to_package_version,
@@ -131,7 +150,10 @@ def _upgrade_or_downgrade(
         additional_options,
         timeout_seconds,
         wait_for_deployment):
+
+    initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, '')
+
     if sdk_utils.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
         log.info('Using marathon upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
         sdk_marathon.destroy_app(service_name)
@@ -148,7 +170,7 @@ def _upgrade_or_downgrade(
         if additional_options:
             with tempfile.NamedTemporaryFile() as opts_f:
                 opts_f.write(json.dumps(additional_options).encode('utf-8'))
-                opts_f.flush() # ensure json content is available for the CLI to read below
+                opts_f.flush()  # ensure json content is available for the CLI to read below
                 sdk_cmd.svc_cli(
                     package_name, service_name,
                     'update start --package-version={} --options={}'.format(to_package_version, opts_f.name))
@@ -158,8 +180,15 @@ def _upgrade_or_downgrade(
                 'update start --package-version={}'.format(to_package_version))
 
     if wait_for_deployment:
-        log.info('Checking that all tasks have restarted')
-        sdk_tasks.check_tasks_updated(service_name, '', task_ids)
+
+        updated_config = get_config(package_name, service_name)
+
+        if updated_config == initial_config:
+            log.info('No config change detected. Tasks should not be restarted')
+            sdk_tasks.check_tasks_not_updated(service_name, '', task_ids)
+        else:
+            log.info('Checking that all tasks have restarted')
+            sdk_tasks.check_tasks_updated(service_name, '', task_ids)
 
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via FINISHED tasks, without actually completing deployment
