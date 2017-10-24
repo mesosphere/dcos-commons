@@ -573,18 +573,6 @@
         <value>{{DEFAULT_CHUNK_VIEW_SIZE}}</value>
     </property>
     <property>
-        <name>dfs.block.access.token.enable</name>
-        <value>{{BLOCK_ACCESS_TOKEN_ENABLE}}</value>
-    </property>
-    <property>
-        <name>dfs.block.access.key.update.interval</name>
-        <value>{{BLOCK_ACCESS_KEY_UPDATE_INTERVAL}}</value>
-    </property>
-    <property>
-        <name>dfs.block.access.token.lifetime</name>
-        <value>{{BLOCK_ACCESS_TOKEN_LIFETIME}}</value>
-    </property>
-    <property>
         <name>dfs.replication</name>
         <value>{{REPLICATION}}</value>
     </property>
@@ -834,7 +822,7 @@
         <value>{{STORAGE_POLICY_ENABLED}}</value>
     </property>
 
-    {{#SECURE_MODE}}
+    {{#KERBEROS_ENABLED}}
         <property>
             <name>ignore.secure.ports.for.testing</name>
             <value>true</value>
@@ -853,76 +841,69 @@
             <value>true</value>
         </property>
         <property>
-            <name>dfs.namenode.kerberos.principal.pattern</name>
-            <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
+            <name>dfs.block.access.key.update.interval</name>
+            <value>{{BLOCK_ACCESS_KEY_UPDATE_INTERVAL}}</value>
         </property>
         <property>
-            <name>dfs.datanode.kerberos.principal.pattern</name>
-            <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
-        </property>
-        <property>
-            <name>dfs.journalnode.kerberos.principal.pattern</name>
-            <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
+            <name>dfs.block.access.token.lifetime</name>
+            <value>{{BLOCK_ACCESS_TOKEN_LIFETIME}}</value>
         </property>
         <property>
             <name>dfs.cluster.administrators</name>
             <value>core,root,hdfs,nobody</value>
         </property>
         <property>
+            <name>dfs.journalnode.kerberos.principal.pattern</name>
+            <value>*</value>
+        </property>
+        <property>
+            <name>dfs.namenode.kerberos.principal.pattern</name>
+            <value>*</value>
+        </property>
+        <property>
+            <name>dfs.datanode.kerberos.principal.pattern</name>
+            <value>*</value>
+        </property>
+        <property>
             <name>dfs.web.authentication.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>*</value>
         </property>
         <property>
             <name>dfs.web.authentication.kerberos.keytab</name>
-            <value>keytabs/{{KERBEROS_PRIMARY}}.{{TASK_NAME}}.{{FRAMEWORK_NAME}}.mesos.keytab</value>
+            <value>hdfs.keytab</value>
         </property>
 
 
-        {{#DATANODE}}
-        <!-- DataNode Security Configuration -->
-        <property>
-            <name>dfs.datanode.keytab.file</name>
-            <value>keytabs/{{KERBEROS_PRIMARY}}.data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
-        </property>
-        <property>
-            <name>dfs.datanode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
-        </property>
-        <property>
-            <name>dfs.datanode.data.dir.perm</name>
-            <value>700</value>
-        </property>
-        {{/DATANODE}}
 
         {{#NAMENODE}}
         <!-- NameNode Security Configuration -->
         <property>
             <name>dfs.namenode.keytab.file</name>
-            <value>keytabs/{{KERBEROS_PRIMARY}}.name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
+            <value>hdfs.keytab</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         {{/NAMENODE}}
 
         {{#ZKFC}}
-        <!-- NameNode Security Configuration -->
+        <!-- ZKFC Security Configuration -->
         <property>
             <name>dfs.namenode.keytab.file</name>
-            <value>keytabs/{{KERBEROS_PRIMARY}}.zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
+            <value>hdfs.keytab</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-zkfc.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/zkfc-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-zkfc.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         {{/ZKFC}}
 
@@ -930,16 +911,32 @@
         <!-- JournalNode Security Configuration -->
         <property>
             <name>dfs.journalnode.keytab.file</name>
-            <value>keytabs/hdfs.journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos.keytab</value>
+            <value>hdfs.keytab</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_NAME}}.mesos@{{KERBEROS_REALM}}</value>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         {{/JOURNALNODE}}
-    {{/SECURE_MODE}}
+
+        {{#DATANODE}}
+        <!-- DataNode Security Configuration -->
+        <property>
+            <name>dfs.datanode.keytab.file</name>
+            <value>hdfs.keytab</value>
+        </property>
+        <property>
+            <name>dfs.datanode.kerberos.principal</name>
+            <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.datanode.data.dir.perm</name>
+            <value>700</value>
+        </property>
+        {{/DATANODE}}
+    {{/KERBEROS_ENABLED}}
 </configuration>
