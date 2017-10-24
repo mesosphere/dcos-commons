@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTrackerTest;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;

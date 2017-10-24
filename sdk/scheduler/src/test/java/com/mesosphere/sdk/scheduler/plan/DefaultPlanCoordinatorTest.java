@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTrackerTest;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.*;

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTrackerTest;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.StateStore;

@@ -20,6 +20,13 @@ public class OfferOutcomeTracker {
     private final EvictingQueue<OfferOutcome> outcomes;
     private static final int DEFAULT_CAPACITY = 100;
 
+    static final String OUTCOMES_FIELD = "outcomes";
+    static final String TIMESTAMP_FIELD = "timestamp";
+    static final String POD_INSTANCE_NAME_FIELD = "pod-instance-name";
+    static final String OUTCOME_FIELD = "outcome";
+    static final String EXPLANATION_FIELD = "explanation";
+    static final String OFFER_FIELD = "offer";
+
     public OfferOutcomeTracker() {
         this.outcomes = EvictingQueue.create(DEFAULT_CAPACITY);
     }
@@ -33,7 +40,7 @@ public class OfferOutcomeTracker {
     }
 
     public void track(OfferOutcome... outcomes) {
-        Arrays.stream(outcomes).forEach(this::track);
+        this.outcomes.addAll(Arrays.asList(outcomes));
     }
 
     private List<OfferOutcome> reverseList() {
@@ -57,15 +64,15 @@ public class OfferOutcomeTracker {
         JSONArray outcomes = new JSONArray();
         reverseList().stream().forEach(offerOutcome -> {
             JSONObject outcome = new JSONObject();
-            outcome.append("timestamp", offerOutcome.getTimestamp())
-                    .append("pod-instance-name", offerOutcome.getPodInstanceName())
-                    .append("outcome", offerOutcome.pass() ? "pass" : "fail")
-                    .append("explanation", offerOutcome.getOutcomeDetails())
-                    .append("offer", offerOutcome.getOffer().toString());
+            outcome.put(TIMESTAMP_FIELD, offerOutcome.getTimestamp())
+                    .put(POD_INSTANCE_NAME_FIELD, offerOutcome.getPodInstanceName())
+                    .put(OUTCOME_FIELD, offerOutcome.pass() ? "pass" : "fail")
+                    .put(EXPLANATION_FIELD, offerOutcome.getOutcomeDetails())
+                    .put(OFFER_FIELD, offerOutcome.getOffer().toString());
             outcomes.put(outcome);
         });
 
-        return new JSONObject().append("outcomes", outcomes);
+        return new JSONObject().put(OUTCOMES_FIELD, outcomes);
     }
 
     public String toHtml() {
