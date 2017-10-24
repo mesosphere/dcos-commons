@@ -22,9 +22,9 @@ def configure_package(configure_security):
         sdk_install.install(
             config.PACKAGE_NAME,
             1,
-            additional_options={ "service": { "spec_file": "examples/overlay.yml" } })
+            additional_options={"service": {"spec_file": "examples/overlay.yml"}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME)
 
@@ -42,6 +42,7 @@ EXPECTED_NETWORK_LABELS = {
     "key0": "val0",
     "key1": "val1"
 }
+
 
 @pytest.mark.sanity
 @pytest.mark.overlay
@@ -183,6 +184,7 @@ def test_srv_records():
             "Missing SRV record for {} (prefix={}) in task {}:\nmatching={}\nall={}".format(
                 record_name, record_name_prefix, task_name, matching_records, task_records)
 
+    log.info("Getting framework srv records for %s", config.PACKAGE_NAME)
     fmk_srvs = sdk_networks.get_framework_srv_records(config.PACKAGE_NAME)
     for task in TASKS_WITH_PORTS:
         task_records = sdk_networks.get_task_record(task, fmk_srvs)
