@@ -12,12 +12,11 @@ import sdk_utils
 import shakedown
 from tests import config
 
-
 log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_security):
+def configure_package():
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
