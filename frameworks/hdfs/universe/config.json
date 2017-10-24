@@ -142,8 +142,8 @@
         },
         "lagging_tx_count": {
           "description": "The number of transactions that this JournalNode is lagging",
-          "type": "integer",
-          "default": 0
+          "type": "string",
+          "default": "0"
         }
       },
       "required": [
@@ -188,9 +188,9 @@
           "default": "info"
         },
         "heartbeat_recheck_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "This time decides the interval to check for expired datanodes.",
-          "default": 60000
+          "default": "60000"
         },
         "replication_considerLoad": {
           "description": "Decide if chooseTarget considers the target's load or not",
@@ -204,23 +204,23 @@
         },
         "fs-limits_max-component-length": {
           "description": "Defines the maximum number of bytes in UTF-8 encoding in each component of a path. A value of 0 will disable the check.",
-          "type": "integer",
-          "default": 255
+          "type": "string",
+          "default": "255"
         },
         "fs-limits_max-directory-items": {
           "description": "Defines the maximum number of items that a directory may contain. A value of 0 will disable the check.",
-          "type": "integer",
-          "default": 1048576
+          "type": "string",
+          "default": "1048576"
         },
         "fs-limits_min-block-size": {
           "description": "Minimum block size in bytes, enforced by the Namenode at create time. This prevents the accidental creation of files with tiny block sizes (and thus many blocks), which can degrade performance.",
-          "type": "integer",
-          "default": 1048576
+          "type": "string",
+          "default": "1048576"
         },
         "fs-limits_max-blocks-per-file": {
           "description": "Maximum number of blocks per file, enforced by the Namenode on write. This prevents the creation of extremely large files which can degrade performance.",
-          "type": "integer",
-          "default": 1048576
+          "type": "string",
+          "default": "1048576"
         },
         "acls_enabled": {
           "type": "boolean",
@@ -228,20 +228,19 @@
           "default": false
         },
         "lazypersist_file_scrub_interval_sec": {
-          "type": "integer",
+          "type": "string",
           "description": "The NameNode periodically scans the namespace for LazyPersist files with missing blocks and unlinks them from the namespace. This configuration key controls the interval between successive scans. Set it to a negative value to disable this behavior.",
-          "default": 300
+          "default": "300"
         },
         "replication_min": {
-          "type": "integer",
+          "type": "string",
           "description": "Minimal block replication.",
-          "default": 1,
-          "minimum": 1
+          "default": "1"
         },
         "handler_count": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of server threads for the namenode.",
-          "default": 10
+          "default": "10"
         },
         "safemode_threshold-pct": {
           "type": "string",
@@ -249,24 +248,24 @@
           "default": "0.999f"
         },
         "safemode_min_datanodes": {
-          "type": "integer",
+          "type": "string",
           "description": "Specifies the number of datanodes that must be considered alive before the name node exits safemode. Values less than or equal to 0 mean not to take the number of live datanodes into account when deciding whether to remain in safe mode during startup. Values greater than the number of datanodes in the cluster will make safe mode permanent.",
-          "default": 0
+          "default": "0"
         },
         "safemode_extension": {
-          "type": "integer",
+          "type": "string",
           "description": "Determines extension of safe mode in milliseconds after the threshold level is reached.",
-          "default": 30000
+          "default": "30000"
         },
         "resource_check_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "The interval in milliseconds at which the NameNode resource checker runs. The checker calculates the number of the NameNode storage volumes whose available spaces are more than dfs.namenode.resource.du.reserved, and enters safemode if the number becomes lower than the minimum value specified by dfs.namenode.resource.checked.volumes.minimum.",
-          "default": 5000
+          "default": "5000"
         },
         "resource_du_reserved": {
-          "type": "integer",
+          "type": "string",
           "description": "The amount of space to reserve/require for a NameNode storage directory in bytes. The default is 100MB.",
-          "default": 104857600
+          "default": "104857600"
         },
         "resource_checked_volumes": {
           "type": "string",
@@ -274,34 +273,34 @@
           "default": ""
         },
         "resource_checked_volumes_minimum": {
-          "type": "integer",
+          "type": "string",
           "description": "The minimum number of redundant NameNode storage volumes required.",
-          "default": 1
+          "default": "1"
         },
         "max_objects": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum number of files, directories and blocks dfs supports. A value of zero indicates no limit to the number of objects that dfs supports.",
-          "default": 0
+          "default": "0"
         },
         "decommission_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Namenode periodicity in seconds to check if decommission is complete.",
-          "default": 30
+          "default": "30"
         },
         "decommission_blocks_per_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "The approximate number of blocks to process per decommission interval, as defined in dfs.namenode.decommission.interval.",
-          "default": 500000
+          "default": "500000"
         },
         "replication_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "The periodicity in seconds with which the namenode computes repliaction work for datanodes.",
-          "default": 3
+          "default": "3"
         },
         "accesstime_precision": {
-          "type": "integer",
+          "type": "string",
           "description": "The access time for HDFS file is precise upto this value. The default value is 1 hour. Setting a value of 0 disables access times for HDFS.",
-          "default": 3600000
+          "default": "3600000"
         },
         "plugins": {
           "type": "string",
@@ -309,54 +308,54 @@
           "default": ""
         },
         "checkpoint_period": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of seconds between two periodic checkpoints.",
-          "default": 3600
+          "default": "3600"
         },
         "checkpoint_txns": {
-          "type": "integer",
+          "type": "string",
           "description": "The Secondary NameNode or CheckpointNode will create a checkpoint of the namespace every 'dfs.namenode.checkpoint.txns' transactions, regardless of whether 'dfs.namenode.checkpoint.period' has expired.",
-          "default": 1000000
+          "default": "1000000"
         },
         "checkpoint_check_period": {
-          "type": "integer",
+          "type": "string",
           "description": "The SecondaryNameNode and CheckpointNode will poll the NameNode every 'dfs.namenode.checkpoint.check.period' seconds to query the number of uncheckpointed transactions.",
-          "default": 60
+          "default": "60"
         },
         "checkpoint_max-retries": {
-          "type": "integer",
+          "type": "string",
           "description": "The SecondaryNameNode retries failed checkpointing. If the failure occurs while loading fsimage or replaying edits, the number of retries is limited by this variable.",
-          "default": 3
+          "default": "3"
         },
         "num_checkpoints_retained": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of image checkpoint files that will be retained by the NameNode and Secondary NameNode in their storage directories. All edit logs necessary to recover an up-to-date namespace from the oldest retained checkpoint will also be retained.",
-          "default": 2
+          "default": "2"
         },
         "num_extra_edits_retained": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of extra transactions which should be retained beyond what is minimally necessary for a NN restart. This can be useful for audit purposes or for an HA setup where a remote Standby Node may have been offline for some time and need to have a longer backlog of retained edits in order to start again. Typically each edit is on the order of a few hundred bytes, so the default of 1 million edits should be on the order of hundreds of MBs or low GBs. NOTE: Fewer extra edits may be retained than value specified for this setting if doing so would mean that more segments would be retained than the number configured by dfs.namenode.max.extra.edits.segments.retained.",
-          "default": 1000000
+          "default": "1000000"
         },
         "max_extra_edits_segments_retained": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum number of extra edit log segments which should be retained beyond what is minimally necessary for a NN restart. When used in conjunction with dfs.namenode.num.extra.edits.retained, this configuration property serves to cap the number of extra edits files to a reasonable value.",
-          "default": 10000
+          "default": "10000"
         },
         "delegation_key_update-interval": {
-          "type": "integer",
+          "type": "string",
           "description": "The update interval for master key for delegation tokens in the namenode in milliseconds.",
-          "default": 86400000
+          "default": "86400000"
         },
         "delegation_token_max-lifetime": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum lifetime in milliseconds for which a delegation token is valid.",
-          "default": 604800000
+          "default": "604800000"
         },
         "delegation_token_renew-interval": {
-          "type": "integer",
+          "type": "string",
           "description": "The renewal interval for delegation token in milliseconds.",
-          "default": 86400000
+          "default": "86400000"
         },
         "support_allow_format": {
           "type": "boolean",
@@ -374,9 +373,9 @@
           "default": false
         },
         "stale_datanode_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Default time interval for marking a datanode as 'stale', i.e., if the namenode has not received heartbeat msg from a datanode for more than this time interval, the datanode will be marked and treated as 'stale' by default. The stale interval cannot be too small since otherwise this may cause too frequent change of stale states. We thus set a minimum stale interval value (the default value is 3 times of heartbeat interval) and guarantee that the stale interval cannot be less than the minimum value. A stale data node is avoided during lease/block recovery. It can be conditionally avoided for reads (see dfs.namenode.avoid.read.stale.datanode) and for writes (see dfs.namenode.avoid.write.stale.datanode).",
-          "default": 30000
+          "default": "30000"
         },
         "write_stale_datanode_ratio": {
           "type": "string",
@@ -389,9 +388,9 @@
           "default": "0.32f"
         },
         "replication_work_multiplier_per_iteration": {
-          "type": "integer",
+          "type": "string",
           "description": "*Note*: Advanced property. Change with caution. This determines the total amount of block transfers to begin in parallel at a DN, for replication, when such a command list is being sent over a DN heartbeat by the NN. The actual number is obtained by multiplying this multiplier with the total number of live nodes in the cluster. The result number is the number of blocks to begin transfers immediately for, per DN heartbeat. This number can be any positive, non-zero integer.",
-          "default": 2
+          "default": "2"
         },
         "audit_loggers": {
           "type": "string",
@@ -409,9 +408,9 @@
           "default": true
         },
         "retrycache_expirytime_millis": {
-          "type": "integer",
+          "type": "string",
           "description": "The time for which retry cache entries are retained.",
-          "default": 600000
+          "default": "600000"
         },
         "retrycache_heap_percent": {
           "type": "string",
@@ -419,39 +418,39 @@
           "default": "0.03f"
         },
         "path_based_cache_block_map_allocation_percent": {
-          "type": "number",
+          "type": "string",
           "description": "The percentage of the Java heap which we will allocate to the cached blocks map. The cached blocks map is a hash map which uses chained hashing. Smaller maps may be accessed more slowly if the number of cached blocks is large; larger maps will consume more memory.",
-          "default": 0.25
+          "default": "0.25"
         },
         "list_cache_directives_num_responses": {
-          "type": "integer",
+          "type": "string",
           "description": "This value controls the number of cache directives that the NameNode will send over the wire in response to a listDirectives RPC.",
-          "default": 100
+          "default": "100"
         },
         "list_cache_pools_num_responses": {
-          "type": "integer",
+          "type": "string",
           "description": "This value controls the number of cache pools that the NameNode will send over the wire in response to a listPools RPC.",
-          "default": 100
+          "default": "100"
         },
         "path_based_cache_refresh_interval_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The amount of milliseconds between subsequent path cache rescans. Path cache rescans are when we calculate which blocks should be cached, and on what datanodes. By default, this parameter is set to 30 seconds.",
-          "default": 30000
+          "default": "30000"
         },
         "path_based_cache_retry_interval_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "When the NameNode needs to uncache something that is cached, or cache something that is not cached, it must direct the DataNodes to do so by sending a DNA_CACHE or DNA_UNCACHE command in response to a DataNode heartbeat. This parameter controls how frequently the NameNode will resend these commands.",
-          "default": 30000
+          "default": "30000"
         },
         "edit_log_autoroll_multiplier_threshold": {
-          "type": "number",
+          "type": "string",
           "description": "Determines when an active namenode will roll its own edit log. The actual threshold (in number of edits) is determined by multiplying this value by dfs.namenode.checkpoint.txns. This prevents extremely large edit files from accumulating on the active namenode, which can cause timeouts during namenode startup and pose an administrative hassle. This behavior is intended as a failsafe for when the standby or secondary namenode fail to roll the edit log by the normal checkpoint threshold.",
-          "default": 2.0
+          "default": "2.0"
         },
         "edit_log_autoroll_check_interval_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "How often an active namenode will check if it needs to roll its edit log, in milliseconds.",
-          "default": 300000
+          "default": "300000"
         },
         "reject-unresolved-dn-topology-mapping": {
           "type": "boolean",
@@ -464,29 +463,29 @@
           "default": true
         },
         "fs-limits_max-attrs-per-inode": {
-          "type": "integer",
+          "type": "string",
           "description": "Maximum number of extended attributes per inode.",
-          "default": 32
+          "default": "32"
         },
         "fs-limits_max-attrs-size": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum combined size of the name and value of an extended attribute in bytes.",
-          "default": 16384
+          "default": "16384"
         },
         "startup_delay_block_deletion_sec": {
-          "type": "integer",
+          "type": "string",
           "description": "The delay in seconds at which we will pause the blocks deletion after Namenode startup. By default it's disabled. In the case a directory has large number of directories and files are deleted, suggested delay is one hour to give the administrator enough time to notice large number of pending deletion blocks and take corrective action.",
-          "default": 0
+          "default": "0"
         },
         "list_encryption_zones_num_responses": {
-          "type": "integer",
+          "type": "string",
           "description": "When listing encryption zones, the maximum number of zones that will be returned in a batch. Fetching the list incrementally in batches improves namenode performance.",
-          "default": 100
+          "default": "100"
         },
         "inotify_max_events_per_rpc": {
-          "type": "integer",
+          "type": "string",
           "description": "Maximum number of events that will be sent to an inotify client in a single RPC response. The default value attempts to amortize away the overhead for this RPC while avoiding huge memory requirements for the client and NameNode (1000 events should consume no more than 1 MB.)",
-          "default": 1000
+          "default": "1000"
         },
         "legacy-oiv-image_dir": {
           "type": "string",
@@ -610,28 +609,28 @@
         },
         "handler_count": {
           "description": "The number of server threads for the datanode.",
-          "type": "integer",
-          "default": 10
+          "type": "string",
+          "default": "10"
         },
         "du_reserved": {
-          "type": "integer",
+          "type": "string",
           "description": "Reserved space in bytes per volume. Always leave this much space free for non dfs use.",
-          "default": 0
+          "default": "0"
         },
         "directoryscan_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Interval in seconds for Datanode to scan data directories and reconcile the difference between blocks in memory and on the disk.",
-          "default": 21600
+          "default": "21600"
         },
         "directoryscan_threads": {
-          "type": "integer",
+          "type": "string",
           "description": "How many threads should the threadpool used to compile reports for volumes in parallel have.",
-          "default": 1
+          "default": "1"
         },
         "balance_bandwidthPerSec": {
-          "type": "integer",
+          "type": "string",
           "description": "Specifies the maximum amount of bandwidth that each datanode can utilize for the balancing purpose in term of the number of bytes per second.",
-          "default": 1048576
+          "default": "1048576"
         },
         "plugins": {
           "type": "string",
@@ -639,19 +638,19 @@
           "default": ""
         },
         "failed_volumes_tolerated": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of volumes that are allowed to fail before a datanode stops offering service. By default any volume failure will cause a datanode to shutdown.",
-          "default": 0
+          "default": "0"
         },
         "max_transfer_threads": {
-          "type": "integer",
+          "type": "string",
           "description": "Specifies the maximum number of threads to use for transferring data in and out of the DN.",
-          "default": 4096
+          "default": "4096"
         },
         "readahead_bytes": {
-          "type": "integer",
+          "type": "string",
           "description": "While reading block files, if the Hadoop native libraries are available, the datanode can use the posix_fadvise system call to explicitly page data into the operating system buffer cache ahead of the current reader's position. This can improve performance especially when disks are highly contended. This configuration specifies the number of bytes ahead of the current read position which the datanode will attempt to read ahead. This feature may be disabled by configuring this property to 0. If the native libraries are not available, this configuration has no effect.",
-          "default": 4193404
+          "default": "4193404"
         },
         "drop_cache_behind_reads": {
           "type": "boolean",
@@ -684,9 +683,9 @@
           "default": false
         },
         "available-space-volume-choosing-policy_balanced-space-threshold": {
-          "type": "integer",
+          "type": "string",
           "description": "Only used when the dfs.datanode.fsdataset.volume.choosing.policy is set to org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy. This setting controls how much DN volumes are allowed to differ in terms of bytes of free disk space before they are considered imbalanced. If the free space of all the volumes are within this range of each other, the volumes will be considered balanced and block assignments will be done on a pure round robin basis.",
-          "default": 10737418240
+          "default": "10737418240"
         },
         "available-space-volume-choosing-policy_balanced-space-preference-fraction": {
           "type": "string",
@@ -694,34 +693,34 @@
           "default": "0.75f"
         },
         "max_locked_memory": {
-          "type": "integer",
+          "type": "string",
           "description": "The amount of memory in bytes to use for caching of block replicas in memory on the datanode. The datanode's maximum locked memory soft ulimit (RLIMIT_MEMLOCK) must be set to at least this value, else the datanode will abort on startup. By default, this parameter is set to 0, which disables in-memory caching. If the native libraries are not available to the DataNode, this configuration has no effect.",
-          "default": 0
+          "default": "0"
         },
         "fsdatasetcache_max_threads_per_volume": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum number of threads per volume to use for caching new data on the datanode. These threads consume both I/O and CPU. This can affect normal datanode operations.",
-          "default": 4
+          "default": "4"
         },
         "slow_io_warning_threshold_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The threshold in milliseconds at which we will log a slow io warning in a datanode. By default, this parameter is set to 300 milliseconds.",
-          "default": 300
+          "default": "300"
         },
         "cache_revocation_timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "When the DFSClient reads from a block file which the DataNode is caching, the DFSClient can skip verifying checksums. The DataNode will keep the block file in cache until the client is done. If the client takes an unusually long time, though, the DataNode may need to evict the block file from the cache anyway. This value controls how long the DataNode will wait for the client to release a replica that it is reading without checksums.",
-          "default": 900000
+          "default": "900000"
         },
         "cache_revocation_polling_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "How often the DataNode should poll to see if the clients have stopped using a replica that the DataNode wants to uncache.",
-          "default": 500
+          "default": "500"
         },
         "block_id_layout_upgrade_threads": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of threads to use when creating hard links from current to previous blocks during upgrade of a DataNode to block ID-based block layout (see HDFS-6482 for details on the layout).",
-          "default": 12
+          "default": "12"
         }
       },
       "required": [
@@ -763,59 +762,59 @@
           "default": "core,centos,azureuser"
         },
         "name_node_rpc_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The RPC port for HDFS Name Nodes.",
-          "default": 9001
+          "default": "9001"
         },
         "name_node_http_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The HTTP port for HDFS Name Nodes. ",
-          "default": 9002
+          "default": "9002"
         },
         "name_node_https_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The HTTPS port for HDFS Name Nodes. ",
-          "default": 9003
+          "default": "9003"
         },
         "zkfc_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The port for ZKFC Nodes. ",
-          "default": 8019
+          "default": "8019"
         },
         "journal_node_rpc_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The RPC port used by Journal Nodes.",
-          "default": 8485
+          "default": "8485"
         },
         "journal_node_http_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The HTTP port used by Journal Nodes.",
-          "default": 8480
+          "default": "8480"
         },
         "journal_node_https_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The HTTPS port used by Journal Nodes.",
-          "default": 8481
+          "default": "8481"
         },
         "data_node_rpc_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The RPC port used by Data Nodes.",
-          "default": 9003
+          "default": "9003"
         },
         "data_node_http_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The HTTP port used by Data Nodes.",
-          "default": 9004
+          "default": "9004"
         },
         "data_node_https_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The HTTPS port used by Data Nodes.",
-          "default": 9006
+          "default": "9006"
         },
         "data_node_ipc_port": {
-          "type": "integer",
+          "type": "string",
           "description": "The IPS port used by Data Nodes.",
-          "default": 9005
+          "default": "9005"
         },
         "permissions_enabled": {
           "type": "boolean",
@@ -838,9 +837,9 @@
           "default": "INFO,console"
         },
         "ipc_client_connect_max_retries": {
-          "type": "integer",
+          "type": "string",
           "description": "Indicates the number of retries a client will make to establish a server connection.",
-          "default": 300
+          "default": "300"
         },
         "namenode_rpc-bind-host_name_node_0": {
           "type": "string",
@@ -863,9 +862,9 @@
           "default": "0.0.0.0"
         },
         "hadoop_hdfs_configuration_version": {
-          "type": "integer",
+          "type": "string",
           "description": "version of this configuration file",
-          "default": 1
+          "default": "1"
         },
         "namenode_servicerpc_address_namenode_0": {
           "type": "string",
@@ -888,9 +887,9 @@
           "default": ""
         },
         "client_cached_conn_retry": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of times the HDFS client will pull a socket from the cache. Once this number is exceeded, the client will try to create a new socket.",
-          "default": 3
+          "default": "3"
         },
         "https_server_keystore_resource": {
           "type": "string",
@@ -903,9 +902,9 @@
           "default": "ssl-client.xml"
         },
         "default_chunk_view_size": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes to view for a file on the browser.",
-          "default": 32768
+          "default": "32768"
         },
         "permissions_superusergroup": {
           "type": "string",
@@ -918,34 +917,34 @@
           "default": false
         },
         "block_access_key_update_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Interval in minutes at which namenode updates its access keys.",
-          "default": 600
+          "default": "600"
         },
         "block_access_token_lifetime": {
-          "type": "integer",
+          "type": "string",
           "description": "The lifetime of access tokens in minutes.",
-          "default": 600
+          "default": "600"
         },
         "replication": {
-          "type": "integer",
+          "type": "string",
           "description": "Default block replication. The actual number of replications can be specified when the file is created. The default is used if replication is not specified in create time.",
-          "default": 3
+          "default": "3"
         },
         "replication_max": {
-          "type": "integer",
+          "type": "string",
           "description": "Maximal block replication.",
-          "default": 512
+          "default": "512"
         },
         "blocksize": {
-          "type": "integer",
+          "type": "string",
           "description": "The default block size for new files, in bytes. You can use the following suffix (case insensitive): k(kilo), m(mega), g(giga), t(tera), p(peta), e(exa) to specify the size (such as 128k, 512m, 1g, etc.), Or provide complete size in bytes (such as 134217728 for 128 MB).",
-          "default": 134217728
+          "default": "134217728"
         },
         "client_block_write_retries": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of retries for writing blocks to the data nodes, before we signal failure to the application.",
-          "default": 3
+          "default": "3"
         },
         "client_block_write_replace-datanode-on-failure_enable": {
           "type": "boolean",
@@ -963,24 +962,24 @@
           "default": false
         },
         "blockreport_intervalMsec": {
-          "type": "integer",
+          "type": "string",
           "description": "Determines block reporting interval in milliseconds.",
-          "default": 21600000
+          "default": "21600000"
         },
         "blockreport_initialDelay": {
-          "type": "integer",
+          "type": "string",
           "description": "Delay for first block report in seconds.",
-          "default": 0
+          "default": "0"
         },
         "blockreport_split_threshold": {
-          "type": "integer",
+          "type": "string",
           "description": "If the number of blocks on the DataNode is below this threshold then it will send block reports for all Storage Directories in a single message. If the number of blocks exceeds this threshold then the DataNode will send block reports for each Storage Directory in separate messages. Set to zero to always split.",
-          "default": 1000000
+          "default": "1000000"
         },
         "heartbeat_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Determines datanode heartbeat interval in seconds.",
-          "default": 3
+          "default": "3"
         },
         "hosts": {
           "type": "string",
@@ -993,79 +992,79 @@
           "default": ""
         },
         "stream-buffer-size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
-          "default": 4096
+          "default": "4096"
         },
         "bytes-per-checksum": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes per checksum. Must not be larger than dfs.stream-buffer-size",
-          "default": 512
+          "default": "512"
         },
         "client-write-packet-size": {
-          "type": "integer",
+          "type": "string",
           "description": "Packet size for clients to write.",
-          "default": 65536
+          "default": "65536"
         },
         "client_write_exclude_nodes_cache_expiry_interval_millis": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum period to keep a DN in the excluded nodes list at a client. After this period, in milliseconds, the previously excluded node(s) will be removed automatically from the cache and will be considered good for block allocations again. Useful to lower or raise in situations where you keep a file open for very long periods (such as a Write-Ahead-Log (WAL) file) to make the writer tolerant to cluster maintenance restarts. Defaults to 10 minutes.",
-          "default": 600000
+          "default": "600000"
         },
         "image_transfer_timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "Socket timeout for image transfer in milliseconds. This timeout and the related dfs.image.transfer.bandwidthPerSec parameter should be configured such that normal image transfer can complete successfully. This timeout prevents client hangs when the sender fails during image transfer. This is socket timeout during image tranfer.",
-          "default": 60000
+          "default": "60000"
         },
         "image_transfer_bandwidthPerSec": {
-          "type": "integer",
+          "type": "string",
           "description": "Maximum bandwidth used for image transfer in bytes per second. This can help keep normal namenode operations responsive during checkpointing. The maximum bandwidth and timeout in dfs.image.transfer.timeout should be set such that normal image transfers can complete successfully. A default value of 0 indicates that throttling is disabled.",
-          "default": 0
+          "default": "0"
         },
         "image_transfer_chunksize": {
-          "type": "integer",
+          "type": "string",
           "description": "Chunksize in bytes to upload the checkpoint. Chunked streaming is used to avoid internal buffering of contents of image file of huge size.",
-          "default": 65536
+          "default": "65536"
         },
         "client_failover_max_attempts": {
-          "type": "integer",
+          "type": "string",
           "description": "Expert only. The number of client failover attempts that should be made before the failover is considered failed.",
-          "default": 15
+          "default": "15"
         },
         "client_failover_sleep_base_millis": {
-          "type": "integer",
+          "type": "string",
           "description": "Expert only. The time to wait, in milliseconds, between failover attempts increases exponentially as a function of the number of attempts made so far, with a random factor of +/- 50%. This option specifies the base value used in the failover calculation. The first failover will retry immediately. The 2nd failover attempt will delay at least dfs.client.failover.sleep.base.millis milliseconds. And so on.",
-          "default": 500
+          "default": "500"
         },
         "client_failover_sleep_max_millis": {
-          "type": "integer",
+          "type": "string",
           "description": "Expert only. The time to wait, in milliseconds, between failover attempts increases exponentially as a function of the number of attempts made so far, with a random factor of +/- 50%. This option specifies the maximum value to wait between failovers. Specifically, the time between two failover attempts will not exceed +/- 50% of dfs.client.failover.sleep.max.millis milliseconds.",
-          "default": 15000
+          "default": "15000"
         },
         "client_failover_connection_retries": {
-          "type": "integer",
+          "type": "string",
           "description": "Expert only. Indicates the number of retries a failover IPC client will make to establish a server connection.",
-          "default": 0
+          "default": "0"
         },
         "client_failover_connection_retries_on_timeouts": {
-          "type": "integer",
+          "type": "string",
           "description": "Expert only. The number of retry attempts a failover IPC client will make on socket timeout when establishing a server connection.",
-          "default": 0
+          "default": "0"
         },
         "client_datanode-restart_timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "Expert only. The time to wait, in seconds, from reception of an datanode shutdown notification for quick restart, until declaring the datanode dead and invoking the normal recovery mechanisms. The notification is sent by a datanode when it is being shutdown using the shutdownDatanode admin command with the upgrade option.",
-          "default": 30
+          "default": "30"
         },
         "ha_log-roll_period": {
-          "type": "integer",
+          "type": "string",
           "description": "How often, in seconds, the StandbyNode should ask the active to roll edit logs. Since the StandbyNode only reads from finalized log segments, the StandbyNode will only be as up-to-date as how often the logs are rolled. Note that failover triggers a log roll so the StandbyNode will be up to date before it becomes active.",
-          "default": 120
+          "default": "120"
         },
         "ha_tail-edits_period": {
-          "type": "integer",
+          "type": "string",
           "description": "How often, in seconds, the StandbyNode should check for new finalized log segments in the shared edits log.",
-          "default": 60
+          "default": "60"
         },
         "support_append": {
           "type": "boolean",
@@ -1083,9 +1082,9 @@
           "default": ""
         },
         "short_circuit_shared_memory_watcher_interrupt_check_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The length of time in milliseconds that the short-circuit shared memory watcher will go between checking for java interruptions sent from other threads. This is provided mainly for unit tests",
-          "default": 60000
+          "default": "60000"
         },
         "webhdfs_enabled": {
           "type": "boolean",
@@ -1093,14 +1092,14 @@
           "default": true
         },
         "fuse_connection_timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "The minimum number of seconds that we'll cache libhdfs connection objects in fuse_dfs. Lower values will result in lower memory consumption; higher values may speed up access by avoiding the overhead of creating new connection objects.",
-          "default": 300
+          "default": "300"
         },
         "fuse_timer_period": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of seconds between cache expiry checks in fuse_dfs. Lower values will result in fuse_dfs noticing changes to Kerberos ticket caches more quickly.",
-          "default": 5
+          "default": "5"
         },
         "metrics_percentiles_intervals": {
           "type": "string",
@@ -1123,9 +1122,9 @@
           "default": ""
         },
         "encrypt_data_transfer_cipher_key_bitlength": {
-          "type": "integer",
+          "type": "string",
           "description": "The key bitlength negotiated by dfsclient and datanode for encryption. This value may be set to either 128, 192 or 256.",
-          "default": 128
+          "default": "128"
         },
         "trustedchannel_resolver_class": {
           "type": "string",
@@ -1143,14 +1142,14 @@
           "default": ""
         },
         "client_file-block-storage-locations_num-threads": {
-          "type": "integer",
+          "type": "string",
           "description": "Number of threads used for making parallel RPCs in DistributedFileSystem#getFileBlockStorageLocations().",
-          "default": 10
+          "default": "10"
         },
         "client_file-block-storage-locations_timeout_millis": {
-          "type": "integer",
+          "type": "string",
           "description": "Timeout (in milliseconds) for the parallel RPCs made in DistributedFileSystem#getFileBlockStorageLocations().",
-          "default": 1000
+          "default": "1000"
         },
         "client_cache_drop_behind_writes": {
           "type": "string",
@@ -1173,29 +1172,29 @@
           "default": true
         },
         "client_mmap_cache_size": {
-          "type": "integer",
+          "type": "string",
           "description": "When zero-copy reads are used, the DFSClient keeps a cache of recently used memory mapped regions. This parameter controls the maximum number of entries that we will keep in that cache. The larger this number is, the more file descriptors we will potentially use for memory-mapped files. mmaped files also use virtual address space. You may need to increase your ulimit virtual address space limits before increasing the client mmap cache size. Note that you can still do zero-copy reads when this size is set to 0.",
-          "default": 256
+          "default": "256"
         },
         "client_mmap_cache_timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The minimum length of time that we will keep an mmap entry in the cache between uses. If an entry is in the cache longer than this, and nobody uses it, it will be removed by a background thread.",
-          "default": 3600000
+          "default": "3600000"
         },
         "client_mmap_retry_timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The minimum amount of time that we will wait before retrying a failed mmap operation.",
-          "default": 300000
+          "default": "300000"
         },
         "client_short_circuit_replica_stale_threshold_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum amount of time that we will consider a short-circuit replica to be valid, if there is no communication from the DataNode. After this time has elapsed, we will re-fetch the short-circuit replica even if it is in the cache.",
-          "default": 1800000
+          "default": "1800000"
         },
         "cachereport_intervalmsec": {
-          "type": "integer",
+          "type": "string",
           "description": "Determines cache reporting interval in milliseconds. After this amount of time, the DataNode sends a full report of its cache state to the NameNode. The NameNode uses the cache report to update its map of cached blocks to DataNode locations. This configuration has no effect if in-memory caching has been disabled by setting dfs.datanode.max.locked.memory to 0 (which is the default). If the native libraries are not available to the DataNode, this configuration has no effect.",
-          "default": 10000
+          "default": "10000"
         },
         "webhdfs_user_provider_user_pattern": {
           "type": "string",
@@ -1218,14 +1217,14 @@
           "default": false
         },
         "client_read_shortcircuit_streams_cache_size": {
-          "type": "integer",
+          "type": "string",
           "description": "The DFSClient maintains a cache of recently opened file descriptors. This parameter controls the size of that cache. Setting this higher will use more file descriptors, but potentially provide better performance on workloads involving lots of seeks.",
-          "default": 256
+          "default": "256"
         },
         "client_read_shortcircuit_streams_cache_expiry_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "This controls the minimum amount of time file descriptors need to sit in the client cache context before they can be closed for being inactive for too long.",
-          "default": 300000
+          "default": "300000"
         },
         "block_local-path-access_user": {
           "type": "string",
@@ -1238,9 +1237,9 @@
           "default": false
         },
         "client_slow_io_warning_threshold_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The threshold in milliseconds at which we will log a slow io warning in a dfsclient. By default, this parameter is set to 30000 milliseconds (30 seconds).",
-          "default": 30000
+          "default": "30000"
         },
         "encryption_key_provider_uri": {
           "type": "string",
@@ -1288,19 +1287,19 @@
           "default": "org.apache.hadoop.security.JniBasedUnixGroupsMappingWithFallback"
         },
         "security_groups_cache_secs": {
-          "type": "integer",
+          "type": "string",
           "description": "This is the config controlling the validity of the entries in the cache containing the user->group mapping. When this duration has expired, then the implementation of the group mapping provider is invoked to get the groups of the user and then cached back.",
-          "default": 300
+          "default": "300"
         },
         "security_groups_negative-cache_secs": {
-          "type": "integer",
+          "type": "string",
           "description": "Expiration time for entries in the the negative user-to-group mapping caching, in seconds. This is useful when invalid users are retrying frequently. It is suggested to set a small value for this expiration, since a transient error in group lookup could temporarily lock out a legitimate user. Set this to zero or negative value to disable negative user-to-group caching.",
-          "default": 30
+          "default": "30"
         },
         "security_groups_cache_warn_after_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "If looking up a single user to group takes longer than this amount of milliseconds, we will log a warning message.",
-          "default": 5000
+          "default": "5000"
         },
         "security_group_mapping_ldap_url": {
           "type": "string",
@@ -1358,9 +1357,9 @@
           "default": "cn"
         },
         "security_group_mapping_ldap_directory_search_timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "The attribute applied to the LDAP SearchControl properties to set a maximum time limit when searching and awaiting a result. Set to 0 if infinite wait period is desired. Default is 10 seconds. Units in milliseconds.",
-          "default": 10000
+          "default": "10000"
         },
         "security_service_user_name_key": {
           "type": "string",
@@ -1368,9 +1367,9 @@
           "default": ""
         },
         "security_service_uid_cache_secs": {
-          "type": "integer",
+          "type": "string",
           "description": "This is the config controlling the validity of the entries in the cache containing the userId to userName and groupId to groupName used by NativeIO getFstat().",
-          "default": 14400
+          "default": "14400"
         },
         "rpc_protection": {
           "type": "string",
@@ -1398,14 +1397,14 @@
           "default": ""
         },
         "io_file_buffer_size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of buffer for use in sequence files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
-          "default": 4096
+          "default": "4096"
         },
         "io_bytes_per_checksum": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes per checksum. Must not be larger than io.file.buffer.size.",
-          "default": 512
+          "default": "512"
         },
         "io_skip_checksum_errors": {
           "type": "boolean",
@@ -1433,24 +1432,24 @@
           "default": "${hadoop.tmp.dir}/io/local"
         },
         "io_map_index_skip": {
-          "type": "integer",
+          "type": "string",
           "description": "Number of index entries to skip between each entry. Zero by default. Setting this to values larger than zero can facilitate opening large MapFiles using less memory.",
-          "default": 0
+          "default": "0"
         },
         "io_map_index_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "MapFile consist of two files - data file (tuples) and index file (keys). For every io.map.index.interval records written in the data file, an entry (record-key, data-file-position) is written in the index file. This is to allow for doing binary search later within the index file to look up records by their keys and get their closest positions in the data file.",
-          "default": 128
+          "default": "128"
         },
         "fs_trash_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Number of minutes after which the checkpoint gets deleted. If zero, the trash feature is disabled. This option may be configured both on the server and the client. If trash is disabled server side then the client side configuration is checked. If trash is enabled on the server side then the value configured on the server is used and the client configuration value is ignored.",
-          "default": 0
+          "default": "0"
         },
         "fs_trash_checkpoint_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Number of minutes between trash checkpoints. Should be smaller or equal to fs.trash.interval. If zero, the value is set to the value of fs.trash.interval. Every time the checkpointer runs it creates a new checkpoint out of current and removes checkpoints created more than fs.trash.interval minutes ago.",
-          "default": 0
+          "default": "0"
         },
         "fs_abstractfilesystem_file_impl": {
           "type": "string",
@@ -1478,24 +1477,24 @@
           "default": "0.0.0.0"
         },
         "fs_ftp_host_port": {
-          "type": "integer",
+          "type": "string",
           "description": "FTP filesystem connects to fs.ftp.host on this port",
-          "default": 21
+          "default": "21"
         },
         "fs_df_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Disk usage statistics refresh interval in msec.",
-          "default": 60000
+          "default": "60000"
         },
         "fs_du_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "File space usage statistics refresh interval in msec.",
-          "default": 600000
+          "default": "600000"
         },
         "fs_s3_block_size": {
-          "type": "integer",
+          "type": "string",
           "description": "Block size to use when writing files to S3.",
-          "default": 67108864
+          "default": "67108864"
         },
         "fs_s3_buffer_dir": {
           "type": "string",
@@ -1503,14 +1502,14 @@
           "default": "${hadoop.tmp.dir}/s3"
         },
         "fs_s3_maxretries": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum number of retries for reading or writing files to S3, before we signal failure to the application.",
-          "default": 4
+          "default": "4"
         },
         "fs_s3_sleep_time_seconds": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of seconds to sleep between each S3 retry.",
-          "default": 10
+          "default": "10"
         },
         "sf_swift_impl": {
           "type": "string",
@@ -1523,9 +1522,9 @@
           "default": true
         },
         "fs_s3n_block_size": {
-          "type": "integer",
+          "type": "string",
           "description": "Block size to use when reading files using the native S3 filesystem (s3n: URIs).",
-          "default": 67108864
+          "default": "67108864"
         },
         "fs_s3n_multipart_uploads_enabled": {
           "type": "boolean",
@@ -1533,14 +1532,14 @@
           "default": false
         },
         "fs_s3n_multipart_uploads_block_size": {
-          "type": "integer",
+          "type": "string",
           "description": "The block size for multipart uploads to native S3 filesystem. Default size is 64MB.",
-          "default": 67108864
+          "default": "67108864"
         },
         "fs_s3n_multipart_copy_block_size": {
-          "type": "integer",
+          "type": "string",
           "description": "The block size for multipart copy in native S3 filesystem. Default size is 5GB.",
-          "default": 5368709120
+          "default": "5368709120"
         },
         "fs_s3n_server-side-encrpytion-algorithm": {
           "type": "string",
@@ -1558,9 +1557,9 @@
           "default": ""
         },
         "fs_s3n_connection_maximum": {
-          "type": "integer",
+          "type": "string",
           "description": "Controls the maximum number of simultaneous connections to S3.",
-          "default": 15
+          "default": "15"
         },
         "fs_s3n_connection_ssl_enabled": {
           "type": "boolean",
@@ -1568,29 +1567,29 @@
           "default": true
         },
         "fs_s3n_attempts_maximum": {
-          "type": "integer",
+          "type": "string",
           "description": "How many times we should retry commands on transient errors.",
-          "default": 10
+          "default": "10"
         },
         "fs_s3n_connection_timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "Socket connection timeout in seconds.",
-          "default": 5000
+          "default": "5000"
         },
         "fs_s3n_paging_maximum": {
-          "type": "integer",
+          "type": "string",
           "description": "How many keys to request from S3 when doing directory listings at a time.",
-          "default": 5000
+          "default": "5000"
         },
         "fs_s3n_multipart_size": {
-          "type": "integer",
+          "type": "string",
           "description": "How big (in bytes) to split upload or copy operations up into.",
-          "default": 104857600
+          "default": "104857600"
         },
         "fs_s3n_multipart_threshold": {
-          "type": "integer",
+          "type": "string",
           "description": "Threshold before uploads or copies use parallel multipart operations.",
-          "default": 2147483647
+          "default": "2147483647"
         },
         "fs_s3n_acl_default": {
           "type": "string",
@@ -1603,9 +1602,9 @@
           "default": false
         },
         "fs_s3n_multipart_purge_age": {
-          "type": "integer",
+          "type": "string",
           "description": "Minimum age in seconds of multipart uploads to purge",
-          "default": 86400
+          "default": "86400"
         },
         "fs_s3n_buffer_dir": {
           "type": "string",
@@ -1618,9 +1617,9 @@
           "default": "org.apache.hadoop.fs.s3a.S3AFileSystem"
         },
         "io_seqfile_compress_blocksize": {
-          "type": "integer",
+          "type": "string",
           "description": "The minimum block size for compression in block compressed SequenceFiles.",
-          "default": 1000000
+          "default": "1000000"
         },
         "io_seqfile_lazydecompress": {
           "type": "boolean",
@@ -1628,19 +1627,19 @@
           "default": true
         },
         "io_seqfile_sorter_recordlimit": {
-          "type": "integer",
+          "type": "string",
           "description": "The limit on number of records to be kept in memory in a spill in SequenceFiles.Sorter",
-          "default": 1000000
+          "default": "1000000"
         },
         "io_seqfile_bloom_size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of BloomFilter-s used in BloomMapFile. Each time this many keys is appended the next BloomFilter will be created (inside a DynamicBloomFilter). Larger values minimize the number of filters, which slightly increases the performance, but may waste too much space if the total number of keys is usually much smaller than this number.",
-          "default": 1048576
+          "default": "1048576"
         },
         "io_seqfile_bloom_error_rate": {
-          "type": "number",
+          "type": "string",
           "description": "The rate of false positives in BloomFilter-s used in BloomMapFile. As this value decreases, the size of BloomFilter-s increases exponentially. This value is the probability of encountering false positives (default is 0.5%).",
-          "default": 0.005
+          "default": "0.005"
         },
         "hadoop_util_hash_type": {
           "type": "string",
@@ -1648,39 +1647,39 @@
           "default": "murmur"
         },
         "ipc_client_idlethreshold": {
-          "type": "integer",
+          "type": "string",
           "description": "Defines the threshold number of connections after which connections will be inspected for idleness.",
-          "default": 4000
+          "default": "4000"
         },
         "ipc_client_kill_max": {
-          "type": "integer",
+          "type": "string",
           "description": "Defines the maximum number of clients to disconnect in one go.",
-          "default": 10
+          "default": "10"
         },
         "ipc_client_connection_maxidletime": {
-          "type": "integer",
+          "type": "string",
           "description": "The maximum time in msec after which a client will bring down the connection to the server.",
-          "default": 10000
+          "default": "10000"
         },
         "ipc_client_connect_retry_interval": {
-          "type": "integer",
+          "type": "string",
           "description": "Indicates the number of milliseconds a client will wait for before retrying to establish a server connection.",
-          "default": 1000
+          "default": "1000"
         },
         "ipc_client_connect_timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "Indicates the number of milliseconds a client will wait for the socket to establish a server connection.",
-          "default": 20000
+          "default": "20000"
         },
         "ipc_client_connect_max_retries_on_timeouts": {
-          "type": "integer",
+          "type": "string",
           "description": "Indicates the number of retries a client will make on socket timeout to establish a server connection.",
-          "default": 45
+          "default": "45"
         },
         "ipc_server_listen_queue_size": {
-          "type": "integer",
+          "type": "string",
           "description": "Indicates the number of retries a client will make on socket timeout to establish a server connection.",
-          "default": 45
+          "default": "45"
         },
         "hadoop_security_impersonation_provider_class": {
           "type": "string",
@@ -1718,9 +1717,9 @@
           "default": ""
         },
         "net_topology_script_number_args": {
-          "type": "integer",
+          "type": "string",
           "description": "The max number of args that the script configured with net.topology.script.file.name should be run with. Each arg is an IP address.",
-          "default": 100
+          "default": "100"
         },
         "net_topology_table_file_name": {
           "type": "string",
@@ -1728,119 +1727,119 @@
           "default": ""
         },
         "file_stream-buffer-size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
-          "default": 4096
+          "default": "4096"
         },
         "file_bytes-per-checksum": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes per checksum. Must not be larger than file.stream-buffer-size.",
-          "default": 512
+          "default": "512"
         },
         "file_client-write-packet-size": {
-          "type": "integer",
+          "type": "string",
           "description": "Packet size for clients to write.",
-          "default": 65536
+          "default": "65536"
         },
         "file_blocksize": {
-          "type": "integer",
+          "type": "string",
           "description": "Block size",
-          "default": 67108864
+          "default": "67108864"
         },
         "file_replication": {
-          "type": "integer",
+          "type": "string",
           "description": "Replication factor",
-          "default": 1
+          "default": "1"
         },
         "s3_stream-buffer-size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
-          "default": 4096
+          "default": "4096"
         },
         "s3_bytes-per-checksum": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes per checksum. Must not be larger than s3.stream-buffer-size.",
-          "default": 512
+          "default": "512"
         },
         "s3_client-write-packet-size": {
-          "type": "integer",
+          "type": "string",
           "description": "Packet size for clients to write.",
-          "default": 65536
+          "default": "65536"
         },
         "s3_blocksize": {
-          "type": "integer",
+          "type": "string",
           "description": "Block size",
-          "default": 67108864
+          "default": "67108864"
         },
         "s3_replication": {
-          "type": "integer",
+          "type": "string",
           "description": "Replication factor",
-          "default": 3
+          "default": "3"
         },
         "s3native_stream-buffer-size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
-          "default": 4096
+          "default": "4096"
         },
         "s3native_bytes-per-checksum": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes per checksum. Must not be larger than s3native.stream-buffer-size.",
-          "default": 512
+          "default": "512"
         },
         "s3native_client-write-packet-size": {
-          "type": "integer",
+          "type": "string",
           "description": "Packet size for clients to write",
-          "default": 65536
+          "default": "65536"
         },
         "s3native_blocksize": {
-          "type": "integer",
+          "type": "string",
           "description": "Block size",
-          "default": 67108864
+          "default": "67108864"
         },
         "s3native_replication": {
-          "type": "integer",
+          "type": "string",
           "description": "Replication factor",
-          "default": 3
+          "default": "3"
         },
         "ftp_stream-buffer-size": {
-          "type": "integer",
+          "type": "string",
           "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
-          "default": 4096
+          "default": "4096"
         },
         "ftp_bytes-per-checksum": {
-          "type": "integer",
+          "type": "string",
           "description": "The number of bytes per checksum. Must not be larger than ftp.stream-buffer-size",
-          "default": 512
+          "default": "512"
         },
         "ftp_client-write-packet-size": {
-          "type": "integer",
+          "type": "string",
           "description": "Packet size for clients to write.",
-          "default": 65536
+          "default": "65536"
         },
         "ftp_blocksize": {
-          "type": "integer",
+          "type": "string",
           "description": "Block size.",
-          "default": 67108864
+          "default": "67108864"
         },
         "ftp_replication": {
-          "type": "integer",
+          "type": "string",
           "description": "Replication factor",
-          "default": 3
+          "default": "3"
         },
         "tfile_io_chunk_size": {
-          "type": "integer",
+          "type": "string",
           "description": "Value chunk size in bytes. Default to 1MB. Values of the length less than the chunk size is guaranteed to have known value length in read time (See also TFile.Reader.Scanner.Entry.isValueLengthKnown()).",
-          "default": 1048576
+          "default": "1048576"
         },
         "tfile_io_output_buffer_size": {
-          "type": "integer",
+          "type": "string",
           "description": "Buffer size used for FSDataOutputStream in bytes.",
-          "default": 262144
+          "default": "262144"
         },
         "tfile_fs_input_buffer_size": {
-          "type": "integer",
+          "type": "string",
           "description": "Buffer size used for FSDataInputStream in bytes.",
-          "default": 262144
+          "default": "262144"
         },
         "hadoop_http_authentication_type": {
           "type": "string",
@@ -1848,9 +1847,9 @@
           "default": "simple"
         },
         "hadoop_http_authentication_token_validity": {
-          "type": "integer",
+          "type": "string",
           "description": "Indicates how long (in seconds) an authentication token is valid before it has to be renewed.",
-          "default": 36000
+          "default": "36000"
         },
         "hadoop_http_authentication_signature_secret_file": {
           "type": "string",
@@ -1878,9 +1877,9 @@
           "default": "${user.home}/hadoop.keytab"
         },
         "dfs_ha_fencing_ssh_connect-timeout": {
-          "type": "integer",
+          "type": "string",
           "description": "SSH connection timeout, in milliseconds, to use with the builtin sshfence fencer.",
-          "default": 30000
+          "default": "30000"
         },
         "dfs_ha_fencing_ssh_private-key-files": {
           "type": "string",
@@ -1893,9 +1892,9 @@
           "default": "dr.who"
         },
         "ha_zookeeper_session-timeout-ms": {
-          "type": "integer",
+          "type": "string",
           "description": "The session timeout to use when the ZKFC connects to ZooKeeper. Setting this value to a lower value implies that server crashes will be detected more quickly, but risks triggering failover too aggressively in the case of a transient error or network blip.",
-          "default": 5000
+          "default": "5000"
         },
         "hadoop_ssl_keystores_factory_class": {
           "type": "string",
@@ -1918,44 +1917,44 @@
           "default": "022"
         },
         "ha_health-monitor_connect-retry-interval_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "How often to retry connecting to the service.",
-          "default": 1000
+          "default": "1000"
         },
         "ha_health-monitor_check-interval_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "How often to check the service.",
-          "default": 1000
+          "default": "1000"
         },
         "ha_health-monitor_sleep-after-disconnect_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "How long to sleep after an unexpected RPC error.",
-          "default": 1000
+          "default": "1000"
         },
         "ha_health-monitor_rpc-timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "Timeout for the actual monitorHealth() calls.",
-          "default": 45000
+          "default": "45000"
         },
         "ha_failover-controller_new-active_rpc-timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "Timeout that the FC waits for the new active to become active",
-          "default": 60000
+          "default": "60000"
         },
         "ha_failover-controller_graceful-fence_rpc-timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "Timeout that the FC waits for the old active to go to standby.",
-          "default": 5000
+          "default": "5000"
         },
         "ha_failover-controller_graceful-fence_connection_retries": {
-          "type": "integer",
+          "type": "string",
           "description": "FC connection retries for graceful fencing",
-          "default": 1
+          "default": "1"
         },
         "ha_failover-controller_cli-check_rpc-timeout_ms": {
-          "type": "integer",
+          "type": "string",
           "description": "Timeout that the CLI (manual) FC waits for monitorHealth, getServiceState",
-          "default": 20000
+          "default": "20000"
         },
         "ipc_client_fallback-to-simple-auth-allowed": {
           "type": "boolean",
