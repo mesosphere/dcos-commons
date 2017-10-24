@@ -12,7 +12,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.readytalk.metrics.StatsDReporter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -24,7 +23,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -103,9 +101,7 @@ public class SchedulerRunner implements Runnable {
         locker.lock();
         try {
             SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
-            StatsDReporter.forRegistry(Metrics.getRegistry())
-                    .build(schedulerConfig.getStatsdHost(), schedulerConfig.getStatsdPort())
-                    .start(schedulerConfig.getStatsDPollIntervalS(), TimeUnit.SECONDS);
+            Metrics.configureStatsd(schedulerConfig);
             AbstractScheduler scheduler = schedulerBuilder.build();
             scheduler.start();
             Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();

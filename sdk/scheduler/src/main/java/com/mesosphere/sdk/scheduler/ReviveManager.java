@@ -75,10 +75,10 @@ public class ReviveManager {
             if (tokenBucket.tryAcquire()) {
                 logger.info("Reviving offers.");
                 driver.reviveOffers();
-                Metrics.getRevives().inc();
+                Metrics.incrementRevives();
             } else {
                 logger.warn("Revive attempt has been throttled.");
-                Metrics.getReviveThrottles().inc();
+                Metrics.incrementReviveThrottles();
                 return;
             }
         }
