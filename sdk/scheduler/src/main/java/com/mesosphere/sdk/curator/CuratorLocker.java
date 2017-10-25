@@ -78,13 +78,15 @@ public class CuratorLocker {
      */
     public void unlock() {
         if (curatorClient == null) {
-            throw new IllegalStateException("Already unlocked");
+            LOGGER.error("Already unlocked.");
+            return;
         }
         try {
             curatorMutex.release();
         } catch (Exception ex) {
             LOGGER.error("Error releasing ZK lock.", ex);
         }
+
         curatorClient.close();
         curatorMutex = null;
         curatorClient = null;

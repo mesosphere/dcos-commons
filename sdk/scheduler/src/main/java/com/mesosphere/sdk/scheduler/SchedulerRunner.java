@@ -16,6 +16,7 @@ import com.readytalk.metrics.StatsDReporter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -35,6 +37,7 @@ public class SchedulerRunner implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerRunner.class);
 
     private final SchedulerBuilder schedulerBuilder;
+    private static final AtomicBoolean shutdownRequested = new AtomicBoolean(false);
 
     /**
      * Builds a new instance using a {@link RawServiceSpec} representing the raw object model of a YAML service
@@ -101,40 +104,69 @@ public class SchedulerRunner implements Runnable {
     public void run() {
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
-        try {
-            SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
-            StatsDReporter.forRegistry(Metrics.getRegistry())
-                    .build(schedulerConfig.getStatsdHost(), schedulerConfig.getStatsdPort())
-                    .start(schedulerConfig.getStatsDPollIntervalS(), TimeUnit.SECONDS);
-            AbstractScheduler scheduler = schedulerBuilder.build();
-            scheduler.start();
-            Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
-            if (mesosScheduler.isPresent()) {
-                runScheduler(
-                        mesosScheduler.get(),
-                        schedulerBuilder.getServiceSpec(),
-                        schedulerBuilder.getSchedulerConfig(),
-                        schedulerBuilder.getStateStore());
-            }
-        } finally {
-            locker.unlock();
+
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        StatsDReporter.forRegistry(Metrics.getRegistry())
+                .build(schedulerConfig.getStatsdHost(), schedulerConfig.getStatsdPort())
+                .start(schedulerConfig.getStatsDPollIntervalS(), TimeUnit.SECONDS);
+        AbstractScheduler scheduler = schedulerBuilder.build();
+        scheduler.start();
+        Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
+
+        Protos.Status status = Protos.Status.DRIVER_NOT_STARTED;
+        if (mesosScheduler.isPresent()) {
+            status = runScheduler(
+                    mesosScheduler.get(),
+                    schedulerBuilder.getServiceSpec(),
+                    schedulerBuilder.getSchedulerConfig(),
+                    schedulerBuilder.getStateStore());
+            LOGGER.info("SchedulerDriver has stopped.");
+        }
+
+        LOGGER.info("Unlocking ZK interprocess mutex.");
+        locker.unlock();
+        LOGGER.info("Unlocked ZK interprocess mutex.");
+
+        if (shutdownRequested.get()) {
+            LOGGER.error("Exiting expectedly.");
+            SchedulerUtils.hardExit(SchedulerErrorCode.SUCCESS);
+        } else if (status != Protos.Status.DRIVER_STOPPED) {
+            // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
+            // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
+            LOGGER.error("Exiting unexpectedly.");
+            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
         }
     }
 
-    private static void runScheduler(
+    private static Protos.Status runScheduler(
             Scheduler mesosScheduler, ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, StateStore stateStore) {
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
-        Protos.Status status = new SchedulerDriverFactory()
-                .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig)
-                .run();
+        SchedulerDriver driver = new SchedulerDriverFactory()
+                .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LOGGER.info("Stopping driver due to SIGTERM.");
+                shutdownRequested.set(true);
+                driver.stop(true);
+
+                while (true) {
+                    try {
+                        LOGGER.info("Waiting for main thread to exit.");
+                        Thread.sleep(20000);
+                    } catch (InterruptedException e) {
+                        LOGGER.error("Interrupted while waiting", e);
+                    }
+                }
+            }
+        }));
+
+        Protos.Status status = driver.run();
         LOGGER.error("Scheduler driver exited with status: {}", status);
-        // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
-        // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
-        if (status != Protos.Status.DRIVER_STOPPED) {
-            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
-        }
+        return status;
     }
 
     private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {

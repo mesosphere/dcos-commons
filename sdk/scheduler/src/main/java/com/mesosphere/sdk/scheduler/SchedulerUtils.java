@@ -128,7 +128,9 @@ public class SchedulerUtils {
     public static void hardExit(SchedulerErrorCode errorCode) {
         String message = String.format("Scheduler exiting immediately with code: %d", errorCode.getValue());
         System.err.println(message);
+        System.err.flush();
         System.out.println(message);
+        System.out.flush();
         System.exit(errorCode.getValue());
     }
 
