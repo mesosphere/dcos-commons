@@ -251,7 +251,8 @@ def _upgrade_or_downgrade(
         running_task_count,
         additional_options,
         timeout_seconds):
-    initial_config = get_config(from_package_name, service_name)
+
+    initial_config = get_config(to_package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, '')
 
     if sdk_utils.dcos_version_less_than("1.10") or shakedown.ee_version() is None or from_package_name != to_package_name:
