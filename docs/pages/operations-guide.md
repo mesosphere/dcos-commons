@@ -860,7 +860,7 @@ Being able to put the pod in an offline but accessible state makes it easier to 
 
 After the pod has been stopped, it may be started again, at which point it will be restarted again and will resume running task(s) where it left off.
 
-Here is an example session where an `index-1` node is crash looping due to some corrupted data in a persistent volume. The operator stops the `index-1` pod, then uses `task exec` to repair the index. Following this, the operator starts the pod and it resumes normal operation:
+Here is an example session where an `index-1` pod is crash looping due to some corrupted data in a persistent volume. The operator stops the `index-1` pod, then uses `task exec` to repair the index. Following this, the operator starts the pod and it resumes normal operation:
 
 ```bash
 $ dcos myservice debug pod stop index-1
@@ -871,25 +871,52 @@ $ dcos myservice debug pod stop index-1
     "index-1-node"
   ]
 }
-$ dcos myservice plan status deploy
-deploy (COMPLETE)
-├─ index (COMPLETE)
-│  ├─ index-0:[agent, node] (COMPLETE)
-│  └─ index-1:[agent, node] (STOPPED)
-└─ data (COMPLETE)
-   ├─ data-0:[node] (COMPLETE)
-   └─ data-1:[node] (COMPLETE)
-$ dcos task exec --interactive --tty index-1 /bin/bash
-index-1$ ./repair-index && exit
+
+$ dcos myservice pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (COMPLETE)
+│  │  └─ index-0-node (COMPLETE)
+│  └─ index-1
+│     ├─ index-1-agent (STOPPING)
+│     └─ index-1-node (STOPPING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-node (COMPLETE)
+   └─ data-1
+      └─ data-1-node (COMPLETE)
+
+... repeat "pod status" until index-1 tasks are STOPPED ...
+
+$ dcos task exec --interactive --tty index-1-node /bin/bash
+index-1-node$ ./repair-index && exit
+
 $ dcos myservice debug pod start index-1
-$ dcos myservice plan status deploy
-deploy (COMPLETE)
-├─ index (COMPLETE)
-│  ├─ index-0:[agent, node] (COMPLETE)
-│  └─ index-1:[agent, node] (COMPLETE)
-└─ data (COMPLETE)
-   ├─ data-0:[node] (COMPLETE)
-   └─ data-1:[node] (COMPLETE)
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+
+$ dcos myservice pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (RUNNING)
+│  │  └─ index-0-node (RUNNING)
+│  └─ index-1
+│     ├─ index-1-agent (STARTING)
+│     └─ index-1-node (STARTING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-node (RUNNING)
+   └─ data-1
+      └─ data-1-node (RUNNING)
+
+... repeat "pod status" until index-1 tasks are RUNNING ...
 ```
 
 In the above example, all tasks in the pod were being stopped and started, but it's worth noting that the commands also support stopping and starting individual tasks within a pod. For example, `dcos myservice debug pod stop index-1 -t agent` will stop only the `agent` task within the `index-1` pod.
