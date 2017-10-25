@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -76,10 +75,10 @@ public class ReviveManager {
             if (tokenBucket.tryAcquire()) {
                 logger.info("Reviving offers.");
                 driver.reviveOffers();
-                Metrics.getRevives().inc();
+                Metrics.incrementRevives();
             } else {
                 logger.warn("Revive attempt has been throttled.");
-                Metrics.getReviveThrottles().inc();
+                Metrics.incrementReviveThrottles();
                 return;
             }
         }
@@ -92,7 +91,7 @@ public class ReviveManager {
      */
     private Set<WorkItem> getCandidates(Collection<Step> steps) {
         return steps.stream()
-                .filter(step -> !step.getStatus().equals(Status.COMPLETE))
+                .filter(step -> !step.isComplete())
                 .map(step -> new WorkItem(step))
                 .collect(Collectors.toSet());
     }

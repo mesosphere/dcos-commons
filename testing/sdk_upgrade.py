@@ -178,6 +178,10 @@ def _upgrade_or_downgrade(
             sdk_cmd.svc_cli(
                 package_name, service_name,
                 'update start --package-version={}'.format(to_package_version))
+        # we must manually upgrade the package CLI because it's not done automatically in this flow
+        # (and why should it? that'd imply the package CLI replacing itself via a call to the main CLI...)
+        sdk_cmd.run_cli(
+            'package install --yes --cli --package-version={} {}'.format(to_package_version, package_name))
 
     if wait_for_deployment:
 

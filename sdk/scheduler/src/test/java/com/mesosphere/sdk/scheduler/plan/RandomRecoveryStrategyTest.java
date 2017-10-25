@@ -28,12 +28,12 @@ public class RandomRecoveryStrategyTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         when(pendingStep.getName()).thenReturn("mock-step");
-        when(pendingStep.getAsset()).thenReturn(Optional.of(podInstancePending));
+        when(pendingStep.getPodInstanceRequirement()).thenReturn(Optional.of(podInstancePending));
         when(pendingStep.isPending()).thenReturn(true);
         when(pendingStep.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         when(completeStep.getName()).thenReturn("mock-step");
-        when(completeStep.getAsset()).thenReturn(Optional.of(podInstanceComplete));
+        when(completeStep.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceComplete));
         when(completeStep.isPending()).thenReturn(false);
         when(completeStep.isComplete()).thenReturn(true);
         when(completeStep.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);

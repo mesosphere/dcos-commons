@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -43,8 +44,8 @@ public class RequestUtils {
      * Returns a new list which contains only the tasks for a given pod which matched the provided task names.
      * For example, a task named "foo" in "pod-0" will be returned if the filter contains either "foo" or "pod-0-foo".
      */
-    public static List<TaskInfoAndStatus> filterPodTasks(
-            String podName, List<TaskInfoAndStatus> podTasks, Set<String> taskNameFilter) {
+    public static Collection<TaskInfoAndStatus> filterPodTasks(
+            String podName, Collection<TaskInfoAndStatus> podTasks, Set<String> taskNameFilter) {
         if (taskNameFilter.isEmpty()) {
             return podTasks;
         }

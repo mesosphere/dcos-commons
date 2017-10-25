@@ -249,7 +249,7 @@ func printStatus(planName string, rawJSON bool) {
 	if rawJSON {
 		client.PrintJSONBytes(responseBytes)
 	} else {
-		client.PrintMessage(toStatusTree(planName, responseBytes))
+		client.PrintMessage(toPlanStatusTree(planName, responseBytes))
 	}
 }
 
@@ -308,7 +308,7 @@ func HandlePlanSection(app *kingpin.Application) {
 	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 }
 
-func toStatusTree(planName string, planJSONBytes []byte) string {
+func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 	planJSON, err := client.UnmarshalJSON(planJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in plan response: %s", err))
@@ -321,10 +321,10 @@ func toStatusTree(planName string, planJSONBytes []byte) string {
 	}
 	buf.WriteString(fmt.Sprintf("%s (%s)\n", planName, planStatus))
 
-	phases, ok := planJSON["phases"].([]interface{})
+	rawPhases, ok := planJSON["phases"].([]interface{})
 	if ok {
-		for i, rawPhase := range phases {
-			appendPhase(&buf, rawPhase, i == len(phases)-1)
+		for i, rawPhase := range rawPhases {
+			appendPhase(&buf, rawPhase, i == len(rawPhases)-1)
 		}
 	}
 
@@ -336,18 +336,18 @@ func toStatusTree(planName string, planJSONBytes []byte) string {
 		}
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
-
-	return buf.String()
+	return strings.TrimRight(buf.String(), "\n")
 }
 
 func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 	var phasePrefix string
+	var stepPrefix string
 	if lastPhase {
 		phasePrefix = "└─ "
+		stepPrefix = "   "
 	} else {
 		phasePrefix = "├─ "
+		stepPrefix = "│  "
 	}
 
 	phase, ok := rawPhase.(map[string]interface{})
@@ -355,42 +355,32 @@ func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 		return
 	}
 
-	buf.WriteString(elementString(phasePrefix, phase))
+	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, elementString(phase)))
 
-	steps, ok := phase["steps"].([]interface{})
+	rawSteps, ok := phase["steps"].([]interface{})
 	if !ok {
 		return
 	}
-	for i, rawStep := range steps {
-		appendStep(buf, rawStep, lastPhase, i == len(steps)-1)
+	for i, rawStep := range rawSteps {
+		appendStep(buf, rawStep, stepPrefix, i == len(rawSteps)-1)
 	}
 }
 
-func appendStep(buf *bytes.Buffer, rawStep interface{}, lastPhase bool, lastStep bool) {
-	var stepPrefix string
-	if lastPhase {
-		if lastStep {
-			stepPrefix = "   └─ "
-		} else {
-			stepPrefix = "   ├─ "
-		}
-	} else {
-		if lastStep {
-			stepPrefix = "│  └─ "
-		} else {
-			stepPrefix = "│  ├─ "
-		}
-	}
-
+func appendStep(buf *bytes.Buffer, rawStep interface{}, prefix string, lastStep bool) {
 	step, ok := rawStep.(map[string]interface{})
 	if !ok {
 		return
 	}
 
-	buf.WriteString(elementString(stepPrefix, step))
+	if lastStep {
+		prefix += "└─ "
+	} else {
+		prefix += "├─ "
+	}
+	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, elementString(step)))
 }
 
-func elementString(prefix string, element map[string]interface{}) string {
+func elementString(element map[string]interface{}) string {
 	elementName, ok := element["name"]
 	if !ok {
 		elementName = "<UNKNOWN>"
@@ -399,5 +389,5 @@ func elementString(prefix string, element map[string]interface{}) string {
 	if !ok {
 		elementStatus = "<UNKNOWN>"
 	}
-	return fmt.Sprintf("%s%s (%s)\n", prefix, elementName, elementStatus)
+	return fmt.Sprintf("%s (%s)", elementName, elementStatus)
 }

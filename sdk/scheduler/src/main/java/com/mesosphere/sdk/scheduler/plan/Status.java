@@ -30,7 +30,7 @@ public enum Status {
      * Execution has been interrupted.
      *
      * This value is only returned by PlanUtils.getStatus.
-     * Status is NEVER set to WAITING. Do not compare whether it is WAITING or not. 
+     * Status is NEVER set to WAITING. Do not compare whether it is WAITING or not.
      * Use isInterrupted() call, interrupt is a separate state internally.
      */
     WAITING,
@@ -69,9 +69,13 @@ public enum Status {
      * Status is in one of the running states.
      */
     public boolean isRunning() {
-        return this == PENDING ||
-                this == PREPARED ||
-                this == STARTING ||
-                this == IN_PROGRESS;
+        switch (this) {
+        case PREPARED:
+        case STARTING:
+        case IN_PROGRESS:
+            return true;
+        default:
+            return false;
+        }
     }
 }

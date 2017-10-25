@@ -69,6 +69,7 @@ func (suite *PlanTestSuite) TearDownTest() {
 	suite.capturedOutput.Reset()
 	suite.server.Close()
 }
+
 func TestPlanTestSuite(t *testing.T) {
 	suite.Run(t, new(PlanTestSuite))
 }
@@ -327,7 +328,7 @@ func (suite *PlanTestSuite) TestStatusTreeSinglePhase() {
    ├─ kafka-1:[broker] (PENDING)
    └─ kafka-2:[broker] (PENDING)`
 
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -369,7 +370,7 @@ Errors:
 - bar
 - baz`
 
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -430,13 +431,13 @@ func (suite *PlanTestSuite) TestStatusTreeMultiPhase() {
    ├─ kafka-1:[reindex] (PENDING)
    └─ kafka-2:[reindex] (PENDING)`
 
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
 func (suite *PlanTestSuite) TestStatusTreeEmptyJson() {
 	expectedOutput := "deploy (<UNKNOWN>)"
-	result := toStatusTree("deploy", []byte("{ }"))
+	result := toPlanStatusTree("deploy", []byte("{ }"))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -447,7 +448,7 @@ func (suite *PlanTestSuite) TestStatusTreeNoPhases() {
   "status" : "IN_PROGRESS"
 }`
 	expectedOutput := "deploy (IN_PROGRESS)"
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -459,7 +460,7 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyPhase() {
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
 └─ <UNKNOWN> (<UNKNOWN>)`
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -476,7 +477,7 @@ func (suite *PlanTestSuite) TestStatusTreeNoSteps() {
 }`
 	expectedOutput := `deploy (IN_PROGRESS)
 └─ Deployment (IN_PROGRESS)`
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -494,7 +495,7 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyStep() {
 	expectedOutput := `deploy (IN_PROGRESS)
 └─ Deployment (IN_PROGRESS)
    └─ <UNKNOWN> (<UNKNOWN>)`
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 

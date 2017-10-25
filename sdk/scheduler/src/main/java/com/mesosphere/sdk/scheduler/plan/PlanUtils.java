@@ -69,16 +69,15 @@ public class PlanUtils {
                 .collect(Collectors.toSet());
     }
 
-    public static Set<PodInstanceRequirement> getDirtyAsseets(Plan plan) {
+    public static Set<PodInstanceRequirement> getDirtyAssets(Plan plan) {
         if (plan == null) {
             return Collections.emptySet();
         }
 
         return plan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
-                .filter(Step::isAssetDirty)
-                .filter(step -> step.getAsset().isPresent())
-                .map(step -> step.getAsset().get())
+                .filter(step -> step.isAssetDirty() && step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
                 .collect(Collectors.toSet());
     }
 }

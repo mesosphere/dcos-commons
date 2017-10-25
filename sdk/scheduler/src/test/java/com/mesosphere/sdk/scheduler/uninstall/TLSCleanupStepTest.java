@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
-import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import org.junit.Assert;
@@ -45,7 +44,7 @@ public class TLSCleanupStepTest {
 
         verify(mockSecretsClient, never()).delete(any());
 
-        Assert.assertEquals(step.getStatus(), Status.ERROR);
+        Assert.assertTrue(step.hasErrors());
     }
 
     @Test
@@ -60,7 +59,7 @@ public class TLSCleanupStepTest {
             verify(mockSecretsClient, times(1)).delete(TestConstants.SERVICE_NAME + "/" + secretName);
         }
 
-        Assert.assertEquals(step.getStatus(), Status.COMPLETE);
+        Assert.assertTrue(step.isComplete());
     }
 
     @Test
@@ -80,7 +79,7 @@ public class TLSCleanupStepTest {
             verify(mockSecretsClient, never()).delete(secretPath);
         }
 
-        Assert.assertEquals(step.getStatus(), Status.COMPLETE);
+        Assert.assertTrue(step.isComplete());
     }
 
     @Test
@@ -94,6 +93,6 @@ public class TLSCleanupStepTest {
 
         verify(mockSecretsClient, never()).delete(any());
 
-        Assert.assertEquals(step.getStatus(), Status.COMPLETE);
+        Assert.assertTrue(step.isComplete());
     }
 }

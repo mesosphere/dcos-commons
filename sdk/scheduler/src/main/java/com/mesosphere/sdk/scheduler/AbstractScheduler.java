@@ -275,7 +275,7 @@ public abstract class AbstractScheduler {
 
         @Override
         public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-            Metrics.getReceivedOffers().inc(offers.size());
+            Metrics.incrementReceivedOffers(offers.size());
 
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
@@ -414,13 +414,13 @@ public abstract class AbstractScheduler {
             }
 
             // Match offers with work (call into implementation)
-            final Timer.Context context = Metrics.getProcessOffersDuration().time();
+            final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
                 processOffers(driver, offers, steps);
             } finally {
                 context.stop();
             }
-            Metrics.getProcessedOffers().inc(offers.size());
+            Metrics.incrementProcessedOffers(offers.size());
 
             // Revive previously suspended offers, if necessary
             reviveManager.revive(steps);

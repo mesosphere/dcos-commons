@@ -22,7 +22,7 @@ public class SerialStrategyTest {
     @Mock Step el0;
     @Mock Step el1;
     @Mock Step el2;
-    
+
     @Mock private PodInstanceRequirement podInstanceRequirement0;
     @Mock private PodInstanceRequirement podInstanceRequirement1;
     @Mock private PodInstanceRequirement podInstanceRequirement2;
@@ -39,9 +39,9 @@ public class SerialStrategyTest {
         when(el1.getName()).thenReturn("step1");
         when(el2.getName()).thenReturn("step2");
 
-        when(el0.getAsset()).thenReturn(Optional.of(podInstanceRequirement0));
-        when(el1.getAsset()).thenReturn(Optional.of(podInstanceRequirement1));
-        when(el2.getAsset()).thenReturn(Optional.of(podInstanceRequirement2));
+        when(el0.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceRequirement0));
+        when(el1.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceRequirement1));
+        when(el2.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceRequirement2));
 
         when(el0.isPending()).thenReturn(true);
         when(el1.isPending()).thenReturn(true);

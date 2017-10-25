@@ -851,9 +851,54 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 }
 ```
 
+## Stop a pod
+
+Stopping a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed. For example:
+- A pod which crash-loops as soon as it's started may need additional work to be performed.
+- Some services may _require_ that certain repair operations be performed manually when the task itself isn't running.
+Being able to put the pod in an offline but accessible state makes it easier to resolve these situations.
+
+After the pod has been stopped, it may be started again, at which point it will be restarted again and will resume running task(s) where it left off.
+
+Here is an example session where an `index-1` node is crash looping due to some corrupted data in a persistent volume. The operator stops the `index-1` pod, then uses `task exec` to repair the index. Following this, the operator starts the pod and it resumes normal operation:
+
+```bash
+$ dcos myservice debug pod stop index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+$ dcos myservice plan status deploy
+deploy (COMPLETE)
+├─ index (COMPLETE)
+│  ├─ index-0:[agent, node] (COMPLETE)
+│  └─ index-1:[agent, node] (STOPPED)
+└─ data (COMPLETE)
+   ├─ data-0:[node] (COMPLETE)
+   └─ data-1:[node] (COMPLETE)
+$ dcos task exec --interactive --tty index-1 /bin/bash
+index-1$ ./repair-index && exit
+$ dcos myservice debug pod start index-1
+$ dcos myservice plan status deploy
+deploy (COMPLETE)
+├─ index (COMPLETE)
+│  ├─ index-0:[agent, node] (COMPLETE)
+│  └─ index-1:[agent, node] (COMPLETE)
+└─ data (COMPLETE)
+   ├─ data-0:[node] (COMPLETE)
+   └─ data-1:[node] (COMPLETE)
+```
+
+In the above example, all tasks in the pod were being stopped and started, but it's worth noting that the commands also support stopping and starting individual tasks within a pod. For example, `dcos myservice debug pod stop index-1 -t agent` will stop only the `agent` task within the `index-1` pod.
+
 ## Uninstall
 
-### DC/OS 1.10
+The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:
+
+### DC/OS 1.10 and newer
 
 If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
 
@@ -1317,7 +1362,7 @@ You can sometimes get into valid situations where a deployment is being blocked 
 In this case, we can use `plan` commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:
 
 ```bash
-$ dcos cassandra plan show deploy
+$ dcos cassandra plan status deploy
 {
   "phases": [
     {
@@ -1346,7 +1391,7 @@ $ dcos plan force deploy cassandra-phase node-394:[node]
 After forcing the `node-394:[node]` step, we can then see that the Plan shows it in a `COMPLETE` state, and that the Plan is proceeding with `node-395`:
 
 ```
-$ dcos cassandra plan show deploy
+$ dcos cassandra plan status deploy
 {
   "phases": [
     {
@@ -1380,7 +1425,7 @@ $ dcos plan restart deploy cassandra-phase node-394:[node]
 Now, we see that the step is again marked as `PENDING` as the Scheduler again attempts to redeploy that node:
 
 ```
-$ dcos cassandra plan show deploy
+$ dcos cassandra plan status deploy
 {
   "phases": [
     {

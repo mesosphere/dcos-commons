@@ -27,9 +27,9 @@ public class GroupedTasks {
     private static final Logger LOGGER = LoggerFactory.getLogger(GroupedTasks.class);
 
     /**
-     * Mapping of pod instance name (e.g. "pod-0") to tasks in that pod.
+     * Mapping of pod type => pod index => to tasks in that pod.
      */
-    public final Map<String, List<TaskInfoAndStatus>> byPod = new TreeMap<>();
+    public final Map<String, Map<Integer, List<TaskInfoAndStatus>>> byPodTypeAndIndex = new TreeMap<>();
 
     /**
      * List of tasks for which the pod instance couldn't be determined. Should be empty in practice.
@@ -44,6 +44,17 @@ public class GroupedTasks {
         return new GroupedTasks(stateStore.fetchTasks(), stateStore.fetchStatuses());
     }
 
+    public Optional<Collection<TaskInfoAndStatus>> getPodInstanceTasks(String podInstanceName) {
+        for (Map.Entry<String, Map<Integer, List<TaskInfoAndStatus>>> pod : byPodTypeAndIndex.entrySet()) {
+            for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : pod.getValue().entrySet()) {
+                if (PodInstance.getName(pod.getKey(), podInstance.getKey()).equals(podInstanceName)) {
+                    return Optional.of(podInstance.getValue());
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
     private GroupedTasks(Collection<TaskInfo> taskInfos, Collection<TaskStatus> taskStatuses) {
         Map<TaskID, TaskStatus> taskStatusesById = taskStatuses.stream()
                 .collect(Collectors.toMap(status -> status.getTaskId(), Function.identity()));
@@ -52,37 +63,39 @@ public class GroupedTasks {
         for (TaskInfo taskInfo : taskInfos) {
             TaskInfoAndStatus taskInfoAndStatus = TaskInfoAndStatus.create(
                     taskInfo, Optional.ofNullable(taskStatusesById.get(taskInfo.getTaskId())));
-            Optional<String> podInstanceName = getPodInstanceName(taskInfo);
-            if (podInstanceName.isPresent()) {
-                List<TaskInfoAndStatus> tasksAndStatuses = byPod.get(podInstanceName.get());
-                if (tasksAndStatuses == null) {
-                    tasksAndStatuses = new ArrayList<>();
-                    byPod.put(podInstanceName.get(), tasksAndStatuses);
+            TaskLabelReader labels = new TaskLabelReader(taskInfo);
+            try {
+                String podType = labels.getType();
+                Map<Integer, List<TaskInfoAndStatus>> podInstances = byPodTypeAndIndex.get(podType);
+                if (podInstances == null) {
+                    podInstances = new TreeMap<>();
+                    byPodTypeAndIndex.put(podType, podInstances);
                 }
-                tasksAndStatuses.add(taskInfoAndStatus);
-            } else {
+
+                int podIndex = labels.getIndex();
+                List<TaskInfoAndStatus> tasks = podInstances.get(podIndex);
+                if (tasks == null) {
+                    tasks = new ArrayList<>();
+                    podInstances.put(podIndex, tasks);
+                }
+
+                tasks.add(taskInfoAndStatus);
+            } catch (Exception e) {
+                LOGGER.warn(String.format("Failed to extract pod information from task %s", taskInfo.getName()), e);
                 unknownPod.add(taskInfoAndStatus);
             }
         }
 
         // sort the tasks within each pod by the task names (for user convenience):
-        for (List<TaskInfoAndStatus> podTasks : byPod.values()) {
-            podTasks.sort(new Comparator<TaskInfoAndStatus>() {
-                @Override
-                public int compare(TaskInfoAndStatus a, TaskInfoAndStatus b) {
-                    return a.getInfo().getName().compareTo(b.getInfo().getName());
-                }
-            });
-        }
-    }
-
-    private static Optional<String> getPodInstanceName(TaskInfo taskInfo) {
-        try {
-            TaskLabelReader labels = new TaskLabelReader(taskInfo);
-            return Optional.of(PodInstance.getName(labels.getType(), labels.getIndex()));
-        } catch (Exception e) {
-            LOGGER.warn(String.format("Failed to extract pod information from task %s", taskInfo.getName()), e);
-            return Optional.empty();
+        for (Map<Integer, List<TaskInfoAndStatus>> podInstances : byPodTypeAndIndex.values()) {
+            for (List<TaskInfoAndStatus> tasks : podInstances.values()) {
+                tasks.sort(new Comparator<TaskInfoAndStatus>() {
+                    @Override
+                    public int compare(TaskInfoAndStatus a, TaskInfoAndStatus b) {
+                        return a.getInfo().getName().compareTo(b.getInfo().getName());
+                    }
+                });
+            }
         }
     }
 }

@@ -50,18 +50,13 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> getAsset() {
-        return Optional.ofNullable(podInstanceRequirement);
-    }
-
-    @Override
     public void update(Protos.TaskStatus status) {
         // Left intentionally empty
     }
 
     @Override
-    public String getMessage() {
-        return "test-message";
+    public String getDisplayStatus() {
+        return getStatus().toString();
     }
 
     @Override

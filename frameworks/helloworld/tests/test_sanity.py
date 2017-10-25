@@ -142,28 +142,30 @@ def test_pod_list():
 @pytest.mark.sanity
 def test_pod_status_all():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status', json=True)
-    assert len(jsonobj) == config.configured_task_count(foldered_name)
-    for k, v in jsonobj.items():
-        assert re.match('(hello|world)-[0-9]+', k)
-        assert len(v) == 1
-        task = v[0]
-        assert len(task) == 3
-        assert re.match('(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
-        assert re.match('(hello|world)-[0-9]+-server', task['name'])
-        assert task['state'] == 'TASK_RUNNING'
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status --json', json=True)
+    assert jsonobj['service'] == foldered_name
+    for pod in jsonobj['pods']:
+        assert re.match('(hello|world)', pod['name'])
+        for instance in pod['instances']:
+            assert re.match('(hello|world)-[0-9]+', instance['name'])
+            for task in instance['tasks']:
+                assert len(task) == 3
+                assert re.match('(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
+                assert re.match('(hello|world)-[0-9]+-server', task['name'])
+                assert task['status'] == 'RUNNING'
 
 
 @pytest.mark.sanity
 def test_pod_status_one():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status hello-0', json=True)
-    assert len(jsonobj) == 1
-    task = jsonobj[0]
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status --json hello-0', json=True)
+    assert jsonobj['name'] == 'hello-0'
+    assert len(jsonobj['tasks']) == 1
+    task = jsonobj['tasks'][0]
     assert len(task) == 3
     assert re.match('hello-0-server__[0-9a-f-]+', task['id'])
     assert task['name'] == 'hello-0-server'
-    assert task['state'] == 'TASK_RUNNING'
+    assert task['status'] == 'RUNNING'
 
 
 @pytest.mark.sanity

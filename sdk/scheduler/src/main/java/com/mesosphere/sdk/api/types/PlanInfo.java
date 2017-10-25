@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api.types;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -30,11 +29,7 @@ public class PlanInfo {
         return new PlanInfo(phaseInfos, plan.getErrors(), plan.getStatus());
     }
 
-    @JsonCreator
-    public PlanInfo(
-            @JsonProperty("phases") final List<PhaseInfo> phases,
-            @JsonProperty("errors") final List<String> errors,
-            @JsonProperty("status") final Status status) {
+    private PlanInfo(final List<PhaseInfo> phases, final List<String> errors, final Status status) {
         this.phases = phases;
         this.errors = errors;
         this.status = status;

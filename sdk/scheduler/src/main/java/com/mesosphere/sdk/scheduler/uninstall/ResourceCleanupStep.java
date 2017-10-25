@@ -29,7 +29,7 @@ public class ResourceCleanupStep extends UninstallStep {
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        if (getStatus().equals(Status.PENDING)) {
+        if (isPending()) {
             logger.info("Setting state to Prepared for resource {}", resourceId);
             setStatus(Status.PREPARED);
         }

@@ -105,5 +105,4 @@ public class ResponseUtils {
     public static Response alreadyReportedResponse() {
         return plainResponse("Command has already been reported or completed", 208);
     }
-
 }
