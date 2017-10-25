@@ -133,7 +133,8 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.state.StateStore-">PodResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">PodResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+           java.lang.String&nbsp;serviceName)</code>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
@@ -154,7 +155,7 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#getPodInfo-java.lang.String-">getPodInfo</a></span>(java.lang.String&nbsp;name)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#getPodInfo-java.lang.String-">getPodInfo</a></span>(java.lang.String&nbsp;podInstanceName)</code>
 <div class="block">Produces the full information for a single pod instance.</div>
 </td>
 </tr>
@@ -166,7 +167,7 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#getPodStatus-java.lang.String-">getPodStatus</a></span>(java.lang.String&nbsp;name)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#getPodStatus-java.lang.String-">getPodStatus</a></span>(java.lang.String&nbsp;podInstanceName)</code>
 <div class="block">Produces the summary status of a single pod instance.</div>
 </td>
 </tr>
@@ -237,13 +238,14 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PodResource-com.mesosphere.sdk.state.StateStore-">
+<a name="PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>PodResource</h4>
-<pre>public&nbsp;PodResource(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<pre>public&nbsp;PodResource(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                   java.lang.String&nbsp;serviceName)</pre>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </li>
 </ul>
@@ -291,7 +293,7 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <ul class="blockList">
 <li class="blockList">
 <h4>getPodStatus</h4>
-<pre>public&nbsp;Response&nbsp;getPodStatus(java.lang.String&nbsp;name)</pre>
+<pre>public&nbsp;Response&nbsp;getPodStatus(java.lang.String&nbsp;podInstanceName)</pre>
 <div class="block">Produces the summary status of a single pod instance.</div>
 </li>
 </ul>
@@ -301,7 +303,7 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <ul class="blockList">
 <li class="blockList">
 <h4>getPodInfo</h4>
-<pre>public&nbsp;Response&nbsp;getPodInfo(java.lang.String&nbsp;name)</pre>
+<pre>public&nbsp;Response&nbsp;getPodInfo(java.lang.String&nbsp;podInstanceName)</pre>
 <div class="block">Produces the full information for a single pod instance.</div>
 </li>
 </ul>

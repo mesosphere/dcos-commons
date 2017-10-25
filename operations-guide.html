@@ -440,8 +440,9 @@
       </li>
       <li><a href="#restart-a-pod" id="markdown-toc-restart-a-pod">Restart a pod</a></li>
       <li><a href="#replace-a-pod" id="markdown-toc-replace-a-pod">Replace a pod</a></li>
+      <li><a href="#stop-a-pod" id="markdown-toc-stop-a-pod">Stop a pod</a></li>
       <li><a href="#uninstall-1" id="markdown-toc-uninstall-1">Uninstall</a>        <ul>
-          <li><a href="#dcos-110" id="markdown-toc-dcos-110">DC/OS 1.10</a></li>
+          <li><a href="#dcos-110-and-newer" id="markdown-toc-dcos-110-and-newer">DC/OS 1.10 and newer</a></li>
           <li><a href="#older-versions" id="markdown-toc-older-versions">Older versions</a></li>
         </ul>
       </li>
@@ -1552,9 +1553,56 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 </code></pre>
 </div>
 
+<h2 id="stop-a-pod">Stop a pod</h2>
+
+<p>Stopping a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed. For example:</p>
+<ul>
+  <li>A pod which crash-loops as soon as it’s started may need additional work to be performed.</li>
+  <li>Some services may <em>require</em> that certain repair operations be performed manually when the task itself isn’t running.
+Being able to put the pod in an offline but accessible state makes it easier to resolve these situations.</li>
+</ul>
+
+<p>After the pod has been stopped, it may be started again, at which point it will be restarted again and will resume running task(s) where it left off.</p>
+
+<p>Here is an example session where an <code class="highlighter-rouge">index-1</code> node is crash looping due to some corrupted data in a persistent volume. The operator stops the <code class="highlighter-rouge">index-1</code> pod, then uses <code class="highlighter-rouge">task exec</code> to repair the index. Following this, the operator starts the pod and it resumes normal operation:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos myservice debug pod stop index-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"index-1-agent"</span>,
+    <span class="s2">"index-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+<span class="gp">$ </span>dcos myservice plan status deploy
+deploy <span class="o">(</span>COMPLETE<span class="o">)</span>
+├─ index <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  ├─ index-0:[agent, node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  └─ index-1:[agent, node] <span class="o">(</span>STOPPED<span class="o">)</span>
+└─ data <span class="o">(</span>COMPLETE<span class="o">)</span>
+   ├─ data-0:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+   └─ data-1:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+<span class="gp">$ </span>dcos task <span class="nb">exec</span> --interactive --tty index-1 /bin/bash
+<span class="gp">index-1$ </span>./repair-index <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
+<span class="gp">$ </span>dcos myservice debug pod start index-1
+<span class="gp">$ </span>dcos myservice plan status deploy
+deploy <span class="o">(</span>COMPLETE<span class="o">)</span>
+├─ index <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  ├─ index-0:[agent, node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  └─ index-1:[agent, node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+└─ data <span class="o">(</span>COMPLETE<span class="o">)</span>
+   ├─ data-0:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+   └─ data-1:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+</code></pre>
+</div>
+
+<p>In the above example, all tasks in the pod were being stopped and started, but it’s worth noting that the commands also support stopping and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos myservice debug pod stop index-1 -t agent</code> will stop only the <code class="highlighter-rouge">agent</code> task within the <code class="highlighter-rouge">index-1</code> pod.</p>
+
 <h2 id="uninstall-1">Uninstall</h2>
 
-<h3 id="dcos-110">DC/OS 1.10</h3>
+<p>The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:</p>
+
+<h3 id="dcos-110-and-newer">DC/OS 1.10 and newer</h3>
 
 <p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
 
@@ -2036,7 +2084,7 @@ broker-container#
 
 <p>In this case, we can use <code class="highlighter-rouge">plan</code> commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos cassandra plan show deploy
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos cassandra plan status deploy
 <span class="o">{</span>
   <span class="s2">"phases"</span>: <span class="o">[</span>
     <span class="o">{</span>
@@ -2065,7 +2113,7 @@ broker-container#
 
 <p>After forcing the <code class="highlighter-rouge">node-394:[node]</code> step, we can then see that the Plan shows it in a <code class="highlighter-rouge">COMPLETE</code> state, and that the Plan is proceeding with <code class="highlighter-rouge">node-395</code>:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra plan show deploy
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra plan status deploy
 {
   "phases": [
     {
@@ -2099,7 +2147,7 @@ broker-container#
 
 <p>Now, we see that the step is again marked as <code class="highlighter-rouge">PENDING</code> as the Scheduler again attempts to redeploy that node:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra plan show deploy
+<div class="highlighter-rouge"><pre class="highlight"><code>$ dcos cassandra plan status deploy
 {
   "phases": [
     {

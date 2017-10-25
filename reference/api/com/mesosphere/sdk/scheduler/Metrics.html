@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -137,6 +137,49 @@ extends java.lang.Object</pre>
 </table>
 </li>
 </ul>
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#DECLINE_LONG">DECLINE_LONG</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#DECLINE_SHORT">DECLINE_SHORT</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESS_OFFERS">PROCESS_OFFERS</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESSED_OFFERS">PROCESSED_OFFERS</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#RECEIVED_OFFERS">RECEIVED_OFFERS</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#REVIVE_THROTTLES">REVIVE_THROTTLES</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#REVIVES">REVIVES</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -167,44 +210,60 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static Counter</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getDeclinesLong--">getDeclinesLong</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#configureMetricsEndpoints-ServletContextHandler-java.lang.String-java.lang.String-">configureMetricsEndpoints</a></span>(ServletContextHandler&nbsp;context,
+                         java.lang.String&nbsp;codahaleMetricsEndpoint,
+                         java.lang.String&nbsp;prometheusEndpoint)</code>
+<div class="block">Appends endpoint servlets to the provided <code>context</code> which will serve codahale-style and prometheus-style
+ metrics.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>static Counter</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getDeclinesShort--">getDeclinesShort</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#configureStatsd-com.mesosphere.sdk.scheduler.SchedulerConfig-">configureStatsd</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
+<div class="block">Configures the metrics service to emit StatsD-formatted metrics to the configured UDP host/port with the
+ specified interval.</div>
+</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>static Counter</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getProcessedOffers--">getProcessedOffers</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static Timer.Context</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getProcessOffersDurationTimer--">getProcessOffersDurationTimer</a></span>()</code>
+<div class="block">Returns a timer context which may be used to measure the time spent processing offers.</div>
+</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>static Timer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getProcessOffersDuration--">getProcessOffersDuration</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>static Counter</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getReceivedOffers--">getReceivedOffers</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code>static MetricRegistry</code></td>
+<td class="colFirst"><code>(package private) static MetricRegistry</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getRegistry--">getRegistry</a></span>()</code>&nbsp;</td>
 </tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementDeclinesLong-long-">incrementDeclinesLong</a></span>(long&nbsp;amount)</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementDeclinesShort-long-">incrementDeclinesShort</a></span>(long&nbsp;amount)</code>&nbsp;</td>
+</tr>
 <tr id="i6" class="altColor">
-<td class="colFirst"><code>static Counter</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getRevives--">getRevives</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementProcessedOffers-long-">incrementProcessedOffers</a></span>(long&nbsp;amount)</code>&nbsp;</td>
 </tr>
 <tr id="i7" class="rowColor">
-<td class="colFirst"><code>static Counter</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getReviveThrottles--">getReviveThrottles</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementReceivedOffers-long-">incrementReceivedOffers</a></span>(long&nbsp;amount)</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#record-Protos.TaskStatus-">record</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementRevives--">incrementRevives</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
-<td class="colFirst"><code>(package private) static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#reset--">reset</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementReviveThrottles--">incrementReviveThrottles</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#record-Protos.TaskStatus-">record</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
+<div class="block">Records the provided <code>taskStatus</code> received from Mesos.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -222,6 +281,105 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a name="RECEIVED_OFFERS">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>RECEIVED_OFFERS</h4>
+<pre>static final&nbsp;java.lang.String RECEIVED_OFFERS</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.RECEIVED_OFFERS">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="PROCESSED_OFFERS">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>PROCESSED_OFFERS</h4>
+<pre>static final&nbsp;java.lang.String PROCESSED_OFFERS</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.PROCESSED_OFFERS">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="PROCESS_OFFERS">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>PROCESS_OFFERS</h4>
+<pre>static final&nbsp;java.lang.String PROCESS_OFFERS</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.PROCESS_OFFERS">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="REVIVES">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>REVIVES</h4>
+<pre>static final&nbsp;java.lang.String REVIVES</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.REVIVES">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="REVIVE_THROTTLES">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>REVIVE_THROTTLES</h4>
+<pre>static final&nbsp;java.lang.String REVIVE_THROTTLES</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.REVIVE_THROTTLES">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="DECLINE_SHORT">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>DECLINE_SHORT</h4>
+<pre>static final&nbsp;java.lang.String DECLINE_SHORT</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.DECLINE_SHORT">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="DECLINE_LONG">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>DECLINE_LONG</h4>
+<pre>static final&nbsp;java.lang.String DECLINE_LONG</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.DECLINE_LONG">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
@@ -245,85 +403,102 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="reset--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>reset</h4>
-<pre>static&nbsp;void&nbsp;reset()</pre>
-</li>
-</ul>
 <a name="getRegistry--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getRegistry</h4>
-<pre>public static&nbsp;MetricRegistry&nbsp;getRegistry()</pre>
+<pre>static&nbsp;MetricRegistry&nbsp;getRegistry()</pre>
 </li>
 </ul>
-<a name="getReceivedOffers--">
+<a name="configureStatsd-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getReceivedOffers</h4>
-<pre>public static&nbsp;Counter&nbsp;getReceivedOffers()</pre>
+<h4>configureStatsd</h4>
+<pre>public static&nbsp;void&nbsp;configureStatsd(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
+<div class="block">Configures the metrics service to emit StatsD-formatted metrics to the configured UDP host/port with the
+ specified interval.</div>
 </li>
 </ul>
-<a name="getProcessedOffers--">
+<a name="configureMetricsEndpoints-ServletContextHandler-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getProcessedOffers</h4>
-<pre>public static&nbsp;Counter&nbsp;getProcessedOffers()</pre>
+<h4>configureMetricsEndpoints</h4>
+<pre>public static&nbsp;void&nbsp;configureMetricsEndpoints(ServletContextHandler&nbsp;context,
+                                             java.lang.String&nbsp;codahaleMetricsEndpoint,
+                                             java.lang.String&nbsp;prometheusEndpoint)</pre>
+<div class="block">Appends endpoint servlets to the provided <code>context</code> which will serve codahale-style and prometheus-style
+ metrics.</div>
 </li>
 </ul>
-<a name="getProcessOffersDuration--">
+<a name="incrementReceivedOffers-long-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getProcessOffersDuration</h4>
-<pre>public static&nbsp;Timer&nbsp;getProcessOffersDuration()</pre>
+<h4>incrementReceivedOffers</h4>
+<pre>public static&nbsp;void&nbsp;incrementReceivedOffers(long&nbsp;amount)</pre>
 </li>
 </ul>
-<a name="getRevives--">
+<a name="incrementProcessedOffers-long-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getRevives</h4>
-<pre>public static&nbsp;Counter&nbsp;getRevives()</pre>
+<h4>incrementProcessedOffers</h4>
+<pre>public static&nbsp;void&nbsp;incrementProcessedOffers(long&nbsp;amount)</pre>
 </li>
 </ul>
-<a name="getReviveThrottles--">
+<a name="getProcessOffersDurationTimer--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getReviveThrottles</h4>
-<pre>public static&nbsp;Counter&nbsp;getReviveThrottles()</pre>
+<h4>getProcessOffersDurationTimer</h4>
+<pre>public static&nbsp;Timer.Context&nbsp;getProcessOffersDurationTimer()</pre>
+<div class="block">Returns a timer context which may be used to measure the time spent processing offers. The returned timer must
+ be terminated by invoking <code>Timer.Context#stop()</code>.</div>
 </li>
 </ul>
-<a name="getDeclinesShort--">
+<a name="incrementRevives--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getDeclinesShort</h4>
-<pre>public static&nbsp;Counter&nbsp;getDeclinesShort()</pre>
+<h4>incrementRevives</h4>
+<pre>public static&nbsp;void&nbsp;incrementRevives()</pre>
 </li>
 </ul>
-<a name="getDeclinesLong--">
+<a name="incrementReviveThrottles--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getDeclinesLong</h4>
-<pre>public static&nbsp;Counter&nbsp;getDeclinesLong()</pre>
+<h4>incrementReviveThrottles</h4>
+<pre>public static&nbsp;void&nbsp;incrementReviveThrottles()</pre>
+</li>
+</ul>
+<a name="incrementDeclinesShort-long-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>incrementDeclinesShort</h4>
+<pre>public static&nbsp;void&nbsp;incrementDeclinesShort(long&nbsp;amount)</pre>
+</li>
+</ul>
+<a name="incrementDeclinesLong-long-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>incrementDeclinesLong</h4>
+<pre>public static&nbsp;void&nbsp;incrementDeclinesLong(long&nbsp;amount)</pre>
 </li>
 </ul>
 <a name="record-Protos.TaskStatus-">
@@ -333,6 +508,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>record</h4>
 <pre>public static&nbsp;void&nbsp;record(Protos.TaskStatus&nbsp;taskStatus)</pre>
+<div class="block">Records the provided <code>taskStatus</code> received from Mesos.</div>
 </li>
 </ul>
 </li>
@@ -388,13 +564,13 @@ extends java.lang.Object</pre>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

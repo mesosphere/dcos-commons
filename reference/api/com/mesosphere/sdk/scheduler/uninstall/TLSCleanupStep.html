@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -125,21 +125,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- ======== NESTED CLASS SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="nested.class.summary">
-<!--   -->
-</a>
-<h3>Nested Class Summary</h3>
-<ul class="blockList">
-<li class="blockList"><a name="nested.classes.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Step">
-<!--   -->
-</a>
-<h3>Nested classes/interfaces inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.InvalidStepException.html" title="class in com.mesosphere.sdk.scheduler.plan">Step.InvalidStepException</a></code></li>
-</ul>
-</li>
-</ul>
 <!-- =========== FIELD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="field.summary">
@@ -188,34 +173,30 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getAsset--">getAsset</a></span>()</code>
-<div class="block">Return the Asset that this Step intends to work on.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getErrors--">getErrors</a></span>()</code>
 <div class="block">Returns a list of user-visible descriptive error messages associated with this Element.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a></span>()</code>
+<div class="block">Return the pod instance that this Step intends to work on.</div>
+</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Provides the Element with a recent <code>TaskStatus</code> update which was received from Mesos.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
 <div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
@@ -242,14 +223,14 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getDisplayStatus--">getDisplayStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Element">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
 </ul>
 </li>
 </ul>
@@ -310,6 +291,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <li class="blockList">
 <h4>getPodInstanceRequirement</h4>
 <pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getPodInstanceRequirement()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getPodInstanceRequirement--">Step</a></code></span></div>
+<div class="block">Return the pod instance that this Step intends to work on.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The information about the pod that this Step intends to work on, Optional.empty() otherwise.</dd>
+</dl>
 </li>
 </ul>
 <a name="updateOfferStatus-java.util.Collection-">
@@ -325,21 +312,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
  empty when no offers matching the requirement previously returned by <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a>
  could be found. This is only called if <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> returned a non-empty
  <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>.</div>
-</li>
-</ul>
-<a name="getAsset--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getAsset</h4>
-<pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getAsset()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getAsset--">Step</a></code></span></div>
-<div class="block">Return the Asset that this Step intends to work on.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The name of the Asset this Step intends to work on if one exists, Optional.empty() otherwise.</dd>
-</dl>
 </li>
 </ul>
 <a name="getErrors--">

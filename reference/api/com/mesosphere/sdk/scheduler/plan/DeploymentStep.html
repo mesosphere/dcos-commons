@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":10,"i5":9,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -146,13 +146,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a></span></code>&nbsp;</td>
 </tr>
 </table>
-<ul class="blockList">
-<li class="blockList"><a name="nested.classes.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Step">
-<!--   -->
-</a>
-<h3>Nested classes/interfaces inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.InvalidStepException.html" title="class in com.mesosphere.sdk.scheduler.plan">Step.InvalidStepException</a></code></li>
-</ul>
 </li>
 </ul>
 <!-- =========== FIELD SUMMARY =========== -->
@@ -170,6 +163,10 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#podInstanceRequirement">podInstanceRequirement</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#stateStore">stateStore</a></span></code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -193,10 +190,9 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#DeploymentStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.List-">DeploymentStep</a></span>(java.lang.String&nbsp;name,
-              <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#DeploymentStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-">DeploymentStep</a></span>(java.lang.String&nbsp;name,
               <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-              java.util.List&lt;java.lang.String&gt;&nbsp;errors)</code>
+              <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Creates a new instance with the provided <code>name</code>, initial <code>status</code>, associated pod instance required
  by the step, and any <code>errors</code> to be displayed to the user.</div>
 </td>
@@ -211,51 +207,73 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getAsset--">getAsset</a></span>()</code>
-<div class="block">Return the Asset that this Step intends to work on.</div>
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#addError-java.lang.String-">addError</a></span>(java.lang.String&nbsp;error)</code>
+<div class="block">Sets the step to an <code>ERROR</code> state with the provided error message.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getDisplayStatus--">getDisplayStatus</a></span>()</code>
+<div class="block">Returns a user-facing display status of this step, which may provide additional context on the work being
+ performed beyond the underlying progress <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> returned by <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getStatus--"><code>Element.getStatus()</code></a>.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getDisplayStatus-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">getDisplayStatus</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;stepStatus,
+                java.util.Collection&lt;java.lang.String&gt;&nbsp;tasksToLaunch)</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getErrors--">getErrors</a></span>()</code>
 <div class="block">Returns a list of user-visible descriptive error messages associated with this Element.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>(package private) <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getStatus-java.util.Map-">getStatus</a></span>(java.util.Map&lt;Protos.TaskID,<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a>&gt;&nbsp;tasks)</code>&nbsp;</td>
-</tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a></span>()</code>
+<div class="block">Return the pod instance that this Step intends to work on.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>(package private) static java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getStatus-java.util.Set-boolean-boolean-">getStatus</a></span>(java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;statuses,
+         boolean&nbsp;hasErrors,
+         boolean&nbsp;isPrepared)</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-"><code>updateOfferStatus(Collection)</code></a>.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
-<div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> has been successfully accepted/fulfilled.</div>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateInitialStatus-com.mesosphere.sdk.scheduler.plan.Status-">updateInitialStatus</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</code>
+<div class="block">Sets an initial status (other than <code>PENDING</code>) for the step.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
+<div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-"><code>update(Protos.TaskStatus)</code></a>.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;parameters)</code>
 <div class="block">Provides the Element with a set of named string parameters that it can either use on start or provide to
@@ -282,14 +300,14 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Element">
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isInProgress--">isInProgress</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#hasErrors--">hasErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isComplete--">isComplete</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--">isPending</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPrepared--">isPrepared</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isRunning--">isRunning</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isStarting--">isStarting</a></code></li>
 </ul>
 </li>
 </ul>
@@ -305,6 +323,15 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Field Detail</h3>
+<a name="stateStore">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>stateStore</h4>
+<pre>protected final&nbsp;<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a> stateStore</pre>
+</li>
+</ul>
 <a name="podInstanceRequirement">
 <!--   -->
 </a>
@@ -322,16 +349,15 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DeploymentStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.List-">
+<a name="DeploymentStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DeploymentStep</h4>
 <pre>public&nbsp;DeploymentStep(java.lang.String&nbsp;name,
-                      <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
                       <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-                      java.util.List&lt;java.lang.String&gt;&nbsp;errors)</pre>
+                      <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Creates a new instance with the provided <code>name</code>, initial <code>status</code>, associated pod instance required
  by the step, and any <code>errors</code> to be displayed to the user.</div>
 </li>
@@ -344,6 +370,35 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="addError-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addError</h4>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>&nbsp;addError(java.lang.String&nbsp;error)</pre>
+<div class="block">Sets the step to an <code>ERROR</code> state with the provided error message.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>this</dd>
+</dl>
+</li>
+</ul>
+<a name="updateInitialStatus-com.mesosphere.sdk.scheduler.plan.Status-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>updateInitialStatus</h4>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a>&nbsp;updateInitialStatus(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</pre>
+<div class="block">Sets an initial status (other than <code>PENDING</code>) for the step. This status may later be updated as
+ Offers/TaskStatuses are received.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>this</dd>
+</dl>
+</li>
+</ul>
 <a name="updateParameters-java.util.Map-">
 <!--   -->
 </a>
@@ -382,6 +437,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <li class="blockList">
 <h4>getPodInstanceRequirement</h4>
 <pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getPodInstanceRequirement()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getPodInstanceRequirement--">Step</a></code></span></div>
+<div class="block">Return the pod instance that this Step intends to work on.</div>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>The information about the pod that this Step intends to work on, Optional.empty() otherwise.</dd>
+</dl>
 </li>
 </ul>
 <a name="updateOfferStatus-java.util.Collection-">
@@ -391,27 +452,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <li class="blockList">
 <h4>updateOfferStatus</h4>
 <pre>public&nbsp;void&nbsp;updateOfferStatus(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#updateOfferStatus-java.util.Collection-">Step</a></code></span></div>
-<div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> has been successfully accepted/fulfilled. The <code>recommendations</code> param is
- empty when no offers matching the requirement previously returned by <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a>
- could be found. This is only called if <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> returned a non-empty
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>.</div>
-</li>
-</ul>
-<a name="getAsset--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getAsset</h4>
-<pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getAsset()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getAsset--">Step</a></code></span></div>
-<div class="block">Return the Asset that this Step intends to work on.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The name of the Asset this Step intends to work on if one exists, Optional.empty() otherwise.</dd>
-</dl>
+<div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-"><code>update(Protos.TaskStatus)</code></a>.</div>
 </li>
 </ul>
 <a name="getErrors--">
@@ -425,6 +466,18 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <div class="block">Returns a list of user-visible descriptive error messages associated with this Element.</div>
 </li>
 </ul>
+<a name="getDisplayStatus--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDisplayStatus</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getDisplayStatus()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#getDisplayStatus--">Step</a></code></span></div>
+<div class="block">Returns a user-facing display status of this step, which may provide additional context on the work being
+ performed beyond the underlying progress <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> returned by <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getStatus--"><code>Element.getStatus()</code></a>.</div>
+</li>
+</ul>
 <a name="update-Protos.TaskStatus-">
 <!--   -->
 </a>
@@ -435,13 +488,26 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-"><code>updateOfferStatus(Collection)</code></a>.</div>
 </li>
 </ul>
-<a name="getStatus-java.util.Map-">
+<a name="getDisplayStatus-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDisplayStatus</h4>
+<pre>static&nbsp;java.lang.String&nbsp;getDisplayStatus(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                         <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;stepStatus,
+                                         java.util.Collection&lt;java.lang.String&gt;&nbsp;tasksToLaunch)</pre>
+</li>
+</ul>
+<a name="getStatus-java.util.Set-boolean-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getStatus</h4>
-<pre><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;getStatus(java.util.Map&lt;Protos.TaskID,<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a>&gt;&nbsp;tasks)</pre>
+<pre>static&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;getStatus(java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;statuses,
+                                            boolean&nbsp;hasErrors,
+                                            boolean&nbsp;isPrepared)</pre>
 </li>
 </ul>
 </li>

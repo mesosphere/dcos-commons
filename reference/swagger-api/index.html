@@ -234,7 +234,9 @@ font-style: italic;
   <li><a href="#podListStatus"><code><span class="http-method">get</span> /pod/status</code></a></li>
   <li><a href="#podReplace"><code><span class="http-method">post</span> /pod/{name}/replace</code></a></li>
   <li><a href="#podRestart"><code><span class="http-method">post</span> /pod/{name}/restart</code></a></li>
+  <li><a href="#podStart"><code><span class="http-method">get</span> /pod/{name}/start</code></a></li>
   <li><a href="#podStatus"><code><span class="http-method">get</span> /pod/{name}/status</code></a></li>
+  <li><a href="#podStop"><code><span class="http-method">get</span> /pod/{name}/stop</code></a></li>
   </ul>
   <h4><a href="#State">State</a></h4>
   <ul>
@@ -1106,6 +1108,55 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <div class="method"><a name="podStart"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pod/{name}/start</code></pre></div>
+    <div class="method-summary">Restarts a pod&#39;s tasks in normal execution mode following a prior &#39;stop&#39; request. (<span class="nickname">podStart</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">name (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the pod. </div>
+    </div>  <!-- field-items -->
+
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">tasks <a href="#string">string</a> (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; List of specific tasks in the pod to be started, otherwise all tasks are started </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Pod started.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Requested pod was not found.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to start pod.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <div class="method"><a name="podStatus"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
@@ -1145,6 +1196,55 @@ font-style: italic;
         <a href="#"></a>
     <h4 class="field-label">500</h4>
     Failed to fetch requested status for pod.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="podStop"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /pod/{name}/stop</code></pre></div>
+    <div class="method-summary">Restarts a pod&#39;s tasks in a stopped state, allowing the tasks to be debugged. They may be resumed with a &#39;start&#39; request. (<span class="nickname">podStop</span>)</div>
+    <div class="method-notes"></div>
+
+    <h3 class="field-label">Path parameters</h3>
+    <div class="field-items">
+      <div class="param">name (required)</div>
+
+      <div class="param-desc"><span class="param-type">Path Parameter</span> &mdash; The name of the pod. </div>
+    </div>  <!-- field-items -->
+
+
+    <h3 class="field-label">Request body</h3>
+    <div class="field-items">
+      <div class="param">tasks <a href="#string">string</a> (optional)</div>
+
+      <div class="param-desc"><span class="param-type">Body Parameter</span> &mdash; List of specific tasks in the pod to be stopped, otherwise all tasks are stopped </div>
+
+    </div>  <!-- field-items -->
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    Pod stopped.
+        <a href="#"></a>
+    <h4 class="field-label">404</h4>
+    Requested pod was not found.
+        <a href="#"></a>
+    <h4 class="field-label">500</h4>
+    Failed to stop pod.
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>

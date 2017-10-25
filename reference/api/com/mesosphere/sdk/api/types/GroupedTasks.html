@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":9,"i1":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -129,9 +129,9 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#byPod">byPod</a></span></code>
-<div class="block">Mapping of pod instance name (e.g.</div>
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.Integer,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#byPodTypeAndIndex">byPodTypeAndIndex</a></span></code>
+<div class="block">Mapping of pod type => pod index => to tasks in that pod.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -150,7 +150,7 @@ extends java.lang.Object</pre>
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -161,6 +161,10 @@ extends java.lang.Object</pre>
 <div class="block">Returns a new instance which contains all the tasks/statuses that are currently present in the provided
  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#getPodInstanceTasks-java.lang.String-">getPodInstanceTasks</a></span>(java.lang.String&nbsp;podInstanceName)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -184,14 +188,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a name="byPod">
+<a name="byPodTypeAndIndex">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>byPod</h4>
-<pre>public final&nbsp;java.util.Map&lt;java.lang.String,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt; byPod</pre>
-<div class="block">Mapping of pod instance name (e.g. "pod-0") to tasks in that pod.</div>
+<h4>byPodTypeAndIndex</h4>
+<pre>public final&nbsp;java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.Integer,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;&gt; byPodTypeAndIndex</pre>
+<div class="block">Mapping of pod type => pod index => to tasks in that pod.</div>
 </li>
 </ul>
 <a name="unknownPod">
@@ -215,12 +219,21 @@ extends java.lang.Object</pre>
 <a name="create-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>create</h4>
 <pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a>&nbsp;create(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Returns a new instance which contains all the tasks/statuses that are currently present in the provided
  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+</li>
+</ul>
+<a name="getPodInstanceTasks-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getPodInstanceTasks</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;&nbsp;getPodInstanceTasks(java.lang.String&nbsp;podInstanceName)</pre>
 </li>
 </ul>
 </li>
