@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
@@ -63,10 +64,7 @@ func toServiceTree(podsJSONBytes []byte) string {
 		appendPodType(&buf, rawPodType, i == len(rawPodTypes)-1)
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
-
-	return buf.String()
+	return strings.TrimRight(buf.String(), "\n")
 }
 
 func toSinglePodTree(podsJSONBytes []byte) string {
@@ -86,10 +84,7 @@ func toSinglePodTree(podsJSONBytes []byte) string {
 		appendTask(&buf, rawTask, "", i == len(rawTasks)-1)
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
-
-	return buf.String()
+	return strings.TrimRight(buf.String(), "\n")
 }
 
 func appendPodLayer(buf *bytes.Buffer, rawPodType interface{}, lastPodType bool) {

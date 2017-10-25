@@ -198,7 +198,7 @@ func (suite *PodsTestSuite) TestStatusTreePodTwoTasks() {
 ├─ world-0-server (STOPPING)
 └─ world-0-sidecar (STOPPED)`
 
-	result := toPodTree([]byte(inputJSON))
+	result := toSinglePodTree([]byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -215,6 +215,6 @@ func (suite *PodsTestSuite) TestStatusTreePodOneTask() {
 	expectedOutput := `world-0
 └─ world-0-server (STOPPED)`
 
-	result := toPodTree([]byte(inputJSON))
+	result := toSinglePodTree([]byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }

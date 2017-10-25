@@ -336,10 +336,7 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 		}
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
-
-	return buf.String()
+	return strings.TrimRight(buf.String(), "\n")
 }
 
 func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
