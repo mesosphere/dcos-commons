@@ -18,18 +18,20 @@ import json
 import logging
 import os
 import shakedown
+import shutil
 import time
 
 import sdk_cmd
+import sdk_hosts
 import sdk_marathon
 import sdk_security
 
 
 log = logging.getLogger(__name__)
 
-KERBEROS_APP_ID = "kerberos"
+KERBEROS_APP_ID = "kdc"
 KERBEROS_IMAGE_NAME = "mesosphere/kdc"
-KERBEROS_KEYTAB_FILE_NAME = "{service_name}.keytab"
+KERBEROS_KEYTAB_FILE_NAME = "keytab"
 BASE64_ENCODED_KEYTAB_FILE_NAME = "{keytab_name}.base64"
 DCOS_BASE64_PREFIX = "__dcos_base64__"
 LINUX_USER = "core"
@@ -138,7 +140,7 @@ def _get_master_public_ip() -> str:
     return public_ip
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=3000)
+@retry(stop_max_attempt_number=10, wait_fixed=3000)
 def _get_container_id(host_name: str) -> str:
     """
     Gets the ID of the container in which the KDC app is running.
@@ -230,71 +232,37 @@ def _copy_file_to_localhost(self):
 
 
 class KerberosEnvironment:
-    def __init__(self, service_name, kdc_host: str = "10.0.10.2", kdc_port: int = 88):
+    def __init__(self, service_name: str):
         """
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
         This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
 
         Args:
-            kdc_host: The host where KDC would run.
-            kdc_port: The port KDC would be listening on.
+            service_name (str): The service for which the Kerberos environment is setup.
         """
         self.temp_working_dir = _create_temp_working_dir()
-        kdc_address = "{kdc_host}:{kdc_port}".format(kdc_host=kdc_host, kdc_port=kdc_port)
-        app_definition = {
-            "id": KERBEROS_APP_ID,
-            "instances": 1,
-            "cpus": 1,
-            "mem": 512,
-            "labels": {
-                "DCOS_SERVICE_NAME": "kerberos"
-            },
-            "container": {
-                "type": "DOCKER",
-                "docker": {
-                    "image": "mesosphere/kdc:latest",
-                    "network": "BRIDGE",
-                    "forcePullImage": True,
-                    "portMappings": [
-                        {
-                            "containerPort": kdc_port,
-                            "protocol": "tcp",
-                            "labels": {
-                                "VIP_0": kdc_address
-                            }
-                        }, {
-                            "containerPort": kdc_port,
-                            "protocol": "udp",
-                            "labels": {
-                                "VIP_0": kdc_address
-                            }
-                        }, {
-                            "containerPort": 8000,
-                            "protocol": "tcp",
-                            "labels": {
-                                "VIP_0": "{kdc_host}:8000".format(kdc_host=kdc_host)
-                            }
-                        }
-                    ]
-                }
-            }
-        }
-        _launch_marathon_app(app_definition)
+        kdc_app_def_path = "{current_file_dir}/../tools/kdc.json".format(
+            current_file_dir=os.path.dirname(os.path.realpath(__file__)))
+        with open(kdc_app_def_path) as f:
+            kdc_app_def = json.load(f)
+
+        kdc_app_def["id"] = KERBEROS_APP_ID
+        _launch_marathon_app(kdc_app_def)
         _check_kdc_marathon_task_is_running()
-        self.kdc_host = kdc_host
-        self.kdc_port = kdc_port
+        self.kdc_address = "{app_id}.marathon.{host_suffix}:8000".format(
+            app_id=KERBEROS_APP_ID, host_suffix=sdk_hosts.VIP_HOST_SUFFIX)
         self.kdc_host_id = _get_host_id()
         self.kdc_host_name = _get_host_name(self.kdc_host_id)
         self.master_public_ip = _get_master_public_ip()
         self.container_id = _get_container_id(self.kdc_host_name)
-        self.principals = set()
-        self.service_name = service_name
-        self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME.format(service_name=service_name)
+        self.principals = []
+        self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME
         self.base64_encoded_keytab_file_name = BASE64_ENCODED_KEYTAB_FILE_NAME.format(keytab_name=self.keytab_file_name)
+        self.service_name = service_name
 
-    def add_principals(self, principals: set):
+    def add_principals(self, principals: list):
         """
-        Adds a set of principals to the KDC. A principal is defined as a concatenation of 3 parts
+        Adds a list of principals to the KDC. A principal is defined as a concatenation of 3 parts
         in the following order:
         - primary: first part of the principal. In the case of a user, it's the same as your username.
                    For a host, the primary is the word host.
@@ -310,13 +278,13 @@ class KerberosEnvironment:
         A principal is formatted as: <primary>/instance@realm
         Eg. hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 
-        :param principals: The set of principals to be added to KDC.
+        :param principals: The list of principals to be added to KDC.
         """
         # TODO: Perform sanitation check against validity of format for all given principals and raise an
         # exception when the format of a principal is invalid.
         self.principals = principals
 
-        log.info("Adding the following set of principals to the KDC: {principals}".format(principals=principals))
+        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=principals))
         docker_cmd = "docker exec {docker_container_id} kadmin -l add --use-defaults --random-password {principal}"
         for principal in principals:
             rc, output = shakedown.run_command_on_agent(self.kdc_host_name, docker_cmd.format(
@@ -336,9 +304,12 @@ class KerberosEnvironment:
             docker_container_id=self.container_id, keytab_name=self.keytab_file_name
         )
         docker_cmd = docker_cmd + ' '.join(principal for principal in self.principals)
-        rc, output = shakedown.run_command_on_agent(self.kdc_host_name, docker_cmd)
-        if not rc:
-            raise RuntimeError("Failed to create keytab: {}".format(output))
+        try:
+            rc, output = shakedown.run_command_on_agent(self.kdc_host_name, docker_cmd)
+            if not rc:
+                raise RuntimeError("Failed to create keytab: {}".format(output))
+        except Exception as e:
+            raise(e)
 
         _copy_file_to_localhost(self)
 
@@ -389,13 +360,16 @@ class KerberosEnvironment:
         self.__create_and_upload_secret()
 
     def get_address(self):
-        return "{kdc_host}:{kdc_port}".format(kdc_host=self.kdc_host, kdc_port=self.kdc_port)
+        return self.kdc_address
 
     def get_keytab_path(self):
         return self.keytab_secret_path
 
     def cleanup(self):
         sdk_marathon.destroy_app(KERBEROS_APP_ID)
+        if os.path.exists(self.temp_working_dir):
+            shutil.rmtree(self.temp_working_dir)
+
         delete_secret_cmd = "security secrets delete {}".format(self.keytab_secret_path)
         try:
             sdk_cmd.run_cli(delete_secret_cmd)

@@ -7,7 +7,7 @@
     "DCOS_SERVICE_NAME": "kdc"
   },
   "container": {
-    "type": "DOCKER",
+    "type": "MESOS",
     "docker": {
       "image": "mesosphere/kdc:latest",
       "network": "BRIDGE",

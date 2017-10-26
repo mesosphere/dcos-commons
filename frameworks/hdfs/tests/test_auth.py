@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package():
+def configure_package(configure_security):
     try:
         primaries = ["hdfs", "HTTP"]
         fqdn = "{}.autoip.dcos.thisdcos.directory".format(config.SERVICE_NAME)

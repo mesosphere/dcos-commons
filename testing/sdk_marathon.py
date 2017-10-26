@@ -34,6 +34,25 @@ def get_config(app_name):
     return config
 
 
+def install_app(app_def_path: str) -> (bool, str):
+    """
+    Installs a marathon app using the path to an app definition.
+
+    Args:
+        app_def_path: Path to app definition
+
+    Returns:
+        (bool, str) tuple: Boolean indicates success of install attempt. String indicates
+        error message if install attempt failed.
+    """
+    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
+        cmd="marathon app add ", file_path=app_def_path
+    ))
+    if output:
+        return 1, output
+    return 0, ""
+
+
 def install_app(app_definition: dict) -> (bool, str):
     """
     Installs a marathon app using the given `app_definition`.
