@@ -50,7 +50,7 @@ public class DeploymentStepTest {
         when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_0))
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
         when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_1))
-                .thenReturn(GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
+                .thenReturn(GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
         when(mockStateStore.fetchGoalOverrideStatus(taskName))
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
     }
@@ -90,45 +90,45 @@ public class DeploymentStepTest {
         when(mockStateStore.fetchGoalOverrideStatus("no-override-0")).thenReturn(GoalStateOverride.Status.INACTIVE);
         when(mockStateStore.fetchGoalOverrideStatus("no-override-1")).thenReturn(GoalStateOverride.Status.INACTIVE);
         // Note that the override progress shouldn't have any effect:
-        when(mockStateStore.fetchGoalOverrideStatus("stopped-0")).thenReturn(
-                GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING));
-        when(mockStateStore.fetchGoalOverrideStatus("stopped-1")).thenReturn(
-                GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.COMPLETE));
+        when(mockStateStore.fetchGoalOverrideStatus("paused-0")).thenReturn(
+                GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.PENDING));
+        when(mockStateStore.fetchGoalOverrideStatus("paused-1")).thenReturn(
+                GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.COMPLETE));
 
         Assert.assertEquals("IN_PROGRESS",
                 DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS, Collections.emptyList()));
         Assert.assertEquals("COMPLETE",
                 DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE, Collections.emptyList()));
 
-        Assert.assertEquals("STOPPING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
-                Arrays.asList("stopped-0")));
-        Assert.assertEquals("STOPPING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
-                Arrays.asList("stopped-1")));
-        Assert.assertEquals("STOPPING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
-                Arrays.asList("stopped-0", "stopped-1")));
+        Assert.assertEquals("PAUSING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("paused-0")));
+        Assert.assertEquals("PAUSING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("paused-1")));
+        Assert.assertEquals("PAUSING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
+                Arrays.asList("paused-0", "paused-1")));
         Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
                 Arrays.asList("no-override-0", "no-override-1")));
         Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
-                Arrays.asList("no-override-0", "stopped-0")));
+                Arrays.asList("no-override-0", "paused-0")));
         Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
-                Arrays.asList("no-override-0", "stopped-1")));
+                Arrays.asList("no-override-0", "paused-1")));
         Assert.assertEquals("IN_PROGRESS", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
-                Arrays.asList("no-override-0", "stopped-0", "stopped-1")));
+                Arrays.asList("no-override-0", "paused-0", "paused-1")));
 
-        Assert.assertEquals("STOPPED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
-                Arrays.asList("stopped-0")));
-        Assert.assertEquals("STOPPED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
-                Arrays.asList("stopped-1")));
-        Assert.assertEquals("STOPPED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
-                Arrays.asList("stopped-0", "stopped-1")));
+        Assert.assertEquals("PAUSED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("paused-0")));
+        Assert.assertEquals("PAUSED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("paused-1")));
+        Assert.assertEquals("PAUSED", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
+                Arrays.asList("paused-0", "paused-1")));
         Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
                 Arrays.asList("no-override-0", "no-override-1")));
         Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
-                Arrays.asList("no-override-0", "stopped-0")));
+                Arrays.asList("no-override-0", "paused-0")));
         Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
-                Arrays.asList("no-override-0", "stopped-1")));
+                Arrays.asList("no-override-0", "paused-1")));
         Assert.assertEquals("COMPLETE", DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE,
-                Arrays.asList("no-override-0", "stopped-0", "stopped-1")));
+                Arrays.asList("no-override-0", "paused-0", "paused-1")));
     }
 
     private static Set<Status> toSet(Status... elems) {

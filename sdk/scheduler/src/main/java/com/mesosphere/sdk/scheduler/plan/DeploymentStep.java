@@ -20,9 +20,6 @@ import java.util.stream.Collectors;
  */
 public class DeploymentStep extends AbstractStep {
 
-    private static final String DISPLAY_STATUS_STOPPED = "STOPPED";
-    private static final String DISPLAY_STATUS_STOPPING = "STOPPING";
-
     protected final StateStore stateStore;
     protected final PodInstanceRequirement podInstanceRequirement;
 
@@ -242,17 +239,17 @@ public class DeploymentStep extends AbstractStep {
 
     @VisibleForTesting
     static String getDisplayStatus(StateStore stateStore, Status stepStatus, Collection<String> tasksToLaunch) {
-        // It is valid for some tasks to be stopped and not others, i.e. user specified specific task(s) to stop.
-        // Only display a STOPPING/STOPPED state in the plan if ALL the tasks are marked as stopped.
-        boolean allTasksStopped = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
+        // It is valid for some tasks to be paused and not others, i.e. user specified specific task(s) to paused.
+        // Only display a PAUSING/PAUSED state in the plan if ALL the tasks are marked as paused.
+        boolean allTasksPaused = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
                 .map(taskName -> stateStore.fetchGoalOverrideStatus(taskName))
-                .allMatch(goalOverrideStatus -> goalOverrideStatus.target == GoalStateOverride.STOPPED);
-        if (allTasksStopped) {
-            // Show a custom display status when the task is in or entering a stopped state:
+                .allMatch(goalOverrideStatus -> goalOverrideStatus.target == GoalStateOverride.PAUSED);
+        if (allTasksPaused) {
+            // Show a custom display status when the task is in or entering a paused state:
             if (stepStatus.isRunning()) {
-                return DISPLAY_STATUS_STOPPING;
+                return GoalStateOverride.PAUSED.getTransitioningName();
             } else if (stepStatus == Status.COMPLETE) {
-                return DISPLAY_STATUS_STOPPED;
+                return GoalStateOverride.PAUSED.getSerializedName();
             }
         }
         return stepStatus.toString();

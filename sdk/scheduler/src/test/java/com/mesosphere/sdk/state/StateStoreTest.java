@@ -443,15 +443,15 @@ public class StateStoreTest {
         String taskName = "hello";
         assertEquals(GoalStateOverride.Status.INACTIVE, store.fetchGoalOverrideStatus(taskName));
 
-        GoalStateOverride.Status status = GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.PENDING);
+        GoalStateOverride.Status status = GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.PENDING);
         store.storeGoalOverrideStatus(taskName, status);
         assertEquals(status, store.fetchGoalOverrideStatus(taskName));
 
-        status = GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.IN_PROGRESS);
+        status = GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.IN_PROGRESS);
         store.storeGoalOverrideStatus(taskName, status);
         assertEquals(status, store.fetchGoalOverrideStatus(taskName));
 
-        status = GoalStateOverride.STOPPED.newStatus(GoalStateOverride.Progress.COMPLETE);
+        status = GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.COMPLETE);
         store.storeGoalOverrideStatus(taskName, status);
         assertEquals(status, store.fetchGoalOverrideStatus(taskName));
 
