@@ -21,5 +21,3 @@ pods:
           path: "template-container-path"
           type: {{NODE_DISK_TYPE}}
           size: {{NODE_DISK}}
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
