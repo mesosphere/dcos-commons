@@ -54,16 +54,16 @@ type debugPodHandler struct {
 }
 
 func (cmd *debugPodHandler) handlePause(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	cmd.pauseOrStart("pause")
+	cmd.pauseOrResume("pause")
 	return nil
 }
 
-func (cmd *debugPodHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	cmd.pauseOrStart("start")
+func (cmd *debugPodHandler) handleResume(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	cmd.pauseOrResume("resume")
 	return nil
 }
 
-func (cmd *debugPodHandler) pauseOrStart(podCmd string) {
+func (cmd *debugPodHandler) pauseOrResume(podCmd string) {
 	var err error
 	var body []byte
 	if len(cmd.TaskNames) == 0 {
@@ -83,7 +83,7 @@ func (cmd *debugPodHandler) pauseOrStart(podCmd string) {
 }
 
 func HandleDebugPodSection(app *kingpin.Application, debug *kingpin.CmdClause) {
-	// pod <pause, start>
+	// pod <pause, resume>
 	cmd := &debugPodHandler{}
 
 	pod := debug.Command("pod", "Debug pods")
@@ -92,7 +92,7 @@ func HandleDebugPodSection(app *kingpin.Application, debug *kingpin.CmdClause) {
 	pause.Arg("pod", "Name of the pod instance to pause").Required().StringVar(&cmd.PodName)
 	pause.Flag("tasks", "List of specific tasks to be paused, otherwise the entire pod").Short('t').StringsVar(&cmd.TaskNames)
 
-	start := pod.Command("start", "Resumes a pod's normal execution following a pause command").Action(cmd.handleStart)
-	start.Arg("pod", "Name of the pod instance to replace").Required().StringVar(&cmd.PodName)
-	start.Flag("tasks", "List of specific tasks to be started, otherwise the entire pod").Short('t').StringsVar(&cmd.TaskNames)
+	resume := pod.Command("resume", "Resumes a pod's normal execution following a pause command").Action(cmd.handleResume)
+	resume.Arg("pod", "Name of the pod instance to replace").Required().StringVar(&cmd.PodName)
+	resume.Flag("tasks", "List of specific tasks to be resumed, otherwise the entire pod").Short('t').StringsVar(&cmd.TaskNames)
 }

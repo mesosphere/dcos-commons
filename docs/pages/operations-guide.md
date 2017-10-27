@@ -894,7 +894,7 @@ myservice
 $ dcos task exec --interactive --tty index-1-node /bin/bash
 index-1-node$ ./repair-index && exit
 
-$ dcos myservice debug pod start index-1
+$ dcos myservice debug pod resume index-1
 {
   "pod": "index-1",
   "tasks": [
