@@ -391,6 +391,11 @@
 
         <p>Custom zookeeper URL for storing scheduler state. Defaults to <code class="highlighter-rouge">master.mesos:2181</code>.</p>
       </li>
+      <li>
+        <p><code class="highlighter-rouge">user</code></p>
+
+        <p>The system user to run the service’s scheduler and pods as. Availability of usernames depends on the cluster. If DC/OS Security is enabled, this may need to be set to <code class="highlighter-rouge">nobody</code>, or the administrator may be required to configure custom permissions allowing the service to run as a different user.</p>
+      </li>
     </ul>
   </li>
   <li>
@@ -420,7 +425,12 @@
       <li>
         <p><code class="highlighter-rouge">count</code></p>
 
-        <p>The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating.</p>
+        <p>The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may be always increased after the service has been deployed, but it can only be decreased if <code class="highlighter-rouge">allow-decomission</code> is <code class="highlighter-rouge">true</code>.</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">allow-decommission</code></p>
+
+        <p>Whether to allow this pod’s <code class="highlighter-rouge">count</code> to be decreased by an operator in a configuration update. For safety reasons this defaults to <code class="highlighter-rouge">false</code>, but the service developer may set this field to <code class="highlighter-rouge">true</code> to explicitly allow scale-down on a per-pod basis.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">container</code></p>
@@ -512,6 +522,16 @@ If Secret content is changed, relevant pod needs to be restarted, so it can upda
         <p><code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code></p>
 
         <p>One or more persistent volumes to be mounted into the pod environment. These behave the same as volumes on a task or resource set, but are guaranteed to be shared between tasks in a pod. Although volumes defined on a task currently behave the same way, individual tasks will not be able to access volumes defined by another task in the future.</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">pre-reserved-role</code></p>
+
+        <p>Ensures that this pod only consumes resources against a role which has already been statically assigned within the cluster. This is mainly useful for placing pods within a predefined quota, or otherwise assigning them a specific set of resources. For example, DC/OS clusters have a convention of using the <code class="highlighter-rouge">slave_public</code> role for machines which are not firewalled. Pods which have their <code class="highlighter-rouge">pre-reserved-role</code> set to <code class="highlighter-rouge">slave_public</code> will be placed on those machines so that they are visible outside the cluster.</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">share-pid-namespace</code></p>
+
+        <p>Whether the tasks within this pod should share the same process id namespace (<code class="highlighter-rouge">true</code>), or whether pid namespaces should be distinct for every task in the pod (<code class="highlighter-rouge">false</code>).</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">tasks</code></p>
@@ -828,11 +848,6 @@ This can be set either to <code class="highlighter-rouge">TLS</code> for PEM enc
             <p>For detailed information see the <a href="developer-guide.html#tls">SDK Developer Guide</a>.</p>
           </li>
         </ul>
-      </li>
-      <li>
-        <p><code class="highlighter-rouge">user</code></p>
-
-        <p>The system user to run this pod as. The available users depend on the administrator’s cluster. If clusters are using DC/OS Security enabled, this may need to be set to <code class="highlighter-rouge">nobody</code>.</p>
       </li>
     </ul>
   </li>

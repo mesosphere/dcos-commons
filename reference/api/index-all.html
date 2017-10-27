@@ -166,6 +166,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html#AllLaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer...-">AllLaunchConstrainer(LaunchConstrainer...)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">AllLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#allowDecommission-java.lang.Boolean-">allowDecommission(Boolean)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
+<dd>
+<div class="block">Sets whether the <a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#count-java.lang.Integer-"><code>DefaultPodSpec.Builder.count(Integer)</code></a> for this pod can ever be decreased in a config update.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#allPlansComplete--">allPlansComplete()</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
 <div class="block">Verifies that the scheduler's plans are all complete -- that there's no pending work.</div>
@@ -1128,7 +1132,7 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimitSpec&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule, Collection&lt;VolumeSpec&gt;, String, Collection&lt;SecretSpec&gt;, Boolean)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimitSpec&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule, Collection&lt;VolumeSpec&gt;, String, Collection&lt;SecretSpec&gt;, Boolean, Boolean)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultPodSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -2015,6 +2019,12 @@
 <dd>
 <div class="block">Return a list of namespaced secret names (without namespace) for all known <a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a>s.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getAllowDecommission--">getAllowDecommission()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodSpec.html#getAllowDecommission--">getAllowDecommission()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getAllowDecommission--">getAllowDecommission()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getAllResources-java.util.Collection-">getAllResources(Collection&lt;TaskInfo&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>
 <div class="block">Returns a list of all the resources associated with one or more tasks, including <code>Executor</code> resources.</div>
