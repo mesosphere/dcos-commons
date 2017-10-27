@@ -3,6 +3,7 @@ package com.mesosphere.sdk.state;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import com.mesosphere.sdk.scheduler.plan.Status;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -93,6 +94,17 @@ public enum GoalStateOverride {
         private Status(GoalStateOverride target, Progress progress) {
             this.target = target;
             this.progress = progress;
+        }
+
+        public static Progress translateStatus(com.mesosphere.sdk.scheduler.plan.Status planStatus) {
+            switch (planStatus) {
+                case PENDING:
+                    return Progress.PENDING;
+                case COMPLETE:
+                    return Progress.COMPLETE;
+                default:
+                    return Progress.IN_PROGRESS;
+            }
         }
 
         @Override
