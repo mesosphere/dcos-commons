@@ -32,6 +32,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.
 
+  * `user`
+
+    The system user to run the service's scheduler and pods as. Availability of usernames depends on the cluster. If DC/OS Security is enabled, this may need to be set to `nobody`, or the administrator may be required to configure custom permissions allowing the service to run as a different user.
+
 * `pods`
 
   This section contains a listing of all pod types managed by the service.
@@ -50,7 +54,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `count`
 
-    The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating.
+    The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may be always increased after the service has been deployed, but it can only be decreased if `allow-decomission` is `true`.
+
+  * `allow-decommission`
+
+    Whether to allow this pod's `count` to be decreased by an operator in a configuration update. For safety reasons this defaults to `false`, but the service developer may set this field to `true` to explicitly allow scale-down on a per-pod basis.
 
   * `container`
 
@@ -125,6 +133,14 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
   * `volume`/`volumes`
 
     One or more persistent volumes to be mounted into the pod environment. These behave the same as volumes on a task or resource set, but are guaranteed to be shared between tasks in a pod. Although volumes defined on a task currently behave the same way, individual tasks will not be able to access volumes defined by another task in the future.
+
+  * `pre-reserved-role`
+
+    Ensures that this pod only consumes resources against a role which has already been statically assigned within the cluster. This is mainly useful for placing pods within a predefined quota, or otherwise assigning them a specific set of resources. For example, DC/OS clusters have a convention of using the `slave_public` role for machines which are not firewalled. Pods which have their `pre-reserved-role` set to `slave_public` will be placed on those machines so that they are visible outside the cluster.
+
+  * `share-pid-namespace`
+
+    Whether the tasks within this pod should share the same process id namespace (`true`), or whether pid namespaces should be distinct for every task in the pod (`false`).
 
   * `tasks`
 
@@ -374,10 +390,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         This can be set either to `TLS` for PEM encoded private key file, certificate and CA bundle or `KEYSTORE` for certificate and private key to be delivered in a separate keystore file and CA bundle in other truststore file.
 
       For detailed information see the [SDK Developer Guide](developer-guide.html#tls).
-
-  * `user`
-
-    The system user to run this pod as. The available users depend on the administrator's cluster. If clusters are using DC/OS Security enabled, this may need to be set to `nobody`.
 
 * `plans`
 

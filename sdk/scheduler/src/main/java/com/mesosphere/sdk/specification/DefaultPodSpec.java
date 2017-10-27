@@ -28,6 +28,8 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Min(0)
     private final Integer count;
+    @NotNull
+    private Boolean allowDecommission;
     @Size(min = 1)
     private String image;
     @Valid
@@ -65,7 +67,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("volumes") Collection<VolumeSpec> volumes,
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
-            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace) {
+            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
+            @JsonProperty("allow-decommission") Boolean allowDecommission) {
         this(
                 new Builder(Optional.empty()) // Assume that Executor URI is already present
                         .type(type)
@@ -80,11 +83,13 @@ public class DefaultPodSpec implements PodSpec {
                         .volumes(volumes)
                         .preReservedRole(preReservedRole)
                         .secrets(secrets)
-                        .sharePidNamespace(sharePidNamespace));
+                        .sharePidNamespace(sharePidNamespace)
+                        .allowDecommission(allowDecommission));
     }
 
     private DefaultPodSpec(Builder builder) {
         this.count = builder.count;
+        this.allowDecommission = builder.allowDecommission;
         this.image = builder.image;
         this.networks = builder.networks;
         this.placementRule = builder.placementRule;
@@ -107,6 +112,7 @@ public class DefaultPodSpec implements PodSpec {
     public static Builder newBuilder(PodSpec copy) {
         Builder builder = new Builder(Optional.empty()); // Assume that Executor URI is already present
         builder.count = copy.getCount();
+        builder.allowDecommission = copy.getAllowDecommission();
         builder.image = copy.getImage().isPresent() ? copy.getImage().get() : null;
         builder.networks = copy.getNetworks();
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
@@ -135,6 +141,11 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public Integer getCount() {
         return count;
+    }
+
+    @Override
+    public Boolean getAllowDecommission() {
+        return allowDecommission;
     }
 
     @Override
@@ -211,6 +222,7 @@ public class DefaultPodSpec implements PodSpec {
         private String type;
         private String user;
         private Integer count;
+        private Boolean allowDecommission = false;
         private String image;
         private PlacementRule placementRule;
         public String preReservedRole = Constants.ANY_ROLE;
@@ -256,6 +268,17 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder count(Integer count) {
             this.count = count;
+            return this;
+        }
+
+        /**
+         * Sets whether the {@link #count(Integer)} for this pod can ever be decreased in a config update.
+         *
+         * @param allowDecommission whether the count can be decreased in a config update
+         * @return a reference to this Builder
+         */
+        public Builder allowDecommission(Boolean allowDecommission) {
+            this.allowDecommission = allowDecommission != null && allowDecommission;
             return this;
         }
 

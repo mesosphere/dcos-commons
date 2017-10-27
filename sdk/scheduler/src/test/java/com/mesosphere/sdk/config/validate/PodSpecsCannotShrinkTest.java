@@ -25,57 +25,40 @@ public class PodSpecsCannotShrinkTest {
     @Mock
     private TaskSpec taskSpec;
     @Mock
-    private PodSpec mockPodSpec1;
+    private PodSpec mockPodSpecA1;
     @Mock
-    private PodSpec mockPodSpec1WithHigherCount;
+    private PodSpec mockPodSpecA1WithHigherCount;
     @Mock
-    private PodSpec mockPodSpec11;
+    private PodSpec mockPodSpecB1;
     @Mock
-    private PodSpec mockPodSpec2;
-    @Mock
-    private PodSpec mockPodSpec22;
+    private PodSpec mockPodSpecB2;
     @Mock
     private ServiceSpec mockDuplicatePodServiceSpec;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(mockPodSpec1.getType()).thenReturn(TestConstants.POD_TYPE + "-A1");
-        when(mockPodSpec1.getTasks()).thenReturn(Arrays.asList(taskSpec));
-        when(mockPodSpec1.getCount()).thenReturn(1);
+        when(mockPodSpecA1.getType()).thenReturn(TestConstants.POD_TYPE + "-A1");
+        when(mockPodSpecA1.getTasks()).thenReturn(Arrays.asList(taskSpec));
+        when(mockPodSpecA1.getCount()).thenReturn(1);
 
+        when(mockPodSpecA1WithHigherCount.getType()).thenReturn(TestConstants.POD_TYPE + "-A1");
+        when(mockPodSpecA1WithHigherCount.getTasks()).thenReturn(Arrays.asList(taskSpec));
+        when(mockPodSpecA1WithHigherCount.getCount()).thenReturn(100);
 
-        when(mockPodSpec1WithHigherCount.getType()).thenReturn(TestConstants.POD_TYPE + "-A1");
-        when(mockPodSpec1WithHigherCount.getTasks()).thenReturn(Arrays.asList(taskSpec));
-        when(mockPodSpec1WithHigherCount.getCount()).thenReturn(100);
+        when(mockPodSpecB1.getType()).thenReturn(TestConstants.POD_TYPE + "-B1");
+        when(mockPodSpecB1.getTasks()).thenReturn(Arrays.asList(taskSpec, taskSpec));
+        when(mockPodSpecB1.getCount()).thenReturn(1);
 
-        when(mockPodSpec11.getType()).thenReturn(TestConstants.POD_TYPE + "-A2");
-        when(mockPodSpec11.getTasks()).thenReturn(Arrays.asList(taskSpec));
-
-        when(mockPodSpec2.getType()).thenReturn(TestConstants.POD_TYPE + "-B1");
-        when(mockPodSpec2.getTasks()).thenReturn(Arrays.asList(taskSpec, taskSpec));
-
-        when(mockPodSpec22.getType()).thenReturn(TestConstants.POD_TYPE + "-B2");
-        when(mockPodSpec22.getTasks()).thenReturn(Arrays.asList(taskSpec, taskSpec));
+        when(mockPodSpecB2.getType()).thenReturn(TestConstants.POD_TYPE + "-B2");
+        when(mockPodSpecB2.getTasks()).thenReturn(Arrays.asList(taskSpec, taskSpec));
+        when(mockPodSpecB2.getCount()).thenReturn(1);
     }
 
-
     @Test
-    public void testMatchingSize() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .build();
-
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc2")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .build();
-
+    public void testMatchingSizeIsValid() throws InvalidRequirementException {
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1, mockPodSpecB1);
+        ServiceSpec serviceSpec2 = getServiceSpec("svc2", mockPodSpecA1, mockPodSpecB1);
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
@@ -83,21 +66,9 @@ public class PodSpecsCannotShrinkTest {
     }
 
     @Test
-    public void testPodGrowth() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1))
-                .build();
-
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc2")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .build();
-
+    public void testPodAddIsValid() throws InvalidRequirementException {
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1);
+        ServiceSpec serviceSpec2 = getServiceSpec("svc2", mockPodSpecA1, mockPodSpecB1);
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
@@ -105,89 +76,52 @@ public class PodSpecsCannotShrinkTest {
     }
 
     @Test
-    public void testTaskGrowth() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec11))
-                .build();
-
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc2")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .build();
-
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
-        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
-        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
-    }
-
-    @Test
-    public void testPodRemove() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .build();
-
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc2")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1))
-                .build();
-
+    public void testPodRemoveIsInvalid() throws InvalidRequirementException {
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1, mockPodSpecB1);
+        ServiceSpec serviceSpec2 = getServiceSpec("svc2", mockPodSpecA1);
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
+    @Test
+    public void testAllowedPodRemoveIsValid() throws InvalidRequirementException {
+        when(mockPodSpecB1.getAllowDecommission()).thenReturn(true);
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1, mockPodSpecB1);
+        ServiceSpec serviceSpec2 = getServiceSpec("svc2", mockPodSpecA1);
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
+    }
 
     @Test
-    public void testSetRename() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec2))
-                .build();
+    public void testAllowedPodRenameIsValid() throws InvalidRequirementException {
+        when(mockPodSpecB1.getAllowDecommission()).thenReturn(true);
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1, mockPodSpecB1);
+        ServiceSpec serviceSpec2 = getServiceSpec("svc2", mockPodSpecA1, mockPodSpecB2);
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
+        // Still fails in the other direction since B2 doesn't have the decommission bit set:
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
+        Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
+    }
 
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc2")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1, mockPodSpec22))
-                .build();
-
+    @Test
+    public void testPodRenameIsInvalid() throws InvalidRequirementException {
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1, mockPodSpecB1);
+        ServiceSpec serviceSpec2 = getServiceSpec("svc2", mockPodSpecA1, mockPodSpecB2);
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec1).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec2).size());
     }
 
-
     @Test
-    public void testDuplicateSet() throws InvalidRequirementException {
-        ServiceSpec serviceSpec1 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1))
-                .build();
-
-        ServiceSpec serviceSpec2 = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1))
-                .build();
-
+    public void testIdenticalSpecIsValid() throws InvalidRequirementException {
+        ServiceSpec serviceSpec1 = getServiceSpec(mockPodSpecA1);
+        ServiceSpec serviceSpec2 = getServiceSpec(mockPodSpecA1);
         // only checked against new config
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec1), serviceSpec2).size());
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(serviceSpec2), serviceSpec1).size());
@@ -197,52 +131,64 @@ public class PodSpecsCannotShrinkTest {
 
     @Test
     public void testReducingPodCountIsInvalid() {
-        final ServiceSpec serviceWithManyPods = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1WithHigherCount))
-                .build();
-
-        final ServiceSpec serviceWithFewPods = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1))
-                .build();
-
+        final ServiceSpec serviceWithManyPods = getServiceSpec(mockPodSpecA1WithHigherCount);
+        final ServiceSpec serviceWithFewPods = getServiceSpec(mockPodSpecA1);
         assertThat(VALIDATOR.validate(Optional.of(serviceWithManyPods), serviceWithFewPods), hasSize(1));
     }
 
     @Test
+    public void testReducingSourceAllowedPodCountIsInvalid() {
+        when(mockPodSpecA1WithHigherCount.getAllowDecommission()).thenReturn(true);
+        final ServiceSpec serviceWithManyPods = getServiceSpec(mockPodSpecA1WithHigherCount);
+        final ServiceSpec serviceWithFewPods = getServiceSpec(mockPodSpecA1);
+        assertThat(VALIDATOR.validate(Optional.of(serviceWithManyPods), serviceWithFewPods), hasSize(1));
+    }
+
+    @Test
+    public void testReducingDestinationAllowedPodCountIsValid() {
+        when(mockPodSpecA1.getAllowDecommission()).thenReturn(true);
+        final ServiceSpec serviceWithManyPods = getServiceSpec(mockPodSpecA1WithHigherCount);
+        final ServiceSpec serviceWithFewPods = getServiceSpec(mockPodSpecA1);
+        assertThat(VALIDATOR.validate(Optional.of(serviceWithManyPods), serviceWithFewPods), hasSize(0));
+    }
+
+    @Test
+    public void testReducingBothAllowedPodCountIsValid() {
+        when(mockPodSpecA1.getAllowDecommission()).thenReturn(true);
+        when(mockPodSpecA1WithHigherCount.getAllowDecommission()).thenReturn(true);
+        final ServiceSpec serviceWithManyPods = getServiceSpec(mockPodSpecA1WithHigherCount);
+        final ServiceSpec serviceWithFewPods = getServiceSpec(mockPodSpecA1);
+        assertThat(VALIDATOR.validate(Optional.of(serviceWithManyPods), serviceWithFewPods), hasSize(0));
+    }
+
+    @Test
     public void testIncreasingPodCountIsValid() {
-        final ServiceSpec serviceWithManyPods = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1WithHigherCount))
-                .build();
-
-        final ServiceSpec serviceWithFewPods = DefaultServiceSpec.newBuilder()
-                .name("svc1")
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .pods(Arrays.asList(mockPodSpec1))
-                .build();
-
+        final ServiceSpec serviceWithManyPods = getServiceSpec(mockPodSpecA1WithHigherCount);
+        final ServiceSpec serviceWithFewPods = getServiceSpec(mockPodSpecA1);
         assertThat(VALIDATOR.validate(Optional.of(serviceWithFewPods), serviceWithManyPods), is(empty()));
     }
 
     @Test
     public void testDuplicatePodTypesAreInvalid() {
-        when(mockDuplicatePodServiceSpec.getPods()).thenReturn(Arrays.asList(mockPodSpec1, mockPodSpec1));
-
+        when(mockDuplicatePodServiceSpec.getPods()).thenReturn(Arrays.asList(mockPodSpecA1, mockPodSpecA1));
         assertThat(VALIDATOR.validate(Optional.of(mockDuplicatePodServiceSpec), mockDuplicatePodServiceSpec), hasSize(1));
-
     }
 
     @Test
     public void testOldConfigNotPresentIsValid() {
         assertThat(VALIDATOR.validate(Optional.empty(), null), is(empty()));
+    }
+
+    private static ServiceSpec getServiceSpec(PodSpec... podSpecs) {
+        return getServiceSpec("svc1", podSpecs);
+    }
+
+    private static ServiceSpec getServiceSpec(String serviceName, PodSpec... podSpecs) {
+        return DefaultServiceSpec.newBuilder()
+                .name(serviceName)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(podSpecs))
+                .build();
     }
 }
