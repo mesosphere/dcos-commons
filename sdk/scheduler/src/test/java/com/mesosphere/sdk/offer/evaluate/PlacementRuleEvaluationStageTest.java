@@ -51,7 +51,8 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true));
+                        true,
+                        Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(3, mesosResourcePool.getUnreservedMergedPool().size());
@@ -87,7 +88,8 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true));
+                        true,
+                        Collections.emptyMap()));
 
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(3, mesosResourcePool.getUnreservedMergedPool().size());

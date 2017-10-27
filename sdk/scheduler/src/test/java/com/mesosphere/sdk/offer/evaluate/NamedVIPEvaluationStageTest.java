@@ -236,7 +236,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
-                true);
+                true,
+                Collections.emptyMap());
     }
 
     private static void assertIsOverlayLabel(Protos.Label label) {

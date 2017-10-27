@@ -38,7 +38,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                useDefaultExecutor);
+                useDefaultExecutor,
+                Collections.emptyMap());
     }
 
     private PodInstanceRequirement getPodInstanceRequirement(PortSpec... portSpecs) {
@@ -454,7 +455,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                true);
+                true,
+                Collections.emptyMap());
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(portSpec,
                 TestConstants.TASK_NAME,
@@ -478,7 +480,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
-                true);
+                true,
+                Collections.emptyMap());
 
         // Omit 10,000 the expected port.
         offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedPorts(10001, 10050));
@@ -497,7 +500,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
-                true);
+                true,
+                Collections.emptyMap());
 
         mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);

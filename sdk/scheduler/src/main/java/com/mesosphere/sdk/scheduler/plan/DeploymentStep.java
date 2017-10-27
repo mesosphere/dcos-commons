@@ -226,17 +226,12 @@ public class DeploymentStep extends AbstractStep {
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
         GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(getTaskName(taskID));
 
-        if (!overrideStatus.target.equals(GoalStateOverride.NONE)) {
-
-            if (GoalStateOverride.Progress.COMPLETE.equals(overrideStatus.progress)) {
-                logger.info("Goal state is overriden: {}", overrideStatus);
-            } else {
-                GoalStateOverride.Progress progress = GoalStateOverride.Status.translateStatus(status);
-                logger.info("Override progress: {}", overrideStatus);
-                stateStore.storeGoalOverrideStatus(
-                        getTaskName(taskID),
-                        overrideStatus.target.newStatus(progress));
-            }
+        logger.info("Goal override status: {}", overrideStatus);
+        if (!GoalStateOverride.Progress.COMPLETE.equals(overrideStatus.progress)) {
+            GoalStateOverride.Progress progress = GoalStateOverride.Status.translateStatus(status);
+            stateStore.storeGoalOverrideStatus(
+                    getTaskName(taskID),
+                    overrideStatus.target.newStatus(progress));
         }
 
         if (tasks.containsKey(taskID)) {

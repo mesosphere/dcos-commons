@@ -90,19 +90,13 @@ def test_pod_stop():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
     assert len(jsonobj) == 1
     assert old_agent == jsonobj[0]['info']['slaveId']['value']
-    # TODO: this check should fail once command updates for stopped pods is implemented:
-    #       the task command should be updated to some new value that all stopped tasks would have
-    #assert 'stopped-task-cmd-here?' == jsonobj[0]['info']['command']['value']
-    assert old_cmd == jsonobj[0]['info']['command']['value'] # remove this and uncomment/update above
+    assert 'echo This task is PAUSED, sleeping ... && ./bootstrap --resolve=false && while true; do sleep 1209600; done' == jsonobj[0]['info']['command']['value']
 
     # check STOPPED state in plan and in pod status:
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
-    # TODO: this check should fail once command updates for stopped pods is implemented:
-    #       the command updater should set the override status to COMPLETE as the task is relaunched
-    #assert jsonobj['tasks'][0]['status'] == 'STOPPED'
-    assert jsonobj['tasks'][0]['status'] == 'STOPPING' # remove this and uncomment above
+    assert jsonobj['tasks'][0]['status'] == 'STOPPED'
     phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
     assert phase['name'] == 'hello'
     assert phase['status'] == 'COMPLETE'
@@ -128,10 +122,7 @@ def test_pod_stop():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
-    # TODO: this check should fail once command updates for stopped pods is implemented:
-    #       the command updater should set the lack-of-override status to COMPLETE as the task is relaunched
-    #assert jsonobj['tasks'][0]['status'] == 'RUNNING'
-    assert jsonobj['tasks'][0]['status'] == 'STARTING' # remove this and uncomment above
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
     phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
     assert phase['name'] == 'hello'
     assert phase['status'] == 'COMPLETE'

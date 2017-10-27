@@ -3,7 +3,7 @@ package com.mesosphere.sdk.state;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -20,6 +20,15 @@ public enum GoalStateOverride {
     NONE("NONE", "STARTING"),
     /** The definition of the "STOPPED" override state, where commands are replaced with sleep()s.*/
     STOPPED("STOPPED", "STOPPING");
+
+    // Sleep for 2 weeks when pausing
+    public static final String PAUSE_COMMAND =
+            String.format(
+                    "echo This task is PAUSED, sleeping ... && " +
+                            "./bootstrap --resolve=false && while true; do sleep %d; done",
+                    Constants.LONG_DECLINE_SECONDS);
+
+    public static final String PAUSE_READINESS_COMMAND = "exit 1";
 
     /**
      * The state of the override itself.

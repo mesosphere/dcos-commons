@@ -9,9 +9,9 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
-
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,6 +86,17 @@ public class OfferEvaluator {
             MesosResourcePool resourcePool = new MesosResourcePool(
                     offer,
                     OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
+
+            Map<TaskSpec, GoalStateOverride> overrideMap = new HashMap<>();
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                GoalStateOverride override =
+                        stateStore.fetchGoalOverrideStatus(
+                                TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+                                .target;
+
+                overrideMap.put(taskSpec, override);
+            }
+
             PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
                     podInstanceRequirement,
                     serviceName,
@@ -93,7 +104,8 @@ public class OfferEvaluator {
                     schedulerConfig,
                     thisPodTasks.values(),
                     stateStore.fetchFrameworkId().get(),
-                    useDefaultExecutor);
+                    useDefaultExecutor,
+                    overrideMap);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;
 
