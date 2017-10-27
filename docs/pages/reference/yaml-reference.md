@@ -34,7 +34,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `user`
 
-    The system user to run the service's scheduler and pods as. Availability of usernames depends on the cluster. If DC/OS Security is enabled, this may need to be set to `nobody`, or the administrator may be required to configure custom permissions allowing the service to run as a different user.
+    The system user to run the service's scheduler and pods as, with default `root` if unspecified. Availability of usernames depends on the cluster. In DC/OS Enterprise, if the security mode is set to strict, the service account used by the service must have permissions to launch tasks as the assigned user.
 
 * `pods`
 
@@ -54,7 +54,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `count`
 
-    The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may be always increased after the service has been deployed, but it can only be decreased if `allow-decomission` is `true`.
+    The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may always be increased after the service has been deployed, but it can only be decreased if `allow-decommission` is `true`.
 
   * `allow-decommission`
 
@@ -140,7 +140,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `share-pid-namespace`
 
-    Whether the tasks within this pod should share the same process id namespace (`true`), or whether pid namespaces should be distinct for every task in the pod (`false`).
+    Whether the tasks within this pod should share the same process id namespace (`true`), or whether pid namespaces should be distinct for every task in the pod (`false`). Default is `false`.
 
   * `tasks`
 
