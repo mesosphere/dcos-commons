@@ -440,7 +440,7 @@
       </li>
       <li><a href="#restart-a-pod" id="markdown-toc-restart-a-pod">Restart a pod</a></li>
       <li><a href="#replace-a-pod" id="markdown-toc-replace-a-pod">Replace a pod</a></li>
-      <li><a href="#stop-a-pod" id="markdown-toc-stop-a-pod">Stop a pod</a></li>
+      <li><a href="#pause-a-pod" id="markdown-toc-pause-a-pod">Pause a pod</a></li>
       <li><a href="#uninstall-1" id="markdown-toc-uninstall-1">Uninstall</a>        <ul>
           <li><a href="#dcos-110-and-newer" id="markdown-toc-dcos-110-and-newer">DC/OS 1.10 and newer</a></li>
           <li><a href="#older-versions" id="markdown-toc-older-versions">Older versions</a></li>
@@ -1553,20 +1553,22 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 </code></pre>
 </div>
 
-<h2 id="stop-a-pod">Stop a pod</h2>
+<h2 id="pause-a-pod">Pause a pod</h2>
 
-<p>Stopping a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed. For example:</p>
+<p>Pausing a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed.</p>
+
+<p>For example:</p>
 <ul>
-  <li>A pod which crash-loops as soon as it’s started may need additional work to be performed.</li>
+  <li>A pod which crashes immediately upon starting may need additional work to be performed.</li>
   <li>Some services may <em>require</em> that certain repair operations be performed manually when the task itself isn’t running.
 Being able to put the pod in an offline but accessible state makes it easier to resolve these situations.</li>
 </ul>
 
-<p>After the pod has been stopped, it may be started again, at which point it will be restarted again and will resume running task(s) where it left off.</p>
+<p>After the pod has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.</p>
 
-<p>Here is an example session where an <code class="highlighter-rouge">index-1</code> node is crash looping due to some corrupted data in a persistent volume. The operator stops the <code class="highlighter-rouge">index-1</code> pod, then uses <code class="highlighter-rouge">task exec</code> to repair the index. Following this, the operator starts the pod and it resumes normal operation:</p>
+<p>Here is an example session where an <code class="highlighter-rouge">index-1</code> pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the <code class="highlighter-rouge">index-1</code> pod, then uses <code class="highlighter-rouge">task exec</code> to repair the index. Following this, the operator starts the pod and it resumes normal operation:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos myservice debug pod stop index-1
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos myservice debug pod pause index-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1574,29 +1576,56 @@ Being able to put the pod in an offline but accessible state makes it easier to 
     <span class="s2">"index-1-node"</span>
   <span class="o">]</span>
 <span class="o">}</span>
-<span class="gp">$ </span>dcos myservice plan status deploy
-deploy <span class="o">(</span>COMPLETE<span class="o">)</span>
-├─ index <span class="o">(</span>COMPLETE<span class="o">)</span>
-│  ├─ index-0:[agent, node] <span class="o">(</span>COMPLETE<span class="o">)</span>
-│  └─ index-1:[agent, node] <span class="o">(</span>STOPPED<span class="o">)</span>
-└─ data <span class="o">(</span>COMPLETE<span class="o">)</span>
-   ├─ data-0:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
-   └─ data-1:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
-<span class="gp">$ </span>dcos task <span class="nb">exec</span> --interactive --tty index-1 /bin/bash
-<span class="gp">index-1$ </span>./repair-index <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
-<span class="gp">$ </span>dcos myservice debug pod start index-1
-<span class="gp">$ </span>dcos myservice plan status deploy
-deploy <span class="o">(</span>COMPLETE<span class="o">)</span>
-├─ index <span class="o">(</span>COMPLETE<span class="o">)</span>
-│  ├─ index-0:[agent, node] <span class="o">(</span>COMPLETE<span class="o">)</span>
-│  └─ index-1:[agent, node] <span class="o">(</span>COMPLETE<span class="o">)</span>
-└─ data <span class="o">(</span>COMPLETE<span class="o">)</span>
-   ├─ data-0:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
-   └─ data-1:[node] <span class="o">(</span>COMPLETE<span class="o">)</span>
+
+<span class="gp">$ </span>dcos myservice pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  │  └─ index-0-node <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  └─ index-1
+│     ├─ index-1-agent <span class="o">(</span>PAUSING<span class="o">)</span>
+│     └─ index-1-node <span class="o">(</span>PAUSING<span class="o">)</span>
+└─ data
+   ├─ data-0
+   │  └─ data-0-node <span class="o">(</span>COMPLETE<span class="o">)</span>
+   └─ data-1
+      └─ data-1-node <span class="o">(</span>COMPLETE<span class="o">)</span>
+
+... repeat <span class="s2">"pod status"</span> <span class="k">until </span>index-1 tasks are PAUSED ...
+
+<span class="gp">$ </span>dcos task <span class="nb">exec</span> --interactive --tty index-1-node /bin/bash
+<span class="gp">index-1-node$ </span>./repair-index <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
+
+<span class="gp">$ </span>dcos myservice debug pod resume index-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"index-1-agent"</span>,
+    <span class="s2">"index-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+
+<span class="gp">$ </span>dcos myservice pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent <span class="o">(</span>RUNNING<span class="o">)</span>
+│  │  └─ index-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
+│  └─ index-1
+│     ├─ index-1-agent <span class="o">(</span>STARTING<span class="o">)</span>
+│     └─ index-1-node <span class="o">(</span>STARTING<span class="o">)</span>
+└─ data
+   ├─ data-0
+   │  └─ data-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
+   └─ data-1
+      └─ data-1-node <span class="o">(</span>RUNNING<span class="o">)</span>
+
+... repeat <span class="s2">"pod status"</span> <span class="k">until </span>index-1 tasks are RUNNING ...
 </code></pre>
 </div>
 
-<p>In the above example, all tasks in the pod were being stopped and started, but it’s worth noting that the commands also support stopping and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos myservice debug pod stop index-1 -t agent</code> will stop only the <code class="highlighter-rouge">agent</code> task within the <code class="highlighter-rouge">index-1</code> pod.</p>
+<p>In the above example, all tasks in the pod were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos myservice debug pod pause index-1 -t agent</code> will pause only the <code class="highlighter-rouge">agent</code> task within the <code class="highlighter-rouge">index-1</code> pod.</p>
 
 <h2 id="uninstall-1">Uninstall</h2>
 

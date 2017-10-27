@@ -179,34 +179,34 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#pausePod-java.lang.String-java.lang.String-">pausePod</a></span>(java.lang.String&nbsp;podName,
+        java.lang.String&nbsp;bodyPayload)</code>
+<div class="block">Restarts a pod in a "paused" debug mode.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#replacePod-java.lang.String-">replacePod</a></span>(java.lang.String&nbsp;name)</code>
 <div class="block">Replaces a pod instance with a new instance on a different agent.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#restartPod-java.lang.String-">restartPod</a></span>(java.lang.String&nbsp;name)</code>
 <div class="block">Restarts a pod instance in-place.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>
-<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
-</td>
-</tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#startPod-java.lang.String-java.lang.String-">startPod</a></span>(java.lang.String&nbsp;podName,
-        java.lang.String&nbsp;bodyPayload)</code>
-<div class="block">Restarts a pod in a normal state following a prior "stop" command.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#resumePod-java.lang.String-java.lang.String-">resumePod</a></span>(java.lang.String&nbsp;podName,
+         java.lang.String&nbsp;bodyPayload)</code>
+<div class="block">Restarts a pod in a normal state following a prior "pause" command.</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
-<td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#stopPod-java.lang.String-java.lang.String-">stopPod</a></span>(java.lang.String&nbsp;podName,
-       java.lang.String&nbsp;bodyPayload)</code>
-<div class="block">Restarts a pod in a "stopped" debug mode.</div>
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>
+<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
 </td>
 </tr>
 </table>
@@ -307,26 +307,26 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <div class="block">Produces the full information for a single pod instance.</div>
 </li>
 </ul>
-<a name="stopPod-java.lang.String-java.lang.String-">
+<a name="pausePod-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>stopPod</h4>
-<pre>public&nbsp;Response&nbsp;stopPod(java.lang.String&nbsp;podName,
-                        java.lang.String&nbsp;bodyPayload)</pre>
-<div class="block">Restarts a pod in a "stopped" debug mode.</div>
+<h4>pausePod</h4>
+<pre>public&nbsp;Response&nbsp;pausePod(java.lang.String&nbsp;podName,
+                         java.lang.String&nbsp;bodyPayload)</pre>
+<div class="block">Restarts a pod in a "paused" debug mode.</div>
 </li>
 </ul>
-<a name="startPod-java.lang.String-java.lang.String-">
+<a name="resumePod-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>startPod</h4>
-<pre>public&nbsp;Response&nbsp;startPod(java.lang.String&nbsp;podName,
-                         java.lang.String&nbsp;bodyPayload)</pre>
-<div class="block">Restarts a pod in a normal state following a prior "stop" command.</div>
+<h4>resumePod</h4>
+<pre>public&nbsp;Response&nbsp;resumePod(java.lang.String&nbsp;podName,
+                          java.lang.String&nbsp;bodyPayload)</pre>
+<div class="block">Restarts a pod in a normal state following a prior "pause" command.</div>
 </li>
 </ul>
 <a name="restartPod-java.lang.String-">

@@ -171,8 +171,8 @@ extends java.lang.Enum&lt;<a href="../../../../com/mesosphere/sdk/state/GoalStat
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.html#STOPPED">STOPPED</a></span></code>
-<div class="block">The definition of the "STOPPED" override state, where commands are replaced with sleep()s.</div>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.html#PAUSED">PAUSED</a></span></code>
+<div class="block">The definition of the "PAUSED" override state, where commands are replaced with sleep()s.</div>
 </td>
 </tr>
 </table>
@@ -258,14 +258,14 @@ the order they are declared.</div>
 <div class="block">The definition of the default no-override state. Refer to the task's <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a> setting.</div>
 </li>
 </ul>
-<a name="STOPPED">
+<a name="PAUSED">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>STOPPED</h4>
-<pre>public static final&nbsp;<a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a> STOPPED</pre>
-<div class="block">The definition of the "STOPPED" override state, where commands are replaced with sleep()s.</div>
+<h4>PAUSED</h4>
+<pre>public static final&nbsp;<a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a> PAUSED</pre>
+<div class="block">The definition of the "PAUSED" override state, where commands are replaced with sleep()s.</div>
 </li>
 </ul>
 </li>
@@ -334,7 +334,7 @@ not permitted.)</div>
 <li class="blockList">
 <h4>getSerializedName</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getSerializedName()</pre>
-<div class="block">The label which tasks in this state are given. For example "RUNNING" or "STOPPED". This is shown to users and
+<div class="block">The label which tasks in this state are given. For example "RUNNING" or "PAUSED". This is shown to users and
  stored in task state storage.
 
  <p>WARNING: THIS IS STORED IN ZOOKEEPER TASK METADATA AND THEREFORE CANNOT EASILY BE CHANGED</div>
@@ -348,7 +348,7 @@ not permitted.)</div>
 <h4>getTransitioningName</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getTransitioningName()</pre>
 <div class="block">The state which tasks which are in the process of entering this state are given. For example "STARTING" or
- "STOPPING". This is shown to users but not stored anywhere.</div>
+ "PAUSING". This is shown to users but not stored anywhere.</div>
 </li>
 </ul>
 </li>

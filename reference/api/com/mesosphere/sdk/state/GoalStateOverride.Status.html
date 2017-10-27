@@ -119,9 +119,9 @@ extends java.lang.Object</pre>
 
  <table><tr><td>Operation</td><td>Resulting status (override + progress)</td></tr>
  <tr><td>(Initial state)</td><td>NONE + COMPLETE (==INACTIVE)</td></tr>
- <tr><td>"Stop" triggered, kill command issued</td><td>STOPPED + PENDING</td></tr>
- <tr><td>TASK_KILLED status received</td><td>STOPPED + IN_PROGRESS</td></tr>
- <tr><td>Task relaunch in stopped state has been triggered</td><td>STOPPED + COMPLETE</td></tr>
+ <tr><td>"Pause" triggered, kill command issued</td><td>PAUSED + PENDING</td></tr>
+ <tr><td>TASK_KILLED status received</td><td>PAUSED + IN_PROGRESS</td></tr>
+ <tr><td>Task relaunch in paused state has been triggered</td><td>PAUSED + COMPLETE</td></tr>
  <tr><td>"Start" triggered, kill command issued</td><td>NONE + PENDING</td></tr>
  <tr><td>TASK_KILLED status received</td><td>NONE + IN_PROGRESS</td></tr>
  <tr><td>Task relaunch in normal state has been triggered</td><td>NONE + COMPLETE (==INACTIVE)</td></tr></table></div>
