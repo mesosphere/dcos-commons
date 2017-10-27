@@ -9,7 +9,7 @@ genconf/
 .vagrant/
 *.box
 
-# leftovers from running tools directly
+# leftovers from running tests/tools directly
 tools/env/
 tools/cluster-*.properties
 tools/*.pem
@@ -21,13 +21,15 @@ tools/kafka
 tools/elastic
 tools/helloworld
 tools/template
+/test_*.json
+*.log
+*.pem
 
 # idea
 *.i??
 .idea/
 out/
 classes/
-*.log
 
 # eclipse
 .classpath
