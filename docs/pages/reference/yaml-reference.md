@@ -58,7 +58,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `allow-decommission`
 
-    Whether to allow the `count` to be decreased by an operator in a configuration update. For safety reasons this defaults to `false`, but the service developer may set this field to `true` to explicitly allow scale-down on a per-pod basis.
+    Whether to allow this pod's `count` to be decreased by an operator in a configuration update. For safety reasons this defaults to `false`, but the service developer may set this field to `true` to explicitly allow scale-down on a per-pod basis.
 
   * `container`
 
@@ -136,7 +136,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `pre-reserved-role`
 
-    TODO(nickbp): Explain Mesos pre-reserved roles.
+    Ensures that this pod only consumes resources against a role which has already been statically assigned within the cluster. This is mainly useful for placing pods within a predefined quota, or otherwise assigning them a specific set of resources. For example, DC/OS clusters have a convention of using the `slave_public` role for machines which are not firewalled. Pods which have their `pre-reserved-role` set to `slave_public` will be placed on those machines so that they are visible outside the cluster.
 
   * `share-pid-namespace`
 
