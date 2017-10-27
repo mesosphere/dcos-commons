@@ -3,32 +3,33 @@
   "instances": 1,
   "cpus": 1,
   "mem": 512,
-  "labels": {
-    "DCOS_SERVICE_NAME": "kdc"
-  },
   "container": {
     "type": "MESOS",
     "docker": {
       "image": "mesosphere/kdc:latest",
-      "network": "BRIDGE",
-      "forcePullImage": true,
-      "portMappings": [
-        {
-          "containerPort": 88,
-          "protocol": "tcp",
-          "labels": {"VIP_0": "kdc:88"}
-        },
-        {
-          "containerPort": 88,
-          "protocol": "udp",
-          "labels": {"VIP_0": "kdc:88"}
-        },
-        {
-          "containerPort": 8000,
-          "protocol": "tcp",
-          "labels": {"VIP_0": "kdc:8000"}
-        }
-      ]
+      "forcePullImage": true
+    },
+    "portMappings": [
+      {
+        "containerPort": 88,
+        "protocol": "tcp",
+        "labels": {"VIP_0": "kdc:88"}
+      },
+      {
+        "containerPort": 88,
+        "protocol": "udp",
+        "labels": {"VIP_0": "kdc:88"}
+      },
+      {
+        "containerPort": 8000,
+        "protocol": "tcp",
+        "labels": {"VIP_0": "kdc:8000"}
+      }
+    ]
+  },
+  "networks": [
+    {
+      "mode": "container/bridge"
     }
-  }
+  ]
 }
