@@ -3,6 +3,7 @@ import pytest
 import time
 
 import sdk_auth
+import sdk_hosts
 import sdk_install
 from tests import config
 
@@ -13,7 +14,8 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         primaries = ["hdfs", "HTTP"]
-        fqdn = "{}.autoip.dcos.thisdcos.directory".format(config.SERVICE_NAME)
+        fqdn = "{service_name}.{host_suffix}".format(
+            service_name=config.SERVICE_NAME, host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
         instances = [
             "name-0-node",
             "name-0-zkfc",
@@ -38,14 +40,15 @@ def configure_package(configure_security):
                     )
                 )
 
-        kerberos = sdk_auth.KerberosEnvironment(config.SERVICE_NAME)
+        kerberos = sdk_auth.KerberosEnvironment()
         kerberos.add_principals(principals)
         kerberos.finalize_environment()
         service_kerberos_options = {
             "service": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_address": kerberos.get_address(),
+                    "kdc_host_name": kerberos.get_host(),
+                    "kdc_host_port": kerberos.get_port(),
                     "keytab_secret_path": kerberos.get_keytab_path(),
                     "primary": primaries[0],
                     "primary_http": primaries[1],

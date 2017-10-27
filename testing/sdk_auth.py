@@ -54,6 +54,7 @@ def _launch_marathon_app(app_definition):
         raise RuntimeError("Can't install KDC marathon app: {err}".format(err=msg))
 
 
+# TODO: remove this method by calling `wait_for_completed_deployment`
 @retry(stop_max_attempt_number=3, wait_fixed=2000)
 def _check_kdc_marathon_task_is_running() -> bool:
     """
@@ -61,22 +62,41 @@ def _check_kdc_marathon_task_is_running() -> bool:
     after the specified wait & retry period.
     """
     log.info("Waiting for app to be running...")
-    try:
-        marathon_apps = sdk_cmd.run_cli("marathon app list --json")
-    except dcos.errors.DCOSException as e:
-        log.error("Can't get a list of marathon apps: {err}".format(err=e))
-        return 1, repr(e)
+    shakedown.wait_for_task("marathon", KERBEROS_APP_ID)
 
-    if marathon_apps:
-        apps = json.loads(marathon_apps)
-        for app in apps:
-            # sanitation as marathon app ids start with "/"
-            if app["id"][1:] == KERBEROS_APP_ID:
-                log.info("KDC app is now running")
-                return app["tasksRunning"] == 1
 
-    raise RuntimeError("Expecting the KDC marathon app but no such app is running. Running apps: {apps}".format(
-                        apps=marathon_apps))
+def _get_task_id() -> str:
+    """
+    :return (str): The ID of the task running the KDC app.
+    """
+    log.info("Getting task id")
+    raw_tasks = sdk_cmd.run_cli("task --json")
+    if raw_tasks:
+        tasks = json.loads(raw_tasks)
+        for task in tasks:
+            if task["name"] == KERBEROS_APP_ID:
+                log.info("Task id is {}".format(task["id"]))
+                return task["id"]
+
+    raise RuntimeError("Expecting marathon KDC task but no such task found. Running tasks: {tasks}".format(
+        tasks=raw_tasks))
+
+
+def _get_framework_id() -> str:
+    """
+    :return (str): The ID of the framework running the KDC app.
+    """
+    log.info("Getting framework id")
+    raw_tasks = sdk_cmd.run_cli("task --json")
+    if raw_tasks:
+        tasks = json.loads(raw_tasks)
+        for task in tasks:
+            if task["name"] == KERBEROS_APP_ID:
+                log.info("Framework id is {}".format(task["framework_id"]))
+                return task["framework_id"]
+
+    raise RuntimeError("Expecting marathon KDC task but no such task found. Running tasks: {tasks}".format(
+        tasks=raw_tasks))
 
 
 @retry(stop_max_attempt_number=2, wait_fixed=1000)
@@ -140,31 +160,6 @@ def _get_master_public_ip() -> str:
     return public_ip
 
 
-@retry(stop_max_attempt_number=10, wait_fixed=3000)
-def _get_container_id(host_name: str) -> str:
-    """
-    Gets the ID of the container in which the KDC app is running.
-    :param host_name (str): The name of the host which is running the container.
-    :return (str): The ID of the container running the KDC app.
-    """
-    log.info("Getting container ID")
-    docker_cmd = "docker ps | grep \"{image_name}\" | awk '{{print $1}}'".format(image_name=KERBEROS_IMAGE_NAME)
-    rc, output = shakedown.run_command_on_agent(host_name, docker_cmd)
-    if not rc:
-        raise RuntimeError("Unable to successfully run docker command on host {host}: {output}".format(
-            host=host_name, output=output
-        ))
-
-    if not output:
-        msg = "Unable to detect the expected running docker container"
-        log.warning(msg)
-        raise RuntimeError(msg)
-
-    container_id = output.strip()
-    log.info("Container ID is {container_id}".format(container_id=container_id))
-    return container_id
-
-
 def _create_temp_working_dir() -> str:
     """
     Creates a temporary working directory to enable setup of the Kerberos environment.
@@ -182,7 +177,7 @@ def _create_temp_working_dir() -> str:
 
 def _copy_file_to_localhost(self):
     """
-    Copies the keytab that was generated inside the docker container running the KDC server to the localhost
+    Copies the keytab that was generated inside the container running the KDC server to the localhost
     so it can be uploaded to the secret store later. This must be done in multiple steps as we have to jump through
     hoops.
 
@@ -191,19 +186,30 @@ def _copy_file_to_localhost(self):
     log.info("Copying {} to the temp working directory".format(self.keytab_file_name))
 
     # 1. copy from within container to private agent
-    docker_cmd = "docker cp {container_ip}:/{keytab_file} /home/{linux_user}/{keytab_file}".format(
-        container_ip=self.container_id,
+    copy_cmd = "sudo cp /var/lib/mesos/slave/slaves/{host_id}/frameworks/{framework_id}/executors/{task_id}/runs/latest/{keytab_file} /home/{linux_user}/{keytab_file}".format(
+        host_id=self.kdc_host_id,
+        framework_id=self.framework_id,
+        task_id=self.task_id,
         keytab_file=self.keytab_file_name,
         linux_user=LINUX_USER
     )
-    cmd = "node ssh --master-proxy --mesos-id={host_id} --option StrictHostKeyChecking=no '{docker_cmd}'".format(
-        host_id=self.kdc_host_id, docker_cmd=docker_cmd)
+    cmd = "node ssh --master-proxy --mesos-id={host_id} --option StrictHostKeyChecking=no '{copy_cmd}'".format(
+        host_id=self.kdc_host_id, copy_cmd=copy_cmd)
     try:
         sdk_cmd.run_cli(cmd)
     except dcos.errors.DCOSException as e:
-        raise RuntimeError("Failed to copy keytab file from docker container to agent: {}".format(repr(e)))
+        raise RuntimeError("Failed to copy keytab file from container to agent: {}".format(repr(e)))
 
-    # 2. Copy from private agent to leader
+    # 2. Change file ownership so it can be scp'ed to leader
+    chown_cmd = "sudo chown {linux_user} {keytab_file}".format(linux_user=LINUX_USER, keytab_file=self.keytab_file_name)
+    cmd = "node ssh --master-proxy --mesos-id={host_id} --option StrictHostKeyChecking=no '{chown_cmd}'".format(
+        host_id=self.kdc_host_id, chown_cmd=chown_cmd)
+    try:
+        sdk_cmd.run_cli(cmd)
+    except dcos.errors.DCOSException as e:
+        raise RuntimeError("Failed to chown keytab file: {}".format(repr(e)))
+
+    # 3. Copy from private agent to leader
     scp_cmd = "scp {linux_user}@{kdc_host_name}:/home/{linux_user}/{keytab_file} /home/{linux_user}/{keytab_file}".format(
         linux_user=LINUX_USER,
         kdc_host_name=self.kdc_host_name,
@@ -216,7 +222,7 @@ def _copy_file_to_localhost(self):
     except dcos.errors.DCOSException as e:
         raise RuntimeError("Failed to copy keytab file from private agent to leader: {}".format(repr(e)))
 
-    # 3. Copy from leader to localhost
+    # 4. Copy from leader to localhost
     source = "{linux_user}@{master_public_ip}:/home/{linux_user}/{keytab_file}".format(
         linux_user=LINUX_USER,
         master_public_ip=self.master_public_ip,
@@ -232,13 +238,10 @@ def _copy_file_to_localhost(self):
 
 
 class KerberosEnvironment:
-    def __init__(self, service_name: str):
+    def __init__(self):
         """
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
         This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
-
-        Args:
-            service_name (str): The service for which the Kerberos environment is setup.
         """
         self.temp_working_dir = _create_temp_working_dir()
         kdc_app_def_path = "{current_file_dir}/../tools/kdc.json".format(
@@ -249,16 +252,17 @@ class KerberosEnvironment:
         kdc_app_def["id"] = KERBEROS_APP_ID
         _launch_marathon_app(kdc_app_def)
         _check_kdc_marathon_task_is_running()
-        self.kdc_address = "{app_id}.marathon.{host_suffix}:8000".format(
+        self.kdc_port = 88
+        self.kdc_fqdn = "{app_id}.marathon.{host_suffix}".format(
             app_id=KERBEROS_APP_ID, host_suffix=sdk_hosts.VIP_HOST_SUFFIX)
         self.kdc_host_id = _get_host_id()
         self.kdc_host_name = _get_host_name(self.kdc_host_id)
         self.master_public_ip = _get_master_public_ip()
-        self.container_id = _get_container_id(self.kdc_host_name)
+        self.framework_id = _get_framework_id()
+        self.task_id = _get_task_id()
         self.principals = []
         self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME
         self.base64_encoded_keytab_file_name = BASE64_ENCODED_KEYTAB_FILE_NAME.format(keytab_name=self.keytab_file_name)
-        self.service_name = service_name
 
     def add_principals(self, principals: list):
         """
@@ -285,12 +289,13 @@ class KerberosEnvironment:
         self.principals = principals
 
         log.info("Adding the following list of principals to the KDC: {principals}".format(principals=principals))
-        docker_cmd = "docker exec {docker_container_id} kadmin -l add --use-defaults --random-password {principal}"
+        add_principal_cmd = "task exec {task_id} /usr/sbin/kadmin -l add --use-defaults --random-password {principal}"
         for principal in principals:
-            rc, output = shakedown.run_command_on_agent(self.kdc_host_name, docker_cmd.format(
-                docker_container_id=self.container_id, principal=principal))
-            if not rc:
-                raise RuntimeError("Failed to add principal {}".format(principal))
+            try:
+                sdk_cmd.run_cli(add_principal_cmd.format(task_id=KERBEROS_APP_ID, principal=principal))
+            except dcos.errors.DCOSException as e:
+                raise RuntimeError("Failed to add principal {principal}: {err_msg}".format(
+                    principal=principal, err_msg=repr(e)))
 
         log.info("Principals successfully added to KDC")
 
@@ -300,14 +305,12 @@ class KerberosEnvironment:
         added to the KDC. It also fetches it locally so that later the keytab can be uploaded to the secret store.
         """
         log.info("Creating the keytab")
-        docker_cmd = "docker exec {docker_container_id} kadmin -l ext -k {keytab_name} ".format(
-            docker_container_id=self.container_id, keytab_name=self.keytab_file_name
+        cmd = "task exec {task_id} /usr/sbin/kadmin -l ext -k {keytab_name} ".format(
+            task_id=KERBEROS_APP_ID, keytab_name=self.keytab_file_name
         )
-        docker_cmd = docker_cmd + ' '.join(principal for principal in self.principals)
+        cmd = cmd + ' '.join(principal for principal in self.principals)
         try:
-            rc, output = shakedown.run_command_on_agent(self.kdc_host_name, docker_cmd)
-            if not rc:
-                raise RuntimeError("Failed to create keytab: {}".format(output))
+            sdk_cmd.run_cli(cmd)
         except Exception as e:
             raise(e)
 
@@ -335,8 +338,7 @@ class KerberosEnvironment:
         except Exception as e:
             raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
 
-        self.keytab_secret_path = "{prefix}{service_name}_keytab".format(
-            prefix=DCOS_BASE64_PREFIX, service_name=self.service_name)
+        self.keytab_secret_path = "{}_keytab".format(DCOS_BASE64_PREFIX)
 
         # TODO: check if a keytab secret of same name already exists
         create_secret_cmd = "security secrets create {keytab_secret_path} --value-file {encoded_keytab_path}".format(
@@ -359,8 +361,11 @@ class KerberosEnvironment:
         self.__create_and_fetch_keytab()
         self.__create_and_upload_secret()
 
-    def get_address(self):
-        return self.kdc_address
+    def get_host(self):
+        return self.kdc_fqdn
+
+    def get_port(self):
+        return str(self.kdc_port)
 
     def get_keytab_path(self):
         return self.keytab_secret_path
@@ -370,9 +375,9 @@ class KerberosEnvironment:
         if os.path.exists(self.temp_working_dir):
             shutil.rmtree(self.temp_working_dir)
 
-        delete_secret_cmd = "security secrets delete {}".format(self.keytab_secret_path)
-        try:
-            sdk_cmd.run_cli(delete_secret_cmd)
-        except RuntimeError as e:
-            raise RuntimeError("Failed to delete secret for the base64-encoded keytab file: {}".format(repr(e)))
+        #delete_secret_cmd = "security secrets delete {}".format(self.keytab_secret_path)
+        #try:
+        #    sdk_cmd.run_cli(delete_secret_cmd)
+        #except RuntimeError as e:
+        #    raise RuntimeError("Failed to delete secret for the base64-encoded keytab file: {}".format(repr(e)))
 
