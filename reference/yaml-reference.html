@@ -394,7 +394,7 @@
       <li>
         <p><code class="highlighter-rouge">user</code></p>
 
-        <p>The system user to run the service’s scheduler and pods as. Availability of usernames depends on the cluster. If DC/OS Security is enabled, this may need to be set to <code class="highlighter-rouge">nobody</code>, or the administrator may be required to configure custom permissions allowing the service to run as a different user.</p>
+        <p>The system user to run the service’s scheduler and pods as, with default <code class="highlighter-rouge">root</code> if unspecified. Availability of usernames depends on the cluster. In DC/OS Enterprise, if the security mode is set to strict, the service account used by the service must have permissions to launch tasks as the assigned user.</p>
       </li>
     </ul>
   </li>
@@ -425,7 +425,7 @@
       <li>
         <p><code class="highlighter-rouge">count</code></p>
 
-        <p>The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may be always increased after the service has been deployed, but it can only be decreased if <code class="highlighter-rouge">allow-decomission</code> is <code class="highlighter-rouge">true</code>.</p>
+        <p>The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may always be increased after the service has been deployed, but it can only be decreased if <code class="highlighter-rouge">allow-decommission</code> is <code class="highlighter-rouge">true</code>.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">allow-decommission</code></p>
@@ -531,7 +531,7 @@ If Secret content is changed, relevant pod needs to be restarted, so it can upda
       <li>
         <p><code class="highlighter-rouge">share-pid-namespace</code></p>
 
-        <p>Whether the tasks within this pod should share the same process id namespace (<code class="highlighter-rouge">true</code>), or whether pid namespaces should be distinct for every task in the pod (<code class="highlighter-rouge">false</code>).</p>
+        <p>Whether the tasks within this pod should share the same process id namespace (<code class="highlighter-rouge">true</code>), or whether pid namespaces should be distinct for every task in the pod (<code class="highlighter-rouge">false</code>). Default is <code class="highlighter-rouge">false</code>.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">tasks</code></p>
