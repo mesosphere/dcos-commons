@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -143,39 +143,21 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#isInitialLaunch-Protos.TaskStatus-">isInitialLaunch</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
-<div class="block">Returns whether the task is still in the initial launch phase, where both of the following are true:
- 
- This is the first time it's been launched on this machine (initial deployment or pod replacement)
- The scheduler hasn't yet received a TaskStatus update for this task from Mesos, indicating a successful or
- failed launch.
- 
- When this is the case, the task could be relaunched elsewhere without worrying about losing persistent data.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setDcosSpace-Protos.ExecutorInfo.Builder-java.lang.String-">setDcosSpace</a></span>(Protos.ExecutorInfo.Builder&nbsp;executorInfoBuilder,
             java.lang.String&nbsp;dcosSpace)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setInitialLaunch-Protos.TaskStatus.Builder-">setInitialLaunch</a></span>(Protos.TaskStatus.Builder&nbsp;taskStatusBuilder)</code>
-<div class="block">Ensures that the task is identified as being launched for the first time at its current location in the cluster.</div>
-</td>
-</tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setNetworkLabels-Protos.NetworkInfo.Builder-java.util.Map-">setNetworkLabels</a></span>(Protos.NetworkInfo.Builder&nbsp;networkInfoBuilder,
                 java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;labels)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setResourceId-Protos.Resource.ReservationInfo.Builder-java.lang.String-">setResourceId</a></span>(Protos.Resource.ReservationInfo.Builder&nbsp;reservationBuilder,
              java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setVIPLabels-Protos.Port.Builder-com.mesosphere.sdk.specification.NamedVIPSpec-">setVIPLabels</a></span>(Protos.Port.Builder&nbsp;portBuilder,
             <a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec)</code>
@@ -241,34 +223,6 @@ extends java.lang.Object</pre>
 <h4>setNetworkLabels</h4>
 <pre>public static&nbsp;void&nbsp;setNetworkLabels(Protos.NetworkInfo.Builder&nbsp;networkInfoBuilder,
                                     java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;labels)</pre>
-</li>
-</ul>
-<a name="setInitialLaunch-Protos.TaskStatus.Builder-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setInitialLaunch</h4>
-<pre>public static&nbsp;void&nbsp;setInitialLaunch(Protos.TaskStatus.Builder&nbsp;taskStatusBuilder)</pre>
-<div class="block">Ensures that the task is identified as being launched for the first time at its current location in the cluster.
- This is intentionally stored in the initial stub STAGING <code>Protos.TaskStatus</code> as it will be automatically
- overwritten/cleared when Mesos first sends a real status for the task to indicate launch success or failure.</div>
-</li>
-</ul>
-<a name="isInitialLaunch-Protos.TaskStatus-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isInitialLaunch</h4>
-<pre>public static&nbsp;boolean&nbsp;isInitialLaunch(Protos.TaskStatus&nbsp;taskStatus)</pre>
-<div class="block">Returns whether the task is still in the initial launch phase, where both of the following are true:
- <ul>
- <li>This is the first time it's been launched on this machine (initial deployment or pod replacement)</li>
- <li>The scheduler hasn't yet received a TaskStatus update for this task from Mesos, indicating a successful or
- failed launch.</li>
- </ul>
- When this is the case, the task could be relaunched elsewhere without worrying about losing persistent data.</div>
 </li>
 </ul>
 <a name="setVIPLabels-Protos.Port.Builder-com.mesosphere.sdk.specification.NamedVIPSpec-">

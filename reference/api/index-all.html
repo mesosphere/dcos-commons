@@ -3284,7 +3284,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getStatsDPollIntervalS--">getStatsDPollIntervalS()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>
-<div class="block">Returns the interval in seconds between StatsD reports</div>
+<div class="block">Returns the interval in seconds between StatsD reports.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getStatsdPort--">getStatsdPort()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>
@@ -3917,10 +3917,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html#initial">initial</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#INITIAL_LAUNCH_LABEL">INITIAL_LAUNCH_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
-<dd>
-<div class="block">Label for tracking in the state store whether this is the first launch of this task at its current location.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html#INITIALIZATION_FAILURE">INITIALIZATION_FAILURE</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#initialize-SchedulerDriver-">initialize(SchedulerDriver)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
@@ -4044,16 +4040,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#isInAny-java.util.List-long-">isInAny(List&lt;Range&gt;, long)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided value is encompassed by any of the provided ranges.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#isInitialLaunch-Protos.TaskStatus-">isInitialLaunch(Protos.TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
-<dd>
-<div class="block">Returns whether the task is still in the initial launch phase, where both of the following are true:
- 
- This is the first time it's been launched on this machine (initial deployment or pod replacement)
- The scheduler hasn't yet received a TaskStatus update for this task from Mesos, indicating a successful or
- failed launch.
- 
- When this is the case, the task could be relaunched elsewhere without worrying about losing persistent data.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#isInterrupted--">isInterrupted()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>&nbsp;</dd>
@@ -6060,10 +6046,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setIndex-int-">setIndex(int)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Assigns the pod instance index to the provided task.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setInitialLaunch-Protos.TaskStatus.Builder-">setInitialLaunch(Protos.TaskStatus.Builder)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
-<dd>
-<div class="block">Ensures that the task is identified as being launched for the first time at its current location in the cluster.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany(Map&lt;String, byte[]&gt;)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></dt>
 <dd>&nbsp;</dd>
