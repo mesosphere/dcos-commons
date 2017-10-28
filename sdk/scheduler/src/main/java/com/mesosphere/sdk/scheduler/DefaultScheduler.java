@@ -1,14 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -274,7 +272,6 @@ public class DefaultScheduler extends AbstractScheduler {
     protected void processStatusUpdate(Protos.TaskStatus status) {
         // Store status, then pass status to PlanManager => Plan => Steps
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
-        Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
         // StateStore updates:
         // - TaskStatus
@@ -292,17 +289,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Notify plans of status update:
         planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
-
-        // Special handling: Retry launch if initial launch failed
-        if (lastStatus.isPresent() &&
-                AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
-                TaskUtils.isRecoveryNeeded(status)) {
-            // The initial launch of this task failed. Give up and try again with a clean slate.
-            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. "
-                    + "Prior status was: {}",
-                    taskName, TextFormat.shortDebugString(lastStatus.get()));
-            taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
-        }
 
         // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
         // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
