@@ -1,6 +1,5 @@
 ---
 post_title: Service Settings
-nav_title: Service Settings
 menu_order: 21
 post_excerpt: ""
 enterprise: 'no'
