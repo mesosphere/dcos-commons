@@ -9,6 +9,8 @@ import logging
 import json
 import os
 
+import subprocess
+import tempfile
 import shakedown
 
 import sdk_cmd
@@ -34,7 +36,7 @@ def get_config(app_name):
     return config
 
 
-def install_app(app_def_path: str) -> (bool, str):
+def install_app_from_file(app_def_path: str) -> (bool, str):
     """
     Installs a marathon app using the path to an app definition.
 
@@ -64,23 +66,12 @@ def install_app(app_definition: dict) -> (bool, str):
         (bool, str) tuple: Boolean indicates success of install attempt. String indicates
         error message if install attempt failed.
     """
-    app_name = app_definition["id"]
-    app_def_file = "{}.json".format(app_name)
 
-    with open(app_def_file, "w") as f:
+    log.info("Installing APP with %s", app_definition)
+    with tempfile.NamedTemporaryFile(mode='w') as f:
         json.dump(app_definition, f)
-
-    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
-        cmd="marathon app add ", file_path=app_def_file
-    ))
-
-    # clean up temp file
-    os.remove(app_def_file)
-
-    if output:
-        return 1, output
-    return 0, ""
-
+        f.flush()
+        return install_app_from_file(f.name)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
