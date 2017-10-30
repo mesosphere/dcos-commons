@@ -1,6 +1,6 @@
 ---
 post_title: Connecting Clients
-nav_title: Connecting Clients
+ Connecting Clients
 menu_order: 50
 post_excerpt: ""
 enterprise: 'no'

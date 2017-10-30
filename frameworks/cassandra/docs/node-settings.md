@@ -1,6 +1,6 @@
 ---
 post_title: Node Settings
-nav_title: Node Settings
+ Node Settings
 menu_order: 27
 post_excerpt: ""
 enterprise: 'no'
