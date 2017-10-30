@@ -352,7 +352,6 @@ class KerberosEnvironment:
 
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
-
     def finalize_environment(self):
         """
         Once the principals have been added, the rest of the environment setup does not ask for more info and can be
