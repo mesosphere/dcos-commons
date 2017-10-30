@@ -1,6 +1,6 @@
 ---
 post_title: Installing and Customizing
-nav_title: Installing and Customizing
+ Installing and Customizing
 menu_order: 20
 post_excerpt: ""
 enterprise: 'no'
