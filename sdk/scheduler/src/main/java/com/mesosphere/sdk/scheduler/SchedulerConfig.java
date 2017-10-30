@@ -138,9 +138,9 @@ public class SchedulerConfig {
     /**
      * Environment variables for configuring metrics reporting behavior.
      */
-    private String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
-    private String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
-    private String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+    private static String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
+    private static String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
+    private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
 
     /**
      * Environment variables for configuring goal state override behavior.
@@ -293,7 +293,7 @@ public class SchedulerConfig {
     }
 
     /**
-     * Returns the interval in seconds between StatsD reports
+     * Returns the interval in seconds between StatsD reports.
      */
     public long getStatsDPollIntervalS() {
         return envStore.getOptionalLong(STATSD_POLL_INTERVAL_S_ENV, 10);

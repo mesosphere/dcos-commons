@@ -59,37 +59,6 @@ public class AuxLabelAccess {
         networkInfoBuilder.setLabels(LabelUtils.toProto(map));
     }
 
-    // Task initial launch
-
-    /**
-     * Ensures that the task is identified as being launched for the first time at its current location in the cluster.
-     * This is intentionally stored in the initial stub STAGING {@link Protos.TaskStatus} as it will be automatically
-     * overwritten/cleared when Mesos first sends a real status for the task to indicate launch success or failure.
-     */
-    public static void setInitialLaunch(Protos.TaskStatus.Builder taskStatusBuilder) {
-        if (taskStatusBuilder.getState() != Protos.TaskState.TASK_STAGING) {
-            throw new IllegalArgumentException(
-                    "initial_launch bit may only be set for stub STAGING status, got: " + taskStatusBuilder);
-        }
-        taskStatusBuilder.setLabels(withLabel(
-                taskStatusBuilder.getLabels(),
-                LabelConstants.INITIAL_LAUNCH_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE));
-    }
-
-    /**
-     * Returns whether the task is still in the initial launch phase, where both of the following are true:
-     * <ul>
-     * <li>This is the first time it's been launched on this machine (initial deployment or pod replacement)</li>
-     * <li>The scheduler hasn't yet received a TaskStatus update for this task from Mesos, indicating a successful or
-     * failed launch.</li>
-     * </ul>
-     * When this is the case, the task could be relaunched elsewhere without worrying about losing persistent data.
-     */
-    public static boolean isInitialLaunch(Protos.TaskStatus taskStatus) {
-        String val = LabelUtils.toMap(taskStatus.getLabels()).get(LabelConstants.INITIAL_LAUNCH_LABEL);
-        return LabelConstants.BOOLEAN_LABEL_TRUE_VALUE.equals(val);
-    }
-
     // VIPs
 
     /**

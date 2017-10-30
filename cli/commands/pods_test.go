@@ -37,7 +37,7 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorld() {
           "tasks": [{
             "name": "world-0-server",
             "id": "world-0-server__acbac042-a456-4fb0-b75e-ea3bcd235261",
-            "status": "STOPPED"
+            "status": "PAUSED"
           }]
         },
         {
@@ -60,7 +60,7 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorld() {
 │     └─ hello-0-server (RUNNING)
 └─ world
    ├─ world-0
-   │  └─ world-0-server (STOPPED)
+   │  └─ world-0-server (PAUSED)
    └─ world-1
       └─ world-1-server (RUNNING)`
 
@@ -95,12 +95,12 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorldMoreTasks() {
           "tasks": [{
             "name": "world-0-server",
             "id": "world-0-server__acbac042-a456-4fb0-b75e-ea3bcd235261",
-            "status": "STOPPING"
+            "status": "PAUSING"
           },
           {
             "name": "world-0-sidecar",
             "id": "world-0-sidecar__acbac042-a456-4fb0-b75e-ea3bcd235261",
-            "status": "STOPPED"
+            "status": "PAUSED"
           }]
         },
         {
@@ -129,8 +129,8 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorldMoreTasks() {
 │     └─ hello-0-sidecar (RUNNING)
 └─ world
    ├─ world-0
-   │  ├─ world-0-server (STOPPING)
-   │  └─ world-0-sidecar (STOPPED)
+   │  ├─ world-0-server (PAUSING)
+   │  └─ world-0-sidecar (PAUSED)
    └─ world-1
       ├─ world-1-server (RUNNING)
       └─ world-1-sidecar (FINISHED)`
@@ -185,18 +185,18 @@ func (suite *PodsTestSuite) TestStatusTreePodTwoTasks() {
   "tasks": [{
     "name": "world-0-server",
     "id": "world-0-server__acbac042-a456-4fb0-b75e-ea3bcd235261",
-    "status": "STOPPING"
+    "status": "PAUSING"
   },
   {
     "name": "world-0-sidecar",
     "id": "world-0-sidecar__acbac042-a456-4fb0-b75e-ea3bcd235261",
-    "status": "STOPPED"
+    "status": "PAUSED"
   }]
 }`
 
 	expectedOutput := `world-0
-├─ world-0-server (STOPPING)
-└─ world-0-sidecar (STOPPED)`
+├─ world-0-server (PAUSING)
+└─ world-0-sidecar (PAUSED)`
 
 	result := toSinglePodTree([]byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
@@ -208,12 +208,12 @@ func (suite *PodsTestSuite) TestStatusTreePodOneTask() {
   "tasks": [{
     "name": "world-0-server",
     "id": "world-0-server__acbac042-a456-4fb0-b75e-ea3bcd235261",
-    "status": "STOPPED"
+    "status": "PAUSED"
   }]
 }`
 
 	expectedOutput := `world-0
-└─ world-0-server (STOPPED)`
+└─ world-0-server (PAUSED)`
 
 	result := toSinglePodTree([]byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)

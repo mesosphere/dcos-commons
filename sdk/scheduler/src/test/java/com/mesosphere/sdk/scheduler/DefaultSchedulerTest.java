@@ -8,8 +8,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
-import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -321,110 +319,6 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.PENDING, Status.COMPLETE, Status.PENDING),
                 getStepStatuses(getDeploymentPlan()));
-    }
-
-    @Test
-    public void testInitialLaunchReplaceRecover() throws Exception {
-        // Get first Step associated with Task A-0
-        Plan plan = getDeploymentPlan();
-        Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
-        Assert.assertTrue(stepTaskA0.isPending());
-
-        Assert.assertTrue(stateStore.fetchTaskNames().isEmpty());
-
-        // Launch 1: Task enters ERROR without reaching RUNNING - kill and replace
-
-        // Offer sufficient Resource and wait for its acceptance
-        Protos.Offer offer = getSufficientOfferForTaskA();
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
-        verify(mockSchedulerDriver, times(1)).acceptOffers(
-                collectionThat(contains(offer.getId())),
-                operationsCaptor.capture(),
-                any());
-        defaultScheduler.awaitOffersProcessed();
-
-        Protos.TaskInfo initialFailedTask = getTask(operationsCaptor.getValue());
-
-        // Task should be initial state
-        Protos.TaskStatus status = stateStore.fetchStatus(initialFailedTask.getName()).get();
-        Assert.assertTrue(status.toString(), AuxLabelAccess.isInitialLaunch(status));
-
-        // Without sending TASK_RUNNING or any other status, pretend the task failed
-        statusUpdate(initialFailedTask.getTaskId(), Protos.TaskState.TASK_ERROR);
-
-        // Expect pod to be killed, initial state to be overwritten, and all tasks to be marked permanently failed
-        verify(mockSchedulerDriver, times(1)).killTask(initialFailedTask.getTaskId());
-        Assert.assertFalse(
-                AuxLabelAccess.isInitialLaunch(stateStore.fetchStatus(initialFailedTask.getName()).get()));
-        Assert.assertTrue(
-                new TaskLabelReader(stateStore.fetchTask(initialFailedTask.getName()).get()).isPermanentlyFailed());
-
-        // Launch 2: Task enters ERROR after reaching RUNNING - restart in-place
-
-        // Offer again, and launch successfully this time
-        offer = getSufficientOfferForTaskA();
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
-        verify(mockSchedulerDriver, times(1)).acceptOffers(
-                collectionThat(contains(offer.getId())),
-                operationsCaptor.capture(),
-                any());
-        defaultScheduler.awaitOffersProcessed();
-
-        Protos.TaskInfo launchedFailedTask = getTask(operationsCaptor.getValue());
-
-        // Task should be in initial state
-        status = stateStore.fetchStatus(launchedFailedTask.getName()).get();
-        Assert.assertTrue(status.toString(), AuxLabelAccess.isInitialLaunch(status));
-
-        // Sent TASK_RUNNING status
-        statusUpdate(launchedFailedTask.getTaskId(), Protos.TaskState.TASK_RUNNING);
-
-        // Check that the step is complete and the task is no longer in initial launch state
-        Assert.assertTrue(stepTaskA0.isComplete());
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
-                getStepStatuses(plan));
-        status = stateStore.fetchStatus(launchedFailedTask.getName()).get();
-        Assert.assertFalse(status.toString(), AuxLabelAccess.isInitialLaunch(status));
-
-        // Now simulate another failure, and verify that the task is NOT marked as permanently failed
-        statusUpdate(launchedFailedTask.getTaskId(), Protos.TaskState.TASK_ERROR);
-        verify(mockSchedulerDriver, times(0)).killTask(launchedFailedTask.getTaskId());
-        Assert.assertFalse(
-                new TaskLabelReader(stateStore.fetchTask(launchedFailedTask.getName()).get()).isPermanentlyFailed());
-
-        // Launch 3: In-place relaunch of last instance
-
-        // Offer again, and check that the task is relaunched as-is
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(offer));
-        verify(mockSchedulerDriver, times(1)).acceptOffers(
-                collectionThat(contains(offer.getId())),
-                operationsCaptor.capture(),
-                any());
-        defaultScheduler.awaitOffersProcessed();
-
-        Protos.TaskInfo relaunchedTask = getTask(operationsCaptor.getValue());
-
-        // Not an initial launch.
-        status = stateStore.fetchStatus(relaunchedTask.getName()).get();
-        Assert.assertFalse(status.toString(), AuxLabelAccess.isInitialLaunch(status));
-
-        // Sent TASK_RUNNING status
-        statusUpdate(relaunchedTask.getTaskId(), Protos.TaskState.TASK_RUNNING);
-
-        // Check that the step is complete and the task is still not in initial launch state
-        Assert.assertTrue(stepTaskA0.isComplete());
-        Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PREPARED, Status.PENDING),
-                getStepStatuses(plan));
-        status = stateStore.fetchStatus(relaunchedTask.getName()).get();
-        Assert.assertFalse(status.toString(), AuxLabelAccess.isInitialLaunch(status));
-
-        // Just in case, again verify that killTask() was ONLY called for the initial failed task:
-        verify(mockSchedulerDriver, times(1)).killTask(initialFailedTask.getTaskId());
-        verify(mockSchedulerDriver, times(0)).killTask(launchedFailedTask.getTaskId());
-        verify(mockSchedulerDriver, times(0)).killTask(relaunchedTask.getTaskId());
     }
 
     @Test

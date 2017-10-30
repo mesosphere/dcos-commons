@@ -187,11 +187,11 @@ public class PodResource extends PrettyJsonResource {
     }
 
     /**
-     * Restarts a pod in a "stopped" debug mode.
+     * Restarts a pod in a "paused" debug mode.
      */
-    @Path("/{name}/stop")
+    @Path("/{name}/pause")
     @POST
-    public Response stopPod(@PathParam("name") String podName, String bodyPayload) {
+    public Response pausePod(@PathParam("name") String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
             taskFilter = new HashSet<>(RequestUtils.parseJsonList(bodyPayload));
@@ -200,19 +200,19 @@ public class PodResource extends PrettyJsonResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            return overrideGoalState(podName, taskFilter, GoalStateOverride.STOPPED);
+            return overrideGoalState(podName, taskFilter, GoalStateOverride.PAUSED);
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to stop pod '%s' with task filter '%s'", podName, taskFilter), e);
+            LOGGER.error(String.format("Failed to pause pod '%s' with task filter '%s'", podName, taskFilter), e);
             return Response.serverError().build();
         }
     }
 
     /**
-     * Restarts a pod in a normal state following a prior "stop" command.
+     * Restarts a pod in a normal state following a prior "pause" command.
      */
-    @Path("/{name}/start")
+    @Path("/{name}/resume")
     @POST
-    public Response startPod(@PathParam("name") String podName, String bodyPayload) {
+    public Response resumePod(@PathParam("name") String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
             taskFilter = new HashSet<>(RequestUtils.parseJsonList(bodyPayload));
@@ -223,7 +223,7 @@ public class PodResource extends PrettyJsonResource {
         try {
             return overrideGoalState(podName, taskFilter, GoalStateOverride.NONE);
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to start pod '%s' with task filter '%s'", podName, taskFilter), e);
+            LOGGER.error(String.format("Failed to resume pod '%s' with task filter '%s'", podName, taskFilter), e);
             return Response.serverError().build();
         }
     }

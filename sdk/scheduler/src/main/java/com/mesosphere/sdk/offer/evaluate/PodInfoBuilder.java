@@ -232,7 +232,7 @@ public class PodInfoBuilder {
             Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder();
             commandBuilder.setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
 
-            if (override.equals(GoalStateOverride.STOPPED)) {
+            if (override.equals(GoalStateOverride.PAUSED)) {
                 LOGGER.info("Overriding task command: {}", override);
                 commandBuilder.setValue(schedulerConfig.getPauseOverrideCmd());
             } else {
@@ -249,7 +249,7 @@ public class PodInfoBuilder {
                 }
 
                 // Always add the bootstrap URI as the paused command depends on it
-                if (override.equals(GoalStateOverride.STOPPED)) {
+                if (override.equals(GoalStateOverride.PAUSED)) {
                     commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
                 }
 
@@ -459,7 +459,7 @@ public class PodInfoBuilder {
             return;
         }
 
-        if (override.equals(GoalStateOverride.STOPPED)) {
+        if (override.equals(GoalStateOverride.PAUSED)) {
             LOGGER.info("Removing health check for PAUSED task: {}", taskSpec.getName());
             return;
         }
@@ -483,7 +483,7 @@ public class PodInfoBuilder {
     }
 
     private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
-        if (override.equals(GoalStateOverride.STOPPED)) {
+        if (override.equals(GoalStateOverride.PAUSED)) {
             return Optional.of(
                     new DefaultReadinessCheckSpec(
                             GoalStateOverride.PAUSE_READINESS_COMMAND,
