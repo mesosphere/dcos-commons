@@ -17,8 +17,8 @@ public enum GoalStateOverride {
 
     /** The definition of the default no-override state. Refer to the task's {@link GoalState} setting. */
     NONE("NONE", "STARTING"),
-    /** The definition of the "STOPPED" override state, where commands are replaced with sleep()s.*/
-    STOPPED("STOPPED", "STOPPING");
+    /** The definition of the "PAUSED" override state, where commands are replaced with sleep()s.*/
+    PAUSED("PAUSED", "PAUSING");
 
     /**
      * The state of the override itself.
@@ -47,7 +47,7 @@ public enum GoalStateOverride {
         }
 
         /**
-         * The label which overrides in this state are given. For example "RUNNING" or "STOPPED". This is stored in task
+         * The label which overrides in this state are given. For example "RUNNING" or "PAUSED". This is stored in task
          * state storage.
          *
          * <p>WARNING: THIS IS STORED IN ZOOKEEPER TASK METADATA AND THEREFORE CANNOT EASILY BE CHANGED
@@ -64,9 +64,9 @@ public enum GoalStateOverride {
      *
      * <table><tr><td>Operation</td><td>Resulting status (override + progress)</td></tr>
      * <tr><td>(Initial state)</td><td>NONE + COMPLETE (==INACTIVE)</td></tr>
-     * <tr><td>"Stop" triggered, kill command issued</td><td>STOPPED + PENDING</td></tr>
-     * <tr><td>TASK_KILLED status received</td><td>STOPPED + IN_PROGRESS</td></tr>
-     * <tr><td>Task relaunch in stopped state has been triggered</td><td>STOPPED + COMPLETE</td></tr>
+     * <tr><td>"Pause" triggered, kill command issued</td><td>PAUSED + PENDING</td></tr>
+     * <tr><td>TASK_KILLED status received</td><td>PAUSED + IN_PROGRESS</td></tr>
+     * <tr><td>Task relaunch in paused state has been triggered</td><td>PAUSED + COMPLETE</td></tr>
      * <tr><td>"Start" triggered, kill command issued</td><td>NONE + PENDING</td></tr>
      * <tr><td>TASK_KILLED status received</td><td>NONE + IN_PROGRESS</td></tr>
      * <tr><td>Task relaunch in normal state has been triggered</td><td>NONE + COMPLETE (==INACTIVE)</td></tr></table>
@@ -138,7 +138,7 @@ public enum GoalStateOverride {
     }
 
     /**
-     * The label which tasks in this state are given. For example "RUNNING" or "STOPPED". This is shown to users and
+     * The label which tasks in this state are given. For example "RUNNING" or "PAUSED". This is shown to users and
      * stored in task state storage.
      *
      * <p>WARNING: THIS IS STORED IN ZOOKEEPER TASK METADATA AND THEREFORE CANNOT EASILY BE CHANGED
@@ -149,7 +149,7 @@ public enum GoalStateOverride {
 
     /**
      * The state which tasks which are in the process of entering this state are given. For example "STARTING" or
-     * "STOPPING". This is shown to users but not stored anywhere.
+     * "PAUSING". This is shown to users but not stored anywhere.
      */
     public String getTransitioningName() {
         return pendingName;

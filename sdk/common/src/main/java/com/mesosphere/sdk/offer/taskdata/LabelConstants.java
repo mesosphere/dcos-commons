@@ -37,8 +37,6 @@ class LabelConstants {
 
     /** Label for tracking in the state store whether a task failed. Not passed to Mesos itself. */
     static final String PERMANENTLY_FAILED_LABEL = "permanently-failed";
-    /** Label for tracking in the state store whether this is the first launch of this task at its current location. */
-    static final String INITIAL_LAUNCH_LABEL = "initial_launch";
 
     // TaskStatus
 
