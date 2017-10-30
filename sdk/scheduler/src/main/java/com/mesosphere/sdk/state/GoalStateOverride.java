@@ -109,6 +109,7 @@ public enum GoalStateOverride {
             switch (planStatus) {
                 case PENDING:
                     return Progress.PENDING;
+                case STARTED:
                 case COMPLETE:
                     return Progress.COMPLETE;
                 default:

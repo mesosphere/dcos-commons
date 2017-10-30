@@ -198,7 +198,7 @@ public class DeploymentStep extends AbstractStep {
                         && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
                 } else {
-                    setTaskStatus(status.getTaskId(), Status.STARTING);
+                    setTaskStatus(status.getTaskId(), Status.STARTED);
                 }
                 break;
             case TASK_FINISHED:
@@ -298,6 +298,8 @@ public class DeploymentStep extends AbstractStep {
             return Optional.of(Status.PREPARED);
         } else if (statuses.contains(Status.STARTING)) {
             return Optional.of(Status.STARTING);
+        } else if (statuses.contains(Status.STARTED)) {
+            return Optional.of(Status.STARTED);
         } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
             // If the size of the set statuses == 1, then all tasks have the same status.
             // In this case, the status COMPLETE.
