@@ -90,7 +90,11 @@ def test_pod_stop():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
     assert len(jsonobj) == 1
     assert old_agent == jsonobj[0]['info']['slaveId']['value']
-    assert 'echo This task is PAUSED, sleeping ... && ./bootstrap --resolve=false && while true; do sleep 1209600; done' == jsonobj[0]['info']['command']['value']
+    cmd = jsonobj[0]['info']['command']['value']
+    assert 'This task is PAUSED' in cmd
+
+    readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+    assert 'exit 1' == readiness_check
 
     # check STOPPED state in plan and in pod status:
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)

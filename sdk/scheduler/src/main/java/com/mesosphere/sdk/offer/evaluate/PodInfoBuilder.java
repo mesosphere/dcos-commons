@@ -482,25 +482,33 @@ public class PodInfoBuilder {
                 .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
     }
 
+    private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
+        if (override.equals(GoalStateOverride.STOPPED)) {
+            return Optional.of(
+                    new DefaultReadinessCheckSpec(
+                            GoalStateOverride.PAUSE_READINESS_COMMAND,
+                            0,
+                            Constants.SHORT_DECLINE_SECONDS,
+                            Constants.SHORT_DECLINE_SECONDS));
+        }
+
+        return taskSpec.getReadinessCheck();
+    }
+
     private void setReadinessCheck(
             Protos.TaskInfo.Builder taskInfoBuilder,
             String serviceName,
             PodInstance podInstance,
             TaskSpec taskSpec,
             GoalStateOverride override) {
-        if (!taskSpec.getReadinessCheck().isPresent()) {
+
+        Optional<ReadinessCheckSpec> readinessCheckSpecOptional = getReadinessCheck(taskSpec, override);
+        if (!readinessCheckSpecOptional.isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
             return;
         }
 
-
-        ReadinessCheckSpec readinessCheckSpec = taskSpec.getReadinessCheck().get();
-        String readinessCheckCmd = readinessCheckSpec.getCommand();
-
-        if (override.equals(GoalStateOverride.STOPPED)) {
-            LOGGER.info("Forcing failure of readiness check for PAUSED task: {}", taskSpec.getName());
-            readinessCheckCmd = GoalStateOverride.PAUSE_READINESS_COMMAND;
-        }
+        ReadinessCheckSpec readinessCheckSpec = readinessCheckSpecOptional.get();
 
         if (useDefaultExecutor) {
             // Default executors supports the newer TaskInfo.check field:
@@ -510,7 +518,7 @@ public class PodInfoBuilder {
                     .setIntervalSeconds(readinessCheckSpec.getInterval())
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
             builder.getCommandBuilder().getCommandBuilder()
-                    .setValue(readinessCheckCmd)
+                    .setValue(readinessCheckSpec.getCommand())
                     .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
         } else {
             // Custom executor implies older Mesos where TaskInfo.check doesn't exist yet. Fall back to label hack:
@@ -519,7 +527,7 @@ public class PodInfoBuilder {
                     .setIntervalSeconds(readinessCheckSpec.getInterval())
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
             builder.getCommandBuilder()
-                    .setValue(readinessCheckCmd)
+                    .setValue(readinessCheckSpec.getCommand())
                     .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
             taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                     .setReadinessCheck(builder.build())

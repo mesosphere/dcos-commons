@@ -21,13 +21,17 @@ public enum GoalStateOverride {
     /** The definition of the "STOPPED" override state, where commands are replaced with sleep()s.*/
     STOPPED("STOPPED", "STOPPING");
 
-    // Sleep for 2 weeks when pausing
+    /** Sleep forever when pausing. */
     public static final String PAUSE_COMMAND =
             String.format(
                     "echo This task is PAUSED, sleeping ... && " +
                             "./bootstrap --resolve=false && while true; do sleep %d; done",
                     Constants.LONG_DECLINE_SECONDS);
 
+    /**
+     * Plans should not assume that a paused task has fulfilled the requirement of its dependencies.  Returnging an
+     * always failing readinness check guarantees that plan execution does not interpret a paused task as being ready.
+     */
     public static final String PAUSE_READINESS_COMMAND = "exit 1";
 
     /**

@@ -223,7 +223,7 @@ public class DeploymentStep extends AbstractStep {
         return tasks.get(taskID).getTaskInfo().getName();
     }
 
-    private void setTaskStatus(Protos.TaskID taskID, Status status) {
+    private void setOverrideStatus(Protos.TaskID taskID, Status status) {
         GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(getTaskName(taskID));
 
         logger.info("Goal override status: {}", overrideStatus);
@@ -233,12 +233,16 @@ public class DeploymentStep extends AbstractStep {
                     getTaskName(taskID),
                     overrideStatus.target.newStatus(progress));
         }
+    }
 
+    private void setTaskStatus(Protos.TaskID taskID, Status status) {
         if (tasks.containsKey(taskID)) {
             // Update the TaskStatusPair with the new status:
             tasks.replace(taskID, new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status));
             logger.info("Status for: {} is: {}", taskID.getValue(), status);
         }
+
+        setOverrideStatus(taskID, status);
 
         if (isPending()) {
             prepared.set(false);
@@ -269,7 +273,7 @@ public class DeploymentStep extends AbstractStep {
             // Show a custom display status when the task is in or entering a stopped state:
             if (stepStatus.isRunning()) {
                 return DISPLAY_STATUS_STOPPING;
-            } else if (stepStatus == Status.COMPLETE) {
+            } else if (stepStatus == Status.COMPLETE || stepStatus == Status.STARTED) {
                 return DISPLAY_STATUS_STOPPED;
             }
         }
