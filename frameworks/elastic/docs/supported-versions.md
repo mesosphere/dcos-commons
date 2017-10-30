@@ -1,6 +1,5 @@
 ---
 post_title: Supported Versions
-nav_title: Supported Versions
 menu_order: 110
 post_excerpt: ""
 enterprise: 'no'
@@ -24,5 +23,3 @@ The DC/OS Elastic Service is engineered and tested to work with a specific relea
 
 ### Mesosphere DC/OS
 [Submit a request](https://support.mesosphere.com/hc/en-us/requests/new).
-
-
