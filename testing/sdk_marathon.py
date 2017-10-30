@@ -33,7 +33,7 @@ def get_config(app_name):
     return config
 
 
-def install_app(app_def_path: str) -> (bool, str):
+def install_app_from_file(app_def_path: str) -> (bool, str):
     """
     Installs a marathon app using the path to an app definition.
 
@@ -69,7 +69,7 @@ def install_app(app_definition: dict) -> (bool, str):
     with open(app_def_file, "w") as f:
         json.dump(app_definition, f)
 
-    return install_app(app_def_file)
+    return install_app_from_file(app_def_file)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):

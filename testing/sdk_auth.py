@@ -11,7 +11,7 @@ SHOULD ALSO BE APPLIED TO sdk_auth IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 from retrying import retry
-from subprocess import run
+from subprocess import run, PIPE
 
 import dcos
 import json
@@ -54,7 +54,6 @@ def _launch_marathon_app(app_definition):
         raise RuntimeError("Can't install KDC marathon app: {err}".format(err=msg))
 
 
-# TODO: remove this method by calling `wait_for_completed_deployment`
 @retry(stop_max_attempt_number=3, wait_fixed=2000)
 def _check_kdc_marathon_task_is_running() -> bool:
     """
@@ -143,12 +142,9 @@ def _get_master_public_ip() -> str:
     """
     dcos_url, headers = sdk_security.get_dcos_credentials()
     cluster_metadata_url = "{cluster_url}/metadata".format(cluster_url=dcos_url)
-    request_metadata = {
-            "--header": "Authorization: {token}".format(token=headers["Authorization"])
-    }
-    raw_response = sdk_cmd.request("GET", cluster_metadata_url, request_metadata, verify=False)
+    raw_response = sdk_cmd.request("GET", cluster_metadata_url, verify=False)
     if not raw_response.ok:
-        raise RuntimeError("Unable to get the master node's public IP address: {err}".format(err=repr(response)))
+        raise RuntimeError("Unable to get the master node's public IP address: {err}".format(err=repr(raw_response)))
 
     response = json.loads(raw_response.text)
     if "PUBLIC_IPV4" not in response:
@@ -193,19 +189,17 @@ def _copy_file_to_localhost(self):
         keytab_file=self.keytab_file_name,
         linux_user=LINUX_USER
     )
-    cmd = "node ssh --master-proxy --mesos-id={host_id} --option StrictHostKeyChecking=no '{copy_cmd}'".format(
-        host_id=self.kdc_host_id, copy_cmd=copy_cmd)
+
     try:
-        sdk_cmd.run_cli(cmd)
+        shakedown.run_command_on_agent(self.kdc_host_name, copy_cmd)
     except dcos.errors.DCOSException as e:
         raise RuntimeError("Failed to copy keytab file from container to agent: {}".format(repr(e)))
 
     # 2. Change file ownership so it can be scp'ed to leader
     chown_cmd = "sudo chown {linux_user} {keytab_file}".format(linux_user=LINUX_USER, keytab_file=self.keytab_file_name)
-    cmd = "node ssh --master-proxy --mesos-id={host_id} --option StrictHostKeyChecking=no '{chown_cmd}'".format(
-        host_id=self.kdc_host_id, chown_cmd=chown_cmd)
+
     try:
-        sdk_cmd.run_cli(cmd)
+        shakedown.run_command_on_agent(self.kdc_host_name, chown_cmd)
     except dcos.errors.DCOSException as e:
         raise RuntimeError("Failed to chown keytab file: {}".format(repr(e)))
 
@@ -215,10 +209,10 @@ def _copy_file_to_localhost(self):
         kdc_host_name=self.kdc_host_name,
         keytab_file=self.keytab_file_name
     )
-    cmd = "node ssh --master-proxy --leader --option StrictHostKeyChecking=no '{}'".format(scp_cmd)
+    cmd = "eval $(ssh-agent -s) && ssh-add /ssh/key && dcos node ssh --master-proxy --leader --option StrictHostKeyChecking=no '{}'".format(scp_cmd)
 
     try:
-        sdk_cmd.run_cli(cmd)
+        run([cmd], shell=True, stdout=PIPE)
     except dcos.errors.DCOSException as e:
         raise RuntimeError("Failed to copy keytab file from private agent to leader: {}".format(repr(e)))
 
@@ -374,9 +368,9 @@ class KerberosEnvironment:
         if os.path.exists(self.temp_working_dir):
             shutil.rmtree(self.temp_working_dir)
 
-        #delete_secret_cmd = "security secrets delete {}".format(self.keytab_secret_path)
-        #try:
-        #    sdk_cmd.run_cli(delete_secret_cmd)
-        #except RuntimeError as e:
-        #    raise RuntimeError("Failed to delete secret for the base64-encoded keytab file: {}".format(repr(e)))
+        delete_secret_cmd = "security secrets delete {}".format(self.keytab_secret_path)
+        try:
+            sdk_cmd.run_cli(delete_secret_cmd)
+        except RuntimeError as e:
+            raise RuntimeError("Failed to delete secret for the base64-encoded keytab file: {}".format(repr(e)))
 

@@ -14,7 +14,7 @@ import shakedown
 log = logging.getLogger(__name__)
 
 
-def request(method, url, retry=True, verify=None, log_args=True, **kwargs):
+def request(method, url, retry=True, log_args=True, verify=None, **kwargs):
     def fn():
         response = dcos.http.request(method, url, verify=verify, **kwargs)
         if log_args:
