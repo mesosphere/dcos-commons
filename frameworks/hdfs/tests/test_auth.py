@@ -64,9 +64,8 @@ def configure_package(configure_security):
             additional_options=service_kerberos_options,
             timeout_seconds=30*60)
 
-        yield # let test session execute
+        yield  # let test session execute
     finally:
-        pass
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         kerberos.cleanup()
 

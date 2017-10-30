@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import json
-import os
 
 import shakedown
 
@@ -70,17 +69,7 @@ def install_app(app_definition: dict) -> (bool, str):
     with open(app_def_file, "w") as f:
         json.dump(app_definition, f)
 
-    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
-        cmd="marathon app add ", file_path=app_def_file
-    ))
-
-    # clean up temp file
-    os.remove(app_def_file)
-
-    if output:
-        return 1, output
-    return 0, ""
-
+    return install_app(app_def_file)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
