@@ -88,4 +88,13 @@ public class TestConstants {
                     .setTaskId(TASK_ID)
                     .setState(Protos.TaskState.TASK_RUNNING)
                     .build();
+
+    public static final String ZONE = "zone";
+    public static final String REGION = "region";
+
+    public static final Protos.DomainInfo DOMAIN_INFO = Protos.DomainInfo.newBuilder()
+            .setFaultDomain(Protos.DomainInfo.FaultDomain.newBuilder()
+                    .setZone(Protos.DomainInfo.FaultDomain.ZoneInfo.newBuilder().setName(TestConstants.ZONE))
+                    .setRegion(Protos.DomainInfo.FaultDomain.RegionInfo.newBuilder().setName(TestConstants.REGION)))
+            .build();
 }

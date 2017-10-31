@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.TaskException;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.Label;
@@ -78,6 +79,24 @@ public class TaskLabelWriter {
     public TaskLabelWriter setOfferAttributes(Offer launchOffer) {
         writer.put(LabelConstants.OFFER_ATTRIBUTES_LABEL,
                 AttributeStringUtils.toString(launchOffer.getAttributesList()));
+        return this;
+    }
+
+    /**
+     * Stores the {@link org.apache.mesos.Protos.DomainInfo.FaultDomain.ZoneInfo}.
+     * Any existing stored zone information is overwritten.
+     */
+    public TaskLabelWriter setZone(Protos.DomainInfo.FaultDomain.ZoneInfo zone) {
+        writer.put(LabelConstants.OFFER_ZONE_LABEL, zone.getName());
+        return this;
+    }
+
+    /**
+     * Stores the {@link org.apache.mesos.Protos.DomainInfo.FaultDomain.RegionInfo}.
+     * Any existing stored region information is overwritten.
+     */
+    public TaskLabelWriter setRegion(Protos.DomainInfo.FaultDomain.RegionInfo region) {
+        writer.put(LabelConstants.OFFER_REGION_LABEL, region.getName());
         return this;
     }
 
