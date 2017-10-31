@@ -14,9 +14,9 @@ import shakedown
 log = logging.getLogger(__name__)
 
 
-def request(method, url, retry=True, log_args=True, **kwargs):
+def request(method, url, retry=True, log_args=True, verify=None, **kwargs):
     def fn():
-        response = dcos.http.request(method, url, **kwargs)
+        response = dcos.http.request(method, url, verify=verify, **kwargs)
         if log_args:
             log.info('Got {} for {} {} (args: {})'.format(
                 response.status_code, method.upper(), url, kwargs))
@@ -43,6 +43,12 @@ def svc_cli(package_name, service_name, service_cmd, json=False, print_output=Tr
 
 
 def run_raw_cli(cmd, print_output):
+    """Runs the command with `dcos` as the prefix to the shell command
+    and returns the resulting output (stdout seperated from stderr by a newline).
+
+    eg. `cmd`= "package install <package-name>" results in:
+    $ dcos package install <package-name>
+    """
     stdout, stderr, ret = shakedown.run_dcos_command(cmd, print_output=print_output)
     if ret:
         err = 'Got error code {} when running command "dcos {}":\n'\

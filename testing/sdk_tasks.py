@@ -8,6 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 import logging
 
 import dcos.errors
+import sdk_cmd
 import sdk_plan
 import shakedown
 
@@ -116,3 +117,8 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
 
     if exit_status != 0:
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))
+
+
+def task_exec(task_name, command, **kwargs):
+    return sdk_cmd.run_cli(
+        "task exec {} {}".format(task_name, command), **kwargs)
