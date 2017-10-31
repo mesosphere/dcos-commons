@@ -56,13 +56,14 @@ def configure_package(configure_security):
                 }
             }
         }
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_TASK_COUNT,
-            additional_options=service_kerberos_options,
-            timeout_seconds=30*60)
+        # TODO: uncomment install when kerberized-HDFS branch is merged
+        #sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        #sdk_install.install(
+        #    config.PACKAGE_NAME,
+        #    config.SERVICE_NAME,
+        #    config.DEFAULT_TASK_COUNT,
+        #    additional_options=service_kerberos_options,
+        #    timeout_seconds=30*60)
 
         yield  # let test session execute
     finally:
