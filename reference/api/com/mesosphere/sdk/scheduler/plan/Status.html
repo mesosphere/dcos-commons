@@ -179,12 +179,18 @@ extends java.lang.Enum&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/p
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#STARTED">STARTED</a></span></code>
+<div class="block">Execution has performed <code>org.apache.mesos.Protos.Offer.Operation</code>s and has received feedback, but not all
+ success requiremens (e.g.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#STARTING">STARTING</a></span></code>
 <div class="block">Execution has performed <code>org.apache.mesos.Protos.Offer.Operation</code>s and is waiting to determine the success
  of those Operations.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#WAITING">WAITING</a></span></code>
 <div class="block">Execution has been interrupted.</div>
 </td>
@@ -305,6 +311,17 @@ the order they are declared.</div>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a> STARTING</pre>
 <div class="block">Execution has performed <code>org.apache.mesos.Protos.Offer.Operation</code>s and is waiting to determine the success
  of those Operations.</div>
+</li>
+</ul>
+<a name="STARTED">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>STARTED</h4>
+<pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a> STARTED</pre>
+<div class="block">Execution has performed <code>org.apache.mesos.Protos.Offer.Operation</code>s and has received feedback, but not all
+ success requiremens (e.g. readiness checks) have been satisfied.</div>
 </li>
 </ul>
 <a name="COMPLETE">

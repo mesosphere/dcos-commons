@@ -2785,6 +2785,10 @@
 <div class="block">Returns a mapping of secret store path to mount path for all <a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a>s with the specified
  <code>TransportEncryptionSpec.Type</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getPauseOverrideCmd--">getPauseOverrideCmd()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>
+<div class="block">Returns the command to be run when pausing a Task.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimoutMin--">getPermanentFailureTimoutMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Resource-">getPersistenceId(Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
@@ -4835,6 +4839,14 @@
 <dd>
 <div class="block">String representation of <a href="com/mesosphere/sdk/storage/PersisterUtils.html#PATH_DELIM"><code>PersisterUtils.PATH_DELIM</code></a>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/GoalStateOverride.html#PAUSE_COMMAND">PAUSE_COMMAND</a></span> - Static variable in enum com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a></dt>
+<dd>
+<div class="block">Sleep forever when pausing.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/GoalStateOverride.html#PAUSE_READINESS_COMMAND">PAUSE_READINESS_COMMAND</a></span> - Static variable in enum com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a></dt>
+<dd>
+<div class="block">Plans should not assume that a paused task has fulfilled the requirement of its dependencies.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#pausePod-java.lang.String-java.lang.String-">pausePod(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Restarts a pod in a "paused" debug mode.</div>
@@ -4994,7 +5006,7 @@
 <div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>PodInfoBuilder</code></a> encompasses a mutable group of <code>org.apache.mesos.Protos.TaskInfo.Builder</code>s and,
  optionally, a <code>org.apache.mesos.Protos.ExecutorInfo.Builder</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-">PodInfoBuilder(PodInstanceRequirement, String, UUID, SchedulerConfig, Collection&lt;Protos.TaskInfo&gt;, Protos.FrameworkID, boolean)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">PodInfoBuilder(PodInstanceRequirement, String, UUID, SchedulerConfig, Collection&lt;Protos.TaskInfo&gt;, Protos.FrameworkID, boolean, Map&lt;TaskSpec, GoalStateOverride&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">PodInstance</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -7094,6 +7106,8 @@
 <div class="block">Returns a new validation error which indicates that a configuration field has an invalid
  transition from its previous value to the current value.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html#translateStatus-com.mesosphere.sdk.scheduler.plan.Status-">translateStatus(Status)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">TransportEncryptionSpec</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">Spec for defining a TLS encryption support.</div>
