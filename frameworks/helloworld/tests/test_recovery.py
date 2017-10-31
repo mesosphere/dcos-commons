@@ -57,7 +57,17 @@ def test_pod_restart():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.10')
 def test_pod_pause_resume():
+    test_pod_pause_resume_internal()
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.9')
+def test_pod_pause_resume():
+    test_pod_pause_resume_internal(False)
+
+def test_pod_pause_resume_internal(validateReadinessCheck=True):
     '''Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state'''
 
     # get current agent id:
@@ -93,8 +103,9 @@ def test_pod_pause_resume():
     cmd = jsonobj[0]['info']['command']['value']
     assert 'This task is PAUSED' in cmd
 
-    readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
-    assert 'exit 1' == readiness_check
+    if validateReadinessCheck:
+        readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+        assert 'exit 1' == readiness_check
 
     # check PAUSED state in plan and in pod status:
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
