@@ -93,7 +93,7 @@
               "description": "The port of the host running a KDC for that realm.",
               "default": "88"
             },
-            "keytab_secret_path": {
+            "keytab_secret": {
               "type": "string",
               "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
               "default": "__dcos_base64__hdfs_keytab"
