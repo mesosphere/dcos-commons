@@ -74,19 +74,19 @@
     </property>
     <property>
         <name>dfs.namenode.fs-limits.max-component-length</name>
-        <value>{{NAMENODE_FS-LIMITS_MAX-COMPONENT-LENGTH}}</value>
+        <value>{{NAMENODE_FS_LIMITS_MAX_COMPONENT_LENGTH}}</value>
     </property>
     <property>
         <name>dfs.namenode.fs-limits.max-directory-items</name>
-        <value>{{NAMENODE_FS-LIMITS_MAX-DIRECTORY-ITEMS}}</value>
+        <value>{{NAMENODE_FS_LIMITS_MAX_DIRECTORY_ITEMS}}</value>
     </property>
     <property>
         <name>dfs.namenode.fs-limits.min-block-size</name>
-        <value>{{NAMENODE_FS-LIMITS_MIN-BLOCK-SIZE}}</value>
+        <value>{{NAMENODE_FS_LIMITS_MIN_BLOCK_SIZE}}</value>
     </property>
     <property>
         <name>dfs.namenode.fs-limits.max-blocks-per-file</name>
-        <value>{{NAMENODE_FS-LIMITS_MAX-BLOCKS-PER-FILE}}</value>
+        <value>{{NAMENODE_FS_LIMITS_MAX_BLOCKS_PER_FILE}}</value>
     </property>
     <property>
         <name>dfs.namenode.edits.dir</name>
@@ -170,7 +170,7 @@
     </property>
     <property>
         <name>dfs.namenode.checkpoint.max-retries</name>
-        <value>{{NAMENODE_CHECKPOINT_MAX-RETRIES}}</value>
+        <value>{{NAMENODE_CHECKPOINT_MAX_RETRIES}}</value>
     </property>
     <property>
         <name>dfs.namenode.num.checkpoints.retained</name>
@@ -186,11 +186,11 @@
     </property>
     <property>
         <name>dfs.namenode.delegation.key.update-interval</name>
-        <value>{{NAMENODE_DELEGATION_KEY_UPDATE-INTERVAL}}</value>
+        <value>{{NAMENODE_DELEGATION_KEY_UPDATE_INTERVAL}}</value>
     </property>
     <property>
         <name>dfs.namenode.delegation.token.max-lifetime</name>
-        <value>{{NAMENODE_DELEGATION_TOKEN_MAX-LIFETIME}}</value>
+        <value>{{NAMENODE_DELEGATION_TOKEN_MAX_LIFETIME}}</value>
     </property>
     <property>
         <name>dfs.namenode.support.allow.format</name>
@@ -262,7 +262,7 @@
     </property>
     <property>
         <name>dfs.namenode.reject-unresolved-dn-topology-mapping</name>
-        <value>{{NAMENODE_REJECT-UNRESOLVED-DN-TOPOLOGY-MAPPING}}</value>
+        <value>{{NAMENODE_REJECT_UNRESOLVED_DN_TOPOLOGY_MAPPING}}</value>
     </property>
     <property>
         <name>dfs.namenode.xattrs.enabled</name>
@@ -270,11 +270,11 @@
     </property>
     <property>
         <name>dfs.namenode.fs-limits.max-xattrs-per-inode</name>
-        <value>{{NAMENODE_FS-LIMITS_MAX-ATTRS-PER-INODE}}</value>
+        <value>{{NAMENODE_FS_LIMITS_MAX_ATTRS_PER_INODE}}</value>
     </property>
     <property>
         <name>dfs.namenode.fs-limits.max-xattr-size</name>
-        <value>{{NAMENODE_FS-LIMITS_MAX-ATTRS-SIZE}}</value>
+        <value>{{NAMENODE_FS_LIMITS_MAX_ATTRS_SIZE}}</value>
     </property>
     <property>
         <name>dfs.namenode.startup.delay.block.deletion.sec</name>
@@ -290,7 +290,7 @@
     </property>
     <property>
         <name>dfs.namenode.legacy-oiv-image.dir</name>
-        <value>{{NAMENODE_LEGACY-OIV-IMAGE_DIR}}</value>
+        <value>{{NAMENODE_LEGACY_OIV_IMAGE_DIR}}</value>
     </property>
 
     <!-- name-0-node -->
@@ -460,15 +460,15 @@
     </property>
     <property>
         <name>dfs.datanode.hdfs-blocks-metadata.enabled</name>
-        <value>{{DATANODE_HDFS-BLOCKS-METADATA_ENABLED}}</value>
+        <value>{{DATANODE_HDFS_BLOCKS_METADATA_ENABLED}}</value>
     </property>
     <property>
         <name>dfs.datanode.available-space-volume-choosing-policy.balanced-space-threshold</name>
-        <value>{{DATANODE_AVAILABLE-SPACE-VOLUME-CHOOSING-POLICY_BALANCED-SPACE-THRESHOLD}}</value>
+        <value>{{DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_THRESHOLD}}</value>
     </property>
     <property>
         <name>dfs.datanode.available-space-volume-choosing-policy.balanced-space-preference-fraction</name>
-        <value>{{DATANODE_AVAILABLE-SPACE-VOLUME-CHOOSING-POLICY_BALANCED-SPACE-PREFERENCE-FRACTION}}</value>
+        <value>{{DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_PREFERENCE_FRACTION}}</value>
     </property>
     <property>
         <name>dfs.datanode.max.locked.memory</name>
@@ -602,15 +602,15 @@
     </property>
     <property>
         <name>dfs.client.block.write.replace-datanode-on-failure.enable</name>
-        <value>{{CLIENT_BLOCK_WRITE_REPLACE-DATANODE-ON-FAILURE_ENABLE}}</value>
+        <value>{{CLIENT_BLOCK_WRITE_REPLACE_DATANODE_ON_FAILURE_ENABLE}}</value>
     </property>
     <property>
         <name>dfs.client.block.write.replace-datanode-on-failure.policy</name>
-        <value>{{CLIENT_BLOCK_WRITE_REPLACE-DATANODE-ON-FAILURE_POLICY}}</value>
+        <value>{{CLIENT_BLOCK_WRITE_REPLACE_DATANODE_ON_FAILURE_POLICY}}</value>
     </property>
     <property>
         <name>dfs.client.block.write.replace-datanode-on-failure.best-effort</name>
-        <value>{{CLIENT_BLOCK_WRITE_REPLACE-DATANODE-ON-FAILURE_BEST-EFFORT}}</value>
+        <value>{{CLIENT_BLOCK_WRITE_REPLACE_DATANODE_ON_FAILURE_BEST_EFFORT}}</value>
     </property>
     <property>
         <name>dfs.blockreport.intervalMsec</name>
@@ -638,19 +638,19 @@
     </property>
     <property>
         <name>dfs.namenode.datanode.registration.ip-hostname-check</name>
-        <value>{{REGISTRATION_IP-HOSTNAME-CHECK}}</value>
+        <value>{{REGISTRATION_IP_HOSTNAME_CHECK}}</value>
     </property>
     <property>
         <name>dfs.stream-buffer-size</name>
-        <value>{{STREAM-BUFFER-SIZE}}</value>
+        <value>{{STREAM_BUFFER_SIZE}}</value>
     </property>
     <property>
         <name>dfs.bytes-per-checksum</name>
-        <value>{{BYTES-PER-CHECKSUM}}</value>
+        <value>{{BYTES_PER_CHECKSUM}}</value>
     </property>
     <property>
         <name>dfs.client-write-packet-size</name>
-        <value>{{CLIENT-WRITE-PACKET-SIZE}}</value>
+        <value>{{CLIENT_WRITE_PACKET_SIZE}}</value>
     </property>
     <property>
         <name>dfs.client.write.exclude.nodes.cache.expiry.interval.millis</name>
@@ -694,15 +694,15 @@
     </property>
     <property>
         <name>dfs.client.datanode-restart.timeout</name>
-        <value>{{CLIENT_DATANODE-RESTART_TIMEOUT}}</value>
+        <value>{{CLIENT_DATANODE_RESTART_TIMEOUT}}</value>
     </property>
     <property>
         <name>dfs.ha.log-roll.period</name>
-        <value>{{HA_LOG-ROLL_PERIOD}}</value>
+        <value>{{HA_LOG_ROLL_PERIOD}}</value>
     </property>
     <property>
         <name>dfs.ha.tail-edits.period</name>
-        <value>{{HA_TAIL-EDITS_PERIOD}}</value>
+        <value>{{HA_TAIL_EDITS_PERIOD}}</value>
     </property>
     <property>
         <name>dfs.support.append</name>
@@ -766,11 +766,11 @@
     </property>
     <property>
         <name>dfs.client.file-block-storage-locations.num-threads</name>
-        <value>{{CLIENT_FILE-BLOCK-STORAGE-LOCATIONS_NUM-THREADS}}</value>
+        <value>{{CLIENT_FILE_BLOCK_STORAGE_LOCATIONS_NUM_THREADS}}</value>
     </property>
     <property>
         <name>dfs.client.file-block-storage-locations.timeout.millis</name>
-        <value>{{CLIENT_FILE-BLOCK-STORAGE-LOCATIONS_TIMEOUT_MILLIS}}</value>
+        <value>{{CLIENT_FILE_BLOCK_STORAGE_LOCATIONS_TIMEOUT_MILLIS}}</value>
     </property>
     <property>
         <name>dfs.client.cache.drop.behind.writes</name>
@@ -815,7 +815,7 @@
     </property>
     <property>
         <name>dfs.block.local-path-access.user</name>
-        <value>{{BLOCK_LOCAL-PATH-ACCESS_USER}}</value>
+        <value>{{BLOCK_LOCAL_PATH_ACCESS_USER}}</value>
     </property>
     <property>
         <name>dfs.client.domain.socket.data.traffic</name>
