@@ -17,6 +17,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,7 +52,7 @@ public class DeploymentStepTest {
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
         when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_1))
                 .thenReturn(GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
-        when(mockStateStore.fetchGoalOverrideStatus(taskName))
+        when(mockStateStore.fetchGoalOverrideStatus(any()))
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
     }
 

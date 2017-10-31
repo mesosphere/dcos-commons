@@ -3,6 +3,7 @@ package com.mesosphere.sdk.state;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -19,6 +20,19 @@ public enum GoalStateOverride {
     NONE("NONE", "STARTING"),
     /** The definition of the "PAUSED" override state, where commands are replaced with sleep()s.*/
     PAUSED("PAUSED", "PAUSING");
+
+    /** Sleep forever when pausing. */
+    public static final String PAUSE_COMMAND =
+            String.format(
+                    "echo This task is PAUSED, sleeping ... && " +
+                            "./bootstrap --resolve=false && while true; do sleep %d; done",
+                    Constants.LONG_DECLINE_SECONDS);
+
+    /**
+     * Plans should not assume that a paused task has fulfilled the requirement of its dependencies.  Returnging an
+     * always failing readinness check guarantees that plan execution does not interpret a paused task as being ready.
+     */
+    public static final String PAUSE_READINESS_COMMAND = "exit 1";
 
     /**
      * The state of the override itself.
@@ -93,6 +107,18 @@ public enum GoalStateOverride {
         private Status(GoalStateOverride target, Progress progress) {
             this.target = target;
             this.progress = progress;
+        }
+
+        public static Progress translateStatus(com.mesosphere.sdk.scheduler.plan.Status planStatus) {
+            switch (planStatus) {
+                case PENDING:
+                    return Progress.PENDING;
+                case STARTED:
+                case COMPLETE:
+                    return Progress.COMPLETE;
+                default:
+                    return Progress.IN_PROGRESS;
+            }
         }
 
         @Override

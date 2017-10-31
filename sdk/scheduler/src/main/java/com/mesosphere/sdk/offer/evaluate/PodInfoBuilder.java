@@ -14,6 +14,7 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -49,7 +50,8 @@ public class PodInfoBuilder {
             SchedulerConfig schedulerConfig,
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
-            boolean useDefaultExecutor) throws InvalidRequirementException {
+            boolean useDefaultExecutor,
+            Map<TaskSpec, GoalStateOverride> overrideMap) throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         this.useDefaultExecutor = useDefaultExecutor;
 
@@ -62,7 +64,8 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
-                    schedulerConfig);
+                    schedulerConfig,
+                    overrideMap.get(taskSpec));
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
@@ -205,7 +208,12 @@ public class PodInfoBuilder {
             Map<String, String> environment,
             String serviceName,
             UUID targetConfigurationId,
-            SchedulerConfig schedulerConfig) throws InvalidRequirementException {
+            SchedulerConfig schedulerConfig,
+            GoalStateOverride override) throws InvalidRequirementException {
+        if (override == null) {
+            override = GoalStateOverride.NONE;
+        }
+
         PodSpec podSpec = podInstance.getPod();
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
@@ -221,9 +229,16 @@ public class PodInfoBuilder {
                 .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
-            Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder()
-                    .setValue(taskSpec.getCommand().get().getValue())
-                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+            Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder();
+            commandBuilder.setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+
+            if (override.equals(GoalStateOverride.PAUSED)) {
+                LOGGER.info("Overriding task command: {}", override);
+                commandBuilder.setValue(schedulerConfig.getPauseOverrideCmd());
+            } else {
+                commandBuilder.setValue(taskSpec.getCommand().get().getValue());
+            }
+
             setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
 
@@ -231,6 +246,11 @@ public class PodInfoBuilder {
                 // Any URIs defined in PodSpec itself.
                 for (URI uri : podSpec.getUris()) {
                     commandBuilder.addUrisBuilder().setValue(uri.toString());
+                }
+
+                // Always add the bootstrap URI as the paused command depends on it
+                if (override.equals(GoalStateOverride.PAUSED)) {
+                    commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
                 }
 
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
@@ -275,8 +295,8 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
-        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec);
-        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec);
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override);
+        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override);
         setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
@@ -432,9 +452,15 @@ public class PodInfoBuilder {
             Protos.TaskInfo.Builder taskInfo,
             String serviceName,
             PodInstance podInstance,
-            TaskSpec taskSpec) {
+            TaskSpec taskSpec,
+            GoalStateOverride override) {
         if (!taskSpec.getHealthCheck().isPresent()) {
             LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
+            return;
+        }
+
+        if (override.equals(GoalStateOverride.PAUSED)) {
+            LOGGER.info("Removing health check for PAUSED task: {}", taskSpec.getName());
             return;
         }
 
@@ -456,17 +482,33 @@ public class PodInfoBuilder {
                 .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
     }
 
+    private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
+        if (override.equals(GoalStateOverride.PAUSED)) {
+            return Optional.of(
+                    new DefaultReadinessCheckSpec(
+                            GoalStateOverride.PAUSE_READINESS_COMMAND,
+                            0,
+                            Constants.SHORT_DECLINE_SECONDS,
+                            Constants.SHORT_DECLINE_SECONDS));
+        }
+
+        return taskSpec.getReadinessCheck();
+    }
+
     private void setReadinessCheck(
             Protos.TaskInfo.Builder taskInfoBuilder,
             String serviceName,
             PodInstance podInstance,
-            TaskSpec taskSpec) {
-        if (!taskSpec.getReadinessCheck().isPresent()) {
+            TaskSpec taskSpec,
+            GoalStateOverride override) {
+
+        Optional<ReadinessCheckSpec> readinessCheckSpecOptional = getReadinessCheck(taskSpec, override);
+        if (!readinessCheckSpecOptional.isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
             return;
         }
 
-        ReadinessCheckSpec readinessCheckSpec = taskSpec.getReadinessCheck().get();
+        ReadinessCheckSpec readinessCheckSpec = readinessCheckSpecOptional.get();
 
         if (useDefaultExecutor) {
             // Default executors supports the newer TaskInfo.check field:

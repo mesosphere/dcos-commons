@@ -57,7 +57,17 @@ def test_pod_restart():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.10')
 def test_pod_pause_resume():
+    test_pod_pause_resume_internal()
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.9')
+def test_pod_pause_resume():
+    test_pod_pause_resume_internal(False)
+
+def test_pod_pause_resume_internal(validateReadinessCheck=True):
     '''Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state'''
 
     # get current agent id:
@@ -90,19 +100,18 @@ def test_pod_pause_resume():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
     assert len(jsonobj) == 1
     assert old_agent == jsonobj[0]['info']['slaveId']['value']
-    # TODO: this check should fail once command updates for paused pods is implemented:
-    #       the task command should be updated to some new value that all paused tasks would have
-    #assert 'paused-task-cmd-here?' == jsonobj[0]['info']['command']['value']
-    assert old_cmd == jsonobj[0]['info']['command']['value'] # remove this and uncomment/update above
+    cmd = jsonobj[0]['info']['command']['value']
+    assert 'This task is PAUSED' in cmd
+
+    if validateReadinessCheck:
+        readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+        assert 'exit 1' == readiness_check
 
     # check PAUSED state in plan and in pod status:
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
-    # TODO: this check should fail once command updates for paused pods is implemented:
-    #       the command updater should set the override status to COMPLETE as the task is relaunched
-    #assert jsonobj['tasks'][0]['status'] == 'PAUSED'
-    assert jsonobj['tasks'][0]['status'] == 'PAUSING' # remove this and uncomment above
+    assert jsonobj['tasks'][0]['status'] == 'PAUSED'
     phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
     assert phase['name'] == 'hello'
     assert phase['status'] == 'COMPLETE'
@@ -128,10 +137,7 @@ def test_pod_pause_resume():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
-    # TODO: this check should fail once command updates for paused pods is implemented:
-    #       the command updater should set the lack-of-override status to COMPLETE as the task is relaunched
-    #assert jsonobj['tasks'][0]['status'] == 'RUNNING'
-    assert jsonobj['tasks'][0]['status'] == 'STARTING' # remove this and uncomment above
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
     phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
     assert phase['name'] == 'hello'
     assert phase['status'] == 'COMPLETE'

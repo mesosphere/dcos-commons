@@ -195,7 +195,7 @@ public class DeploymentStep extends AbstractStep {
                         && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
                 } else {
-                    setTaskStatus(status.getTaskId(), Status.STARTING);
+                    setTaskStatus(status.getTaskId(), Status.STARTED);
                 }
                 break;
             case TASK_FINISHED:
@@ -212,12 +212,34 @@ public class DeploymentStep extends AbstractStep {
         updateStatus();
     }
 
+    /**
+     * WARNING: This is a private method for a reason.  Callers must validate that the taskID is already present in the
+     * tasks map.
+     */
+    private String getTaskName(Protos.TaskID taskID) {
+        return tasks.get(taskID).getTaskInfo().getName();
+    }
+
+    private void setOverrideStatus(Protos.TaskID taskID, Status status) {
+        GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(getTaskName(taskID));
+
+        logger.info("Goal override status: {}", overrideStatus);
+        if (!GoalStateOverride.Progress.COMPLETE.equals(overrideStatus.progress)) {
+            GoalStateOverride.Progress progress = GoalStateOverride.Status.translateStatus(status);
+            stateStore.storeGoalOverrideStatus(
+                    getTaskName(taskID),
+                    overrideStatus.target.newStatus(progress));
+        }
+    }
+
     private void setTaskStatus(Protos.TaskID taskID, Status status) {
         if (tasks.containsKey(taskID)) {
             // Update the TaskStatusPair with the new status:
             tasks.replace(taskID, new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status));
             logger.info("Status for: {} is: {}", taskID.getValue(), status);
         }
+
+        setOverrideStatus(taskID, status);
 
         if (isPending()) {
             prepared.set(false);
@@ -248,7 +270,7 @@ public class DeploymentStep extends AbstractStep {
             // Show a custom display status when the task is in or entering a paused state:
             if (stepStatus.isRunning()) {
                 return GoalStateOverride.PAUSED.getTransitioningName();
-            } else if (stepStatus == Status.COMPLETE) {
+            } else if (stepStatus == Status.COMPLETE || stepStatus == Status.STARTED) {
                 return GoalStateOverride.PAUSED.getSerializedName();
             }
         }
@@ -277,6 +299,8 @@ public class DeploymentStep extends AbstractStep {
             return Optional.of(Status.PREPARED);
         } else if (statuses.contains(Status.STARTING)) {
             return Optional.of(Status.STARTING);
+        } else if (statuses.contains(Status.STARTED)) {
+            return Optional.of(Status.STARTED);
         } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
             // If the size of the set statuses == 1, then all tasks have the same status.
             // In this case, the status COMPLETE.

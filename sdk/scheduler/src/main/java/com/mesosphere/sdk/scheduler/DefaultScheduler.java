@@ -277,15 +277,6 @@ public class DefaultScheduler extends AbstractScheduler {
         // - TaskStatus
         // - Override status (if applicable)
         stateStore.storeStatus(taskName, status);
-        if (TaskUtils.isTerminal(status)) {
-            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
-            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
-                // The task was marked PENDING before being killed. Mark it as IN_PROGRESS now that we know the kill has
-                // taken effect.
-                stateStore.storeGoalOverrideStatus(taskName,
-                        overrideStatus.target.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
-            }
-        }
 
         // Notify plans of status update:
         planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));

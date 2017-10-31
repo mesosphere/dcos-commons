@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,7 +56,8 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 stateStore.fetchFrameworkId().get(),
-                                true));
+                                true,
+                                Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
     }
 
@@ -96,7 +98,8 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 stateStore.fetchFrameworkId().get(),
-                                false));
+                                false,
+                                Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
     }
 
@@ -136,7 +139,8 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         stateStore.fetchFrameworkId().get(),
-                        true);
+                        true,
+                        Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -182,7 +186,8 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         stateStore.fetchFrameworkId().get(),
-                        false);
+                        false,
+                        Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());

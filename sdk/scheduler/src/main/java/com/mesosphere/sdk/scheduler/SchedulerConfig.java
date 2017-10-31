@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -29,7 +30,6 @@ import java.util.Map;
  * to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.
  */
 public class SchedulerConfig {
-
 
     /**
      * Exception which is thrown when failing to retrieve or parse a given flag value.
@@ -141,6 +141,11 @@ public class SchedulerConfig {
     private static String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
     private static String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
     private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+
+    /**
+     * Environment variables for configuring goal state override behavior.
+     */
+    private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
 
     /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -306,6 +311,13 @@ public class SchedulerConfig {
      */
     public int getStatsdPort() {
         return envStore.getRequiredInt(STATSD_UDP_PORT_ENV);
+    }
+
+    /**
+     * Returns the command to be run when pausing a Task.
+     */
+    public String getPauseOverrideCmd() {
+        return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
     }
 
     /**
