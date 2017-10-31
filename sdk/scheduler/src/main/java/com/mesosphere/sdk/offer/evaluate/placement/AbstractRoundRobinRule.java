@@ -14,8 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base implementation of common round-robin logic used by {@link RoundRobinByHostnameRule} and
- * {@link RoundRobinByAttributeRule}.
+ * Base implementation of common round-robin logic.
  */
 abstract class AbstractRoundRobinRule implements PlacementRule {
 
@@ -33,20 +32,20 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
     }
 
     /**
-     * Returns a value to round robin against from the provided {@link Offer}, or {@code null} if
+     * Returns a key to round robin against from the provided {@link Offer}, or {@code null} if
      * none was found.
      */
-    protected abstract String getValue(Offer offer);
+    protected abstract String getKey(Offer offer);
 
     /**
-     * Returns a value to round robin against from the provided {@link TaskInfo}, or {@code null} if
+     * Returns a key to round robin against from the provided {@link TaskInfo}, or {@code null} if
      * none was found.
      */
-    protected abstract String getValue(TaskInfo task);
+    protected abstract String getKey(TaskInfo task);
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        final String offerValue = getValue(offer);
+        final String offerValue = getKey(offer);
         if (offerValue == null) {
             // offer doesn't have the required attribute at all. denied.
             return EvaluationOutcome.fail(this, "Offer lacks required round robin value").build();
@@ -67,7 +66,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 continue;
             }
 
-            final String taskAttributeValue = getValue(task);
+            final String taskAttributeValue = getKey(task);
             if (taskAttributeValue == null) {
                 // no attribute matching the name was found. ignore.
                 continue;

@@ -6,7 +6,9 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import org.apache.mesos.Protos.Attribute;
@@ -15,14 +17,13 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.junit.Test;
 
+import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Tests for {@link MaxPerAttributeRule}.
@@ -103,64 +104,9 @@ public class MaxPerAttributeRuleTest {
         return o.build();
     }
 
-    @Test
+    @Test(expected = ConstraintViolationException.class)
     public void testLimitZero() {
-        PlacementRule rule = new MaxPerAttributeRule(0, ATTR_MATCHER);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, Collections.emptyList()).isPassing());
-    }
-
-    @Test
-    public void testLimitZeroWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(0, ATTR_MATCHER);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
+        new MaxPerAttributeRule(0, ATTR_MATCHER);
     }
 
     @Test
@@ -438,10 +384,6 @@ public class MaxPerAttributeRuleTest {
     @Test
     public void testSerializeDeserialize() throws IOException {
         PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
-        assertEquals(rule, SerializationUtils.fromString(
-                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
-
-        rule = new MaxPerAttributeRule(0, ATTR_MATCHER, RegexMatcher.create("hello"));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
