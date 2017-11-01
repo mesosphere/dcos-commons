@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api.types;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -33,12 +32,7 @@ class PhaseInfo {
                 phase.getStatus());
     }
 
-    @JsonCreator
-    public PhaseInfo(
-            @JsonProperty("id") final String id,
-            @JsonProperty("name") final String name,
-            @JsonProperty("steps") final List<StepInfo> steps,
-            @JsonProperty("status") final Status status) {
+    private PhaseInfo(final String id, final String name, final List<StepInfo> steps, final Status status) {
         this.id = id;
         this.name = name;
         this.steps = steps;

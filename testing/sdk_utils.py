@@ -75,27 +75,3 @@ def is_strict_mode():
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
-
-# def dcos_min_version(min_version, reason=None):
-#     '''Skip tests if running against a cluster older than `min_version`.
-#     Optionally display `reason` to explain why the test was skipped.
-#     Example: @sdk_utils.dcos_min_version('1.9', reason='dcos task exec not supported < 1.9')
-#     '''
-#     message = 'Feature only supported in DC/OS {} and up'.format(min_version)
-#     if reason:
-#         message += ': {}'.format(reason)
-#
-#     log.info('inside dcos_min_version')
-#
-#     def dcos_min_version_decorator(func):
-#         log.info('wrapping function {} with min_version={}'.format(func.__name__, min_version))
-#         @functools.wraps(func)
-#         def dcos_min_version_wrapper(*args, **kwargs):
-#             if dcos_version_less_than(min_version):
-#                 log.info('skipping {}'.format(func.__name__))
-#                 pytest.skip(message)
-#             else:
-#                 log.info('running {}'.format(func.__name__))
-#                 return func(*args, **kwargs)
-#         return dcos_min_version_wrapper
-#     return dcos_min_version_decorator

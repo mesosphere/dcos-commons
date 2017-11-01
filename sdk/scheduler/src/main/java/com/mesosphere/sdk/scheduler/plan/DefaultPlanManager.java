@@ -36,6 +36,6 @@ public class DefaultPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        return PlanUtils.getDirtyAsseets(plan);
+        return PlanUtils.getDirtyAssets(plan);
     }
 }

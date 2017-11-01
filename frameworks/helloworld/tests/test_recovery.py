@@ -57,6 +57,96 @@ def test_pod_restart():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.10')
+def test_pod_pause_resume():
+    test_pod_pause_resume_internal()
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.9')
+def test_pod_pause_resume():
+    test_pod_pause_resume_internal(False)
+
+def test_pod_pause_resume_internal(validateReadinessCheck=True):
+    '''Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state'''
+
+    # get current agent id:
+    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)[0]['info']
+    old_agent = taskinfo['slaveId']['value']
+    old_cmd = taskinfo['command']['value']
+
+    # sanity check of pod status/plan status before we pause/resume:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
+    phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-0:[server]'
+    assert phase['steps'][0]['status'] == 'COMPLETE'
+
+    # pause the pod, wait for it to relaunch
+    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod pause hello-0', json=True)
+    assert len(jsonobj) == 2
+    assert jsonobj['pod'] == 'hello-0'
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0] == 'hello-0-server'
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
+    config.check_running()
+
+    # check agent didn't move, and that the command has changed:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
+    assert len(jsonobj) == 1
+    assert old_agent == jsonobj[0]['info']['slaveId']['value']
+    cmd = jsonobj[0]['info']['command']['value']
+    assert 'This task is PAUSED' in cmd
+
+    if validateReadinessCheck:
+        readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+        assert 'exit 1' == readiness_check
+
+    # check PAUSED state in plan and in pod status:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
+    assert jsonobj['tasks'][0]['status'] == 'PAUSED'
+    phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-0:[server]'
+    assert phase['steps'][0]['status'] == 'PAUSED'
+
+    # resume the pod again, wait for it to relaunch
+    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod resume hello-0', json=True)
+    assert len(jsonobj) == 2
+    assert jsonobj['pod'] == 'hello-0'
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0] == 'hello-0-server'
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
+    config.check_running()
+
+    # check again that the agent didn't move:
+    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)[0]['info']
+    assert old_agent == taskinfo['slaveId']['value']
+    assert old_cmd == taskinfo['command']['value']
+
+    # check that the pod/plan status is back to normal:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
+    phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-0:[server]'
+    assert phase['steps'][0]['status'] == 'COMPLETE'
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
 @pytest.mark.dcos_min_version('1.9')
 def test_pods_restart_graceful_shutdown():
     options = {

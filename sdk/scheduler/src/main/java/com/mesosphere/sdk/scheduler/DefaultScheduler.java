@@ -1,14 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -107,7 +105,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.resources.add(endpointsResource);
         this.plansResource = new PlansResource();
         this.resources.add(this.plansResource);
-        this.podResource = new PodResource(stateStore);
+        this.podResource = new PodResource(stateStore, serviceSpec.getName());
         this.resources.add(podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
     }
@@ -274,35 +272,14 @@ public class DefaultScheduler extends AbstractScheduler {
     protected void processStatusUpdate(Protos.TaskStatus status) {
         // Store status, then pass status to PlanManager => Plan => Steps
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
-        Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
         // StateStore updates:
         // - TaskStatus
         // - Override status (if applicable)
         stateStore.storeStatus(taskName, status);
-        if (TaskUtils.isTerminal(status)) {
-            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
-            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
-                // The task was marked PENDING before being killed. Mark it as IN_PROGRESS now that we know the kill has
-                // taken effect.
-                stateStore.storeGoalOverrideStatus(taskName,
-                        overrideStatus.target.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
-            }
-        }
 
         // Notify plans of status update:
         planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
-
-        // Special handling: Retry launch if initial launch failed
-        if (lastStatus.isPresent() &&
-                AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
-                TaskUtils.isRecoveryNeeded(status)) {
-            // The initial launch of this task failed. Give up and try again with a clean slate.
-            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. "
-                    + "Prior status was: {}",
-                    taskName, TextFormat.shortDebugString(lastStatus.get()));
-            taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
-        }
 
         // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
         // We expect the TaskStatus to contain an IP address in both Host or CNI networking.

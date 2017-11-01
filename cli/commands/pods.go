@@ -3,9 +3,9 @@ package commands
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
@@ -24,87 +24,172 @@ func (cmd *podHandler) handleList(a *kingpin.Application, e *kingpin.ParseElemen
 }
 
 func (cmd *podHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	endpointPath := "v1/pod/status"
-	if len(cmd.PodName) > 0 {
+	var endpointPath string
+	singlePod := len(cmd.PodName) > 0
+	if singlePod {
 		endpointPath = fmt.Sprintf("v1/pod/%s/status", cmd.PodName)
+	} else {
+		endpointPath = "v1/pod/status"
 	}
 	body, err := client.HTTPServiceGet(endpointPath)
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
-	client.PrintJSONBytes(body)
+	if cmd.RawJSON {
+		client.PrintJSONBytes(body)
+	} else {
+		if singlePod {
+			client.PrintMessage(toSinglePodTree(body))
+		} else {
+			client.PrintMessage(toServiceTree(body))
+		}
+	}
 	return nil
 }
 
-func toPodTree(podsJSONBytes []byte) string {
-	podsJSON, err := client.UnmarshalJSON(podsJSONBytes)
+func toServiceTree(podsJSONBytes []byte) string {
+	response, err := client.UnmarshalJSON(podsJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in pods response: %s", err))
 	}
-	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("%s\n", config.ServiceName))
 
-	i := 0
-	for podName, rawPod := range podsJSON {
-		appendPod(&buf, podName, rawPod, i == len(podsJSON)-1)
-		i++
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("%s\n", response["service"]))
+
+	rawPodTypes, ok := response["pods"].([]interface{})
+	if !ok {
+		client.PrintMessageAndExit("Failed to parse JSON pods in response")
+	}
+	for i, rawPodType := range rawPodTypes {
+		appendPodType(&buf, rawPodType, i == len(rawPodTypes)-1)
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
-
-	return buf.String()
+	return strings.TrimRight(buf.String(), "\n")
 }
 
-func appendPod(buf *bytes.Buffer, podName string, rawPod interface{}, lastPod bool) {
-	var podPrefix string
-	if lastPod {
-		podPrefix = "└─ "
-	} else {
-		podPrefix = "├─ "
+func toSinglePodTree(podsJSONBytes []byte) string {
+	response, err := client.UnmarshalJSON(podsJSONBytes)
+	if err != nil {
+		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in pod response: %s", err))
 	}
 
-	buf.WriteString(fmt.Sprintf("%s%s\n", podPrefix, podName))
+	var buf bytes.Buffer
+	buf.WriteString(fmt.Sprintf("%s\n", response["name"]))
 
-	tasks, ok := rawPod.([]interface{})
+	rawTasks, ok := response["tasks"].([]interface{})
+	if !ok {
+		client.PrintMessageAndExit("Failed to parse JSON pods in response")
+	}
+	for i, rawTask := range rawTasks {
+		appendTask(&buf, rawTask, "", i == len(rawTasks)-1)
+	}
+
+	return strings.TrimRight(buf.String(), "\n")
+}
+
+func appendPodLayer(buf *bytes.Buffer, rawPodType interface{}, lastPodType bool) {
+	podType, ok := rawPodType.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	var headerPrefix string
+	var childPrefix string
+	if lastPodType {
+		headerPrefix = "└─ "
+		childPrefix = "   "
+	} else {
+		headerPrefix = "├─ "
+		childPrefix = "│  "
+	}
+
+	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podType["name"]))
+
+	rawPodInstances, ok := podType["instances"].([]interface{})
+	if !ok {
+		return
+	}
+	for i, rawPodInstance := range rawPodInstances {
+		appendPodInstance(buf, rawPodInstance, childPrefix, i == len(rawPodInstances)-1)
+	}
+}
+
+func appendPodType(buf *bytes.Buffer, rawPodType interface{}, lastPodType bool) {
+	podType, ok := rawPodType.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	var headerPrefix string
+	var childPrefix string
+	if lastPodType {
+		headerPrefix = "└─ "
+		childPrefix = "   "
+	} else {
+		headerPrefix = "├─ "
+		childPrefix = "│  "
+	}
+
+	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podType["name"]))
+
+	rawPodInstances, ok := podType["instances"].([]interface{})
+	if !ok {
+		return
+	}
+	for i, rawPodInstance := range rawPodInstances {
+		appendPodInstance(buf, rawPodInstance, childPrefix, i == len(rawPodInstances)-1)
+	}
+}
+
+func appendPodInstance(buf *bytes.Buffer, rawPodInstance interface{}, prefix string, lastPodInstance bool) {
+	podInstance, ok := rawPodInstance.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	var headerPrefix string
+	var childPrefix string
+	if lastPodInstance {
+		headerPrefix = prefix + "└─ "
+		childPrefix = prefix + "   "
+	} else {
+		headerPrefix = prefix + "├─ "
+		childPrefix = prefix + "│  "
+	}
+
+	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podInstance["name"]))
+
+	tasks, ok := podInstance["tasks"].([]interface{})
 	if !ok {
 		return
 	}
 	for i, rawTask := range tasks {
-		appendTask(buf, rawTask, lastPod, i == len(tasks)-1)
+		appendTask(buf, rawTask, childPrefix, i == len(tasks)-1)
 	}
 }
 
-func appendTask(buf *bytes.Buffer, rawTask interface{}, lastPod bool, lastTask bool) {
-	var taskPrefix string
-	if lastPod {
-		if lastTask {
-			taskPrefix = "   └─ "
-		} else {
-			taskPrefix = "   ├─ "
-		}
-	} else {
-		if lastTask {
-			taskPrefix = "│  └─ "
-		} else {
-			taskPrefix = "│  ├─ "
-		}
-	}
-
+func appendTask(buf *bytes.Buffer, rawTask interface{}, prefix string, lastTask bool) {
 	task, ok := rawTask.(map[string]interface{})
 	if !ok {
 		return
+	}
+
+	if lastTask {
+		prefix += "└─ "
+	} else {
+		prefix += "├─ "
 	}
 
 	taskName, ok := task["name"]
 	if !ok {
 		taskName = "<UNKNOWN>"
 	}
-	taskState, ok := task["state"]
+	taskStatus, ok := task["status"]
 	if !ok {
-		taskState = "<UNKNOWN>"
+		taskStatus = "<UNKNOWN>"
 	}
-	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", taskPrefix, taskName, taskState))
+
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", prefix, taskName, taskStatus))
 }
 
 func (cmd *podHandler) handleInfo(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -145,6 +230,7 @@ func HandlePodSection(app *kingpin.Application) {
 
 	status := pod.Command("status", "Display the status for tasks in one pod or all pods").Action(cmd.handleStatus)
 	status.Arg("pod", "Name of a specific pod instance to display").StringVar(&cmd.PodName)
+	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
 
 	info := pod.Command("info", "Display the full state information for tasks in a pod").Action(cmd.handleInfo)
 	info.Arg("pod", "Name of the pod instance to display").Required().StringVar(&cmd.PodName)

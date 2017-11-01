@@ -48,12 +48,12 @@ public class OfferUtils {
 
     public static void declineShort(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {
         OfferUtils.declineOffers(driver, unusedOffers, Constants.SHORT_DECLINE_SECONDS);
-        Metrics.getDeclinesShort().inc(unusedOffers.size());
+        Metrics.incrementDeclinesShort(unusedOffers.size());
     }
 
     public static void declineLong(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {
         OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
-        Metrics.getDeclinesLong().inc(unusedOffers.size());
+        Metrics.incrementDeclinesLong(unusedOffers.size());
     }
 
     /**

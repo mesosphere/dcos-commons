@@ -110,7 +110,7 @@ class UninstallPlanBuilder {
                 .collect(Collectors.toList());
         LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
                 tasksNotFailedAndErrored.size(), allTasks.size(),
-                resourceSteps.stream().filter(step -> step.getStatus() == Status.COMPLETE).count(),
+                resourceSteps.stream().filter(step -> step.isComplete()).count(),
                 resourceSteps.size());
         phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));
 

@@ -6,6 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import logging
+import json
 
 import shakedown
 
@@ -30,6 +31,45 @@ def get_config(app_name):
         del config['version']
 
     return config
+
+
+def install_app_from_file(app_def_path: str) -> (bool, str):
+    """
+    Installs a marathon app using the path to an app definition.
+
+    Args:
+        app_def_path: Path to app definition
+
+    Returns:
+        (bool, str) tuple: Boolean indicates success of install attempt. String indicates
+        error message if install attempt failed.
+    """
+    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
+        cmd="marathon app add ", file_path=app_def_path
+    ))
+    if output:
+        return 1, output
+    return 0, ""
+
+
+def install_app(app_definition: dict) -> (bool, str):
+    """
+    Installs a marathon app using the given `app_definition`.
+
+    Args:
+        app_definition: The definition of the app to pass to marathon.
+
+    Returns:
+        (bool, str) tuple: Boolean indicates success of install attempt. String indicates
+        error message if install attempt failed.
+    """
+    app_name = app_definition["id"]
+    app_def_file = "{}.json".format(app_name)
+
+    with open(app_def_file, "w") as f:
+        json.dump(app_definition, f)
+
+    return install_app_from_file(app_def_file)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):

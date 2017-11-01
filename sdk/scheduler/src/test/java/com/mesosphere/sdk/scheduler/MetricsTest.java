@@ -1,148 +1,119 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
  * This class tests the {@link Metrics} class.
  */
 public class MetricsTest {
-    @Before
-    public void beforeEach() {
-        Metrics.reset();
-    }
-
-    @Test
-    public void emptyReceivedOffers() {
-        Assert.assertEquals(0, Metrics.getReceivedOffers().getCount());
-    }
 
     @Test
     public void incrementReceivedOffers() {
-       Metrics.getReceivedOffers().inc();
-       Assert.assertEquals(1, Metrics.getReceivedOffers().getCount());
-    }
-
-    @Test
-    public void emptyProcessedOffers() {
-        Assert.assertEquals(0, Metrics.getProcessedOffers().getCount());
+        Counter counter = Metrics.getRegistry().counter(Metrics.RECEIVED_OFFERS);
+        long val = counter.getCount();
+        Metrics.incrementReceivedOffers(5);
+        Assert.assertEquals(5, counter.getCount() - val);
     }
 
     @Test
     public void incrementProcessedOffers() {
-        Metrics.getProcessedOffers().inc();
-        Assert.assertEquals(1, Metrics.getProcessedOffers().getCount());
+        Counter counter = Metrics.getRegistry().counter(Metrics.PROCESSED_OFFERS);
+        long val = counter.getCount();
+        Metrics.incrementProcessedOffers(5);
+        Assert.assertEquals(5, counter.getCount() - val);
     }
 
     @Test
-    public void emptyProcessOffers() {
-        Assert.assertEquals(0, Metrics.getProcessOffersDuration().getCount());
-    }
-
-    @Test
-    public void timeProcessOffers() {
-        Metrics.getProcessOffersDuration().time().stop();
-        Assert.assertEquals(1, Metrics.getProcessOffersDuration().getCount());
-    }
-
-    @Test
-    public void emptyRevives() {
-        Assert.assertEquals(0, Metrics.getRevives().getCount());
+    public void incrementProcessOffersDuration() {
+        Timer timer = Metrics.getRegistry().timer(Metrics.PROCESS_OFFERS);
+        long val = timer.getCount();
+        Metrics.getProcessOffersDurationTimer().stop();
+        Assert.assertEquals(1, timer.getCount() - val);
     }
 
     @Test
     public void incrementRevives() {
-        Metrics.getRevives().inc();
-        Assert.assertEquals(1, Metrics.getRevives().getCount());
-    }
-
-    @Test
-    public void emptyReviveThrottles() {
-        Assert.assertEquals(0, Metrics.getReviveThrottles().getCount());
+        Counter counter = Metrics.getRegistry().counter(Metrics.REVIVES);
+        long val = counter.getCount();
+        Metrics.incrementRevives();
+        Assert.assertEquals(1, counter.getCount() - val);
     }
 
     @Test
     public void incrementReviveThrottles() {
-        Metrics.getReviveThrottles().inc();
-        Assert.assertEquals(1, Metrics.getReviveThrottles().getCount());
-    }
-
-    @Test
-    public void emptyDeclinesShort() {
-        Assert.assertEquals(0, Metrics.getDeclinesShort().getCount());
+        Counter counter = Metrics.getRegistry().counter(Metrics.REVIVE_THROTTLES);
+        long val = counter.getCount();
+        Metrics.incrementReviveThrottles();
+        Assert.assertEquals(1, counter.getCount() - val);
     }
 
     @Test
     public void incrementDeclinesShort() {
-        Metrics.getDeclinesShort().inc();
-        Assert.assertEquals(1, Metrics.getDeclinesShort().getCount());
-    }
-
-    @Test
-    public void emptyDeclinesLong() {
-        Assert.assertEquals(0, Metrics.getDeclinesLong().getCount());
+        Counter counter = Metrics.getRegistry().counter(Metrics.DECLINE_SHORT);
+        long val = counter.getCount();
+        Metrics.incrementDeclinesShort(5);
+        Assert.assertEquals(5, counter.getCount() - val);
     }
 
     @Test
     public void incrementDeclinesLong() {
-        Metrics.getDeclinesLong().inc();
-        Assert.assertEquals(1, Metrics.getDeclinesLong().getCount());
+        Counter counter = Metrics.getRegistry().counter(Metrics.DECLINE_LONG);
+        long val = counter.getCount();
+        Metrics.incrementDeclinesLong(5);
+        Assert.assertEquals(5, counter.getCount() - val);
     }
 
     @Test
-    public void taskRunning() {
-        Protos.TaskStatus taskStatus = Protos.TaskStatus.newBuilder()
+    public void taskStatuses() {
+        Counter runningCounter = Metrics.getRegistry().counter("task_status.task_running");
+        Counter lostCounter = Metrics.getRegistry().counter("task_status.task_lost");
+
+        long runningVal = runningCounter.getCount();
+        Metrics.record(Protos.TaskStatus.newBuilder()
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .setTaskId(TestConstants.TASK_ID)
-                .build();
+                .build());
+        Assert.assertEquals(1, runningCounter.getCount() - runningVal);
 
-        Assert.assertEquals(0, Metrics.getRegistry().getCounters().size());
-        Metrics.record(taskStatus);
-        Assert.assertEquals(1, Metrics.getRegistry().getCounters().size());
-
-        String metricName = Metrics.getRegistry().getCounters().firstKey();
-        Counter counter = Metrics.getRegistry().counter(metricName);
-        Assert.assertEquals(1, counter.getCount());
+        long lostVal = lostCounter.getCount();
+        Metrics.record(Protos.TaskStatus.newBuilder()
+                .setState(Protos.TaskState.TASK_LOST)
+                .setTaskId(TestConstants.TASK_ID)
+                .build());
+        Assert.assertEquals(1, lostCounter.getCount() - lostVal);
     }
 
     @Test
-    public void realTaskLaunch() throws Exception {
-        OfferRecommendation recommendation = getRealRecommendation();
+    public void taskLaunches() throws Exception {
+        OfferRecommendation realRecommendation = getRecommendation(true);
+        Assert.assertTrue(((LaunchOfferRecommendation)realRecommendation).shouldLaunch());
 
-        Assert.assertEquals(0, Metrics.getRegistry().getCounters().size());
-        Metrics.OperationsCounter.getInstance().record(recommendation);
-        Assert.assertEquals(1, Metrics.getRegistry().getCounters().size());
+        OfferRecommendation suppressedRecommendation = getRecommendation(false);
+        Assert.assertFalse(((LaunchOfferRecommendation)suppressedRecommendation).shouldLaunch());
 
-        String metricName = Metrics.getRegistry().getCounters().firstKey();
-        Counter counter = Metrics.getRegistry().counter(metricName);
-        Assert.assertEquals(1, counter.getCount());
+        Counter launchCounter = Metrics.getRegistry().counter("operation.launch_group");
+
+        long val = launchCounter.getCount();
+        Metrics.OperationsCounter.getInstance().record(realRecommendation);
+        Metrics.OperationsCounter.getInstance().record(realRecommendation);
+        Metrics.OperationsCounter.getInstance().record(realRecommendation);
+        Assert.assertEquals(3, launchCounter.getCount() - val);
+
+        val = launchCounter.getCount();
+        Metrics.OperationsCounter.getInstance().record(suppressedRecommendation);
+        Metrics.OperationsCounter.getInstance().record(suppressedRecommendation);
+        Assert.assertEquals(0, launchCounter.getCount() - val);
     }
 
-    @Test
-    public void suppressedTaskLaunch() throws Exception {
-        OfferRecommendation recommendation = getSuppressedRecommendation();
-
-        Assert.assertEquals(0, Metrics.getRegistry().getCounters().size());
-        Metrics.OperationsCounter.getInstance().record(recommendation);
-        Assert.assertEquals(0, Metrics.getRegistry().getCounters().size());
-    }
-
-    private OfferRecommendation getRealRecommendation() {
-        return getRecommendation(true);
-    }
-
-    private OfferRecommendation getSuppressedRecommendation() {
-        return getRecommendation(false);
-    }
-
-    private OfferRecommendation getRecommendation(boolean shouldLaunch) {
+    private static OfferRecommendation getRecommendation(boolean shouldLaunch) {
         return new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()

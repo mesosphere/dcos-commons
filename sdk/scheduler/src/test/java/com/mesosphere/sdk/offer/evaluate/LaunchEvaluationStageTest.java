@@ -29,7 +29,8 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                true);
+                true,
+                Collections.emptyMap());
 
         EvaluationOutcome outcome = evaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
