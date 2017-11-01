@@ -31,7 +31,7 @@ public class LegacyReservationCreator implements ReservationCreator {
 
     @Override
     public Protos.Resource.Builder withNewResourceId(Protos.Resource.Builder resourceBuilder) {
-        Optional<String> resourceId = AuxLabelAccess.getResourceId(resourceBuilder.getReservations(0));
+        Optional<String> resourceId = AuxLabelAccess.getResourceId(resourceBuilder.getReservation());
 
         if (!resourceId.isPresent()) {
             AuxLabelAccess.setResourceId(resourceBuilder.getReservationBuilder(), UUID.randomUUID().toString());

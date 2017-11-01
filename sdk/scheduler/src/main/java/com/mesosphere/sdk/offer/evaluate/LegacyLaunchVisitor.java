@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.api.ArtifactResource;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.LegacyLaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
@@ -133,11 +134,12 @@ public class LegacyLaunchVisitor extends LaunchVisitor {
             return podTasks.stream().findFirst().get().getExecutor().toBuilder().clearResources();
         }
 
+        String name = podSpec.getType();
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder()
-                .setType(Protos.ExecutorInfo.Type.DEFAULT)
-                .setName(podSpec.getType())
+                .setType(Protos.ExecutorInfo.Type.CUSTOM)
+                .setName(name)
                 .setFrameworkId(frameworkID)
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
+                .setExecutorId(CommonIdUtils.toExecutorId(name));
         AuxLabelAccess.setDcosSpace(executorBuilder, getSchedulerConfig().getDcosSpace());
 
         // command and user:
