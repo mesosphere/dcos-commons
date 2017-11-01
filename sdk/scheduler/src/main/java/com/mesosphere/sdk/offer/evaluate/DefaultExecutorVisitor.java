@@ -17,7 +17,7 @@ import java.util.List;
  * The DefaultExecutorVisitor traverses a {@link PodSpec} and initiates visits to the implicit resources required for
  * the default executor.
  */
-public class DefaultExecutorVisitor extends NullVisitor {
+public class DefaultExecutorVisitor extends NullVisitor<EvaluationOutcome> {
 
     public DefaultExecutorVisitor(SpecVisitor delegate) {
         super(delegate);
@@ -72,9 +72,6 @@ public class DefaultExecutorVisitor extends NullVisitor {
     public NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
         return namedVIPSpec;
     }
-
-    @Override
-    public void compileResultImplementation() { }
 
     private static List<ResourceSpec> getExecutorResources(String preReservedRole, String role, String principal) {
         List<ResourceSpec> resources = new ArrayList<>();

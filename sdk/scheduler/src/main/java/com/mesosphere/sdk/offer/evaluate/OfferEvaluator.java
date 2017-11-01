@@ -78,7 +78,6 @@ public class OfferEvaluator {
                     return status.isPresent() && status.get().getState().equals(Protos.TaskState.TASK_RUNNING);
                 })
                 .collect(Collectors.toList());
-        boolean isRunning = !runningTasks.isEmpty();
 
         OfferEvaluationComponentFactory offerEvaluationComponentFactory = getOfferEvaluationComponentFactory();
         for (int i = 0; i < offers.size(); ++i) {
@@ -87,31 +86,14 @@ public class OfferEvaluator {
                     offer,
                     getRole(podInstanceRequirement.getPodInstance().getPod()));
 
-            SpecVisitor<List<EvaluationOutcome>> launchOperationVisitor =
-                    offerEvaluationComponentFactory.getLaunchOperationVisitor(
-                            resourcePool, thisPodTasks, allTasks.values(), isRunning, null);
-            OfferConsumptionVisitor offerConsumptionVisitor =
-                    offerEvaluationComponentFactory.getOfferConsumptionVisitor(
-                            resourcePool, runningTasks, launchOperationVisitor);
-            ExistingPodVisitor existingPodVisitor = offerEvaluationComponentFactory.getExistingPodVisitor(
-                    resourcePool, thisPodTasks, offerConsumptionVisitor);
-            SpecVisitor<VisitorResultCollector.Empty> executorVisitor =
-                    offerEvaluationComponentFactory.getExecutorVisitor(existingPodVisitor);
+            SpecVisitor<EvaluationOutcome> evaluationVisitor = offerEvaluationComponentFactory.getEvaluationVisitor(
+                    resourcePool, thisPodTasks, runningTasks, allTasks.values());
 
-            VisitorResultCollector<List<OfferRecommendation>> unreserveCollector =
-                    existingPodVisitor.getVisitorResultCollector();
-            VisitorResultCollector<List<EvaluationOutcome>> evaluationOutcomeCollector =
-                    offerConsumptionVisitor.getVisitorResultCollector();
-            VisitorResultCollector<List<EvaluationOutcome>> launchCollector =
-                    launchOperationVisitor.getVisitorResultCollector();
-
-            podInstanceRequirement.accept(executorVisitor);
-            executorVisitor.compileResult();
+            podInstanceRequirement.accept(evaluationVisitor);
+            Collection<EvaluationOutcome> outcomes = evaluationVisitor.getResult();
 
             int failedOutcomeCount = 0;
             StringBuilder outcomeDetails = new StringBuilder();
-            List<EvaluationOutcome> outcomes = evaluationOutcomeCollector.getResult();
-            outcomes.addAll(launchCollector.getResult());
             for (EvaluationOutcome outcome : outcomes) {
                 if (!outcome.isPassing()) {
                     ++failedOutcomeCount;
@@ -128,17 +110,16 @@ public class OfferEvaluator {
                         i + 1,
                         offer.getId().getValue(),
                         failedOutcomeCount,
-                        evaluationOutcomeCollector.getResult().size(),
+                        outcomes.size(),
                         outcomeDetails.toString());
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
                         .flatMap(xs -> xs.stream())
                         .collect(Collectors.toList());
-                recommendations.addAll(unreserveCollector.getResult());
                 logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
                         i + 1,
-                        evaluationOutcomeCollector.getResult().size(),
+                        outcomes.size(),
                         recommendations.size(),
                         outcomeDetails.toString());
 

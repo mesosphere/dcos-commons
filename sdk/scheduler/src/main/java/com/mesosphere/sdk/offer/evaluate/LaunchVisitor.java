@@ -61,7 +61,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * collection of {@link org.apache.mesos.Protos.Offer.Operation}s for task launch. Concrete implementations build
  * protos according to the requirements of the execution environment.
  */
-public abstract class LaunchVisitor extends SpecVisitor<List<EvaluationOutcome>> {
+public abstract class LaunchVisitor extends SpecVisitor<EvaluationOutcome> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LaunchGroupVisitor.class);
 
     static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
@@ -124,8 +124,8 @@ public abstract class LaunchVisitor extends SpecVisitor<List<EvaluationOutcome>>
     }
 
     @Override
-    public void compileResultImplementation() {
-        getVisitorResultCollector().setResult(outcomes);
+    Collection<EvaluationOutcome> getResultImplementation() {
+        return outcomes;
     }
 
     Protos.Offer getOffer() {

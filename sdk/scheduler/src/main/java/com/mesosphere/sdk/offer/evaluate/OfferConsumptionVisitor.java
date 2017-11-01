@@ -40,7 +40,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * The OfferConsumptionVisitor traverses a {@link PodSpec} along with a {@link MesosResourcePool} and consumes resources
  * from that pool based on the requirements of that pod.
  */
-public class OfferConsumptionVisitor extends SpecVisitor<List<EvaluationOutcome>> {
+public class OfferConsumptionVisitor extends SpecVisitor<EvaluationOutcome> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferConsumptionVisitor.class);
 
     private final MesosResourcePool mesosResourcePool;
@@ -365,8 +365,8 @@ public class OfferConsumptionVisitor extends SpecVisitor<List<EvaluationOutcome>
     }
 
     @Override
-    public void compileResultImplementation() {
-        getVisitorResultCollector().setResult(evaluationOutcomes);
+    Collection<EvaluationOutcome> getResultImplementation() {
+        return evaluationOutcomes;
     }
 
     private static Optional<MesosResource> consume(

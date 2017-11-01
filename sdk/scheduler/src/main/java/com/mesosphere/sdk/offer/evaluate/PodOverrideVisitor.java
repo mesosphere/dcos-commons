@@ -10,21 +10,19 @@ import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
  * The PodOverrideVisitor traverses a {@link PodSpec} and replaces task definitions with the override definition
  * specified in the state store.
  */
-public class PodOverrideVisitor implements SpecVisitor<VisitorResultCollector.Empty> {
+public class PodOverrideVisitor extends SpecVisitor<EvaluationOutcome> {
     private final Collection<GoalStateOverride> goalStateOverrides;
-    private final VisitorResultCollector<VisitorResultCollector.Empty> collector;
-    private final SpecVisitor delegate;
 
     public PodOverrideVisitor(Collection<GoalStateOverride> goalStateOverrides, SpecVisitor delegate) {
+        super(delegate);
         this.goalStateOverrides = goalStateOverrides;
-        this.collector = createVisitorResultCollector();
-        this.delegate = delegate;
     }
 
     @Override
@@ -63,15 +61,7 @@ public class PodOverrideVisitor implements SpecVisitor<VisitorResultCollector.Em
     }
 
     @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.ofNullable(delegate);
-    }
-
-    @Override
-    public void compileResultImplementation() { }
-
-    @Override
-    public VisitorResultCollector<VisitorResultCollector.Empty> getVisitorResultCollector() {
-        return collector;
+    public Collection<EvaluationOutcome> getResultImplementation() {
+        return Collections.emptyList();
     }
 }

@@ -17,28 +17,15 @@ import java.util.Optional;
  * each type of spec. SpecVisitors are designed to have delegates, and so various actions can be chained together and
  * cumulatively executed by virtue of one SpecVisitor passing on a modified version of the spec it is visiting to its
  * delegate. For this reason, the visit methods are supplied with default implementations that handle this logic, and
- * the actual visit implementation is specified in a template method.
+ * the actual visit implementation is specified in a template method. Delegates must have the same type as their
+ * delegator, since they combine the results into a single collection.
  * @param <T> The type of the result of the spec traversal
  */
 public abstract class SpecVisitor<T> {
-    private final SpecVisitor delegate;
-    private final VisitorResultCollector<T> collector;
+    private final SpecVisitor<T> delegate;
 
-    public SpecVisitor(SpecVisitor delegate) {
+    public SpecVisitor(SpecVisitor<T> delegate) {
         this.delegate = delegate;
-        collector = new VisitorResultCollector<T>() {
-            private T result;
-
-            @Override
-            public void setResult(T result) {
-                this.result = result;
-            }
-
-            @Override
-            public T getResult() {
-                return result;
-            }
-        };
     }
 
     public PodInstanceRequirement visit(PodInstanceRequirement podInstanceRequirement) throws SpecVisitorException {
@@ -210,24 +197,21 @@ public abstract class SpecVisitor<T> {
         return portSpec;
     }
 
-    Optional<SpecVisitor> getDelegate() {
+    Optional<SpecVisitor<T>> getDelegate() {
         return Optional.ofNullable(delegate);
     }
 
-    public void compileResult() {
-        compileResultImplementation();
+    public Collection<T> getResult() {
+        Collection<T> result = getResultImplementation();
 
-        Optional<SpecVisitor> delegate = getDelegate();
-        if (delegate.isPresent()) {
-            delegate.get().compileResult();
+        if (getDelegate().isPresent()) {
+            result.addAll(getDelegate().get().getResult());
         }
+
+        return result;
     }
 
-    abstract void compileResultImplementation();
-
-    VisitorResultCollector<T> getVisitorResultCollector() {
-        return collector;
-    }
+    abstract Collection<T> getResultImplementation();
 
     ResourceSpec withResource(ResourceSpec resourceSpec, Protos.Resource.Builder resource) {
         return new ResourceSpec() {

@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.MesosResourcePool;
-import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -18,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
+
 /**
  * The ExistingPodVisitor traverses a {@link PodSpec} along with information about the existing tasks launched for that
  * pod, whether running or failed, and matches existing resource ids for tasks that are being launched and prepares
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
  * visitor pass should be run before any that consume resources based on a PodSpec or that construct Protos based on a
  * PodSpec.
  */
-public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
+public class ExistingPodVisitor extends SpecVisitor<EvaluationOutcome> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private Protos.ExecutorInfo executorInfo;
@@ -41,7 +43,7 @@ public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
     private final Map<String, Protos.TaskInfo> taskInfos;
     private final Map<String, TaskPortLookup> portsByTask;
     private final ReservationCreator reservationCreator;
-    private final List<OfferRecommendation> unreserves;
+    private final List<EvaluationOutcome> outcomes;
 
     private PodInstanceRequirement podInstanceRequirement;
     private Protos.TaskInfo.Builder activeTask;
@@ -58,7 +60,7 @@ public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
         this.taskInfos = taskInfos.stream().collect(Collectors.toMap(t -> t.getName(), Function.identity()));
         this.portsByTask = taskInfos.stream().collect(Collectors.toMap(t -> t.getName(), t -> new TaskPortLookup(t)));
         this.reservationCreator = reservationCreator;
-        this.unreserves = new ArrayList<>();
+        this.outcomes = new ArrayList<>();
     }
 
     private static Protos.ExecutorInfo getExecutorInfo(Collection<Protos.TaskInfo> taskInfos, PodSpec podSpec) {
@@ -93,7 +95,11 @@ public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
         for (Protos.Resource resource : executorInfo.getResourcesList()) {
             LOGGER.info("Unreserving orphaned executor resource: {}", resource);
             mesosResourcePool.free(new MesosResource(resource));
-            unreserves.add(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource));
+            outcomes.add(pass(
+                    this,
+                    Arrays.asList(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource)),
+                    "Unreserved resource {}",
+                    resource).build());
         }
 
         return podSpec;
@@ -116,7 +122,11 @@ public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
             for (Protos.Resource resource : activeTask.getResourcesList()) {
                 LOGGER.info("Unreserving orphaned task resource: {}", resource);
                 mesosResourcePool.free(new MesosResource(resource));
-                unreserves.add(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource));
+                outcomes.add(pass(
+                        this,
+                        Arrays.asList(new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource)),
+                        "Unreserved resource {}",
+                        resource).build());
             }
         }
         setActiveExecutor(executorInfo);
@@ -451,8 +461,8 @@ public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
     }
 
     @Override
-    public void compileResultImplementation() {
-        getVisitorResultCollector().setResult(unreserves);
+    Collection<EvaluationOutcome> getResultImplementation() {
+        return outcomes;
     }
 
     private void setActiveTask(Protos.TaskInfo task) {

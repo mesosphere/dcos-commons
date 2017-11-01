@@ -58,7 +58,23 @@ public class OfferEvaluationComponentFactory {
         return reservationCreator;
     }
 
-    public SpecVisitor<VisitorResultCollector.Empty> getExecutorVisitor(SpecVisitor delegate) {
+    public SpecVisitor<EvaluationOutcome> getEvaluationVisitor(
+            MesosResourcePool mesosResourcePool,
+            Collection<Protos.TaskInfo> podTasks,
+            Collection<Protos.TaskInfo> runningPodTasks,
+            Collection<Protos.TaskInfo> allTasks) {
+        SpecVisitor<EvaluationOutcome> launchOperationVisitor =
+                getLaunchOperationVisitor(mesosResourcePool, podTasks, allTasks, !runningPodTasks.isEmpty(), null);
+        SpecVisitor<EvaluationOutcome> offerConsumptionVisitor =
+                getOfferConsumptionVisitor(mesosResourcePool, runningPodTasks, launchOperationVisitor);
+        SpecVisitor<EvaluationOutcome> existingPodVisitor =
+                getExistingPodVisitor(mesosResourcePool, podTasks, offerConsumptionVisitor);
+        SpecVisitor<EvaluationOutcome> executorVisitor = getExecutorVisitor(existingPodVisitor);
+
+        return executorVisitor;
+    }
+
+    public SpecVisitor<EvaluationOutcome> getExecutorVisitor(SpecVisitor delegate) {
         if (capabilities.supportsDefaultExecutor()) {
             return new DefaultExecutorVisitor(delegate);
         }
@@ -66,17 +82,17 @@ public class OfferEvaluationComponentFactory {
         return new NullVisitor(delegate);
     }
 
-    public ExistingPodVisitor getExistingPodVisitor(
+    public SpecVisitor<EvaluationOutcome> getExistingPodVisitor(
             MesosResourcePool mesosResourcePool, Collection<Protos.TaskInfo> taskInfos, SpecVisitor delegate) {
         return new ExistingPodVisitor(mesosResourcePool, taskInfos, getReservationCreator(), delegate);
     }
 
-    public OfferConsumptionVisitor getOfferConsumptionVisitor(
+    public SpecVisitor<EvaluationOutcome> getOfferConsumptionVisitor(
             MesosResourcePool mesosResourcePool, Collection<Protos.TaskInfo> runningTasks, SpecVisitor delegate) {
         return new OfferConsumptionVisitor(mesosResourcePool, getReservationCreator(), runningTasks, delegate);
     }
 
-    public SpecVisitor<List<EvaluationOutcome>> getLaunchOperationVisitor(
+    public SpecVisitor<EvaluationOutcome> getLaunchOperationVisitor(
             MesosResourcePool mesosResourcePool,
             Collection<Protos.TaskInfo> podTasks,
             Collection<Protos.TaskInfo> allTasks,
