@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.offer.evaluate.placement;
+package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
@@ -12,11 +12,6 @@ import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.offer.ValueUtils;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.mesosphere.sdk.offer.evaluate.ReservationCreator;
-import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
-import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
-import com.mesosphere.sdk.offer.evaluate.VisitorResultCollector;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
@@ -77,7 +72,6 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
 
     @Override
     public PodInstanceRequirement visitImplementation(PodInstanceRequirement podInstanceRequirement) {
-        LOGGER.info("Visiting PodInstanceRequirement {}", podInstanceRequirement.getName());
         this.podInstanceRequirement = podInstanceRequirement;
         Optional<Protos.ExecutorID> existingExecutorId = runningTasks.stream()
                 .map(t -> t.getExecutor().getExecutorId())
@@ -96,13 +90,11 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
 
     @Override
     public PodSpec visitImplementation(PodSpec podSpec) {
-        LOGGER.info("Visiting PodSpec {}-0", podSpec.getType());
         return podSpec;
     }
 
     @Override
     public TaskSpec visitImplementation(TaskSpec taskSpec) {
-        LOGGER.info("Visiting TaskSpec {}", taskSpec.getName());
         boolean resourceSetVisited = visitedResourceSets.containsKey(taskSpec.getResourceSet().getId());
 
         shouldConsumeResources = !(resourceSetVisited ||
@@ -129,7 +121,6 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
 
     @Override
     public ResourceSpec visitImplementation(ResourceSpec resourceSpec) {
-        LOGGER.info("Visiting ResourceSpec {}", resourceSpec.getName());
         if (!shouldConsumeResources && currentResourceSet != null) {
             // We've already consumed the resources from the resource set that this resource belongs to, so don't
             // attempt to consume again.
@@ -257,8 +248,6 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
 
     @Override
     public VolumeSpec visitImplementation(VolumeSpec volumeSpec) {
-        LOGGER.info("Visiting VolumeSpec {}", volumeSpec.getContainerPath());
-
         if (!shouldConsumeResources && currentResourceSet != null) {
             // We've already consumed the resources from the resource set that this resource belongs to, so don't
             // attempt to consume again.
@@ -318,7 +307,6 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
 
     @Override
     public PortSpec visitImplementation(PortSpec portSpec) {
-        LOGGER.info("Visiting PortSpec {}", portSpec.getPortName());
         Long assignedPort = portSpec.getPort();
         if (assignedPort == 0) {
             assignedPort = mesosResourcePool.getUnassignedPort(podInstanceRequirement.getPodInstance().getPod());
@@ -356,7 +344,6 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
 
     @Override
     public NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
-        LOGGER.info("Visiting NamedVIPSpec {}", namedVIPSpec.getPortName());
         PortSpec visitedPortSpec = visitImplementation((PortSpec) namedVIPSpec);
 
         return new NamedVIPSpec(

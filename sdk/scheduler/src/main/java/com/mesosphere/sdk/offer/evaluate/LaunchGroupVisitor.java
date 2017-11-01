@@ -114,7 +114,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public PodInstanceRequirement visitImplementation(PodInstanceRequirement podInstanceRequirement) {
-        LOGGER.info("Visiting PodInstanceRequirement {}", podInstanceRequirement.getName());
         this.podInstanceRequirement = podInstanceRequirement;
 
         return podInstanceRequirement;
@@ -122,7 +121,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public PodSpec visitImplementation(PodSpec podSpec) throws SpecVisitorException {
-        LOGGER.info("Visiting PodSpec {}", podSpec.getType());
         launchGroupTasks = podSpec.getTasks().stream().collect(
                 Collectors.toMap(
                         t -> t.getName(),
@@ -140,8 +138,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public TaskSpec visitImplementation(TaskSpec taskSpec) throws InvalidRequirementException {
-        LOGGER.info("Visiting TaskSpec {}", taskSpec.getName());
-
         setActiveTask(taskSpec.getName());
         Protos.TaskInfo.Builder taskBuilder = getActiveTask();
         taskBuilder
@@ -234,7 +230,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public ResourceSpec visitImplementation(ResourceSpec resourceSpec) {
-        LOGGER.info("Visiting ResourceSpec {}", resourceSpec.getName());
         Protos.Resource.Builder resource = resourceSpec.getResource();
         addResource(resource);
 
@@ -243,9 +238,7 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public VolumeSpec visitImplementation(VolumeSpec volumeSpec) {
-        LOGGER.info("Visiting VolumeSpec {}", volumeSpec.getContainerPath());
         if (!isTaskActive()) {
-            LOGGER.info("Adding {} to tasks...", volumeSpec.getContainerPath());
             Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();
             Protos.Volume.Source.SandboxPath.Builder sandboxPathBuilder = Protos.Volume.Source.SandboxPath.newBuilder();
 
@@ -268,8 +261,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public PortSpec visitImplementation(PortSpec portSpec) {
-        LOGGER.info("Visiting PortSpec {}", portSpec.getResource());
-
         Protos.TaskInfo.Builder taskBuilder = getActiveTask();
         if (!taskBuilder.hasDiscovery()) {
             // Initialize with defaults:
@@ -330,7 +321,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
 
     @Override
     public NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
-        LOGGER.info("Visiting NamedVIPSpec {}", namedVIPSpec.getPortName());
         visitImplementation((PortSpec) namedVIPSpec);
 
         Protos.TaskInfo.Builder taskBuilder = getActiveTask();
@@ -649,7 +639,6 @@ public class LaunchGroupVisitor implements SpecVisitor<List<EvaluationOutcome>> 
     }
 
     private void addResource(Protos.Resource.Builder resource) {
-        LOGGER.info("MRB: adding resource {}", resource);
         if (isTaskActive()) {
             getActiveTask().addResources(resource);
         } else {

@@ -78,14 +78,12 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
 
     @Override
     public PodInstanceRequirement visitImplementation(PodInstanceRequirement podInstanceRequirement) {
-        LOGGER.info("Visiting PodInstanceRequirement {}", podInstanceRequirement.getName());
         this.podInstanceRequirement = podInstanceRequirement;
         return podInstanceRequirement;
     }
 
     @Override
     public PodSpec visitImplementation(PodSpec podSpec) {
-        LOGGER.info("Visiting PodSpec {}", podSpec.getType());
         executorInfo = getExecutorInfo(taskInfos.values(), podSpec);
         setActiveExecutor(executorInfo);
 
@@ -105,14 +103,11 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
 
     @Override
     public TaskSpec visitImplementation(TaskSpec taskSpec) {
-        LOGGER.info("Visiting TaskSpec {}", taskSpec.getName());
         Protos.TaskInfo taskInfo = taskInfos.get(
                 TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec));
         if (taskInfo != null) {
             setActiveTask(taskInfo);
         }
-
-        LOGGER.info("WTF: resources are {}", taskSpec.getResourceSet().getResources());
 
         return taskSpec;
     }
@@ -133,7 +128,6 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
 
     @Override
     public ResourceSpec visitImplementation(ResourceSpec resourceSpec) {
-        LOGGER.info("Visiting ResourceSpec {}", resourceSpec.getName());
         Optional<Protos.Resource> matchingResource = getMatchingResource(resourceSpec);
         Optional<String> resourceId = matchingResource.isPresent() ?
                 ResourceUtils.getResourceId(matchingResource.get()) : Optional.empty();
@@ -185,7 +179,6 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
 
     @Override
     public VolumeSpec visitImplementation(VolumeSpec volumeSpec) {
-        LOGGER.info("Visiting VolumeSpec {}", volumeSpec.getContainerPath());
         Optional<Protos.Resource> matchingResource = getMatchingResource(volumeSpec);
         VolumeSpec matchedVolumeSpec;
 
@@ -283,7 +276,6 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
 
     @Override
     public PortSpec visitImplementation(PortSpec portSpec) {
-        LOGGER.info("Visiting PortSpec {}", portSpec.getPortName());
         PortSpec matchedPortSpec;
 
         TaskPortLookup portFinder = activeTask != null ? portsByTask.get(activeTask.getName()) : null;
@@ -428,7 +420,6 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
 
     @Override
     public NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
-        LOGGER.info("Visiting NamedVIPSpec {}", namedVIPSpec.getPortName());
         PortSpec visitedPortSpec = visitImplementation((PortSpec) namedVIPSpec);
 
         return new NamedVIPSpec(

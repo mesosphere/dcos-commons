@@ -37,11 +37,11 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         targetConfig = UUID.randomUUID();
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, true, Capabilities.getInstance());
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, Capabilities.getInstance());
     }
 
     protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, false, Capabilities.getInstance());
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, Capabilities.getInstance());
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {
@@ -50,7 +50,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException, IOException {
+            throws SpecVisitorException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)),
                 podInstanceRequirement,
@@ -59,7 +59,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected List<Resource> recordLaunchWithOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException, IOException {
+            throws SpecVisitorException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getOffer(Arrays.asList(offeredResources)),
                 podInstanceRequirement,
@@ -68,7 +68,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     private List<Resource> recordLaunchWithOfferedResources(
             Protos.Offer offer, PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException, IOException {
+            throws SpecVisitorException, IOException {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement, Arrays.asList(offer));
 

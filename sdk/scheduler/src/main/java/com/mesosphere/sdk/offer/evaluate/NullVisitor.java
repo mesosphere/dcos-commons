@@ -1,8 +1,5 @@
-package com.mesosphere.sdk.offer.evaluate.placement;
+package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
-import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
-import com.mesosphere.sdk.offer.evaluate.VisitorResultCollector;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodSpec;

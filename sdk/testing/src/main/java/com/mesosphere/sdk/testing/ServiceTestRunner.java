@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.StringJoiner;
 
+import com.mesosphere.sdk.offer.evaluate.LaunchGroupVisitor;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.specification.PortSpec;
 import org.mockito.Mockito;
@@ -16,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -301,7 +301,7 @@ public class ServiceTestRunner {
 
     private static Map<String, String> getTaskEnv(ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec) {
         Map<String, String> taskEnv = new HashMap<>();
-        taskEnv.putAll(PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec));
+        taskEnv.putAll(LaunchGroupVisitor.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec));
         taskEnv.putAll(DCOS_TASK_ENVVARS);
         // Inject envvars for any ports with envvar advertisement configured:
         for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {

@@ -96,11 +96,11 @@ public class DefaultPlanSchedulerTest {
     public void testEvaluateNoRecommendations() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate2(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
+        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.recommendations.isEmpty());
-        verify(mockOfferEvaluator).evaluate2(podInstanceRequirement, OFFERS);
+        verify(mockOfferEvaluator).evaluate(podInstanceRequirement, OFFERS);
         assertTrue(step.isPrepared());
     }
 
@@ -108,7 +108,7 @@ public class DefaultPlanSchedulerTest {
     public void testEvaluateNoAcceptedOffers() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate2(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
+        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
         when(mockOfferAccepter.accept(mockSchedulerDriver, mockRecommendations)).thenReturn(new ArrayList<>());
 
         assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
@@ -121,7 +121,7 @@ public class DefaultPlanSchedulerTest {
     public void testEvaluateAcceptedOffers() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
-        when(mockOfferEvaluator.evaluate2(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
+        when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
         when(mockOfferAccepter.accept(mockSchedulerDriver, mockRecommendations)).thenReturn(ACCEPTED_IDS);
 
         assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)));

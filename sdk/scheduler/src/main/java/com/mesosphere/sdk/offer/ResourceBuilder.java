@@ -28,7 +28,6 @@ public class ResourceBuilder {
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
     private Optional<DiskInfo.Source> diskMountInfo;
-    private MesosResource mesosResource;
 
     public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
         return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
@@ -181,11 +180,6 @@ public class ResourceBuilder {
         return this;
     }
 
-    public ResourceBuilder setMesosResource(MesosResource mesosResource) {
-        this.mesosResource = mesosResource;
-        return this;
-    }
-
     public Resource build() {
         // Note:
         // In the pre-resource-refinment world (< 1.9), Mesos will expect
@@ -193,8 +187,7 @@ public class ResourceBuilder {
         //
         // In the post-resource-refinement world (1.10+), Mesos will expect
         // reserved Resources to have reservations (and ONLY reservations) set.
-        Resource.Builder builder =
-                mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
+        Resource.Builder builder = Resource.newBuilder();
         builder.setName(resourceName)
                 .setRole(Constants.ANY_ROLE)
                 .setType(value.getType());
@@ -210,7 +203,7 @@ public class ResourceBuilder {
             Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
 
             if (preReservedSupported) {
-                if (!preReservedRole.equals(Constants.ANY_ROLE) && mesosResource == null) {
+                if (!preReservedRole.equals(Constants.ANY_ROLE)) {
                     builder.addReservations(
                             Resource.ReservationInfo.newBuilder()
                             .setRole(preReservedRole)

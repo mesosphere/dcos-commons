@@ -74,7 +74,6 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
     private List<EvaluationOutcome> outcomes;
     private boolean isTaskActive;
 
-    // TODO(mrb): tasks to launch, transients, etc
     public LaunchVisitor(
             Collection<Protos.TaskInfo> podTasks,
             Collection<Protos.TaskInfo> allTasks,
@@ -111,8 +110,6 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
     public PodSpec visitImplementation(PodSpec podSpec) {
         executorInfo = getExecutorInfo(podSpec);
 
-        LOGGER.info("MRB all tasks are {}", allTasks);
-        LOGGER.info("offer is {}", offer);
         if (podSpec.getPlacementRule().isPresent()) {
             outcomes.add(
                     podSpec.getPlacementRule().get().filter(offer, podInstanceRequirement.getPodInstance(), allTasks));
@@ -136,13 +133,20 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
         // create default labels:
-        taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
+        TaskLabelWriter writer = new TaskLabelWriter(taskBuilder);
+        writer.setOfferAttributes(offer)
                 .setTargetConfiguration(targetConfigurationId)
                 .setGoalState(taskSpec.getGoal())
                 .setType(podInstanceRequirement.getPodInstance().getPod().getType())
                 .setIndex(podInstanceRequirement.getPodInstance().getIndex())
-                .setHostname(offer)
-                .toProto());
+                .setHostname(offer);
+
+        if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {
+            writer.setRegion(offer.getDomain().getFaultDomain().getRegion());
+            writer.setZone(offer.getDomain().getFaultDomain().getZone());
+        }
+
+        taskBuilder.setLabels(writer.toProto());
 
         if (taskSpec.getCommand().isPresent()) {
             taskBuilder.getCommandBuilder()

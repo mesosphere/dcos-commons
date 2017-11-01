@@ -99,7 +99,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         // requirement and accept them, if any are found:
         List<OfferRecommendation> recommendations = null;
         try {
-            recommendations = offerEvaluator.evaluate2(podInstanceRequirement, offers);
+            recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
         } catch (SpecVisitorException e) {
             logger.error("Failed generate OfferRecommendations.", e);
             return Collections.emptyList();

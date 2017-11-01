@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.specification.DefaultPortSpec;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.time.Duration;
@@ -49,7 +48,7 @@ public class Constants {
      * default.
      *
      * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
-     * {@link DefaultPortSpec}.
+     * {@link com.mesosphere.sdk.specification.PortSpec}.
      *
      * As of this writing, this setting is only used by {@link com.mesosphere.sdk.api.EndpointsResource} for determining
      * what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't advertise.
