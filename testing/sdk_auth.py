@@ -145,6 +145,8 @@ def _copy_file_to_localhost(self):
         raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
 
 
+
+
 class KerberosEnvironment:
     def __init__(self):
         """
@@ -315,4 +317,3 @@ class KerberosEnvironment:
         #TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
         sdk_security.delete_secret(self.keytab_secret_path)
-
