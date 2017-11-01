@@ -69,7 +69,10 @@ pods:
                           -v /var/run/docker.sock:/var/run/docker.sock   \
                           -v /var/cores:/var/cores                       \
                           -v /lib/modules:/lib/modules                   \
-                          $USR_SRC_MOUNT                                \
+                          $USR_SRC_MOUNT                                 \
+                          {{#NODE_CONTAINER_PARAMETERS}}
+                          {{NODE_CONTAINER_PARAMETERS}}                  \
+                          {{/NODE_CONTAINER_PARAMETERS}}
                           {{#LIGHTHOUSE_ENABLED}}
                           -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
                           {{/LIGHTHOUSE_ENABLED}}

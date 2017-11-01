@@ -45,7 +45,7 @@
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default":"portworx/px-enterprise:1.2.10"
+            "default":"portworx/px-enterprise:1.2.11"
           },
           "portworx_options": {
             "title": "Portworx Options",
@@ -57,6 +57,12 @@
             "description": "Comma seperated IP:PORT entries for the key value database (etcd or consul). If the etcd server is started using the pacakge this will be ignored",
             "type": "string",
             "default": ""
+          },
+          "container_parameters": {
+              "title": "Container parameters",
+              "type": "string",
+              "description": "Any additional paramters to pass in to the Portworx container. For example environment variables can be passed in using \"-e\"",
+              "default":""
           },
           "count": {
             "title": "Node count",
@@ -79,14 +85,14 @@
         ]
       },
       "etcd": {
-        "description": "Start a 3 node etcd cluster. Required for Portworx if you don't have either etcd or consul already running",
+        "description": "Start a 3 node etcd cluster. Required for Portworx if you don't have either etcd or consul already running. For Production it is recommended to run an etcd cluster outside your DC/OS cluster.",
         "type": "object",
         "properties": {
           "enabled": {
             "title": "Start etcd",
             "description": "If disabled, please enter the external etcd server IP on the service tab.",
             "type": "boolean",
-            "default":true
+            "default":false
           },
           "placement_constraint": {
             "title": "Placement constraint",
@@ -214,7 +220,7 @@
             "title": "Start Lighthouse",
             "description": "Start the Lighthouse service. If this is disabled the influxdb service will also be disabled.",
             "type": "boolean",
-            "default":true
+            "default":false
           },
           "placement_constraint": {
             "title": "Placement constraint",
