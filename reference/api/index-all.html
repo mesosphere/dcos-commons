@@ -1413,6 +1413,8 @@
 <dd>
 <div class="block">TLD for navstar-based DNS.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#DOMAIN_INFO">DOMAIN_INFO</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html#DRIVER_EXITED">DRIVER_EXITED</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#DuplicateKeyConstraintViolation-java.lang.String-">DuplicateKeyConstraintViolation(String)</a></span> - Constructor for class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
@@ -3060,6 +3062,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html#getRecoveryType--">getRecoveryType()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryStep</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getRegion--">getRegion()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelReader</a></dt>
+<dd>
+<div class="block">Returns the Region in which the Task was launched.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.html#getRegistry--">getRegistry()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ConfigFileSpec.html#getRelativePath--">getRelativePath()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a></dt>
@@ -3668,6 +3674,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#getZkHost-com.mesosphere.sdk.specification.yaml.RawServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">getZkHost(RawServiceSpec, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
 <dd>
 <div class="block">Returns the configured <code>hostname:port</code> to use for state storage at the scheduler.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getZone--">getZone()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelReader</a></dt>
+<dd>
+<div class="block">Returns the Zone in which the Task was launched.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html#getZookeeper--">getZookeeper()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml">RawScheduler</a></dt>
 <dd>&nbsp;</dd>
@@ -4698,6 +4708,14 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#OFFER_ID">OFFER_ID</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_REGION_LABEL">OFFER_REGION_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
+<dd>
+<div class="block">Storage of the original Offer's region, for use in placement constraints.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_ZONE_LABEL">OFFER_ZONE_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
+<dd>
+<div class="block">Storage of the original Offer's zone, for use in placement constraints.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/offer/OfferAccepter.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferAccepter</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
 <div class="block">The OfferAccepter extracts the Mesos Operations encapsulated by the OfferRecommendation and accepts Offers with those
@@ -5438,6 +5456,8 @@
 <dd>
 <div class="block">Implements fuzzy regular expression support for string comparisons.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#REGION">REGION</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#register--">register()</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#registerDefaultModules-ObjectMapper-">registerDefaultModules(ObjectMapper)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
@@ -6161,6 +6181,10 @@
 <dd>
 <div class="block">Assigns a <a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryPlanOverriderFactory</code></a> to be used for generating the recovery plan manager.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setRegion-Protos.DomainInfo.FaultDomain.RegionInfo-">setRegion(Protos.DomainInfo.FaultDomain.RegionInfo)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
+<dd>
+<div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.RegionInfo</code>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#setResourceId-java.util.Optional-">setResourceId(Optional&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>
 <div class="block">Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
@@ -6249,6 +6273,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setVIPLabels-Protos.Port.Builder-com.mesosphere.sdk.specification.NamedVIPSpec-">setVIPLabels(Protos.Port.Builder, NamedVIPSpec)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
 <dd>
 <div class="block">Updates the provided <code>Protos.Port</code> to contain the provided VIP information.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setZone-Protos.DomainInfo.FaultDomain.ZoneInfo-">setZone(Protos.DomainInfo.FaultDomain.ZoneInfo)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
+<dd>
+<div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.ZoneInfo</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#sharePidNamespace-java.lang.Boolean-">sharePidNamespace(Boolean)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
@@ -7652,6 +7680,8 @@ the order they are declared.</div>
 </a>
 <h2 class="title">Z</h2>
 <dl>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#ZONE">ZONE</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#zookeeperConnection-java.lang.String-">zookeeperConnection(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>zookeeperConnection</code> and returns a reference to this Builder so that the methods can be

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -167,37 +167,49 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getRegion--">getRegion</a></span>()</code>
+<div class="block">Returns the Region in which the Task was launched.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getTargetConfiguration--">getTargetConfiguration</a></span>()</code>
 <div class="block">Returns the ID referencing a configuration in a <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> associated with the
  task.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getType--">getType</a></span>()</code>
 <div class="block">Returns the task type string, which was embedded in the task.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getZone--">getZone</a></span>()</code>
+<div class="block">Returns the Zone in which the Task was launched.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#hasReadinessCheckLabel--">hasReadinessCheckLabel</a></span>()</code>
 <div class="block">Returns whether the task has a readiness check label.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#isPermanentlyFailed--">isPermanentlyFailed</a></span>()</code>
 <div class="block">Returns whether the task is marked as permanently failed.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#isReadinessCheckSucceeded-TaskStatus-">isReadinessCheckSucceeded</a></span>(TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Returns whether or not a readiness check succeeded.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#isTransient--">isTransient</a></span>()</code>
 <div class="block">Returns whether the task is marked as transient.</div>
@@ -234,7 +246,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;TaskLabelReader(TaskInfo&nbsp;taskInfo)</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>LabelReader#LabelReader(TaskInfo)</code></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html#LabelReader-java.lang.String-Labels-"><code>LabelReader.LabelReader(String, Labels)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -247,7 +259,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;TaskLabelReader(TaskInfo.Builder&nbsp;taskInfoBuilder)</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>LabelReader#LabelReader(org.apache.mesos.Protos.TaskInfo.Builder)</code></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/offer/taskdata/LabelReader.html#LabelReader-java.lang.String-Labels-"><code>LabelReader.LabelReader(String, Labels)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -299,6 +311,26 @@ extends java.lang.Object</pre>
 <h4>getOfferAttributeStrings</h4>
 <pre>public&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getOfferAttributeStrings()</pre>
 <div class="block">Returns the string representations of any <code>Offer</code> <code>Attribute</code>s which were embedded in the task.</div>
+</li>
+</ul>
+<a name="getZone--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getZone</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getZone()</pre>
+<div class="block">Returns the Zone in which the Task was launched.</div>
+</li>
+</ul>
+<a name="getRegion--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getRegion</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getRegion()</pre>
+<div class="block">Returns the Region in which the Task was launched.</div>
 </li>
 </ul>
 <a name="getHostname--">
