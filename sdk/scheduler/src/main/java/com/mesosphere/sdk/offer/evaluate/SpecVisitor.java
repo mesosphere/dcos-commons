@@ -20,9 +20,28 @@ import java.util.Optional;
  * the actual visit implementation is specified in a template method.
  * @param <T> The type of the result of the spec traversal
  */
-public interface SpecVisitor<T> {
+public abstract class SpecVisitor<T> {
+    private final SpecVisitor delegate;
+    private final VisitorResultCollector<T> collector;
 
-    default PodInstanceRequirement visit(PodInstanceRequirement podInstanceRequirement) throws SpecVisitorException {
+    public SpecVisitor(SpecVisitor delegate) {
+        this.delegate = delegate;
+        collector = new VisitorResultCollector<T>() {
+            private T result;
+
+            @Override
+            public void setResult(T result) {
+                this.result = result;
+            }
+
+            @Override
+            public T getResult() {
+                return result;
+            }
+        };
+    }
+
+    public PodInstanceRequirement visit(PodInstanceRequirement podInstanceRequirement) throws SpecVisitorException {
         PodInstanceRequirement visited = visitImplementation(podInstanceRequirement);
 
         if (getDelegate().isPresent()) {
@@ -32,10 +51,10 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    PodInstanceRequirement visitImplementation(
+    abstract PodInstanceRequirement visitImplementation(
             PodInstanceRequirement podInstanceRequirement) throws SpecVisitorException;
 
-    default PodSpec visit(PodSpec podSpec) throws SpecVisitorException {
+    public PodSpec visit(PodSpec podSpec) throws SpecVisitorException {
         PodSpec visited = visitImplementation(podSpec);
 
         if (getDelegate().isPresent()) {
@@ -45,9 +64,9 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    PodSpec visitImplementation(PodSpec podSpec) throws SpecVisitorException;
+    abstract PodSpec visitImplementation(PodSpec podSpec) throws SpecVisitorException;
 
-    default TaskSpec visit(TaskSpec taskSpec) throws SpecVisitorException {
+    public TaskSpec visit(TaskSpec taskSpec) throws SpecVisitorException {
         TaskSpec visited = visitImplementation(taskSpec);
 
         if (getDelegate().isPresent()) {
@@ -57,9 +76,9 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    TaskSpec visitImplementation(TaskSpec taskSpec) throws SpecVisitorException;
+    abstract TaskSpec visitImplementation(TaskSpec taskSpec) throws SpecVisitorException;
 
-    default ResourceSpec visit(ResourceSpec resourceSpec) throws SpecVisitorException {
+    public ResourceSpec visit(ResourceSpec resourceSpec) throws SpecVisitorException {
         ResourceSpec visited = visitImplementation(resourceSpec);
 
         if (getDelegate().isPresent()) {
@@ -69,9 +88,9 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    ResourceSpec visitImplementation(ResourceSpec resourceSpec) throws SpecVisitorException;
+    abstract ResourceSpec visitImplementation(ResourceSpec resourceSpec) throws SpecVisitorException;
 
-    default VolumeSpec visit(VolumeSpec volumeSpec) throws SpecVisitorException {
+    public VolumeSpec visit(VolumeSpec volumeSpec) throws SpecVisitorException {
         VolumeSpec visited = visitImplementation(volumeSpec);
 
         if (getDelegate().isPresent()) {
@@ -81,9 +100,9 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    VolumeSpec visitImplementation(VolumeSpec volumeSpec) throws SpecVisitorException;
+    abstract VolumeSpec visitImplementation(VolumeSpec volumeSpec) throws SpecVisitorException;
 
-    default PortSpec visit(PortSpec portSpec) throws SpecVisitorException {
+    public PortSpec visit(PortSpec portSpec) throws SpecVisitorException {
         PortSpec visited = visitImplementation(portSpec);
 
         if (getDelegate().isPresent()) {
@@ -93,9 +112,9 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    PortSpec visitImplementation(PortSpec portSpec) throws SpecVisitorException;
+    abstract PortSpec visitImplementation(PortSpec portSpec) throws SpecVisitorException;
 
-    default PodSpec finalizeVisit(PodSpec podSpec) throws SpecVisitorException {
+    public PodSpec finalizeVisit(PodSpec podSpec) throws SpecVisitorException {
         PodSpec finalized = finalizeImplementation(podSpec);
 
         if (getDelegate().isPresent()) {
@@ -105,9 +124,9 @@ public interface SpecVisitor<T> {
         return finalized;
     }
 
-    NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException;
+    abstract NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException;
 
-    default NamedVIPSpec visit(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
+    public NamedVIPSpec visit(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
         NamedVIPSpec visited = visitImplementation(namedVIPSpec);
 
         if (getDelegate().isPresent()) {
@@ -117,11 +136,11 @@ public interface SpecVisitor<T> {
         return visited;
     }
 
-    default NamedVIPSpec finalizeImplementation(NamedVIPSpec namedVIPSpec) {
+    NamedVIPSpec finalizeImplementation(NamedVIPSpec namedVIPSpec) {
         return namedVIPSpec;
     }
 
-    default NamedVIPSpec finalizeVisit(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
+    public NamedVIPSpec finalizeVisit(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
         NamedVIPSpec finalized = finalizeImplementation(namedVIPSpec);
 
         if (getDelegate().isPresent()) {
@@ -131,11 +150,11 @@ public interface SpecVisitor<T> {
         return finalized;
     }
 
-    default PodSpec finalizeImplementation(PodSpec podSpec) throws SpecVisitorException {
+    PodSpec finalizeImplementation(PodSpec podSpec) throws SpecVisitorException {
         return podSpec;
     }
 
-    default TaskSpec finalizeVisit(TaskSpec taskSpec) throws SpecVisitorException {
+    public TaskSpec finalizeVisit(TaskSpec taskSpec) throws SpecVisitorException {
         TaskSpec finalized = finalizeImplementation(taskSpec);
 
         if (getDelegate().isPresent()) {
@@ -145,11 +164,11 @@ public interface SpecVisitor<T> {
         return finalized;
     }
 
-    default TaskSpec finalizeImplementation(TaskSpec taskSpec) throws SpecVisitorException {
+    TaskSpec finalizeImplementation(TaskSpec taskSpec) throws SpecVisitorException {
         return taskSpec;
     }
 
-    default ResourceSpec finalizeVisit(ResourceSpec resourceSpec) throws SpecVisitorException {
+    public ResourceSpec finalizeVisit(ResourceSpec resourceSpec) throws SpecVisitorException {
         ResourceSpec finalized = finalizeImplementation(resourceSpec);
 
         if (getDelegate().isPresent()) {
@@ -159,11 +178,11 @@ public interface SpecVisitor<T> {
         return finalized;
     }
 
-    default ResourceSpec finalizeImplementation(ResourceSpec resourceSpec) throws SpecVisitorException {
+    ResourceSpec finalizeImplementation(ResourceSpec resourceSpec) throws SpecVisitorException {
         return resourceSpec;
     }
 
-    default VolumeSpec finalizeVisit(VolumeSpec volumeSpec) throws SpecVisitorException {
+    public VolumeSpec finalizeVisit(VolumeSpec volumeSpec) throws SpecVisitorException {
         VolumeSpec finalized = finalizeImplementation(volumeSpec);
 
         if (getDelegate().isPresent()) {
@@ -173,11 +192,11 @@ public interface SpecVisitor<T> {
         return finalized;
     }
 
-    default VolumeSpec finalizeImplementation(VolumeSpec volumeSpec) throws SpecVisitorException {
+    VolumeSpec finalizeImplementation(VolumeSpec volumeSpec) throws SpecVisitorException {
         return volumeSpec;
     }
 
-    default PortSpec finalizeVisit(PortSpec portSpec) throws SpecVisitorException {
+    public PortSpec finalizeVisit(PortSpec portSpec) throws SpecVisitorException {
         PortSpec finalized = finalizeImplementation(portSpec);
 
         if (getDelegate().isPresent()) {
@@ -187,13 +206,15 @@ public interface SpecVisitor<T> {
         return finalized;
     }
 
-    default PortSpec finalizeImplementation(PortSpec portSpec) throws SpecVisitorException {
+    PortSpec finalizeImplementation(PortSpec portSpec) throws SpecVisitorException {
         return portSpec;
     }
 
-    Optional<SpecVisitor> getDelegate();
+    Optional<SpecVisitor> getDelegate() {
+        return Optional.ofNullable(delegate);
+    }
 
-    default void compileResult() {
+    public void compileResult() {
         compileResultImplementation();
 
         Optional<SpecVisitor> delegate = getDelegate();
@@ -202,9 +223,13 @@ public interface SpecVisitor<T> {
         }
     }
 
-    void compileResultImplementation();
+    abstract void compileResultImplementation();
 
-    default ResourceSpec withResource(ResourceSpec resourceSpec, Protos.Resource.Builder resource) {
+    VisitorResultCollector<T> getVisitorResultCollector() {
+        return collector;
+    }
+
+    ResourceSpec withResource(ResourceSpec resourceSpec, Protos.Resource.Builder resource) {
         return new ResourceSpec() {
             @Override
             public Protos.Value getValue() {
@@ -248,7 +273,7 @@ public interface SpecVisitor<T> {
         };
     }
 
-    default VolumeSpec withResource(VolumeSpec volumeSpec, Protos.Resource.Builder resource) {
+    VolumeSpec withResource(VolumeSpec volumeSpec, Protos.Resource.Builder resource) {
         return new VolumeSpec() {
             @Override
             public Type getType() {
@@ -307,7 +332,7 @@ public interface SpecVisitor<T> {
         };
     }
 
-    default PortSpec withResource(PortSpec portSpec, Protos.Resource.Builder resource) {
+    PortSpec withResource(PortSpec portSpec, Protos.Resource.Builder resource) {
         return new PortSpec() {
             @Override
             public String getPortName() {
@@ -370,22 +395,4 @@ public interface SpecVisitor<T> {
             }
         };
     }
-
-    default VisitorResultCollector<T> createVisitorResultCollector() {
-        return new VisitorResultCollector<T>() {
-            private T result;
-
-            @Override
-            public void setResult(T result) {
-                this.result = result;
-            }
-
-            @Override
-            public T getResult() {
-                return result;
-            }
-        };
-    }
-
-    VisitorResultCollector<T> getVisitorResultCollector();
 }

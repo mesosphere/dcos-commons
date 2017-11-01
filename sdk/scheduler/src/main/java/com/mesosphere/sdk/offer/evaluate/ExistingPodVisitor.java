@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * visitor pass should be run before any that consume resources based on a PodSpec or that construct Protos based on a
  * PodSpec.
  */
-public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>> {
+public class ExistingPodVisitor extends SpecVisitor<List<OfferRecommendation>> {
     private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private Protos.ExecutorInfo executorInfo;
@@ -42,25 +42,23 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
     private final Map<String, TaskPortLookup> portsByTask;
     private final ReservationCreator reservationCreator;
     private final List<OfferRecommendation> unreserves;
-    private final SpecVisitor delegate;
 
     private PodInstanceRequirement podInstanceRequirement;
     private Protos.TaskInfo.Builder activeTask;
     private Protos.ExecutorInfo.Builder activeExecutor;
-    private VisitorResultCollector<List<OfferRecommendation>> collector;
 
     public ExistingPodVisitor(
             MesosResourcePool mesosResourcePool,
             Collection<Protos.TaskInfo> taskInfos,
             ReservationCreator reservationCreator,
             SpecVisitor delegate) {
+        super(delegate);
+
         this.mesosResourcePool = mesosResourcePool;
         this.taskInfos = taskInfos.stream().collect(Collectors.toMap(t -> t.getName(), Function.identity()));
         this.portsByTask = taskInfos.stream().collect(Collectors.toMap(t -> t.getName(), t -> new TaskPortLookup(t)));
         this.reservationCreator = reservationCreator;
         this.unreserves = new ArrayList<>();
-        this.delegate = delegate;
-        this.collector = createVisitorResultCollector();
     }
 
     private static Protos.ExecutorInfo getExecutorInfo(Collection<Protos.TaskInfo> taskInfos, PodSpec podSpec) {
@@ -453,18 +451,8 @@ public class ExistingPodVisitor implements SpecVisitor<List<OfferRecommendation>
     }
 
     @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.of(delegate);
-    }
-
-    @Override
     public void compileResultImplementation() {
         getVisitorResultCollector().setResult(unreserves);
-    }
-
-    @Override
-    public VisitorResultCollector<List<OfferRecommendation>> getVisitorResultCollector() {
-        return collector;
     }
 
     private void setActiveTask(Protos.TaskInfo task) {

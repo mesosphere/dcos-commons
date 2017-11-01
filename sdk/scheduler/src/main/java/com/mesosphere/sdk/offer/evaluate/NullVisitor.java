@@ -8,21 +8,15 @@ import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 
-import java.util.Optional;
-
 /**
  * The NullVisitor passes on each spec it visits to its delegate {@link SpecVisitor} and does not return a result. It is
  * useful for cases where a certain visitor type is only relevant to a certain type of configuration, such as with the
  * default executor, where custom-executor-based environments do not need to do a separate pass to account for resources
  * consumed by the executor.
  */
-public class NullVisitor implements SpecVisitor<VisitorResultCollector.Empty> {
-    private final SpecVisitor delegate;
-
-    private VisitorResultCollector<VisitorResultCollector.Empty> collector;
-
+public class NullVisitor extends SpecVisitor<VisitorResultCollector.Empty> {
     public NullVisitor(SpecVisitor delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     @Override
@@ -61,19 +55,20 @@ public class NullVisitor implements SpecVisitor<VisitorResultCollector.Empty> {
     }
 
     @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.ofNullable(delegate);
-    }
-
-    @Override
     public void compileResultImplementation() { }
 
     @Override
     public VisitorResultCollector<VisitorResultCollector.Empty> getVisitorResultCollector() {
-        if (collector == null) {
-            collector = createVisitorResultCollector();
-        }
+        return new VisitorResultCollector<VisitorResultCollector.Empty>() {
+            @Override
+            public void setResult(Empty result) {
+                throw new IllegalAccessError("The Empty result collector may not be set");
+            }
 
-        return collector;
+            @Override
+            public Empty getResult() {
+                throw new IllegalAccessError("The Empty result collector may not be retrieved from");
+            }
+        };
     }
 }

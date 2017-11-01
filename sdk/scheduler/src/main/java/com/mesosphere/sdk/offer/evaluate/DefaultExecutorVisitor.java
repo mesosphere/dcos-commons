@@ -12,19 +12,15 @@ import org.apache.mesos.Protos;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The DefaultExecutorVisitor traverses a {@link PodSpec} and initiates visits to the implicit resources required for
  * the default executor.
  */
-public class DefaultExecutorVisitor implements SpecVisitor<VisitorResultCollector.Empty> {
-    private final SpecVisitor delegate;
-
-    private VisitorResultCollector<VisitorResultCollector.Empty> collector;
+public class DefaultExecutorVisitor extends NullVisitor {
 
     public DefaultExecutorVisitor(SpecVisitor delegate) {
-        this.delegate = delegate;
+        super(delegate);
     }
 
     @Override
@@ -35,7 +31,7 @@ public class DefaultExecutorVisitor implements SpecVisitor<VisitorResultCollecto
 
     @Override
     public PodSpec visit(PodSpec podSpec) throws SpecVisitorException {
-        PodSpec visited = SpecVisitor.super.visit(podSpec);
+        PodSpec visited = super.visit(podSpec);
 
         List<ResourceSpec> executorResources = getExecutorResources(
                 visited.getPreReservedRole(), getPodRole(visited), getPodPrincipal(visited));
@@ -78,21 +74,7 @@ public class DefaultExecutorVisitor implements SpecVisitor<VisitorResultCollecto
     }
 
     @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.ofNullable(delegate);
-    }
-
-    @Override
     public void compileResultImplementation() { }
-
-    @Override
-    public VisitorResultCollector<VisitorResultCollector.Empty> getVisitorResultCollector() {
-        if (collector == null) {
-            collector = createVisitorResultCollector();
-        }
-
-        return collector;
-    }
 
     private static List<ResourceSpec> getExecutorResources(String preReservedRole, String role, String principal) {
         List<ResourceSpec> resources = new ArrayList<>();

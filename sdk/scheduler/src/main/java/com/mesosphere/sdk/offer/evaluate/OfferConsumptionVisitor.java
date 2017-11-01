@@ -40,16 +40,14 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * The OfferConsumptionVisitor traverses a {@link PodSpec} along with a {@link MesosResourcePool} and consumes resources
  * from that pool based on the requirements of that pod.
  */
-public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutcome>> {
+public class OfferConsumptionVisitor extends SpecVisitor<List<EvaluationOutcome>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferConsumptionVisitor.class);
 
     private final MesosResourcePool mesosResourcePool;
     private final ReservationCreator reservationCreator;
-    private final SpecVisitor delegate;
     private final List<EvaluationOutcome> evaluationOutcomes;
     private final Collection<Protos.TaskInfo> runningTasks;
 
-    private VisitorResultCollector<List<EvaluationOutcome>> collector;
     private PodInstanceRequirement podInstanceRequirement;
     private Map<String, Map<String, String>> visitedResourceSets;
     private String currentResourceSet;
@@ -60,10 +58,10 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
             ReservationCreator reservationCreator,
             Collection<Protos.TaskInfo> runningTasks,
             SpecVisitor delegate) {
+        super(delegate);
+
         this.mesosResourcePool = mesosResourcePool;
-        this.delegate = delegate;
         this.evaluationOutcomes = new ArrayList<>();
-        this.collector = createVisitorResultCollector();
         this.reservationCreator = reservationCreator;
         this.visitedResourceSets = new HashMap<>();
         this.shouldConsumeResources = runningTasks.isEmpty();
@@ -367,18 +365,8 @@ public class OfferConsumptionVisitor implements SpecVisitor<List<EvaluationOutco
     }
 
     @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.ofNullable(delegate);
-    }
-
-    @Override
     public void compileResultImplementation() {
         getVisitorResultCollector().setResult(evaluationOutcomes);
-    }
-
-    @Override
-    public VisitorResultCollector<List<EvaluationOutcome>> getVisitorResultCollector() {
-        return collector;
     }
 
     private static Optional<MesosResource> consume(

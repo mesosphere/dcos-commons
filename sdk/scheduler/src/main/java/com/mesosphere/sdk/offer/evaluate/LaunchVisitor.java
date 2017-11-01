@@ -61,14 +61,12 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * collection of {@link org.apache.mesos.Protos.Offer.Operation}s for task launch. Concrete implementations build
  * protos according to the requirements of the execution environment.
  */
-public abstract class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
+public abstract class LaunchVisitor extends SpecVisitor<List<EvaluationOutcome>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LaunchGroupVisitor.class);
 
     static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
 
-    private final SpecVisitor delegate;
-    private final VisitorResultCollector<List<EvaluationOutcome>> collector;
     private final Protos.Offer offer;
     private final String serviceName;
     private final UUID targetConfigurationId;
@@ -83,12 +81,12 @@ public abstract class LaunchVisitor implements SpecVisitor<List<EvaluationOutcom
             UUID targetConfigurationId,
             SchedulerConfig schedulerConfig,
             SpecVisitor delegate) {
+        super(delegate);
+
         this.offer = offer;
         this.serviceName = serviceName;
         this.targetConfigurationId = targetConfigurationId;
         this.schedulerConfig = schedulerConfig;
-        this.delegate = delegate;
-        this.collector = createVisitorResultCollector();
 
         this.outcomes = new ArrayList<>();
     }
@@ -126,18 +124,8 @@ public abstract class LaunchVisitor implements SpecVisitor<List<EvaluationOutcom
     }
 
     @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.ofNullable(delegate);
-    }
-
-    @Override
     public void compileResultImplementation() {
         getVisitorResultCollector().setResult(outcomes);
-    }
-
-    @Override
-    public VisitorResultCollector getVisitorResultCollector() {
-        return collector;
     }
 
     Protos.Offer getOffer() {
