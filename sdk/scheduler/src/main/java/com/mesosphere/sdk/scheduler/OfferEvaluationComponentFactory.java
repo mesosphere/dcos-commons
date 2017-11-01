@@ -7,7 +7,7 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.ExistingPodVisitor;
 import com.mesosphere.sdk.offer.evaluate.HierarchicalReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.LaunchGroupVisitor;
-import com.mesosphere.sdk.offer.evaluate.LaunchVisitor;
+import com.mesosphere.sdk.offer.evaluate.LegacyLaunchVisitor;
 import com.mesosphere.sdk.offer.evaluate.LegacyReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.ReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
@@ -95,7 +95,7 @@ public class OfferEvaluationComponentFactory {
                     delegate);
         }
 
-        return new LaunchVisitor(
+        return new LegacyLaunchVisitor(
                 podTasks,
                 allTasks,
                 mesosResourcePool.getOffer(),

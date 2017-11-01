@@ -1,16 +1,21 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.api.EndpointUtils;
+import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
+import com.mesosphere.sdk.dcos.DcosHttpExecutor;
+import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.LegacyLaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.evaluate.security.*;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -27,15 +32,19 @@ import com.mesosphere.sdk.specification.ReadinessCheckSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.SecretSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.VolumeSpec;
+import com.mesosphere.sdk.specification.TransportEncryptionSpec;
 import com.mesosphere.sdk.specification.RLimitSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.URI;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -44,60 +53,70 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
 import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * The LaunchVisitor, along with an {@link org.apache.mesos.Protos.Offer}, visits all of the specs contained within
- * in a PodSpec and constructs a set of {@link LegacyLaunchOfferRecommendation}s for a custom-executor-based execution
- * environment.
+ * The LaunchVisitor is responsible for traversing a {@link com.mesosphere.sdk.specification.PodSpec} and creating a
+ * collection of {@link org.apache.mesos.Protos.Offer.Operation}s for task launch. Concrete implementations build
+ * protos according to the requirements of the execution environment.
  */
-public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
+public abstract class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LaunchGroupVisitor.class);
 
-    private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
-    private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
+    static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
+    static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
 
     private final SpecVisitor delegate;
     private final VisitorResultCollector<List<EvaluationOutcome>> collector;
-    private final Collection<Protos.TaskInfo> podTasks;
-    private final Collection<Protos.TaskInfo> allTasks;
     private final Protos.Offer offer;
     private final String serviceName;
-    private final Protos.FrameworkID frameworkID;
     private final UUID targetConfigurationId;
     private final SchedulerConfig schedulerConfig;
-    private final boolean isRunning;
 
-    private Protos.ExecutorInfo executorInfo;
-    private Protos.Offer.Operation.Launch.Builder launch;
     private PodInstanceRequirement podInstanceRequirement;
     private List<EvaluationOutcome> outcomes;
-    private boolean isTaskActive;
 
     public LaunchVisitor(
-            Collection<Protos.TaskInfo> podTasks,
-            Collection<Protos.TaskInfo> allTasks,
             Protos.Offer offer,
             String serviceName,
-            Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
             SchedulerConfig schedulerConfig,
-            boolean isRunning,
             SpecVisitor delegate) {
-        this.podTasks = podTasks;
-        this.allTasks = allTasks;
         this.offer = offer;
         this.serviceName = serviceName;
-        this.frameworkID = frameworkID;
         this.targetConfigurationId = targetConfigurationId;
         this.schedulerConfig = schedulerConfig;
         this.delegate = delegate;
         this.collector = createVisitorResultCollector();
-        this.isRunning = isRunning;
 
         this.outcomes = new ArrayList<>();
-        this.isTaskActive = false;
     }
+
+    @Override
+    public abstract PodSpec visitImplementation(PodSpec podSpec) throws SpecVisitorException;
+
+    @Override
+    public abstract TaskSpec visitImplementation(TaskSpec taskSpec) throws SpecVisitorException;
+
+    @Override
+    public abstract TaskSpec finalizeImplementation(TaskSpec taskSpec) throws SpecVisitorException;
+
+    @Override
+    public abstract ResourceSpec visitImplementation(ResourceSpec resourceSpec) throws SpecVisitorException;
+
+    @Override
+    public abstract VolumeSpec visitImplementation(VolumeSpec volumeSpec) throws SpecVisitorException;
+
+    @Override
+    public abstract PortSpec visitImplementation(PortSpec portSpec) throws SpecVisitorException;
+
+    @Override
+    public abstract NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException;
+
+    abstract void buildContainerInfo(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec);
+
+    abstract void buildReadinessCheckInfo(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec);
 
     @Override
     public PodInstanceRequirement visitImplementation(PodInstanceRequirement podInstanceRequirement) {
@@ -107,29 +126,55 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
     }
 
     @Override
-    public PodSpec visitImplementation(PodSpec podSpec) {
-        executorInfo = getExecutorInfo(podSpec);
+    public Optional<SpecVisitor> getDelegate() {
+        return Optional.ofNullable(delegate);
+    }
 
+    @Override
+    public void compileResultImplementation() {
+        getVisitorResultCollector().setResult(outcomes);
+    }
+
+    @Override
+    public VisitorResultCollector getVisitorResultCollector() {
+        return collector;
+    }
+
+    Protos.Offer getOffer() {
+        return offer;
+    }
+
+    String getServiceName() {
+        return serviceName;
+    }
+
+    UUID getTargetConfigurationId() {
+        return targetConfigurationId;
+    }
+
+    SchedulerConfig getSchedulerConfig() {
+        return schedulerConfig;
+    }
+
+    PodInstanceRequirement getPodInstanceRequirement() {
+        return podInstanceRequirement;
+    }
+
+    List<EvaluationOutcome> getOutcomes() {
+        return outcomes;
+    }
+
+    void evaluatePlacementRule(PodSpec podSpec, Collection<Protos.TaskInfo> allTasks) {
         if (podSpec.getPlacementRule().isPresent()) {
             outcomes.add(
                     podSpec.getPlacementRule().get().filter(offer, podInstanceRequirement.getPodInstance(), allTasks));
         }
-
-        return podSpec;
     }
 
-    @Override
-    public TaskSpec visitImplementation(TaskSpec taskSpec) throws InvalidRequirementException {
-        if (!podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName())) {
-            return taskSpec;
-        }
-
-        launch = Protos.Offer.Operation.Launch.newBuilder();
-        isTaskActive = true;
-        String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
-        Protos.TaskInfo.Builder taskBuilder = launch.addTaskInfosBuilder()
-                .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName))
+    void buildTaskInfo(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec) throws InvalidRequirementException {
+        taskBuilder
+                .setName(TaskSpec.getInstanceName(getPodInstanceRequirement().getPodInstance(), taskSpec))
+                .setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()))
                 .setSlaveId(CommonIdUtils.emptyAgentId());
 
         // create default labels:
@@ -148,145 +193,95 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
 
         taskBuilder.setLabels(writer.toProto());
 
-        if (taskSpec.getCommand().isPresent()) {
-            taskBuilder.getCommandBuilder()
-                    .setValue(taskSpec.getCommand().get().getValue())
-                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(
-                            serviceName, podInstanceRequirement.getPodInstance(), taskSpec)));
-            setBootstrapConfigFileEnv(taskBuilder.getCommandBuilder(), taskSpec);
-            extendEnv(taskBuilder.getCommandBuilder(), podInstanceRequirement.getEnvironment());
-        }
-
-        if (taskSpec.getDiscovery().isPresent()) {
-            taskBuilder.setDiscovery(getDiscoveryInfo(
-                    taskSpec.getDiscovery().get(),
-                    podInstanceRequirement.getPodInstance().getIndex()));
-        }
-        taskBuilder.setContainer(getContainerInfo(podInstanceRequirement.getPodInstance().getPod(), true, true));
-        setHealthCheck(taskBuilder, serviceName, podInstanceRequirement.getPodInstance(), taskSpec);
-        setReadinessCheck(taskBuilder, serviceName, podInstanceRequirement.getPodInstance(), taskSpec);
-        taskBuilder.setExecutor(executorInfo);
-
+        buildCommandInfo(taskBuilder, taskSpec);
+        buildDiscoveryInfo(taskBuilder, taskSpec);
+        buildContainerInfo(taskBuilder, taskSpec);
+        buildHealthCheckInfo(taskBuilder, taskSpec);
+        buildReadinessCheckInfo(taskBuilder, taskSpec);
         setTaskKillGracePeriod(taskBuilder, taskSpec);
 
-        return taskSpec;
-    }
-
-    @Override
-    public TaskSpec finalizeImplementation(TaskSpec taskSpec) {
-        outcomes.add(
-                pass(
-                        this,
-                        Arrays.asList(new LegacyLaunchOfferRecommendation(
-                                offer,
-                                launch.getTaskInfos(0),
-                                podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))),
-                        "Added launch information to offer requirement").build());
-        isTaskActive = false;
-
-        return taskSpec;
-    }
-
-    @Override
-    public ResourceSpec visitImplementation(ResourceSpec resourceSpec) {
-        Protos.Resource.Builder resource = resourceSpec.getResource();
-        addResource(resource);
-
-        return resourceSpec;
-    }
-
-    @Override
-    public VolumeSpec visitImplementation(VolumeSpec volumeSpec) {
-        return (VolumeSpec) visitImplementation((ResourceSpec) volumeSpec);
-    }
-
-    @Override
-    public PortSpec visitImplementation(PortSpec portSpec) {
-        return (PortSpec) visitImplementation((ResourceSpec) portSpec);
-    }
-
-    @Override
-    public NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
-        visitImplementation((PortSpec) namedVIPSpec);
-
-        return namedVIPSpec;
-    }
-
-    @Override
-    public Optional<SpecVisitor> getDelegate() {
-        return Optional.ofNullable(delegate);
-    }
-
-    @Override
-    public void compileResultImplementation() {
-        getVisitorResultCollector().setResult(outcomes);
-    }
-
-    @Override
-    public VisitorResultCollector getVisitorResultCollector() {
-        return collector;
-    }
-
-    private Protos.ExecutorInfo getExecutorInfo(PodSpec podSpec) {
-        if (!isRunning || podTasks.isEmpty()) {
-            Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder()
-                    .setType(Protos.ExecutorInfo.Type.DEFAULT)
-                    .setName(podSpec.getType())
-                    .setFrameworkId(frameworkID)
-                    .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
-            AuxLabelAccess.setDcosSpace(executorBuilder, schedulerConfig.getDcosSpace());
-
-            // command and user:
-            Protos.CommandInfo.Builder executorCommandBuilder = executorBuilder.getCommandBuilder().setValue(
-                    "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
-                    "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
-                    "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
-                    // Remove Xms/Xmx if +UseCGroupMemoryLimitForHeap or equivalent detects cgroups memory limit
-                    "export JAVA_OPTS=\"-Xms128M -Xmx128M\" && " +
-                    "$MESOS_SANDBOX/executor/bin/executor");
-
-            if (podSpec.getUser().isPresent()) {
-                executorCommandBuilder.setUser(podSpec.getUser().get());
-            }
-
-            // Required URIs from the scheduler environment:
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getLibmesosURI());
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getJavaURI());
-
-            // Any URIs defined in PodSpec itself.
-            for (URI uri : podSpec.getUris()) {
-                executorCommandBuilder.addUrisBuilder().setValue(uri.toString());
-            }
-
-            // Secrets are constructed differently from other envvars where the proto is concerned:
-            for (SecretSpec secretSpec : podSpec.getSecrets()) {
-                if (secretSpec.getEnvKey().isPresent()) {
-                    executorCommandBuilder.getEnvironmentBuilder().addVariablesBuilder()
-                            .setName(secretSpec.getEnvKey().get())
-                            .setType(Protos.Environment.Variable.Type.SECRET)
-                            .setSecret(getReferenceSecret(secretSpec.getSecretPath()));
-                }
-            }
-
-            // Finally any URIs for config templates defined in TaskSpecs.
-            for (TaskSpec taskSpec : podSpec.getTasks()) {
-                for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                    executorCommandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
-                            .setOutputFile(getConfigTemplateDownloadPath(config))
-                            .setExtract(false);
-                }
-            }
-
-            return executorBuilder.build();
-        } else {
-            return podTasks.stream().findFirst().get().getExecutor();
+        if (!taskSpec.getTransportEncryption().isEmpty()) {
+            outcomes.add(new TLSEnabledTaskFactory(schedulerConfig).addTransportEncryption(taskBuilder, taskSpec));
         }
+    }
+
+    void buildCommandInfo(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec) {
+        if (!taskSpec.getCommand().isPresent()) {
+            return;
+        }
+
+        Protos.CommandInfo.Builder commandBuilder = taskBuilder.getCommandBuilder();
+
+        commandBuilder.setValue(taskSpec.getCommand().get().getValue())
+                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(
+                        serviceName, podInstanceRequirement.getPodInstance(), taskSpec)));
+        setBootstrapConfigFileEnv(commandBuilder, taskSpec);
+        extendEnv(commandBuilder, podInstanceRequirement.getEnvironment());
+    }
+
+    void buildHealthCheckInfo(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec) {
+        if (!taskSpec.getHealthCheck().isPresent()) {
+            LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
+            return;
+        }
+
+        HealthCheckSpec healthCheckSpec = taskSpec.getHealthCheck().get();
+        Protos.HealthCheck.Builder healthCheckBuilder = taskBuilder.getHealthCheckBuilder();
+
+        healthCheckBuilder
+                .setDelaySeconds(healthCheckSpec.getDelay())
+                .setIntervalSeconds(healthCheckSpec.getInterval())
+                .setTimeoutSeconds(healthCheckSpec.getTimeout())
+                .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
+                .setGracePeriodSeconds(healthCheckSpec.getGracePeriod());
+
+        healthCheckBuilder.setType(Protos.HealthCheck.Type.COMMAND);
+
+        healthCheckBuilder.getCommandBuilder()
+                .setValue(healthCheckSpec.getCommand())
+                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(
+                        serviceName, podInstanceRequirement.getPodInstance(), taskSpec)));
+    }
+
+    void buildDiscoveryInfo(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec) {
+        if (!taskSpec.getDiscovery().isPresent()) {
+            return;
+        }
+
+        Protos.DiscoveryInfo.Builder builder = taskBuilder.getDiscoveryBuilder();
+        DiscoverySpec discoverySpec = taskSpec.getDiscovery().get();
+        int index = podInstanceRequirement.getPodInstance().getIndex();
+
+        if (discoverySpec.getPrefix().isPresent()) {
+            builder.setName(String.format("%s-%d", discoverySpec.getPrefix().get(), index));
+        }
+        if (discoverySpec.getVisibility().isPresent()) {
+            builder.setVisibility(discoverySpec.getVisibility().get());
+        } else {
+            builder.setVisibility(Constants.DEFAULT_TASK_DISCOVERY_VISIBILITY);
+        }
+    }
+
+    static void setTaskKillGracePeriod(
+            Protos.TaskInfo.Builder taskInfoBuilder,
+            TaskSpec taskSpec) throws InvalidRequirementException {
+        Integer taskKillGracePeriodSeconds = taskSpec.getTaskKillGracePeriodSeconds();
+        if (taskKillGracePeriodSeconds == null) {
+            taskKillGracePeriodSeconds = 0;
+        } else if (taskKillGracePeriodSeconds < 0) {
+            throw new InvalidRequirementException(String.format(
+                    "kill-grace-period must be zero or a positive integer, received: %d",
+                    taskKillGracePeriodSeconds));
+        }
+        long taskKillGracePeriodNanoseconds = 1000000000L * taskKillGracePeriodSeconds;
+        Protos.DurationInfo taskKillGracePeriodDuration = Protos.DurationInfo.newBuilder()
+                .setNanoseconds(taskKillGracePeriodNanoseconds)
+                .build();
+
+        Protos.KillPolicy.Builder killPolicyBuilder = Protos.KillPolicy.newBuilder()
+                .setGracePeriod(taskKillGracePeriodDuration);
+
+        taskInfoBuilder.setKillPolicy(killPolicyBuilder.build());
     }
 
     /**
@@ -324,7 +319,7 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
         return environmentMap;
     }
 
-    private static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
+    static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
         if (taskSpec.getConfigFiles() == null) {
             return;
         }
@@ -339,164 +334,45 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
         }
     }
 
-    private static void extendEnv(Protos.CommandInfo.Builder builder, Map<String, String> environment) {
+    static void extendEnv(Protos.CommandInfo.Builder builder, Map<String, String> environment) {
         for (Map.Entry<String, String> entry : environment.entrySet()) {
             builder.getEnvironmentBuilder().addVariablesBuilder().setName(entry.getKey()).setValue(entry.getValue());
         }
     }
 
-    private static Protos.Secret getReferenceSecret(String secretPath) {
+    static Protos.Secret getReferenceSecret(String secretPath) {
         return Protos.Secret.newBuilder()
                 .setType(Protos.Secret.Type.REFERENCE)
                 .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
                 .build();
     }
 
-    private static String getConfigTemplateDownloadPath(ConfigFileSpec config) {
+    static String getConfigTemplateDownloadPath(ConfigFileSpec config) {
         // Name is unique.
         return String.format("%s%s", CONFIG_TEMPLATE_DOWNLOAD_PATH, config.getName());
     }
 
-    private void setHealthCheck(
-            Protos.TaskInfo.Builder taskInfo,
-            String serviceName,
-            PodInstance podInstance,
-            TaskSpec taskSpec) {
-        if (!taskSpec.getHealthCheck().isPresent()) {
-            LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
-            return;
-        }
-
-        HealthCheckSpec healthCheckSpec = taskSpec.getHealthCheck().get();
-        Protos.HealthCheck.Builder healthCheckBuilder = taskInfo.getHealthCheckBuilder();
-        healthCheckBuilder
-                .setDelaySeconds(healthCheckSpec.getDelay())
-                .setIntervalSeconds(healthCheckSpec.getInterval())
-                .setTimeoutSeconds(healthCheckSpec.getTimeout())
-                .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
-                .setGracePeriodSeconds(healthCheckSpec.getGracePeriod());
-
-        healthCheckBuilder.getCommandBuilder()
-                .setValue(healthCheckSpec.getCommand())
-                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
-    }
-
-    private void setReadinessCheck(
-            Protos.TaskInfo.Builder taskInfoBuilder,
-            String serviceName,
-            PodInstance podInstance,
-            TaskSpec taskSpec) {
+    Optional<Protos.CheckInfo.Builder> getReadinessCheckBuilder(TaskSpec taskSpec, PodInstance podInstance) {
         if (!taskSpec.getReadinessCheck().isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
-            return;
+            return Optional.empty();
         }
 
+        Protos.CheckInfo.Builder readinessCheckBuilder = Protos.CheckInfo.newBuilder();
         ReadinessCheckSpec readinessCheckSpec = taskSpec.getReadinessCheck().get();
 
-        Protos.HealthCheck.Builder builder = Protos.HealthCheck.newBuilder()
+        readinessCheckBuilder.setType(Protos.CheckInfo.Type.COMMAND)
                 .setDelaySeconds(readinessCheckSpec.getDelay())
                 .setIntervalSeconds(readinessCheckSpec.getInterval())
                 .setTimeoutSeconds(readinessCheckSpec.getTimeout());
-        builder.getCommandBuilder()
+        readinessCheckBuilder.getCommandBuilder().getCommandBuilder()
                 .setValue(readinessCheckSpec.getCommand())
                 .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
-                .setReadinessCheck(builder.build())
-                .toProto());
+
+        return Optional.of(readinessCheckBuilder);
     }
 
-    private static void setTaskKillGracePeriod(
-            Protos.TaskInfo.Builder taskInfoBuilder,
-            TaskSpec taskSpec) throws InvalidRequirementException {
-        Integer taskKillGracePeriodSeconds = taskSpec.getTaskKillGracePeriodSeconds();
-        if (taskKillGracePeriodSeconds == null) {
-            taskKillGracePeriodSeconds = 0;
-        } else if (taskKillGracePeriodSeconds < 0) {
-            throw new InvalidRequirementException(String.format(
-                    "kill-grace-period must be zero or a positive integer, received: %d",
-                    taskKillGracePeriodSeconds));
-        }
-        long taskKillGracePeriodNanoseconds = 1000000000L * taskKillGracePeriodSeconds;
-        Protos.DurationInfo taskKillGracePeriodDuration = Protos.DurationInfo.newBuilder()
-                .setNanoseconds(taskKillGracePeriodNanoseconds)
-                .build();
-
-        Protos.KillPolicy.Builder killPolicyBuilder = Protos.KillPolicy.newBuilder()
-                .setGracePeriod(taskKillGracePeriodDuration);
-
-        taskInfoBuilder.setKillPolicy(killPolicyBuilder.build());
-    }
-
-    private static Protos.DiscoveryInfo getDiscoveryInfo(DiscoverySpec discoverySpec, int index) {
-        Protos.DiscoveryInfo.Builder builder = Protos.DiscoveryInfo.newBuilder();
-        if (discoverySpec.getPrefix().isPresent()) {
-            builder.setName(String.format("%s-%d", discoverySpec.getPrefix().get(), index));
-        }
-        if (discoverySpec.getVisibility().isPresent()) {
-            builder.setVisibility(discoverySpec.getVisibility().get());
-        } else {
-            builder.setVisibility(Constants.DEFAULT_TASK_DISCOVERY_VISIBILITY);
-        }
-
-        return builder.build();
-    }
-
-    /**
-     * Get the ContainerInfo for either an Executor or a Task. Since we support both default and custom executors at
-     * the moment, there is some conditional logic in here -- with the default executor, things like rlimits and images
-     * must be specified at the task level only, while secrets volumes must be specified at the executor level.
-     *
-     * @param podSpec The Spec for the task or executor that this container is being attached to
-     * @param addExtraParameters Add rlimits and docker image (if task), or secrets volumes if executor
-     * @param isTaskContainer Whether this container is being attached to a TaskInfo rather than ExecutorInfo
-     * @return the ContainerInfo to be attached
-     */
-    private Protos.ContainerInfo getContainerInfo(
-            PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
-        Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
-        Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
-                .setType(Protos.ContainerInfo.Type.MESOS);
-
-        if (isTaskContainer) {
-            containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
-        }
-
-        if (!podSpec.getImage().isPresent()
-                && podSpec.getNetworks().isEmpty()
-                && podSpec.getRLimits().isEmpty()
-                && secretVolumes.isEmpty()) {
-            // Nothing left to do.
-            return containerInfo.build();
-        }
-
-        boolean shouldAddImage = podSpec.getImage().isPresent() && addExtraParameters && isTaskContainer;
-        if (shouldAddImage) {
-            containerInfo.getMesosBuilder().getImageBuilder()
-                    .setType(Protos.Image.Type.DOCKER)
-                    .getDockerBuilder().setName(podSpec.getImage().get());
-        }
-
-        if (!podSpec.getNetworks().isEmpty() && !isTaskContainer) {
-            containerInfo.addAllNetworkInfos(
-                    podSpec.getNetworks().stream()
-                            .map(LaunchVisitor::getNetworkInfo)
-                            .collect(Collectors.toList()));
-        }
-
-        if (!podSpec.getRLimits().isEmpty() && addExtraParameters) {
-            containerInfo.setRlimitInfo(getRLimitInfo(podSpec.getRLimits()));
-        }
-
-        if (addExtraParameters) {
-            for (Protos.Volume secretVolume : secretVolumes) {
-                containerInfo.addVolumes(secretVolume);
-            }
-        }
-
-        return containerInfo.build();
-    }
-
-    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimitSpec> rlimits) {
+    static Protos.RLimitInfo getRLimitInfo(Collection<RLimitSpec> rlimits) {
         Protos.RLimitInfo.Builder rLimitInfoBuilder = Protos.RLimitInfo.newBuilder();
 
         for (RLimitSpec rLimit : rlimits) {
@@ -515,7 +391,7 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
         return rLimitInfoBuilder.build();
     }
 
-    private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
+    static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
         Collection<Protos.Volume> volumes = new ArrayList<>();
 
         for (SecretSpec secretSpec: secretSpecs) {
@@ -533,7 +409,7 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
         return volumes;
     }
 
-    private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
+    static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
         LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
@@ -553,11 +429,163 @@ public class LaunchVisitor implements SpecVisitor<List<EvaluationOutcome>> {
 
         return netInfoBuilder.build();
     }
-    private void addResource(Protos.Resource.Builder resource) {
-        if (isTaskActive) {
-            launch.getTaskInfosBuilder(0).addResources(resource);
-        } else {
-            launch.getTaskInfosBuilder(0).getExecutorBuilder().addResources(resource);
+
+    void buildPortResource(Protos.TaskInfo.Builder taskBuilder, PortSpec portSpec) {
+        if (!taskBuilder.hasDiscovery()) {
+            // Initialize with defaults:
+            taskBuilder.getDiscoveryBuilder()
+                    .setVisibility(Constants.DEFAULT_TASK_DISCOVERY_VISIBILITY)
+                    .setName(taskBuilder.getName());
+        }
+
+        taskBuilder.getDiscoveryBuilder().getPortsBuilder().addPortsBuilder()
+                .setNumber((int) portSpec.getPort())
+                .setVisibility(portSpec.getVisibility())
+                .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                .setName(portSpec.getPortName());
+
+        if (portSpec.getEnvKey().isPresent()) {
+            String portEnvKey = portSpec.getEnvKey().get();
+            String portEnvVal = Long.toString(portSpec.getPort());
+            // Add port to the main task environment:
+            taskBuilder.getCommandBuilder().setEnvironment(
+                    EnvUtils.withEnvVar(taskBuilder.getCommandBuilder().getEnvironment(), portEnvKey, portEnvVal));
+
+            // Add port to the health check environment (if defined):
+            if (taskBuilder.hasHealthCheck()) {
+                Protos.CommandInfo.Builder healthCheckCmdBuilder =
+                        taskBuilder.getHealthCheckBuilder().getCommandBuilder();
+                healthCheckCmdBuilder.setEnvironment(
+                        EnvUtils.withEnvVar(healthCheckCmdBuilder.getEnvironment(), portEnvKey, portEnvVal));
+            } else {
+                LOGGER.info("Health check is not defined for task: {}", taskBuilder.getName());
+            }
+
+            // Add port to the readiness check environment (if a readiness check is defined):
+            if (taskBuilder.hasCheck()) {
+                // Readiness check version used with default executor
+                Protos.CommandInfo.Builder checkCmdBuilder =
+                        taskBuilder.getCheckBuilder().getCommandBuilder().getCommandBuilder();
+                checkCmdBuilder.setEnvironment(
+                        EnvUtils.withEnvVar(checkCmdBuilder.getEnvironment(), portEnvKey, portEnvVal));
+            }
+            if (new TaskLabelReader(taskBuilder).hasReadinessCheckLabel()) {
+                // Readiness check version used with custom executor
+                try {
+                    taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
+                            .setReadinessCheckEnvvar(portEnvKey, portEnvVal)
+                            .toProto());
+                } catch (TaskException e) {
+                    LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
+                }
+            }
+        }
+
+        if (portSpec.requiresHostPorts()) { // we only use the resource if we're using the host ports
+            taskBuilder.addResources(portSpec.getResource());
+        }
+    }
+
+    void buildNamedVIPResource(
+            Protos.TaskInfo.Builder taskBuilder, NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
+        buildPortResource(taskBuilder, namedVIPSpec);
+
+        List<Protos.Port.Builder> portBuilders =
+                taskBuilder.getDiscoveryBuilder().getPortsBuilder().getPortsBuilderList().stream()
+                        .filter(port -> port.getName().equals(namedVIPSpec.getPortName()))
+                        .collect(Collectors.toList());
+        if (portBuilders.size() != 1) {
+            throw new IllegalStateException(String.format(
+                    "Expected one port entry with name %s: %s", namedVIPSpec.getPortName(), portBuilders.toString()));
+        }
+
+        // Update port entry with VIP metadata.
+        Protos.Port.Builder portBuilder = portBuilders.get(0);
+        portBuilder.setProtocol(namedVIPSpec.getProtocol());
+        AuxLabelAccess.setVIPLabels(portBuilder, namedVIPSpec);
+    }
+
+    class TLSEnabledTaskFactory {
+        private final SchedulerConfig schedulerConfig;
+
+        private TLSArtifactsUpdater tlsArtifactsUpdater;
+        private boolean initialized;
+
+        public TLSEnabledTaskFactory(SchedulerConfig schedulerConfig) {
+            this.schedulerConfig = schedulerConfig;
+            initialized = false;
+        }
+
+        public EvaluationOutcome addTransportEncryption(Protos.TaskInfo.Builder taskBuilder, TaskSpec taskSpec) {
+            String taskName = taskBuilder.getName();
+            CertificateNamesGenerator certificateNamesGenerator = new CertificateNamesGenerator(
+                    serviceName,
+                    taskSpec,
+                    podInstanceRequirement.getPodInstance());
+            TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
+                    schedulerConfig.getSecretsNamespace(serviceName),
+                    TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskName),
+                    certificateNamesGenerator.getSANsHash());
+
+            for (TransportEncryptionSpec transportEncryptionSpec : taskSpec.getTransportEncryption()) {
+                try {
+                    init();
+                    tlsArtifactsUpdater.update(
+                            tlsArtifactPaths, certificateNamesGenerator, transportEncryptionSpec.getName());
+                } catch (Exception e) {
+                    LOGGER.error("Failed to get certificate ", taskName, e);
+                    return fail(
+                            this,
+                            "Failed to store TLS artifacts for task %s because of exception: %s", taskName, e)
+                            .build();
+                }
+
+                Collection<Protos.Volume> volumes = getExecutorInfoSecretVolumes(
+                        transportEncryptionSpec, tlsArtifactPaths);
+
+                // Share keys to the task container
+                taskBuilder.getContainerBuilder().addAllVolumes(volumes);
+            }
+
+            return pass(this, "TLS certificate created and added to the task").build();
+        }
+
+        private Collection<Protos.Volume> getExecutorInfoSecretVolumes(
+                TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths) {
+            Collection<Protos.Volume> volumes = new ArrayList<>();
+            for (TLSArtifactPaths.Entry entry : tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName())) {
+                volumes.add(getSecretVolume(entry));
+            }
+            return volumes;
+        }
+
+        private Protos.Volume getSecretVolume(TLSArtifactPaths.Entry entry) {
+            Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder()
+                    .setContainerPath(entry.mountPath)
+                    .setMode(Protos.Volume.Mode.RO);
+            Protos.Volume.Source.Builder sourceBuilder = volumeBuilder.getSourceBuilder()
+                    .setType(Protos.Volume.Source.Type.SECRET);
+            sourceBuilder.getSecretBuilder()
+                    .setType(Protos.Secret.Type.REFERENCE)
+                    .getReferenceBuilder().setName(entry.secretStorePath);
+            return volumeBuilder.build();
+        }
+
+        private void init() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+            if (initialized) {
+                return;
+            }
+
+            DcosHttpExecutor executor = new DcosHttpExecutor(new DcosHttpClientBuilder()
+                    .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
+                    .setRedirectStrategy(new LaxRedirectStrategy() {
+                        protected boolean isRedirectable(String method) {
+                            // Also treat PUT calls as redirectable
+                            return method.equalsIgnoreCase(HttpPut.METHOD_NAME) || super.isRedirectable(method);
+                        }
+                    }));
+            this.tlsArtifactsUpdater = new TLSArtifactsUpdater(
+                    serviceName, new SecretsClient(executor), new CertificateAuthorityClient(executor));
         }
     }
 }
