@@ -11,7 +11,6 @@ import com.mesosphere.sdk.state.GoalStateOverride;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * The PodOverrideVisitor traverses a {@link PodSpec} and replaces task definitions with the override definition

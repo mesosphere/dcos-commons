@@ -11,13 +11,11 @@ import com.mesosphere.sdk.offer.evaluate.LegacyLaunchVisitor;
 import com.mesosphere.sdk.offer.evaluate.LegacyReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.ReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
-import com.mesosphere.sdk.offer.evaluate.VisitorResultCollector;
 import com.mesosphere.sdk.offer.evaluate.NullVisitor;
 import com.mesosphere.sdk.offer.evaluate.OfferConsumptionVisitor;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 /**

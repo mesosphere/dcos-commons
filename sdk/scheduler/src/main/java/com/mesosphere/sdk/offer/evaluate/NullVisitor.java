@@ -16,6 +16,7 @@ import java.util.Collection;
  * useful for cases where a certain visitor type is only relevant to a certain type of configuration, such as with the
  * default executor, where custom-executor-based environments do not need to do a separate pass to account for resources
  * consumed by the executor.
+ * @param <T> the type of the result
  */
 public class NullVisitor<T> extends SpecVisitor<T> {
     public NullVisitor(SpecVisitor delegate) {
