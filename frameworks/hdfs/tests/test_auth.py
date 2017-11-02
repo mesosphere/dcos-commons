@@ -1,4 +1,5 @@
 import logging
+import os
 import pytest
 import time
 
@@ -11,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_universe):
     try:
         primaries = ["hdfs", "HTTP"]
         fqdn = "{service_name}.{host_suffix}".format(
@@ -71,6 +72,7 @@ def configure_package(configure_security):
         kerberos.cleanup()
 
 
+@pytest.mark.skipif(os.environ.get("SECURITY") == "strict", reason="auth tests currently broken in strict")
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_write():
