@@ -93,6 +93,15 @@ pods:
                 systemctl enable portworx && 
                 systemctl start portworx
 
+      restart:
+        goal: FINISHED
+        resource-set: px-resources
+        cmd: >
+             systemctl daemon-reload && systemctl restart portworx
+
+             while ! /opt/pwx/bin/pxctl status ; do sleep 5 ;  done
+
+
   etcd-cluster:
     user: {{SERVICE_USER}}
     count: 3
@@ -225,3 +234,11 @@ plans:
         pod: portworx
         steps:
           - default : [[install]]
+  restart-portworx:
+    strategy: serial
+    phases:
+      portworx-restart:
+        strategy: serial
+        pod: portworx
+        steps:
+          - default : [[restart]]
