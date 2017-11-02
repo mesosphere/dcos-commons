@@ -59,6 +59,11 @@ pods:
                     USR_SRC_MOUNT="-v /usr/src:/usr/src"
                 fi
 
+                docker run --entrypoint /runc-entry-point.sh \
+                   --rm -i --privileged=true \
+                   -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
+                   {{{PORTWORX_IMAGE_NAME}}}
+
                 echo "[Unit]
                     Description=Portworx Container
                     Wants=docker.service
@@ -71,9 +76,8 @@ pods:
                     TimeoutStartSec=0
                     Restart=always
                     ExecStartPre=`which ping` -c 1 master.mesos
-                    ExecStartPre=-/usr/bin/docker stop %n
-                    ExecStartPre=-/usr/bin/docker rm -f %n
-                    ExecStart=/usr/bin/docker run --net=host --privileged=true \
+                    ExecStartPre=-/opt/pwx/bin/runc delete %n
+                    ExecStart=/opt/pwx/bin/px-runc run \
                           -v /run/docker/plugins:/run/docker/plugins     \
                           -v /var/lib/osd:/var/lib/osd:shared            \
                           -v /dev:/dev                                   \
@@ -89,8 +93,8 @@ pods:
                           {{#LIGHTHOUSE_ENABLED}}
                           -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
                           {{/LIGHTHOUSE_ENABLED}}
-                          --name=%n \
-                          {{{PORTWORX_IMAGE_NAME}}} -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
+                          -name=%n \
+                          -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
                           {{#LIGHTHOUSE_ENABLED}}
                           -t $PWX_TOKEN
                           {{/LIGHTHOUSE_ENABLED}}
@@ -98,7 +102,7 @@ pods:
                           -k {{PORTWORX_KVDB}}
                           {{/LIGHTHOUSE_ENABLED}}
                     KillMode=control-group
-                    ExecStop=/usr/bin/docker stop -t 10 %n
+                    ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
                     WantedBy=multi-user.target" > /etc/systemd/system/portworx.service &&
                 ln -sf /etc/systemd/system/portworx.service /etc/systemd/system/dcos.target.wants/portworx.service &&
