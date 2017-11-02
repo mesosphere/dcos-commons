@@ -79,6 +79,13 @@ public interface Element {
     }
 
     /**
+     * Indicates whether the Element is starting.
+     */
+    default boolean isStarted() {
+        return getStatus().equals(Status.STARTED);
+    }
+
+    /**
      * Indicates whether this Element is complete.
      */
     default boolean isComplete() {

@@ -77,7 +77,8 @@ public class ReviveManager {
                         "Reviving offers with candidates, old: {}, current: {}, new:{}",
                         this.candidates,
                         currCandidates,
-                        newCandidates); driver.reviveOffers();
+                        newCandidates);
+                driver.reviveOffers();
                 Metrics.incrementRevives();
             } else {
                 logger.warn("Revive attempt has been throttled.");

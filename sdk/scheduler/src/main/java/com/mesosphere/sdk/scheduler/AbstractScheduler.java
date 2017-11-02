@@ -409,6 +409,11 @@ public abstract class AbstractScheduler {
             // Revive previously suspended offers, if necessary
             Collection<Step> activeWorkSet = new HashSet<>(steps);
             Collection<Step> inProgressSteps = getInProgressSteps(planCoordinator);
+            LOGGER.info(
+                    "InProgress Steps: {}",
+                    inProgressSteps.stream()
+                            .map(step -> step.getMessage())
+                            .collect(Collectors.toList()));
             activeWorkSet.addAll(inProgressSteps);
             reviveManager.revive(activeWorkSet);
 
@@ -448,8 +453,7 @@ public abstract class AbstractScheduler {
                     .map(planManager -> planManager.getPlan())
                     .flatMap(plan -> plan.getChildren().stream())
                     .flatMap(phase -> phase.getChildren().stream())
-                    .filter(step -> !step.isPending())
-                    .filter(step -> !step.isComplete())
+                    .filter(step -> step.isRunning())
                     .collect(Collectors.toSet());
         }
 
