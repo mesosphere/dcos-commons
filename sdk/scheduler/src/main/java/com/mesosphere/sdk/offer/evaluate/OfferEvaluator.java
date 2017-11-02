@@ -12,6 +12,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
@@ -78,6 +79,13 @@ public class OfferEvaluator {
                     return status.isPresent() && status.get().getState().equals(Protos.TaskState.TASK_RUNNING);
                 })
                 .collect(Collectors.toList());
+        Map<TaskSpec, GoalStateOverride> goalStateOverrides = podInstanceRequirement.getPodInstance().getPod()
+                .getTasks().stream()
+                .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t.getName()))
+                .collect(Collectors.toMap(
+                        Function.identity(),
+                        t -> stateStore.fetchGoalOverrideStatus(
+                                TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), t)).target));
 
         OfferEvaluationComponentFactory offerEvaluationComponentFactory = getOfferEvaluationComponentFactory();
         for (int i = 0; i < offers.size(); ++i) {
@@ -87,7 +95,7 @@ public class OfferEvaluator {
                     getRole(podInstanceRequirement.getPodInstance().getPod()));
 
             SpecVisitor<EvaluationOutcome> evaluationVisitor = offerEvaluationComponentFactory.getEvaluationVisitor(
-                    resourcePool, thisPodTasks, runningTasks, allTasks.values());
+                    resourcePool, thisPodTasks, runningTasks, allTasks.values(), goalStateOverrides);
 
             podInstanceRequirement.accept(evaluationVisitor);
             Collection<EvaluationOutcome> outcomes = evaluationVisitor.getResult();

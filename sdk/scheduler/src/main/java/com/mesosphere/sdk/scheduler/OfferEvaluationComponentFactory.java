@@ -9,13 +9,17 @@ import com.mesosphere.sdk.offer.evaluate.HierarchicalReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.LaunchGroupVisitor;
 import com.mesosphere.sdk.offer.evaluate.LegacyLaunchVisitor;
 import com.mesosphere.sdk.offer.evaluate.LegacyReservationCreator;
+import com.mesosphere.sdk.offer.evaluate.PodOverrideVisitor;
 import com.mesosphere.sdk.offer.evaluate.ReservationCreator;
 import com.mesosphere.sdk.offer.evaluate.SpecVisitor;
 import com.mesosphere.sdk.offer.evaluate.NullVisitor;
 import com.mesosphere.sdk.offer.evaluate.OfferConsumptionVisitor;
+import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -60,14 +64,16 @@ public class OfferEvaluationComponentFactory {
             MesosResourcePool mesosResourcePool,
             Collection<Protos.TaskInfo> podTasks,
             Collection<Protos.TaskInfo> runningPodTasks,
-            Collection<Protos.TaskInfo> allTasks) {
+            Collection<Protos.TaskInfo> allTasks,
+            Map<TaskSpec, GoalStateOverride> goalStateOverrides) {
         SpecVisitor<EvaluationOutcome> launchOperationVisitor =
                 getLaunchOperationVisitor(mesosResourcePool, podTasks, allTasks, !runningPodTasks.isEmpty(), null);
         SpecVisitor<EvaluationOutcome> offerConsumptionVisitor =
                 getOfferConsumptionVisitor(mesosResourcePool, runningPodTasks, launchOperationVisitor);
         SpecVisitor<EvaluationOutcome> existingPodVisitor =
                 getExistingPodVisitor(mesosResourcePool, podTasks, offerConsumptionVisitor);
-        SpecVisitor<EvaluationOutcome> executorVisitor = getExecutorVisitor(existingPodVisitor);
+        SpecVisitor<EvaluationOutcome> overrideVisitor = getOverrideVisitor(goalStateOverrides, existingPodVisitor);
+        SpecVisitor<EvaluationOutcome> executorVisitor = getExecutorVisitor(overrideVisitor);
 
         return executorVisitor;
     }
@@ -78,6 +84,11 @@ public class OfferEvaluationComponentFactory {
         }
 
         return new NullVisitor(delegate);
+    }
+
+    public SpecVisitor<EvaluationOutcome> getOverrideVisitor(
+            Map<TaskSpec, GoalStateOverride> goalStateOverrides, SpecVisitor delegate) {
+        return new PodOverrideVisitor(goalStateOverrides, schedulerConfig, delegate);
     }
 
     public SpecVisitor<EvaluationOutcome> getExistingPodVisitor(

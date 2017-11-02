@@ -198,11 +198,10 @@ public abstract class LaunchVisitor extends SpecVisitor<EvaluationOutcome> {
             return;
         }
 
-        Protos.CommandInfo.Builder commandBuilder = taskBuilder.getCommandBuilder();
-
-        commandBuilder.setValue(taskSpec.getCommand().get().getValue())
-                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(
-                        serviceName, podInstanceRequirement.getPodInstance(), taskSpec)));
+        Protos.CommandInfo.Builder commandBuilder =
+                taskBuilder.setCommand(taskSpec.getCommand().get().toProto()).getCommandBuilder();
+        commandBuilder.setEnvironment(EnvUtils.toProto(getTaskEnvironment(
+                serviceName, podInstanceRequirement.getPodInstance(), taskSpec)));
         setBootstrapConfigFileEnv(commandBuilder, taskSpec);
         extendEnv(commandBuilder, podInstanceRequirement.getEnvironment());
     }

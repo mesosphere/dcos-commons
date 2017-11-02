@@ -24,32 +24,33 @@ public class NullVisitor<T> extends SpecVisitor<T> {
     }
 
     @Override
-    public PodInstanceRequirement visitImplementation(PodInstanceRequirement podInstanceRequirement) {
+    public PodInstanceRequirement visitImplementation(
+            PodInstanceRequirement podInstanceRequirement) throws SpecVisitorException {
         return podInstanceRequirement;
     }
 
     @Override
-    public PodSpec visitImplementation(PodSpec podSpec) {
+    public PodSpec visitImplementation(PodSpec podSpec) throws SpecVisitorException {
         return podSpec;
     }
 
     @Override
-    public TaskSpec visitImplementation(TaskSpec taskSpec) {
+    public TaskSpec visitImplementation(TaskSpec taskSpec) throws SpecVisitorException {
         return taskSpec;
     }
 
     @Override
-    public ResourceSpec visitImplementation(ResourceSpec resourceSpec) {
+    public ResourceSpec visitImplementation(ResourceSpec resourceSpec) throws SpecVisitorException {
         return resourceSpec;
     }
 
     @Override
-    public VolumeSpec visitImplementation(VolumeSpec volumeSpec) {
+    public VolumeSpec visitImplementation(VolumeSpec volumeSpec) throws SpecVisitorException {
         return volumeSpec;
     }
 
     @Override
-    public PortSpec visitImplementation(PortSpec portSpec) {
+    public PortSpec visitImplementation(PortSpec portSpec) throws SpecVisitorException {
         return portSpec;
     }
 

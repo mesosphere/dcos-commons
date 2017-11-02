@@ -1,66 +1,59 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.specification.CommandSpec;
+import com.mesosphere.sdk.specification.DefaultCommandSpec;
+import com.mesosphere.sdk.specification.DefaultTaskSpec;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
+import org.apache.mesos.Protos;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * The PodOverrideVisitor traverses a {@link PodSpec} and replaces task definitions with the override definition
  * specified in the state store.
  */
-public class PodOverrideVisitor extends SpecVisitor<EvaluationOutcome> {
-    private final Collection<GoalStateOverride> goalStateOverrides;
+public class PodOverrideVisitor extends NullVisitor<EvaluationOutcome> {
+    private final Map<TaskSpec, GoalStateOverride> goalStateOverrides;
+    private final SchedulerConfig schedulerConfig;
 
-    public PodOverrideVisitor(Collection<GoalStateOverride> goalStateOverrides, SpecVisitor delegate) {
+    public PodOverrideVisitor(
+            Map<TaskSpec, GoalStateOverride> goalStateOverrides,
+            SchedulerConfig schedulerConfig,
+            SpecVisitor delegate) {
         super(delegate);
+
         this.goalStateOverrides = goalStateOverrides;
-    }
-
-    @Override
-    public PodInstanceRequirement visitImplementation(PodInstanceRequirement podInstanceRequirement) {
-        return podInstanceRequirement;
-    }
-
-    @Override
-    public PodSpec visitImplementation(PodSpec podSpec) throws SpecVisitorException {
-        return podSpec;
+        this.schedulerConfig = schedulerConfig;
     }
 
     @Override
     public TaskSpec visitImplementation(TaskSpec taskSpec) throws SpecVisitorException {
-        return null;
-    }
+        if (!goalStateOverrides.containsKey(taskSpec) ||
+                !goalStateOverrides.get(taskSpec).equals(GoalStateOverride.PAUSED)) {
+            return taskSpec;
+        }
 
-    @Override
-    public ResourceSpec visitImplementation(ResourceSpec resourceSpec) throws SpecVisitorException {
-        return resourceSpec;
-    }
+        Map<String, String> environment;
+        if (taskSpec.getCommand().isPresent()) {
+            environment = taskSpec.getCommand().get().getEnvironment();
+        } else {
+            environment = Collections.emptyMap();
+        }
 
-    @Override
-    public VolumeSpec visitImplementation(VolumeSpec volumeSpec) throws SpecVisitorException {
-        return volumeSpec;
-    }
+        CommandSpec commandSpec = new DefaultCommandSpec(schedulerConfig.getPauseOverrideCmd(), environment) {
+            @Override
+            public Protos.CommandInfo.Builder toProto() {
+                Protos.CommandInfo.Builder commandBuilder = super.toProto();
+                commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
 
-    @Override
-    public PortSpec visitImplementation(PortSpec portSpec) throws SpecVisitorException {
-        return portSpec;
-    }
+                return commandBuilder;
+            }
+        };
 
-    @Override
-    public NamedVIPSpec visitImplementation(NamedVIPSpec namedVIPSpec) throws SpecVisitorException {
-        return namedVIPSpec;
-    }
-
-    @Override
-    public Collection<EvaluationOutcome> getResultImplementation() {
-        return Collections.emptyList();
+        return DefaultTaskSpec.newBuilder(taskSpec).commandSpec(commandSpec).build();
     }
 }
