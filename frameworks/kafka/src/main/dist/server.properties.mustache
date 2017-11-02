@@ -74,8 +74,18 @@ port={{KAFKA_BROKER_PORT_TLS}}
 listeners=SASL_PLAINTEXT://:{{KAFKA_BROKER_PORT}}
 advertised.listeners=SASL_PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
 security.inter.broker.protocol=SASL_PLAINTEXT
+
+{{#SECURITY_KERBEROS_ENABLED}}
+sasl.mechanism.inter.broker.protocol=GSSAPI
+sasl.enabled.mechanisms=GSSAPI
+sasl.kerberos.service.name={{SECURITY_KERBEROS_PRIMARY}}
+{{/SECURITY_KERBEROS_ENABLED}}
+
+{{^SECURITY_KERBEROS_ENABLED}}
 sasl.mechanism.inter.broker.protocol=PLAIN
 sasl.enabled.mechanisms=PLAIN
+{{/SECURITY_KERBEROS_ENABLED}}
+
 {{/SECURITY_SASL_ENABLED}}
 
 # Hostname and port the broker will advertise to producers and consumers. If not set,

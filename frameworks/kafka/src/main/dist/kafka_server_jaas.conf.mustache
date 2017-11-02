@@ -1,9 +1,20 @@
 {{#SECURITY_SASL_ENABLED}}
 KafkaServer {
+{{#SECURITY_KERBEROS_ENABLED}}
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    keyTab="kafka.keytab"
+    principal="{{SECURITY_KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}";
+{{/SECURITY_KERBEROS_ENABLED}}
+
+{{#SECURITY_SASL_PLAIN_ENABLED}}
    org.apache.kafka.common.security.plain.PlainLoginModule required
    username="admin"
    password="admin-secret"
    user_admin="admin-secret"
    user_alice="alice-secret";
+{{/SECURITY_SASL_PLAIN_ENABLED}}
+
 };
 {{/SECURITY_SASL_ENABLED}}

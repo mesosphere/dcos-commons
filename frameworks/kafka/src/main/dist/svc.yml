@@ -19,6 +19,12 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+    secrets:
+      keytab:
+        secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
+        file: kafka.keytab
+    {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
@@ -60,12 +66,16 @@ pods:
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
         cmd: >
+          ./bootstrap -resolve=false &&
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
+
         {{#TASKCFG_ALL_SECURITY_SASL_ENABLED}}
           export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf $KAFKA_OPTS" &&
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export KAFKA_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
         {{/TASKCFG_ALL_SECURITY_SASL_ENABLED}}
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
-          ./bootstrap -resolve=false &&
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
                $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
@@ -76,6 +86,11 @@ pods:
           jaas-properties:
             template: kafka_server_jaas.conf.mustache
             dest: {{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          krb5-conf:
+            template: krb5.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/krb5.conf
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
         {{/TASKCFG_ALL_SECURITY_SASL_ENABLED}}
         readiness-check:
           cmd: |
