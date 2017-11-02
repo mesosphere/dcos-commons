@@ -131,7 +131,7 @@ public class DefaultServiceSpecTest {
         portSpec = (PortSpec) portsResources.get(1);
         Assert.assertEquals("name2", portSpec.getPortName());
         Assert.assertEquals(8088, portSpec.getPort());
-        Assert.assertEquals(null, portSpec.getEnvKey());
+        Assert.assertEquals(Optional.empty(), portSpec.getEnvKey());
 
         portSpec = (PortSpec) portsResources.get(2);
         Assert.assertEquals("name3", portSpec.getPortName());

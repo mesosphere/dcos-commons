@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.Mockito.when;
+
 /**
  * A base class for use in writing offer evaluation tests.
  */
@@ -37,10 +39,12 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         targetConfig = UUID.randomUUID();
+        when(Capabilities.getInstance().supportsDefaultExecutor()).thenReturn(true);
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, Capabilities.getInstance());
     }
 
     protected void useCustomExecutor() {
+        when(Capabilities.getInstance().supportsDefaultExecutor()).thenReturn(false);
         evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, Capabilities.getInstance());
     }
 
