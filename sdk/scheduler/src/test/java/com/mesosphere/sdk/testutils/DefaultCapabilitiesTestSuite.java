@@ -17,6 +17,7 @@ public abstract class DefaultCapabilitiesTestSuite {
     @BeforeClass
     public static final void beforeAllSuites() throws Exception {
         Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsDefaultExecutor()).thenReturn(true);
         when(capabilities.supportsGpuResource()).thenReturn(true);
         when(capabilities.supportsCNINetworking()).thenReturn(true);
         when(capabilities.supportsNamedVips()).thenReturn(true);
