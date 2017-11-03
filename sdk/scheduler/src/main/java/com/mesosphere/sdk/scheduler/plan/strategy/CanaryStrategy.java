@@ -130,6 +130,11 @@ public class CanaryStrategy implements Strategy<Step> {
         return null;
     }
 
+    @Override
+    public String toString() {
+        return strategy.toString() + "-canary";
+    }
+
     /**
      * This class generates Strategy objects of the appropriate type.
      *

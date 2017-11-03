@@ -319,7 +319,11 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 	if !ok {
 		planStatus = "<UNKNOWN>"
 	}
-	buf.WriteString(fmt.Sprintf("%s (%s)\n", planName, planStatus))
+	planStrategy, ok := planJSON["strategy"]
+	if !ok {
+		planStatus = "UNKNOWN"
+	}
+	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
 
 	rawPhases, ok := planJSON["phases"].([]interface{})
 	if ok {
@@ -355,7 +359,7 @@ func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 		return
 	}
 
-	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, elementString(phase)))
+	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, phaseString(phase)))
 
 	rawSteps, ok := phase["steps"].([]interface{})
 	if !ok {
@@ -377,17 +381,33 @@ func appendStep(buf *bytes.Buffer, rawStep interface{}, prefix string, lastStep 
 	} else {
 		prefix += "├─ "
 	}
-	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, elementString(step)))
+	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, stepString(step)))
 }
 
-func elementString(element map[string]interface{}) string {
-	elementName, ok := element["name"]
+func phaseString(phase map[string]interface{}) string {
+	phaseName, ok := phase["name"]
 	if !ok {
-		elementName = "<UNKNOWN>"
+		phaseName = "<UNKNOWN>"
 	}
-	elementStatus, ok := element["status"]
+	phaseStrategy, ok := phase["strategy"]
 	if !ok {
-		elementStatus = "<UNKNOWN>"
+		phaseStrategy = "UNKNOWN"
 	}
-	return fmt.Sprintf("%s (%s)", elementName, elementStatus)
+	phaseStatus, ok := phase["status"]
+	if !ok {
+		phaseStatus = "<UNKNOWN>"
+	}
+	return fmt.Sprintf("%s (%s strategy) (%s)", phaseName, phaseStrategy, phaseStatus)
+}
+
+func stepString(step map[string]interface{}) string {
+	stepName, ok := step["name"]
+	if !ok {
+		stepName = "<UNKNOWN>"
+	}
+	stepStatus, ok := step["status"]
+	if !ok {
+		stepStatus = "<UNKNOWN>"
+	}
+	return fmt.Sprintf("%s (%s)", stepName, stepStatus)
 }

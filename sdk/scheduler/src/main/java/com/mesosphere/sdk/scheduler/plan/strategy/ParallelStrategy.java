@@ -22,6 +22,11 @@ public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C
         return new Generator<>();
     }
 
+    @Override
+    public String toString() {
+        return "parallel";
+    }
+
     /**
      * This class generates Strategy objects of the appropriate type.
      *

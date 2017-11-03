@@ -44,6 +44,11 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
         return dependencyStrategyHelper;
     }
 
+    @Override
+    public String toString() {
+        return "serial";
+    }
+
     /**
      * This class generates Strategy objects of the appropriate type.
      *
