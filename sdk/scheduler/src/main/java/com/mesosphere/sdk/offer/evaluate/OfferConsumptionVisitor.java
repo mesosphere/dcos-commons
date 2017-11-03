@@ -13,6 +13,7 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.offer.ValueUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.specification.DefaultPortSpec;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -306,6 +307,8 @@ public class OfferConsumptionVisitor extends SpecVisitor<EvaluationOutcome> {
     @Override
     public PortSpec visitImplementation(PortSpec portSpec) {
         Long assignedPort = portSpec.getPort();
+        PortSpec assignedPortSpec;
+
         if (assignedPort == 0) {
             assignedPort = mesosResourcePool.getUnassignedPort(podInstanceRequirement.getPodInstance().getPod());
             if (assignedPort == null) {
@@ -318,26 +321,42 @@ public class OfferConsumptionVisitor extends SpecVisitor<EvaluationOutcome> {
                         .build());
                 return portSpec;
             }
-            portSpec = PortSpec.withValue(
-                    portSpec,
-                    Protos.Value.newBuilder()
+
+            Protos.Value value = Protos.Value.newBuilder()
                             .setType(Protos.Value.Type.RANGES)
                             .setRanges(RangeUtils.fromSingleValue(assignedPort))
-                            .build());
+                            .build();
+            assignedPortSpec = new DefaultPortSpec(
+                    value,
+                    portSpec.getRole(),
+                    portSpec.getPreReservedRole(),
+                    portSpec.getPrincipal(),
+                    portSpec.getEnvKey().isPresent() ? portSpec.getEnvKey().get() : null,
+                    portSpec.getPortName(),
+                    portSpec.getVisibility(),
+                    portSpec.getNetworkNames()) {
+
+                @Override
+                public Protos.Resource.Builder getResource() {
+                    return portSpec.getResource().setRanges(value.getRanges());
+                }
+            };
+        } else {
+            assignedPortSpec = portSpec;
         }
 
-        if (portSpec.requiresHostPorts()) {
-            return withResource(portSpec, visitImplementation((ResourceSpec) portSpec).getResource());
+        if (assignedPortSpec.requiresHostPorts()) {
+            return withResource(assignedPortSpec, visitImplementation((ResourceSpec) assignedPortSpec).getResource());
         } else {
             evaluationOutcomes.add(pass(
                     this,
                     "Port %s doesn't require resource reservation, ignoring resource requirements and using port %d",
-                    portSpec.getPortName(),
+                    assignedPortSpec.getPortName(),
                     assignedPort)
                     .build());
         }
 
-        return portSpec;
+        return assignedPortSpec;
     }
 
     @Override
