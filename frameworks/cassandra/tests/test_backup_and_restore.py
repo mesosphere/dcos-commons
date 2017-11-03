@@ -22,11 +22,17 @@ def configure_package(configure_security):
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         # user=root because Azure CLI needs to run in root...
+        # We don't run the Azure tests in strict however, so don't set it then.
+        if os.environ.get("SECURITY") == "strict":
+            additional_options={"service": { "name": config.get_foldered_service_name()} }
+        else:
+            additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root" } }
+
         sdk_install.install(
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root" } })
+            additional_options=additional_options)
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in test_jobs:
