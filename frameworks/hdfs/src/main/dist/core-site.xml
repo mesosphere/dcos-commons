@@ -70,7 +70,7 @@
     </property>
     <property>
         <name>hadoop.security.groups.negative-cache.secs</name>
-        <value>{{HADOOP_SECURITY_GROUPS_NEGATIVE-CACHE_SECS}}</value>
+        <value>{{HADOOP_SECURITY_GROUPS_NEGATIVE_CACHE_SECS}}</value>
     </property>
     <property>
         <name>hadoop.security.groups.cache.warn.after.ms</name>
@@ -132,10 +132,12 @@
         <name>hadoop.security.uid.cache.secs</name>
         <value>{{HADOOP_SECURITY_UID_CACHE_SECS}}</value>
     </property>
+    {{^KERBEROS_ENABLED}}
     <property>
         <name>hadoop.rpc.protection</name>
         <value>{{HADOOP_RPC_PROTECTION}}</value>
     </property>
+    {{/KERBEROS_ENABLED}}
     <property>
         <name>hadoop.security.saslproperties.resolver.class</name>
         <value>{{HADOOP_SECURITY_SASLPROPERTIES_RESOLVER_CLASS}}</value>
@@ -274,7 +276,7 @@
     </property>
     <property>
         <name>fs.s3n.server-side-encryption-algorithm</name>
-        <value>{{FS_S3N_SERVER-SIDE-ENCRPYTION-ALGORITHM}}</value>
+        <value>{{FS_S3N_SERVER_SIDE_ENCRPYTION_ALGORITHM}}</value>
     </property>
     <property>
         <name>fs.s3a.access.key</name>
@@ -398,7 +400,7 @@
     </property>
     <property>
         <name>hadoop.rpc.socket.factory.class.ClientProtocol</name>
-        <value>{{HADOOP_RPC_SOCKET_FACTORY_CLASS_CLIENT-PROTOCOL}}</value>
+        <value>{{HADOOP_RPC_SOCKET_FACTORY_CLASS_CLIENT_PROTOCOL}}</value>
     </property>
     <property>
         <name>hadoop.socks.server</name>
@@ -426,15 +428,15 @@
     </property>
     <property>
         <name>file.stream-buffer-size</name>
-        <value>{{FILE_STREAM-BUFFER-SIZE}}</value>
+        <value>{{FILE_STREAM_BUFFER_SIZE}}</value>
     </property>
     <property>
         <name>file.bytes-per-checksum</name>
-        <value>{{FILE_BYTES-PER-CHECKSUM}}</value>
+        <value>{{FILE_BYTES_PER_CHECKSUM}}</value>
     </property>
     <property>
         <name>file.client-write-packet-size</name>
-        <value>{{FILE_CLIENT-WRITE-PACKET-SIZE}}</value>
+        <value>{{FILE_CLIENT_WRITE_PACKET_SIZE}}</value>
     </property>
     <property>
         <name>file.blocksize</name>
@@ -446,15 +448,15 @@
     </property>
     <property>
         <name>s3.stream-buffer-size</name>
-        <value>{{S3_STREAM-BUFFER-SIZE}}</value>
+        <value>{{S3_STREAM_BUFFER_SIZE}}</value>
     </property>
     <property>
         <name>s3.bytes-per-checksum</name>
-        <value>{{S3_BYTES-PER-CHECKSUM}}</value>
+        <value>{{S3_BYTES_PER_CHECKSUM}}</value>
     </property>
     <property>
         <name>s3.client-write-packet-size</name>
-        <value>{{S3_CLIENT-WRITE-PACKET-SIZE}}</value>
+        <value>{{S3_CLIENT_WRITE_PACKET_SIZE}}</value>
     </property>
     <property>
         <name>s3.blocksize</name>
@@ -466,15 +468,15 @@
     </property>
     <property>
         <name>s3native.stream-buffer-size</name>
-        <value>{{S3NATIVE_STREAM-BUFFER-SIZE}}</value>
+        <value>{{S3NATIVE_STREAM_BUFFER_SIZE}}</value>
     </property>
     <property>
         <name>s3native.bytes-per-checksum</name>
-        <value>{{S3NATIVE_BYTES-PER-CHECKSUM}}</value>
+        <value>{{S3NATIVE_BYTES_PER_CHECKSUM}}</value>
     </property>
     <property>
         <name>s3native.client-write-packet-size</name>
-        <value>{{S3NATIVE_CLIENT-WRITE-PACKET-SIZE}}</value>
+        <value>{{S3NATIVE_CLIENT_WRITE_PACKET_SIZE}}</value>
     </property>
     <property>
         <name>s3native.blocksize</name>
@@ -486,15 +488,15 @@
     </property>
     <property>
         <name>ftp.stream-buffer-size</name>
-        <value>{{FTP_STREAM-BUFFER-SIZE}}</value>
+        <value>{{FTP_STREAM_BUFFER_SIZE}}</value>
     </property>
     <property>
         <name>ftp.bytes-per-checksum</name>
-        <value>{{FTP_BYTES-PER-CHECKSUM}}</value>
+        <value>{{FTP_BYTES_PER_CHECKSUM}}</value>
     </property>
     <property>
         <name>ftp.client-write-packet-size</name>
-        <value>{{FTP_CLIENT-WRITE-PACKET-SIZE}}</value>
+        <value>{{FTP_CLIENT_WRITE_PACKET_SIZE}}</value>
     </property>
     <property>
         <name>ftp.blocksize</name>
@@ -517,40 +519,12 @@
         <value>{{TFILE_FS_INPUT_BUFFER_SIZE}}</value>
     </property>
     <property>
-        <name>hadoop.http.authentication.type</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_TYPE}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.token.validity</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_TOKEN_VALIDITY}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.signature.secret.file</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_SIGNATURE_SECRET_FILE}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.cookie.domain</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.kerberos.principal</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.kerberos.keytab</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
-    </property>
-    <property>
         <name>dfs.ha.fencing.ssh.connect-timeout</name>
-        <value>{{DFS_HA_FENCING_SSH_CONNECT-TIMEOUT}}</value>
+        <value>{{DFS_HA_FENCING_SSH_CONNECT_TIMEOUT}}</value>
     </property>
     <property>
         <name>dfs.ha.fencing.ssh.private-key-files</name>
-        <value>{{DFS_HA_FENCING_SSH_PRIVATE-KEY-FILES}}</value>
+        <value>{{DFS_HA_FENCING_SSH_PRIVATE_KEY_FILES}}</value>
     </property>
     <property>
         <name>hadoop.http.staticuser.user</name>
@@ -558,7 +532,7 @@
     </property>
     <property>
         <name>ha.zookeeper.session-timeout.ms</name>
-        <value>{{HA_ZOOKEEPER_SESSION-TIMEOUT-MS}}</value>
+        <value>{{HA_ZOOKEEPER_SESSION_TIMEOUT_MS}}</value>
     </property>
     <property>
         <name>hadoop.ssl.keystores.factory.class</name>
@@ -574,43 +548,43 @@
     </property>
     <property>
         <name>fs.permissions.umask-mode</name>
-        <value>{{FS_PERMISSIONS_UMASK-MODE}}</value>
+        <value>{{FS_PERMISSIONS_UMASK_MODE}}</value>
     </property>
     <property>
         <name>ha.health-monitor.connect-retry-interval.ms</name>
-        <value>{{HA_HEALTH-MONITOR_CONNECT-RETRY-INTERVAL_MS}}</value>
+        <value>{{HA_HEALTH_MONITOR_CONNECT_RETRY_INTERVAL_MS}}</value>
     </property>
     <property>
         <name>ha.health-monitor.check-interval.ms</name>
-        <value>{{HA_HEALTH-MONITOR_CHECK-INTERVAL_MS}}</value>
+        <value>{{HA_HEALTH_MONITOR_CHECK_INTERVAL_MS}}</value>
     </property>
     <property>
         <name>ha.health-monitor.sleep-after-disconnect.ms</name>
-        <value>{{HA_HEALTH-MONITOR_SLEEP-AFTER-DISCONNECT_MS}}</value>
+        <value>{{HA_HEALTH_MONITOR_SLEEP_AFTER_DISCONNECT_MS}}</value>
     </property>
     <property>
         <name>ha.health-monitor.rpc-timeout.ms</name>
-        <value>{{HA_HEALTH-MONITOR_RPC-TIMEOUT_MS}}</value>
+        <value>{{HA_HEALTH_MONITOR_RPC_TIMEOUT_MS}}</value>
     </property>
     <property>
         <name>ha.failover-controller.new-active.rpc-timeout.ms</name>
-        <value>{{HA_FAILOVER-CONTROLLER_NEW-ACTIVE_RPC-TIMEOUT_MS}}</value>
+        <value>{{HA_FAILOVER_CONTROLLER_NEW_ACTIVE_RPC_TIMEOUT_MS}}</value>
     </property>
     <property>
         <name>ha.failover-controller.graceful-fence.rpc-timeout.ms</name>
-        <value>{{HA_FAILOVER-CONTROLLER_GRACEFUL-FENCE_RPC-TIMEOUT_MS}}</value>
+        <value>{{HA_FAILOVER_CONTROLLER_GRACEFUL_FENCE_RPC_TIMEOUT_MS}}</value>
     </property>
     <property>
         <name>ha.failover-controller.graceful-fence.connection.retries</name>
-        <value>{{HA_FAILOVER-CONTROLLER_GRACEFUL-FENCE_CONNECTION_RETRIES}}</value>
+        <value>{{HA_FAILOVER_CONTROLLER_GRACEFUL_FENCE_CONNECTION_RETRIES}}</value>
     </property>
     <property>
         <name>ha.failover-controller.cli-check.rpc-timeout.ms</name>
-        <value>{{HA_FAILOVER-CONTROLLER_CLI-CHECK_RPC-TIMEOUT_MS}}</value>
+        <value>{{HA_FAILOVER_CONTROLLER_CLI_CHECK_RPC_TIMEOUT_MS}}</value>
     </property>
     <property>
         <name>ipc.client.fallback-to-simple-auth-allowed</name>
-        <value>{{IPC_CLIENT_FALLBACK-TO-SIMPLE-AUTH-ALLOWED}}</value>
+        <value>{{IPC_CLIENT_FALLBACK_TO_SIMPLE_AUTH_ALLOWED}}</value>
     </property>
     <property>
         <name>fs.client.resolve.remote.symlinks</name>
@@ -643,7 +617,7 @@
         <value>ALLOW_ALL</value>
     </property>
     {{/TLS_ENABLED}}
-    {{#SECURE_MODE}}
+    {{#KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
         <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
@@ -656,5 +630,41 @@
         <name>hadoop.security.authorization</name>
         <value>true</value>
     </property>
-    {{/SECURE_MODE}}
+    <property>
+        <name>hadoop.rpc.protection</name>
+        <value>privacy</value>
+    </property>
+    <property>
+        <name>hadoop.security.auth_to_local</name>
+        <value>
+          RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
+          RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
+        </value>
+    </property>
+
+    <property>
+        <name>hadoop.http.authentication.type</name>
+        <value>kerberos</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.token.validity</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_TOKEN_VALIDITY}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.cookie.domain</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.kerberos.principal</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.kerberos.keytab</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
+    </property>
+    {{/KERBEROS_ENABLED}}
 </configuration>

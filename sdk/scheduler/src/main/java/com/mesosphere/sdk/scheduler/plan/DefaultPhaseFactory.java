@@ -1,14 +1,11 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,17 +51,8 @@ public class DefaultPhaseFactory implements PhaseFactory {
                     .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
 
-            try {
-                steps.add(stepFactory.getStep(podInstance, tasksToLaunch));
-            } catch (Step.InvalidStepException | InvalidRequirementException e) {
-                steps.add(new DeploymentStep(
-                        PodInstance.getName(podSpec, i),
-                        Status.ERROR,
-                        PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
-                        Arrays.asList(ExceptionUtils.getStackTrace(e))));
-            }
+            steps.add(stepFactory.getStep(podInstance, tasksToLaunch));
         }
-
         return steps;
     }
 }

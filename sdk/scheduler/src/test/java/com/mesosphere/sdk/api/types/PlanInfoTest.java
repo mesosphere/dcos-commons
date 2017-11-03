@@ -35,12 +35,11 @@ public class PlanInfoTest {
 
         UUID step0Id = UUID.randomUUID();
         when(mockStep0.getId()).thenReturn(step0Id);
-        when(mockStep0.isPending()).thenReturn(true);
         String step0Name = "step-0";
         when(mockStep0.getName()).thenReturn(step0Name);
         String step0Message = "hi";
         when(mockStep0.getMessage()).thenReturn(step0Message);
-        when(mockStep0.getStatus()).thenReturn(Status.PENDING);
+        when(mockStep0.getDisplayStatus()).thenReturn("PENDING");
 
         UUID step1Id = UUID.randomUUID();
         when(mockStep1.getId()).thenReturn(step1Id);
@@ -49,7 +48,7 @@ public class PlanInfoTest {
         when(mockStep1.getName()).thenReturn(step1Name);
         String step1Message = "hey";
         when(mockStep1.getMessage()).thenReturn(step1Message);
-        when(mockStep1.getStatus()).thenReturn(Status.ERROR);
+        when(mockStep1.getDisplayStatus()).thenReturn("ERROR");
 
         // phase calls within PhaseInfo.forPhase(), against phase 0 and phase 1
 
@@ -93,13 +92,13 @@ public class PlanInfoTest {
         assertEquals(step0Id.toString(), stepInfo.getId());
         assertEquals(step0Message, stepInfo.getMessage());
         assertEquals(step0Name, stepInfo.getName());
-        assertEquals(Status.PENDING, stepInfo.getStatus());
+        assertEquals("PENDING", stepInfo.getStatus());
 
         stepInfo = phaseInfo.getSteps().get(1);
         assertEquals(step1Id.toString(), stepInfo.getId());
         assertEquals(step1Message, stepInfo.getMessage());
         assertEquals(step1Name, stepInfo.getName());
-        assertEquals(Status.ERROR, stepInfo.getStatus());
+        assertEquals("ERROR", stepInfo.getStatus());
 
         // phase 1 + 0 steps
         phaseInfo = planInfo.getPhases().get(1);

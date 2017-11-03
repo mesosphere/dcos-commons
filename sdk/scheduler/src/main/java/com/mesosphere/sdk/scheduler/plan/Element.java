@@ -26,7 +26,7 @@ public interface Element {
     String getName();
 
     /**
-     * Returns the Status of this Element.
+     * Returns the {@link Status} of this Element, used to determine if the element still has work to be completed.
      */
     Status getStatus();
 
@@ -79,6 +79,13 @@ public interface Element {
     }
 
     /**
+     * Indicates whether the Element is starting.
+     */
+    default boolean isStarted() {
+        return getStatus().equals(Status.STARTED);
+    }
+
+    /**
      * Indicates whether this Element is complete.
      */
     default boolean isComplete() {
@@ -86,10 +93,10 @@ public interface Element {
     }
 
     /**
-     * Indicates whether this Element is in progress.
+     * Indicates whether this Element is prepared, starting, or in progress.
      */
-    default boolean isInProgress() {
-        return isPrepared() || isStarting() || getStatus().equals(Status.IN_PROGRESS);
+    default boolean isRunning() {
+        return getStatus().isRunning();
     }
 
     /**
@@ -97,13 +104,6 @@ public interface Element {
      */
     default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return !isComplete() && !hasErrors();
-    }
-
-    /**
-     * Indicates whether this Element is running.
-     */
-    default boolean isRunning() {
-        return getStatus().isRunning();
     }
 
     /**
@@ -116,7 +116,7 @@ public interface Element {
      * Returns a reasonable user-visible status message.
      */
     default String getMessage() {
-        return String.format("%s: '%s [%s]' has status: '%s'.",
+        return String.format("%s: %s [%s] with status: %s",
                 getClass().getName(), getName(), getId(), getStatus());
     }
 }

@@ -325,6 +325,10 @@
         "custom_elasticsearch_yml": {
           "description": "Custom YAML to be appended to elasticsearch.yml on each node. This field must be base64 encoded.",
           "type": "string",
+          "media": {
+            "binaryEncoding": "base64",
+            "type": "application/x-yaml"
+          },
           "default": ""
         },
         "health_user": {

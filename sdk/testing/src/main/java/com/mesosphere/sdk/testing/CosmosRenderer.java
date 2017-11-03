@@ -72,7 +72,7 @@ public class CosmosRenderer {
         Map<String, String> marathonParams = new HashMap<>();
 
         // Get default values from config.json (after doing any needed simulated build rendering):
-        // IF THIS FAILS IN YOUR TEST: Did you miss something in customBuildTemplateParams?
+        // IF THIS FAILS IN YOUR TEST: Missing something in customBuildTemplateParams? Bad config.json syntax?
         JSONObject configJson = new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
                 "universe/config.json", readFile("universe/config.json"), customBuildTemplateParams));
         flattenPropertyTree("", configJson, marathonParams);
@@ -81,7 +81,7 @@ public class CosmosRenderer {
         Map<String, String> resourceParams = new HashMap<>();
         resourceParams.putAll(customBuildTemplateParams);
         resourceParams.putAll(RESOURCE_TEMPLATE_PARAMS);
-        // IF THIS FAILS IN YOUR TEST: Did you miss something in customBuildTemplateParams?
+        // IF THIS FAILS IN YOUR TEST: Missing something in customBuildTemplateParams? Bad resource.json syntax?
         JSONObject resourceJson = new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
                 "universe/resource.json", readFile("universe/resource.json"), resourceParams));
         flattenTree("resource", resourceJson, marathonParams);
@@ -93,7 +93,7 @@ public class CosmosRenderer {
 
         // Render marathon.json and get scheduler env content:
         Map<String, String> env = new TreeMap<>(); // for ordered output in logs
-        // IF THIS FAILS IN YOUR TEST: Did you miss something in customPackageOptions or customBuildTemplateParams?
+        // IF THIS FAILS: Missing entry in customPackageOptions or customBuildTemplateParams? Bad marathon.json syntax?
         String marathonJson = TemplateUtils.renderMustacheThrowIfMissing(
                 "universe/marathon.json.mustache", readFile("universe/marathon.json.mustache"), marathonParams);
         env.putAll(getMarathonAppEnvironment(marathonJson));

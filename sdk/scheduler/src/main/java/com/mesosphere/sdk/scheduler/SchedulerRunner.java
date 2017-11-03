@@ -12,7 +12,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -59,7 +58,7 @@ public class SchedulerRunner implements Runnable {
      *
      * @param serviceSpec the service specification converted to be used by the config store
      * @param schedulerConfig the scheduler configuration to use (usually based on process environment)
-     * @param configTemplateDir a list of one or more custom plans to be used by the service
+     * @param plans a list of one or more custom plans to be used by the service
      * @return a new {@link SchedulerRunner} instance, which may be launched with {@link #run()}
      */
     public static SchedulerRunner fromServiceSpec(
@@ -98,10 +97,11 @@ public class SchedulerRunner implements Runnable {
      */
     @Override
     public void run() {
-
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
         locker.lock();
         try {
+            SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+            Metrics.configureStatsd(schedulerConfig);
             AbstractScheduler scheduler = schedulerBuilder.build();
             scheduler.start();
             Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();

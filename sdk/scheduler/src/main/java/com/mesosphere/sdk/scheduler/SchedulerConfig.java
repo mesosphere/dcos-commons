@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -86,6 +87,8 @@ public class SchedulerConfig {
 
     /** Specifies the URI of the executor artifact to be used when launching tasks. */
     private static final String EXECUTOR_URI_ENV = "EXECUTOR_URI";
+    /** Specifies the URI of the bootstrap artifact to be used when launching stopped tasks. */
+    private static final String BOOTSTRAP_URI_ENV = "BOOTSTRAP_URI";
     /** Specifies the URI of the libmesos package used by the scheduler itself. */
     private static final String LIBMESOS_URI_ENV = "LIBMESOS_URI";
     /** Specifies the Java URI to be used when launching tasks. */
@@ -133,6 +136,18 @@ public class SchedulerConfig {
     private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
 
     /**
+     * Environment variables for configuring metrics reporting behavior.
+     */
+    private static String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
+    private static String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
+    private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+
+    /**
+     * Environment variables for configuring goal state override behavior.
+     */
+    private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
+
+    /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
      */
     public static SchedulerConfig fromEnv() {
@@ -169,6 +184,10 @@ public class SchedulerConfig {
 
     public String getExecutorURI() {
         return envStore.getRequired(EXECUTOR_URI_ENV);
+    }
+
+    public String getBootstrapURI() {
+        return envStore.getRequired(BOOTSTRAP_URI_ENV);
     }
 
     public String getLibmesosURI() {
@@ -274,6 +293,34 @@ public class SchedulerConfig {
     }
 
     /**
+     * Returns the interval in seconds between StatsD reports.
+     */
+    public long getStatsDPollIntervalS() {
+        return envStore.getOptionalLong(STATSD_POLL_INTERVAL_S_ENV, 10);
+    }
+
+    /**
+     * Returns the StatsD host.
+     */
+    public String getStatsdHost() {
+        return envStore.getRequired(STATSD_UDP_HOST_ENV);
+    }
+
+    /**
+     * Returns the StatsD port.
+     */
+    public int getStatsdPort() {
+        return envStore.getRequiredInt(STATSD_UDP_PORT_ENV);
+    }
+
+    /**
+     * Returns the command to be run when pausing a Task.
+     */
+    public String getPauseOverrideCmd() {
+        return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
+    }
+
+    /**
      * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
      */
     private static class EnvStore {
@@ -286,6 +333,10 @@ public class SchedulerConfig {
 
         private int getOptionalInt(String envKey, int defaultValue) {
             return toInt(envKey, getOptional(envKey, String.valueOf(defaultValue)));
+        }
+
+        private long getOptionalLong(String envKey, long defaultValue) {
+            return toLong(envKey, getOptional(envKey, String.valueOf(defaultValue)));
         }
 
         private int getRequiredInt(String envKey) {

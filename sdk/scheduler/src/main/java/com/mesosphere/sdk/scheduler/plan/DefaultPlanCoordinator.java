@@ -100,8 +100,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     private boolean assetIsRelevant(PodInstanceRequirement podInstanceRequirement, Plan plan) {
         return plan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.getPodInstanceRequirement().isPresent())
-                .filter(step -> step.isInProgress())
+                .filter(step -> step.isRunning() && step.getPodInstanceRequirement().isPresent())
                 .map(step -> step.getPodInstanceRequirement().get())
                 .filter(podRequirement -> podRequirement.conflictsWith(podInstanceRequirement))
                 .count() == 0;

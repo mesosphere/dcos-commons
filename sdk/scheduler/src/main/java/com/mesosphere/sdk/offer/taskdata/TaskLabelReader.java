@@ -16,14 +16,14 @@ public class TaskLabelReader {
     private final LabelReader reader;
 
     /**
-     * @see LabelReader#LabelReader(TaskInfo)
+     * @see LabelReader#LabelReader(String, Labels)
      */
     public TaskLabelReader(TaskInfo taskInfo) {
         reader = new LabelReader(String.format("Task %s", taskInfo.getName()), taskInfo.getLabels());
     }
 
     /**
-     * @see LabelReader#LabelReader(org.apache.mesos.Protos.TaskInfo.Builder)
+     * @see LabelReader#LabelReader(String, Labels)
      */
     public TaskLabelReader(TaskInfo.Builder taskInfoBuilder) {
         reader = new LabelReader(String.format("Task %s", taskInfoBuilder.getName()), taskInfoBuilder.getLabels());
@@ -57,6 +57,20 @@ public class TaskLabelReader {
             return new ArrayList<>();
         }
         return AttributeStringUtils.toStringList(joinedAttributes.get());
+    }
+
+    /**
+     * Returns the Zone in which the Task was launched.
+     */
+    public Optional<String> getZone() {
+        return reader.getOptional(LabelConstants.OFFER_ZONE_LABEL);
+    }
+
+    /**
+     * Returns the Region in which the Task was launched.
+     */
+    public Optional<String> getRegion() {
+        return reader.getOptional(LabelConstants.OFFER_REGION_LABEL);
     }
 
     /**

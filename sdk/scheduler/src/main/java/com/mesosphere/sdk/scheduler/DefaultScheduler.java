@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.*;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
@@ -9,7 +8,6 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
-import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -95,7 +93,9 @@ public class DefaultScheduler extends AbstractScheduler {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
         this.offerAccepter = new OfferAccepter(
-                Collections.singletonList(new PersistentLaunchRecorder(stateStore, serviceSpec)));
+                Arrays.asList(
+                        new PersistentLaunchRecorder(stateStore, serviceSpec),
+                        Metrics.OperationsCounter.getInstance()));
 
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
@@ -108,7 +108,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.resources.add(endpointsResource);
         this.plansResource = new PlansResource();
         this.resources.add(this.plansResource);
-        this.podResource = new PodResource(stateStore);
+        this.podResource = new PodResource(stateStore, serviceSpec.getName());
         this.resources.add(podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
 
@@ -139,7 +139,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+        killUnneededAndPendingOverrideTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
@@ -195,7 +195,8 @@ public class DefaultScheduler extends AbstractScheduler {
         return new DefaultPlanCoordinator(planManagers);
     }
 
-    private static void killUnneededTasks(StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
+    private static void killUnneededAndPendingOverrideTasks(
+            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
@@ -218,6 +219,16 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
+
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
+            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
+                // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
+                // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
+                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+            }
+        }
     }
 
     @Override
@@ -243,7 +254,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Decline remaining offers.
         if (!unusedOffers.isEmpty()) {
-            OfferUtils.declineOffers(driver, unusedOffers, Constants.LONG_DECLINE_SECONDS);
+            OfferUtils.declineLong(driver, unusedOffers);
         }
 
         if (offers.isEmpty()) {
@@ -268,20 +279,14 @@ public class DefaultScheduler extends AbstractScheduler {
     protected void processStatusUpdate(Protos.TaskStatus status) {
         // Store status, then pass status to PlanManager => Plan => Steps
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
-        Optional<Protos.TaskStatus> lastStatus = stateStore.fetchStatus(taskName);
 
+        // StateStore updates:
+        // - TaskStatus
+        // - Override status (if applicable)
         stateStore.storeStatus(taskName, status);
-        planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
-        if (lastStatus.isPresent() &&
-                AuxLabelAccess.isInitialLaunch(lastStatus.get()) &&
-                TaskUtils.isRecoveryNeeded(status)) {
-            // The initial launch of this task failed. Give up and try again with a clean slate.
-            LOGGER.warn("Task {} appears to have failed its initial launch. Marking pod for permanent recovery. "
-                    + "Prior status was: {}",
-                    taskName, TextFormat.shortDebugString(lastStatus.get()));
-            taskKiller.killTask(status.getTaskId(), RecoveryType.PERMANENT);
-        }
+        // Notify plans of status update:
+        planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
         // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
         // We expect the TaskStatus to contain an IP address in both Host or CNI networking.

@@ -57,6 +57,96 @@ def test_pod_restart():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.10')
+def test_pod_pause_resume():
+    pod_pause_resume_internal()
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+@pytest.mark.dcos_min_version('1.9')
+def test_pod_pause_resume():
+    pod_pause_resume_internal(False)
+
+def pod_pause_resume_internal(validateReadinessCheck=True):
+    '''Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state'''
+
+    # get current agent id:
+    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)[0]['info']
+    old_agent = taskinfo['slaveId']['value']
+    old_cmd = taskinfo['command']['value']
+
+    # sanity check of pod status/plan status before we pause/resume:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
+    phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-0:[server]'
+    assert phase['steps'][0]['status'] == 'COMPLETE'
+
+    # pause the pod, wait for it to relaunch
+    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod pause hello-0', json=True)
+    assert len(jsonobj) == 2
+    assert jsonobj['pod'] == 'hello-0'
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0] == 'hello-0-server'
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
+    config.check_running()
+
+    # check agent didn't move, and that the command has changed:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
+    assert len(jsonobj) == 1
+    assert old_agent == jsonobj[0]['info']['slaveId']['value']
+    cmd = jsonobj[0]['info']['command']['value']
+    assert 'This task is PAUSED' in cmd
+
+    if validateReadinessCheck:
+        readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+        assert 'exit 1' == readiness_check
+
+    # check PAUSED state in plan and in pod status:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
+    assert jsonobj['tasks'][0]['status'] == 'PAUSED'
+    phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-0:[server]'
+    assert phase['steps'][0]['status'] == 'PAUSED'
+
+    # resume the pod again, wait for it to relaunch
+    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod resume hello-0', json=True)
+    assert len(jsonobj) == 2
+    assert jsonobj['pod'] == 'hello-0'
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0] == 'hello-0-server'
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
+    config.check_running()
+
+    # check again that the agent didn't move:
+    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)[0]['info']
+    assert old_agent == taskinfo['slaveId']['value']
+    assert old_cmd == taskinfo['command']['value']
+
+    # check that the pod/plan status is back to normal:
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
+    phase = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True)['phases'][0]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-0:[server]'
+    assert phase['steps'][0]['status'] == 'COMPLETE'
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
 @pytest.mark.dcos_min_version('1.9')
 def test_pods_restart_graceful_shutdown():
     options = {
@@ -208,63 +298,3 @@ def test_config_update_then_zk_killed():
     sdk_tasks.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
     config.check_running()
-
-
-@pytest.mark.recovery
-def test_partition():
-    host = sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-server")
-    shakedown.partition_agent(host)
-    shakedown.reconnect_agent(host)
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_partition_master_both_ways():
-    shakedown.partition_master()
-    shakedown.reconnect_master()
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_partition_master_incoming():
-    shakedown.partition_master(incoming=True, outgoing=False)
-    shakedown.reconnect_master()
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_partition_master_outgoing():
-    shakedown.partition_master(incoming=False, outgoing=True)
-    shakedown.reconnect_master()
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_all_partition():
-    hosts = shakedown.get_service_ips(config.SERVICE_NAME)
-    for host in hosts:
-        shakedown.partition_agent(host)
-    for host in hosts:
-        shakedown.reconnect_agent(host)
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_config_update_while_partitioned():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
-    shakedown.partition_agent(host)
-
-    service_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    updated_cpus = float(service_config['env']['WORLD_CPUS']) + 0.1
-    service_config['env']['WORLD_CPUS'] = str(updated_cpus)
-    sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
-
-    shakedown.reconnect_agent(host)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
-    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
-    assert len(running_tasks) == config.world_task_count(config.SERVICE_NAME)
-    for t in running_tasks:
-        assert config.close_enough(t['resources']['cpus'], updated_cpus)

@@ -24,6 +24,11 @@ public interface Step extends Element, Interruptible {
      */
     Optional<PodInstanceRequirement> start();
 
+    /**
+     * Return the pod instance that this Step intends to work on.
+     *
+     * @return The information about the pod that this Step intends to work on, Optional.empty() otherwise.
+     */
     Optional<PodInstanceRequirement> getPodInstanceRequirement();
 
     /**
@@ -36,10 +41,12 @@ public interface Step extends Element, Interruptible {
     void updateOfferStatus(Collection<OfferRecommendation> recommendations);
 
     /**
-     * Return the Asset that this Step intends to work on.
-     * @return The name of the Asset this Step intends to work on if one exists, Optional.empty() otherwise.
+     * Returns a user-facing display status of this step, which may provide additional context on the work being
+     * performed beyond the underlying progress {@link Status} returned by {@link Element#getStatus()}.
      */
-    Optional<PodInstanceRequirement> getAsset();
+    default String getDisplayStatus() {
+        return getStatus().toString();
+    }
 
     /**
      * Reports whether the Asset associated with this Step is dirty.
@@ -52,19 +59,17 @@ public interface Step extends Element, Interruptible {
     default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
         return Element.super.isEligible(dirtyAssets) &&
                 !isInterrupted() &&
-                !(getAsset().isPresent() && PlanUtils.assetConflicts(getAsset().get(), dirtyAssets));
+                !(getPodInstanceRequirement().isPresent()
+                        && PlanUtils.assetConflicts(getPodInstanceRequirement().get(), dirtyAssets));
     }
 
-    /**
-     * Thrown on invalid Step construction attempt.
-     */
-    class InvalidStepException extends Exception {
-        public InvalidStepException(Exception e) {
-            super(e);
-        }
-
-        public InvalidStepException(String s) {
-            super(s);
+    @Override
+    default String getMessage() {
+        if (!getStatus().toString().equals(getDisplayStatus())) {
+            // Include the custom display status:
+            return Element.super.getMessage() + String.format(" (display:%s)", getDisplayStatus());
+        } else {
+            return Element.super.getMessage();
         }
     }
 }

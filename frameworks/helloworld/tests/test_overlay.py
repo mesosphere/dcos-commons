@@ -180,6 +180,7 @@ def test_srv_records():
             "Missing SRV record for {} (prefix={}) in task {}:\nmatching={}\nall={}".format(
                 record_name, record_name_prefix, task_name, matching_records, task_records)
 
+    log.info("Getting framework srv records for %s", config.SERVICE_NAME)
     fmk_srvs = sdk_networks.get_framework_srv_records(config.SERVICE_NAME)
     for task in TASKS_WITH_PORTS:
         task_records = sdk_networks.get_task_record(task, fmk_srvs)

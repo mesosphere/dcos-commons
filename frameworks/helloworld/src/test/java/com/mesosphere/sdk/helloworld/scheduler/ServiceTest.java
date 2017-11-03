@@ -23,7 +23,7 @@ public class ServiceTest {
 
         // Verify that service launches 1 hello pod then 2 world pods.
         ticks.add(Send.offerBuilder("hello").build());
-        ticks.add(Expect.launchedPod("hello-0-server"));
+        ticks.add(Expect.launchedTasks("hello-0-server"));
 
         // Send another offer before hello-0 is finished:
         ticks.add(Send.offerBuilder("world").build());
@@ -34,7 +34,7 @@ public class ServiceTest {
 
         // Now world-0 will deploy:
         ticks.add(Send.offerBuilder("world").build());
-        ticks.add(Expect.launchedPod("world-0-server"));
+        ticks.add(Expect.launchedTasks("world-0-server"));
 
         // world-0 has a readiness check, so the scheduler is waiting for that:
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).build());
@@ -48,7 +48,7 @@ public class ServiceTest {
 
         // world-1 will finally launch if the offered hostname is different:
         ticks.add(Send.offerBuilder("world").setHostname("host-foo").build());
-        ticks.add(Expect.launchedPod("world-1-server"));
+        ticks.add(Expect.launchedTasks("world-1-server"));
         ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
 
         // No more worlds to launch:

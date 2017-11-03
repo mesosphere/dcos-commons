@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
@@ -13,7 +13,6 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -276,22 +275,12 @@ public abstract class AbstractScheduler {
 
         @Override
         public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+            Metrics.incrementReceivedOffers(offers.size());
+
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
-                return;
-            }
-
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
-                        offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineOffers(driver, offers, Constants.SHORT_DECLINE_SECONDS);
+                OfferUtils.declineShort(driver, offers);
                 return;
             }
 
@@ -314,7 +303,7 @@ public abstract class AbstractScheduler {
                 if (!queued) {
                     LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                             offer.getId().getValue());
-                    OfferUtils.declineOffers(driver, Arrays.asList(offer), Constants.SHORT_DECLINE_SECONDS);
+                    OfferUtils.declineShort(driver, Arrays.asList(offer));
                     // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                     synchronized (inProgressLock) {
                         offersInProgress.remove(offer.getId());
@@ -337,6 +326,7 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+                Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
@@ -401,8 +391,31 @@ public abstract class AbstractScheduler {
                 return;
             }
 
+            // Task Reconciliation:
+            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+            // http://mesos.apache.org/documentation/latest/reconciliation/
+            reconciler.reconcile(driver);
+            if (!reconciler.isReconciled()) {
+                LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
+                        offers.size(), offers.size() == 1 ? "" : "s");
+                OfferUtils.declineShort(driver, offers);
+                return;
+            }
+
             // Get the current work
             Collection<Step> steps = planCoordinator.getCandidates();
+
+            // Revive previously suspended offers, if necessary
+            Collection<Step> activeWorkSet = new HashSet<>(steps);
+            Collection<Step> inProgressSteps = getInProgressSteps(planCoordinator);
+            LOGGER.info(
+                    "InProgress Steps: {}",
+                    inProgressSteps.stream()
+                            .map(step -> step.getMessage())
+                            .collect(Collectors.toList()));
+            activeWorkSet.addAll(inProgressSteps);
+            reviveManager.revive(activeWorkSet);
 
             LOGGER.info("Processing {} offer{} against {} step{}:",
                     offers.size(), offers.size() == 1 ? "" : "s",
@@ -412,10 +425,14 @@ public abstract class AbstractScheduler {
             }
 
             // Match offers with work (call into implementation)
-            processOffers(driver, offers, steps);
+            final Timer.Context context = Metrics.getProcessOffersDurationTimer();
+            try {
+                processOffers(driver, offers, steps);
+            } finally {
+                context.stop();
+            }
+            Metrics.incrementProcessedOffers(offers.size());
 
-            // Revive previously suspended offers, if necessary
-            reviveManager.revive(steps);
 
             synchronized (inProgressLock) {
                 offersInProgress.removeAll(
@@ -429,6 +446,15 @@ public abstract class AbstractScheduler {
                         offersInProgress.size() == 1 ? "offer remains" : "offers remain",
                         offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
             }
+        }
+
+        private Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
+            return planCoordinator.getPlanManagers().stream()
+                    .map(planManager -> planManager.getPlan())
+                    .flatMap(plan -> plan.getChildren().stream())
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(step -> step.isRunning())
+                    .collect(Collectors.toSet());
         }
 
         /**

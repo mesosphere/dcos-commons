@@ -22,28 +22,20 @@ public class ServiceTest {
         ticks.add(Expect.reconciledImplicitly());
 
         // "node" task fails to launch on first attempt, without having entered RUNNING.
-        // Scheduler should attempt to replace task automatically:
         ticks.add(Send.offerBuilder("template").build());
-        ticks.add(Expect.launchedPod("template-0-node"));
-        ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_LOST).build());
-        ticks.add(Expect.killedTask("template-0-node"));
+        ticks.add(Expect.launchedTasks("template-0-node"));
+        ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_ERROR).build());
 
-        // Send a fresh offer and check that the task is relaunched there:
-        ticks.add(Send.offerBuilder("template").build());
-        ticks.add(Expect.launchedPod("template-0-node"));
-        ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_RUNNING).build());
-        ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_LOST).build());
-
-        // Now, because the task had entered RUNNING, it should be "stuck" to the earlier offer:
+        // Because the task has now been "pinned", a different offer which would fit the task is declined:
         ticks.add(Send.offerBuilder("template").build());
         ticks.add(Expect.declinedLastOffer());
 
         // It accepts the offer with the correct resource ids:
         ticks.add(Send.offerBuilder("template").setResourcesFromPod(0).build());
-        ticks.add(Expect.launchedPod("template-0-node"));
+        ticks.add(Expect.launchedTasks("template-0-node"));
         ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_RUNNING).build());
 
-        // With the pod launched again, the scheduler now ignores the same resources if they're reoffered:
+        // With the pod now running, the scheduler now ignores the same resources if they're reoffered:
         ticks.add(Send.offerBuilder("template").setResourcesFromPod(0).build());
         ticks.add(Expect.declinedLastOffer());
 

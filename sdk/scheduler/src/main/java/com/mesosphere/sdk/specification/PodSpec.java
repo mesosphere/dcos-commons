@@ -21,6 +21,9 @@ public interface PodSpec {
     @JsonProperty("count")
     Integer getCount();
 
+    @JsonProperty("allow-decommission")
+    Boolean getAllowDecommission();
+
     @JsonProperty("image")
     Optional<String> getImage();
 

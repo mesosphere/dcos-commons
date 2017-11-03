@@ -1,0 +1,35 @@
+{
+  "id": "/kdc",
+  "instances": 1,
+  "cpus": 1,
+  "mem": 512,
+  "container": {
+    "type": "MESOS",
+    "docker": {
+      "image": "mesosphere/kdc:latest",
+      "forcePullImage": true
+    },
+    "portMappings": [
+      {
+        "containerPort": 88,
+        "protocol": "tcp",
+        "labels": {"VIP_0": "kdc:88"}
+      },
+      {
+        "containerPort": 88,
+        "protocol": "udp",
+        "labels": {"VIP_0": "kdc:88"}
+      },
+      {
+        "containerPort": 8000,
+        "protocol": "tcp",
+        "labels": {"VIP_0": "kdc:8000"}
+      }
+    ]
+  },
+  "networks": [
+    {
+      "mode": "container/bridge"
+    }
+  ]
+}
