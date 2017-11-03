@@ -212,8 +212,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -225,8 +223,6 @@
       <li><a href="./tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
       
       <li><a href="./tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
-      
-      <li><a href="./tutorials/quick-start-java.html">Quick Start (Java)</a></li>
       
     </ul>
   </li>
@@ -457,16 +453,6 @@
           <li><a href="#readiness-checks" id="markdown-toc-readiness-checks">Readiness Checks</a></li>
           <li><a href="#volumes" id="markdown-toc-volumes">Volumes</a></li>
           <li><a href="#proxy-fallback" id="markdown-toc-proxy-fallback">Proxy Fallback</a></li>
-        </ul>
-      </li>
-      <li><a href="#servicespec-java" id="markdown-toc-servicespec-java"><code class="highlighter-rouge">ServiceSpec</code> (Java)</a>        <ul>
-          <li><a href="#placement-rules-1" id="markdown-toc-placement-rules-1">Placement Rules</a></li>
-        </ul>
-      </li>
-      <li><a href="#custom-plans-java" id="markdown-toc-custom-plans-java">Custom Plans (Java)</a>        <ul>
-          <li><a href="#internals" id="markdown-toc-internals">Internals</a></li>
-          <li><a href="#strategy" id="markdown-toc-strategy">Strategy</a></li>
-          <li><a href="#example" id="markdown-toc-example">Example</a></li>
         </ul>
       </li>
     </ul>
@@ -2418,168 +2404,6 @@ hello
 <h3 id="proxy-fallback">Proxy Fallback</h3>
 
 <p>Applications may not work properly behind adminrouter. In that case, one may use <a href="https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f">Repoxy</a>.</p>
-
-<h2 id="servicespec-java"><code class="highlighter-rouge">ServiceSpec</code> (Java)</h2>
-
-<p>The YAML-based <code class="highlighter-rouge">ServiceSpec</code> is flexible and powerful, but once a service moves beyond purely declarative requirements, its static nature becomes a barrier to development. The <code class="highlighter-rouge">ServiceSpec</code> as defined in YAML is actually just a convenience for generating a Java implementation of the <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java"><code class="highlighter-rouge">ServiceSpec</code> interface</a>, which is arbitrarily modifiable by users of the SDK.</p>
-
-<p>All of the interfaces of the <code class="highlighter-rouge">ServiceSpec</code> have default implementations. For example, the <code class="highlighter-rouge">ServiceSpec</code> interface is implemented by the <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/DefaultServiceSpec.java"><code class="highlighter-rouge">DefaultServiceSpec</code></a>. The default interface implementations also provide convenient fluent style construction. For example a <code class="highlighter-rouge">DefaultServiceSpec</code> can be constructed in the following way:</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">DefaultServiceSpec</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">()</span>
-    <span class="o">.</span><span class="na">name</span><span class="o">(</span><span class="n">FRAMEWORK_NAME</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">role</span><span class="o">(</span><span class="n">ROLE</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">principal</span><span class="o">(</span><span class="n">PRINCIPAL</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">zookeeperConnection</span><span class="o">(</span><span class="s">"foo.bar.com"</span><span class="o">)</span>
-    <span class="o">.</span><span class="na">pods</span><span class="o">(</span><span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">pods</span><span class="o">))</span>
-    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-</code></pre>
-</div>
-
-<p>The same pattern holds for all components of the <code class="highlighter-rouge">ServiceSpec</code>. <a href="#resource-sets">Resource sets</a> are one area of difference between Java and YAML <code class="highlighter-rouge">ServiceSpec</code> definitions. While the YAML interface allows specification with implicitly defined resource sets, the Java interface is more strict and requires explicit use of resource sets when implementing a <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/TaskSpec.java">TaskSpec</a>.</p>
-
-<h3 id="placement-rules-1">Placement Rules</h3>
-
-<p>The physical location of tasks in Mesos clusters has important implications for the availability and robustness to data loss of stateful services. You can control the placement of pods by adding placement rules to PodSpecs.</p>
-
-<p>You can add placement constraints to a PodSpec that has already been defined either through YAML or Java. This Java interface allows full customization of placement logic, whereas the <a href="#placement-rules">YAML interface</a> only supports specifying Marathon-style constraints. Note that the two will automatically be ANDed together if they are both provided. This allows users to specify their own deployment constraints on top of any hardcoded service constraints.</p>
-
-<p>One common placement constraint is to avoid placing pods of the same type together in order to avoid correlated failures. If, for example, you want to deploy all pods of type “hello” on different Mesos agents, extend the PodSpec as follows:</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">PodSpec</span> <span class="n">helloPodSpec</span> <span class="o">=</span> <span class="n">DefaultPodSpec</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">(</span><span class="n">helloPodSpec</span><span class="o">)</span>
-        <span class="o">.</span><span class="na">placementRule</span><span class="o">(</span><span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">avoid</span><span class="o">(</span><span class="s">"hello"</span><span class="o">))</span>
-        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-</code></pre>
-</div>
-
-<p>This is equivalent to specifying a “hostname:UNIQUE” Marathon constraint in your YAML specification. Let’s look at a more complicated placement rule and how multiple rules may be composed. If, for example, pods of type “hello” should avoid both pods of the same type and colocate with those of “world” type, this could be expressed as:</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">PodSpec</span> <span class="n">helloPodSpec</span> <span class="o">=</span> <span class="n">DefaultPodSpec</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">(</span><span class="n">helloPodSpec</span><span class="o">)</span>
-        <span class="o">.</span><span class="na">placementRule</span><span class="o">(</span>
-                <span class="k">new</span> <span class="nf">AndRule</span><span class="o">(</span>
-                        <span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">avoid</span><span class="o">(</span><span class="s">"hello"</span><span class="o">),</span>
-                        <span class="n">TaskTypeRule</span><span class="o">.</span><span class="na">colocateWith</span><span class="o">(</span><span class="s">"world"</span><span class="o">)))</span>
-        <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-</code></pre>
-</div>
-
-<p>In addition to the AndRule, OrRule and NotRule are also available to complete the necessary suite of boolean operators. Many placement rules for common scenarios are already provided by the SDK. Consult the com.mesosphere.sdk.offer.constrain package to find the list of placement rules currently available. <a href="https://github.com/mesosphere/dcos-commons/blob/50e54727/frameworks/hdfs/src/main/java/com/mesosphere/sdk/hdfs/scheduler/Main.java#L52-L69">A practical example is also available in the HDFS framework</a>.</p>
-
-<h2 id="custom-plans-java">Custom Plans (Java)</h2>
-
-<p>The YAML-based definition of plans is limited to defining custom deployment plans. You can use of the appropriate <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java">Java plan interface</a> for arbitrary flexibility in plan construction, be it for service deployment or any other purpose by <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Plan.java">s</a>. Default implementations of all interfaces are provided. <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlan.java">DefaultPlan</a>, <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPhase.java">DefaultPhase</a>, and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DeploymentStep.java">DeploymentStep</a> will be of interest to advanced service authors.</p>
-
-<h3 id="internals">Internals</h3>
-
-<p>Understanding plan execution can help you take advantage of the full capabilities of creating custom plans.</p>
-
-<p><img src="img/dev-guide-plans-and-the-offer-cycle.png" alt="plans and the offer cycle" /></p>
-
-<p>There are at least two plans defined at any given time for a scheduler: a deploy plan and a recovery plan.</p>
-
-<p><strong>Plan Managers</strong> determine what steps in a plan should be executed.</p>
-
-<p>A <strong>Plan Coordinator</strong> passes relevant information between plan managers so they understand what work other plan managers are doing to avoid contention. The output of the plan coordinator is a set of steps that are candidates for execution.</p>
-
-<p>The <strong>Plan Scheduler</strong> attempts to match offers from Mesos with the needs of each candidate step. If a step’s requirements are met, Mesos operations are performed. The operations performed are also reported to the steps so they can determine what state transitions to make.</p>
-
-<p>The state transitions of steps determine the overall progress of plans as they are the leaf elements of the Plan → Phase → Step hierarchy.</p>
-
-<table>
-  <tr>
-    <td>State</td>
-    <td>Meaning</td>
-  </tr>
-  <tr>
-    <td>Pending</td>
-    <td>No operations have been performed.</td>
-  </tr>
-  <tr>
-    <td>Prepared</td>
-    <td>Any tasks/pods that needed to be killed have been killed.</td>
-  </tr>
-  <tr>
-    <td>Starting</td>
-    <td>Operations have been performed, but their status has not yet been reported by Mesos.</td>
-  </tr>
-  <tr>
-    <td>Complete</td>
-    <td>The desired work has been accomplished.</td>
-  </tr>
-  <tr>
-    <td>Waiting</td>
-    <td>Outside intervention has occurred blocking processing.</td>
-  </tr>
-  <tr>
-    <td>Error</td>
-    <td>An error has occurred in construction or execution.</td>
-  </tr>
-</table>
-
-<p>Typically, a step transitions through states as follows: Pending → Prepared → Starting → Complete. There are no enforced restrictions on state transitions. However, there are conventional meanings to states that determine the behavior of plan execution. The most important concept here is the InProgress meta-state. By default, if a step is prepared or starting, it is determined to be InProgress. This state is the core of the anti-contention mechanism between plans. If a step is in progress, by default, no other plan will attempt to execute steps pertaining to the same pod instance</p>
-
-<p>Steps in the pending or prepared states undergo offer evaluation. That is, matching against Mesos offers is attempted. There is no need for offer evaluation in any of the other states.</p>
-
-<h3 id="strategy">Strategy</h3>
-
-<p>Fundamentally, the execution of a plan is the execution of steps in some order. The component that determines this ordering is a strategy. Every element of a plan has a strategy that determines the deployment order of its child elements. A plan has a strategy that determines the deployment order of phases. A phase, in turn, has has a strategy that determines the deployment order of steps.</p>
-
-<h3 id="example">Example</h3>
-
-<p>In general, a step encapsulates an instance of a pod and the tasks to be launched in that pod.  We recommend using the DefaultStepFactory to generate steps. The DefaultStepFactory consults the ConfigStore and StateStore and creates a step with the appropriate initial status. For example, if a pod instance has never been launched before, the step will start in a pending state. However, if a pod instance is already running and its goal state is RUNNING, its initial status will be COMPLETE.</p>
-
-<p>You could generate three steps in the following way:</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">StepFactory</span> <span class="n">stepFactory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultStepFactory</span><span class="o">(</span><span class="n">configStore</span><span class="o">,</span> <span class="n">stateStore</span><span class="o">);</span>
-
-<span class="n">List</span><span class="o">&lt;</span><span class="n">Step</span><span class="o">&gt;</span> <span class="n">steps</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ArrayList</span><span class="o">&lt;&gt;();</span>
-<span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance0</span><span class="o">,</span> <span class="n">tasksToLaunch0</span><span class="o">));</span>
-<span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance1</span><span class="o">,</span> <span class="n">tasksToLaunch1</span><span class="o">));</span>
-<span class="n">steps</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">stepFactory</span><span class="o">.</span><span class="na">getStep</span><span class="o">(</span><span class="n">podInstance2</span><span class="o">,</span> <span class="n">tasksToLaunch2</span><span class="o">));</span>
-</code></pre>
-</div>
-
-<p>Then steps can be grouped in a phase with an accompanying strategy.</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">Phase</span> <span class="n">phase</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultPhase</span><span class="o">(</span>
-        <span class="s">"phase-name"</span><span class="o">,</span>
-        <span class="n">steps</span><span class="o">,</span>
-        <span class="k">new</span> <span class="n">SerialStrategy</span><span class="o">&lt;&gt;(),</span>
-        <span class="n">Collections</span><span class="o">.</span><span class="na">emptyList</span><span class="o">());</span> <span class="c1">// No errors</span>
-</code></pre>
-</div>
-
-<p>The phase defined above will execute its steps in a serial order. The phase can be added to a plan.</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">Plan</span> <span class="n">customPlan</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DefaultPlan</span><span class="o">(</span>
-        <span class="s">"plan-name"</span><span class="o">,</span>
-        <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">phase</span><span class="o">),</span>
-        <span class="k">new</span> <span class="n">ParallelStrategy</span><span class="o">&lt;&gt;());</span>
-</code></pre>
-</div>
-
-<p>In the plan above, a parallel strategy is defined so all phases will be executed simultaneously. There is only one phase in this case. Once a plan is defined, it must be added to the PlanCoordinator/PlanManager system <a href="#internals">described above</a>.</p>
-
-<p>The easiest way to do this is to extend the DefaultService provided by the SDK.</p>
-
-<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">CustomService</span> <span class="kd">extends</span> <span class="n">DefaultService</span> <span class="o">{</span>
-    <span class="kd">public</span> <span class="nf">CustomService</span><span class="o">(</span><span class="n">File</span> <span class="n">yamlFile</span><span class="o">,</span> <span class="n">Plan</span> <span class="n">customPlan</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-        <span class="n">RawServiceSpecification</span> <span class="n">rawServiceSpecification</span> <span class="o">=</span>
-                <span class="n">YAMLServiceSpecFactory</span><span class="o">.</span><span class="na">generateRawSpecFromYAML</span><span class="o">(</span><span class="n">yamlFile</span><span class="o">);</span>
-        <span class="n">DefaultServiceSpec</span> <span class="n">defaultServiceSpec</span> <span class="o">=</span>
-                <span class="n">YAMLServiceSpecFactory</span><span class="o">.</span><span class="na">generateServiceSpec</span><span class="o">(</span><span class="n">rawServiceSpecification</span><span class="o">);</span>
-
-        <span class="n">serviceSpec</span> <span class="o">=</span> <span class="n">defaultServiceSpec</span><span class="o">;</span>
-        <span class="n">init</span><span class="o">();</span>
-        <span class="n">plans</span> <span class="o">=</span> <span class="n">generatePlansFromRawSpec</span><span class="o">(</span><span class="n">rawServiceSpecification</span><span class="o">);</span>
-        <span class="n">plans</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">customPlan</span><span class="o">);</span>
-
-        <span class="n">register</span><span class="o">(</span><span class="n">serviceSpec</span><span class="o">,</span> <span class="n">plans</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre>
-</div>
-
-<p>All plans provided in the register call will be executed.</p>
 
 </div>
 </div>
