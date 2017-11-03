@@ -83,14 +83,20 @@
               "type": "boolean",
               "default": false
             },
-            "keytabs_uri": {
+            "kdc_host_name": {
               "type": "string",
-              "description": "The URI from which Keytabs tar.gz can be downloaded. Only relevant when secure_mode is enabled.",
-              "default": ""
+              "description": "The name or address of a host running a KDC for the realm.",
+              "default": "kdc.marathon.l4lb.thisdcos.directory"
             },
-            "krb5_conf_uri": {
+            "kdc_host_port": {
               "type": "string",
-              "description": "The URI of the krb5.conf file.  This file will be downloaded and used by each HDFS task."
+              "description": "The port of the host running a KDC for that realm.",
+              "default": "88"
+            },
+            "keytab_secret": {
+              "type": "string",
+              "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
+              "default": "__dcos_base64__hdfs_keytab"
             },
             "primary": {
               "type": "string",
@@ -1841,20 +1847,10 @@
           "description": "Buffer size used for FSDataInputStream in bytes.",
           "default": "262144"
         },
-        "hadoop_http_authentication_type": {
-          "type": "string",
-          "description": "Defines authentication used for Oozie HTTP endpoint. Supported values are: simple | kerberos | #AUTHENTICATION_HANDLER_CLASSNAME#",
-          "default": "simple"
-        },
         "hadoop_http_authentication_token_validity": {
           "type": "string",
           "description": "Indicates how long (in seconds) an authentication token is valid before it has to be renewed.",
           "default": "36000"
-        },
-        "hadoop_http_authentication_signature_secret_file": {
-          "type": "string",
-          "description": "The signature secret for signing the authentication tokens. The same secret should be used for JT/NN/DN/TT configurations.",
-          "default": "${user.home}/hadoop-http-auth-signature-secret"
         },
         "hadoop_http_authentication_cookie_domain": {
           "type": "string",
@@ -2158,9 +2154,7 @@
         "tfile_io_chunk_size",
         "tfile_io_output_buffer_size",
         "tfile_fs_input_buffer_size",
-        "hadoop_http_authentication_type",
         "hadoop_http_authentication_token_validity",
-        "hadoop_http_authentication_signature_secret_file",
         "hadoop_http_authentication_simple_anonymous_allowed",
         "hadoop_http_authentication_kerberos_principal",
         "hadoop_http_authentication_kerberos_keytab",

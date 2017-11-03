@@ -85,9 +85,11 @@
 
 
     {{#service.kerberos.enabled}}
-    "KEYTABS_URI": "{{service.kerberos.keytabs_uri}}",
-    "KRB5_CONF_URI": "{{service.kerberos.krb5_conf_uri}}",
-    "TASKCFG_ALL_SECURE_MODE": "{{service.kerberos.enabled}}",
+    "KERBEROS_ENABLED": "{{service.kerberos.enabled}}",
+    "TASKCFG_ALL_KERBEROS_ENABLED": "{{service.kerberos.enabled}}",
+    "TASKCFG_ALL_KDC_HOST_NAME": "{{service.kerberos.kdc_host_name}}",
+    "TASKCFG_ALL_KDC_HOST_PORT": "{{service.kerberos.kdc_host_port}}",
+    "KEYTAB_SECRET_PATH": "{{service.kerberos.keytab_secret}}",
     "TASKCFG_ALL_KERBEROS_PRIMARY": "{{service.kerberos.primary}}",
     "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
     "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
@@ -397,9 +399,7 @@
     "TASKCFG_ALL_TFILE_IO_CHUNK_SIZE": "{{hdfs.tfile_io_chunk_size}}",
     "TASKCFG_ALL_TFILE_IO_OUTPUT_BUFFER_SIZE": "{{hdfs.tfile_io_output_buffer_size}}",
     "TASKCFG_ALL_TFILE_FS_INPUT_BUFFER_SIZE": "{{hdfs.tfile_fs_input_buffer_size}}",
-    "TASKCFG_ALL_HADOOP_HTTP_AUTHENTICATION_TYPE": "{{hdfs.hadoop_http_authentication_type}}",
     "TASKCFG_ALL_HADOOP_HTTP_AUTHENTICATION_TOKEN_VALIDITY": "{{hdfs.hadoop_http_authentication_token_validity}}",
-    "TASKCFG_ALL_HADOOP_HTTP_AUTHENTICATION_SIGNATURE_SECRET_FILE": "{{hdfs.hadoop_http_authentication_signature_secret_file}}",
     "TASKCFG_ALL_HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN": "{{hdfs.hadoop_http_authentication_cookie_domain}}",
     "TASKCFG_ALL_HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED": "{{hdfs.hadoop_http_authentication_simple_anonymous_allowed}}",
     "TASKCFG_ALL_HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL": "{{hdfs.hadoop_http_authentication_kerberos_principal}}",
@@ -431,9 +431,6 @@
     "{{resource.assets.uris.bootstrap-zip}}",
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
-    {{#service.kerberos.enabled}}
-    "{{service.kerberos.krb5_conf_uri}}",
-    {{/service.kerberos.enabled}}
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
   ],
   "upgradeStrategy":{

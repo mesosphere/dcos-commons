@@ -132,10 +132,12 @@
         <name>hadoop.security.uid.cache.secs</name>
         <value>{{HADOOP_SECURITY_UID_CACHE_SECS}}</value>
     </property>
+    {{^KERBEROS_ENABLED}}
     <property>
         <name>hadoop.rpc.protection</name>
         <value>{{HADOOP_RPC_PROTECTION}}</value>
     </property>
+    {{/KERBEROS_ENABLED}}
     <property>
         <name>hadoop.security.saslproperties.resolver.class</name>
         <value>{{HADOOP_SECURITY_SASLPROPERTIES_RESOLVER_CLASS}}</value>
@@ -517,34 +519,6 @@
         <value>{{TFILE_FS_INPUT_BUFFER_SIZE}}</value>
     </property>
     <property>
-        <name>hadoop.http.authentication.type</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_TYPE}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.token.validity</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_TOKEN_VALIDITY}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.signature.secret.file</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_SIGNATURE_SECRET_FILE}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.cookie.domain</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.kerberos.principal</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.kerberos.keytab</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
-    </property>
-    <property>
         <name>dfs.ha.fencing.ssh.connect-timeout</name>
         <value>{{DFS_HA_FENCING_SSH_CONNECT_TIMEOUT}}</value>
     </property>
@@ -643,7 +617,7 @@
         <value>ALLOW_ALL</value>
     </property>
     {{/TLS_ENABLED}}
-    {{#SECURE_MODE}}
+    {{#KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
         <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
@@ -656,5 +630,41 @@
         <name>hadoop.security.authorization</name>
         <value>true</value>
     </property>
-    {{/SECURE_MODE}}
+    <property>
+        <name>hadoop.rpc.protection</name>
+        <value>privacy</value>
+    </property>
+    <property>
+        <name>hadoop.security.auth_to_local</name>
+        <value>
+          RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
+          RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
+        </value>
+    </property>
+
+    <property>
+        <name>hadoop.http.authentication.type</name>
+        <value>kerberos</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.token.validity</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_TOKEN_VALIDITY}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.cookie.domain</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.kerberos.principal</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL}}</value>
+    </property>
+    <property>
+        <name>hadoop.http.authentication.kerberos.keytab</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
+    </property>
+    {{/KERBEROS_ENABLED}}
 </configuration>
