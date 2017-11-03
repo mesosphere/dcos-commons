@@ -2,6 +2,7 @@ package com.mesosphere.sdk.api.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -79,7 +80,7 @@ class PhaseInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getSteps(), getStrategyName(), getStatus());
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override

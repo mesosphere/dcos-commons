@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
@@ -65,7 +66,7 @@ public class PlanInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getPhases(), getStrategyName(), getErrors(), getStatus());
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override

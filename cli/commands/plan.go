@@ -15,6 +15,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
+const UNKNOWN_VALUE = "<UNKNOWN>"
+
 var errPlanStatus417 = errors.New("plan endpoint returned HTTP status code 417")
 
 type planHandler struct {
@@ -317,11 +319,11 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 
 	planStatus, ok := planJSON["status"]
 	if !ok {
-		planStatus = "<UNKNOWN>"
+		planStatus = UNKNOWN_VALUE
 	}
 	planStrategy, ok := planJSON["strategy"]
 	if !ok {
-		planStatus = "UNKNOWN"
+		planStatus = UNKNOWN_VALUE
 	}
 	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
 
@@ -387,15 +389,15 @@ func appendStep(buf *bytes.Buffer, rawStep interface{}, prefix string, lastStep 
 func phaseString(phase map[string]interface{}) string {
 	phaseName, ok := phase["name"]
 	if !ok {
-		phaseName = "<UNKNOWN>"
+		phaseName = UNKNOWN_VALUE
 	}
 	phaseStrategy, ok := phase["strategy"]
 	if !ok {
-		phaseStrategy = "UNKNOWN"
+		phaseStrategy = UNKNOWN_VALUE
 	}
 	phaseStatus, ok := phase["status"]
 	if !ok {
-		phaseStatus = "<UNKNOWN>"
+		phaseStatus = UNKNOWN_VALUE
 	}
 	return fmt.Sprintf("%s (%s strategy) (%s)", phaseName, phaseStrategy, phaseStatus)
 }
@@ -403,11 +405,11 @@ func phaseString(phase map[string]interface{}) string {
 func stepString(step map[string]interface{}) string {
 	stepName, ok := step["name"]
 	if !ok {
-		stepName = "<UNKNOWN>"
+		stepName = UNKNOWN_VALUE
 	}
 	stepStatus, ok := step["status"]
 	if !ok {
-		stepStatus = "<UNKNOWN>"
+		stepStatus = UNKNOWN_VALUE
 	}
 	return fmt.Sprintf("%s (%s)", stepName, stepStatus)
 }
