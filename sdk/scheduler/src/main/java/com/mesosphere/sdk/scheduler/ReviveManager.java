@@ -65,7 +65,9 @@ public class ReviveManager {
      *     ...
      */
     public void revive(Collection<Step> activeWorkSet) {
-        Set<WorkItem> currCandidates = getCandidates(activeWorkSet);
+        Set<WorkItem> currCandidates = activeWorkSet.stream()
+                .map(step -> new WorkItem(step))
+                .collect(Collectors.toSet());
         Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
         newCandidates.removeAll(this.candidates);
 
@@ -88,16 +90,6 @@ public class ReviveManager {
         }
 
         this.candidates = currCandidates;
-    }
-
-
-    /**
-     * Returns candidates which potentially need new offers.
-     */
-    private Set<WorkItem> getCandidates(Collection<Step> steps) {
-        return steps.stream()
-                .map(step -> new WorkItem(step))
-                .collect(Collectors.toSet());
     }
 
     /**
