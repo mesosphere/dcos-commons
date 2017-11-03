@@ -19,8 +19,6 @@ import json
 import logging
 import os
 import shakedown
-import shutil
-import time
 
 import sdk_cmd
 import sdk_hosts
@@ -43,9 +41,9 @@ REALM = "LOCAL"
 # resiliency towards possible intermittent network failures.
 
 
-def _launch_marathon_app(app_definition):
+def launch_marathon_app(app_definition):
     """
-    Launches the marathon app given a marathon app definition.
+    Launches a marathon app given a marathon app definition.
     :param app_definition (dict): The app definition to launch the app from.
     Raises an exception on failure.
     """
@@ -54,20 +52,12 @@ def _launch_marathon_app(app_definition):
     if not rc:
         raise RuntimeError("Can't install KDC marathon app: {err}".format(err=msg))
 
-
-@retry(stop_max_attempt_number=3, wait_fixed=2000)
-def _check_kdc_marathon_task_is_running() -> bool:
-    """
-    :return (bool): Indicator of whether the KDC marathon app is running or not. Raises exception if app is not detected
-    after the specified wait & retry period.
-    """
     log.info("Waiting for app to be running...")
     shakedown.wait_for_task("marathon", KERBEROS_APP_ID)
 
-
-def _get_task() -> dict:
+def _get_kdc_task() -> dict:
     """
-    :return (dict): The task object with desired properties to be retrieved by other methods.
+    :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
     log.info("Getting KDC task")
     raw_tasks = sdk_cmd.run_cli("task --json")
@@ -221,12 +211,11 @@ class KerberosEnvironment:
             kdc_app_def = json.load(f)
 
         kdc_app_def["id"] = KERBEROS_APP_ID
-        _launch_marathon_app(kdc_app_def)
-        _check_kdc_marathon_task_is_running()
+        launch_marathon_app(kdc_app_def)
         self.kdc_port = 88
         self.kdc_fqdn = "{app_id}.marathon.{host_suffix}".format(
             app_id=KERBEROS_APP_ID, host_suffix=sdk_hosts.VIP_HOST_SUFFIX)
-        self.kdc_task = _get_task()
+        self.kdc_task = _get_kdc_task()
         self.framework_id = self.kdc_task["framework_id"]
         self.task_id = self.kdc_task["id"]
         self.kdc_host_id = self.kdc_task["slave_id"]
@@ -346,7 +335,7 @@ class KerberosEnvironment:
 
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
-    def finalize_environment(self):
+    def finalize(self):
         """
         Once the principals have been added, the rest of the environment setup does not ask for more info and can be
         automated, hence this method.

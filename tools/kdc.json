@@ -29,7 +29,8 @@
   },
   "networks": [
     {
-      "mode": "container/bridge"
+      "name": "dcos",
+      "mode": "container"
     }
   ]
 }
