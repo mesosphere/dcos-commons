@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -10,8 +11,9 @@ import (
 )
 
 type podHandler struct {
-	PodName string
-	RawJSON bool
+	PodName   string
+	TaskNames []string
+	RawJSON   bool
 }
 
 func (cmd *podHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -220,6 +222,46 @@ func (cmd *podHandler) handleReplace(a *kingpin.Application, e *kingpin.ParseEle
 	return nil
 }
 
+func (cmd *podHandler) handlePause(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	payload, err := toJSONList(cmd.TaskNames)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+
+	body, err := client.HTTPServicePostJSON(fmt.Sprintf("v1/pod/%s/pause", cmd.PodName), string(payload))
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintResponseText(body)
+	return nil
+}
+
+func (cmd *podHandler) handleResume(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	payload, err := toJSONList(cmd.TaskNames)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+
+	body, err := client.HTTPServicePostJSON(fmt.Sprintf("v1/pod/%s/resume", cmd.PodName), payload)
+	if err != nil {
+		client.PrintMessageAndExit(err.Error())
+	}
+	client.PrintResponseText(body)
+	return nil
+}
+
+func toJSONList(items []string) (string, error) {
+	if len(items) > 0 {
+		json, err := json.Marshal(items)
+		if err != nil {
+			return "", err
+		}
+		return string(json), nil
+	}
+
+	return "[]", nil
+}
+
 // HandlePodSection adds pod subcommands to the passed in kingpin.Application.
 func HandlePodSection(app *kingpin.Application) {
 	// pod[s] [status [name], info <name>, restart <name>, replace <name>]
@@ -240,4 +282,12 @@ func HandlePodSection(app *kingpin.Application) {
 
 	replace := pod.Command("replace", "Destroys a given pod and moves it to a new agent").Action(cmd.handleReplace)
 	replace.Arg("pod", "Name of the pod instance to replace").Required().StringVar(&cmd.PodName)
+
+	pause := pod.Command("pause", "Pauses one or more tasks in a given pod and launches placeholders on their resources").Action(cmd.handlePause)
+	pause.Arg("pod", "Name of the pod instance to pause tasks in").Required().StringVar(&cmd.PodName)
+	pause.Arg("tasks", "Names of the tasks to pause, with all being paused if none are supplied").StringsVar(&cmd.TaskNames)
+
+	resume := pod.Command("resume", "resumes one or more tasks in a given pod with their original specification").Action(cmd.handleResume)
+	resume.Arg("pod", "Name of the pod instance to resume tasks in").Required().StringVar(&cmd.PodName)
+	resume.Arg("tasks", "Names of the tasks to resume, with all being resumed if none are supplied").StringsVar(&cmd.TaskNames)
 }
