@@ -107,17 +107,21 @@ pods:
                     WantedBy=multi-user.target" > /etc/systemd/system/portworx.service &&
                 ln -sf /etc/systemd/system/portworx.service /etc/systemd/system/dcos.target.wants/portworx.service &&
                 systemctl daemon-reload &&
-                systemctl enable portworx && 
+                systemctl enable portworx &&
                 systemctl start portworx
 
-      restart:
+      upgrade:
         goal: FINISHED
         resource-set: px-restart-resources
         cmd: >
+             docker run --entrypoint /runc-entry-point.sh \
+                --rm -i --privileged=true \
+                -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
+                {{{PORTWORX_IMAGE_NAME}}} --upgrade
+
              systemctl daemon-reload && systemctl restart portworx
 
              while ! /opt/pwx/bin/pxctl status ; do sleep 5 ;  done
-
 
   etcd-cluster:
     user: {{SERVICE_USER}}
@@ -148,7 +152,7 @@ pods:
           interval: 5
           delay: 0
           timeout: 60
-    
+
   etcd-proxy:
     user: {{SERVICE_USER}}
     count: 1
@@ -177,7 +181,7 @@ pods:
         goal: RUNNING
         memory: {{INFLUXDB_MEM}}
         cpus: {{INFLUXDB_CPUS}}
-        cmd: > 
+        cmd: >
           export INFLUXDB_META_DIR=$MESOS_SANDBOX/influxdb/meta &&
           export INFLUXDB_DATA_DIR=$MESOS_SANDBOX/influxdb/data &&
           export INFLUXDB_DATA_WAL_DIR=$MESOS_SANDBOX/influxdb/wal &&
@@ -237,12 +241,12 @@ plans:
       {{#LIGHTHOUSE_ENABLED}}
       influxdb-deploy:
         strategy: serial
-        pod: influxdb 
+        pod: influxdb
         steps:
           - default : [[start]]
       lighthouse-deploy:
         strategy: serial
-        pod: lighthouse 
+        pod: lighthouse
         steps:
           - default : [[start]]
       {{/LIGHTHOUSE_ENABLED}}
@@ -251,16 +255,11 @@ plans:
         pod: portworx
         steps:
           - default : [[install]]
-  update-portworx:
+  upgrade-portworx:
     strategy: serial
     phases:
-      update-service:
-        strategy: parallel
-        pod: portworx
-        steps:
-          - default : [[install]]
-      restart-service:
+      upgrade:
         strategy: serial
         pod: portworx
         steps:
-          - default : [[restart]]
+          - default : [[upgrade]]
