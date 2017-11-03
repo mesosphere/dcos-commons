@@ -406,6 +406,17 @@ public abstract class AbstractScheduler {
             // Get the current work
             Collection<Step> steps = planCoordinator.getCandidates();
 
+            // Revive previously suspended offers, if necessary
+            Collection<Step> activeWorkSet = new HashSet<>(steps);
+            Collection<Step> inProgressSteps = getInProgressSteps(planCoordinator);
+            LOGGER.info(
+                    "InProgress Steps: {}",
+                    inProgressSteps.stream()
+                            .map(step -> step.getMessage())
+                            .collect(Collectors.toList()));
+            activeWorkSet.addAll(inProgressSteps);
+            reviveManager.revive(activeWorkSet);
+
             LOGGER.info("Processing {} offer{} against {} step{}:",
                     offers.size(), offers.size() == 1 ? "" : "s",
                     steps.size(), steps.size() == 1 ? "" : "s");
@@ -422,8 +433,6 @@ public abstract class AbstractScheduler {
             }
             Metrics.incrementProcessedOffers(offers.size());
 
-            // Revive previously suspended offers, if necessary
-            reviveManager.revive(steps);
 
             synchronized (inProgressLock) {
                 offersInProgress.removeAll(
@@ -437,6 +446,15 @@ public abstract class AbstractScheduler {
                         offersInProgress.size() == 1 ? "offer remains" : "offers remain",
                         offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
             }
+        }
+
+        private Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
+            return planCoordinator.getPlanManagers().stream()
+                    .map(planManager -> planManager.getPlan())
+                    .flatMap(plan -> plan.getChildren().stream())
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .filter(step -> step.isRunning())
+                    .collect(Collectors.toSet());
         }
 
         /**

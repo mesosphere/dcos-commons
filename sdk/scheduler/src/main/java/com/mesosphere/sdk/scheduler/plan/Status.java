@@ -78,6 +78,7 @@ public enum Status {
         switch (this) {
         case PREPARED:
         case STARTING:
+        case STARTED:
         case IN_PROGRESS:
             return true;
         default:

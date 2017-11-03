@@ -64,16 +64,20 @@ public class ReviveManager {
      *     kafka-0-broker fails    @ 11:00, it's new work!
      *     ...
      */
-    public void revive(Collection<Step> steps) {
-        Set<WorkItem> currCandidates = getCandidates(steps);
+    public void revive(Collection<Step> activeWorkSet) {
+        Set<WorkItem> currCandidates = getCandidates(activeWorkSet);
         Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
-        newCandidates.removeAll(candidates);
+        newCandidates.removeAll(this.candidates);
 
-        logger.info("Candidates, old: {}, current: {}, new:{}", candidates, currCandidates, newCandidates);
+        logger.info("Candidates, old: {}, current: {}, new:{}", this.candidates, currCandidates, newCandidates);
 
         if (!newCandidates.isEmpty()) {
             if (tokenBucket.tryAcquire()) {
-                logger.info("Reviving offers.");
+                logger.info(
+                        "Reviving offers with candidates, old: {}, current: {}, new:{}",
+                        this.candidates,
+                        currCandidates,
+                        newCandidates);
                 driver.reviveOffers();
                 Metrics.incrementRevives();
             } else {
@@ -83,15 +87,15 @@ public class ReviveManager {
             }
         }
 
-        candidates = currCandidates;
+        this.candidates = currCandidates;
     }
+
 
     /**
      * Returns candidates which potentially need new offers.
      */
     private Set<WorkItem> getCandidates(Collection<Step> steps) {
         return steps.stream()
-                .filter(step -> !step.isComplete())
                 .map(step -> new WorkItem(step))
                 .collect(Collectors.toSet());
     }
