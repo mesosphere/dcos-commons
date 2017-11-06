@@ -10,7 +10,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
