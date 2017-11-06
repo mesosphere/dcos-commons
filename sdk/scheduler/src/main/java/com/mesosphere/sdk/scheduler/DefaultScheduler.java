@@ -129,7 +129,7 @@ public class DefaultScheduler extends AbstractScheduler {
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
                                 schedulerConfig,
-                                Capabilities.getInstance().supportsDefaultExecutor()),
+                                Capabilities.getInstance()),
                         stateStore,
                         taskKiller);
         killUnneededAndPendingOverrideTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));

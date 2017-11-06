@@ -50,7 +50,7 @@ public class ResourceUtils {
     public static List<String> getResourceIds(Collection<Resource> resources) {
         return resources.stream()
                 .map(ResourceUtils::getResourceId)
-                .filter(resourceId -> resourceId.isPresent())
+                .filter(resourceId -> resourceId.isPresent() && !resourceId.get().equals(""))
                 .map(resourceId -> resourceId.get())
                 .distinct()
                 .collect(Collectors.toList());
@@ -61,6 +61,10 @@ public class ResourceUtils {
     }
 
     public static Optional<String> getPrincipal(Resource resource) {
+        return getPrincipal(resource.toBuilder());
+    }
+
+    public static Optional<String> getPrincipal(Resource.Builder resource) {
         Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
 
         if (reservationInfo.isPresent()) {
@@ -71,6 +75,10 @@ public class ResourceUtils {
     }
 
     public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
+        return getReservation(resource.toBuilder());
+    }
+
+    public static Optional<Resource.ReservationInfo> getReservation(Resource.Builder resource) {
         if (resource.getReservationsCount() > 0) {
             return getRefinedReservation(resource);
         } else {
@@ -78,7 +86,7 @@ public class ResourceUtils {
         }
     }
 
-    private static Optional<Resource.ReservationInfo> getRefinedReservation(Resource resource) {
+    private static Optional<Resource.ReservationInfo> getRefinedReservation(Resource.Builder resource) {
         if (resource.getReservationsCount() == 0) {
             return Optional.empty();
         }
@@ -86,7 +94,7 @@ public class ResourceUtils {
         return Optional.of(resource.getReservations(resource.getReservationsCount() - 1));
     }
 
-    private static Optional<Resource.ReservationInfo> getLegacyReservation(Resource resource) {
+    private static Optional<Resource.ReservationInfo> getLegacyReservation(Resource.Builder resource) {
         if (resource.hasReservation()) {
             return Optional.of(resource.getReservation());
         } else {
@@ -95,6 +103,10 @@ public class ResourceUtils {
     }
 
     public static Optional<String> getResourceId(Resource resource) {
+        return getResourceId(resource.toBuilder());
+    }
+
+    public static Optional<String> getResourceId(Resource.Builder resource) {
         Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
         if (!reservationInfo.isPresent()) {
             return Optional.empty();
@@ -107,7 +119,12 @@ public class ResourceUtils {
     }
 
     public static Optional<String> getPersistenceId(Resource resource) {
-        if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
+        return getPersistenceId(resource.toBuilder());
+    }
+
+    public static Optional<String> getPersistenceId(Resource.Builder resource) {
+        if (resource.hasDisk() && resource.getDisk().hasPersistence() &&
+                !resource.getDisk().getPersistence().getId().equals("")) {
             return Optional.of(resource.getDisk().getPersistence().getId());
         }
 

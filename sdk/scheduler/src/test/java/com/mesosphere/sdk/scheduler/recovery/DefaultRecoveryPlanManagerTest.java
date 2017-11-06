@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -129,7 +130,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         serviceSpec.getName(),
                         configTarget,
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                        true),
+                        Capabilities.getInstance()),
                 stateStore,
                 new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager));
@@ -284,7 +285,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         // Verify we launched the task
         assertEquals(1, acceptedOffers.size());
         verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
-        assertEquals(6, recommendationCaptor.getValue().size());
+        assertEquals(8, recommendationCaptor.getValue().size());
 
         // Verify the Task is reported as failed.
         assertNotNull(recoveryManager.getPlan());
@@ -365,7 +366,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // Verify we launched the task
         verify(offerAccepter, times(1)).accept(any(), recommendationCaptor.capture());
-        assertEquals(6, recommendationCaptor.getValue().size());
+        assertEquals(8, recommendationCaptor.getValue().size());
 
         // Verify the appropriate task was not checked for failure with failure monitor.
         verify(failureMonitor, never()).hasFailed(any());

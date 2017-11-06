@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.mesosphere.sdk.offer.LaunchGroupOfferRecommendation;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -114,7 +115,7 @@ public class MetricsTest {
     }
 
     private static OfferRecommendation getRecommendation(boolean shouldLaunch) {
-        return new LaunchOfferRecommendation(
+        return new LaunchGroupOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
                         .setTaskId(TestConstants.TASK_ID)
@@ -123,7 +124,6 @@ public class MetricsTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                shouldLaunch,
-                true);
+                shouldLaunch);
     }
 }

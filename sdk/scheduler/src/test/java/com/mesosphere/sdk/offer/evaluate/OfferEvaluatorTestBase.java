@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -20,6 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.Mockito.when;
+
 /**
  * A base class for use in writing offer evaluation tests.
  */
@@ -36,11 +39,13 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         targetConfig = UUID.randomUUID();
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, true);
+        when(Capabilities.getInstance().supportsDefaultExecutor()).thenReturn(true);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, Capabilities.getInstance());
     }
 
     protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, false);
+        when(Capabilities.getInstance().supportsDefaultExecutor()).thenReturn(false);
+        evaluator = new OfferEvaluator(stateStore, TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, Capabilities.getInstance());
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {
@@ -49,7 +54,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException, IOException {
+            throws SpecVisitorException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)),
                 podInstanceRequirement,
@@ -58,7 +63,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected List<Resource> recordLaunchWithOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException, IOException {
+            throws SpecVisitorException, IOException {
         return recordLaunchWithOfferedResources(
                 OfferTestUtils.getOffer(Arrays.asList(offeredResources)),
                 podInstanceRequirement,
@@ -67,7 +72,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     private List<Resource> recordLaunchWithOfferedResources(
             Protos.Offer offer, PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
-            throws InvalidRequirementException, IOException {
+            throws SpecVisitorException, IOException {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement, Arrays.asList(offer));
 

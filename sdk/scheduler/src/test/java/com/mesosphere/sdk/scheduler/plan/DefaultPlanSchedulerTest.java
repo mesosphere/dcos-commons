@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.evaluate.SpecVisitorException;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -92,7 +93,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoRecommendations() throws InvalidRequirementException, IOException {
+    public void testEvaluateNoRecommendations() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
@@ -104,7 +105,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException, IOException {
+    public void testEvaluateNoAcceptedOffers() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
@@ -117,7 +118,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateAcceptedOffers() throws InvalidRequirementException, IOException {
+    public void testEvaluateAcceptedOffers() throws SpecVisitorException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);

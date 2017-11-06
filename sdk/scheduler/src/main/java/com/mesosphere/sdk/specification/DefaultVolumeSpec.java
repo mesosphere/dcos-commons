@@ -97,4 +97,9 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 getType(),
                 getContainerPath());
     }
+
+    @Override
+    public VolumeSpec getVolumeSpec() {
+        return this;
+    }
 }

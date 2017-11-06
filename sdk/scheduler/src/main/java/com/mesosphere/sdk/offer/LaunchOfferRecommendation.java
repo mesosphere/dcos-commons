@@ -1,56 +1,27 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Offer.Operation;
-
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.TaskInfo;
 
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code LAUNCH} Operation.
  */
-public class LaunchOfferRecommendation implements OfferRecommendation {
-    private final Offer offer;
-    private final Operation operation;
-    private final TaskInfo taskInfo;
-    private final ExecutorInfo executorInfo;
+public abstract class LaunchOfferRecommendation implements OfferRecommendation {
+    private final Protos.Offer offer;
     private final boolean shouldLaunch;
-    private final boolean useDefaultExecutor;
 
     public LaunchOfferRecommendation(
-            Offer offer,
-            TaskInfo originalTaskInfo,
-            Protos.ExecutorInfo executorInfo,
-            boolean shouldLaunch,
-            boolean useDefaultExecutor) {
+            Protos.Offer offer,
+            boolean shouldLaunch) {
         this.offer = offer;
         this.shouldLaunch = shouldLaunch;
-        this.useDefaultExecutor = useDefaultExecutor;
-
-        TaskInfo.Builder taskBuilder = originalTaskInfo.toBuilder();
-        if (!shouldLaunch) {
-            new TaskLabelWriter(taskBuilder).setTransient();
-            taskBuilder.getTaskIdBuilder().setValue("");
-        }
-
-        taskBuilder.setSlaveId(offer.getSlaveId());
-
-        this.taskInfo = taskBuilder.build();
-        this.executorInfo = executorInfo;
-        this.operation = getLaunchOperation();
     }
 
     @Override
-    public Operation getOperation() {
-        return operation;
-    }
+    public abstract Protos.Offer.Operation getOperation();
 
     @Override
-    public Offer getOffer() {
+    public Protos.Offer getOffer() {
         return offer;
     }
 
@@ -59,35 +30,13 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
     }
 
     /**
-     * Returns the {@link TaskInfo} to be passed to a StateStore upon launch.
+     * Returns the {@link Protos.TaskInfo} to be passed to a StateStore upon launch.
      */
-    public TaskInfo getStoreableTaskInfo() {
-        if (useDefaultExecutor) {
-            return taskInfo.toBuilder()
-                    .setExecutor(executorInfo)
-                    .build();
-        }
-
-        return taskInfo;
-    }
+    public abstract Protos.TaskInfo getStoreableTaskInfo();
 
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
-
-    private Protos.Offer.Operation getLaunchOperation() {
-        Protos.Offer.Operation.Builder builder = Protos.Offer.Operation.newBuilder();
-        if (useDefaultExecutor) {
-            builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
-                    .getLaunchGroupBuilder()
-                            .setExecutor(executorInfo)
-                            .getTaskGroupBuilder()
-                                    .addTasks(taskInfo);
-        } else {
-            builder.setType(Protos.Offer.Operation.Type.LAUNCH)
-                    .getLaunchBuilder().addTaskInfos(TaskPackingUtils.pack(taskInfo));
-        }
-        return builder.build();
-    }
 }
+

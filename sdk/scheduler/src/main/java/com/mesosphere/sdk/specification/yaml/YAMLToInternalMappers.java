@@ -607,7 +607,7 @@ public class YAMLToInternalMappers {
                         networkNames);
                 portSpecs.add(namedVIPSpec);
             } else {
-                portSpecs.add(new PortSpec(
+                portSpecs.add(new DefaultPortSpec(
                         portValueBuilder.build(),
                         role,
                         preReservedRole,

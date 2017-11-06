@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.specification.PodSpec;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -9,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A representation of the pool of resources available in a single {@link Offer}. Tracks the
@@ -17,6 +20,7 @@ import java.util.*;
 public class MesosResourcePool {
     private static final Logger logger = LoggerFactory.getLogger(MesosResourcePool.class);
     private Offer offer;
+    private List<Value.Range> assignedRanges;
 
     /**
      * In practice this is always unreserved MOUNT volumes.
@@ -82,6 +86,31 @@ public class MesosResourcePool {
 
     public Map<String, Value> getUnreservedMergedPool() {
         return reservableMergedPoolByRole.get(Constants.ANY_ROLE);
+    }
+
+    public Long getUnassignedPort(PodSpec podSpec) {
+        List<Value.Range> availablePorts = RangeUtils.subtractRanges(
+                    reservableMergedPoolByRole.get(podSpec.getPreReservedRole())
+                            .get(Constants.PORTS_RESOURCE_TYPE)
+                            .getRanges()
+                            .getRangeList(),
+                    getAssignedPortRanges(podSpec));
+
+        return availablePorts.size() != 0 ? availablePorts.get(0).getBegin() : null;
+    }
+
+    @VisibleForTesting
+    private List<Value.Range> getAssignedPortRanges(PodSpec podSpec) {
+        if (assignedRanges == null) {
+            assignedRanges = podSpec.getTasks().stream()
+                    .flatMap(t -> t.getResourceSet().getResources().stream())
+                    .filter(r -> r.getName().equals(Constants.PORTS_RESOURCE_TYPE))
+                    .flatMap(r -> r.getValue().getRanges().getRangeList().stream())
+                    .filter(v -> v.getBegin() != 0)
+                    .collect(Collectors.toList());
+        }
+
+        return assignedRanges;
     }
 
     /**

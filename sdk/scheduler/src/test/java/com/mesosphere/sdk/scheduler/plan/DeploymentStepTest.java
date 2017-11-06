@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.LaunchGroupOfferRecommendation;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.*;
@@ -272,7 +273,7 @@ public class DeploymentStepTest {
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
                 mockStateStore);
 
-        LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
+        LaunchOfferRecommendation launchRec0 = new LaunchGroupOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
                         .setTaskId(taskId0)
@@ -281,10 +282,9 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
 
-        LaunchOfferRecommendation launchRec1 = new LaunchOfferRecommendation(
+        LaunchOfferRecommendation launchRec1 = new LaunchGroupOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
                         .setTaskId(taskId1)
@@ -293,7 +293,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
 
         step.updateOfferStatus(Arrays.asList(launchRec0, launchRec1));
@@ -334,7 +333,7 @@ public class DeploymentStepTest {
 
     private DeploymentStep getStartingStep() {
         DeploymentStep step = getPendingStep();
-        LaunchOfferRecommendation launchRec = new LaunchOfferRecommendation(
+        LaunchOfferRecommendation launchRec = new LaunchGroupOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
                         .setTaskId(taskID)
@@ -343,7 +342,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
         step.updateOfferStatus(Arrays.asList(launchRec));
         return step;
