@@ -23,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @see AttributeStringUtils#toString(Attribute)
  */
-public class AttributeRule implements StringMatcherRule {
+public class AttributeRule extends StringMatcherRule {
 
     /**
      * Requires that a task be placed on the provided attribute matcher.

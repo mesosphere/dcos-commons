@@ -41,7 +41,7 @@ import java.util.Collections;
  * on any given host. Among the above three hosts, any offers from host-1 and host-3 will be
  * accepted and offers from host-2 will be denied.
  */
-public class MaxPerHostnameRule implements MaxPerRule {
+public class MaxPerHostnameRule extends MaxPerRule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MaxPerHostnameRule.class);
 

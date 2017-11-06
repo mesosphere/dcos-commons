@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
  * This interface defines the required methods for generic application of a PlacementRule which forces a
  * maximum per some key (e.g. attribute, hostname, region, zone ...).
  */
-public interface MaxPerRule extends PlacementRule {
-    Collection<String> getKeys(Protos.TaskInfo taskInfo);
-    Collection<String> getKeys(Protos.Offer offer);
-    StringMatcher getTaskFilter();
+public abstract class MaxPerRule implements PlacementRule {
+    public abstract Collection<String> getKeys(Protos.TaskInfo taskInfo);
+    public abstract Collection<String> getKeys(Protos.Offer offer);
+    public abstract StringMatcher getTaskFilter();
 
-    default boolean isAcceptable(
+    public boolean isAcceptable(
             Protos.Offer offer,
             PodInstance podInstance,
             Collection<Protos.TaskInfo> tasks,
@@ -44,7 +44,7 @@ public interface MaxPerRule extends PlacementRule {
         return counts.values().stream().allMatch(value -> value <= max);
     }
 
-    default void updateMap(Map<String, Integer> map, Collection<String> keys) {
+    private void updateMap(Map<String, Integer> map, Collection<String> keys) {
         for (String key : keys) {
             Integer count = map.get(key);
             count = count == null ? 1 : count + 1;

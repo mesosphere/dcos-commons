@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * 'index-.*'. This allows us to only enforce the rule against certain task types or task instances
  * within the service.
  */
-public class MaxPerAttributeRule implements MaxPerRule {
+public class MaxPerAttributeRule extends MaxPerRule {
 
     @Valid
     @Min(1)

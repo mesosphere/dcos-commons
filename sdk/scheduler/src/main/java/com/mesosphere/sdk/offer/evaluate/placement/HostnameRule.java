@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * This rule enforces that a task be placed on the specified hostname, or enforces that the task
  * avoid that hostname.
  */
-public class HostnameRule implements StringMatcherRule {
+public class HostnameRule extends StringMatcherRule {
 
     /**
      * Requires that a task be placed on the provided hostname.

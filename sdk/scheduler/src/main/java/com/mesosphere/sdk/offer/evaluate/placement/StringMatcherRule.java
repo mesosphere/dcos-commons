@@ -9,10 +9,10 @@ import java.util.Collection;
  * This interface defines the required methods for generic application of a PlacementRule which depends on the presence
  * of some key (e.g. attribute, hostname, region, zone ...).
  */
-public interface StringMatcherRule extends PlacementRule {
-    public Collection<String> getKeys(Protos.Offer offer);
+public abstract class StringMatcherRule implements PlacementRule {
+    public abstract Collection<String> getKeys(Protos.Offer offer);
 
-    public default boolean isAcceptable(
+    public boolean isAcceptable(
             StringMatcher matcher,
             Protos.Offer offer,
             PodInstance podInstance,
