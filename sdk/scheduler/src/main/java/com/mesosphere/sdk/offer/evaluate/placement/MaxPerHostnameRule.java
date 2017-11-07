@@ -75,6 +75,7 @@ public class MaxPerHostnameRule extends MaxPerRule {
     public MaxPerHostnameRule(
             @JsonProperty("max") int maxTasksPerSelectedHostname,
             @JsonProperty("task-filter") StringMatcher taskFilter) {
+        super(maxTasksPerSelectedHostname, taskFilter);
         this.maxTasksPerHostname = maxTasksPerSelectedHostname;
         if (taskFilter == null) { // null when unspecified in serialized data
             taskFilter = AnyMatcher.create();
@@ -85,7 +86,7 @@ public class MaxPerHostnameRule extends MaxPerRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        if (isAcceptable(offer, podInstance, tasks, maxTasksPerHostname)) {
+        if (isAcceptable(offer, podInstance, tasks)) {
             return EvaluationOutcome.pass(
                     this,
                     "Fewer than %d tasks matching filter '%s' are present on this host",
@@ -98,11 +99,6 @@ public class MaxPerHostnameRule extends MaxPerRule {
                     maxTasksPerHostname, taskFilter.toString())
                     .build();
         }
-    }
-
-    @JsonProperty("max")
-    private int getMax() {
-        return maxTasksPerHostname;
     }
 
     @Override
@@ -118,11 +114,6 @@ public class MaxPerHostnameRule extends MaxPerRule {
     @Override
     public Collection<String> getKeys(Offer offer) {
         return Arrays.asList(offer.getHostname());
-    }
-
-    @JsonProperty("task-filter")
-    public StringMatcher getTaskFilter() {
-        return taskFilter;
     }
 
     @Override
