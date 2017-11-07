@@ -86,6 +86,17 @@
                "type": "boolean",
                "default": false
             },
+            "plaintext": {
+              "type": "object",
+              "description": "SASL Plaintext configuration options",
+              "properties": {
+                "enabled": {
+                  "description": "Enable plaintext SASL authentication",
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
             "kerberos": {
               "type": "object",
               "description": "Kerberos configuration properties.",
