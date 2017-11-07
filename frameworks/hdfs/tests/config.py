@@ -18,10 +18,12 @@ TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "mesosphere/hdfs-client:2.6.4"
-KERBERIZED_CLIENT_IMAGE_NAME = "nvaziri/kerberized-hdfs-client:dev_4"
+KERBERIZED_CLIENT_IMAGE_NAME = "nvaziri/kerberized-hdfs-client:dev"
+KERBERIZED_CLIENT_MEM_SIZE = 512
 
 kerberized_hdfs_client_marathon_app = {
     "id": "hdfsclient",
+    "mem": KERBERIZED_CLIENT_MEM_SIZE,
     "container": {
         "type": "MESOS",
         "docker": {
@@ -42,14 +44,14 @@ kerberized_hdfs_client_marathon_app = {
     },
     "networks": [
         {
-            "name": "dcos",
-            "mode": "container"
+            "mode": "host"
         }
     ],
     "env": {
         "REALM": "",
         "KDC_ADDRESS": "",
-        "JAVA_HOME": "/usr/lib/jvm/default-java"
+        "JAVA_HOME": "/usr/lib/jvm/default-java",
+        "JVM_MaxHeapSize": KERBERIZED_CLIENT_MEM_SIZE
     }
 }
 

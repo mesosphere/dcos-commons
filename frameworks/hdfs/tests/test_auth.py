@@ -99,7 +99,7 @@ def test_user_can_write_and_read(kerberos):
     #    #client_app_def["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
     #    client_app_def["env"]["KDC_ADDRESS"] = "kdc.marathon.l4lb.thisdcos.directory:88"
     #    client_app_def["env"]["KRB5_CONFIG"] = "/etc/krb5.conf"
-    #    sdk_auth.launch_marathon_app(client_app_def)
+    #    sdk_marathon.install_app(client_app_def)
     #    client_task_id = client_app_def["id"]
 
     #    time.sleep(40)

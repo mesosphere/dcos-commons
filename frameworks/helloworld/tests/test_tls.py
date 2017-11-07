@@ -47,8 +47,8 @@ def service_account():
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
     yield name
-    sdk_security.delete_service_account(name)
-    sdk_security.delete_secret(name)
+    sdk_security.delete_service_account(
+        service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module')

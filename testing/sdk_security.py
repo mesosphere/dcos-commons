@@ -139,8 +139,7 @@ def create_service_account(service_account_name: str, service_account_secret: st
     sdk_cmd.run_cli('package install dcos-enterprise-cli --yes')
 
     log.info('Remove any existing service account and/or secret')
-    delete_service_account(service_account_name)
-    delete_secret(service_account_secret)
+    delete_service_account(service_account_name, service_account_secret)
 
     log.info('Create keypair')
     sdk_cmd.run_cli('security org service-accounts keypair private-key.pem public-key.pem')
@@ -160,7 +159,7 @@ def create_service_account(service_account_name: str, service_account_secret: st
         secret=service_account_secret))
 
 
-def delete_service_account(service_account_name: str) -> None:
+def delete_service_account(service_account_name: str, service_account_secret: str) -> None:
     """
     Deletes service account with private key that belongs to the service account.
     """
@@ -173,6 +172,9 @@ def delete_service_account(service_account_name: str) -> None:
             os.unlink(keypair_file)
         except OSError:
             pass
+
+    delete_secret(secret=service_account_secret)
+
 
 def delete_secret(secret: str) -> None:
     """
@@ -209,8 +211,7 @@ def cleanup_security(framework_name: str) -> None:
         role_name='test__integration__{}-role'.format(framework_name),
         service_account_name='service-acct'
     )
-    delete_service_account('service-acct')
-    delete_secret('secret')
+    delete_service_account('service-acct', 'secret')
     log.info('Finished cleaning up strict-mode security')
 
 

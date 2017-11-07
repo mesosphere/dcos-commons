@@ -11,7 +11,7 @@ SHOULD ALSO BE APPLIED TO sdk_auth IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 from retrying import retry
-from subprocess import run, PIPE
+from subprocess import run
 from tempfile import TemporaryDirectory
 
 import dcos
@@ -23,6 +23,7 @@ import shakedown
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
+import sdk_tasks
 import sdk_security
 
 
@@ -41,20 +42,7 @@ REALM = "LOCAL"
 # resiliency towards possible intermittent network failures.
 
 
-def launch_marathon_app(app_definition):
-    """
-    Launches a marathon app given a marathon app definition.
-    :param app_definition (dict): The app definition to launch the app from.
-    Raises an exception on failure.
-    """
-    log.info("Launching KDC marathon app")
-    rc, msg = sdk_marathon.install_app(app_definition)
-    if not rc:
-        raise RuntimeError("Can't install KDC marathon app: {err}".format(err=msg))
-
-    log.info("Waiting for app to be running...")
-    shakedown.wait_for_task("marathon", app_definition["id"])
-
+@retry(stop_max_attempt_number=3, wait_fixed=2000)
 def _get_kdc_task() -> dict:
     """
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
@@ -125,77 +113,36 @@ def _create_temp_working_dir() -> TemporaryDirectory:
 def _copy_file_to_localhost(self):
     """
     Copies the keytab that was generated inside the container running the KDC server to the localhost
-    so it can be uploaded to the secret store later. This must be done in multiple steps as we have to jump through
-    hoops.
+    so it can be uploaded to the secret store later.
 
     The keytab will end up in path: <temp_working_dir>/<keytab_file>
     """
     log.info("Copying {} to the temp working directory".format(self.keytab_file_name))
 
-    # 1. copy from within container to private agent
-    src = "{mesos_agents_path}/{host_id}/frameworks/{framework_id}/executors/{task_id}/runs/latest/{keytab_file}".format(
+    keytab_absolute_path = "{mesos_agents_path}/{host_id}/frameworks/{framework_id}/executors/{task_id}/runs/latest/{keytab_file}".format(
         mesos_agents_path="/var/lib/mesos/slave/slaves",
         host_id=self.kdc_host_id,
         framework_id=self.framework_id,
         task_id=self.task_id,
         keytab_file=self.keytab_file_name
     )
-    dest = "/home/{linux_user}/{keytab_file}".format(
-        linux_user=LINUX_USER,
-        keytab_file=self.keytab_file_name
-    )
-    copy_cmd = "sudo cp {src} {dest}".format(src=src, dest=dest)
-
-    try:
-        shakedown.run_command_on_agent(self.kdc_host_name, copy_cmd)
-    except dcos.errors.DCOSException as e:
-        raise RuntimeError("Failed to copy keytab file from container to agent: {}".format(repr(e)))
-
-    # 2. Change file ownership so it can be scp'ed to leader
-    chown_cmd = "sudo chown {linux_user} {keytab_file}".format(linux_user=LINUX_USER, keytab_file=self.keytab_file_name)
-
-    try:
-        shakedown.run_command_on_agent(self.kdc_host_name, chown_cmd)
-    except dcos.errors.DCOSException as e:
-        raise RuntimeError("Failed to chown keytab file: {}".format(repr(e)))
-
-    # 3. Copy from private agent to leader
-    src = "{linux_user}@{kdc_host_name}:/home/{linux_user}/{keytab_file}".format(
-        linux_user=LINUX_USER,
-        kdc_host_name=self.kdc_host_name,
-        keytab_file=self.keytab_file_name
-    )
-    dest = "/home/{linux_user}/{keytab_file}".format(
-        linux_user=LINUX_USER,
-        keytab_file=self.keytab_file_name
-    )
-    scp_cmd = "scp -o StrictHostKeyChecking=no {src} {dest}".format(src=src, dest=dest)
-    ssh_context = "eval $(ssh-agent -s) && ssh-add /ssh/key"
-    dcos_ssh_cmd = "dcos node ssh --master-proxy --leader --option StrictHostKeyChecking=no"
-    cmd = "{ssh_context} && {dcos_ssh_cmd} '{scp_cmd}'".format(
-        ssh_context=ssh_context, dcos_ssh_cmd=dcos_ssh_cmd, scp_cmd=scp_cmd
-    )
-
-    try:
-        run([cmd], shell=True, stdout=PIPE)
-    except dcos.errors.DCOSException as e:
-        raise RuntimeError("Failed to copy keytab file from private agent to leader: {}".format(repr(e)))
-
-    # 4. Copy from leader to localhost
-    src = "{linux_user}@{master_public_ip}:/home/{linux_user}/{keytab_file}".format(
-        linux_user=LINUX_USER,
-        master_public_ip=self.master_public_ip,
-        keytab_file=self.keytab_file_name
+    keytab_url = "{cluster_url}/slave/{agent_id}/files/download?path={path}".format(
+        cluster_url=shakedown.dcos_url(),
+        agent_id=self.kdc_host_id,
+        path=keytab_absolute_path
     )
     dest = "{temp_working_dir}/{keytab_file}".format(
         temp_working_dir=self.temp_working_dir.name, keytab_file=self.keytab_file_name)
 
+    curl_cmd = "curl -k --header '{auth}' {url} > {dest_file}".format(
+        auth="Authorization: token={token}".format(token=shakedown.dcos_acs_token()),
+        url=keytab_url,
+        dest_file=dest
+    )
     try:
-        run(["scp", src, dest])
+        run([curl_cmd], shell=True)
     except Exception as e:
-        raise Exception("Failed to scp keytab file from leader to localhost: {}".format(repr(e)))
-
-
+        raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
 
 
 class KerberosEnvironment:
@@ -211,10 +158,10 @@ class KerberosEnvironment:
             kdc_app_def = json.load(f)
 
         kdc_app_def["id"] = KERBEROS_APP_ID
-        launch_marathon_app(kdc_app_def)
+        sdk_marathon.install_app(kdc_app_def)
         self.kdc_port = int(kdc_app_def["portDefinitions"][0]["port"])
-        self.kdc_host = "{app_name}.{dns_resolver_suffix}".format(
-                app_name=KERBEROS_APP_ID, dns_resolver_suffix="marathon.mesos")
+        self.kdc_host = "{app_name}.{service_name}.{autoip_host_suffix}".format(
+                app_name=KERBEROS_APP_ID, service_name="marathon", autoip_host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
         self.kdc_realm = REALM
         self.kdc_task = _get_kdc_task()
         self.framework_id = self.kdc_task["framework_id"]
@@ -242,15 +189,14 @@ class KerberosEnvironment:
                             needed to be set for the sub command.
         :raises a generic Exception if the invocation fails.
         """
-        kadmin_cmd = "task exec {task_id} /usr/sbin/kadmin {options} {cmd} {args}".format(
-            task_id=self.task_id,
+        kadmin_cmd = "/usr/sbin/kadmin {options} {cmd} {args}".format(
             options=' '.join(options),
             cmd=cmd,
             args=' '.join(args)
         )
         log.info("Running kadmin: {}".format(kadmin_cmd))
         try:
-            sdk_cmd.run_cli(kadmin_cmd).strip()
+            sdk_tasks.task_exec(self.task_id, kadmin_cmd)
         except Exception as e:
             log.error("Failed to run kadmin: {}".format(repr(e)))
             raise e
@@ -284,12 +230,12 @@ class KerberosEnvironment:
         kadmin_cmd = "add"
         kadmin_args = ["--use-defaults", "--random-password"]
 
-        for principal in principals:
-            try:
-                self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args + [principal])
-            except Exception as e:
-                raise RuntimeError("Failed to add principal {principal}: {err_msg}".format(
-                    principal=principal, err_msg=repr(e)))
+        try:
+            kadmin_args.extend(principals)
+            self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
+        except Exception as e:
+            raise RuntimeError("Failed to add principals {principals}: {err_msg}".format(
+                principals=principals, err_msg=repr(e)))
 
         log.info("Principals successfully added to KDC")
 
@@ -368,9 +314,5 @@ class KerberosEnvironment:
 
         #TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
-        delete_secret_cmd = "security secrets delete {}".format(self.keytab_secret_path)
-        try:
-            sdk_cmd.run_cli(delete_secret_cmd)
-        except RuntimeError as e:
-            raise RuntimeError("Failed to delete secret for the base64-encoded keytab file: {}".format(repr(e)))
+        sdk_security.delete_secret(self.keytab_secret_path)
 
