@@ -145,8 +145,6 @@ def _copy_file_to_localhost(self):
         raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
 
 
-
-
 class KerberosEnvironment:
     def __init__(self):
         """
