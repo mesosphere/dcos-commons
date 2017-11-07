@@ -53,7 +53,7 @@ def launch_marathon_app(app_definition):
         raise RuntimeError("Can't install KDC marathon app: {err}".format(err=msg))
 
     log.info("Waiting for app to be running...")
-    shakedown.wait_for_task("marathon", KERBEROS_APP_ID)
+    shakedown.wait_for_task("marathon", app_definition["id"])
 
 def _get_kdc_task() -> dict:
     """
@@ -212,9 +212,10 @@ class KerberosEnvironment:
 
         kdc_app_def["id"] = KERBEROS_APP_ID
         launch_marathon_app(kdc_app_def)
-        self.kdc_port = 88
-        self.kdc_fqdn = "{app_id}.marathon.{host_suffix}".format(
-            app_id=KERBEROS_APP_ID, host_suffix=sdk_hosts.VIP_HOST_SUFFIX)
+        self.kdc_port = int(kdc_app_def["portDefinitions"][0]["port"])
+        self.kdc_host = "{app_name}.{dns_resolver_suffix}".format(
+                app_name=KERBEROS_APP_ID, dns_resolver_suffix="marathon.mesos")
+        self.kdc_realm = REALM
         self.kdc_task = _get_kdc_task()
         self.framework_id = self.kdc_task["framework_id"]
         self.task_id = self.kdc_task["id"]
@@ -344,13 +345,19 @@ class KerberosEnvironment:
         self.__create_and_upload_secret()
 
     def get_host(self):
-        return self.kdc_fqdn
+        return self.kdc_host
 
     def get_port(self):
         return str(self.kdc_port)
 
     def get_keytab_path(self):
         return self.keytab_secret_path
+
+    def get_realm(self):
+        return self.kdc_realm
+
+    def get_kdc_address(self):
+        return "{host}:{port}".format(host=self.kdc_host, port=self.kdc_port)
 
     def cleanup(self):
         log.info("Removing the marathon KDC app")
