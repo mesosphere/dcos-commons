@@ -21,14 +21,14 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRoundRobinRule.class);
 
     protected final StringMatcher taskFilter;
-    protected final Optional<Integer> distinctValueCount;
+    protected final Optional<Integer> distinctKeyCount;
 
-    protected AbstractRoundRobinRule(StringMatcher taskFilter, Optional<Integer> distinctValueCount) {
+    protected AbstractRoundRobinRule(StringMatcher taskFilter, Optional<Integer> distinctKeyCount) {
         if (taskFilter == null) { // null when unspecified in serialized data
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
-        this.distinctValueCount = distinctValueCount;
+        this.distinctKeyCount = distinctKeyCount;
     }
 
     /**
@@ -45,15 +45,15 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        final String offerValue = getKey(offer);
-        if (offerValue == null) {
+        final String offerKey = getKey(offer);
+        if (offerKey == null) {
             // offer doesn't have the required attribute at all. denied.
-            return EvaluationOutcome.fail(this, "Offer lacks required round robin value").build();
+            return EvaluationOutcome.fail(this, "Offer lacks required round robin key").build();
         }
 
-        // search across tasks, keeping value counts on a per-value basis.
-        // attribute value (for selected attribute name) => # of instances on attribute value
-        Map<String, Integer> valueCounts = new HashMap<>();
+        // search across tasks, keeping key counts on a per-key basis.
+        // key => # of instances on key
+        Map<String, Integer> counts = new HashMap<>();
         for (TaskInfo task : tasks) {
             // only tally tasks which match the task matcher (eg 'index-.*')
             if (!taskFilter.matches(task.getName())) {
@@ -66,69 +66,68 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
                 continue;
             }
 
-            final String taskAttributeValue = getKey(task);
-            if (taskAttributeValue == null) {
-                // no attribute matching the name was found. ignore.
+            final String taskKey = getKey(task);
+            if (taskKey == null) {
+                // no key matching the name was found. ignore.
                 continue;
             }
-            Integer value = valueCounts.get(taskAttributeValue);
-            valueCounts.put(taskAttributeValue, (value == null) ? 1 : value + 1);
+            Integer count = counts.get(taskKey);
+            counts.put(taskKey, (count == null) ? 1 : count + 1);
         }
 
-        int maxKnownValueCount = 0;
-        int minKnownValueCount = Integer.MAX_VALUE;
-        for (Integer count : valueCounts.values()) {
-            if (count > maxKnownValueCount) {
-                maxKnownValueCount = count;
+        int maxKnownKeyCount = 0;
+        int minKnownKeyCount = Integer.MAX_VALUE;
+        for (Integer count : counts.values()) {
+            if (count > maxKnownKeyCount) {
+                maxKnownKeyCount = count;
             }
-            if (count < minKnownValueCount) {
-                minKnownValueCount = count;
+            if (count < minKnownKeyCount) {
+                minKnownKeyCount = count;
             }
         }
-        if (minKnownValueCount == Integer.MAX_VALUE) {
-            minKnownValueCount = 0;
+        if (minKnownKeyCount == Integer.MAX_VALUE) {
+            minKnownKeyCount = 0;
         }
-        Integer offerValueCount = valueCounts.get(offerValue);
-        if (offerValueCount == null) {
-            offerValueCount = 0;
+        Integer offerKeyCount = counts.get(offerKey);
+        if (offerKeyCount == null) {
+            offerKeyCount = 0;
         }
-        LOGGER.info("Value counts: {}, knownMin: {}, knownMax: {}, offer: {}",
-                valueCounts, minKnownValueCount, maxKnownValueCount, offerValueCount);
+        LOGGER.info("Key counts: {}, knownMin: {}, knownMax: {}, offer: {}",
+                counts, minKnownKeyCount, maxKnownKeyCount, offerKeyCount);
 
-        if (minKnownValueCount == maxKnownValueCount
-                || offerValueCount <= minKnownValueCount) {
-            // all (known) attribute values are full at the current level, or this offer is on a value
-            // which is at the smallest number of tasks (or below if we haven't expanded to this value yet)
-            if (!distinctValueCount.isPresent()) {
-                // we don't know how many distinct attribute values are out there, and this value has fewer instances
-                // than some other value in the system.
+        if (minKnownKeyCount == maxKnownKeyCount
+                || offerKeyCount <= minKnownKeyCount) {
+            // all (known) keys are full at the current level, or this offer is on a key
+            // which is at the smallest number of tasks (or below if we haven't expanded to this key yet)
+            if (!distinctKeyCount.isPresent()) {
+                // we don't know how many distinct keys are out there, and this key has fewer instances
+                // than some other key in the system.
                 return EvaluationOutcome.pass(
                         this,
-                        "Distinct value count is unspecified, and '%s' has %d instances while others have%d to %d",
-                        offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount).build();
-            } else if (valueCounts.size() >= distinctValueCount.get()) {
-                // no values are missing from our counts, and this value has fewer instances than some other value in
+                        "Distinct key count is unspecified, and '%s' has %d instances while others have%d to %d",
+                        offerKey, offerKeyCount, minKnownKeyCount, maxKnownKeyCount).build();
+            } else if (counts.size() >= distinctKeyCount.get()) {
+                // no keys are missing from our counts, and this key has fewer instances than some other key in
                 // the system.
                 return EvaluationOutcome.pass(
                         this,
-                        "All distinct values are found, and '%s' has %d instances while others have %d to %d",
-                        offerValue, offerValueCount, minKnownValueCount, maxKnownValueCount).build();
+                        "All distinct keys are found, and '%s' has %d instances while others have %d to %d",
+                        offerKey, offerKeyCount, minKnownKeyCount, maxKnownKeyCount).build();
             }
-            // we know that there are other attribute values out there which have nothing on them at all.
-            // only launch here if this value also has nothing on it.
-            if (offerValueCount == 0) {
+            // we know that there are other keys out there which have nothing on them at all.
+            // only launch here if this key also has nothing on it.
+            if (offerKeyCount == 0) {
                 return EvaluationOutcome.pass(
-                        this, "Other values have zero usage, but so does value '%s'", offerValue).build();
+                        this, "Other keys have zero usage, but so does key '%s'", offerKey).build();
             } else {
                 return EvaluationOutcome.fail(
-                        this, "Other values have zero instances, but value '%s' has %d", offerValue, offerValueCount)
+                        this, "Other keys have zero instances, but key '%s' has %d", offerKey, offerKeyCount)
                         .build();
-
             }
         } else {
-            // this attribute value is full at the current level, but other (known) values are not full yet.
+            // this key is full at the current level, but other (known) keys are not full yet.
             return EvaluationOutcome.fail(
-                    this, "Value '%s' is already full, and others are known to not be full", offerValue).build();
+                    this, "Key '%s' is already full, and others are known to not be full", offerKey).build();
         }
     }
 }

@@ -15,8 +15,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * Tests for {@link MaxPerHostnameRule}.
  */
@@ -77,7 +75,7 @@ public class MaxPerHostnameRuleTest {
     @Test
     public void testSerializeDeserialize() throws IOException {
         PlacementRule rule = new MaxPerHostnameRule(2);
-        assertEquals(rule, SerializationUtils.fromString(
+        Assert.assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
 

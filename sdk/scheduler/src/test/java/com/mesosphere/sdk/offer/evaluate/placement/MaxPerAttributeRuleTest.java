@@ -2,13 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -18,15 +12,9 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.junit.Assert;
 import org.junit.Test;
-import org.omg.CORBA.Any;
 
-import javax.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests for {@link MaxPerAttributeRule}.
@@ -111,7 +99,7 @@ public class MaxPerAttributeRuleTest {
     @Test
     public void testSerializeDeserialize() throws IOException {
         PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
-        assertEquals(rule, SerializationUtils.fromString(
+        Assert.assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
 

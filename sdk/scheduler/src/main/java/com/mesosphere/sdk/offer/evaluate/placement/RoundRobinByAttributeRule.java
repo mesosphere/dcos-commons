@@ -86,7 +86,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
 
     @JsonProperty("value-count")
     private Optional<Integer> getAttributeValueCount() {
-        return distinctValueCount;
+        return distinctKeyCount;
     }
 
     @JsonProperty("task-filter")
@@ -97,7 +97,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     @Override
     public String toString() {
         return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",
-                attributeName, distinctValueCount, taskFilter);
+                attributeName, distinctKeyCount, taskFilter);
     }
 
     @Override
