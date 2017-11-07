@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.PodTestUtils;
@@ -8,17 +9,15 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import javax.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * This class tests the {@link MaxPerRule} class.
@@ -31,9 +30,20 @@ public class MaxPerTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        taskInfo = TestConstants.TASK_INFO;
-        offer = OfferTestUtils.getEmptyOfferBuilder().build();
         podInstance = PodTestUtils.getPodInstance(0);
+        taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
+                new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setType("different-type")
+                        .setIndex(100)
+                        .toProto())
+                .build();
+
+        offer = OfferTestUtils.getEmptyOfferBuilder().build();
+    }
+
+    @Test(expected = ConstraintViolationException.class)
+    public void limitZero() {
+        new MaxPerHostnameRule(0);
     }
 
     /**
@@ -107,6 +117,50 @@ public class MaxPerTest {
     }
 
     /**
+     * A task has been launched using "key0", but that is the task we're currently evaluating, so the offer should be
+     * accepted.
+     */
+    @Test
+    public void ignoreSelf() {
+        MaxPerRule rule = new TestMaxPerRule(
+                1,
+                Arrays.asList("key0"),
+                Arrays.asList("key0"),
+                AnyMatcher.create());
+
+        taskInfo = taskInfo.toBuilder().setLabels(
+                new TaskLabelWriter(taskInfo)
+                        .setType(podInstance.getPod().getType())
+                        .setIndex(podInstance.getIndex())
+                        .toProto())
+                .build();
+
+        assertTrue(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
+    }
+
+    /**
+     * Two tasks have been launched using "key0", but one of those is the task we're currently evaluating, so the offer
+     * should be accepted.
+     */
+    @Test
+    public void ignoreSelfLargerLimit() {
+        MaxPerRule rule = new TestMaxPerRule(
+                2,
+                Arrays.asList("key0", "key0"),
+                Arrays.asList("key0"),
+                AnyMatcher.create());
+
+        taskInfo = taskInfo.toBuilder().setLabels(
+                new TaskLabelWriter(taskInfo)
+                        .setType(podInstance.getPod().getType())
+                        .setIndex(podInstance.getIndex())
+                        .toProto())
+                .build();
+
+        assertTrue(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
+    }
+
+    /**
      * Tasks have been launched with "key0" and "key1", one of the keys is present in the offer, so the offer should be
      * rejected.
      */
@@ -116,6 +170,51 @@ public class MaxPerTest {
                 1,
                 Arrays.asList("key0", "key1"),
                 Arrays.asList("key1"),
+                AnyMatcher.create());
+
+        assertFalse(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
+    }
+
+    /**
+     * One Task has been launched with "key0" and two with "key1", "key1" is present in the offer, so the offer should
+     * be rejected.
+     */
+    @Test
+    public void rejectOneOfMultipleOverLargerLimit() {
+        MaxPerRule rule = new TestMaxPerRule(
+                2,
+                Arrays.asList("key0", "key1", "key1"),
+                Arrays.asList("key1"),
+                AnyMatcher.create());
+
+        assertFalse(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
+    }
+
+    /**
+     * Tasks have been launched with "key0" and "key1", one of the keys is present in the offer, so the offer should be
+     * rejected.
+     */
+    @Test
+    public void rejectMultipleOverLimit() {
+        MaxPerRule rule = new TestMaxPerRule(
+                1,
+                Arrays.asList("key0", "key1"),
+                Arrays.asList("key1", "key0"),
+                AnyMatcher.create());
+
+        assertFalse(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
+    }
+
+    /**
+     * Tasks have been launched with "key0" and "key1", one of the keys is present in the offer, so the offer should be
+     * rejected.
+     */
+    @Test
+    public void rejectMultipleOverLargerLimit() {
+        MaxPerRule rule = new TestMaxPerRule(
+                2,
+                Arrays.asList("key0", "key0", "key1", "key1"),
+                Arrays.asList("key1", "key0"),
                 AnyMatcher.create());
 
         assertFalse(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());

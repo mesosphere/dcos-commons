@@ -118,7 +118,6 @@ public class MaxPerAttributeRule extends MaxPerRule {
         }
     }
 
-
     @JsonProperty("matcher")
     private StringMatcher getAttributeMatcher() {
         return attributeMatcher;
