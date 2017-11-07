@@ -58,7 +58,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getValue(Offer offer) {
+    protected String getKey(Offer offer) {
         for (Attribute attribute : offer.getAttributesList()) {
             if (attribute.getName().equalsIgnoreCase(attributeName)) {
                 return AttributeStringUtils.valueString(attribute);
@@ -68,7 +68,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getValue(TaskInfo task) {
+    protected String getKey(TaskInfo task) {
         for (String taskAttributeString : new TaskLabelReader(task).getOfferAttributeStrings()) {
             AttributeStringUtils.NameValue taskAttributeNameValue =
                     AttributeStringUtils.split(taskAttributeString);

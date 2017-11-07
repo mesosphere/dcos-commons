@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * This rule enforces that a task be placed on the specified hostname, or enforces that the task
  * avoid that hostname.
  */
-public class HostnameRule implements PlacementRule {
+public class HostnameRule extends StringMatcherRule {
 
     /**
      * Requires that a task be placed on the provided hostname.
@@ -143,7 +143,7 @@ public class HostnameRule implements PlacementRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        if (matcher.matches(offer.getHostname())) {
+        if (isAcceptable(matcher, offer, podInstance, tasks)) {
             return EvaluationOutcome.pass(this, "Offer hostname matches pattern: '%s'", matcher.toString()).build();
         } else {
             return EvaluationOutcome.fail(this, "Offer hostname didn't match pattern: '%s'", matcher.toString())
@@ -198,5 +198,10 @@ public class HostnameRule implements PlacementRule {
             rules.add(require(matcher));
         }
         return rules;
+    }
+
+    @Override
+    public Collection<String> getKeys(Offer offer) {
+        return Arrays.asList(offer.getHostname());
     }
 }
