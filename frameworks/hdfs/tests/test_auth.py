@@ -83,6 +83,7 @@ def kerberos(configure_universe):
 # 5. within each test, depending on the keytab that's pulled, one should kinit with appropriate principal
 # 6. use service client binary to interact with client once authed
 
+
 sdk_utils.is_strict_mode()
 @pytest.mark.auth
 @pytest.mark.sanity
