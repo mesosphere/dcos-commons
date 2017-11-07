@@ -12,6 +12,7 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.junit.Assert;
 import org.junit.Test;
+import org.omg.CORBA.Any;
 
 import java.io.IOException;
 import java.util.Collections;
