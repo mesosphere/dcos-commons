@@ -1,24 +1,28 @@
 {
   "id": "/kdc",
+  "instances": 1,
   "cpus": 1,
   "mem": 512,
-  "disk": 0,
-  "instances": 1,
   "container": {
     "type": "MESOS",
     "docker": {
-      "forcePullImage": true,
-      "image": "mesosphere/kdc:latest",
-      "parameters": [],
-      "privileged": false
-    },
-    "volumes": []
+      "image": "nvaziri/kdc:dev",
+      "forcePullImage": true
+    }
   },
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
   "portDefinitions": [
     {
-      "port": 10000,
-      "name": "default",
-      "protocol": "tcp"
+      "port": 2500,
+      "name": "kdc"
     }
-  ]
+  ],
+  "requirePorts": true,
+  "env": {
+    "LOG_LEVEL": "LOG_DEBUG"
+  }
 }
