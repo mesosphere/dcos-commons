@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("deprecation")
 public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Mock ServiceSpec serviceSpec;
 
