@@ -118,8 +118,7 @@ var activeTableTab = "activeTableTab";
 <pre>abstract class <span class="typeNameLabel">AbstractRoundRobinRule</span>
 extends java.lang.Object
 implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></pre>
-<div class="block">Base implementation of common round-robin logic used by <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>RoundRobinByHostnameRule</code></a> and
- <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>RoundRobinByAttributeRule</code></a>.</div>
+<div class="block">Base implementation of common round-robin logic.</div>
 </li>
 </ul>
 </div>
@@ -192,15 +191,15 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected abstract java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getValue-Offer-">getValue</a></span>(Offer&nbsp;offer)</code>
-<div class="block">Returns a value to round robin against from the provided <code>Offer</code>, or <code>null</code> if
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getKey-Offer-">getKey</a></span>(Offer&nbsp;offer)</code>
+<div class="block">Returns a key to round robin against from the provided <code>Offer</code>, or <code>null</code> if
  none was found.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>protected abstract java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getValue-TaskInfo-">getValue</a></span>(TaskInfo&nbsp;task)</code>
-<div class="block">Returns a value to round robin against from the provided <code>TaskInfo</code>, or <code>null</code> if
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getKey-TaskInfo-">getKey</a></span>(TaskInfo&nbsp;task)</code>
+<div class="block">Returns a key to round robin against from the provided <code>TaskInfo</code>, or <code>null</code> if
  none was found.</div>
 </td>
 </tr>
@@ -277,25 +276,25 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getValue-Offer-">
+<a name="getKey-Offer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getValue</h4>
-<pre>protected abstract&nbsp;java.lang.String&nbsp;getValue(Offer&nbsp;offer)</pre>
-<div class="block">Returns a value to round robin against from the provided <code>Offer</code>, or <code>null</code> if
+<h4>getKey</h4>
+<pre>protected abstract&nbsp;java.lang.String&nbsp;getKey(Offer&nbsp;offer)</pre>
+<div class="block">Returns a key to round robin against from the provided <code>Offer</code>, or <code>null</code> if
  none was found.</div>
 </li>
 </ul>
-<a name="getValue-TaskInfo-">
+<a name="getKey-TaskInfo-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getValue</h4>
-<pre>protected abstract&nbsp;java.lang.String&nbsp;getValue(TaskInfo&nbsp;task)</pre>
-<div class="block">Returns a value to round robin against from the provided <code>TaskInfo</code>, or <code>null</code> if
+<h4>getKey</h4>
+<pre>protected abstract&nbsp;java.lang.String&nbsp;getKey(TaskInfo&nbsp;task)</pre>
+<div class="block">Returns a key to round robin against from the provided <code>TaskInfo</code>, or <code>null</code> if
  none was found.</div>
 </li>
 </ul>

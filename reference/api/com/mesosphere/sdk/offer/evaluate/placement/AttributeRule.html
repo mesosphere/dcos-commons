@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":9,"i7":9,"i8":9,"i9":10};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":9,"i8":9,"i9":9,"i10":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -98,7 +98,12 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
+<li><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">com.mesosphere.sdk.offer.evaluate.placement.StringMatcherRule</a></li>
+<li>
+<ul class="inheritance">
 <li>com.mesosphere.sdk.offer.evaluate.placement.AttributeRule</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -112,8 +117,7 @@ var activeTableTab = "activeTableTab";
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">AttributeRule</span>
-extends java.lang.Object
-implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></pre>
+extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></pre>
 <div class="block">Requires that the Offer contain an attribute whose string representation matches the provided string.</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
@@ -171,32 +175,43 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#getKeys-Offer-">getKeys</a></span>(Offer&nbsp;offer)</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#require-java.util.Collection-">require</a></span>(java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;&nbsp;matchers)</code>
 <div class="block">Requires that a task be placed on one of the provided attribute matchers.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">require</a></span>(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>...&nbsp;matchers)</code>
 <div class="block">Requires that a task be placed on one of the provided attribute matchers.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">require</a></span>(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&nbsp;matcher)</code>
 <div class="block">Requires that a task be placed on the provided attribute matcher.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.offer.evaluate.placement.StringMatcherRule">
+<!--   -->
+</a>
+<h3>Methods inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.placement.<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></h3>
+<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#isAcceptable-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable</a></code></li>
+</ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
 <!--   -->
@@ -315,8 +330,6 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <div class="block">Returns whether the provided <code>Offer</code>, combined with the accompanying
  <code>TaskInfo</code>s, passes or fails this placement constraint.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>offer</code> - the offer to be examined</dd>
 <dd><code>tasks</code> - the currently deployed tasks in the system, possibly including a duplicate
@@ -365,13 +378,26 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <a name="hashCode--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>hashCode</h4>
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>hashCode</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+</dl>
+</li>
+</ul>
+<a name="getKeys-Offer-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getKeys</h4>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getKeys(Offer&nbsp;offer)</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#getKeys-Protos.Offer-">getKeys</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></code></dd>
 </dl>
 </li>
 </ul>
