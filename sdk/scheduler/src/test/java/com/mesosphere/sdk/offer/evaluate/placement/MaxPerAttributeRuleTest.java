@@ -128,5 +128,4 @@ public class MaxPerAttributeRuleTest {
         SerializationUtils.fromString(str,
                 PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }
-
 }
