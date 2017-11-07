@@ -59,15 +59,15 @@ def test_pod_restart():
 @pytest.mark.recovery
 @pytest.mark.dcos_min_version('1.10')
 def test_pod_pause_resume():
-    test_pod_pause_resume_internal()
+    pod_pause_resume_internal()
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 @pytest.mark.dcos_min_version('1.9')
 def test_pod_pause_resume():
-    test_pod_pause_resume_internal(False)
+    pod_pause_resume_internal(False)
 
-def test_pod_pause_resume_internal(validateReadinessCheck=True):
+def pod_pause_resume_internal(validateReadinessCheck=True):
     '''Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state'''
 
     # get current agent id:

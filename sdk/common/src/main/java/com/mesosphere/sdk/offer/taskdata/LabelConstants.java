@@ -28,6 +28,10 @@ class LabelConstants {
     static final String OFFER_ATTRIBUTES_LABEL = "offer_attributes";
     /** Storage of the original Offer's hostname, for use in placement constraints. */
     static final String OFFER_HOSTNAME_LABEL = "offer_hostname";
+    /** Storage of the original Offer's zone, for use in placement constraints. */
+    static final String OFFER_ZONE_LABEL = "offer_zone";
+    /** Storage of the original Offer's region, for use in placement constraints. */
+    static final String OFFER_REGION_LABEL = "offer_region";
     /** Label against which the readiness check (if present) is stored. */
     static final String READINESS_CHECK_LABEL = "readiness_check";
     /** Label against which the Task/Pod Type is stored. */

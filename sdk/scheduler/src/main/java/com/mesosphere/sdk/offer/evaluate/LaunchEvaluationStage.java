@@ -36,12 +36,19 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
 
         // Store metadata in the TaskInfo for later access by placement constraints:
-        taskBuilder.setLabels(new TaskLabelWriter(taskBuilder)
-            .setOfferAttributes(offer)
-            .setType(podInfoBuilder.getType())
-            .setIndex(podInfoBuilder.getIndex())
-            .setHostname(offer)
-            .toProto());
+        TaskLabelWriter writer = new TaskLabelWriter(taskBuilder);
+        writer.setOfferAttributes(offer)
+                .setType(podInfoBuilder.getType())
+                .setIndex(podInfoBuilder.getIndex())
+                .setHostname(offer);
+
+        if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {
+            writer.setRegion(offer.getDomain().getFaultDomain().getRegion());
+            writer.setZone(offer.getDomain().getFaultDomain().getZone());
+        }
+
+        taskBuilder.setLabels(writer.toProto());
+
         if (!useDefaultExecutor) {
             taskBuilder.setExecutor(executorBuilder);
         }

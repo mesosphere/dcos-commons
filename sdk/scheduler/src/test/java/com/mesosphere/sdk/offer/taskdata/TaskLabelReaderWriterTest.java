@@ -69,6 +69,28 @@ public class TaskLabelReaderWriterTest {
         Assert.assertTrue(new TaskLabelReader(tb.build()).getOfferAttributeStrings().isEmpty());
     }
 
+    @Test
+    public void testReadWriteRegion() {
+        Assert.assertFalse(new TaskLabelReader(getTestTaskInfo()).getRegion().isPresent());
+
+        Protos.TaskInfo.Builder tb = getTestTaskInfo().toBuilder();
+        tb.setLabels(new TaskLabelWriter(tb).setRegion(TestConstants.DOMAIN_INFO.getFaultDomain().getRegion()).toProto());
+
+        Assert.assertTrue(new TaskLabelReader(tb.build()).getRegion().isPresent());
+        Assert.assertEquals(TestConstants.REGION, new TaskLabelReader(tb.build()).getRegion().get());
+    }
+
+    @Test
+    public void testReadWriteZone() {
+        Assert.assertFalse(new TaskLabelReader(getTestTaskInfo()).getZone().isPresent());
+
+        Protos.TaskInfo.Builder tb = getTestTaskInfo().toBuilder();
+        tb.setLabels(new TaskLabelWriter(tb).setZone(TestConstants.DOMAIN_INFO.getFaultDomain().getZone()).toProto());
+
+        Assert.assertTrue(new TaskLabelReader(tb.build()).getZone().isPresent());
+        Assert.assertEquals(TestConstants.ZONE, new TaskLabelReader(tb.build()).getZone().get());
+    }
+
     @Test(expected = TaskException.class)
     public void testGetMissingTaskTypeFails() throws TaskException {
         new TaskLabelReader(getTestTaskInfo()).getType();

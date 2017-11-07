@@ -75,6 +75,7 @@ public class ResourceBuilder {
         return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
     }
 
+    @SuppressWarnings("deprecation")
     private static ResourceSpec getResourceSpec(Resource resource) {
         if (!ResourceUtils.hasResourceId(resource)) {
             throw new IllegalStateException(
@@ -89,6 +90,7 @@ public class ResourceBuilder {
                 ResourceUtils.getPrincipal(resource).get());
     }
 
+    @SuppressWarnings("deprecation")
     private static VolumeSpec getVolumeSpec(Resource resource) {
         VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
         return new DefaultVolumeSpec(
@@ -186,6 +188,7 @@ public class ResourceBuilder {
         return this;
     }
 
+    @SuppressWarnings("deprecation")
     public Resource build() {
         // Note:
         // In the pre-resource-refinment world (< 1.9), Mesos will expect

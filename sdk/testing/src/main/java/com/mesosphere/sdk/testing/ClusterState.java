@@ -123,7 +123,7 @@ public class ClusterState {
     }
 
     /**
-     * Returns the last task launched with the specified name
+     * Returns the last task launched with the specified name.
      *
      * @param taskName the task name to be found
      * @return the task's info
@@ -154,7 +154,7 @@ public class ClusterState {
     }
 
     /**
-     * Returns the last task id for a task of the specified name
+     * Returns the last task id for a task of the specified name.
      *
      * @param taskName the task name to be found
      * @return the task id
