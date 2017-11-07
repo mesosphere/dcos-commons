@@ -12,6 +12,7 @@ import java.util.List;
 /**
  * This class provides utilities for tests concerned with Offers.
  */
+@SuppressWarnings("deprecation")
 public class OfferTestUtils {
 
     private OfferTestUtils() {

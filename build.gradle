@@ -102,6 +102,10 @@ allprojects {
         }
     }
 
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
     // Print results on the fly
     test {
         testLogging {

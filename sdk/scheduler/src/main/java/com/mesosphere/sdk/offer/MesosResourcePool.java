@@ -234,6 +234,7 @@ public class MesosResourcePool {
         reservableMergedPoolByRole.put(previousRole, pool);
     }
 
+    @SuppressWarnings("deprecation")
     private void freeAtomicResource(MesosResource mesosResource) {
         Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
         resBuilder.clearReservation();
