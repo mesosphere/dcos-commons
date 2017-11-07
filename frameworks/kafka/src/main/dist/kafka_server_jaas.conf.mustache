@@ -17,14 +17,4 @@ KafkaServer {
 {{/SECURITY_SASL_PLAIN_ENABLED}}
 
 };
-{{#SECURITY_KERBEROS_ENABLED}}
-KafkaClient {
-    com.sun.security.auth.module.Krb5LoginModule required
-    useKeyTab=true
-    storeKey=true
-    keyTab="kafka.keytab"
-    principal="{{SECURITY_KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}";
-};
-{{/SECURITY_KERBEROS_ENABLED}}
-
 {{/SECURITY_SASL_ENABLED}}

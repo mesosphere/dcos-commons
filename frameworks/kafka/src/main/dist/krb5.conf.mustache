@@ -1,15 +1,11 @@
-[logging]
- default = STDERR
- kdc = STDERR
- admin_server = STDERR
-
 [libdefaults]
- default_realm = LOCAL
- dns_lookup_realm = false
- dns_lookup_kdc = false
- ticket_lifetime = 24h
- renew_lifetime = 7d
- forwardable = true
+default_realm = LOCAL
+dns_lookup_realm = true
+dns_lookup_kdc = true
+udp_preference_limit = 1
+
+default_tkt_enctypes = des3-cbc-sha1-kd aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96 rc4-hmac
+supported_enctypes = des3-cbc-sha1-kd aes128-cts-hmac-sha1-96 aes256-cts-hmac-sha1-96 rc4-hmac
 
 [realms]
   LOCAL = {
@@ -17,5 +13,5 @@
   }
 
 [domain_realm]
-  .secure-kafka.autoip.dcos.thisdcos.directory = LOCAL
-  secure-kafka.autoip.dcos.thisdcos.directory = LOCAL
+  .kafka.dcos = LOCAL
+  kafka.dcos = LOCAL

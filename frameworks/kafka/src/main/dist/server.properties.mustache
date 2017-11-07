@@ -74,7 +74,6 @@ port={{KAFKA_BROKER_PORT_TLS}}
 listeners=SASL_PLAINTEXT://:{{KAFKA_BROKER_PORT}}
 advertised.listeners=SASL_PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
 security.inter.broker.protocol=SASL_PLAINTEXT
-port={{KAFKA_BROKER_PORT}}
 
 {{#SECURITY_KERBEROS_ENABLED}}
 sasl.mechanism.inter.broker.protocol=GSSAPI

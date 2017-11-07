@@ -49,13 +49,7 @@ def run_raw_cli(cmd, print_output):
     eg. `cmd`= "package install <package-name>" results in:
     $ dcos package install <package-name>
     """
-
-    if isinstance(cmd, str):
-        cmd_str = cmd
-    else:
-        cmd_str = ' '.join(cmd)
-
-    stdout, stderr, ret = shakedown.run_dcos_command(cmd_str, print_output=print_output)
+    stdout, stderr, ret = shakedown.run_dcos_command(cmd, print_output=print_output)
     if ret:
         err = 'Got error code {} when running command "dcos {}":\n'\
               'stdout: "{}"\n'\

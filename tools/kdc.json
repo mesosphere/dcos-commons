@@ -29,7 +29,7 @@
   },
   "networks": [
     {
-      "mode": "host"
+      "mode": "container/bridge"
     }
   ]
 }
