@@ -1,5 +1,9 @@
 # Setting up Kafka with Kerberos
 
+Still TODO:
+1. The KDC deployment still requires the IP to be specified
+1. We need a better way to get the Keytab into the clients
+
 ## Deploy KDC
 Create a file (e.g. `kafka-principals.txt`) contiaining a list of principals required for Kafka. For example:
 ```
@@ -102,7 +106,7 @@ In order to configure a Kerberized Kafka client, three things are needed:
 
     [realms]
         LOCAL = {
-            kdc = 10.0.0.172:88
+            kdc = KDC_MARATHON_IP:KDC_MARATHON_PORT
         }
 
     [domain_realm]
