@@ -81,16 +81,28 @@ pods:
             # [2017-06-14 22:20:55,464] INFO [Kafka Server 1], started (kafka.server.KafkaServer)
 
             kafka_dir=$(ls -d kafka_* |head -n 1)
-            kafka_server_log_file=${kafka_dir}/logs/server.log
-            starting_date_s=$(awk '/.*starting.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
-            starting_date=$(date -d $starting_date_s +%s)
-            started_date_s=$(awk '/.*started.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
-            started_date=$(date -d $started_date_s +%s)
-            [ ! -z $started_date_s ] && \
-                [ ! -z $starting_date_s ] && \
-                [ $starting_date -le $started_date ]
-            is_ready=$?
-            exit $is_ready
+            kafka_server_log_files=${kafka_dir}/logs/server.log*
+
+            echo "Checking for starting log line in $kafka_server_log_files."
+            grep -q "INFO starting (kafka.server.KafkaServer)" $kafka_server_log_files
+            if [ $? -eq 0 ] ; then
+              echo "Found starting log line."
+            else
+              echo "starting log line not found. Exiting."
+              exit 1
+            fi
+
+            echo "Checking for started log line in $kafka_server_log_files."
+            grep -q "INFO \[Kafka Server $POD_INSTANCE_INDEX\], started (kafka.server.KafkaServer)" $kafka_server_log_files
+            if [ $? -eq 0 ] ; then
+              echo "Found started log line."
+            else
+              echo "started log line not found. Exiting."
+              exit 1
+            fi
+
+            echo "Both required log lines found."
+            exit 0
           interval: 5
           delay: 0
           timeout: 10
