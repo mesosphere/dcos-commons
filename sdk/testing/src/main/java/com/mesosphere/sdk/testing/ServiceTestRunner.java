@@ -65,6 +65,22 @@ public class ServiceTestRunner {
     private final Map<String, Map<String, String>> customPodEnvs;
 
     /**
+     * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
+     * actually exists.
+     */
+    public static File getDistDir() {
+        return new File(System.getProperty("user.dir") + "/src/main/dist/");
+    }
+
+    /**
+     * Returns a {@link File} object for a provided filename or relative path within the service's {@code src/main/dist}
+     * directory. Does not check if the specified path actually exists.
+     */
+    public static File getDistFile(String specFilePath) {
+        return new File(getDistDir(), specFilePath);
+    }
+
+    /**
      * Creates a new instance against the default {@code svc.yml} Service Specification YAML file.
      *
      * <p>WARNING: If you do not invoke the {@link test()} method, your test will not run!
@@ -74,14 +90,26 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Creates a new instance against the provided Service Specification YAML filename within the service's
+     * {@code src/main/dist} directory.
+     *
+     * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
+     *
+     * @param specPath path to the Service Specification YAML file, relative to the {@code src/main/dist} directory
+     */
+    public ServiceTestRunner(String specDistFilename) {
+        this(getDistFile(specDistFilename));
+    }
+
+    /**
      * Creates a new instance against the provided Service Specification YAML path.
      *
      * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
      *
      * @param specPath path to the Service Specification YAML file, relative to the {@code dist} directory
      */
-    public ServiceTestRunner(String specPath) {
-        this.specPath = getDistFile(specPath);
+    public ServiceTestRunner(File specPath) {
+        this.specPath = specPath;
         this.configTemplateDir = this.specPath.getParentFile();
         this.cosmosOptions = new HashMap<>();
         this.buildTemplateParams = new HashMap<>();
@@ -127,6 +155,16 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Equivalent of {@link #setSchedulerEnv(String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setSchedulerEnv(String...)
+     */
+    public ServiceTestRunner setSchedulerEnv(Map<String, String> schedulerEnvKeyVals) {
+        this.customSchedulerEnv.putAll(schedulerEnvKeyVals);
+        return this;
+    }
+
+    /**
      * Configures the test with additional environment variables in the Scheduler beyond those which would be included
      * by the service's {@code marathon.json.mustache}. This may be useful for tests against custom Service
      * Specification YAML files which reference envvars that aren't also present in the packaging's Marathon definition.
@@ -136,7 +174,22 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setSchedulerEnv(String... schedulerEnvKeyVals) {
-        this.customSchedulerEnv.putAll(toMap(schedulerEnvKeyVals));
+        setSchedulerEnv(toMap(schedulerEnvKeyVals));
+        return this;
+    }
+
+    /**
+     * Equivalent of {@link #setPodEnv(String, String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setPodEnv(String, String...)
+     */
+    public ServiceTestRunner setPodEnv(String podType, Map<String, String> podEnvKeyVals) {
+        Map<String, String> podEnv = this.customPodEnvs.get(podType);
+        if (podEnv == null) {
+            podEnv = new HashMap<>();
+            this.customPodEnvs.put(podType, podEnv);
+        }
+        podEnv.putAll(podEnvKeyVals);
         return this;
     }
 
@@ -150,13 +203,7 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setPodEnv(String podType, String... podEnvKeyVals) {
-        Map<String, String> podEnv = this.customPodEnvs.get(podType);
-        if (podEnv == null) {
-            podEnv = new HashMap<>();
-            this.customPodEnvs.put(podType, podEnv);
-        }
-        podEnv.putAll(toMap(podEnvKeyVals));
-        return this;
+        return setPodEnv(podType, toMap(podEnvKeyVals));
     }
 
     /**
@@ -320,14 +367,6 @@ public class ServiceTestRunner {
             taskEnv.put(portSpec.getEnvKey(), String.valueOf(portVal));
         }
         return taskEnv;
-    }
-
-    /**
-     * Returns a {@link File} object for a provided filename or relative path within the service's {@code src/main/dist}
-     * directory.
-     */
-    public static File getDistFile(String specFilePath) {
-        return new File(System.getProperty("user.dir") + "/src/main/dist/" + specFilePath);
     }
 
     private static Map<String, String> toMap(String... keyVals) {
