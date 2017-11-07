@@ -246,7 +246,7 @@ class KerberosEnvironment:
         kdc_app_def["id"] = KERBEROS_APP_ID
         _launch_marathon_app(kdc_app_def)
         _check_kdc_marathon_task_is_running()
-        self.kdc_port = 88
+        self.kdc_port = int(kdc_app_def["portDefinitions"][0]["port"])
         self.kdc_fqdn = "{app_id}.marathon.{host_suffix}".format(
             app_id=KERBEROS_APP_ID, host_suffix=sdk_hosts.VIP_HOST_SUFFIX)
         self.kdc_host_id = _get_host_id()
