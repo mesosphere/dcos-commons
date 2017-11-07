@@ -129,7 +129,7 @@ def nodetool_decommission(target_pod_name):
     '''
 
     # use a node other than the target to check status:
-    all_pods = ['node-{}' for i in range(config.DEFAULT_TASK_COUNT)]
+    all_pods = ['node-{}'.format(i) for i in range(config.DEFAULT_TASK_COUNT)]
     all_pods.remove(target_pod_name)
     driver_pod_name = all_pods[0]
     log.info('Checking status of {} removal from {}'.format(target_pod_name, driver_pod_name))
