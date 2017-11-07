@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
@@ -14,7 +14,11 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Ensures that no more than N instances of a task type are running on a given hostname (or hostname
@@ -37,10 +41,12 @@ import java.util.Collection;
  * on any given host. Among the above three hosts, any offers from host-1 and host-3 will be
  * accepted and offers from host-2 will be denied.
  */
-public class MaxPerHostnameRule implements PlacementRule {
+public class MaxPerHostnameRule extends MaxPerRule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MaxPerHostnameRule.class);
 
+    @Valid
+    @Min(1)
     private final int maxTasksPerHostname;
     private final StringMatcher taskFilter;
 
@@ -74,51 +80,24 @@ public class MaxPerHostnameRule implements PlacementRule {
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
+        ValidationUtils.validate(this);
     }
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        int offerHostnameTaskCounts = 0;
-        for (TaskInfo task : tasks) {
-            // only tally tasks which match the task matcher (eg 'index-.*')
-            if (!taskFilter.matches(task.getName())) {
-                continue;
-            }
-            if (PlacementUtils.areEquivalent(task, podInstance)) {
-                // This is stale data for the same task that we're currently evaluating for
-                // placement. Don't worry about counting its usage. This occurs when we're
-                // redeploying a given task with a new configuration (old data not deleted yet).
-                continue;
-            }
-            final String taskHostname;
-            try {
-                taskHostname = new TaskLabelReader(task).getHostname();
-            } catch (TaskException e) {
-                LOGGER.warn("Unable to extract hostname from task for filtering", e);
-                continue;
-            }
-            if (!taskHostname.equals(offer.getHostname())) {
-                continue;
-            }
-            ++offerHostnameTaskCounts;
-            if (offerHostnameTaskCounts >= maxTasksPerHostname) {
-                // the hostname for this offer meets or exceeds the limit. offer denied!
-                return EvaluationOutcome.fail(
-                        this,
-                        "%d/%d tasks matching filter '%s' are already present on this host",
-                        offerHostnameTaskCounts,
-                        maxTasksPerHostname,
-                        taskFilter.toString())
-                        .build();
-            }
+        if (isAcceptable(offer, podInstance, tasks, maxTasksPerHostname)) {
+            return EvaluationOutcome.pass(
+                    this,
+                    "Fewer than %d tasks matching filter '%s' are present on this host",
+                    maxTasksPerHostname, taskFilter.toString())
+                    .build();
+        } else {
+            return EvaluationOutcome.fail(
+                    this,
+                    "%d tasks matching filter '%s' are already present on this host",
+                    maxTasksPerHostname, taskFilter.toString())
+                    .build();
         }
-        // after scanning all the tasks for usage of attributes present in this offer, nothing
-        // hit or exceeded the limit. offer accepted!
-        return EvaluationOutcome.pass(
-                this,
-                "%d/%d tasks matching filter '%s' are present on this host",
-                offerHostnameTaskCounts, maxTasksPerHostname, taskFilter.toString())
-                .build();
     }
 
     @JsonProperty("max")
@@ -126,8 +105,23 @@ public class MaxPerHostnameRule implements PlacementRule {
         return maxTasksPerHostname;
     }
 
+    @Override
+    public Collection<String> getKeys(TaskInfo taskInfo) {
+        try {
+            return Arrays.asList(new TaskLabelReader(taskInfo).getHostname());
+        } catch (TaskException e) {
+            LOGGER.warn("Unable to extract hostname from task for filtering", e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public Collection<String> getKeys(Offer offer) {
+        return Arrays.asList(offer.getHostname());
+    }
+
     @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
+    public StringMatcher getTaskFilter() {
         return taskFilter;
     }
 

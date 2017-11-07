@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import javax.validation.ConstraintViolationException;
 
 import static org.junit.Assert.*;
 
@@ -103,44 +104,9 @@ public class MaxPerHostnameRuleTest {
         return o.build();
     }
 
-    @Test
+    @Test(expected = ConstraintViolationException.class)
     public void testLimitZero() {
-        PlacementRule rule = new MaxPerHostnameRule(0);
-
-        assertTrue(rule.filter(OFFER_NO_HOSTNAME, REQ, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_1, REQ, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_2, REQ, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_3, REQ, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_HOSTNAME, REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_1, REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_2, REQ, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_3, REQ, Collections.emptyList()).isPassing());
-    }
-
-    @Test
-    public void testLimitZeroWithSamePresent() {
-        PlacementRule rule = new MaxPerHostnameRule(0);
-
-        assertTrue(rule.filter(OFFER_NO_HOSTNAME, REQ_WITH_NO_HOSTNAME, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_1, REQ_WITH_NO_HOSTNAME, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_2, REQ_WITH_NO_HOSTNAME, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_3, REQ_WITH_NO_HOSTNAME, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_HOSTNAME, REQ_WITH_HOSTNAME_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_1, REQ_WITH_HOSTNAME_1, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_2, REQ_WITH_HOSTNAME_1, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_HOSTNAME_3, REQ_WITH_HOSTNAME_1, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_HOSTNAME, REQ_WITH_NO_HOSTNAME, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_1, REQ_WITH_NO_HOSTNAME, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_2, REQ_WITH_NO_HOSTNAME, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_3, REQ_WITH_NO_HOSTNAME, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_HOSTNAME, REQ_WITH_HOSTNAME_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_1, REQ_WITH_HOSTNAME_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_2, REQ_WITH_HOSTNAME_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_HOSTNAME_3, REQ_WITH_HOSTNAME_1, Collections.emptyList()).isPassing());
+        new MaxPerHostnameRule(0);
     }
 
     @Test
@@ -358,10 +324,6 @@ public class MaxPerHostnameRuleTest {
     @Test
     public void testSerializeDeserialize() throws IOException {
         PlacementRule rule = new MaxPerHostnameRule(2);
-        assertEquals(rule, SerializationUtils.fromString(
-                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
-
-        rule = new MaxPerHostnameRule(0, ExactMatcher.create("hi"));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
