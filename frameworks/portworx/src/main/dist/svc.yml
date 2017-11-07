@@ -6,14 +6,27 @@ pods:
     user: {{SERVICE_USER}}
     count: {{NODE_COUNT}}
     resource-sets:
-      px-resources:
+      px-install-resources:
         cpus: 0.3
         memory: 512
+        # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
+        volume:
+          path: temp
+          size: 1
+          type: ROOT
+      px-restart-resources:
+        cpus: 0.3
+        memory: 512
+        # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
+        volume:
+          path: temp
+          size: 1
+          type: ROOT
     placement: {{NODE_PLACEMENT}}
     tasks:
       install:
         goal: FINISHED
-        resource-set: px-resources
+        resource-set: px-install-resources
         cmd: >
 
                 {{#LIGHTHOUSE_ENABLED}}
@@ -95,7 +108,7 @@ pods:
 
       restart:
         goal: FINISHED
-        resource-set: px-resources
+        resource-set: px-restart-resources
         cmd: >
              systemctl daemon-reload && systemctl restart portworx
 
@@ -234,10 +247,15 @@ plans:
         pod: portworx
         steps:
           - default : [[install]]
-  restart-portworx:
+  update-portworx:
     strategy: serial
     phases:
-      portworx-restart:
+      update-service:
+        strategy: parallel
+        pod: portworx
+        steps:
+          - default : [[install]]
+      restart-service:
         strategy: serial
         pod: portworx
         steps:
