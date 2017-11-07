@@ -165,7 +165,7 @@ if [ -z $interactive ]; then
     DOCKER_COMMAND="bash test-runner.sh"
 else
 # interactive mode
-    FRAMEWORK_ARGS="-u $(id -u):$(id -g)"
+    FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos_dir"
     framework="NOT_SPECIFIED"
     DOCKER_COMMAND="bash"
 fi
