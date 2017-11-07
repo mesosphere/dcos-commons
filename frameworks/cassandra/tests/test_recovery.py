@@ -7,7 +7,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -32,7 +31,7 @@ def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
 
     # CASSANDRA-649 Experimental change to potentially resolve flakes: attempt nodetool removenode before replace
-    nodetool_removenode(pod_to_replace)
+    nodetool_decommission(pod_to_replace)
 
     # start replace and wait for it to finish
     cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
@@ -56,7 +55,7 @@ def test_node_replace_replaces_node():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     # CASSANDRA-649 Experimental change to potentially resolve flakes: attempt nodetool removenode before replace
-    nodetool_removenode(pod_to_replace)
+    nodetool_decommission(pod_to_replace)
 
     # start replace and wait for it to finish
     cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
@@ -131,7 +130,7 @@ def nodetool_decommission(target_pod_name):
 
     # use a node other than the target to check status:
     all_pods = ['node-{}' for i in range(config.DEFAULT_TASK_COUNT)]
-    all_pods.remove(pod_name)
+    all_pods.remove(target_pod_name)
     driver_pod_name = all_pods[0]
     log.info('Checking status of {} removal from {}'.format(target_pod_name, driver_pod_name))
 
