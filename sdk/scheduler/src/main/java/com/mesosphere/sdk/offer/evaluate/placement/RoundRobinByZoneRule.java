@@ -36,7 +36,7 @@ public class RoundRobinByZoneRule extends AbstractRoundRobinRule {
 
     @JsonProperty("zone-count")
     private Optional<Integer> getZoneCount() {
-        return distinctValueCount;
+        return distinctKeyCount;
     }
 
     @JsonProperty("task-filter")
@@ -47,7 +47,7 @@ public class RoundRobinByZoneRule extends AbstractRoundRobinRule {
     @Override
     public String toString() {
         return String.format("RoundRobinByZoneRule{zone-count=%s, task-filter=%s}",
-                distinctValueCount, taskFilter);
+                distinctKeyCount, taskFilter);
     }
 
     @Override

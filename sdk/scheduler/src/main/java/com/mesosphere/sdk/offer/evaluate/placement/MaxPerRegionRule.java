@@ -13,38 +13,33 @@ import java.util.Collections;
 import java.util.Optional;
 
 /**
- * This rules implements a placement rule for restricting the maximum number of tasks per Zone.
+ * This rules implements a placement rule for restricting the maximum number of tasks per Region.
  */
-public class MaxPerZoneRule extends MaxPerRule {
-
-    public MaxPerZoneRule(int maxPerZone) {
-        this(maxPerZone, null);
+public class MaxPerRegionRule extends MaxPerRule {
+    public MaxPerRegionRule(int maxPerRegion) {
+        this(maxPerRegion, null);
     }
 
     @JsonCreator
-    public MaxPerZoneRule(
-            @JsonProperty("max") int maxPerZone,
+    public MaxPerRegionRule(
+            @JsonProperty("max") Integer max,
             @JsonProperty("task-filter") StringMatcher taskFilter) {
-        super(maxPerZone, taskFilter);
+        super(max, taskFilter);
     }
 
     @Override
     public Collection<String> getKeys(Protos.TaskInfo taskInfo) {
-        Optional<String> zone = new TaskLabelReader(taskInfo).getZone();
-        if (zone.isPresent()) {
-            return Arrays.asList(zone.get());
-        } else {
-            return Collections.emptyList();
-        }
+        Optional<String> region = new TaskLabelReader(taskInfo).getRegion();
+        return region.isPresent() ? Arrays.asList(region.get()) : Collections.emptyList();
     }
 
     @Override
     public Collection<String> getKeys(Protos.Offer offer) {
         if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {
-            return Arrays.asList(offer.getDomain().getFaultDomain().getZone().getName());
-        } else {
-            return Collections.emptyList();
+            return Arrays.asList(offer.getDomain().getFaultDomain().getRegion().getName());
         }
+
+        return Collections.emptyList();
     }
 
     @Override
