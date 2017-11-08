@@ -66,8 +66,8 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 
     if return_stderr_in_stdout:
         return stdout + "\n" + stderr
-    else:
-        return stdout
+
+    return stdout
 
 
 def get_json_output(cmd, print_output=True):

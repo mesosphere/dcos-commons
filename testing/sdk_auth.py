@@ -37,6 +37,7 @@ DCOS_BASE64_PREFIX = "__dcos_base64__"
 LINUX_USER = "core"
 KERBEROS_CONF = "krb5.conf"
 REALM = "LOCAL"
+KINIT = "kinit -k -t {keytab} {principal}"
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some
 # resiliency towards possible intermittent network failures.
