@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 11/8/17.
+ * This interface defines the requirements for a factory which generates {@link PlacementRule}s.
  */
 public interface RuleFactory {
     /**
