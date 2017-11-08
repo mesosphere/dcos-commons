@@ -122,13 +122,4 @@ public class MaxPerHostnameRule extends MaxPerRule {
                 maxTasksPerHostname, taskFilter);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
 }

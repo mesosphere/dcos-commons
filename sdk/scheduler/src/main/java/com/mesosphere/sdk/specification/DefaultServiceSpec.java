@@ -320,6 +320,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
+                MaxPerRegionRule.class,
+                MaxPerZoneRule.class,
                 NamedVIPSpec.class,
                 NotRule.class,
                 OrRule.class,
