@@ -87,11 +87,6 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
         return distinctKeyCount;
     }
 
-    @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
-        return taskFilter;
-    }
-
     @Override
     public String toString() {
         return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",

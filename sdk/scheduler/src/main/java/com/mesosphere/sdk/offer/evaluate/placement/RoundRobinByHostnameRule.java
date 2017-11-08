@@ -78,11 +78,6 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
         return distinctKeyCount;
     }
 
-    @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
-        return taskFilter;
-    }
-
     @Override
     public String toString() {
         return String.format("RoundRobinByHostnameRule{agent-count=%s, task-filter=%s}",

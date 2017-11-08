@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -130,6 +131,11 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             return EvaluationOutcome.fail(
                     this, "Key '%s' is already full, and others are known to not be full", offerKey).build();
         }
+    }
+
+    @JsonProperty("task-filter")
+    private StringMatcher getTaskFilter() {
+        return taskFilter;
     }
 
     @Override

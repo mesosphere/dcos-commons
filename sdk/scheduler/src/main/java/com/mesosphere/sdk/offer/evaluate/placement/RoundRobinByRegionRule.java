@@ -45,11 +45,6 @@ public class RoundRobinByRegionRule extends AbstractRoundRobinRule {
         return distinctKeyCount;
     }
 
-    @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
-        return taskFilter;
-    }
-
     @Override
     public String toString() {
         return String.format("RoundRobinByRegionRule{region-count=%s, task-filter=%s}",
