@@ -40,15 +40,15 @@ Create the following `kerberos-options.json` file:
         "sasl_enabled": true,
         "kerberos": {
             "enabled": true,
-            "kdc_host_name": "KDC_MARATHON_IP",
-            "kdc_host_port": KDC_MARATHON_PORT,
+            "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
+            "kdc_host_port": 2500,
             "keytab_secret": "__dcos_base64___keytab"
 
         }
     }
 }
 ```
-(Here `KDC_MARATHON_IP` and `KDC_MARATHON_PORT` are the IP and port of the KDC Marathon app)
+(Here `kdc.marathon.autoip.dcos.thisdcos.directory` and `2500` are the IP and port of the KDC Marathon app)
 
 and deploy Apache Kafka:
 ```bash
@@ -106,7 +106,7 @@ In order to configure a Kerberized Kafka client, three things are needed:
 
     [realms]
         LOCAL = {
-            kdc = KDC_MARATHON_IP:KDC_MARATHON_PORT
+            kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500
         }
 
     [domain_realm]
@@ -138,7 +138,7 @@ $ cd /tmp/kafkaconfig && \
 $ docker run --rm -ti \
     -v /tmp/kafkaconfig:/tmp/kafkaconfig:ro \
     -e KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/kafkaconfig/client-jaas.conf -Djava.security.krb5.conf=/tmp/kafkaconfig/krb5.conf -Dsun.security.krb5.debug=true" \
-    -e JAVA_HOME="/tmp/kafkaconfig/re1.8.0_131 \
+    -e JAVA_HOME="/tmp/kafkaconfig/jre1.8.0_131 \
     confluentinc/cp-kafka:3.3.0 \
     bash
 ```
