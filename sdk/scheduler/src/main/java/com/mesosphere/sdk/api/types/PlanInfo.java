@@ -27,7 +27,7 @@ public class PlanInfo {
                 .map(phase -> PhaseInfo.forPhase(phase))
                 .collect(Collectors.toList());
 
-        return new PlanInfo(phaseInfos, plan.getStrategy().toString(), plan.getErrors(), plan.getStatus());
+        return new PlanInfo(phaseInfos, plan.getStrategy().getName(), plan.getErrors(), plan.getStatus());
     }
 
     private PlanInfo(

@@ -30,7 +30,7 @@ class PhaseInfo {
                 phase.getId().toString(),
                 phase.getName(),
                 stepInfos,
-                phase.getStrategy().toString(),
+                phase.getStrategy().getName(),
                 phase.getStatus());
     }
 

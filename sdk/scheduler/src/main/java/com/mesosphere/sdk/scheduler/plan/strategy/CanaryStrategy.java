@@ -85,6 +85,11 @@ public class CanaryStrategy implements Strategy<Step> {
     }
 
     @Override
+    public String getName() {
+        return strategy.toString() + "-canary";
+    }
+
+    @Override
     public void interrupt() {
         Step canaryStep = getNextCanaryStep();
         if (canaryStep != null) {
@@ -128,11 +133,6 @@ public class CanaryStrategy implements Strategy<Step> {
             }
         }
         return null;
-    }
-
-    @Override
-    public String toString() {
-        return strategy.toString() + "-canary";
     }
 
     /**
