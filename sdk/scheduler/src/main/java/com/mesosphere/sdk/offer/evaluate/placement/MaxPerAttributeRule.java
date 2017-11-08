@@ -12,8 +12,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -55,9 +53,6 @@ import java.util.stream.Collectors;
  */
 public class MaxPerAttributeRule extends MaxPerRule {
 
-    @Valid
-    @Min(1)
-    private final int maxTasksPerSelectedAttribute;
     private final StringMatcher attributeMatcher;
     private final StringMatcher taskFilter;
 
@@ -93,7 +88,7 @@ public class MaxPerAttributeRule extends MaxPerRule {
             @JsonProperty("max") int maxTasksPerSelectedAttribute,
             @JsonProperty("matcher") StringMatcher attributeMatcher,
             @JsonProperty("task-filter") StringMatcher taskFilter) {
-        this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
+        super(maxTasksPerSelectedAttribute, taskFilter);
         this.attributeMatcher = attributeMatcher;
         if (taskFilter == null) { // null when unspecified in serialized data
             taskFilter = AnyMatcher.create();
@@ -104,26 +99,21 @@ public class MaxPerAttributeRule extends MaxPerRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        if (isAcceptable(offer, podInstance, tasks, maxTasksPerSelectedAttribute)) {
+        if (isAcceptable(offer, podInstance, tasks)) {
             return EvaluationOutcome.pass(
                     this,
                     "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
-                    maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString())
+                    max, taskFilter.toString(), attributeMatcher.toString())
                     .build();
         } else {
             return EvaluationOutcome.fail(
                     this,
                     "Reached greater than %d tasks matching filter '%s' on this agent with attribute: %s",
-                    maxTasksPerSelectedAttribute,
+                    max,
                     taskFilter.toString(),
                     attributeMatcher.toString())
                     .build();
         }
-    }
-
-    @JsonProperty("max")
-    private int getMax() {
-        return maxTasksPerSelectedAttribute;
     }
 
     @JsonProperty("matcher")
@@ -150,15 +140,10 @@ public class MaxPerAttributeRule extends MaxPerRule {
                 .collect(Collectors.toList());
     }
 
-    @JsonProperty("task-filter")
-    public StringMatcher getTaskFilter() {
-        return taskFilter;
-    }
-
     @Override
     public String toString() {
         return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task-filter=%s}",
-                maxTasksPerSelectedAttribute, attributeMatcher, taskFilter);
+                max, attributeMatcher, taskFilter);
     }
 
     @Override

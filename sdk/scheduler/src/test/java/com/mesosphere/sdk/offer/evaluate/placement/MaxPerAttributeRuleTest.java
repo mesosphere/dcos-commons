@@ -2,28 +2,19 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
+import org.junit.Assert;
 import org.junit.Test;
 
-import javax.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests for {@link MaxPerAttributeRule}.
@@ -34,56 +25,15 @@ public class MaxPerAttributeRuleTest {
 
     private static final Offer OFFER_NO_ATTRS = getOfferWithResources();
     private static final Offer OFFER_ATTR_MATCH_1;
-    private static final Offer OFFER_ATTR_MATCH_2;
-    private static final Offer OFFER_ATTR_MISMATCH;
     static {
         Attribute.Builder a = Attribute.newBuilder()
                 .setType(Value.Type.TEXT)
                 .setName("footext");
         a.getTextBuilder().setValue("123");
         OFFER_ATTR_MATCH_1 = OFFER_NO_ATTRS.toBuilder().addAttributes(a.build()).build();
-
-        a = Attribute.newBuilder()
-                .setType(Value.Type.TEXT)
-                .setName("footext");
-        a.getTextBuilder().setValue("456");
-        OFFER_ATTR_MATCH_2 = OFFER_NO_ATTRS.toBuilder().addAttributes(a.build()).build();
-
-        a = Attribute.newBuilder()
-                .setType(Value.Type.TEXT)
-                .setName("other");
-        a.getTextBuilder().setValue("123");
-        OFFER_ATTR_MISMATCH = OFFER_NO_ATTRS.toBuilder().addAttributes(a.build()).build();
     }
 
-    private static final TaskInfo TASK_NO_ATTRS = TaskTestUtils.getTaskInfo(Collections.emptyList());
     private static final TaskInfo TASK_ATTR_MATCH_1 = getTask("match-1__abc", OFFER_ATTR_MATCH_1);
-    private static final TaskInfo TASK_ATTR_MATCH_2 = getTask("match-2__def", OFFER_ATTR_MATCH_2);
-    private static final TaskInfo TASK_ATTR_MISMATCH = getTask("mismatch__ghi", OFFER_ATTR_MISMATCH);
-    private static final Collection<TaskInfo> TASKS = Arrays.asList(
-            TASK_NO_ATTRS, TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_2, TASK_ATTR_MISMATCH);
-
-    private static final PodInstance POD = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance();
-    private static final PodInstance POD_WITH_TASK_NO_ATTRS = getPodInstance(TASK_NO_ATTRS);
-    private static final PodInstance POD_WITH_TASK_ATTR_MATCH_1 = getPodInstance(TASK_ATTR_MATCH_1);
-    private static final PodInstance POD_WITH_TASK_ATTR_MATCH_2 = getPodInstance(TASK_ATTR_MATCH_2);
-    private static final PodInstance POD_WITH_TASK_ATTR_MISMATCH = getPodInstance(TASK_ATTR_MISMATCH);
-
-    private static PodInstance getPodInstance(TaskInfo taskInfo) {
-        try {
-            TaskLabelReader labels = new TaskLabelReader(taskInfo);
-            ResourceSet resourceSet = PodInstanceRequirementTestUtils.getCpuResourceSet(1.0);
-            PodSpec podSpec = PodInstanceRequirementTestUtils.getRequirement(
-                    resourceSet,
-                    labels.getType(),
-                    labels.getIndex())
-                    .getPodInstance()
-                    .getPod();
-            return new DefaultPodInstance(podSpec, labels.getIndex());
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
 
     private static TaskInfo getTask(String id, Offer offer) {
         TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
@@ -104,287 +54,52 @@ public class MaxPerAttributeRuleTest {
         return o.build();
     }
 
-    @Test(expected = ConstraintViolationException.class)
-    public void testLimitZero() {
-        new MaxPerAttributeRule(0, ATTR_MATCHER);
+    @Test
+    public void getAllTaskKeys() {
+        MaxPerRule rule = new MaxPerAttributeRule(2, AnyMatcher.create());
+
+        Assert.assertEquals(1, rule.getKeys(TASK_ATTR_MATCH_1).size());
+        Assert.assertEquals("footext:123", rule.getKeys(TASK_ATTR_MATCH_1).stream().findFirst().get());
     }
 
     @Test
-    public void testLimitOne() {
-        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_MATCHER);
+    public void getTaskKeysMatchNoAttributes() {
+        final StringMatcher matcher = RegexMatcher.create("banana");
+        MaxPerRule rule = new MaxPerAttributeRule(2, matcher);
 
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, Collections.emptyList()).isPassing());
+        Assert.assertEquals(0, rule.getKeys(TASK_ATTR_MATCH_1).size());
     }
 
     @Test
-    public void testLimitOneWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_MATCHER);
+    public void getTaskKeysMatchNoTasks() {
+        final StringMatcher attributeMatcher = AnyMatcher.create();
+        final StringMatcher taskMatcher = RegexMatcher.create("banana");
+        MaxPerRule rule = new MaxPerAttributeRule(2, attributeMatcher, taskMatcher);
 
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
+        Assert.assertEquals(0, rule.getKeys(TestConstants.TASK_INFO).size());
     }
 
     @Test
-    public void testLimitOneWithTaskFilter() {
-        PlacementRule rule = new MaxPerAttributeRule(1, ATTR_MATCHER, RegexMatcher.create("match-.*"));
+    public void getAllOfferKeys() {
+        final StringMatcher matcher = AnyMatcher.create();
+        MaxPerRule rule = new MaxPerAttributeRule(2, matcher);
 
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
-
-        rule = new MaxPerAttributeRule(1, ATTR_MATCHER, ExactMatcher.create("match-1"));
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
-
-        rule = new MaxPerAttributeRule(1, ATTR_MATCHER, ExactMatcher.create("match-2"));
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
-
-        rule = new MaxPerAttributeRule(1, ATTR_MATCHER, ExactMatcher.create("mismatch"));
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
+        Assert.assertEquals(1, rule.getKeys(OFFER_ATTR_MATCH_1).size());
+        Assert.assertEquals("footext:123", rule.getKeys(OFFER_ATTR_MATCH_1).stream().findFirst().get());
     }
 
     @Test
-    public void testLimitTwo() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
+    public void getOfferKeysMatchNoAttributes() {
+        final StringMatcher matcher = RegexMatcher.create("banana");
+        MaxPerRule rule = new MaxPerAttributeRule(2, matcher);
 
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, Collections.emptyList()).isPassing());
-    }
-
-    @Test
-    public void testLimitTwoWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, TASKS).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, Collections.emptyList()).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, Collections.emptyList()).isPassing());
-    }
-
-    @Test
-    public void testLimitTwoDuplicates() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
-
-        Collection<TaskInfo> tasks = Arrays.asList(
-                TASK_NO_ATTRS,
-                TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_1,
-                TASK_ATTR_MATCH_2,
-                TASK_ATTR_MISMATCH);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, tasks).isPassing());
-
-        tasks = Arrays.asList(
-                TASK_NO_ATTRS, TASK_NO_ATTRS,
-                TASK_ATTR_MATCH_1,
-                TASK_ATTR_MATCH_2, TASK_ATTR_MATCH_2,
-                TASK_ATTR_MISMATCH);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, tasks).isPassing());
-
-        tasks = Arrays.asList(
-                TASK_NO_ATTRS,
-                TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_1,
-                TASK_ATTR_MATCH_2, TASK_ATTR_MATCH_2,
-                TASK_ATTR_MISMATCH, TASK_ATTR_MISMATCH, TASK_ATTR_MISMATCH);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD, tasks).isPassing());
-    }
-
-    @Test
-    public void testLimitTwoDuplicatesWithSamePresent() {
-        PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
-
-        Collection<TaskInfo> tasks = Arrays.asList(
-                TASK_NO_ATTRS,
-                TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_1,
-                TASK_ATTR_MATCH_2,
-                TASK_ATTR_MISMATCH);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-
-        tasks = Arrays.asList(
-                TASK_NO_ATTRS, TASK_NO_ATTRS,
-                TASK_ATTR_MATCH_1,
-                TASK_ATTR_MATCH_2, TASK_ATTR_MATCH_2,
-                TASK_ATTR_MISMATCH);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-
-        tasks = Arrays.asList(
-                TASK_NO_ATTRS,
-                TASK_ATTR_MATCH_1, TASK_ATTR_MATCH_1,
-                TASK_ATTR_MATCH_2, TASK_ATTR_MATCH_2,
-                TASK_ATTR_MISMATCH, TASK_ATTR_MISMATCH, TASK_ATTR_MISMATCH);
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_NO_ATTRS, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_1, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MATCH_2, tasks).isPassing());
-
-        assertTrue(rule.filter(OFFER_NO_ATTRS, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_1, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertFalse(rule.filter(OFFER_ATTR_MATCH_2, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
-        assertTrue(rule.filter(OFFER_ATTR_MISMATCH, POD_WITH_TASK_ATTR_MISMATCH, tasks).isPassing());
+        Assert.assertEquals(0, rule.getKeys(OFFER_ATTR_MATCH_1).size());
     }
 
     @Test
     public void testSerializeDeserialize() throws IOException {
         PlacementRule rule = new MaxPerAttributeRule(2, ATTR_MATCHER);
-        assertEquals(rule, SerializationUtils.fromString(
+        Assert.assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
 
@@ -401,5 +116,4 @@ public class MaxPerAttributeRuleTest {
         SerializationUtils.fromString(str,
                 PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER);
     }
-
 }

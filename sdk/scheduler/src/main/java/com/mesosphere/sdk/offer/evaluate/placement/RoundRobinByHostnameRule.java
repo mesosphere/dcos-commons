@@ -77,7 +77,7 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
 
     @JsonProperty("agent-count")
     private Optional<Integer> getAgentCount() {
-        return distinctValueCount;
+        return distinctKeyCount;
     }
 
     @JsonProperty("task-filter")
@@ -88,7 +88,7 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
     @Override
     public String toString() {
         return String.format("RoundRobinByHostnameRule{agent-count=%s, task-filter=%s}",
-                distinctValueCount, taskFilter);
+                distinctKeyCount, taskFilter);
     }
 
     @Override
