@@ -59,10 +59,11 @@ public class ServiceTestRunner {
 
     private final File specPath;
     private File configTemplateDir;
-    private final Map<String, String> cosmosOptions;
-    private final Map<String, String> buildTemplateParams;
-    private final Map<String, String> customSchedulerEnv;
-    private final Map<String, Map<String, String>> customPodEnvs;
+    private Persister persister = new MemPersister();
+    private final Map<String, String> cosmosOptions = new HashMap<>();
+    private final Map<String, String> buildTemplateParams = new HashMap<>();
+    private final Map<String, String> customSchedulerEnv = new HashMap<>();
+    private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
 
     /**
      * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
@@ -111,10 +112,16 @@ public class ServiceTestRunner {
     public ServiceTestRunner(File specPath) {
         this.specPath = specPath;
         this.configTemplateDir = this.specPath.getParentFile();
-        this.cosmosOptions = new HashMap<>();
-        this.buildTemplateParams = new HashMap<>();
-        this.customSchedulerEnv = new HashMap<>();
-        this.customPodEnvs = new HashMap<>();
+    }
+
+    /**
+     * Equivalent of {@link #setOptions(String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setOptions(String...)
+     */
+    public ServiceTestRunner setOptions(Map<String, String> optionMap) {
+        this.cosmosOptions.putAll(optionMap);
+        return this;
     }
 
     /**
@@ -126,7 +133,16 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setOptions(String... optionKeyVals) {
-        this.cosmosOptions.putAll(toMap(optionKeyVals));
+        return setOptions(toMap(optionKeyVals));
+    }
+
+    /**
+     * Equivalent of {@link #setBuildTemplateParams(String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setBuildTemplateParams(String...)
+     */
+    public ServiceTestRunner setBuildTemplateParams(Map<String, String> paramMap) {
+        this.buildTemplateParams.putAll(paramMap);
         return this;
     }
 
@@ -139,8 +155,7 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setBuildTemplateParams(String... paramKeyVals) {
-        this.buildTemplateParams.putAll(toMap(paramKeyVals));
-        return this;
+        return setBuildTemplateParams(toMap(paramKeyVals));
     }
 
     /**
@@ -155,12 +170,25 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Configures the test with the provided custom persister, which reflects state from a prior scheduler. This may be
+     * used to initialize the scheduler with some non-empty state. Otherwise the scheduler will be created with an empty
+     * persister, simulating an initial install.
+     *
+     * @param persister the persister to be used by the scheduler
+     * @return {@code this}
+     */
+    public ServiceTestRunner setPersister(Persister persister) {
+        this.persister = persister;
+        return this;
+    }
+
+    /**
      * Equivalent of {@link #setSchedulerEnv(String...)} for a {@link Map} instead of string pairs.
      *
      * @see #setSchedulerEnv(String...)
      */
-    public ServiceTestRunner setSchedulerEnv(Map<String, String> schedulerEnvKeyVals) {
-        this.customSchedulerEnv.putAll(schedulerEnvKeyVals);
+    public ServiceTestRunner setSchedulerEnv(Map<String, String> schedulerEnvMap) {
+        this.customSchedulerEnv.putAll(schedulerEnvMap);
         return this;
     }
 
@@ -183,13 +211,13 @@ public class ServiceTestRunner {
      *
      * @see #setPodEnv(String, String...)
      */
-    public ServiceTestRunner setPodEnv(String podType, Map<String, String> podEnvKeyVals) {
+    public ServiceTestRunner setPodEnv(String podType, Map<String, String> podEnvMap) {
         Map<String, String> podEnv = this.customPodEnvs.get(podType);
         if (podEnv == null) {
             podEnv = new HashMap<>();
             this.customPodEnvs.put(podType, podEnv);
         }
-        podEnv.putAll(podEnvKeyVals);
+        podEnv.putAll(podEnvMap);
         return this;
     }
 
@@ -257,7 +285,6 @@ public class ServiceTestRunner {
                 rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
-        Persister persister = new MemPersister();
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
