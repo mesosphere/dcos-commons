@@ -15,6 +15,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
+const UNKNOWN_VALUE = "<UNKNOWN>"
+
 var errPlanStatus417 = errors.New("plan endpoint returned HTTP status code 417")
 
 type planHandler struct {
@@ -317,9 +319,13 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 
 	planStatus, ok := planJSON["status"]
 	if !ok {
-		planStatus = "<UNKNOWN>"
+		planStatus = UNKNOWN_VALUE
 	}
-	buf.WriteString(fmt.Sprintf("%s (%s)\n", planName, planStatus))
+	planStrategy, ok := planJSON["strategy"]
+	if !ok {
+		planStatus = UNKNOWN_VALUE
+	}
+	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
 
 	rawPhases, ok := planJSON["phases"].([]interface{})
 	if ok {
@@ -355,7 +361,7 @@ func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 		return
 	}
 
-	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, elementString(phase)))
+	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, phaseString(phase)))
 
 	rawSteps, ok := phase["steps"].([]interface{})
 	if !ok {
@@ -377,17 +383,33 @@ func appendStep(buf *bytes.Buffer, rawStep interface{}, prefix string, lastStep 
 	} else {
 		prefix += "├─ "
 	}
-	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, elementString(step)))
+	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, stepString(step)))
 }
 
-func elementString(element map[string]interface{}) string {
-	elementName, ok := element["name"]
+func phaseString(phase map[string]interface{}) string {
+	phaseName, ok := phase["name"]
 	if !ok {
-		elementName = "<UNKNOWN>"
+		phaseName = UNKNOWN_VALUE
 	}
-	elementStatus, ok := element["status"]
+	phaseStrategy, ok := phase["strategy"]
 	if !ok {
-		elementStatus = "<UNKNOWN>"
+		phaseStrategy = UNKNOWN_VALUE
 	}
-	return fmt.Sprintf("%s (%s)", elementName, elementStatus)
+	phaseStatus, ok := phase["status"]
+	if !ok {
+		phaseStatus = UNKNOWN_VALUE
+	}
+	return fmt.Sprintf("%s (%s strategy) (%s)", phaseName, phaseStrategy, phaseStatus)
+}
+
+func stepString(step map[string]interface{}) string {
+	stepName, ok := step["name"]
+	if !ok {
+		stepName = UNKNOWN_VALUE
+	}
+	stepStatus, ok := step["status"]
+	if !ok {
+		stepStatus = UNKNOWN_VALUE
+	}
+	return fmt.Sprintf("%s (%s)", stepName, stepStatus)
 }
