@@ -23,7 +23,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
-        service_config = {"service": {"name": FOLDERED_SERVICE_NAME, "user": "root"}}
+        service_config = {"service": {"name": FOLDERED_SERVICE_NAME}}
 
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
