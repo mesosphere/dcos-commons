@@ -209,8 +209,25 @@ public class MarathonConstraintParser {
      * across a filtered set of tasks.
      */
     private interface Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> parameter) throws IOException;
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> parameter) throws IOException;
+    }
+
+    private static PlacementKey getKey(String fieldName) {
+        switch (fieldName) {
+            case "hostname":
+            case "@hostname":
+                return PlacementKey.HOSTNAME;
+            case "@region":
+                return PlacementKey.REGION;
+            case "@zone":
+                return PlacementKey.ZONE;
+            default:
+                return PlacementKey.ATTRIBUTE;
+        }
     }
 
     /**
@@ -219,18 +236,22 @@ public class MarathonConstraintParser {
      * on each host for some task type: {@code [["hostname", "UNIQUE"]]}
      */
     private static class UniqueOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> ignoredParameter) {
-            if (isHostname(fieldName)) {
-                return new MaxPerHostnameRule(1, taskFilter);
-            } else {
-                // Ensure that:
-                // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
-                // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
-                StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
-                return new AndRule(
-                        AttributeRuleFactory.getInstance()
-                                .require(matcher), new MaxPerAttributeRule(1, matcher, taskFilter));
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> ignoredParameter) {
+
+            switch (getKey(fieldName)) {
+                case HOSTNAME:
+                    return new MaxPerHostnameRule(1, taskFilter);
+                case ATTRIBUTE:
+                default:
+                    StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
+                    return new AndRule(
+                            AttributeRuleFactory.getInstance().require(matcher),
+                            new MaxPerAttributeRule(1, matcher, taskFilter));
+
             }
         }
     }
@@ -244,13 +265,21 @@ public class MarathonConstraintParser {
      * hostname property: {@code [["hostname", "CLUSTER", "a.specific.node.com"]]}
      */
     private static class ClusterOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            if (isHostname(fieldName)) {
-                return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
-            } else {
-                return AttributeRuleFactory.getInstance().require(ExactMatcher.createAttribute(fieldName, parameter));
+
+            switch (getKey(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ATTRIBUTE:
+                default:
+                    return AttributeRuleFactory.getInstance().require(
+                            ExactMatcher.createAttribute(fieldName, parameter));
             }
         }
     }
@@ -274,8 +303,12 @@ public class MarathonConstraintParser {
      * attempt of comparing an incoming offer against the launched tasks.
      */
     private static class GroupByOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> parameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> parameter) throws IOException {
+
             final Optional<Integer> num;
             try {
                 num = Optional.ofNullable(parameter.isPresent() ?
@@ -285,10 +318,13 @@ public class MarathonConstraintParser {
                         "Unable to parse max parameter as integer for '%s' operation: %s",
                         operatorName, parameter), e);
             }
-            if (isHostname(fieldName)) {
-                return new RoundRobinByHostnameRule(num, taskFilter);
-            } else {
-                return new RoundRobinByAttributeRule(fieldName, num, taskFilter);
+
+            switch (getKey(fieldName)) {
+                case HOSTNAME:
+                    return new RoundRobinByHostnameRule(num, taskFilter);
+                case ATTRIBUTE:
+                default:
+                    return new RoundRobinByAttributeRule(fieldName, num, taskFilter);
             }
         }
     }
@@ -301,13 +337,20 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class LikeOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            if (isHostname(fieldName)) {
-                return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
-            } else {
-                return AttributeRuleFactory.getInstance().require(RegexMatcher.createAttribute(fieldName, parameter));
+            switch (getKey(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
+                case ATTRIBUTE:
+                default:
+                    return AttributeRuleFactory.getInstance().require(
+                            RegexMatcher.createAttribute(fieldName, parameter));
             }
         }
     }
@@ -319,13 +362,19 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class UnlikeOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            if (isHostname(fieldName)) {
-                return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
-            } else {
-                return AttributeRuleFactory.getInstance().avoid(RegexMatcher.createAttribute(fieldName, parameter));
+            switch (getKey(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
+                case ATTRIBUTE:
+                default:
+                    return AttributeRuleFactory.getInstance().avoid(RegexMatcher.createAttribute(fieldName, parameter));
             }
         }
     }
@@ -338,8 +387,12 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class MaxPerOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             final int max;
             try {
                 max = Integer.parseInt(validateRequiredParameter(operatorName, requiredParameter));
@@ -348,22 +401,21 @@ public class MarathonConstraintParser {
                         "Unable to parse max parameter as integer for '%s' operation: %s",
                         operatorName, requiredParameter), e);
             }
-            if (isHostname(fieldName)) {
-                return new MaxPerHostnameRule(max, taskFilter);
-            } else {
-                // Ensure that:
-                // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
-                // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
-                StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
-                return new AndRule(
-                        AttributeRuleFactory.getInstance()
-                                .require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
+
+            switch (getKey(fieldName)) {
+                case HOSTNAME:
+                    return new MaxPerHostnameRule(max, taskFilter);
+                case ATTRIBUTE:
+                default:
+                    // Ensure that:
+                    // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
+                    // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
+                    StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
+                    return new AndRule(
+                            AttributeRuleFactory.getInstance()
+                                    .require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
             }
         }
-    }
-
-    private static boolean isHostname(String fieldName) {
-        return HOSTNAME_FIELD.equalsIgnoreCase(fieldName);
     }
 
     private static String validateRequiredParameter(
