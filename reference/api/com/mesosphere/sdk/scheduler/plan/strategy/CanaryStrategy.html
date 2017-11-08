@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -225,19 +225,23 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#getName--">getName</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#interrupt--">interrupt</a></span>()</code>
 <div class="block">A call to interrupt indicates to an <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Interruptible</code></a> that it should not continue work beyond the current
  point, until <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html#proceed--"><code>Interruptible.proceed()</code></a> is called.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#isInterrupted--">isInterrupted</a></span>()</code>
 <div class="block">Indicates whether the object is interrupted or not.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--">proceed</a></span>()</code>
 <div class="block">A call to proceed indicates to an <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Interruptible</code></a> that it should may cancel a previous <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html#interrupt--"><code>Interruptible.interrupt()</code></a>
@@ -345,6 +349,19 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
      this call</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>zero or more candidates for work to be performed</dd>
+</dl>
+</li>
+</ul>
+<a name="getName--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getName</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getName()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html#getName--">getName</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="interface in com.mesosphere.sdk.scheduler.plan.strategy">Strategy</a>&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></dd>
 </dl>
 </li>
 </ul>

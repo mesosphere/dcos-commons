@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6};
+var methods = {"i0":6,"i1":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -140,6 +140,10 @@ extends <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptib
 <div class="block">Returns the candidate element(s), if any, which may have work performed against them.</div>
 </td>
 </tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html#getName--">getName</a></span>()</code>&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.Interruptible">
@@ -165,7 +169,7 @@ extends <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptib
 <a name="getCandidates-java.util.Collection-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getCandidates</h4>
 <pre>java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="type parameter in Strategy">C</a>&gt;&nbsp;getCandidates(java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="type parameter in Strategy">C</a>&gt;&nbsp;elements,
@@ -179,6 +183,15 @@ extends <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Interruptib
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>zero or more candidates for work to be performed</dd>
 </dl>
+</li>
+</ul>
+<a name="getName--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getName</h4>
+<pre>java.lang.String&nbsp;getName()</pre>
 </li>
 </ul>
 </li>
