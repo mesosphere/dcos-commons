@@ -121,5 +121,4 @@ public class MaxPerHostnameRule extends MaxPerRule {
         return String.format("MaxPerHostnameRule{max=%s, task-filter=%s}",
                 maxTasksPerHostname, taskFilter);
     }
-
 }

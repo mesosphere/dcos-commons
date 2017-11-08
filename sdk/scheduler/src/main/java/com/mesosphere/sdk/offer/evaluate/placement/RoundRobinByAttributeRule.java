@@ -99,14 +99,4 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
         return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",
                 attributeName, distinctKeyCount, taskFilter);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
 }

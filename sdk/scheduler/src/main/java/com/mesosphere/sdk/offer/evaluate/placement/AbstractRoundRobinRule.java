@@ -1,17 +1,18 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.specification.PodInstance;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import com.mesosphere.sdk.specification.PodInstance;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Base implementation of common round-robin logic.
@@ -129,5 +130,15 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             return EvaluationOutcome.fail(
                     this, "Key '%s' is already full, and others are known to not be full", offerKey).build();
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

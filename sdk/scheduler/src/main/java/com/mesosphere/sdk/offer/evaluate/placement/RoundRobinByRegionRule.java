@@ -49,14 +49,4 @@ public class RoundRobinByRegionRule extends AbstractRoundRobinRule {
         return String.format("RoundRobinByRegionRule{region-count=%s, task-filter=%s}",
                 distinctKeyCount, taskFilter);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
 }

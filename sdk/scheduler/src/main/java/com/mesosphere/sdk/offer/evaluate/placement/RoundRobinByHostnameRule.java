@@ -90,14 +90,5 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
         return String.format("RoundRobinByHostnameRule{agent-count=%s, task-filter=%s}",
                 distinctKeyCount, taskFilter);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
 }
+
