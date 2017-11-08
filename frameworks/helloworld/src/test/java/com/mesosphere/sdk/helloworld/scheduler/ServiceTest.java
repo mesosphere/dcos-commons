@@ -1,9 +1,13 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.mesos.Protos;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.mesosphere.sdk.testing.Expect;
@@ -11,6 +15,9 @@ import com.mesosphere.sdk.testing.Send;
 import com.mesosphere.sdk.testing.ServiceTestRunner;
 import com.mesosphere.sdk.testing.SimulationTick;
 
+/**
+ * Tests for the hello world service and its example yml files.
+ */
 public class ServiceTest {
 
     @Test
@@ -61,71 +68,45 @@ public class ServiceTest {
     }
 
     @Test
-    public void testSpecSimple() throws Exception {
-        new ServiceTestRunner("examples/simple.yml").run();
+    public void testExampleSpecs() throws Exception {
+        // Some example files may require additional custom scheduler envvars:
+        Map<String, Map<String, String>> schedulerEnvForExamples = new HashMap<>();
+        schedulerEnvForExamples.put("secrets.yml", toMap(
+                "HELLO_SECRET1", "hello-world/secret1",
+                "HELLO_SECRET2", "hello-world/secret2",
+                "WORLD_SECRET1", "hello-world/secret1",
+                "WORLD_SECRET2", "hello-world/secret2",
+                "WORLD_SECRET3", "hello-world/secret3"));
+
+        // Iterate over yml files in dist/examples/, run sanity check for each:
+        File[] exampleFiles = ServiceTestRunner.getDistFile("examples").listFiles();
+        Assert.assertNotNull(exampleFiles);
+        Assert.assertTrue(exampleFiles.length != 0);
+        for (File examplesFile : exampleFiles) {
+            ServiceTestRunner serviceTestRunner = new ServiceTestRunner(examplesFile);
+            Map<String, String> schedulerEnv = schedulerEnvForExamples.get(examplesFile.getName());
+            if (schedulerEnv != null) {
+                serviceTestRunner.setSchedulerEnv(schedulerEnv);
+            }
+            try {
+                serviceTestRunner.run();
+            } catch (Exception e) {
+                throw new Exception(String.format(
+                        "Failed to render %s: %s", examplesFile.getAbsolutePath(), e.getMessage()), e);
+            }
+        }
     }
 
-    @Test
-    public void testSpecPlan() throws Exception {
-        new ServiceTestRunner("examples/plan.yml").run();
-    }
-
-    @Test
-    public void testSpecSidecar() throws Exception {
-        new ServiceTestRunner("examples/sidecar.yml").run();
-    }
-
-    @Test
-    public void testSpecTaskcfg() throws Exception {
-        new ServiceTestRunner("examples/taskcfg.yml").run();
-    }
-
-    @Test
-    public void testSpecUri() throws Exception {
-        new ServiceTestRunner("examples/uri.yml").run();
-    }
-
-    @Test
-    public void testSpecWebUrl() throws Exception {
-        new ServiceTestRunner("examples/web-url.yml").run();
-    }
-
-    @Test
-    public void testGpuResource() throws Exception {
-        new ServiceTestRunner("examples/gpu_resource.yml").run();
-    }
-
-    @Test
-    public void testOverlayNetworks() throws Exception {
-        new ServiceTestRunner("examples/overlay.yml").run();
-    }
-
-    @Test
-    public void testSecrets() throws Exception {
-        // This yml file expects some additional envvars which aren't in the default marathon.json.mustache,
-        // so we need to provide them manually:
-        new ServiceTestRunner("examples/secrets.yml")
-                .setSchedulerEnv(
-                        "HELLO_SECRET1", "hello-world/secret1",
-                        "HELLO_SECRET2", "hello-world/secret2",
-                        "WORLD_SECRET1", "hello-world/secret1",
-                        "WORLD_SECRET2", "hello-world/secret2",
-                        "WORLD_SECRET3", "hello-world/secret3")
-                .run();
-    }
-
-    @Test
-    public void testPreReservedRole() throws Exception {
-        new ServiceTestRunner("examples/pre-reserved.yml").run();
-    }
-
-    @Test
-    public void testMultiStepPlan() throws Exception {
-        new ServiceTestRunner("examples/multistep_plan.yml").run();
-    }
-
-    @Test
-    public void testTLS() throws Exception {
-        new ServiceTestRunner("examples/tls.yml").run();
+    private static Map<String, String> toMap(String... keyVals) {
+        Map<String, String> map = new HashMap<>();
+        if (keyVals.length % 2 != 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Expected an even number of arguments [key, value, key, value, ...], got: %d",
+                    keyVals.length));
+        }
+        for (int i = 0; i < keyVals.length; i += 2) {
+            map.put(keyVals[i], keyVals[i + 1]);
+        }
+        return map;
     }
 }

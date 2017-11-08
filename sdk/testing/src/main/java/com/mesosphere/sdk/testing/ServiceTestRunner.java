@@ -59,10 +59,27 @@ public class ServiceTestRunner {
 
     private final File specPath;
     private File configTemplateDir;
-    private final Map<String, String> cosmosOptions;
-    private final Map<String, String> buildTemplateParams;
-    private final Map<String, String> customSchedulerEnv;
-    private final Map<String, Map<String, String>> customPodEnvs;
+    private Persister persister = new MemPersister();
+    private final Map<String, String> cosmosOptions = new HashMap<>();
+    private final Map<String, String> buildTemplateParams = new HashMap<>();
+    private final Map<String, String> customSchedulerEnv = new HashMap<>();
+    private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
+
+    /**
+     * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
+     * actually exists.
+     */
+    public static File getDistDir() {
+        return new File(System.getProperty("user.dir") + "/src/main/dist/");
+    }
+
+    /**
+     * Returns a {@link File} object for a provided filename or relative path within the service's {@code src/main/dist}
+     * directory. Does not check if the specified path actually exists.
+     */
+    public static File getDistFile(String specFilePath) {
+        return new File(getDistDir(), specFilePath);
+    }
 
     /**
      * Creates a new instance against the default {@code svc.yml} Service Specification YAML file.
@@ -74,19 +91,37 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Creates a new instance against the provided Service Specification YAML filename within the service's
+     * {@code src/main/dist} directory.
+     *
+     * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
+     *
+     * @param specPath path to the Service Specification YAML file, relative to the {@code src/main/dist} directory
+     */
+    public ServiceTestRunner(String specDistFilename) {
+        this(getDistFile(specDistFilename));
+    }
+
+    /**
      * Creates a new instance against the provided Service Specification YAML path.
      *
      * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
      *
      * @param specPath path to the Service Specification YAML file, relative to the {@code dist} directory
      */
-    public ServiceTestRunner(String specPath) {
-        this.specPath = getDistFile(specPath);
+    public ServiceTestRunner(File specPath) {
+        this.specPath = specPath;
         this.configTemplateDir = this.specPath.getParentFile();
-        this.cosmosOptions = new HashMap<>();
-        this.buildTemplateParams = new HashMap<>();
-        this.customSchedulerEnv = new HashMap<>();
-        this.customPodEnvs = new HashMap<>();
+    }
+
+    /**
+     * Equivalent of {@link #setOptions(String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setOptions(String...)
+     */
+    public ServiceTestRunner setOptions(Map<String, String> optionMap) {
+        this.cosmosOptions.putAll(optionMap);
+        return this;
     }
 
     /**
@@ -98,7 +133,16 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setOptions(String... optionKeyVals) {
-        this.cosmosOptions.putAll(toMap(optionKeyVals));
+        return setOptions(toMap(optionKeyVals));
+    }
+
+    /**
+     * Equivalent of {@link #setBuildTemplateParams(String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setBuildTemplateParams(String...)
+     */
+    public ServiceTestRunner setBuildTemplateParams(Map<String, String> paramMap) {
+        this.buildTemplateParams.putAll(paramMap);
         return this;
     }
 
@@ -111,8 +155,7 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setBuildTemplateParams(String... paramKeyVals) {
-        this.buildTemplateParams.putAll(toMap(paramKeyVals));
-        return this;
+        return setBuildTemplateParams(toMap(paramKeyVals));
     }
 
     /**
@@ -127,6 +170,29 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Configures the test with the provided custom persister, which reflects state from a prior scheduler. This may be
+     * used to initialize the scheduler with some non-empty state. Otherwise the scheduler will be created with an empty
+     * persister, simulating an initial install.
+     *
+     * @param persister the persister to be used by the scheduler
+     * @return {@code this}
+     */
+    public ServiceTestRunner setPersister(Persister persister) {
+        this.persister = persister;
+        return this;
+    }
+
+    /**
+     * Equivalent of {@link #setSchedulerEnv(String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setSchedulerEnv(String...)
+     */
+    public ServiceTestRunner setSchedulerEnv(Map<String, String> schedulerEnvMap) {
+        this.customSchedulerEnv.putAll(schedulerEnvMap);
+        return this;
+    }
+
+    /**
      * Configures the test with additional environment variables in the Scheduler beyond those which would be included
      * by the service's {@code marathon.json.mustache}. This may be useful for tests against custom Service
      * Specification YAML files which reference envvars that aren't also present in the packaging's Marathon definition.
@@ -136,7 +202,22 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setSchedulerEnv(String... schedulerEnvKeyVals) {
-        this.customSchedulerEnv.putAll(toMap(schedulerEnvKeyVals));
+        setSchedulerEnv(toMap(schedulerEnvKeyVals));
+        return this;
+    }
+
+    /**
+     * Equivalent of {@link #setPodEnv(String, String...)} for a {@link Map} instead of string pairs.
+     *
+     * @see #setPodEnv(String, String...)
+     */
+    public ServiceTestRunner setPodEnv(String podType, Map<String, String> podEnvMap) {
+        Map<String, String> podEnv = this.customPodEnvs.get(podType);
+        if (podEnv == null) {
+            podEnv = new HashMap<>();
+            this.customPodEnvs.put(podType, podEnv);
+        }
+        podEnv.putAll(podEnvMap);
         return this;
     }
 
@@ -150,13 +231,7 @@ public class ServiceTestRunner {
      * @return {@code this}
      */
     public ServiceTestRunner setPodEnv(String podType, String... podEnvKeyVals) {
-        Map<String, String> podEnv = this.customPodEnvs.get(podType);
-        if (podEnv == null) {
-            podEnv = new HashMap<>();
-            this.customPodEnvs.put(podType, podEnv);
-        }
-        podEnv.putAll(toMap(podEnvKeyVals));
-        return this;
+        return setPodEnv(podType, toMap(podEnvKeyVals));
     }
 
     /**
@@ -210,7 +285,6 @@ public class ServiceTestRunner {
                 rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
-        Persister persister = new MemPersister();
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
@@ -320,14 +394,6 @@ public class ServiceTestRunner {
             taskEnv.put(portSpec.getEnvKey(), String.valueOf(portVal));
         }
         return taskEnv;
-    }
-
-    /**
-     * Returns a {@link File} object for a provided filename or relative path within the service's {@code src/main/dist}
-     * directory.
-     */
-    public static File getDistFile(String specFilePath) {
-        return new File(System.getProperty("user.dir") + "/src/main/dist/" + specFilePath);
     }
 
     private static Map<String, String> toMap(String... keyVals) {
