@@ -229,7 +229,8 @@ public class MarathonConstraintParser {
                 // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
                 StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
                 return new AndRule(
-                        AttributeRule.require(matcher), new MaxPerAttributeRule(1, matcher, taskFilter));
+                        AttributeRuleFactory.getInstance()
+                                .require(matcher), new MaxPerAttributeRule(1, matcher, taskFilter));
             }
         }
     }
@@ -247,9 +248,9 @@ public class MarathonConstraintParser {
                                  Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
-                return HostnameRule.require(ExactMatcher.create(parameter));
+                return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
             } else {
-                return AttributeRule.require(ExactMatcher.createAttribute(fieldName, parameter));
+                return AttributeRuleFactory.getInstance().require(ExactMatcher.createAttribute(fieldName, parameter));
             }
         }
     }
@@ -304,9 +305,9 @@ public class MarathonConstraintParser {
                                  Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
-                return HostnameRule.require(RegexMatcher.create(parameter));
+                return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
             } else {
-                return AttributeRule.require(RegexMatcher.createAttribute(fieldName, parameter));
+                return AttributeRuleFactory.getInstance().require(RegexMatcher.createAttribute(fieldName, parameter));
             }
         }
     }
@@ -322,9 +323,9 @@ public class MarathonConstraintParser {
                                  Optional<String> requiredParameter) throws IOException {
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
             if (isHostname(fieldName)) {
-                return HostnameRule.avoid(RegexMatcher.create(parameter));
+                return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
             } else {
-                return AttributeRule.avoid(RegexMatcher.createAttribute(fieldName, parameter));
+                return AttributeRuleFactory.getInstance().avoid(RegexMatcher.createAttribute(fieldName, parameter));
             }
         }
     }
@@ -355,7 +356,8 @@ public class MarathonConstraintParser {
                 // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
                 StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
                 return new AndRule(
-                        AttributeRule.require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
+                        AttributeRuleFactory.getInstance()
+                                .require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
             }
         }
     }
