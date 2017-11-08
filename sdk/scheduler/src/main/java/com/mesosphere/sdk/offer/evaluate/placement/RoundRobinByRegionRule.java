@@ -2,8 +2,6 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
 import java.util.Optional;
@@ -13,7 +11,15 @@ import java.util.Optional;
  */
 public class RoundRobinByRegionRule extends AbstractRoundRobinRule {
 
-    protected RoundRobinByRegionRule(
+    public RoundRobinByRegionRule(Integer regionCount) {
+        this(Optional.of(regionCount));
+    }
+
+    public RoundRobinByRegionRule(Optional<Integer> regionCount) {
+        this(regionCount, null);
+    }
+
+    public RoundRobinByRegionRule(
             @JsonProperty("region-count") Optional<Integer> regionCount,
             @JsonProperty("task-filter") StringMatcher taskFilter) {
         super(taskFilter, regionCount);

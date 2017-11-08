@@ -330,6 +330,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 RegexMatcher.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,
+                RoundRobinByRegionRule.class,
+                RoundRobinByZoneRule.class,
                 TaskTypeLabelConverter.class,
                 TaskTypeRule.class,
                 DefaultSecretSpec.class);
