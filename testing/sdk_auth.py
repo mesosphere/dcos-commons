@@ -21,6 +21,7 @@ import os
 import shakedown
 
 import sdk_cmd
+import sdk_hosts
 import sdk_marathon
 import sdk_tasks
 import sdk_security
