@@ -59,14 +59,14 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
     /**
      * Returns a value to round robin against from the provided {@link Offer}.
      */
-    protected String getValue(Offer offer) {
+    protected String getKey(Offer offer) {
         return offer.getHostname();
     }
 
     /**
      * Returns a value to round robin against from the provided {@link TaskInfo}.
      */
-    protected String getValue(TaskInfo task) {
+    protected String getKey(TaskInfo task) {
         try {
             return new TaskLabelReader(task).getHostname();
         } catch (TaskException e) {

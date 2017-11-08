@@ -17,6 +17,43 @@ TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
+DOCKER_IMAGE_NAME = "mesosphere/hdfs-client:2.6.4"
+KERBERIZED_CLIENT_IMAGE_NAME = "nvaziri/kerberized-hdfs-client:dev"
+KERBERIZED_CLIENT_MEM_SIZE = 512
+
+kerberized_hdfs_client_marathon_app = {
+    "id": "hdfsclient",
+    "mem": KERBERIZED_CLIENT_MEM_SIZE,
+    "container": {
+        "type": "MESOS",
+        "docker": {
+            "image": KERBERIZED_CLIENT_IMAGE_NAME,
+            "forcePullImage": True
+        },
+        "volumes": [
+            {
+                "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
+                "secret": "hdfs_keytab"
+            }
+        ]
+    },
+    "secrets": {
+        "hdfs_keytab": {
+            "source": ""
+        }
+    },
+    "networks": [
+        {
+            "mode": "host"
+        }
+    ],
+    "env": {
+        "REALM": "",
+        "KDC_ADDRESS": "",
+        "JAVA_HOME": "/usr/lib/jvm/default-java",
+        "JVM_MaxHeapSize": KERBERIZED_CLIENT_MEM_SIZE
+    }
+}
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
@@ -71,8 +108,11 @@ def run_hdfs_command(service_name, command):
     """
     Execute the command using the Docker client
     """
-    full_command = 'docker run -e HDFS_SERVICE_NAME={} mesosphere/hdfs-client:2.6.4 /bin/bash -c "/configure-hdfs.sh && {}"'.format(
-        service_name, command)
+    full_command = 'docker run -e HDFS_SERVICE_NAME={service_name} {image_name} /bin/bash -c "/configure-hdfs.sh && {cmd}"'.format(
+        service_name=service_name,
+        image_name=DOCKER_IMAGE_NAME,
+        cmd=command
+    )
 
     rc, output = shakedown.run_command_on_master(full_command)
     return rc, output

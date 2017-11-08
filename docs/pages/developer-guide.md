@@ -107,7 +107,7 @@ They store the desired configuration of a service and all relevant information r
 
    ```
    $ dcos package uninstall myframework
-   $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework
+   $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework"
    ```
 
    The second command above runs the **janitor** script.  The janitor

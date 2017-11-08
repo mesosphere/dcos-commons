@@ -159,8 +159,8 @@ class KerberosEnvironment:
         kdc_app_def["id"] = KERBEROS_APP_ID
         sdk_marathon.install_app(kdc_app_def)
         self.kdc_port = int(kdc_app_def["portDefinitions"][0]["port"])
-        self.kdc_host = "{app_name}.{dns_resolver_suffix}".format(
-                app_name=KERBEROS_APP_ID, dns_resolver_suffix="marathon.mesos")
+        self.kdc_host = "{app_name}.{service_name}.{autoip_host_suffix}".format(
+                app_name=KERBEROS_APP_ID, service_name="marathon", autoip_host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
         self.kdc_realm = REALM
         self.kdc_task = _get_kdc_task()
         self.framework_id = self.kdc_task["framework_id"]

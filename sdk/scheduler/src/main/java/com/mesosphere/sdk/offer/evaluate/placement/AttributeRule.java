@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -22,7 +23,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @see AttributeStringUtils#toString(Attribute)
  */
-public class AttributeRule implements PlacementRule {
+public class AttributeRule extends StringMatcherRule {
 
     /**
      * Requires that a task be placed on the provided attribute matcher.
@@ -97,22 +98,19 @@ public class AttributeRule implements PlacementRule {
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        for (Attribute attributeProto : offer.getAttributesList()) {
-            String attributeString = AttributeStringUtils.toString(attributeProto);
-            if (matcher.matches(attributeString)) {
-                return EvaluationOutcome.pass(
-                        this,
-                        "Match found for attribute pattern: '%s'", matcher.toString())
-                        .build();
-            }
+        if (isAcceptable(matcher, offer, podInstance, tasks)) {
+            return EvaluationOutcome.pass(
+                    this,
+                    "Match found for attribute pattern: '%s'", matcher.toString())
+                    .build();
+        } else {
+            return EvaluationOutcome.fail(
+                    this,
+                    "None of %d attributes matched pattern: '%s'",
+                    offer.getAttributesCount(),
+                    matcher.toString())
+                    .build();
         }
-
-        return EvaluationOutcome.fail(
-                this,
-                "None of %d attributes matched pattern: '%s'",
-                offer.getAttributesCount(),
-                matcher.toString())
-                .build();
     }
 
     @JsonProperty("matcher")
@@ -133,5 +131,12 @@ public class AttributeRule implements PlacementRule {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public Collection<String> getKeys(Offer offer) {
+        return offer.getAttributesList().stream()
+                .map(attribute -> AttributeStringUtils.toString(attribute))
+                .collect(Collectors.toList());
     }
 }

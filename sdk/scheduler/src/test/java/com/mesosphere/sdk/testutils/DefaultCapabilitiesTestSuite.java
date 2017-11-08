@@ -25,7 +25,7 @@ public abstract class DefaultCapabilitiesTestSuite {
         when(capabilities.supportsFileBasedSecrets()).thenReturn(true);
         when(capabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         when(capabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
-        context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
+        context = new ResourceRefinementCapabilityContext(capabilities);
 
     }
 
