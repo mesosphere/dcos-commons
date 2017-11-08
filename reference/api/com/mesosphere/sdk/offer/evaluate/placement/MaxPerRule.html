@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":10};
+var methods = {"i0":6,"i1":6,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -126,6 +126,25 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- =========== FIELD SUMMARY =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.summary">
+<!--   -->
+</a>
+<h3>Field Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
+<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Field and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>protected java.lang.Integer</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#max">max</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -135,10 +154,15 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
 <caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
-<th class="colOne" scope="col">Constructor and Description</th>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#MaxPerRule--">MaxPerRule</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#MaxPerRule-java.lang.Integer-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">MaxPerRule</a></span>(java.lang.Integer&nbsp;max,
+          <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&nbsp;taskFilter)</code>
+<div class="block">This rule rejects offers which exceed the maximum number of tasks on a given set of keys.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -164,15 +188,14 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#getKeys-Protos.TaskInfo-">getKeys</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>abstract <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a></code></td>
+<td class="colFirst"><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#getTaskFilter--">getTaskFilter</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-java.lang.Integer-">isAcceptable</a></span>(Protos.Offer&nbsp;offer,
+<td class="colFirst"><code>protected boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable</a></span>(Protos.Offer&nbsp;offer,
             <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-            java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks,
-            java.lang.Integer&nbsp;max)</code>&nbsp;</td>
+            java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -197,19 +220,43 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ============ FIELD DETAIL =========== -->
+<ul class="blockList">
+<li class="blockList"><a name="field.detail">
+<!--   -->
+</a>
+<h3>Field Detail</h3>
+<a name="max">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>max</h4>
+<pre>protected final&nbsp;java.lang.Integer max</pre>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="MaxPerRule--">
+<a name="MaxPerRule-java.lang.Integer-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>MaxPerRule</h4>
-<pre>public&nbsp;MaxPerRule()</pre>
+<pre>protected&nbsp;MaxPerRule(java.lang.Integer&nbsp;max,
+                     <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&nbsp;taskFilter)</pre>
+<div class="block">This rule rejects offers which exceed the maximum number of tasks on a given set of keys.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>max</code> - The maximum number of tasks allowed on any given key.</dd>
+<dd><code>taskFilter</code> - A filter which determines which tasks this rule applies.</dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -244,19 +291,18 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskFilter</h4>
-<pre>public abstract&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&nbsp;getTaskFilter()</pre>
+<pre>public&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&nbsp;getTaskFilter()</pre>
 </li>
 </ul>
-<a name="isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-java.lang.Integer-">
+<a name="isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>isAcceptable</h4>
-<pre>public&nbsp;boolean&nbsp;isAcceptable(Protos.Offer&nbsp;offer,
-                            <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                            java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks,
-                            java.lang.Integer&nbsp;max)</pre>
+<pre>protected&nbsp;boolean&nbsp;isAcceptable(Protos.Offer&nbsp;offer,
+                               <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
+                               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</pre>
 </li>
 </ul>
 </li>
@@ -312,13 +358,13 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li>Field&nbsp;|&nbsp;</li>
+<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
