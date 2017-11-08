@@ -13,7 +13,6 @@ import org.apache.mesos.Protos.Value;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.util.Collections;
 
