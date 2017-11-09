@@ -354,49 +354,62 @@
 <div id="content">
 <ol>
   <li>Install DC/OS on your cluster. See <a href="https://docs.mesosphere.com/latest/administration/installing/">the documentation</a> for instructions.</li>
-  <li>If you are using open source DC/OS, install DC/OS Apache Cassandra with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
-    <div class="highlighter-rouge"><pre class="highlight"><code> dcos package install beta-cassandra
-</code></pre>
-    </div>
-    <p>You can also install DC/OS Apache Cassandra from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
-  </li>
-  <li>The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.</li>
-  <li>Connect a client to the DC/OS Apache Cassandra service.
-    <div class="highlighter-rouge"><pre class="highlight"><code> dcos beta-cassandra endpoints
- [
-   "native-client"
- ]
+  <li>
+    <p>If you are using open source DC/OS, install DC/OS Apache Cassandra with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.</p>
 
- dcos beta-cassandra endpoints native-client
- {
-   "address": [
-     "10.0.1.125:9042",
-     "10.0.2.152:9042",
-     "10.0.1.22:9042"
-   ],
-   "dns": [
-     "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-     "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-     "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"
-   ]
- }
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos package install beta-cassandra
 </code></pre>
     </div>
   </li>
-  <li>Write some data to your cluster using the <code class="highlighter-rouge">node-0-server</code> entry provided above.</li>
 </ol>
 
-<p><strong>Note:</strong> In production, you should specify multiple node addresses to avoid disruption if a subset of addressed nodes are down:</p>
+<p>You can also install DC/OS Apache Cassandra from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos node ssh --master-proxy --leader
-<span class="gp">$ </span>docker run -it cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
+<ol>
+  <li>
+    <p>The service will now deploy with a default configuration. You can monitor its deployment via the Services UI in the DC/OS Dashboard.</p>
+  </li>
+  <li>
+    <p>Connect a client to the DC/OS Apache Cassandra service.</p>
+
+    <div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-cassandra endpoints
+[
+  "native-client"
+]
+
+dcos beta-cassandra endpoints native-client
+{
+  "address": [
+    "10.0.1.125:9042",
+    "10.0.2.152:9042",
+    "10.0.1.22:9042"
+  ],
+  "dns": [
+    "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+    "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+    "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"
+  ]
+}
+</code></pre>
+    </div>
+  </li>
+  <li>
+    <p>Write some data to your cluster using the <code class="highlighter-rouge">node-0-server</code> entry provided above.</p>
+
+    <p><strong>Note:</strong> In production, you should specify multiple node addresses to avoid disruption if a subset of addressed nodes are down:</p>
+
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos node ssh --master-proxy --leader
+<span class="gp">$ </span>docker run -it cassandra:3.0.14 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
+node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042
 <span class="gp">&gt; </span>CREATE KEYSPACE space1 WITH REPLICATION <span class="o">=</span> <span class="o">{</span> <span class="s1">'class'</span> : <span class="s1">'SimpleStrategy'</span>, <span class="s1">'replication_factor'</span> : 3 <span class="o">}</span>;
 <span class="gp">&gt; </span>USE space1;
 <span class="gp">&gt; </span>CREATE TABLE testtable1 <span class="o">(</span>key varchar, value varchar, PRIMARY KEY<span class="o">(</span>key<span class="o">))</span>;
 <span class="gp">&gt; </span>INSERT INTO space1.testtable1<span class="o">(</span>key, value<span class="o">)</span> VALUES<span class="o">(</span><span class="s1">'testkey1'</span>, <span class="s1">'testvalue1'</span><span class="o">)</span>;
 <span class="gp">&gt; </span>SELECT <span class="k">*</span> FROM testtable1;
 </code></pre>
-</div>
+    </div>
+  </li>
+</ol>
 
 </div>
 </div>

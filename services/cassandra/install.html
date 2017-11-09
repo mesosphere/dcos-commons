@@ -432,16 +432,20 @@ dcos:adminrouter:ops:slave full
 
 <!-- END DUPLICATE BLOCK -->
 
-<h1 id="multi-data-center-deployment">Multi-data-center Deployment</h1>
+<h1 id="multi-datacenter-deployment">Multi-datacenter Deployment</h1>
 
 <p>To replicate data across data centers, Apache Cassandra requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here’s what starting a multi-data-center Apache Cassandra deployment would look like, running inside of a single DC/OS cluster.</p>
 
+<h2 id="launch-two-cassandra-clusters">Launch two Cassandra clusters</h2>
+
 <p>Launch the first cluster with the default configuration:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos package install beta-cassandra
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos package install beta-cassandra
 </code></pre>
 </div>
 
 <p>Create an <code class="highlighter-rouge">options.json</code> file for the second cluster that specifies a different service name and data center name:</p>
+
 <div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
     </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cassandra2"</span><span class="p">,</span><span class="w">
@@ -456,25 +460,89 @@ dcos:adminrouter:ops:slave full
 </code></pre>
 </div>
 
-<p>Get the list of seed node addresses for the first cluster from the scheduler HTTP API:</p>
-<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="err">DCOS_AUTH_TOKEN=$(dcos</span><span class="w"> </span><span class="err">config</span><span class="w"> </span><span class="err">show</span><span class="w"> </span><span class="err">core.dcos_acs_token)</span><span class="w">
-</span><span class="err">DCOS_URL=$(dcos</span><span class="w"> </span><span class="err">config</span><span class="w"> </span><span class="err">show</span><span class="w"> </span><span class="err">core.dcos_url)</span><span class="w">
-</span><span class="err">curl</span><span class="w"> </span><span class="err">-H</span><span class="w"> </span><span class="s2">"authorization:token=$DCOS_AUTH_TOKEN"</span><span class="w"> </span><span class="err">$DCOS_URL/service/cassandra/v</span><span class="mi">1</span><span class="err">/seeds</span><span class="w">
-</span><span class="p">{</span><span class="nt">"seeds"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"10.0.0.1"</span><span class="p">,</span><span class="w"> </span><span class="s2">"10.0.0.2"</span><span class="p">]}</span><span class="w">
-</span></code></pre>
-</div>
+<h2 id="get-the-seed-node-ip-addresses">Get the seed node IP addresses</h2>
 
-<p>In the DC/OS UI, go to the configuration dialog for the second cluster (whose service name is <code class="highlighter-rouge">cassandra2</code>) and update the <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable to <code class="highlighter-rouge">10.0.0.1,10.0.0.2</code>. This environment variable may not already be present in a fresh install. To add it, click the plus sign at the bottom of the list of environment variables, and then fill in its name and value in the new row that appears.</p>
+<p><strong>Note:</strong> If your Cassandra clusters are not on the same network, you must set up a proxying layer to route traffic.</p>
 
-<p>Get the seed node addresses for the second cluster the same way:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra2/v1/seeds
-{"seeds": ["10.0.0.3", "10.0.0.4"]}
+<p>Get the list of seed node addresses for the first cluster:</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos cassandra endpoints node
 </code></pre>
 </div>
 
-<p>In the DC/OS UI, go to the configuration dialog for the first cluster (whose service name is <code class="highlighter-rouge">cassandra</code>) and update the <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable to <code class="highlighter-rouge">10.0.0.3,10.0.0.4</code>, again adding the variable with the plus sign if it’s not already present.</p>
+<p>Alternatively, you can get this information from the scheduler HTTP API:</p>
 
-<p>Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add, appending a comma-separated list of that cluster’s seeds to the <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable for each existing cluster, and adding a comma-separated list of each existing cluster’s seeds to the newly-added cluster’s <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code> environment variable.</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="err">DCOS_AUTH_TOKEN=$(dcos</span><span class="w"> </span><span class="err">config</span><span class="w"> </span><span class="err">show</span><span class="w"> </span><span class="err">core.dcos_acs_token)</span><span class="w">
+</span><span class="err">DCOS_URL=$(dcos</span><span class="w"> </span><span class="err">config</span><span class="w"> </span><span class="err">show</span><span class="w"> </span><span class="err">core.dcos_url)</span><span class="w">
+</span><span class="err">curl</span><span class="w"> </span><span class="err">-H</span><span class="w"> </span><span class="s2">"authorization:token=$DCOS_AUTH_TOKEN"</span><span class="w"> </span><span class="err">$DCOS_URL/service/cassandra/v</span><span class="mi">1</span><span class="err">/endpoints/node</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Your output will resemble:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"10.0.1.236:9042"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"10.0.0.119:9042"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"dns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nt">"vip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"node.cassandra.l4lb.thisdcos.directory:9042"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Note the IPs in the <code class="highlighter-rouge">address</code> field.</p>
+
+<p>Run the same command for your second Cassandra cluster and note the IPs in the <code class="highlighter-rouge">address</code> field:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos cassandra endpoints node --name=cassandra2
+</code></pre>
+</div>
+
+<h2 id="update-configuration-for-both-clusters">Update configuration for both clusters</h2>
+
+<p>Create an <code class="highlighter-rouge">options.json</code> file with the IP addresses of the first cluster (<code class="highlighter-rouge">cassandra</code>):</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nt">"remote_seeds"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10.0.1.236:9042,10.0.0.119:9042"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>Update the configuration of the second cluster:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos cassandra update start --options=options.json --name=cassandra2
+</code></pre>
+</div>
+
+<p>Perform the same operation on the first cluster, adding the IP addresses of the second cluster’s seed nodes to the <code class="highlighter-rouge">service.remote_seeds</code> field. Then, update the first cluster’s configuration: <code class="highlighter-rouge">dcos cassandra update start --options=options.json</code>.</p>
+
+<p>Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add.</p>
+
+<p>You can monitor the progress of the update:</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos cassandra --name<span class="o">=</span>cassandra update status
+</code></pre>
+</div>
+
+<p>Your output will resemble:</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>deploy <span class="o">(</span>IN_PROGRESS<span class="o">)</span>
+└─ node-deploy <span class="o">(</span>IN_PROGRESS<span class="o">)</span>
+   ├─ node-0:[server] <span class="o">(</span>COMPLETE<span class="o">)</span>
+   ├─ node-1:[server] <span class="o">(</span>COMPLETE<span class="o">)</span>
+   └─ node-2:[server] <span class="o">(</span>PREPARED<span class="o">)</span>
+</code></pre>
+</div>
+
+<h2 id="test-your-multi-datacenter-configuration">Test your multi-datacenter configuration</h2>
+
+<p>Follow the <a href="quick-start.md">quick start guide</a> to write data to one cluster. Then, use the client on the other cluster to ensure the data has propagated.</p>
 
 </div>
 </div>
