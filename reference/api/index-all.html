@@ -225,6 +225,12 @@
 <dd>
 <div class="block">Requires that the Offer contain an attribute whose string representation matches the provided string.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#AttributeRule-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">AttributeRule(StringMatcher)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AttributeRuleFactory</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
+<dd>
+<div class="block">This class generates <a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>AttributeRule</code></a>s.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">AttributeStringUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a></dt>
 <dd>
 <div class="block">Tools for converting <code>Attribute</code>s into strings.</div>
@@ -249,29 +255,17 @@
 <dd>
 <div class="block">Requires that a task NOT be placed on any of the provided agents.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#avoid-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">avoid(StringMatcher)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html#avoid-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">avoid(StringMatcher)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a></dt>
 <dd>
-<div class="block">Requires that a task NOT be placed on the provided attribute matcher.</div>
+<div class="block">Requires that a task NOT be placed on the provided string matchers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#avoid-java.util.Collection-">avoid(Collection&lt;StringMatcher&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html#avoid-java.util.Collection-">avoid(Collection&lt;StringMatcher&gt;)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a></dt>
 <dd>
-<div class="block">Requires that a task NOT be placed on any of the provided attribute matchers.</div>
+<div class="block">Requires that a task NOT be placed on any of the provided string matchers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#avoid-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">avoid(StringMatcher...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html#avoid-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">avoid(StringMatcher...)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a></dt>
 <dd>
-<div class="block">Requires that a task NOT be placed on any of the provided attribute matchers.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#avoid-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">avoid(StringMatcher)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task NOT be placed on the provided hostname.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#avoid-java.util.Collection-">avoid(Collection&lt;StringMatcher&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task NOT be placed on any of the provided hostnames.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#avoid-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">avoid(StringMatcher...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task NOT be placed on any of the provided hostnames.</div>
+<div class="block">Requires that a task NOT be placed on any of the provided string matchers.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#avoid-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-">avoid(String, TaskTypeConverter)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeRule</a></dt>
 <dd>
@@ -281,18 +275,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#avoid-java.lang.String-">avoid(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeRule</a></dt>
 <dd>
 <div class="block">Calls #avoid(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#avoidExact-java.lang.String-">avoidExact(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task NOT be placed on the provided hostname.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#avoidExact-java.util.Collection-">avoidExact(Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task NOT be placed on any of the provided hostnames.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#avoidExact-java.lang.String...-">avoidExact(String...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task NOT be placed on any of the provided hostnames.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
 <dd>
@@ -1511,11 +1493,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AnyMatcher</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">ExactMatcher</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerAttributeRule</a></dt>
 <dd>&nbsp;</dd>
@@ -1536,6 +1514,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByAttributeRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeLabelConverter</a></dt>
 <dd>&nbsp;</dd>
@@ -2523,6 +2503,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#getInstance--">getInstance()</a></span> - Static method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRuleFactory.html#getInstance--">getInstance()</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRuleFactory</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html#getInstance--">getInstance()</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRuleFactory</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.OperationsCounter.html#getInstance--">getInstance()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.OperationsCounter.html" title="class in com.mesosphere.sdk.scheduler">Metrics.OperationsCounter</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getInstanceName-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getInstanceName(PodInstance, TaskSpec)</a></span> - Static method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
@@ -2625,6 +2609,8 @@
 <div class="block">Atomically reads many values from storage at once, returning a mapping of paths to values.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterCache.html#getMany-java.util.Collection-">getMany(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterCache.html" title="class in com.mesosphere.sdk.storage">PersisterCache</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#getMatcher--">getMatcher()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getMaxConsecutiveFailures--">getMaxConsecutiveFailures()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -3817,11 +3803,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AnyMatcher</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">ExactMatcher</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerAttributeRule</a></dt>
 <dd>&nbsp;</dd>
@@ -3838,6 +3820,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByAttributeRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeLabelConverter</a></dt>
 <dd>&nbsp;</dd>
@@ -3926,6 +3910,12 @@
 <dd>
 <div class="block">This rule enforces that a task be placed on the specified hostname, or enforces that the task
  avoid that hostname.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#HostnameRule-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">HostnameRule(StringMatcher)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">HostnameRuleFactory</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
+<dd>
+<div class="block">This class generates <a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>HostnameRule</code></a>s.</div>
 </dd>
 </dl>
 <a name="I:I">
@@ -4062,7 +4052,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable(Protos.Offer, PodInstance, Collection&lt;Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerRule</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#isAcceptable-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable(StringMatcher, Protos.Offer, PodInstance, Collection&lt;Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable(Protos.Offer, PodInstance, Collection&lt;Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPort.html#isAdvertised--">isAdvertised()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPort.html" title="class in com.mesosphere.sdk.specification.yaml">RawPort</a></dt>
 <dd>&nbsp;</dd>
@@ -5603,41 +5593,25 @@
 <dd>
 <div class="block">Requires that a task be placed on one of the provided agents.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">require(StringMatcher)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRuleFactory.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">require(StringMatcher)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRuleFactory</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">require(StringMatcher)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRuleFactory</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#require-com.mesosphere.sdk.offer.evaluate.placement.RuleFactory-java.util.Collection-">require(RuleFactory, Collection&lt;StringMatcher&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>
-<div class="block">Requires that a task be placed on the provided attribute matcher.</div>
+<div class="block">Requires that a task be placed on one of the provided string matchers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#require-java.util.Collection-">require(Collection&lt;StringMatcher&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">require(StringMatcher)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a></dt>
 <dd>
-<div class="block">Requires that a task be placed on one of the provided attribute matchers.</div>
+<div class="block">Requires that a task be placed on the provided string matcher.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">require(StringMatcher...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html#require-java.util.Collection-">require(Collection&lt;StringMatcher&gt;)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a></dt>
 <dd>
-<div class="block">Requires that a task be placed on one of the provided attribute matchers.</div>
+<div class="block">Requires that a task be placed on one of the provided string matchers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">require(StringMatcher)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">require(StringMatcher...)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a></dt>
 <dd>
-<div class="block">Requires that a task be placed on the provided hostname.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#require-java.util.Collection-">require(Collection&lt;StringMatcher&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task be placed on one of the provided hostnames.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#require-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher...-">require(StringMatcher...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task be placed on one of the provided hostnames.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#requireExact-java.lang.String-">requireExact(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task be placed on the provided hostname.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#requireExact-java.util.Collection-">requireExact(Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task be placed on one of the provided hostnames.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#requireExact-java.lang.String...-">requireExact(String...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
-<dd>
-<div class="block">Requires that a task be placed on one of the provided hostnames.</div>
+<div class="block">Requires that a task be placed on one of the provided string matchers.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#reregistered-ExecutorDriver-Protos.SlaveInfo-">reregistered(ExecutorDriver, Protos.SlaveInfo)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
@@ -5805,6 +5779,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html#RoundRobinByHostnameRule-java.util.Optional-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">RoundRobinByHostnameRule(Optional&lt;Integer&gt;, StringMatcher)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">RuleFactory</span></a> - Interface in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
+<dd>
+<div class="block">This interface defines the requirements for a factory which generates <a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>s.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html#run-java.lang.ProcessBuilder-double-">run(ProcessBuilder, double)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.ProcessRunner.html" title="class in com.mesosphere.sdk.executor">CheckHandler.ProcessRunner</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/Main.html#run--">run()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/Main.html" title="class in com.mesosphere.sdk.executor">Main</a></dt>
@@ -6593,7 +6571,7 @@
 <div class="block">This interface defines the required methods for generic application of a PlacementRule which depends on the presence
  of some key (e.g.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#StringMatcherRule--">StringMatcherRule()</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#StringMatcherRule-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">StringMatcherRule(String, StringMatcher)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">StringPropertyDeserializer</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
 <dd>
@@ -6973,6 +6951,14 @@
 <div class="block">Converts the provided string to a conventional environment variable name, consisting of numbers, uppercase
  letters, and underscores.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#toExactMatchers-java.lang.String...-">toExactMatchers(String...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
+<dd>
+<div class="block">Converts the provided keys into <a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#toExactMatchers-java.util.Collection-">toExactMatchers(Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
+<dd>
+<div class="block">Converts the provided keys into <a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonIdUtils.html#toExecutorId-java.lang.String-">toExecutorId(String)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonIdUtils.html" title="class in com.mesosphere.sdk.offer">CommonIdUtils</a></dt>
 <dd>
 <div class="block">Converts the Framework defined Executor name into a unique <code>Protos.ExecutorID</code>.</div>
@@ -7094,11 +7080,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AnyMatcher</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AttributeRule</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">ExactMatcher</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">HostnameRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerAttributeRule</a></dt>
 <dd>&nbsp;</dd>
@@ -7115,6 +7097,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByAttributeRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeLabelConverter</a></dt>
 <dd>&nbsp;</dd>
