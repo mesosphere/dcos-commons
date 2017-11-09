@@ -44,6 +44,7 @@ def kerberos(configure_universe):
                         REALM=sdk_auth.REALM
                     )
                 )
+        principals.append(config.GENERIC_HDFS_USER_PRINCIPAL)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -74,7 +75,8 @@ def kerberos(configure_universe):
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        kerberos_env.cleanup()
+        if kerberos_env:
+            kerberos_env.cleanup()
 
 # General process for each test
 # 1. Will use a keytab local to the client binary (key will either be a generic one or one made within the test context)
@@ -102,10 +104,7 @@ def test_user_can_write_and_read(kerberos):
         sdk_marathon.install_app(client_app_def)
         client_task_id = client_app_def["id"]
 
-        # authenticate client as any generic user
-        principal = "hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL"
-        kinit = sdk_auth.KINIT.format(keytab=config.KEYTAB, principal=principal)
-        sdk_tasks.task_exec(client_task_id, kinit)
+        sdk_auth.kinit(client_task_id, keytab=config.KEYTAB, principal=config.GENERIC_HDFS_USER_PRINCIPAL)
 
         write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_FILE_1_NAME, config.TEST_CONTENT_SMALL))
         sdk_tasks.task_exec(client_task_id, write_cmd)

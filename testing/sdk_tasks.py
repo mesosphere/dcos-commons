@@ -6,9 +6,9 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import logging
-import subprocess
 
 import dcos.errors
+import sdk_cmd
 import sdk_plan
 import shakedown
 
@@ -119,22 +119,17 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))
 
 
-def task_exec(task_name : str, command : str) -> tuple:
+def task_exec(task_name : str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     """
-    Invokes the given command on the task via spawning `dcos task exec` in a subprocess.
+    Invokes the given command on the task via `dcos task exec`.
     :param task_name: Name of task to run command on.
-    :param command: The command to execute.
+    :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
-    exec_cmd = "dcos task exec {} {}".format(task_name, command)
-    result = subprocess.run([exec_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout = ""
-    stderr = ""
+    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
+    rc, stdout, stderr = sdk_cmd.run_raw_cli(exec_cmd)
 
-    if result.stdout:
-        stdout = result.stdout.decode('utf-8').strip()
+    if return_stderr_in_stdout:
+        return rc, stdout + "\n" + stderr
 
-    if result.stderr:
-        stderr = result.stderr.decode('utf-8').strip()
-
-    return result.returncode, stdout, stderr
+    return rc, stdout, stderr

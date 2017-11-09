@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 '''
 import json as jsonlib
 import logging
+import subprocess
 
 import dcos.http
 import shakedown
@@ -42,27 +43,34 @@ def svc_cli(package_name, service_name, service_cmd, json=False, print_output=Tr
         return get_json_output(full_cmd, print_output=print_output)
 
 
-def run_raw_cli(cmd, print_output):
+def run_raw_cli(cmd, print_output=True):
     """Runs the command with `dcos` as the prefix to the shell command
     and returns the resulting output (stdout seperated from stderr by a newline).
 
     eg. `cmd`= "package install <package-name>" results in:
     $ dcos package install <package-name>
     """
-    stdout, stderr, ret = shakedown.run_dcos_command(cmd, print_output=print_output)
-    if ret:
-        err = 'Got error code {} when running command "dcos {}":\n'\
-              'stdout: "{}"\n'\
-              'stderr: "{}"'.format(ret, cmd, stdout, stderr)
-        log.error(err)
-        raise dcos.errors.DCOSException(err)
+    dcos_cmd = "dcos {}".format(cmd)
+    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = ""
+    stderr = ""
 
-    return stdout, stderr
+    if result.stdout:
+        stdout = result.stdout.decode('utf-8').strip()
+
+    if result.stderr:
+        stderr = result.stderr.decode('utf-8').strip()
+
+    if print_output:
+        print(stdout)
+        print(stderr)
+
+    return result.returncode, stdout, stderr
 
 
 def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 
-    stdout, stderr = run_raw_cli(cmd, print_output)
+    _, stdout, stderr = run_raw_cli(cmd, print_output)
 
     if return_stderr_in_stdout:
         return stdout + "\n" + stderr
@@ -71,7 +79,7 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 
 
 def get_json_output(cmd, print_output=True):
-    stdout, stderr = run_raw_cli(cmd, print_output)
+    _, stdout, stderr = run_raw_cli(cmd, print_output)
 
     if stderr:
         log.warn("stderr for command '%s' is non-empty: %s", cmd, stderr)

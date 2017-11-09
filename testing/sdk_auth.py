@@ -37,7 +37,6 @@ DCOS_BASE64_PREFIX = "__dcos_base64__"
 LINUX_USER = "core"
 KERBEROS_CONF = "krb5.conf"
 REALM = "LOCAL"
-KINIT = "kinit -k -t {keytab} {principal}"
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some
 # resiliency towards possible intermittent network failures.
@@ -144,6 +143,17 @@ def _copy_file_to_localhost(self):
         run([curl_cmd], shell=True)
     except Exception as e:
         raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
+
+
+def kinit(task_id: str, keytab: str, principal:str):
+    """
+    Performs a kinit command to authenticate the specified principal.
+    :param task_id: The task in whose environment the kinit will run.
+    :param keytab: The keytab used by kinit to authenticate.
+    :param principal: The name of the principal the user wants to authenticate as.
+    """
+    kinit_cmd = "kinit -k -t {keytab} {principal}".format(keytab=keytab, principal=principal)
+    sdk_tasks.task_exec(task_id, kinit_cmd)
 
 
 class KerberosEnvironment:

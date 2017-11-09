@@ -1,10 +1,10 @@
 {
     "id": "hdfsclient",
-    "mem": 512,
+    "mem": 1024,
     "container": {
         "type": "MESOS",
         "docker": {
-            "image": "nvaziri/kerberized-hdfs-client:dev",
+            "image": "nvaziri/hdfs-client:dev",
             "forcePullImage": true
         },
         "volumes": [
@@ -27,7 +27,6 @@
     "env": {
         "REALM": "LOCAL",
         "KDC_ADDRESS": "kdc.marathon.autoip.dcos.thisdcos.directory:2500",
-        "JAVA_HOME": "/usr/lib/jvm/default-java",
-        "JVM_MaxHeapSize": "512"
+        "JAVA_HOME": "/usr/lib/jvm/default-java"
     }
 }

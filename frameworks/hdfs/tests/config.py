@@ -2,6 +2,7 @@ import json
 import os
 import shakedown
 
+import sdk_auth
 import sdk_cmd
 import sdk_plan
 import sdk_utils
@@ -19,10 +20,9 @@ TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
-DOCKER_IMAGE_NAME = "mesosphere/hdfs-client:2.6.4"
-KERBERIZED_CLIENT_IMAGE_NAME = "nvaziri/kerberized-hdfs-client:dev"
-KERBERIZED_CLIENT_MEM_SIZE = 512
+DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
 KEYTAB = "hdfs.keytab"
+GENERIC_HDFS_USER_PRINCIPAL = "hdfs@{realm}".format(realm=sdk_auth.REALM)
 
 
 def get_kerberized_hdfs_client_app():
@@ -33,9 +33,6 @@ def get_kerberized_hdfs_client_app():
     with open(app_def_path) as f:
         app_def = json.load(f)
 
-    app_def["mem"] = KERBERIZED_CLIENT_MEM_SIZE
-    app_def["container"]["docker"]["image"] = KERBERIZED_CLIENT_IMAGE_NAME
-    app_def["container"]["volumes"][0]["containerPath"] = "/hadoop-2.6.0-cdh5.9.1/{}".format(KEYTAB)
     return app_def
 
 
