@@ -231,6 +231,10 @@ public class MarathonConstraintParser {
             switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return new MaxPerHostnameRule(1, taskFilter);
+                case ZONE:
+                    return new MaxPerZoneRule(1, taskFilter);
+                case REGION:
+                    return new MaxPerRegionRule(1, taskFilter);
                 case ATTRIBUTE:
                 default:
                     StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
@@ -262,6 +266,10 @@ public class MarathonConstraintParser {
             switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().require(ExactMatcher.create(parameter));
                 case ATTRIBUTE:
                 default:
                     return AttributeRuleFactory.getInstance().require(
@@ -308,6 +316,10 @@ public class MarathonConstraintParser {
             switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return new RoundRobinByHostnameRule(num, taskFilter);
+                case ZONE:
+                    return new RoundRobinByZoneRule(num, taskFilter);
+                case REGION:
+                    return new RoundRobinByRegionRule(num, taskFilter);
                 case ATTRIBUTE:
                 default:
                     return new RoundRobinByAttributeRule(fieldName, num, taskFilter);
@@ -333,6 +345,10 @@ public class MarathonConstraintParser {
             switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().require(RegexMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().require(RegexMatcher.create(parameter));
                 case ATTRIBUTE:
                 default:
                     return AttributeRuleFactory.getInstance().require(
@@ -358,6 +374,10 @@ public class MarathonConstraintParser {
             switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
                 case ATTRIBUTE:
                 default:
                     return AttributeRuleFactory.getInstance().avoid(RegexMatcher.createAttribute(fieldName, parameter));
@@ -391,6 +411,10 @@ public class MarathonConstraintParser {
             switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return new MaxPerHostnameRule(max, taskFilter);
+                case ZONE:
+                    return new MaxPerZoneRule(max, taskFilter);
+                case REGION:
+                    return new MaxPerRegionRule(max, taskFilter);
                 case ATTRIBUTE:
                 default:
                     // Ensure that:
