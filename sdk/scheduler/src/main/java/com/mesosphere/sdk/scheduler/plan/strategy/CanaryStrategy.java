@@ -86,7 +86,7 @@ public class CanaryStrategy implements Strategy<Step> {
 
     @Override
     public String getName() {
-        return strategy.toString() + "-canary";
+        return strategy.getName() + "-canary";
     }
 
     @Override
