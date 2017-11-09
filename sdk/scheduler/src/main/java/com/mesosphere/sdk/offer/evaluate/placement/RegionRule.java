@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos;
@@ -13,7 +15,9 @@ import java.util.Collections;
  * avoid that region.
  */
 public class RegionRule extends StringMatcherRule {
-    protected RegionRule(StringMatcher matcher) {
+
+    @JsonCreator
+    protected RegionRule(@JsonProperty("matcher") StringMatcher matcher) {
         super("RegionRule", matcher);
     }
 

@@ -328,12 +328,14 @@ public class DefaultServiceSpec implements ServiceSpec {
                 PassthroughRule.class,
                 PortSpec.class,
                 RegexMatcher.class,
+                RegionRule.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,
                 RoundRobinByRegionRule.class,
                 RoundRobinByZoneRule.class,
                 TaskTypeLabelConverter.class,
                 TaskTypeRule.class,
+                ZoneRule.class,
                 DefaultSecretSpec.class);
 
         private final ObjectMapper objectMapper;
