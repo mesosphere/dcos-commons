@@ -3,7 +3,6 @@ package com.mesosphere.sdk.api;
 import java.util.Arrays;
 import java.util.UUID;
 
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -26,7 +25,6 @@ import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
  *
  * @param <T> The configuration type which is being stored by the framework.
  */
-@Singleton
 @Path("/v1/configurations")
 public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource {
 
