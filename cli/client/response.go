@@ -52,7 +52,12 @@ func defaultResponseCheck(response *http.Response) error {
 		errorString := `Got 401 Unauthorized response from %s
 - Bad auth token? Run 'dcos auth login' to log in`
 		return fmt.Errorf(errorString, response.Request.URL)
-	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway || response.StatusCode == http.StatusNotFound:
+	case response.StatusCode == http.StatusNotFound:
+		errorString := `Got 404 Not Found response from %s:
+- The service scheduler may have been unable to find an item that was specified in your request.
+- The DC/OS cluster may have been unable to find a service named "%s". Specify a service name with '--name=<name>', or with 'dcos config set %s.service_name <name>'.`
+		return fmt.Errorf(errorString, response.Request.URL, config.ServiceName, config.ModuleName)
+	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway:
 		return createServiceNameError()
 	case response.StatusCode < 200 || response.StatusCode >= 300:
 		return createResponseError(response)

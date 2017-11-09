@@ -44,9 +44,10 @@ func printResponseErrorAndExit(response *http.Response) {
 
 func createServiceNameError() error {
 	errorString := `Could not reach the service scheduler with name '%s'.
-Did you provide the correct service name? Specify a different name with '--name=<name>'.
-Was the service recently installed or updated? It may still be initializing, wait a bit and try again.`
-	return fmt.Errorf(errorString, config.ServiceName)
+Possible causes:
+- Did you provide the correct service name? Specify a service name with '--name=<name>', or with 'dcos config set %s.service_name <name>'.
+- Was the service recently installed or updated? It may still be initializing, wait a bit and try again.`
+	return fmt.Errorf(errorString, config.ServiceName, config.ModuleName)
 }
 
 func printServiceNameErrorAndExit(response *http.Response) {
