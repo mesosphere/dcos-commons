@@ -25,7 +25,7 @@ public class RoundRobinByZoneRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getKey(Protos.Offer offer) {
+    public String getKey(Protos.Offer offer) {
         if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {
             return offer.getDomain().getFaultDomain().getZone().getName();
         }
@@ -34,7 +34,7 @@ public class RoundRobinByZoneRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getKey(Protos.TaskInfo task) {
+    public String getKey(Protos.TaskInfo task) {
         Optional<String> zone = new TaskLabelReader(task).getZone();
         return zone.isPresent() ? zone.get() : null;
     }
