@@ -99,7 +99,7 @@ func cliDiskConfigValue(diskConfig map[string]interface{}, name string) (string,
 	// map "foo.bar.baz" in name to '[foo]\nbar.baz = "..."' in config file
 	tokens := strings.SplitN(name, ".", 2)
 	if len(tokens) != 2 {
-		return "", fmt.Errorf("Unable to tokenize config value into 'section.name': %s => %s", name, tokens)
+		return "", fmt.Errorf("Unable to tokenize config value into 'section.name' format: %s => %s", name, tokens)
 	}
 
 	rawSection, ok := diskConfig[tokens[0]]
