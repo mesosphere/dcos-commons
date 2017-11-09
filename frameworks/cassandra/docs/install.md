@@ -73,16 +73,20 @@ Steps:
 
 <!-- END DUPLICATE BLOCK -->
 
-# Multi-data-center Deployment
+# Multi-datacenter Deployment
 
 To replicate data across data centers, Apache Cassandra requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here's what starting a multi-data-center Apache Cassandra deployment would look like, running inside of a single DC/OS cluster.
 
+## Launch two Cassandra clusters
+
 Launch the first cluster with the default configuration:
-```
+
+```shell
 dcos package install beta-cassandra
 ```
 
 Create an `options.json` file for the second cluster that specifies a different service name and data center name:
+
 ```json
 {
   "service": {
@@ -97,22 +101,86 @@ Launch the second cluster with these custom options:
 dcos package install beta-cassandra --options=<options>.json
 ```
 
-Get the list of seed node addresses for the first cluster from the scheduler HTTP API:
+## Get the seed node IP addresses
+
+**Note:** If your Cassandra clusters are not on the same network, you must set up a proxying layer to route traffic.
+
+Get the list of seed node addresses for the first cluster:
+
+```shell
+dcos cassandra endpoints node
+```
+
+Alternatively, you can get this information from the scheduler HTTP API:
+
 ```json
 DCOS_AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
 DCOS_URL=$(dcos config show core.dcos_url)
-curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra/v1/seeds
-{"seeds": ["10.0.0.1", "10.0.0.2"]}
+curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra/v1/endpoints/node
 ```
 
-In the DC/OS UI, go to the configuration dialog for the second cluster (whose service name is `cassandra2`) and update the `TASKCFG_ALL_REMOTE_SEEDS` environment variable to `10.0.0.1,10.0.0.2`. This environment variable may not already be present in a fresh install. To add it, click the plus sign at the bottom of the list of environment variables, and then fill in its name and value in the new row that appears.
+Your output will resemble:
 
-Get the seed node addresses for the second cluster the same way:
 ```
-curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra2/v1/seeds
-{"seeds": ["10.0.0.3", "10.0.0.4"]}
+{
+  "address": [
+    "10.0.1.236:9042",
+    "10.0.0.119:9042"
+  ],
+  "dns": [
+    "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
+    "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"
+  ],
+  "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
+}
 ```
 
-In the DC/OS UI, go to the configuration dialog for the first cluster (whose service name is `cassandra`) and update the `TASKCFG_ALL_REMOTE_SEEDS` environment variable to `10.0.0.3,10.0.0.4`, again adding the variable with the plus sign if it's not already present.
+Note the IPs in the `address` field.
 
-Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add, appending a comma-separated list of that cluster's seeds to the `TASKCFG_ALL_REMOTE_SEEDS` environment variable for each existing cluster, and adding a comma-separated list of each existing cluster's seeds to the newly-added cluster's `TASKCFG_ALL_REMOTE_SEEDS` environment variable.
+Run the same command for your second Cassandra cluster and note the IPs in the `address` field:
+
+```
+dcos cassandra endpoints node --name=cassandra2
+```
+
+## Update configuration for both clusters
+
+Create an `options.json` file with the IP addresses of the first cluster (`cassandra`):
+
+```json
+{
+  "service": {
+    "remote_seeds": "10.0.1.236:9042,10.0.0.119:9042"
+  }
+}
+```
+
+Update the configuration of the second cluster:
+
+```
+dcos cassandra update start --options=options.json --name=cassandra2
+```
+
+Perform the same operation on the first cluster, adding the IP addresses of the second cluster's seed nodes to the `service.remote_seeds` field. Then, update the first cluster's configuration: `dcos cassandra update start --options=options.json`.
+
+Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add.
+
+You can monitor the progress of the update:
+
+```shell
+dcos cassandra --name=cassandra update status
+```
+
+Your output will resemble:
+
+```shell
+deploy (IN_PROGRESS)
+└─ node-deploy (IN_PROGRESS)
+   ├─ node-0:[server] (COMPLETE)
+   ├─ node-1:[server] (COMPLETE)
+   └─ node-2:[server] (PREPARED)
+```
+
+## Test your multi-datacenter configuration
+
+Follow the [quick start guide](quick-start.md) to write data to one cluster. Then, use the client on the other cluster to ensure the data has propagated.

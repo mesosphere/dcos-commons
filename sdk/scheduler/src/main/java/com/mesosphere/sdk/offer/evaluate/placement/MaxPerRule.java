@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,15 +16,38 @@ import java.util.stream.Collectors;
  * maximum per some key (e.g. attribute, hostname, region, zone ...).
  */
 public abstract class MaxPerRule implements PlacementRule {
+    @Valid
+    @Min(1)
+    protected final Integer max;
+    private final StringMatcher taskFilter;
+
     public abstract Collection<String> getKeys(Protos.TaskInfo taskInfo);
     public abstract Collection<String> getKeys(Protos.Offer offer);
-    public abstract StringMatcher getTaskFilter();
 
-    public boolean isAcceptable(
+    @JsonProperty("task-filter")
+    public StringMatcher getTaskFilter() {
+        return taskFilter;
+    }
+
+    @JsonProperty("max")
+    private int getMax() {
+        return max;
+    }
+
+    /**
+     * This rule rejects offers which exceed the maximum number of tasks on a given set of keys.
+     * @param max The maximum number of tasks allowed on any given key.
+     * @param taskFilter A filter which determines which tasks this rule applies.
+     */
+    protected MaxPerRule(Integer max, StringMatcher taskFilter) {
+        this.max = max;
+        this.taskFilter = taskFilter;
+    }
+
+    protected boolean isAcceptable(
             Protos.Offer offer,
             PodInstance podInstance,
-            Collection<Protos.TaskInfo> tasks,
-            Integer max) {
+            Collection<Protos.TaskInfo> tasks) {
 
         tasks = tasks.stream()
                 .filter(task -> getTaskFilter().matches(task.getName()))

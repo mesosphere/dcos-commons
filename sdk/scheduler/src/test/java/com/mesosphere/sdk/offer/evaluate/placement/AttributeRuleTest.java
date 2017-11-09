@@ -65,22 +65,22 @@ public class AttributeRuleTest {
     public void testExactMatchesString() {
         Offer.Builder o = getOfferWithResources()
                 .addAttributes(ATTR_TEXT);
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SCALAR);
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES);
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SET);
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
@@ -92,13 +92,13 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_SET)
                 .build();
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
@@ -108,26 +108,26 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_SCALAR)
                 .addAttributes(ATTR_SET)
                 .build();
-        assertFalse(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
+        assertFalse(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertFalse(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
+        assertFalse(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_TEXT)
                 .build();
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_TEXT)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertFalse(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
+        assertFalse(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
+        assertTrue(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_RANGES)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertFalse(AttributeRule.require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
+        assertFalse(AttributeRuleFactory.getInstance().require(ExactMatcher.create(AttributeStringUtils.toString(ATTR_SET)))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
@@ -135,22 +135,22 @@ public class AttributeRuleTest {
     public void testExactMatchesRegex() {
         Offer.Builder o = getOfferWithResources()
                 .addAttributes(ATTR_TEXT);
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_TEXT_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_TEXT_REGEX))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SCALAR);
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_SCALAR_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SCALAR_REGEX))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES);
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_RANGES_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_RANGES_REGEX))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_SET);
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_SET_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SET_REGEX))
                 .filter(o.build(), POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
@@ -162,13 +162,13 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_SET)
                 .build();
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_TEXT_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_TEXT_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_SCALAR_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SCALAR_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_RANGES_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_RANGES_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_SET_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SET_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
@@ -178,37 +178,37 @@ public class AttributeRuleTest {
                 .addAttributes(ATTR_SCALAR)
                 .addAttributes(ATTR_SET)
                 .build();
-        assertFalse(AttributeRule.require(RegexMatcher.create(ATTR_TEXT_REGEX))
+        assertFalse(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_TEXT_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_SCALAR_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SCALAR_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertFalse(AttributeRule.require(RegexMatcher.create(ATTR_RANGES_REGEX))
+        assertFalse(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_RANGES_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_SET_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SET_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
 
         o = getOfferWithResources()
                 .addAttributes(ATTR_RANGES)
                 .addAttributes(ATTR_TEXT)
                 .build();
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_TEXT_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_TEXT_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertFalse(AttributeRule.require(RegexMatcher.create(ATTR_SCALAR_REGEX))
+        assertFalse(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SCALAR_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertTrue(AttributeRule.require(RegexMatcher.create(ATTR_RANGES_REGEX))
+        assertTrue(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_RANGES_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
-        assertFalse(AttributeRule.require(RegexMatcher.create(ATTR_SET_REGEX))
+        assertFalse(AttributeRuleFactory.getInstance().require(RegexMatcher.create(ATTR_SET_REGEX))
                 .filter(o, POD_INSTANCE, Collections.emptyList()).isPassing());
     }
 
     @Test
     public void testSerializeDeserialize() throws IOException {
-        PlacementRule rule = AttributeRule.require(
+        PlacementRule rule = AttributeRuleFactory.getInstance().require(
                 ExactMatcher.create(AttributeStringUtils.toString(ATTR_SCALAR)));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = AttributeRule.require(
+        rule = AttributeRuleFactory.getInstance().require(
                 RegexMatcher.create(ATTR_RANGES_REGEX));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));

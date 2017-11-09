@@ -23,4 +23,6 @@ public interface Strategy<C extends Element> extends Interruptible {
      * @return zero or more candidates for work to be performed
      */
     Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets);
+
+    String getName();
 }

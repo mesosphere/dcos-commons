@@ -47,7 +47,7 @@ public class NotRuleTest {
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = new NotRule(HostnameRule.requireExact("foo", "bar"));
+        rule = new NotRule(HostnameRuleFactory.getInstance().require(PlacementUtils.toExactMatchers("foo", "bar")));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
