@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 /**
- * Created by gabriel on 11/8/17.
+ * This enum differentiates between the different classes of placement keys.
  */
 public enum PlacementKey {
     ATTRIBUTE,
