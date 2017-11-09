@@ -17,12 +17,12 @@ func TestDcosCliTestSuite(t *testing.T) {
 func (suite *DcosCliTestSuite) TestGetCLIValues() {
 	cachedConfig = nil
 
-	config, err := cliDiskConfig("testdata/config_missing")
-	assert.Equal(suite.T(), "open testdata/config_missing/.dcos/clusters: no such file or directory", err.Error())
+	config, err := cliDiskConfig("testdata/cliconfig_missing")
+	assert.Equal(suite.T(), "open testdata/cliconfig_missing/dcos.toml: no such file or directory", err.Error())
 	assert.Nil(suite.T(), config)
 	assert.Nil(suite.T(), cachedConfig)
 
-	config, err = cliDiskConfig("testdata/config")
+	config, err = cliDiskConfig("testdata/cliconfig")
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), config, cachedConfig)
 

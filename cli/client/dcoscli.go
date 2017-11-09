@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"os/user"
 	"path"
 	"strings"
 
@@ -47,7 +46,7 @@ func RequiredCLIConfigValue(name string, description string, errorInstruction st
 		PrintMessage("Unable to retrieve configuration value %s (%s) from CLI. %s:",
 			name, description, errorInstruction)
 		PrintMessage("Error: %s", err.Error())
-		PrintMessage("Output: %s", output)
+		PrintMessageAndExit("Output: %s", output)
 	}
 	if len(output) == 0 {
 		PrintMessageAndExit("CLI configuration value %s (%s) is missing/unset. %s",
@@ -70,19 +69,26 @@ func OptionalCLIConfigValue(name string) string {
 // getCLIConfigValue attempts to read the requested config setting from the active
 // YAML config file directly before falling back to querying disk
 func cliConfigValue(name string) (string, error) {
-	userInfo, err := user.Current()
-	if err != nil {
-		return "", err
+	// dcos-cli allows providing a custom envvar for configs, we honor that here:
+	configDir := os.Getenv("DCOS_DIR")
+	if len(configDir) == 0 {
+		homeDir := os.Getenv("HOME")
+		if len(homeDir) != 0 {
+			configDir = path.Join(homeDir, ".dcos")
+		}
 	}
 
-	diskConfig, err := cliDiskConfig(userInfo.HomeDir)
-	if err == nil {
-		return cliDiskConfigValue(diskConfig, name)
+	if len(configDir) != 0 {
+		diskConfig, err := cliDiskConfig(configDir)
+		if err == nil {
+			return cliDiskConfigValue(diskConfig, name)
+		} else if config.Verbose {
+			PrintMessage("No cluster config found, falling back to querying CLI: %s", err.Error())
+		}
+	} else if config.Verbose {
+		PrintMessage("Unable to resolve CLI config directory (DCOS_DIR or HOME/.dcos), falling back to running CLI command.")
 	}
 
-	if config.Verbose {
-		PrintMessage("No cluster config found, falling back to querying CLI: %s", err.Error())
-	}
 	// Fall back to querying the CLI directly: slower but works on older CLIs.
 	return RunCLICommand("config", "show", name)
 }
@@ -117,33 +123,36 @@ func cliDiskConfigValue(diskConfig map[string]interface{}, name string) (string,
 
 // cliDiskConfig returns the content of the user's CLI configuration on disk,
 // or an error if the configuration could not be retrieved.
-func cliDiskConfig(userDir string) (map[string]interface{}, error) {
+func cliDiskConfig(configDir string) (map[string]interface{}, error) {
 	if cachedConfig != nil {
 		return cachedConfig, nil
 	}
 
-	// Look for new-style multicluster configs:
-	clustersPath := path.Join(userDir, ".dcos", "clusters")
-	clusters, err := ioutil.ReadDir(clustersPath)
-	if err != nil {
-		return nil, err // no clusters directory
-	}
-
+	// Find the "dcos.toml" config file:
 	configPath := ""
-	for _, cluster := range clusters {
-		if !cluster.IsDir() {
-			continue // not a directory
+
+	// Look for new-style multicluster configs:
+	clustersPath := path.Join(configDir, "clusters")
+	clusters, err := ioutil.ReadDir(clustersPath)
+	if err == nil {
+		for _, cluster := range clusters {
+			if !cluster.IsDir() {
+				continue // not a directory
+			}
+			if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
+				continue // not the attached/active cluster
+			}
+			configPath = path.Join(clustersPath, cluster.Name(), "dcos.toml")
+			break
 		}
-		if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
-			continue // not the attached/active cluster
-		}
-		configPath = path.Join(clustersPath, cluster.Name(), "dcos.toml")
-		break
 	}
 
+	// Fall back to old-style single config:
 	if configPath == "" {
-		// No attached multi-cluster entries found. Try old single-cluster config location:
-		configPath = path.Join(userDir, ".dcos", "dcos.toml")
+		configPath = path.Join(configDir, "dcos.toml")
+		if config.Verbose {
+			PrintMessage("No config found in new location: %s, falling back to old location: %s", clustersPath, configPath)
+		}
 	}
 
 	if config.Verbose {
