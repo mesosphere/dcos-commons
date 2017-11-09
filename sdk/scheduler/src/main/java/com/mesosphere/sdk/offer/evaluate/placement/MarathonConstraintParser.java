@@ -20,7 +20,6 @@ public class MarathonConstraintParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(MarathonConstraintParser.class);
     private static final char ESCAPE_CHAR = '\\';
 
-    private static final String HOSTNAME_FIELD = "hostname";
     private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     static {
         SUPPORTED_OPERATORS.put("UNIQUE", new UniqueOperator());
@@ -216,19 +215,6 @@ public class MarathonConstraintParser {
                 Optional<String> parameter) throws IOException;
     }
 
-    private static PlacementKey getKey(String fieldName) {
-        switch (fieldName) {
-            case "hostname":
-            case "@hostname":
-                return PlacementKey.HOSTNAME;
-            case "@region":
-                return PlacementKey.REGION;
-            case "@zone":
-                return PlacementKey.ZONE;
-            default:
-                return PlacementKey.ATTRIBUTE;
-        }
-    }
 
     /**
      * {@code UNIQUE} tells Marathon to enforce uniqueness of the attribute across all
@@ -242,7 +228,7 @@ public class MarathonConstraintParser {
                 String operatorName,
                 Optional<String> ignoredParameter) {
 
-            switch (getKey(fieldName)) {
+            switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return new MaxPerHostnameRule(1, taskFilter);
                 case ATTRIBUTE:
@@ -273,7 +259,7 @@ public class MarathonConstraintParser {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
 
-            switch (getKey(fieldName)) {
+            switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
                 case ATTRIBUTE:
@@ -319,7 +305,7 @@ public class MarathonConstraintParser {
                         operatorName, parameter), e);
             }
 
-            switch (getKey(fieldName)) {
+            switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return new RoundRobinByHostnameRule(num, taskFilter);
                 case ATTRIBUTE:
@@ -344,7 +330,7 @@ public class MarathonConstraintParser {
                 Optional<String> requiredParameter) throws IOException {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            switch (getKey(fieldName)) {
+            switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
                 case ATTRIBUTE:
@@ -369,7 +355,7 @@ public class MarathonConstraintParser {
                 Optional<String> requiredParameter) throws IOException {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            switch (getKey(fieldName)) {
+            switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
                 case ATTRIBUTE:
@@ -402,7 +388,7 @@ public class MarathonConstraintParser {
                         operatorName, requiredParameter), e);
             }
 
-            switch (getKey(fieldName)) {
+            switch (PlacementUtils.getField(fieldName)) {
                 case HOSTNAME:
                     return new MaxPerHostnameRule(max, taskFilter);
                 case ATTRIBUTE:

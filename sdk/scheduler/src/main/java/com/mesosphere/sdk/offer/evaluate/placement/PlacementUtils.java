@@ -16,6 +16,11 @@ public class PlacementUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlacementUtils.class);
 
+    private static final String HOSTNAME_FIELD_LEGACY = "hostname";
+    private static final String HOSTNAME_FIELD = "@hostname";
+    private static final String REGION_FIELD = "@region";
+    private static final String ZONE_FIELD = "@zone";
+
     private PlacementUtils() {
         // do not instantiate
     }
@@ -99,5 +104,19 @@ public class PlacementUtils {
             matchers.add(ExactMatcher.create(hostname));
         }
         return matchers;
+    }
+
+    public static PlacementKey getField(String fieldName) {
+        switch (fieldName) {
+            case PlacementUtils.HOSTNAME_FIELD_LEGACY:
+            case PlacementUtils.HOSTNAME_FIELD:
+                return PlacementKey.HOSTNAME;
+            case PlacementUtils.REGION_FIELD:
+                return PlacementKey.REGION;
+            case PlacementUtils.ZONE_FIELD:
+                return PlacementKey.ZONE;
+            default:
+                return PlacementKey.ATTRIBUTE;
+        }
     }
 }
