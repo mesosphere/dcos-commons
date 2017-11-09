@@ -142,8 +142,10 @@ func cliDiskConfig(configDir string) (map[string]interface{}, error) {
 			if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
 				continue // not the attached/active cluster
 			}
+			if len(configPath) != 0 {
+				return nil, fmt.Errorf("Multiple configs have an 'attached' flag, unable to decide which to use")
+			}
 			configPath = path.Join(clustersPath, cluster.Name(), "dcos.toml")
-			break
 		}
 	}
 

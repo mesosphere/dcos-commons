@@ -42,6 +42,15 @@ func (suite *DcosCliTestSuite) TestNewConfig() {
 	suite.checkNewConfig(config)
 }
 
+func (suite *DcosCliTestSuite) TestTwoAttachedConfigs() {
+	cachedConfig = nil
+
+	config, err := cliDiskConfig("testdata/cliconfig/two-attached")
+	assert.Contains(suite.T(), err.Error(), "Multiple configs have an 'attached' flag")
+	assert.Nil(suite.T(), config)
+	assert.Nil(suite.T(), cachedConfig)
+}
+
 func (suite *DcosCliTestSuite) TestBothConfigs() {
 	cachedConfig = nil
 
