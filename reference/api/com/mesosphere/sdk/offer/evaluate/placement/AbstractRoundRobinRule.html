@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":6,"i2":6};
+var methods = {"i0":10,"i1":10,"i2":6,"i3":6,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -111,7 +111,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <dl>
 <dt>Direct Known Subclasses:</dt>
-<dd><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByAttributeRule</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a></dd>
+<dd><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByAttributeRule</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByRegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByRegionRule</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByZoneRule</a></dd>
 </dl>
 <hr>
 <br>
@@ -181,6 +181,12 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>
+<div class="block">Must be explicitly implemented by all PlacementRules.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter</a></span>(Offer&nbsp;offer,
       <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
@@ -189,19 +195,23 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
  <code>TaskInfo</code>s, passes or fails this placement constraint.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>protected abstract java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getKey-Offer-">getKey</a></span>(Offer&nbsp;offer)</code>
 <div class="block">Returns a key to round robin against from the provided <code>Offer</code>, or <code>null</code> if
  none was found.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected abstract java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#getKey-TaskInfo-">getKey</a></span>(TaskInfo&nbsp;task)</code>
 <div class="block">Returns a key to round robin against from the provided <code>TaskInfo</code>, or <code>null</code> if
  none was found.</div>
 </td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -209,14 +219,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
-<code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
-</ul>
-<ul class="blockList">
-<li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.offer.evaluate.placement.PlacementRule">
-<!--   -->
-</a>
-<h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.offer.evaluate.placement.<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></h3>
-<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#equals-java.lang.Object-">equals</a></code></li>
+<code>clone, finalize, getClass, notify, notifyAll, toString, wait, wait, wait</code></li>
 </ul>
 </li>
 </ul>
@@ -301,7 +304,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <a name="filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>filter</h4>
 <pre>public&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;filter(Offer&nbsp;offer,
@@ -321,6 +324,40 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
               duplicates</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a> object describing whether the placement succeeded or failed and why</dd>
+</dl>
+</li>
+</ul>
+<a name="equals-java.lang.Object-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>equals</h4>
+<pre>public&nbsp;boolean&nbsp;equals(java.lang.Object&nbsp;o)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#equals-java.lang.Object-">PlacementRule</a></code></span></div>
+<div class="block">Must be explicitly implemented by all PlacementRules.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#equals-java.lang.Object-">equals</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></dd>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>equals</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../../../com/mesosphere/sdk/offer/TaskUtils.html#areDifferent-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-"><code>TaskUtils.areDifferent(
+ com.mesosphere.sdk.specification.TaskSpec,
+ com.mesosphere.sdk.specification.TaskSpec)</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="hashCode--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>hashCode</h4>
+<pre>public&nbsp;int&nbsp;hashCode()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>hashCode</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
 </li>
 </ul>

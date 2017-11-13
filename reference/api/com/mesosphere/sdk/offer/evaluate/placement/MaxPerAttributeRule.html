@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -216,12 +216,6 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>
-<div class="block">Must be explicitly implemented by all PlacementRules.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter</a></span>(Offer&nbsp;offer,
       <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
@@ -230,19 +224,15 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
  <code>TaskInfo</code>s, passes or fails this placement constraint.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#getKeys-Offer-">getKeys</a></span>(Offer&nbsp;offer)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#getKeys-TaskInfo-">getKeys</a></span>(TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -252,7 +242,7 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.placement.<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerRule</a></h3>
-<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#getTaskFilter--">getTaskFilter</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable</a></code></li>
+<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#equals-java.lang.Object-">equals</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#getTaskFilter--">getTaskFilter</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#hashCode--">hashCode</a>, <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#isAcceptable-Protos.Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">isAcceptable</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -289,7 +279,7 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>maxTasksPerSelectedAttribute</code> - the maximum number of tasks which may be run on an agent
-     which has attributes matching the provided <code>matcher</code></dd>
+                                     which has attributes matching the provided <code>matcher</code></dd>
 <dd><code>attributeMatcher</code> - the filter on which attributes should be counted and tallied</dd>
 </dl>
 </li>
@@ -309,11 +299,11 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>maxTasksPerSelectedAttribute</code> - the maximum number of tasks which may be run on an agent
-     which has attributes matching the provided <code>matcher</code></dd>
+                                     which has attributes matching the provided <code>matcher</code></dd>
 <dd><code>attributeMatcher</code> - the filter on which attributes should be counted and tallied, for
-     example only checking attributes which match a <code>rack:*</code> pattern</dd>
+                                     example only checking attributes which match a <code>rack:*</code> pattern</dd>
 <dd><code>taskFilter</code> - a filter on task names to determine which tasks are included in the count,
-     for example counting all tasks, or just counting tasks of a given type</dd>
+                                     for example counting all tasks, or just counting tasks of a given type</dd>
 </dl>
 </li>
 </ul>
@@ -378,47 +368,13 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <a name="toString--">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>toString</h4>
 <pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
-</dl>
-</li>
-</ul>
-<a name="equals-java.lang.Object-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>equals</h4>
-<pre>public&nbsp;boolean&nbsp;equals(java.lang.Object&nbsp;o)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#equals-java.lang.Object-">PlacementRule</a></code></span></div>
-<div class="block">Must be explicitly implemented by all PlacementRules.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#equals-java.lang.Object-">equals</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code>equals</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../../../com/mesosphere/sdk/offer/TaskUtils.html#areDifferent-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-"><code>TaskUtils.areDifferent(
- com.mesosphere.sdk.specification.TaskSpec,
- com.mesosphere.sdk.specification.TaskSpec)</code></a></dd>
-</dl>
-</li>
-</ul>
-<a name="hashCode--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>hashCode</h4>
-<pre>public&nbsp;int&nbsp;hashCode()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code>hashCode</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
 </li>
 </ul>

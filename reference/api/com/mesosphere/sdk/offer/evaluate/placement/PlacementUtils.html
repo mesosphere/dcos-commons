@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -144,19 +144,23 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementKey.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement">PlacementKey</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getField-java.lang.String-">getField</a></span>(java.lang.String&nbsp;fieldName)</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#require-com.mesosphere.sdk.offer.evaluate.placement.RuleFactory-java.util.Collection-">require</a></span>(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a>&nbsp;ruleFactory,
        java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;&nbsp;matchers)</code>
 <div class="block">Requires that a task be placed on one of the provided string matchers.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#toExactMatchers-java.util.Collection-">toExactMatchers</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;hostnames)</code>
 <div class="block">Converts the provided keys into <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#toExactMatchers-java.lang.String...-">toExactMatchers</a></span>(java.lang.String...&nbsp;hostnames)</code>
 <div class="block">Converts the provided keys into <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
@@ -242,11 +246,20 @@ extends java.lang.Object</pre>
 <a name="toExactMatchers-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>toExactMatchers</h4>
 <pre>public static&nbsp;java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;&nbsp;toExactMatchers(java.util.Collection&lt;java.lang.String&gt;&nbsp;hostnames)</pre>
 <div class="block">Converts the provided keys into <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
+</li>
+</ul>
+<a name="getField-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getField</h4>
+<pre>public static&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementKey.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement">PlacementKey</a>&nbsp;getField(java.lang.String&nbsp;fieldName)</pre>
 </li>
 </ul>
 </li>
