@@ -3,9 +3,6 @@ import sdk_install
 import sdk_utils
 from tests import config
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_strict_mode(),
-                                reason='resource refinement is not yet supported in strict mode')
-
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
