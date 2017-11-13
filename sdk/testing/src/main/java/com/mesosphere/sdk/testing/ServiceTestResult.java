@@ -5,11 +5,12 @@ import java.util.Map;
 
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.storage.Persister;
 
 /**
  * An object which contains the generated results from rendering a Service via {@link ServiceTestRunner}.
  */
-public class SchedulerConfigResult {
+public class ServiceTestResult {
 
     /**
      * An internal-only object for the result of generating a config file.
@@ -37,16 +38,22 @@ public class SchedulerConfigResult {
     private final RawServiceSpec rawServiceSpec;
     private final Map<String, String> schedulerEnvironment;
     private final Collection<TaskConfig> taskConfigs;
+    private final Persister persister;
+    private final ClusterState clusterState;
 
-    SchedulerConfigResult(
+    ServiceTestResult(
             ServiceSpec serviceSpec,
             RawServiceSpec rawServiceSpec,
             Map<String, String> schedulerEnvironment,
-            Collection<TaskConfig> taskConfigs) {
+            Collection<TaskConfig> taskConfigs,
+            Persister persister,
+            ClusterState clusterState) {
         this.serviceSpec = serviceSpec;
         this.rawServiceSpec = rawServiceSpec;
         this.schedulerEnvironment = schedulerEnvironment;
         this.taskConfigs = taskConfigs;
+        this.persister = persister;
+        this.clusterState = clusterState;
     }
 
     /**
@@ -85,5 +92,21 @@ public class SchedulerConfigResult {
         throw new IllegalArgumentException(String.format(
                 "Unable to find config [pod=%s, task=%s, config=%s]. Known configs are: %s",
                 podType, taskName, configName, taskConfigs));
+    }
+
+    /**
+     * Returns the persister/ZK state resulting from the simulation. This may be used to validate the state following a
+     * simulation, or may be passed to a later simulation run.
+     */
+    public Persister getPersister() {
+        return persister;
+    }
+
+    /**
+     * Returns the cluster/task state resulting from the simulation. This may be used to validate the state following a
+     * simulation, or may be passed to a later simulation run.
+     */
+    public ClusterState getClusterState() {
+        return clusterState;
     }
 }

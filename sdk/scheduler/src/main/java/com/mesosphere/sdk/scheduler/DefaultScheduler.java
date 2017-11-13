@@ -7,6 +7,8 @@ import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
+import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -39,6 +41,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     private final ServiceSpec serviceSpec;
+
     private final Collection<Plan> plans;
     private final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final TaskKiller taskKiller;
@@ -89,10 +92,9 @@ public class DefaultScheduler extends AbstractScheduler {
         this.plans = plans;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
-        this.offerAccepter = new OfferAccepter(
-                Arrays.asList(
-                        new PersistentLaunchRecorder(stateStore, serviceSpec),
-                        Metrics.OperationsCounter.getInstance()));
+        this.offerAccepter = new OfferAccepter(Arrays.asList(
+                new PersistentLaunchRecorder(stateStore, serviceSpec),
+                Metrics.OperationsCounter.getInstance()));
 
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
@@ -132,7 +134,6 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededAndPendingOverrideTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
@@ -142,13 +143,8 @@ public class DefaultScheduler extends AbstractScheduler {
     private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
         final Collection<PlanManager> planManagers = new ArrayList<>();
 
-        // Deployment plan manager
-        PlanManager deploymentPlanManager = new DefaultPlanManager(SchedulerUtils.getDeployPlan(plans).get());
-        // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
-        // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
-        // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
-        // whole.
-        deploymentPlanManager.getPlan().proceed();
+        PlanManager deploymentPlanManager =
+                DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
         planManagers.add(deploymentPlanManager);
 
         // Recovery plan manager
@@ -179,49 +175,23 @@ public class DefaultScheduler extends AbstractScheduler {
                 failureMonitor,
                 overrideRecoveryPlanManagers));
 
+        // If decommissioning nodes, set up decommission plan:
+        DecommissionPlanFactory decommissionPlanFactory =
+                new DecommissionPlanFactory(serviceSpec, stateStore, taskKiller);
+        Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
+        if (decommissionPlan.isPresent()) {
+            // Set things up for a decommission operation.
+            offerAccepter.addRecorder(new DecommissionRecorder(stateStore, decommissionPlanFactory.getResourceSteps()));
+            planManagers.add(DefaultPlanManager.createProceeding(decommissionPlan.get()));
+        }
+
         // Other custom plan managers
         planManagers.addAll(plans.stream()
                 .filter(plan -> !plan.isDeployPlan())
-                .map(DefaultPlanManager::new)
+                .map(DefaultPlanManager::createInterrupted)
                 .collect(Collectors.toList()));
 
         return new DefaultPlanCoordinator(planManagers);
-    }
-
-    private static void killUnneededAndPendingOverrideTasks(
-            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
-        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
-                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
-                .collect(Collectors.toSet());
-
-        Set<Protos.TaskID> taskIds = taskInfos.stream()
-                .map(taskInfo -> taskInfo.getTaskId())
-                .collect(Collectors.toSet());
-
-        // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
-        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
-                .map(taskInfo -> taskInfo.toBuilder())
-                .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
-                .collect(Collectors.toSet());
-
-        // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
-        // event of an untimely scheduler crash
-        for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
-            stateStore.clearTask(taskInfo.getName());
-            stateStore.storeTasks(Arrays.asList(taskInfo));
-        }
-
-        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
-
-        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
-            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
-            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
-                // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
-                // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
-                // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
-                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
-            }
-        }
     }
 
     @Override

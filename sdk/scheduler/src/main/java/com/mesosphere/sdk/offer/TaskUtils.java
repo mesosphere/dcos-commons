@@ -76,18 +76,13 @@ public class TaskUtils {
     }
 
     /**
-     * Returns all the {@link TaskSpec} that have TLS configuration.
-     *
-     * @param serviceSpec A ServiceSpec defining service.
-     * @return A list of the task specs.
+     * Returns whether any tasks within the provided {@link ServiceSpec} have transport encryption specs defined.
      */
-    public static List<TaskSpec> getTasksWithTLS(ServiceSpec serviceSpec) {
+    public static boolean hasTasksWithTLS(ServiceSpec serviceSpec) {
         List<TaskSpec> tasks = new ArrayList<>();
         serviceSpec.getPods().forEach(pod -> tasks.addAll(pod.getTasks()));
 
-        return tasks.stream()
-                .filter(taskSpec -> !taskSpec.getTransportEncryption().isEmpty())
-                .collect(Collectors.toList());
+        return tasks.stream().anyMatch(taskSpec -> !taskSpec.getTransportEncryption().isEmpty());
     }
 
     /**

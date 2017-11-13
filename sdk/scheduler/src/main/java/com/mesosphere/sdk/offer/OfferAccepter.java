@@ -19,10 +19,20 @@ public class OfferAccepter {
     private static final Logger LOGGER = LoggerFactory.getLogger(OfferAccepter.class);
     private static final Filters FILTERS = Filters.newBuilder().setRefuseSeconds(1).build();
 
-    private Collection<OperationRecorder> recorders;
+    private final Collection<OperationRecorder> recorders = new ArrayList<>();
 
     public OfferAccepter(List<OperationRecorder> recorders) {
-        this.recorders = recorders;
+        this.recorders.addAll(recorders);
+    }
+
+    /**
+     * Adds a recorder for accepted operations.
+     *
+     * @return {@code this}
+     */
+    public OfferAccepter addRecorder(OperationRecorder recorder) {
+        this.recorders.add(recorder);
+        return this;
     }
 
     public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {

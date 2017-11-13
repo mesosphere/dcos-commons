@@ -194,7 +194,8 @@ public class YAMLToInternalMappers {
                 .type(podName)
                 .user(user)
                 .preReservedRole(rawPod.getPreReservedRole())
-                .sharePidNamespace(rawPod.getSharePidNamespace());
+                .sharePidNamespace(rawPod.getSharePidNamespace())
+                .allowDecommission(rawPod.getAllowDecommission());
 
         // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
         // functionality (CNI or otherwise) will land in the pod-level only.
