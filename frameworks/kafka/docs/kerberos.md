@@ -157,3 +157,24 @@ $ kafka-console-consumer --bootstrap-server kafka-0-broker.secure-kafka.autoip.d
     --topic securetest --from-beginning \
     --consumer.config /tmp/kafkaconfig/client.properties
 ```
+
+
+# TODO: Document raw instructions:
+
+Which assumes that kdc is running on the host `10.0.0.95`. It also assumes that the keytab for the brokers has been generated and the secret added as follows:
+```bash
+$ dcos task exec kdc /usr/sbin/kadmin -l add --use-defaults --random-password kafka/kafka-0-broker.secure-kafka.autoip.dcos.thisdcos.directory@LOCAL kafka/kafka-1-broker.secure-kafka.autoip.dcos.thisdcos.directory@LOCAL kafka/kafka-1-broker.secure-kafka.autoip.dcos.thisdcos.directory@LOCAL
+```
+```bash
+$ dcos task exec kdc /usr/sbin/kadmin -l ext -k kafka.keytab kafka/kafka-0-broker.secure-kafka.autoip.dcos.thisdcos.directory@LOCAL kafka/kafka-1-broker.secure-kafka.autoip.dcos.thisdcos.directory@LOCAL kafka/kafka-2-broker.secure-kafka.autoip.dcos.thisdcos.directory@LOCAL
+```
+
+* Download the keytab file
+
+```bash
+$ base64 -w 0 kafka.keytab > kafka.keytab.base64
+```
+
+```bash
+$ dcos security secrets create __dcos_base64__kafka_keytab --value-file kafka.keytab.base64
+```
