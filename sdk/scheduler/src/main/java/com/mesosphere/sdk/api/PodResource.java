@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -41,7 +40,6 @@ import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
-@Singleton
 @Path("/v1/pod")
 public class PodResource extends PrettyJsonResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodResource.class);

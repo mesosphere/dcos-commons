@@ -3,8 +3,6 @@ package com.mesosphere.sdk.reconciliation;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
@@ -19,7 +17,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Default implementation of {@link Reconciler}. See {@link Reconciler} for docs.
  */
-@Singleton
 public class DefaultReconciler implements Reconciler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultReconciler.class);
@@ -37,7 +34,6 @@ public class DefaultReconciler implements Reconciler {
     private long lastRequestTimeMs;
     private long backOffMs;
 
-    @Inject
     public DefaultReconciler(StateStore stateStore) {
         this.stateStore = stateStore;
         resetTimerValues();
