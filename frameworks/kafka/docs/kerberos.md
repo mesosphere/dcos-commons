@@ -33,15 +33,14 @@ Create the following `kerberos-options.json` file:
 ```json
 {
     "service": {
-        "name": "secure-kafka"
-    },
-    "security": {
-        "kerberos": {
-            "enabled": true,
-            "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
-            "kdc_host_port": 2500,
-            "keytab_secret": "__dcos_base64___keytab"
-
+        "name": "secure-kafka",
+        "security": {
+            "kerberos": {
+                "enabled": true,
+                "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
+                "kdc_host_port": 2500,
+                "keytab_secret": "__dcos_base64___keytab"
+            }
         }
     }
 }
