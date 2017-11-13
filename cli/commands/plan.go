@@ -16,6 +16,7 @@ import (
 )
 
 const UNKNOWN_VALUE = "<UNKNOWN>"
+const DEFAULT_PLAN_STRATEGY = "serial"
 
 var errPlanStatus417 = errors.New("plan endpoint returned HTTP status code 417")
 
@@ -323,7 +324,7 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 	}
 	planStrategy, ok := planJSON["strategy"]
 	if !ok {
-		planStatus = UNKNOWN_VALUE
+		planStatus = DEFAULT_PLAN_STRATEGY
 	}
 	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
 
@@ -393,7 +394,7 @@ func phaseString(phase map[string]interface{}) string {
 	}
 	phaseStrategy, ok := phase["strategy"]
 	if !ok {
-		phaseStrategy = UNKNOWN_VALUE
+		phaseStrategy = DEFAULT_PLAN_STRATEGY
 	}
 	phaseStatus, ok := phase["status"]
 	if !ok {
