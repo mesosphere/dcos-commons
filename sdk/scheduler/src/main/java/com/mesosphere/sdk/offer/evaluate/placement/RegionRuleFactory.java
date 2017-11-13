@@ -10,6 +10,10 @@ public class RegionRuleFactory implements RuleFactory {
         return factory;
     }
 
+    private RegionRuleFactory() {
+        // Do not instantiate this class
+    }
+
     @Override
     public PlacementRule require(StringMatcher matcher) {
         return new RegionRule(matcher);

@@ -219,7 +219,6 @@ def fail_placement(options):
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_hostname_unique():

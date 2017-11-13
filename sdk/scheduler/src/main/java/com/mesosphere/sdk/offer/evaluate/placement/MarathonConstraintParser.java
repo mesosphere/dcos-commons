@@ -236,12 +236,13 @@ public class MarathonConstraintParser {
                 case REGION:
                     return new MaxPerRegionRule(1, taskFilter);
                 case ATTRIBUTE:
-                default:
                     StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
                     return new AndRule(
                             AttributeRuleFactory.getInstance().require(matcher),
                             new MaxPerAttributeRule(1, matcher, taskFilter));
-
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown UNIQUE placement type encountered: %s", fieldName));
             }
         }
     }
@@ -271,9 +272,11 @@ public class MarathonConstraintParser {
                 case REGION:
                     return RegionRuleFactory.getInstance().require(ExactMatcher.create(parameter));
                 case ATTRIBUTE:
-                default:
                     return AttributeRuleFactory.getInstance().require(
                             ExactMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown CLUSTER placement type encountered: %s", fieldName));
             }
         }
     }
@@ -321,8 +324,10 @@ public class MarathonConstraintParser {
                 case REGION:
                     return new RoundRobinByRegionRule(num, taskFilter);
                 case ATTRIBUTE:
-                default:
                     return new RoundRobinByAttributeRule(fieldName, num, taskFilter);
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown GROUP_BY placement type encountered: %s", fieldName));
             }
         }
     }
@@ -350,9 +355,11 @@ public class MarathonConstraintParser {
                 case REGION:
                     return RegionRuleFactory.getInstance().require(RegexMatcher.create(parameter));
                 case ATTRIBUTE:
-                default:
                     return AttributeRuleFactory.getInstance().require(
                             RegexMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown LIKE placement type encountered: %s", fieldName));
             }
         }
     }
@@ -379,8 +386,10 @@ public class MarathonConstraintParser {
                 case REGION:
                     return RegionRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
                 case ATTRIBUTE:
-                default:
                     return AttributeRuleFactory.getInstance().avoid(RegexMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown UNLIKE placement type encountered: %s", fieldName));
             }
         }
     }
@@ -416,7 +425,6 @@ public class MarathonConstraintParser {
                 case REGION:
                     return new MaxPerRegionRule(max, taskFilter);
                 case ATTRIBUTE:
-                default:
                     // Ensure that:
                     // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
                     // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
@@ -424,6 +432,9 @@ public class MarathonConstraintParser {
                     return new AndRule(
                             AttributeRuleFactory.getInstance()
                                     .require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown MAX_PER placement type encountered: %s", fieldName));
             }
         }
     }
