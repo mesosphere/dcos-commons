@@ -1,7 +1,6 @@
 # Setting up Kafka with Kerberos
 
 Still TODO:
-1. The KDC deployment still requires the IP to be specified
 1. We need a better way to get the Keytab into the clients
 
 ## Deploy KDC
@@ -37,7 +36,6 @@ Create the following `kerberos-options.json` file:
         "name": "secure-kafka"
     },
     "security": {
-        "sasl_enabled": true,
         "kerberos": {
             "enabled": true,
             "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",

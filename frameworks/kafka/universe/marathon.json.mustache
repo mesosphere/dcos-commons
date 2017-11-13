@@ -72,13 +72,6 @@
     {{/service.tls_allow_plaintext}}
     {{/service.tls}}
 
-    {{#security.sasl_enabled}}
-    "TASKCFG_ALL_SECURITY_SASL_ENABLED": "{{security.sasl_enabled}}",
-
-    {{#security.plaintext.enabled}}
-    "TASKCFG_ALL_SECURITY_SASL_PLAIN_ENABLED": "{{security.plaintext.enabled}}",
-    {{/security.plaintext.enabled}}
-
     {{#security.kerberos.enabled}}
     "SECURITY_KERBEROS_KEYTAB_SECRET": "{{security.kerberos.keytab_secret}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_ENABLED": "{{security.kerberos.enabled}}",
@@ -87,8 +80,6 @@
     "TASKCFG_ALL_KDC_HOST_NAME": "{{security.kerberos.kdc_host_name}}",
     "TASKCFG_ALL_KDC_HOST_PORT": "{{security.kerberos.kdc_host_port}}",
     {{/security.kerberos.enabled}}
-
-    {{/security.sasl_enabled}}
 
     "KAFKA_VERSION_PATH": "kafka_2.11-0.11.0.1",
 
