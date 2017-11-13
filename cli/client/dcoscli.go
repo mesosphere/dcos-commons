@@ -12,6 +12,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+const dcosConfigDirName = ".dcos"
+
 var (
 	// cachedConfig stores a previously fetched toml config, or is nil.
 	cachedConfig map[string]interface{}
@@ -66,27 +68,54 @@ func OptionalCLIConfigValue(name string) string {
 	return output
 }
 
+// homeDir attempts to retrieve the DC/OS CLI config directory, or returns an error
+// if retrieval fails
+func configDir() (string, error) {
+	// At the moment (go1.8.3), os.user.Current() just produces: "user: Current not implemented on YOUROS/YOURARCH"
+	// Apparently this is due to lack of support with cross-compiled binaries? Therefore we DIY it here.
+
+	// DC/OS CLI allows users to manually override the config dir with a DCOS_DIR envvar:
+	configDir := os.Getenv("DCOS_DIR")
+	if len(configDir) != 0 {
+		return configDir, nil
+	}
+
+	// OSX/Linux: $HOME/.dcos/
+	homeDir := os.Getenv("HOME")
+	if len(homeDir) != 0 {
+		return path.Join(homeDir, dcosConfigDirName), nil
+	}
+
+	// Windows: ${HOMEDRIVE}${HOMEPATH}/.dcos/ or $USERPROFILE/.dcos/
+	homeDrive := os.Getenv("HOMEDRIVE")
+	homePath := os.Getenv("HOMEPATH")
+	if len(homeDrive) != 0 && len(homePath) != 0 {
+		return path.Join(homeDrive + homePath, dcosConfigDirName), nil
+	}
+	homeDir = os.Getenv("USERPROFILE")
+	if len(homeDir) != 0 {
+		return path.Join(homeDir, dcosConfigDirName), nil
+	}
+
+	return "", fmt.Errorf("Unable to resolve CLI config directory: DCOS_DIR, HOME, HOMEDRIVE+HOMEPATH, or USERPROFILE")
+}
+
 // getCLIConfigValue attempts to read the requested config setting from the active
 // YAML config file directly before falling back to querying disk
 func cliConfigValue(name string) (string, error) {
 	// dcos-cli allows providing a custom envvar for configs, we honor that here:
-	configDir := os.Getenv("DCOS_DIR")
-	if len(configDir) == 0 {
-		homeDir := os.Getenv("HOME")
-		if len(homeDir) != 0 {
-			configDir = path.Join(homeDir, ".dcos")
+	configDir, err := configDir()
+	if err != nil {
+		if config.Verbose {
+			PrintMessage("Falling back to querying CLI: %s", err.Error())
 		}
-	}
-
-	if len(configDir) != 0 {
+	} else {
 		diskConfig, err := cliDiskConfig(configDir)
 		if err == nil {
 			return cliDiskConfigValue(diskConfig, name)
 		} else if config.Verbose {
 			PrintMessage("No cluster config found, falling back to querying CLI: %s", err.Error())
 		}
-	} else if config.Verbose {
-		PrintMessage("Unable to resolve CLI config directory (DCOS_DIR or HOME/.dcos), falling back to running CLI command.")
 	}
 
 	// Fall back to querying the CLI directly: slower but works on older CLIs.
