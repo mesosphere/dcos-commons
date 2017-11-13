@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -89,24 +87,9 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
         return distinctKeyCount;
     }
 
-    @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
-        return taskFilter;
-    }
-
     @Override
     public String toString() {
         return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",
                 attributeName, distinctKeyCount, taskFilter);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

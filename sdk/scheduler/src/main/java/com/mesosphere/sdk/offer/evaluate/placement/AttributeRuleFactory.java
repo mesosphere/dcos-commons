@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-
 /**
  * This class generates {@link AttributeRule}s.
  */

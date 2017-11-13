@@ -7,8 +7,6 @@ import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -62,8 +60,8 @@ public class MaxPerAttributeRule extends MaxPerRule {
      * service are counted against the max).
      *
      * @param maxTasksPerSelectedAttribute the maximum number of tasks which may be run on an agent
-     *     which has attributes matching the provided {@code matcher}
-     * @param attributeMatcher the filter on which attributes should be counted and tallied
+     *                                     which has attributes matching the provided {@code matcher}
+     * @param attributeMatcher             the filter on which attributes should be counted and tallied
      */
     public MaxPerAttributeRule(
             int maxTasksPerSelectedAttribute,
@@ -77,11 +75,11 @@ public class MaxPerAttributeRule extends MaxPerRule {
      * counted against the maximum.
      *
      * @param maxTasksPerSelectedAttribute the maximum number of tasks which may be run on an agent
-     *     which has attributes matching the provided {@code matcher}
-     * @param attributeMatcher the filter on which attributes should be counted and tallied, for
-     *     example only checking attributes which match a {@code rack:*} pattern
-     * @param taskFilter a filter on task names to determine which tasks are included in the count,
-     *     for example counting all tasks, or just counting tasks of a given type
+     *                                     which has attributes matching the provided {@code matcher}
+     * @param attributeMatcher             the filter on which attributes should be counted and tallied, for
+     *                                     example only checking attributes which match a {@code rack:*} pattern
+     * @param taskFilter                   a filter on task names to determine which tasks are included in the count,
+     *                                     for example counting all tasks, or just counting tasks of a given type
      */
     @JsonCreator
     public MaxPerAttributeRule(
@@ -144,15 +142,5 @@ public class MaxPerAttributeRule extends MaxPerRule {
     public String toString() {
         return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task-filter=%s}",
                 max, attributeMatcher, taskFilter);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
     }
 }
