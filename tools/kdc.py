@@ -63,8 +63,8 @@ def deploy(args: dict):
 def teardown(args: dict):
     log.info("Tearing down KDC")
 
-    sdk_cmd.run_cli(["marathon", "app", "remove", "kdc"])
-    sdk_cmd.run_cli(["package", "install", "--yes", "--cli", "dcos-enterprise-cli"])
+    sdk_cmd.run_cli(" ".join(["marathon", "app", "remove", "kdc"]))
+    sdk_cmd.run_cli(" ".join(["package", "install", "--yes", "--cli", "dcos-enterprise-cli"]))
     sdk_security.delete_secret('__dcos_base64__{}'.format(args.secret_name))
 
     log.info("KDC cluster successfully torn down")
