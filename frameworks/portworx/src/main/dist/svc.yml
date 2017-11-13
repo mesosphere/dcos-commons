@@ -62,7 +62,7 @@ pods:
                 docker run --entrypoint /runc-entry-point.sh \
                    --rm -i --privileged=true \
                    -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                   {{{PORTWORX_IMAGE_NAME}}}
+                   {{{PORTWORX_IMAGE_NAME}}} --debug
 
                 echo "[Unit]
                     Description=Portworx Container
@@ -117,7 +117,7 @@ pods:
              docker run --entrypoint /runc-entry-point.sh \
                 --rm -i --privileged=true \
                 -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                {{{PORTWORX_IMAGE_NAME}}} --upgrade
+                {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
 
              systemctl daemon-reload && systemctl restart portworx
 
