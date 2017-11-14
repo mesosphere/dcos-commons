@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -90,6 +91,11 @@ public class ReviveManager {
         }
 
         this.candidates = currCandidates;
+
+        if (this.candidates.isEmpty()) {
+            logger.info("Suppressing offers.");
+            driver.suppressOffers();
+        }
     }
 
     /**
