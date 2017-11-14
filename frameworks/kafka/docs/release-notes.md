@@ -4,6 +4,12 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+# Version 2.0.3-0.11.0
+
+### Bug Fixes
+* Uninstall now handles failed tasks correctly.
+* Fixed a timing issue in the broker readiness check that caused brokers to be stuck in STARTING when the service is allocated more than 2 CPUs per broker.
+
 # Version 2.0.2-0.11.0
 
 ### Bug Fixes
