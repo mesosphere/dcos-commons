@@ -1,0 +1,1 @@
+{"type":"unhandled_exception","message":"java.lang.Error: {\"message\":\"App is locked by one or more deployments. Override with the option '?force=true'. View details at '/v2/deployments/<DEPLOYMENT_ID>'.\",\"deployments\":[{\"id\":\"839314dd-f223-4d55-9d74-a556119e84be\"}]}"}

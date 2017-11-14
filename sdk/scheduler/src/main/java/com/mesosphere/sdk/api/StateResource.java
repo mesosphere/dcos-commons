@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.api;
 
-import com.google.inject.Inject;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -66,7 +65,6 @@ public class StateResource {
      * @param propertyDeserializer a deserializer which can turn any Property in the provided
      *                             {@code stateStore} to valid JSON
      */
-    @Inject
     public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
         this.stateStore = stateStore;
         this.propertyDeserializer = propertyDeserializer;

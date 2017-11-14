@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "a368813c5e648fee92e5f6c30e3944ff9d5e8895",
+			"revisionTime": "2017-06-26T11:06:00Z"
+		},
+		{
 			"checksumSHA1": "KmjnydoAbofMieIWm+it5OWERaM=",
 			"path": "github.com/alecthomas/template",
 			"revision": "a0175ee3bccc567396460bf5acd36800cb10c49c",
@@ -25,54 +31,6 @@
 			"path": "github.com/aryann/difflib",
 			"revision": "e206f873d14a916d3d26c40ab667bca123f365a3",
 			"revisionTime": "2017-07-10T04:42:30Z"
-		},
-		{
-			"checksumSHA1": "AIxWUvzOjHni8IwkElJw+b1IES8=",
-			"path": "github.com/nickbp/mustache",
-			"revision": "a219940dea5cbaf16473ee0d23386def39111593",
-			"revisionTime": "2017-01-19T01:18:40Z"
-		},
-		{
-			"checksumSHA1": "uEc9/1HbYGeK7wPStF6FmUlfzGE=",
-			"path": "github.com/nicksnyder/go-i18n/i18n",
-			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
-			"revisionTime": "2017-05-12T15:20:54Z"
-		},
-		{
-			"checksumSHA1": "gDe7nlx3FyCVxLkARgl0VAntDRk=",
-			"path": "github.com/nicksnyder/go-i18n/i18n/bundle",
-			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
-			"revisionTime": "2017-05-12T15:20:54Z"
-		},
-		{
-			"checksumSHA1": "+XOg99I1zdmBRUb04ZswvzQ2WS0=",
-			"path": "github.com/nicksnyder/go-i18n/i18n/language",
-			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
-			"revisionTime": "2017-05-12T15:20:54Z"
-		},
-		{
-			"checksumSHA1": "WZOU406In2hs8FJOHWqV8PWkJKs=",
-			"path": "github.com/nicksnyder/go-i18n/i18n/translation",
-			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
-			"revisionTime": "2017-05-12T15:20:54Z"
-		},
-		{
-			"checksumSHA1": "zZg0J0MqvnqXVYo644QDvnUinrc=",
-			"path": "github.com/pelletier/go-toml",
-			"revision": "69d355db5304c0f7f809a2edc054553e7142f016",
-			"revisionTime": "2017-06-28T01:26:37Z"
-		},
-		{
-			"checksumSHA1": "Ee7T/R2MkaOUE2RG7umlQCrWmcc=",
-			"path": "gopkg.in/alecthomas/kingpin.v3-unstable",
-			"revision": "737cdbd3ff5e748fdf6525de68233d0c1f78e5a0",
-			"revisionTime": "2017-06-27T23:50:45Z"
-		},
-		{
-			"checksumSHA1": "KHOUE9QA14iPCFNIVs5X72MYdkA=",
-			"path": "gopkg.in/yaml.v2",
-			"revision": "3b4ad1db5b2a649883ff3782f5f9f6fb52be71af",
-			"revisionTime": "2017-07-13T20:15:20Z"
 		},
 		{
 			"checksumSHA1": "Kh/msV2XTuYy0UB63hhoKcKfkyY=",
@@ -130,6 +88,42 @@
 			"tree": true
 		},
 		{
+			"checksumSHA1": "AIxWUvzOjHni8IwkElJw+b1IES8=",
+			"path": "github.com/nickbp/mustache",
+			"revision": "a219940dea5cbaf16473ee0d23386def39111593",
+			"revisionTime": "2017-01-19T01:18:40Z"
+		},
+		{
+			"checksumSHA1": "uEc9/1HbYGeK7wPStF6FmUlfzGE=",
+			"path": "github.com/nicksnyder/go-i18n/i18n",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "gDe7nlx3FyCVxLkARgl0VAntDRk=",
+			"path": "github.com/nicksnyder/go-i18n/i18n/bundle",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "+XOg99I1zdmBRUb04ZswvzQ2WS0=",
+			"path": "github.com/nicksnyder/go-i18n/i18n/language",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "WZOU406In2hs8FJOHWqV8PWkJKs=",
+			"path": "github.com/nicksnyder/go-i18n/i18n/translation",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "zZg0J0MqvnqXVYo644QDvnUinrc=",
+			"path": "github.com/pelletier/go-toml",
+			"revision": "69d355db5304c0f7f809a2edc054553e7142f016",
+			"revisionTime": "2017-06-28T01:26:37Z"
+		},
+		{
 			"checksumSHA1": "DSXZnN+OjzFCR1qoAo49MAfaVgI=",
 			"path": "github.com/vishvananda/netlink",
 			"revision": "933b978eae8c18daa1077a0eb7186b689cd9f82d",
@@ -146,6 +140,18 @@
 			"path": "github.com/vishvananda/netns",
 			"revision": "86bef332bfc3b59b7624a600bd53009ce91a9829",
 			"revisionTime": "2017-07-07T00:42:18Z"
+		},
+		{
+			"checksumSHA1": "Ee7T/R2MkaOUE2RG7umlQCrWmcc=",
+			"path": "gopkg.in/alecthomas/kingpin.v3-unstable",
+			"revision": "737cdbd3ff5e748fdf6525de68233d0c1f78e5a0",
+			"revisionTime": "2017-06-27T23:50:45Z"
+		},
+		{
+			"checksumSHA1": "KHOUE9QA14iPCFNIVs5X72MYdkA=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "3b4ad1db5b2a649883ff3782f5f9f6fb52be71af",
+			"revisionTime": "2017-07-13T20:15:20Z"
 		}
 	],
 	"rootPath": "github.com/mesosphere/dcos-commons/cli"

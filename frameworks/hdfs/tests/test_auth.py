@@ -1,6 +1,7 @@
 import logging
 import os
 import pytest
+import subprocess
 import time
 
 import sdk_auth
@@ -43,6 +44,7 @@ def kerberos(configure_universe):
                         REALM=sdk_auth.REALM
                     )
                 )
+        principals.append(config.GENERIC_HDFS_USER_PRINCIPAL)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -73,7 +75,8 @@ def kerberos(configure_universe):
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        kerberos_env.cleanup()
+        if kerberos_env:
+            kerberos_env.cleanup()
 
 # General process for each test
 # 1. Will use a keytab local to the client binary (key will either be a generic one or one made within the test context)
@@ -84,38 +87,32 @@ def kerberos(configure_universe):
 # 6. use service client binary to interact with client once authed
 
 
+@pytest.mark.smoke
+def test_health_of_kerberized_hdfs():
+    config.check_healthy(service_name=config.SERVICE_NAME)
+
+
 sdk_utils.is_strict_mode()
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_write_and_read(kerberos):
-    pass
-    #try:
-    #    #TODO: convert client container to singleton fixture
-    #    client_app_def = config.kerberized_hdfs_client_marathon_app
-    #    #client_app_def["secrets"]["hdfs_keytab"]["source"] = kerberos.get_keytab_path()
-    #    client_app_def["secrets"]["hdfs_keytab"]["source"] = "__dcos_base64___keytab"
-    #    #client_app_def["env"]["REALM"] = kerberos.get_realm()
-    #    client_app_def["env"]["REALM"] = "LOCAL"
-    #    #client_app_def["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
-    #    client_app_def["env"]["KDC_ADDRESS"] = "kdc.marathon.l4lb.thisdcos.directory:88"
-    #    client_app_def["env"]["KRB5_CONFIG"] = "/etc/krb5.conf"
-    #    sdk_marathon.install_app(client_app_def)
-    #    client_task_id = client_app_def["id"]
+    try:
+        client_app_def = config.get_kerberized_hdfs_client_app()
+        client_app_def["secrets"]["hdfs_keytab"]["source"] = kerberos.get_keytab_path()
+        client_app_def["env"]["REALM"] = kerberos.get_realm()
+        client_app_def["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
+        sdk_marathon.install_app(client_app_def)
+        client_task_id = client_app_def["id"]
 
-    #    time.sleep(40)
+        sdk_auth.kinit(client_task_id, keytab=config.KEYTAB, principal=config.GENERIC_HDFS_USER_PRINCIPAL)
 
-    #    # authenticate client as any generic user
-    #    principal = "hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL"
-    #    kinit = "kinit -k -t hdfs.keytab {}".format(principal)
-    #    sdk_tasks.task_exec(client_task_id, kinit)
+        write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_FILE_1_NAME, config.TEST_CONTENT_SMALL))
+        sdk_tasks.task_exec(client_task_id, write_cmd)
 
-    #    write_cmd = "bash -c \\'{}\\'".format(config.hdfs_write_cmd(config.TEST_CONTENT_SMALL, config.TEST_FILE_1_NAME))
-    #    sdk_tasks.task_exec(client_task_id, write_cmd)
+        read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(config.TEST_FILE_1_NAME))
+        _, stdout, _ = sdk_tasks.task_exec(client_task_id, read_cmd)
+        assert stdout == config.TEST_CONTENT_SMALL
 
-    #    read_cmd = "bash -c \\'{}\\'".format(config.hdfs_read_cmd(config.TEST_FILE_1_NAME))
-    #    output = sdk_tasks.task_exec(client_task_id, read_cmd)
-    #    assert output == config.TEST_CONTENT_SMALL
-    #finally:
-    #    #sdk_marathon.destroy_app(client_task_id)
-    #    pass
+    finally:
+        sdk_marathon.destroy_app(client_task_id)
 

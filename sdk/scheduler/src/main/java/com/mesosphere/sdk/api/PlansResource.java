@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,7 +37,6 @@ import static com.mesosphere.sdk.api.ResponseUtils.*;
 /**
  * API for management of Plan(s).
  */
-@Singleton
 @Path("/v1")
 public class PlansResource extends PrettyJsonResource {
 

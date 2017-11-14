@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.specification.PodInstance;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
 import javax.validation.Valid;
@@ -76,5 +78,15 @@ public abstract class MaxPerRule implements PlacementRule {
             count = count == null ? 1 : count + 1;
             map.put(key, count);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 }

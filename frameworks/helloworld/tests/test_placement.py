@@ -73,6 +73,152 @@ def test_rack_not_found():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_unique_zone_fails():
+    """Create a new user.
+    This test assumes that the DC/OS cluster is reportin that all agents are in a single zone.
+    """
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:UNIQUE'
+        },
+        'world': {
+            'placement': '@zone:UNIQUE'
+        }
+    }
+
+    fail_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_max_per_zone_fails():
+    """Create a new user.
+    This test assumes that the DC/OS cluster is reportin that all agents are in a single zone.
+    """
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:MAX_PER:1'
+        },
+        'world': {
+            'placement': '@zone:MAX_PER:1'
+        }
+    }
+
+    fail_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_max_per_zone_succeeds():
+    """Create a new user.
+    This test assumes that the DC/OS cluster is reportin that all agents are in a single zone.
+    """
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:MAX_PER:1'
+        },
+        'world': {
+            'placement': '@zone:MAX_PER:2'
+        }
+    }
+
+    succeed_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_group_by_zone_succeeds():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:GROUP_BY:1'
+        },
+        'world': {
+            'placement': '@zone:GROUP_BY:1'
+        }
+    }
+    succeed_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_group_by_zone_fails():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:GROUP_BY:1'
+        },
+        'world': {
+            'placement': '@zone:GROUP_BY:2'
+        }
+    }
+
+    fail_placement(options)
+
+
+def succeed_placement(options):
+    """
+    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
+    """
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+def fail_placement(options):
+    """
+    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
+    """
+
+    # scheduler should fail to deploy, don't wait for it to complete:
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
+                        additional_options=options, wait_for_deployment=False)
+    sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'world', 'world-0:[server]', 'COMPLETE')
+
+    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
+
+    # check that everything is still stuck looking for a match:
+    assert pl['status'] == 'IN_PROGRESS'
+
+    assert len(pl['phases']) == 2
+
+    phase1 = pl['phases'][0]
+    assert phase1['status'] == 'COMPLETE'
+    steps1 = phase1['steps']
+    assert len(steps1) == 1
+
+    phase2 = pl['phases'][1]
+    assert phase2['status'] == 'IN_PROGRESS'
+    steps2 = phase2['steps']
+    assert len(steps2) == 2
+    assert steps2[0]['status'] == 'COMPLETE'
+    assert steps2[1]['status'] in ('PREPARED', 'PENDING')
+
+    try:
+        sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
+        assert False, "Should have failed to deploy world-1"
+    except AssertionError as arg:
+        raise arg
+    except:
+        pass # expected to fail
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_hostname_unique():
