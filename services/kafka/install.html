@@ -460,7 +460,7 @@ dcos package install beta-kafka --cli
 </div>
 <!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
-<h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
+<h1 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h1>
 
 <p>In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/kafka</code> and <code class="highlighter-rouge">production/kafka</code>.</p>
 
@@ -496,7 +496,7 @@ dcos package install beta-kafka --cli
   <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
 </ul>
 
-<h3 id="interacting-with-your-foldered-service">Interacting with your foldered service</h3>
+<h2 id="interacting-with-your-foldered-service">Interacting with your foldered service</h2>
 
 <ul>
   <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
@@ -504,6 +504,42 @@ dcos package install beta-kafka --cli
 </ul>
 
 <!-- END DUPLICATE BLOCK -->
+
+<h1 id="alternate-zookeeper">Alternate ZooKeeper</h1>
+
+<p>By default, the Kafka services uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster. You can configure an alternate ZooKeeper at install time. This enables you to increase Kafka’s capacity and removes the system ZooKeeper’s involvment in the service.</p>
+
+<p>To configure it:</p>
+
+<ol>
+  <li>Create a file named <code class="highlighter-rouge">options.json</code> with the following contents.</li>
+</ol>
+
+<p><strong>Note:</strong> If you are using the <a href="https://docs.mesosphere.com/service-docs/kafka-zookeeper">DC/OS Apache ZooKeeper service</a>, use the DNS addresses provided by the <code class="highlighter-rouge">dcos kafka-zookeeper endpoints clientport</code> command as the value of <code class="highlighter-rouge">kafka_zookeeper_uri</code>.</p>
+
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nt">"kafka_zookeeper_uri"</span><span class="p">:</span><span class="w"> </span><span class="s2">"zookeeper-0-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140,zookeeper-1-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140,zookeeper-2-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ol>
+  <li>Install Kafka with the options file.</li>
+</ol>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos package install kafka --options<span class="o">=</span><span class="s2">"options.json"</span>
+</code></pre>
+</div>
+
+<p>You can also update an already-running Kafka instance from the DC/OS CLI, in case you need to migrate your ZooKeeper data elsewhere.</p>
+
+<p><strong>Note:</strong> The ZooKeeper ensemble you point to must have the same data as the previous ZooKeeper ensemble.</p>
+
+<div class="language-shell highlighter-rouge"><pre class="highlight"><code>dcos kafka --name<span class="o">=</span>/kafka update start --options<span class="o">=</span>options.json
+</code></pre>
+</div>
 
 
 </div>
