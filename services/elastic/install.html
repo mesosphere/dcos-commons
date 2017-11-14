@@ -212,6 +212,8 @@
       
       
       
+      
+      
     </ul>
   </li>
   <li>
@@ -255,6 +257,8 @@
           <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
           
           <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
+          
+          <li><a href="../../services/elastic/custom-elasticsearch-yaml.html">Custom elasticsearch.yml</a></li>
           
           <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
           
@@ -655,6 +659,7 @@ dcos package install --cli beta-elastic
   <li>Master transport port: You can pick whichever port works for your DC/OS cluster. The default is 9300. If you want multiple master nodes from different clusters on the same host, specify different master HTTP and transport ports for each cluster. If you want to ensure a particular distribution of nodes of one task type (e.g., master nodes spread across 3 racks, data nodes on one class of machines), specify this via the Marathon placement constraint.</li>
   <li>Serial vs Parallel deployment. By default, the DC/OS Elastic Service tells DC/OS to install everything in parallel. You can change this to serial in order to have each node installed one at a time.</li>
   <li>Serial vs Parallel update. By default, the DC/OS Elastic Service tells DC/OS to update everything serially. You can change this to parallel in order to have each node updated at the same time. This is required, for instance, when you turn X-Pack on or off.</li>
+  <li>Custom YAML can be appended to <code class="highlighter-rouge">elasticsearch.yml</code> on each node</li>
 </ul>
 
 <h2 id="immutable-settings-at-cluster-creation-time-via-elastic-package-ui-or-json-options-file-via-cli">Immutable settings (at cluster creation time via Elastic package UI or JSON options file via CLI)</h2>
@@ -678,6 +683,7 @@ dcos package install --cli beta-elastic
   <li>Health check credentials</li>
   <li>X-Pack enabled/disabled</li>
   <li>Deployment/Upgrade strategy (serial/parallel). Note that serial deployment does not yet wait for the cluster to reach green before proceeding to the next node. This is a known limitation.</li>
+  <li>Custom <code class="highlighter-rouge">elasticsearch.yml</code></li>
 </ul>
 
 <p>Any other modifiable settings are covered by the various Elasticsearch APIs (cluster settings, index settings, templates, aliases, scripts). It’s possible that some of the more common cluster settings will get exposed in future versions of the Elastic DC/OS Service.</p>
