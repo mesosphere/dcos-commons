@@ -41,6 +41,10 @@ listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}},SSL://:{{KAFKA_BROKER_PORT_TLS}}
 listeners=SSL://:{{KAFKA_BROKER_PORT_TLS}}
 {{/KAFKA_ALLOW_PLAINTEXT}}
 
+{{#KAFKA_ENABLE_TLS_AUTHN}}
+ssl.client.auth=required
+{{/KAFKA_ENABLE_TLS_AUTHN}}
+
 ssl.keystore.location={{MESOS_SANDBOX}}/broker.keystore
 ssl.keystore.password=notsecure
 ssl.key.password=notsecure
