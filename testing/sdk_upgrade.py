@@ -1,13 +1,14 @@
 import json
 import logging
 import re
+import retrying
 import shakedown
 import tempfile
 
-import sdk_cmd as cmd
+import sdk_cmd
 import sdk_install as install
 import sdk_marathon as marathon
-import sdk_tasks as tasks
+import sdk_tasks
 import sdk_utils
 
 log = logging.getLogger(__name__)
@@ -19,6 +20,8 @@ log = logging.getLogger(__name__)
 #
 # With beta packages, the Universe package name is different from the test package name.
 # We install both with the same service name=test_package_name.
+
+
 def test_upgrade(
         universe_package_name,
         test_package_name,
@@ -189,7 +192,7 @@ def soak_upgrade_downgrade(
         running_task_count,
         install_options={},
         timeout_seconds=25*60):
-    cmd.run_cli("package install --cli {} --yes".format(universe_package_name))
+    sdk_cmd.run_cli("package install --cli {} --yes".format(universe_package_name))
     version = 'stub-universe'
     print('Upgrading to test version: {} => {} {}'.format(universe_package_name, test_package_name, version))
     _upgrade_or_downgrade(
@@ -215,12 +218,29 @@ def soak_upgrade_downgrade(
 
 
 def _get_universe_url():
-    repositories = json.loads(cmd.run_cli('package repo list --json'))['repositories']
+    repositories = json.loads(sdk_cmd.run_cli('package repo list --json'))['repositories']
     for repo in repositories:
         if repo['name'] == 'Universe':
             log.info("Found Universe URL: {}".format(repo['uri']))
             return repo['uri']
     assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
+
+
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=30000,
+                retry_on_result=lambda result: result is None)
+def get_config(package_name, service_name):
+    """Return the active config for the current service.
+    This is retried 5 times, waiting 30s between retries."""
+
+    try:
+        target_config = sdk_cmd.svc_cli(package_name, service_name,
+                                        'config target', json=True)
+    except Exception as e:
+        log.error("Could not determine target config: %s", str(e))
+        return None
+
+    return target_config
 
 
 def _upgrade_or_downgrade(
@@ -231,7 +251,9 @@ def _upgrade_or_downgrade(
         running_task_count,
         additional_options,
         timeout_seconds):
-    task_ids = tasks.get_task_ids(service_name, '')
+    initial_config = get_config(from_package_name, service_name)
+    task_ids = sdk_tasks.get_task_ids(service_name, '')
+
     if sdk_utils.dcos_version_less_than("1.10") or shakedown.ee_version() is None or from_package_name != to_package_name:
         log.info('Using marathon upgrade flow to upgrade {} => {} {}'.format(from_package_name, to_package_name, to_package_version))
         marathon.destroy_app(service_name)
@@ -247,20 +269,27 @@ def _upgrade_or_downgrade(
         if additional_options:
             with tempfile.NamedTemporaryFile() as opts_f:
                 opts_f.write(json.dumps(additional_options).encode('utf-8'))
-                opts_f.flush() # ensure json content is available for the CLI
-                cmd.run_cli(
+                opts_f.flush()  # ensure json content is available for the CLI
+                sdk_cmd.run_cli(
                     '{} --name={} update start --package-version={} --options={}'.format(to_package_name, service_name, to_package_version, opts_f.name))
         else:
-            cmd.run_cli(
+            sdk_cmd.run_cli(
                 '{} --name={} update start --package-version={}'.format(to_package_name, service_name, to_package_version))
-    log.info('Checking that all tasks have restarted')
-    tasks.check_tasks_updated(service_name, '', task_ids)
+
+    updated_config = get_config(to_package_name, service_name)
+
+    if updated_config == initial_config:
+        log.info('No config change detected. Tasks should not be restarted')
+        sdk_tasks.check_tasks_not_updated(service_name, '', task_ids)
+    else:
+        log.info('Checking that all tasks have restarted')
+        sdk_tasks.check_tasks_updated(service_name, '', task_ids)
 
 
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
-        cmd.run_cli('package describe {}'.format(package_name))).group(1)
+        sdk_cmd.run_cli('package describe {}'.format(package_name))).group(1)
 
 
 # Default repo is the one at index=0.

@@ -1,5 +1,6 @@
 '''Utilities relating to running commands and HTTP requests'''
 import logging
+import json as jsonlib
 import ast
 
 import dcos.http
