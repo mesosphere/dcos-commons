@@ -1150,7 +1150,7 @@ Services may choose to use this information to enable rack awareness. When doing
 @zone:GROUP_BY:2
 ```
 
-The placement rule above would apply to the `GROUP_BY` operator to zones.
+The placement rule above would apply the `GROUP_BY` operator to zones.
 
 ## Provisioning
 
