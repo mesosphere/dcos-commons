@@ -1135,6 +1135,23 @@ $MESOS_SANDBOX/
 
 Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PEM format (if applicable, this file also includes corresponding intermediate CA certificates). The `server.key` contains the private key corresponding to the end-entity certificate, in the PKCS#8 PEM format. The file `server.ca` contains the root CA certificate in the OpenSSL PEM format.
 
+# Regions and Zones
+
+Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task's environment. For example:
+
+```
+REGION: us-west-2
+ZONE: us-west-2a
+```
+
+Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
+
+```
+@zone:GROUP_BY:2
+```
+
+The placement rule above would apply the `GROUP_BY` operator to zones.
+
 ## Provisioning
 
 TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](operations-guide.html#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
@@ -1641,7 +1658,14 @@ To be clear, the config templating provided by the `bootstrap` tool may be appli
 
 ### Task Environment
 
-While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.
+While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.  For example, a typical task would include the following key/value pairs in its environment:
+
+```
+REGION: us-west-2
+ZONE: us-west-2a
+POD_INSTANCE_INDEX: 0
+TASK_NAME: hello-0-server
+```
 
 You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
