@@ -2,13 +2,13 @@ package com.mesosphere.sdk.api.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -18,6 +18,7 @@ class PhaseInfo {
     private final String id;
     private final String name;
     private final List<StepInfo> steps;
+    private final String strategyName;
     private final Status status;
 
     public static PhaseInfo forPhase(final Phase phase) {
@@ -29,13 +30,20 @@ class PhaseInfo {
                 phase.getId().toString(),
                 phase.getName(),
                 stepInfos,
+                phase.getStrategy().getName(),
                 phase.getStatus());
     }
 
-    private PhaseInfo(final String id, final String name, final List<StepInfo> steps, final Status status) {
+    private PhaseInfo(
+            final String id,
+            final String name,
+            final List<StepInfo> steps,
+            final String strategyName,
+            final Status status) {
         this.id = id;
         this.name = name;
         this.steps = steps;
+        this.strategyName = strategyName;
         this.status = status;
     }
 
@@ -54,6 +62,11 @@ class PhaseInfo {
         return name;
     }
 
+    @JsonProperty("strategy")
+    public String getStrategyName() {
+        return strategyName;
+    }
+
     @JsonProperty("status")
     public Status getStatus() {
         return status;
@@ -66,7 +79,7 @@ class PhaseInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getId(), getName(), getSteps(), getStatus());
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
     @Override

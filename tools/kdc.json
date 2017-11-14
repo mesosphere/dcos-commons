@@ -6,30 +6,27 @@
   "container": {
     "type": "MESOS",
     "docker": {
-      "image": "mesosphere/kdc:latest",
+      "image": "nvaziri/kdc:dev",
       "forcePullImage": true
-    },
-    "portMappings": [
-      {
-        "containerPort": 88,
-        "protocol": "tcp",
-        "labels": {"VIP_0": "kdc:88"}
-      },
-      {
-        "containerPort": 88,
-        "protocol": "udp",
-        "labels": {"VIP_0": "kdc:88"}
-      },
-      {
-        "containerPort": 8000,
-        "protocol": "tcp",
-        "labels": {"VIP_0": "kdc:8000"}
-      }
-    ]
+    }
   },
   "networks": [
     {
-      "mode": "container/bridge"
+      "mode": "host"
     }
-  ]
+  ],
+  "portDefinitions": [
+    {
+      "port": 2500,
+      "name": "kdc"
+    },
+    {
+      "port": 8000,
+      "name": "http"
+    }
+  ],
+  "requirePorts": true,
+  "env": {
+    "LOG_LEVEL": "LOG_DEBUG"
+  }
 }

@@ -274,6 +274,7 @@ These are the general steps to follow:
 - Master transport port: You can pick whichever port works for your DC/OS cluster. The default is 9300. If you want multiple master nodes from different clusters on the same host, specify different master HTTP and transport ports for each cluster. If you want to ensure a particular distribution of nodes of one task type (e.g., master nodes spread across 3 racks, data nodes on one class of machines), specify this via the Marathon placement constraint.
 - Serial vs Parallel deployment. By default, the DC/OS Elastic Service tells DC/OS to install everything in parallel. You can change this to serial in order to have each node installed one at a time.
 - Serial vs Parallel update. By default, the DC/OS Elastic Service tells DC/OS to update everything serially. You can change this to parallel in order to have each node updated at the same time. This is required, for instance, when you turn X-Pack on or off.
+- Custom YAML can be appended to `elasticsearch.yml` on each node
 
 
 ## Immutable settings (at cluster creation time via Elastic package UI or JSON options file via CLI)
@@ -294,6 +295,7 @@ These setting cannot be changed after installation.
 - Health check credentials
 - X-Pack enabled/disabled
 - Deployment/Upgrade strategy (serial/parallel). Note that serial deployment does not yet wait for the cluster to reach green before proceeding to the next node. This is a known limitation.
+- Custom `elasticsearch.yml`
 
 Any other modifiable settings are covered by the various Elasticsearch APIs (cluster settings, index settings, templates, aliases, scripts). It’s possible that some of the more common cluster settings will get exposed in future versions of the Elastic DC/OS Service.
 

@@ -1,0 +1,8 @@
+[core]
+ssl_verify = "/path/to/.dcos/clusters/e266cd62-5b75-4b17-87a6-7b29d8ec0df4/dcos_ca.crt"
+dcos_url = "http://cluster-1.com/"
+dcos_acs_token = "cluster-1-token"
+[package]
+cosmos_url = "https://cluster-1-cosmos"
+[cluster]
+name = "cluster-1"

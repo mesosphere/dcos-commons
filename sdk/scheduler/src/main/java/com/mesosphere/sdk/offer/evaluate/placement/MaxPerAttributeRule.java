@@ -5,15 +5,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-
 import com.mesosphere.sdk.specification.PodInstance;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.mesos.Protos.Attribute;
+import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * Ensures that the given Offer’s attributes each have no more than N instances of tasks of a given task type
@@ -50,9 +49,8 @@ import java.util.*;
  * 'index-.*'. This allows us to only enforce the rule against certain task types or task instances
  * within the service.
  */
-public class MaxPerAttributeRule implements PlacementRule {
+public class MaxPerAttributeRule extends MaxPerRule {
 
-    private final int maxTasksPerSelectedAttribute;
     private final StringMatcher attributeMatcher;
     private final StringMatcher taskFilter;
 
@@ -62,8 +60,8 @@ public class MaxPerAttributeRule implements PlacementRule {
      * service are counted against the max).
      *
      * @param maxTasksPerSelectedAttribute the maximum number of tasks which may be run on an agent
-     *     which has attributes matching the provided {@code matcher}
-     * @param attributeMatcher the filter on which attributes should be counted and tallied
+     *                                     which has attributes matching the provided {@code matcher}
+     * @param attributeMatcher             the filter on which attributes should be counted and tallied
      */
     public MaxPerAttributeRule(
             int maxTasksPerSelectedAttribute,
@@ -77,92 +75,43 @@ public class MaxPerAttributeRule implements PlacementRule {
      * counted against the maximum.
      *
      * @param maxTasksPerSelectedAttribute the maximum number of tasks which may be run on an agent
-     *     which has attributes matching the provided {@code matcher}
-     * @param attributeMatcher the filter on which attributes should be counted and tallied, for
-     *     example only checking attributes which match a {@code rack:*} pattern
-     * @param taskFilter a filter on task names to determine which tasks are included in the count,
-     *     for example counting all tasks, or just counting tasks of a given type
+     *                                     which has attributes matching the provided {@code matcher}
+     * @param attributeMatcher             the filter on which attributes should be counted and tallied, for
+     *                                     example only checking attributes which match a {@code rack:*} pattern
+     * @param taskFilter                   a filter on task names to determine which tasks are included in the count,
+     *                                     for example counting all tasks, or just counting tasks of a given type
      */
     @JsonCreator
     public MaxPerAttributeRule(
             @JsonProperty("max") int maxTasksPerSelectedAttribute,
             @JsonProperty("matcher") StringMatcher attributeMatcher,
             @JsonProperty("task-filter") StringMatcher taskFilter) {
-        this.maxTasksPerSelectedAttribute = maxTasksPerSelectedAttribute;
+        super(maxTasksPerSelectedAttribute, taskFilter);
         this.attributeMatcher = attributeMatcher;
         if (taskFilter == null) { // null when unspecified in serialized data
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
+        ValidationUtils.validate(this);
     }
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        // collect all the attribute values present in this offer:
-        Set<String> offerAttributeStrings = new HashSet<>();
-        for (Attribute attributeProto : offer.getAttributesList()) {
-            offerAttributeStrings.add(AttributeStringUtils.toString(attributeProto));
+        if (isAcceptable(offer, podInstance, tasks)) {
+            return EvaluationOutcome.pass(
+                    this,
+                    "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
+                    max, taskFilter.toString(), attributeMatcher.toString())
+                    .build();
+        } else {
+            return EvaluationOutcome.fail(
+                    this,
+                    "Reached greater than %d tasks matching filter '%s' on this agent with attribute: %s",
+                    max,
+                    taskFilter.toString(),
+                    attributeMatcher.toString())
+                    .build();
         }
-        if (offerAttributeStrings.isEmpty()) {
-            // shortcut: offer has no attributes to enforce. offer accepted!
-            return EvaluationOutcome.pass(this, "Offer has no attributes to enforce").build();
-        }
-
-        // map: enforced attribute in offer => # other tasks which were launched against attribute
-        Map<String, Integer> offerAttrTaskCounts = new HashMap<>();
-        for (TaskInfo task : tasks) {
-            // only tally tasks which match the task matcher (eg 'index-.*')
-            if (!taskFilter.matches(task.getName())) {
-                continue;
-            }
-            if (PlacementUtils.areEquivalent(task, podInstance)) {
-                // This is stale data for the same task that we're currently evaluating for
-                // placement. Don't worry about counting its attribute usage. This occurs when we're
-                // redeploying a given task with a new configuration (old data not deleted yet).
-                continue;
-            }
-            for (String taskAttributeString : new TaskLabelReader(task).getOfferAttributeStrings()) {
-                // only tally attribute values that are actually present in the offer
-                if (!offerAttributeStrings.contains(taskAttributeString)) {
-                    continue;
-                }
-                // only tally attribute(s) that match the attribute matcher (eg 'rack:.*'):
-                if (!attributeMatcher.matches(taskAttributeString)) {
-                    continue;
-                }
-                // increment the tally for this exact attribute value (eg 'rack:9'):
-                Integer val = offerAttrTaskCounts.get(taskAttributeString);
-                if (val == null) {
-                    val = 0;
-                }
-                val++;
-                if (val >= maxTasksPerSelectedAttribute) {
-                    // this attribute value's usage meets or exceeds the limit, and it is
-                    // present in this offer per the earlier check. offer denied!
-                    return EvaluationOutcome.fail(
-                            this,
-                            "Reached %d/%d tasks matching filter '%s' on this agent with attribute: %s",
-                            val,
-                            maxTasksPerSelectedAttribute,
-                            taskFilter.toString(),
-                            attributeMatcher.toString())
-                            .build();
-                }
-                offerAttrTaskCounts.put(taskAttributeString, val);
-            }
-        }
-        // after scanning all the tasks for usage of attributes present in this offer, nothing
-        // hit or exceeded the limit. offer accepted!
-        return EvaluationOutcome.pass(
-                this,
-                "Fits within limit of %d tasks matching filter '%s' on this agent with attribute: %s",
-                maxTasksPerSelectedAttribute, taskFilter.toString(), attributeMatcher.toString())
-                .build();
-    }
-
-    @JsonProperty("max")
-    private int getMax() {
-        return maxTasksPerSelectedAttribute;
     }
 
     @JsonProperty("matcher")
@@ -170,24 +119,28 @@ public class MaxPerAttributeRule implements PlacementRule {
         return attributeMatcher;
     }
 
-    @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
-        return taskFilter;
+    @Override
+    public Collection<String> getKeys(TaskInfo taskInfo) {
+        if (!taskFilter.matches(taskInfo.getName())) {
+            return Collections.emptyList();
+        }
+
+        return new TaskLabelReader(taskInfo).getOfferAttributeStrings().stream()
+                .filter(attribute -> attributeMatcher.matches(attribute))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<String> getKeys(Offer offer) {
+        return offer.getAttributesList().stream()
+                .map(proto -> AttributeStringUtils.toString(proto))
+                .filter(attribute -> attributeMatcher.matches(attribute))
+                .collect(Collectors.toList());
     }
 
     @Override
     public String toString() {
         return String.format("MaxPerAttributeRule{max=%s, matcher=%s, task-filter=%s}",
-                maxTasksPerSelectedAttribute, attributeMatcher, taskFilter);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+                max, attributeMatcher, taskFilter);
     }
 }

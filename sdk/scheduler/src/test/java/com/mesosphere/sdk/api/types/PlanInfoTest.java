@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.api.types;
 
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -58,6 +59,7 @@ public class PlanInfoTest {
         when(mockPhase0.getName()).thenReturn(phase0Name);
         Status phase0Status = Status.PENDING;
         when(mockPhase0.getStatus()).thenReturn(phase0Status);
+        when(mockPhase0.getStrategy()).thenReturn(new SerialStrategy<>());
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Step"
         when(mockPhase0.getChildren()).thenReturn(Arrays.asList(mockStep0, mockStep1));
 
@@ -67,6 +69,7 @@ public class PlanInfoTest {
         when(mockPhase1.getName()).thenReturn(phase1Name);
         Status phase1Status = Status.COMPLETE;
         when(mockPhase1.getStatus()).thenReturn(phase1Status);
+        when(mockPhase1.getStrategy()).thenReturn(new SerialStrategy<>());
         when(mockPhase1.getChildren()).thenReturn(new ArrayList<>());
 
         when(mockPlan.getChildren()).thenReturn(Arrays.asList(mockPhase0, mockPhase1));
@@ -75,6 +78,7 @@ public class PlanInfoTest {
         when(mockPlan.getErrors()).thenReturn(stageErrors);
 
         when(mockPlan.getStatus()).thenReturn(Status.WAITING);
+        when(mockPlan.getStrategy()).thenReturn(new SerialStrategy<>());
 
         PlanInfo planInfo = PlanInfo.forPlan(mockPlan);
 
