@@ -21,11 +21,21 @@ import zipfile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
+# For compatibility across DC/OS releases, stub universes are typically advertised against the
+# universe-converter. If we fetch the stub universe content via universe-converter, we will just get
+# a 400 error because we aren't providing it with a DC/OS version. Therefore we strip out this
+# universe-converter URL prefix in order to access the underlying stub-universe file directly
 universe_converter_url_prefix = 'https://universe-converter.mesosphere.com/transform?url='
 
-# indexes to use in universe repo:
-beta_index_range = (1000, 10000) # 1,000 to 9,999
-ga_index_range = (10000, 20000) # 10,000 to 19,999
+# Indexes to use in universe repo (compare to 49 releases of kafka+beta-kafka in 2+ years):
+# - legacy: 0 to 999, leaving room to allow for e.g. 'alpha' or low-priority releases
+# - beta: 1,000 to 9,999, no hops between betas (..., 1084, 1085, ...)
+beta_index_range = (1000, 10000)
+beta_index_increase = 1
+# - ga: 10,000 to 99,999, hop by 100 between GAs to allow for hotfixes (..., 10300, 10400, ...)
+#       (hotfixes are meanwhile handled by the releaser manually specifying the desired RELEASE_INDEX)
+ga_index_range = (10000, 100000)
+ga_index_increase = 100
 
 
 class UniverseReleaseBuilder(object):
@@ -314,25 +324,25 @@ Artifact output: {}
 
 
     def _find_release_index(self, repo_pkg_base):
-        '''Determines the correct number/id for this release in the universe tree.
+        '''Returns the correct number/id for this release in the universe tree, and the prior release to diff against.
 
-        We sort releases into id ranges based on the type of release:
-        - [0,99] legacy (all releases that precede this scheme)
-        - [1000,9999] beta
-        - [10000,19999] ga
-
-        Returns a tuple containing two ints: [prior_index (or -1 if none), this_index]'''
+        Returns a tuple containing two ints: [prior_index (or -1 if N/A), this_index]'''
         if self._release_index >= 0:
-            # set range to only the specified id
+            # set search range to only the specified id: [id]
             id_search_range = (self._release_index, self._release_index + 1)
+            id_search_step = 1
         elif self._beta_release:
+            # beta index range: [beta_min, beta_min+1, ..., beta_max-2, beta_max-1]
             id_search_range = beta_index_range
+            id_search_step = beta_index_increase
         else:
+            # GA index range: [ga_min, ga_min+100, ..., ga_max-200, ga_max-100]
             id_search_range = ga_index_range
+            id_search_step = ga_index_increase
 
         # find the next available number within the specified range:
         this_index = -1
-        for num in range(id_search_range[0], id_search_range[1]):
+        for num in range(id_search_range[0], id_search_range[1], id_search_step):
             if not os.path.exists(os.path.join(repo_pkg_base, str(num))):
                 this_index = num
                 break
@@ -342,10 +352,13 @@ Artifact output: {}
                 id_search_range, repo_pkg_base, sorted(os.listdir(repo_pkg_base))))
 
         # now, search backwards from this_index to find a prior release to diff against
-        # we just want to find an effectively "prior" release to show the diff against, even if that
-        # release is from a preceding range
+        # we just want to find an effectively "prior" release for diffing purposes, even if that
+        # release is within an earlier release or even release range
+        # for example:
+        # - if a package goes from beta-only to GA, we want to show the diff vs the last beta
+        # - if a new GA is released, we want to show the diff vs the latest existing GA release (including any hotfix release)
         last_index = -1
-        for num in reversed(range(0, this_index)):
+        for num in reversed(range(0, this_index)): # reversed([0, ..., this-1]) => [this-1, ..., 0]
             if os.path.isdir(os.path.join(repo_pkg_base, str(num))):
                 last_index = num
                 break
