@@ -118,7 +118,7 @@ def test_java_truststore(hello_world_service):
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
             config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
-    output = sdk_tasks.task_exec(task_id, command)
+    _, output, _ = sdk_tasks.task_exec(task_id, command)
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
     # expected output.
@@ -134,9 +134,8 @@ def test_tls_basic_artifacts(hello_world_service):
     assert task_id
 
     # Load end-entity certificate from keystore and root CA cert from truststore
-    end_entity_cert = x509.load_pem_x509_certificate(
-        sdk_tasks.task_exec(task_id, 'cat secure-tls-pod.crt').encode('ascii'),
-        DEFAULT_BACKEND)
+    stdout = sdk_tasks.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
+    end_entity_cert = x509.load_pem_x509_certificate(stdout, DEFAULT_BACKEND)
 
     root_ca_cert_in_truststore = _export_cert_from_task_keystore(
         task_id, 'keystore.truststore', 'dcos-root')
@@ -180,7 +179,7 @@ def test_java_keystore(hello_world_service):
             config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
-    output = sdk_tasks.task_exec(task_id, curl, return_stderr_in_stdout=True)
+    _, output = sdk_tasks.task_exec(task_id, curl, return_stderr_in_stdout=True)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
@@ -214,7 +213,7 @@ def test_tls_nginx(hello_world_service):
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
             config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
-    output = sdk_tasks.task_exec(task_id, command)
+    _, output, _ = sdk_tasks.task_exec(task_id, command)
 
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
@@ -238,9 +237,8 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     assert task_id
 
     # Load end-entity certificate from PEM encoded file
-    end_entity_cert = x509.load_pem_x509_certificate(
-        sdk_tasks.task_exec(task_id, 'cat server.crt').encode('ascii'),
-        DEFAULT_BACKEND)
+    _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
+    end_entity_cert = x509.load_pem_x509_certificate(stdout.encode('ascii'), DEFAULT_BACKEND)
 
     san_extension = end_entity_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
@@ -263,16 +261,15 @@ def test_changing_discovery_replaces_certificate_sans(hello_world_service):
     new_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
     assert task_id != new_task_id
 
-    new_cert = x509.load_pem_x509_certificate(
-        sdk_tasks.task_exec(new_task_id, 'cat server.crt').encode('ascii'),
-        DEFAULT_BACKEND)
+    _, stdout, _ = sdk_tasks.task_exec(new_task_id, 'cat server.crt')
+    new_cert = x509.load_pem_x509_certificate(stdout.encode('ascii'), DEFAULT_BACKEND)
 
     san_extension = new_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
     sans = [
         san.value for san in san_extension.value._general_names._general_names]
 
-    expected_san =  (
+    expected_san = (
         '{name}-0.{service_name}.autoip.dcos.thisdcos.directory'.format(
             name=DISCOVERY_TASK_PREFIX + '-new',
             service_name=config.SERVICE_NAME)
@@ -304,7 +301,7 @@ def _export_cert_from_task_keystore(
 
     cert_bytes = sdk_tasks.task_exec(
         task, _keystore_export_command(keystore_path, alias, args_str)
-    ).encode('ascii')
+    )[1].encode('ascii')
 
     return x509.load_pem_x509_certificate(
         cert_bytes, DEFAULT_BACKEND)

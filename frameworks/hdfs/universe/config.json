@@ -86,12 +86,12 @@
             "kdc_host_name": {
               "type": "string",
               "description": "The name or address of a host running a KDC for the realm.",
-              "default": "kdc.marathon.l4lb.thisdcos.directory"
+              "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
             },
             "kdc_host_port": {
               "type": "string",
               "description": "The port of the host running a KDC for that realm.",
-              "default": "88"
+              "default": "2500"
             },
             "keytab_secret": {
               "type": "string",
@@ -1210,7 +1210,7 @@
         "client_read_shortcircuit": {
           "type": "boolean",
           "description": "This configuration parameter turns on short-circuit local reads.",
-          "default": false
+          "default": true
         },
         "ha_fencing_methods": {
           "type": "string",

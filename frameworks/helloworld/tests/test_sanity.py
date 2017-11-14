@@ -219,11 +219,9 @@ def test_state_refresh_disable_cache():
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     def check_cache_refresh_fails_409conflict():
-        try:
-            sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
-        except Exception as e:
-            if "failed: 409 Conflict" in e.args[0]:
-                return True
+        output = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
+        if "failed: 409 Conflict" in output:
+            return True
         return False
 
     shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
