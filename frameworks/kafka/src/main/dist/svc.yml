@@ -19,6 +19,12 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+    secrets:
+      keytab:
+        secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
+        file: kafka.keytab
+    {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
@@ -61,13 +67,26 @@ pods:
         goal: RUNNING
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
-          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+
           ./bootstrap -resolve=false &&
-          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
+          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
+               $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
           server-properties:
             template: server.properties.mustache
             dest: {{KAFKA_VERSION_PATH}}/config/server.properties
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          kafka-server-jaas:
+            template: kafka_server_jaas.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf
+          krb5-conf:
+            template: krb5.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/krb5.conf
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
         readiness-check:
           cmd: |
             # The broker has started when it logs a specific "started" log line. An example is below:

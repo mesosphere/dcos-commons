@@ -72,6 +72,15 @@
     {{/service.tls_allow_plaintext}}
     {{/service.tls}}
 
+    {{#service.security.kerberos.enabled}}
+    "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY": "{{service.security.kerberos.primary}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
+    "TASKCFG_ALL_KDC_HOST_NAME": "{{service.security.kerberos.kdc_host_name}}",
+    "TASKCFG_ALL_KDC_HOST_PORT": "{{service.security.kerberos.kdc_host_port}}",
+    {{/service.security.kerberos.enabled}}
+
     "KAFKA_VERSION_PATH": "kafka_2.11-0.11.0.1",
 
     "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",

@@ -21,16 +21,19 @@ broker.id={{POD_INSTANCE_INDEX}}
 
 ############################# Socket Server Settings #############################
 
-# The address the socket server listens on. It will get the value returned from 
+# The address the socket server listens on. It will get the value returned from
 # java.net.InetAddress.getCanonicalHostName() if not configured.
 #   FORMAT:
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
+{{^SECURITY_KERBEROS_ENABLED}}
 {{^KAFKA_ENABLE_TLS}}
 listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
 port={{KAFKA_BROKER_PORT}}
 {{/KAFKA_ENABLE_TLS}}
+{{/SECURITY_KERBEROS_ENABLED}}
+
 
 {{#KAFKA_ENABLE_TLS}}
 ############################# TLS Settings #############################
@@ -65,6 +68,18 @@ port={{KAFKA_BROKER_PORT}}
 port={{KAFKA_BROKER_PORT_TLS}}
 {{/KAFKA_ALLOW_PLAINTEXT}}
 {{/KAFKA_ENABLE_TLS}}
+
+{{#SECURITY_KERBEROS_ENABLED}}
+############################# SASL Settings #############################
+listeners=SASL_PLAINTEXT://:{{KAFKA_BROKER_PORT}}
+advertised.listeners=SASL_PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
+security.inter.broker.protocol=SASL_PLAINTEXT
+
+sasl.mechanism.inter.broker.protocol=GSSAPI
+sasl.enabled.mechanisms=GSSAPI
+sasl.kerberos.service.name={{SECURITY_KERBEROS_PRIMARY}}
+
+{{/SECURITY_KERBEROS_ENABLED}}
 
 # Hostname and port the broker will advertise to producers and consumers. If not set,
 # it uses the value for "listeners" if configured.  Otherwise, it will use the value
