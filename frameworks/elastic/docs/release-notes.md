@@ -7,7 +7,7 @@ enterprise: 'no'
 ## Version 2.1.0-5.6.2
 
 ### New Features
-* Custom configuration can now be passed to Elastic plugins. See `TBD`.
+* Custom configuration can now be passed to Elastic plugins. See [the documentation](custom-elasticsearch-yaml.md).
 
 ### Bugs
 * Uninstall now handles failed tasks correctly.
