@@ -16,10 +16,9 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_universe):
-    service_name = "secure-kafka"
+def kerberos(configure_security):
     try:
-        fqdn = "{service_name}.{host_suffix}".format(service_name=service_name,
+        fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
                                                      host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
 
         brokers = [
@@ -43,7 +42,7 @@ def kerberos(configure_universe):
 
         service_kerberos_options = {
             "service": {
-                "name": service_name,
+                "name": config.SERVICE_NAME,
                 "security": {
                     "kerberos": {
                         "enabled": True,
@@ -55,10 +54,10 @@ def kerberos(configure_universe):
             }
         }
 
-        sdk_install.uninstall(config.PACKAGE_NAME, service_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
-            service_name,
+            config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
             additional_options=service_kerberos_options,
             timeout_seconds=30 * 60)
@@ -66,7 +65,7 @@ def kerberos(configure_universe):
         yield kerberos_env
 
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, service_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         kerberos_env.cleanup()
 
 
@@ -77,6 +76,7 @@ def kafka_client(kerberos):
         client = {
             "id": client_id,
             "mem": 512,
+            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -103,7 +103,8 @@ def kafka_client(kerberos):
             ],
             "env": {
                 "JVM_MaxHeapSize": "512",
-                "KAFKA_CLIENT_MODE": "test"
+                "KAFKA_CLIENT_MODE": "test",
+                "KAFKA_SERVICE_NAME": config.SERVICE_NAME
             }
         }
 
@@ -117,15 +118,22 @@ def kafka_client(kerberos):
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client):
 
-    topics = sdk_cmd.svc_cli(config.PACKAGE_NAME, "secure-kafka", "topic create securetest", json=True)
+    topics = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "topic create securetest", json=True)
     log.info("Created topic: %s", topics)
+
+    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "endpoint broker", json=True)
+    broker_dns = list(map(lambda x: x.split(':')[0], brokers["dns"]))
+
+    log.info("Running bootstrap to wait for DNS resolution")
+    bootstrap_cmd = ['/opt/bootstrap', '-resolve-hosts', ','.join(broker_dns), '-verbose']
+    bootstrap_output = sdk_tasks.task_exec(kafka_client, ' '.join(bootstrap_cmd))
+    log.info(bootstrap_output)
 
     message = uuid.uuid4()
     producer_cmd = ['/tmp/kafkaconfig/start.sh', 'producer', str(message)]
 
     for i in range(2):
         log.info("Running(%s) %s", i, producer_cmd)
-
         producer_output = sdk_tasks.task_exec(kafka_client, ' '.join(producer_cmd))
         log.info("Producer output(%s): %s", i, producer_output)
 
