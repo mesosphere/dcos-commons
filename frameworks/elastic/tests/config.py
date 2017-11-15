@@ -56,8 +56,11 @@ def as_json(fn):
     def wrapper(*args, **kwargs):
         try:
             return json.loads(fn(*args, **kwargs))
-        except ValueError:
-            return None
+        except (TypeError, json.JSONDecodeError) as e:
+            print("Failed to parse value returned by {} as JSON".format(fn.__name__))
+            raise e
+        except ValueError as e:
+            raise e
 
     return wrapper
 
