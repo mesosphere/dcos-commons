@@ -21,7 +21,21 @@ import zipfile
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
+# For compatibility across DC/OS releases, stub universes are typically advertised against the
+# universe-converter. If we fetch the stub universe content via universe-converter, we will just get
+# a 400 error because we aren't providing it with a DC/OS version. Therefore we strip out this
+# universe-converter URL prefix in order to access the underlying stub-universe file directly
 universe_converter_url_prefix = 'https://universe-converter.mesosphere.com/transform?url='
+
+# Indexes to use in universe repo (compare to 49 releases of kafka+beta-kafka in 2+ years):
+# - legacy: 0 to 999, leaving room to allow for e.g. 'alpha' or low-priority releases
+# - beta: 1,000 to 9,999, no hops between betas (..., 1084, 1085, ...)
+beta_index_range = (1000, 10000)
+beta_index_increase = 1
+# - ga: 10,000 to 99,999, hop by 100 between GAs to allow for hotfixes (..., 10300, 10400, ...)
+#       (hotfixes are meanwhile handled by the releaser manually specifying the desired RELEASE_INDEX)
+ga_index_range = (10000, 100000)
+ga_index_increase = 100
 
 
 class UniverseReleaseBuilder(object):
@@ -35,12 +49,18 @@ class UniverseReleaseBuilder(object):
             s3_release_bucket=os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
             release_docker_image=os.environ.get('RELEASE_DOCKER_IMAGE'),
             release_dir_path=os.environ.get('RELEASE_DIR_PATH', ''),
-            beta_release=os.environ.get('BETA', 'False')):
+            beta_release=os.environ.get('BETA', 'False'),
+            release_index=os.environ.get('RELEASE_INDEX', '')):
         self._dry_run = os.environ.get('DRY_RUN', '')
         self._force_upload = os.environ.get('FORCE_ARTIFACT_UPLOAD', '').lower() == 'true'
         self._beta_release = beta_release.lower() == 'true'
         self._release_universe_repo=os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
         self._release_branch=os.environ.get('RELEASE_BRANCH', 'version-3.x')
+
+        if release_index:
+            self._release_index = int(release_index)
+        else:
+            self._release_index = -1
 
         name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
         if not name_match:
@@ -48,19 +68,14 @@ class UniverseReleaseBuilder(object):
                             'Expected filename of form \'stub-universe-[pkgname].zip\' or \'stub-universe-[pkgname].json\'')
 
         self._stub_universe_pkg_name = name_match.group(1)
-        # update package name to reflect beta status (e.g. release 'beta-foo' as non-beta 'foo'):
-        if self._beta_release:
-            if self._stub_universe_pkg_name.startswith('beta-'):
-                self._pkg_name = self._stub_universe_pkg_name
-            else:
-                self._pkg_name = 'beta-' + self._stub_universe_pkg_name
+        # always omit 'beta-' prefix from released package name, regardless of beta=true/false
+        # we no longer use this prefix to release betas, instead using an index range
+        if self._stub_universe_pkg_name.startswith('beta-'):
+            self._pkg_name = self._stub_universe_pkg_name[len('beta-'):]
         else:
-            if self._stub_universe_pkg_name.startswith('beta-'):
-                self._pkg_name = self._stub_universe_pkg_name[len('beta-'):]
-            else:
-                self._pkg_name = self._stub_universe_pkg_name
+            self._pkg_name = self._stub_universe_pkg_name
 
-        # update package version to reflect beta status
+        # update package version to include '-beta' suffix if beta was enabled
         if self._beta_release:
             if package_version.endswith('-beta'):
                 self._pkg_version = package_version
@@ -83,12 +98,8 @@ class UniverseReleaseBuilder(object):
             self._stub_universe_url = stub_universe_url
 
         if not release_dir_path:
-            # determine release artifact directory based on (adjusted) package name
-            artifact_package_name = self._pkg_name
-            if artifact_package_name.startswith('beta-'):
-                # assets for beta-foo should always be uploaded to a 'foo' directory (with a '-beta' version)
-                artifact_package_name = artifact_package_name[len('beta-'):]
-            release_dir_path = artifact_package_name + '/assets'
+            # use package name (without 'beta-' prefix per above) for release artifact directory
+            release_dir_path = self._pkg_name + '/assets'
 
         # automatically include source universe URL in commit description:
         if commit_desc:
@@ -96,8 +107,12 @@ class UniverseReleaseBuilder(object):
         else:
             self._commit_desc = 'Source URL: {}'.format(self._stub_universe_url)
 
-        self._pr_title = 'Release {} {} (automated commit)\n\n'.format(
-            self._pkg_name, self._pkg_version)
+        if self._beta_release:
+            release_type = 'BETA'
+        else:
+            release_type = 'GA'
+        self._pr_title = '[{}] Release {} {} (automated commit)\n\n'.format(
+            release_type, self._pkg_name, self._pkg_version)
         self._release_artifact_http_dir = '{}/{}/{}'.format(
             http_release_server, release_dir_path, self._pkg_version)
         self._release_artifact_s3_dir = 's3://{}/{}/{}'.format(
@@ -106,10 +121,13 @@ class UniverseReleaseBuilder(object):
 
         # complain early about any missing envvars...
         # avoid uploading a bunch of stuff to prod just to error out later:
-        if 'GITHUB_TOKEN' not in os.environ:
-            raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
-        encoded_tok = base64.encodestring(os.environ['GITHUB_TOKEN'].encode('utf-8'))
-        self._github_token = encoded_tok.decode('utf-8').rstrip('\n')
+        if self._dry_run:
+            self._github_token = 'DRY_RUN'
+        else:
+            if 'GITHUB_TOKEN' not in os.environ:
+                raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
+            encoded_tok = base64.encodestring(os.environ['GITHUB_TOKEN'].encode('utf-8'))
+            self._github_token = encoded_tok.decode('utf-8').rstrip('\n')
 
         logger.info('''###
 Source URL:      {}
@@ -129,6 +147,7 @@ Artifact output: {}
             if ret != 0 and exit_on_fail:
                 raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
             return ret
+
 
     def _unpack_stub_universe_zip(self, scratchdir, stub_universe_file):
         '''Unpacks a universe-2.x format stub-universe.zip file.
@@ -152,6 +171,7 @@ Artifact output: {}
             raise Exception('Didn\'t find expected path {} after unzipping {}'.format(
                 pkgdir, self._stub_universe_url))
         return pkgdir
+
 
     def _unpack_stub_universe_json(self, scratchdir, stub_universe_file):
         stub_universe_json = json.loads(stub_universe_file.read().decode('utf-8'), object_pairs_hook=collections.OrderedDict)
@@ -253,9 +273,10 @@ Artifact output: {}
 
 
     def _copy_artifacts_s3(self, scratchdir, original_artifact_urls):
-        # before we do anything else, verify that the upload directory doesn't already exist, to
-        # avoid automatically stomping on a previous release. if you *want* to do this, you must
-        # manually delete the destination directory first. (and redirect stdout to stderr)
+        # Before we do anything else, ensure that we aren't automatically stomping on a previous
+        # release by checking that the upload directory doesn't already exist. If you *want* to
+        # overwrite a previous release, you must manually go into S3 and delete the destination
+        # directory before running this script.
         cmd = 'aws s3 ls --recursive {} 1>&2'.format(self._release_artifact_s3_dir)
         ret = self._run_cmd(cmd, False, 1)
         if ret == 0:
@@ -302,6 +323,49 @@ Artifact output: {}
             os.unlink(local_path)
 
 
+    def _find_release_index(self, repo_pkg_base):
+        '''Returns the correct number/id for this release in the universe tree, and the prior release to diff against.
+
+        Returns a tuple containing two ints: [prior_index (or -1 if N/A), this_index]'''
+        if self._release_index >= 0:
+            # set search range to only the specified id: [id]
+            id_search_range = (self._release_index, self._release_index + 1)
+            id_search_step = 1
+        elif self._beta_release:
+            # beta index range: [beta_min, beta_min+1, ..., beta_max-2, beta_max-1]
+            id_search_range = beta_index_range
+            id_search_step = beta_index_increase
+        else:
+            # GA index range: [ga_min, ga_min+100, ..., ga_max-200, ga_max-100]
+            id_search_range = ga_index_range
+            id_search_step = ga_index_increase
+
+        # find the next available number within the specified range:
+        this_index = -1
+        for num in range(id_search_range[0], id_search_range[1], id_search_step):
+            if not os.path.exists(os.path.join(repo_pkg_base, str(num))):
+                this_index = num
+                break
+        # if we didn't find an available index within the specified range, give up
+        if this_index == -1:
+            raise Exception('Unable to find available index within range {} in directory {}: {}'.format(
+                id_search_range, repo_pkg_base, sorted(os.listdir(repo_pkg_base))))
+
+        # now, search backwards from this_index to find a prior release to diff against
+        # we just want to find an effectively "prior" release for diffing purposes, even if that
+        # release is within an earlier release or even release range
+        # for example:
+        # - if a package goes from beta-only to GA, we want to show the diff vs the last beta
+        # - if a new GA is released, we want to show the diff vs the latest existing GA release (including any hotfix release)
+        last_index = -1
+        for num in reversed(range(0, this_index)): # reversed([0, ..., this-1]) => [this-1, ..., 0]
+            if os.path.isdir(os.path.join(repo_pkg_base, str(num))):
+                last_index = num
+                break
+
+        return (last_index, this_index)
+
+
     def _create_universe_branch(self, scratchdir, pkgdir):
         branch = 'automated/release_{}_{}_{}'.format(
             self._pkg_name, self._pkg_version, base64.b64encode(os.urandom(4)).decode('utf-8').rstrip('='))
@@ -326,23 +390,15 @@ Artifact output: {}
             self._pkg_name[0].upper(),
             self._pkg_name)
 
-        # find the prior release number:
-        lastnum = -1
         if not os.path.exists(repo_pkg_base):
             os.makedirs(repo_pkg_base)
-        for filename in os.listdir(repo_pkg_base):
-            if not os.path.isdir(os.path.join(repo_pkg_base, filename)):
-                continue
-            try:
-                num = int(filename)
-            except:
-                continue
-            if num > lastnum:
-                lastnum = num
 
-        # copy the stub universe contents into a new release number, while collecting changes:
-        last_dir = os.path.join(repo_pkg_base, str(lastnum))
-        this_dir = os.path.join(repo_pkg_base, str(lastnum + 1))
+        # find the prior and desired release number:
+        (last_index, this_index) = self._find_release_index(repo_pkg_base)
+
+        # copy the stub universe contents into a new release number, while calculating diffs:
+        last_dir = os.path.join(repo_pkg_base, str(last_index))
+        this_dir = os.path.join(repo_pkg_base, str(this_index))
         shutil.copytree(pkgdir, this_dir)
 
         if os.path.exists(last_dir):
@@ -361,8 +417,8 @@ Artifact output: {}
                 with open(last_filename, 'r') as last_file, open(this_filename, 'r') as this_file:
                     filediff = ''.join(difflib.unified_diff(
                         last_file.readlines(), this_file.readlines(),
-                        fromfile='{}/{}'.format(lastnum, filename),
-                        tofile='{}/{}'.format(lastnum + 1, filename)))
+                        fromfile='{}/{}'.format(last_index, filename),
+                        tofile='{}/{}'.format(this_index, filename)))
                     if filediff:
                         filediffs[filename] = filediff
         else:
@@ -372,7 +428,7 @@ Artifact output: {}
 
         # create a user-friendly diff for use in the commit message:
         resultlines = [
-            'Changes since revision {}:\n'.format(lastnum),
+            'Changes between revisions {} => {}:\n'.format(last_index, this_index),
             '{} files added: [{}]\n'.format(len(added_files), ', '.join(added_files)),
             '{} files removed: [{}]\n'.format(len(removed_files), ', '.join(removed_files)),
             '{} files changed:\n\n'.format(len(filediffs))]
@@ -476,9 +532,9 @@ Artifact output: {}
         if self._beta_release:
             package_json['selected'] = False
 
-        # Update package's name to reflect any changes due to BETA=on/off
+        # Update package's name to remove 'beta-' if present
         package_json['name'] = self._pkg_name
-        # Update package's version to reflect the user's input
+        # Update package's version (from 'stub-universe') to reflect the user's input
         package_json['version'] = self._pkg_version
 
         logger.info('Updated package.json:')
@@ -543,6 +599,7 @@ def print_help(argv):
     logger.info('- Github (Personal Access Token): GITHUB_TOKEN')
     logger.info('Optional params in env:')
     logger.info('- BETA: true/false')
+    logger.info('- RELEASE_INDEX: for hotfixes, a specific package index (else autodetect based on BETA)')
     logger.info('Required CLI programs:')
     logger.info('- git')
     logger.info('- aws')
