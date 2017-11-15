@@ -80,11 +80,15 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(autouse=True)
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
 @pytest.mark.smoke
 def test_health_of_kerberized_hdfs():
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_write_and_read(kerberos):
