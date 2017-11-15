@@ -3,6 +3,7 @@ import re
 
 import dcos.marathon
 import pytest
+import sdk_api
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -35,6 +36,15 @@ def configure_package(configure_security):
 @pytest.mark.smoke
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+
+
+@pytest.mark.sanity
+def test_suppressed_metrics():
+    def fun():
+        response = sdk_api.get(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'v1/metrics').json()
+        return 'suppresses' in response['counters'] and response['counters']['suppresses']['count'] > 0
+
+    return shakedown.wait_for(fun, timeout_seconds=30, noisy=True)
 
 
 # Note: presently the mesos v1 api does _not_ work in strict mode.
