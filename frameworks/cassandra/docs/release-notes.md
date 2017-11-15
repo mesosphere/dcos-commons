@@ -4,58 +4,46 @@ menu_order: 120
 enterprise: 'no'
 ---
 
-## Version 2.0.3-3.0.14
+# Version 2.0.3-3.0.14
 
 ### Bug Fixes
 * Uninstall now handles failed tasks correctly.
 
-## Version 1.0.32-3.0.14-beta
+# Version 2.0.2-3.0.14
+
+### Bug Fixes
+
+* Further fixes to scheduler behavior during task status transitions.
 
 ### Improvements
-- Documentation updates to production guidelines.
-- Update Cassandra to 3.0.14.
-- Upgrade to [dcos-commons 0.30.0](https://github.com/mesosphere/dcos-commons/releases/tag/0.30.0).
 
-### Bug Fixes
-- Numerous fixes and enhancements to service reliability.
+* Updated JRE version to 8u144.
+* Improved handling of error codes in service CLI.
 
-## Version 1.0.31-3.0.13-beta
 
-### New Features
-- Installation in folders is supported
-- Use of a CNI network is supported
+# Version 2.0.1-3.0.14
 
-### Improvements
-- Upgrade to [dcos-commons 0.20.1](https://github.com/mesosphere/dcos-commons/releases/tag/0.20.1)
-- Default user is now `nobody`
-- Allow configuration of scheduler log level
-- Automate seed node replacement
+## Bug Fixes
+* Corrected closing brace in Cassandra mustache.
+* Fixed restore-snapshot port rendering.
+* Tasks will correctly bind on DC/OS 1.10.
+* Fixed config generation.
 
-### Bug Fixes
-- Datacenter configuration is correctly supported
+### Documentation
+* Updated post-install links for package.
+* Updated `limitations.md`.
+* Ensured previous `version-policy.md` content is present.
+* Updated service user section
 
-### Upgrade
-- This version may only be upgraded from `1.0.30-3.0.13-beta`.  This is a one way upgrade.  Downgrading is not supported.  Interruption or partial upgrade is also not supported.  Upgrade must proceed to completion to ensure availability and retention of data.
+# Version 2.0.0-3.0.14
 
-## Version 1.0.30-3.0.13-beta
+## Improvements
+- Based on the latest stable release of the dcos-commons SDK, which provides numerous benefits:
+  - Integration with DC/OS features such as virtual networking and integration with DC/OS access controls.
+  - Orchestrated software and configuration update, enforcement of version upgrade paths, and ability to pause/resume updates.
+  - Placement constraints for pods.
+  - Uniform user experience across a variety of services.
+- Upgrade to version 3.0.14 of Apache Cassandra.
 
-### Bug Fixes
-* Fix airgapped cluster support in Cassandra (C* docker image & tar.gz) #1170
-
-### 0.19.2
-* CLI commands relating to service update/upgrade #1084
-* Log an error if a service requiring secrets is used on a DC/OS cluster which doesn't support them #1180
-* Fixes to spec handling for later upgrade compatibility #1164
-
-### 0.19.1
-* Workaround for DC/OS strict mode clusters, which currently don't support multi-role #1154
-
-### 0.19.0
-* Large offer evaluation refactor and follow-up fixes #1097 #1124
-* Initial Resource Refinement support #1114 #1139
-* Fixed backwards compatibility around PortsSpec vs PortSpec: Older installs using PortsSpec will be automatically converted to PortSpec #1122
-* Treat COMPLETE + STARTING as IN_PROGRESS, not STARTING #1095
-* Store Task IPs in ZK properties #1089
-* RangeAlgorithms -> RangeUtils #1123
-* Small improvements to offer logging #1128
-* IP fetch support in bootstrap #1127
+## Breaking Changes
+- This is a major release.  You cannot upgrade to 2.0.0-3.0.14 from a 1.0.x version of the package.  To upgrade, you must perform a fresh install and restore from a backup.
