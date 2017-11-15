@@ -4,11 +4,6 @@ menu_order: 120
 enterprise: 'no'
 ---
 
-## Version 2.0.3-3.0.14
-
-### Bug Fixes
-* Uninstall now handles failed tasks correctly.
-
 ## Version 1.0.32-3.0.14-beta
 
 ### Improvements
