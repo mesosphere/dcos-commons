@@ -96,6 +96,34 @@ public class CapabilitiesTest {
     }
 
     @Test
+    public void test_1110() throws IOException {
+        Capabilities capabilities = testCapabilities("1.11.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
+        Assert.assertTrue(capabilities.supportsRLimits());
+        // Secrets
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
+        Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertTrue(capabilities.supportsStrictModeV1API());
+    }
+
+    @Test
+    public void test_111dev() throws IOException {
+        Capabilities capabilities = testCapabilities("1.11-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
+        Assert.assertTrue(capabilities.supportsRLimits());
+        // Secrets
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
+        Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertTrue(capabilities.supportsStrictModeV1API());
+    }
+
+    @Test
     public void test_200() throws IOException {
         Capabilities capabilities = testCapabilities("2.0.0");
         Assert.assertTrue(capabilities.supportsNamedVips());
