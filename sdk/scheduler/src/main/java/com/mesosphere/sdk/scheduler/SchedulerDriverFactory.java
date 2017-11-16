@@ -110,13 +110,11 @@ public class SchedulerDriverFactory {
                         LOGGER.warn(
                                 "Current DC/OS cluster doesn't support the Mesos V1 API in strict mode. Using V0...");
                     }
-                    return credential == null ?
-                            new V0Mesos(this, EvolverDevolver.evolve(frameworkInfo), masterUrl) :
-                            new V0Mesos(
-                                    this,
-                                    EvolverDevolver.evolve(frameworkInfo),
-                                    masterUrl,
-                                    EvolverDevolver.evolve(credential));
+                    return new V0Mesos(
+                            this,
+                            EvolverDevolver.evolve(frameworkInfo),
+                            masterUrl,
+                            EvolverDevolver.evolve(credential));
                 }
             };
         }
@@ -134,13 +132,7 @@ public class SchedulerDriverFactory {
                     LOGGER.warn(
                             "Current DC/OS cluster doesn't support the Mesos V1 API in strict mode. Using V0...");
                 }
-                return credential == null ?
-                        new V0Mesos(this, EvolverDevolver.evolve(frameworkInfo), masterUrl) :
-                        new V0Mesos(
-                                this,
-                                EvolverDevolver.evolve(frameworkInfo),
-                                masterUrl,
-                                EvolverDevolver.evolve(credential));
+                return new V0Mesos(this, EvolverDevolver.evolve(frameworkInfo), masterUrl);
             }
         };
     }
