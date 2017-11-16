@@ -279,6 +279,12 @@ def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, http
     return output
 
 
+@as_json
+def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
+    exit_status, output = shakedown.run_command_on_master("{}/_nodes'".format(_curl_api(service_name, "GET")))
+    return output
+
+
 def _curl_api(service_name, method, role="master", https=False):
     protocol = 'https://' if https else 'http://'
     host = protocol + sdk_hosts.autoip_host(
