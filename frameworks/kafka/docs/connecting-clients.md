@@ -4,7 +4,15 @@ menu_order: 50
 enterprise: 'no'
 ---
 
-The only supported client library is the official Kafka Java library, i.e., `org.apache.kafka.clients.consumer.KafkaConsumer` and `org.apache.kafka.clients.producer.KafkaProducer`. Other clients are at the user's risk.
+# Supported Client Libraries
+
+- The official Kafka Java library, i.e., `org.apache.kafka.clients.consumer.KafkaConsumer` and `org.apache.kafka.clients.producer.KafkaProducer`. 
+
+Through Confluent:
+- Go
+- C++
+- Python
+- .NET
 
 # Kafka Client API Compatibility
 
