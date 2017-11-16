@@ -80,12 +80,17 @@ public class Metrics {
 
     // Decline / Revive
     static final String REVIVES = "revives";
+    static final String SUPPRESSES = "suppresses";
     static final String REVIVE_THROTTLES = "revives.throttles";
     static final String DECLINE_SHORT = "declines.short";
     static final String DECLINE_LONG = "declines.long";
 
     public static void incrementRevives() {
         metrics.counter(REVIVES).inc();
+    }
+
+    public static void incrementSuppresses() {
+        metrics.counter(SUPPRESSES).inc();
     }
 
     public static void incrementReviveThrottles() {

@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +22,7 @@ public class ReviveManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final SchedulerDriver driver;
     private final TokenBucket tokenBucket;
+    private final AtomicBoolean suppressed = new AtomicBoolean(false);
     private Set<WorkItem> candidates = new HashSet<>();
 
     public ReviveManager(SchedulerDriver driver) {
@@ -81,6 +83,7 @@ public class ReviveManager {
                         currCandidates,
                         newCandidates);
                 driver.reviveOffers();
+                suppressed.set(false);
                 Metrics.incrementRevives();
             } else {
                 logger.warn("Revive attempt has been throttled.");
@@ -90,6 +93,12 @@ public class ReviveManager {
         }
 
         this.candidates = currCandidates;
+
+        if (this.candidates.isEmpty() && suppressed.compareAndSet(false, true)) {
+            logger.info("Suppressing offers.");
+            driver.suppressOffers();
+            Metrics.incrementSuppresses();
+        }
     }
 
     /**
