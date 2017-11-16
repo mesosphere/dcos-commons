@@ -16,6 +16,7 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
+
 @pytest.mark.sanity
 def test_rack():
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
@@ -23,8 +24,10 @@ def test_rack():
     # dcos task exec node-0-server bash -c 'JAVA_HOME=jre1.8.0_144 apache-cassandra-3.0.14/bin/nodetool status'
     raw_status = sdk_tasks.task_exec('node-0-server', "bash -c 'JAVA_HOME=jre1.8.0_144 apache-cassandra-3.0.14/bin/nodetool status'")
     log.info("raw_status: {}".format(raw_status))
+    stdout = raw_status[1]
+    log.info("stdout: {}".format(stdout))
 
-    node = nodetool.parse_status(raw_status)[0]
+    node = nodetool.parse_status(stdout)[0]
     log.info("node: {}".format(node))
 
     assert node.get_rack() != 'rack1'
