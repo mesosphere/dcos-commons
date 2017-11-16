@@ -85,6 +85,11 @@
                       "type": "boolean",
                       "default": false
                     },
+                    "enabled_for_zookeeper": {
+                      "description": "Enabled Kerberos authentication for communication with Apache Zookeeper",
+                      "type": "boolean",
+                      "default": false
+                    },
                     "kdc_host_name": {
                       "type": "string",
                       "description": "The name or address of a host running a KDC for the realm.",
