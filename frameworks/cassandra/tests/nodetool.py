@@ -1,3 +1,9 @@
+import sdk_tasks
+
+def cmd(pod_name, command):
+    return sdk_tasks.task_exec(
+        '{}-server'.format(pod_name),
+        "bash -c 'JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool {}'".format(command))
 
 def parse_status(output):
     nodes = []
