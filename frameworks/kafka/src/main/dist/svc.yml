@@ -117,6 +117,6 @@ plans:
   deploy:
     strategy: serial
     phases:
-      Deployment:
+      broker:
         strategy: {{DEPLOY_STRATEGY}}
         pod: kafka

@@ -1,28 +1,37 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
-    @Test
-    public void testTaskInfoIsModifiedCorrectly() throws Exception {
+    private LaunchEvaluationStage stage;
+    private Protos.Offer offer;
+    private PodInfoBuilder podInfoBuilder;
+
+    @Before
+    public void beforeEach() throws InvalidRequirementException {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
 
-        LaunchEvaluationStage evaluationStage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
-        Protos.Offer offer = OfferTestUtils.getOffer(offeredResource);
+        stage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
+        offer = OfferTestUtils.getOffer(offeredResource);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+        podInfoBuilder = new PodInfoBuilder(
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
@@ -31,11 +40,21 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.FRAMEWORK_ID,
                 true,
                 Collections.emptyMap());
+    }
 
-        EvaluationOutcome outcome = evaluationStage.evaluate(
+    @Test
+    public void isPassing() {
+        EvaluationOutcome outcome = stage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
+    }
+
+    @Test
+    public void labelsAreCorrect() {
+        stage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
         // labels are sorted alphabetically (see LabelUtils):
@@ -62,5 +81,32 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         label = taskBuilder.getLabels().getLabels(5);
         Assert.assertEquals(label.getKey(), "task_type");
         Assert.assertEquals(TestConstants.POD_TYPE, label.getValue());
+    }
+
+    @Test
+    public void regionAndZoneInjected() {
+        offer = offer.toBuilder()
+                .setDomain(TestConstants.DOMAIN_INFO)
+                .build();
+        stage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+
+        Map<String, String> env = EnvUtils.toMap(taskBuilder.getCommand().getEnvironment());
+        Assert.assertEquals(TestConstants.REGION, env.get(EnvConstants.REGION_TASKENV));
+        Assert.assertEquals(TestConstants.ZONE, env.get(EnvConstants.ZONE_TASKENV));
+    }
+
+    @Test
+    public void regionAndZoneNotInjected() {
+        stage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+
+        Map<String, String> env = EnvUtils.toMap(taskBuilder.getCommand().getEnvironment());
+        Assert.assertNull(env.get(EnvConstants.REGION_TASKENV));
+        Assert.assertNull(env.get(EnvConstants.ZONE_TASKENV));
     }
 }

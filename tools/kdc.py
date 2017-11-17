@@ -6,6 +6,9 @@ Wrapper script around sdk_auth.py used to ad-hoc setup and tear down a KDC envir
 This assumes there will be only one KDC in the cluster at any time, and thus that only instance
 of the KDC will be aptly named `kdc`.
 
+If invoked from the repo root, PYTHONPATH must also be set. For eg
+`PYTHONPATH=testing ./tools/kdc.py deploy PRINCIPALS_FILE`
+
 This tool expects as its arguments:
     - subcommand for setup or teardown
     - path to file holding principals as newline-separated strings
