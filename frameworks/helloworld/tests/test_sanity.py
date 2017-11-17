@@ -198,17 +198,22 @@ def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
-    # should be in alphabetical order:
-    expected = [
+    # Just check that some expected properties are present. The following may also be present:
+    # - "suppressed": Depends on internal scheduler state at the time of the query.
+    # - "world-[2,3]-server:task-status": Leftovers from an earlier expansion to 4 world tasks.
+    #     In theory, the SDK could clean these up as part of the decommission operation, but they
+    #     won't hurt or affect the service, and are arguably useful in terms of leaving behind some
+    #     evidence of pods that had existed prior to a decommission operation.
+    for required in [
         "hello-0-server:task-status",
         "last-completed-update-type",
         "world-0-server:task-status",
-        "world-1-server:task-status"]
-    # the properties list may also have a 'suppressed' bit, which would have been left behind by the
-    # prior version when upgrades were being tested during suite setup
-    expected_with_suppressed = list(expected)
-    expected_with_suppressed.insert(3, 'suppressed')
-    assert jsonobj == expected or jsonobj == expected_with_suppressed
+        "world-1-server:task-status"]:
+        assert required in jsonobj
+    # also check that the returned list was in alphabetical order:
+    list_sorted = list(jsonobj) # copy
+    list_sorted.sort()
+    assert list_sorted == jsonobj
 
 
 @pytest.mark.sanity
