@@ -122,7 +122,7 @@ def test_increase_decrease_world_nodes():
     sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
 
     # check 2 world tasks added:
-    assert len(original_world_ids) == len(sdk_tasks.get_task_ids(foldered_name, 'world'))
+    assert 2 + len(original_world_ids) == len(sdk_tasks.get_task_ids(foldered_name, 'world'))
 
     # subtract 2 world nodes
     sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', -2)
