@@ -59,10 +59,22 @@ func New() *kingpin.Application {
 	app.GetFlag("help").Short('h') // in addition to default '--help'
 	app.Flag("verbose", "Enable extra logging of requests/responses").Short('v').BoolVar(&config.Verbose)
 
-	// This fulfills an interface that's expected by the main DC/OS CLI:
+	// --info and --config-schema are required by the main DC/OS CLI:
 	// Prints a description of the module.
 	app.Flag("info", "Show short description.").Hidden().PreAction(func(*kingpin.Application, *kingpin.ParseElement, *kingpin.ParseContext) error {
 		fmt.Fprintf(os.Stdout, "%s DC/OS CLI Module\n", strings.Title(config.ModuleName))
+		os.Exit(0)
+		return nil
+	}).Bool()
+	// Prints a description of the module config schema (only a 'service_name' option).
+	app.Flag("config-schema", "Show config schema.").Hidden().PreAction(func(*kingpin.Application, *kingpin.ParseElement, *kingpin.ParseContext) error {
+		fmt.Fprint(os.Stdout, `{
+  "$schema": "http://json-schema.org/schema#",
+  "additionalProperties": false,
+  "properties": { "service_name": { "title": "Service name", "type": "string" } },
+  "type": "object"
+}
+`)
 		os.Exit(0)
 		return nil
 	}).Bool()

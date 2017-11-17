@@ -71,6 +71,48 @@
             "type": "string",
             "enum":  ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
             "default": "INFO"
+          },
+          "security": {
+            "description": "Kafka security settings",
+            "type": "object",
+            "properties": {
+                "kerberos": {
+                  "type": "object",
+                  "description": "Kerberos configuration properties.",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable kerberos authentication.",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "kdc_host_name": {
+                      "type": "string",
+                      "description": "The name or address of a host running a KDC for the realm.",
+                      "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                    },
+                    "kdc_host_port": {
+                      "type": "integer",
+                      "description": "The port of the host running a KDC for that realm.",
+                      "default": 2500
+                    },
+                    "primary": {
+                      "type": "string",
+                      "description": "The Kerberos primary used by Kafka tasks.  The full principal will be <service.kerberos.primary>/<mesos_dns_address>@<service.kerberos.realm>",
+                      "default": "kafka"
+                    },
+                    "realm": {
+                      "type": "string",
+                      "description": "The Kerberos realm used to render the principal of Kafka tasks.",
+                      "default": "LOCAL"
+                    },
+                    "keytab_secret": {
+                      "type": "string",
+                      "description": "The name of the DC/OS secret storing the keytab",
+                      "default": "__dcos_base64__kafka_keytab"
+                    }
+                  }
+                }
+            }
           }
         },
         "required": [

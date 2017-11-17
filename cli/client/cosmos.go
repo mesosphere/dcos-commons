@@ -74,6 +74,7 @@ func createBadVersionError(data cosmosData) error {
 	}
 	return fmt.Errorf(buf.String())
 }
+
 func createJSONMismatchError(data cosmosData) error {
 	var buf bytes.Buffer
 	writer := bufio.NewWriter(&buf)
@@ -96,43 +97,54 @@ The service name cannot be changed once installed. Ensure service.name is set to
 	return fmt.Errorf(errorString, data.OldAppID, data.NewAppID, data.OldAppID)
 }
 
+func createAppNotFoundError(data cosmosData) error {
+	errorString := `Unable to find the service named '%s'.
+Possible causes:
+- Did you provide the correct service name? Specify a service name with '--name=<name>', or with 'dcos config set %s.service_name <name>'.
+- Was the service recently installed or updated? It may still be initializing, wait a bit and try again.`
+	return fmt.Errorf(errorString, config.ServiceName, config.ModuleName)
+}
+
 func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 	var errorResponse cosmosErrorResponse
 	err := json.Unmarshal(body, &errorResponse)
 	if err != nil {
-		printMessage("Error unmarshalling cosmosErrorResponse: %v", err.Error())
-		return createResponseError(response)
+		printMessage("Error unmarshalling Cosmos Error: %v", err.Error())
+		return createResponseError(response, body)
 	}
-	if errorResponse.ErrorType != "" {
-		switch errorResponse.ErrorType {
-		case appIDChanged:
-			return createAppIDChangedError(errorResponse.Data)
-		case badVersionUpdate:
-			return createBadVersionError(errorResponse.Data)
-		case jsonSchemaMismatch:
-			return createJSONMismatchError(errorResponse.Data)
-		case marathonAppNotFound:
-			return createServiceNameError()
-		default:
-			if config.Verbose {
-				PrintJSONBytes(body)
-			}
-			return fmt.Errorf("Could not execute command: %s", errorResponse.Message)
+	if errorResponse.ErrorType == "" {
+		return createResponseError(response, body)
+	}
+	switch errorResponse.ErrorType {
+	case badVersionUpdate:
+		return createBadVersionError(errorResponse.Data)
+	case jsonSchemaMismatch:
+		return createJSONMismatchError(errorResponse.Data)
+	case appIDChanged:
+		return createAppIDChangedError(errorResponse.Data)
+	case marathonAppNotFound:
+		return createAppNotFoundError(errorResponse.Data)
+	default:
+		if config.Verbose {
+			PrintJSONBytes(body)
 		}
+		return fmt.Errorf("Could not execute command: %s (%s)", errorResponse.Message, errorResponse.ErrorType)
 	}
-	return createResponseError(response)
 }
 
 func checkCosmosHTTPResponse(response *http.Response, body []byte) error {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
 		if config.Verbose {
-			printResponseError(response)
+			PrintMessage(createResponseError(response, body).Error())
 		}
 		return fmt.Errorf("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
 	case response.StatusCode == http.StatusBadRequest:
 		return parseCosmosHTTPErrorResponse(response, body)
+	case response.StatusCode == http.StatusInternalServerError:
+		return createResponseError(response, body)
 	}
+	// Fall back to defaultResponseCheck()
 	return nil
 }
 

@@ -145,6 +145,17 @@ def _copy_file_to_localhost(self):
         raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
 
 
+def kinit(task_id: str, keytab: str, principal:str):
+    """
+    Performs a kinit command to authenticate the specified principal.
+    :param task_id: The task in whose environment the kinit will run.
+    :param keytab: The keytab used by kinit to authenticate.
+    :param principal: The name of the principal the user wants to authenticate as.
+    """
+    kinit_cmd = "kinit -k -t {keytab} {principal}".format(keytab=keytab, principal=principal)
+    sdk_tasks.task_exec(task_id, kinit_cmd)
+
+
 class KerberosEnvironment:
     def __init__(self):
         """
@@ -315,4 +326,3 @@ class KerberosEnvironment:
         #TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
         sdk_security.delete_secret(self.keytab_secret_path)
-

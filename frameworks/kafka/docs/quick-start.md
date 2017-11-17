@@ -50,13 +50,31 @@ enterprise: 'no'
 1. Produce and consume data.
 
         ```bash
-        $ dcos node ssh --master-proxy --leader
-
-        core@ip-10-0-6-153 ~ $ docker run -it mesosphere/kafka-client
-
-        root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1000, kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1000, kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1000 --topic topic1
-
-        root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-kafka --topic topic1 --from-beginning
+        # Create marathon app defintion
+        $ cat <<'EOF' >> kafkaclient.json
+        {
+        "id": "/kafka-client",
+        "instances": 1,
+        "container": {
+        "type": "MESOS",
+        "docker": {
+        "image": "wurstmeister/kafka:0.11.0.0"
+        }
+        },
+        "cpus": 0.5,
+        "mem": 256,
+        "cmd": "sleep 100000"
+        }
+        EOF
+        
+        # Deploy marathon app definition
+        $ dcos marathon app add kafkaclient.json
+        
+        # Produce single `Hello world` event
+        $ dcos task exec kafka-client bash -c "export JAVA_HOME=/opt/jdk1.8.0_144/jre/; echo 'Hello, World.' | /opt/kafka_2.12-0.11.0.0/bin/kafka-console-producer.sh --broker-list broker.kafka.l4lb.thisdcos.directory:9092 --topic topic1"
+        
+        # Consume events from topic1
+        $ dcos task exec kafka-client bash -c "export JAVA_HOME=/opt/jdk1.8.0_144/jre/; /opt/kafka_2.12-0.11.0.0/bin/kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-kafka --topic topic1 --from-beginning"
         Hello, World.
         ```
 

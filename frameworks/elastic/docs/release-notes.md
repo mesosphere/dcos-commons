@@ -4,7 +4,15 @@ menu_order: 120
 enterprise: 'no'
 ---
 
-## Version elastic-2.0.0-5.5.1
+## Version 2.1.0-5.6.2
+
+### New Features
+* Custom configuration can now be passed to Elastic plugins. See [the documentation](custom-elasticsearch-yaml.md).
+
+### Bugs
+* Uninstall now handles failed tasks correctly.
+
+## Version 2.0.0-5.5.1
 
 ### Improvements
 - Default to 0 ingest nodes.

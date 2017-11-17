@@ -1,5 +1,8 @@
+import json
+import os
 import shakedown
 
+import sdk_auth
 import sdk_cmd
 import sdk_plan
 import sdk_utils
@@ -17,61 +20,47 @@ TEST_FILE_1_NAME = "test_1"
 TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
-DOCKER_IMAGE_NAME = "mesosphere/hdfs-client:2.6.4"
-KERBERIZED_CLIENT_IMAGE_NAME = "nvaziri/kerberized-hdfs-client:dev"
-KERBERIZED_CLIENT_MEM_SIZE = 512
+DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
+KEYTAB = "hdfs.keytab"
+GENERIC_HDFS_USER_PRINCIPAL = "hdfs@{realm}".format(realm=sdk_auth.REALM)
 
-kerberized_hdfs_client_marathon_app = {
-    "id": "hdfsclient",
-    "mem": KERBERIZED_CLIENT_MEM_SIZE,
-    "container": {
-        "type": "MESOS",
-        "docker": {
-            "image": KERBERIZED_CLIENT_IMAGE_NAME,
-            "forcePullImage": True
-        },
-        "volumes": [
-            {
-                "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
-                "secret": "hdfs_keytab"
-            }
-        ]
-    },
-    "secrets": {
-        "hdfs_keytab": {
-            "source": ""
-        }
-    },
-    "networks": [
-        {
-            "mode": "host"
-        }
-    ],
-    "env": {
-        "REALM": "",
-        "KDC_ADDRESS": "",
-        "JAVA_HOME": "/usr/lib/jvm/default-java",
-        "JVM_MaxHeapSize": KERBERIZED_CLIENT_MEM_SIZE
-    }
-}
+
+def get_kerberized_hdfs_client_app():
+    app_def_path = "{current_dir}/../tools/{client_id}".format(
+        current_dir=os.path.dirname(os.path.realpath(__file__)),
+        client_id="hdfsclient.json"
+    )
+    with open(app_def_path) as f:
+        app_def = json.load(f)
+
+    return app_def
+
+
+def hdfs_write_command(filename, content_to_write):
+    return "echo {} | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
-    write_command = "echo '{}' | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
-    rc, _ = run_hdfs_command(service_name, write_command)
+    rc, _ = run_hdfs_command(service_name, hdfs_write_command(filename, content_to_write))
     # rc being True is effectively it being 0...
     return rc
 
 
+def hdfs_read_command(filename):
+    return "./bin/hdfs dfs -cat /{}".format(filename)
+
+
 def read_data_from_hdfs(service_name, filename):
-    read_command = "./bin/hdfs dfs -cat /{}".format(filename)
-    rc, output = run_hdfs_command(service_name, read_command)
+    rc, output = run_hdfs_command(service_name, hdfs_read_command(filename))
     return rc and output.rstrip() == TEST_CONTENT_SMALL
 
 
+def hdfs_delete_file_command(filename):
+    return "./bin/hdfs dfs -rm /{}".format(filename)
+
+
 def delete_data_from_hdfs(service_name, filename):
-    delete_command = "./bin/hdfs dfs -rm /{}".format(filename)
-    rc, output = run_hdfs_command(service_name, delete_command)
+    rc, output = run_hdfs_command(service_name, hdfs_delete_file_command(filename))
     return rc
 
 

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @see AttributeStringUtils#toString(Attribute)
  */
 public class AttributeRule extends StringMatcherRule {
+
     @JsonCreator
     public AttributeRule(@JsonProperty("matcher") StringMatcher matcher) {
         super("AttributeRule", matcher);

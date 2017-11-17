@@ -183,6 +183,7 @@ def delete_secret(secret: str) -> None:
     # ignore any failures:
     shakedown.run_dcos_command("security secrets delete {}".format(secret))
 
+
 def setup_security(framework_name: str) -> None:
     log.info('Setting up strict-mode security')
     create_service_account(service_account_name='service-acct', service_account_secret='secret')

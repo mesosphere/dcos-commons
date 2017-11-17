@@ -4,6 +4,13 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+## Version 2.0.3-2.6.0-cdh5.11.0
+
+### Bug Fixes
+* Dashes in envvars replaced with underscores to support Ubuntu.
+* Some numeric configuration parameters could be interpreted incorrectly as floats, and are fixed.
+* Uninstall now handles failed tasks correctly.
+
 ## Version 2.0.0-2.6.0-cdh5.11.0
 
 ### Improvements
