@@ -41,6 +41,7 @@ public class Main {
                 // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
                 // we need to allow the case where they may have previously been unset:
                 .setCustomConfigValidators(Arrays.asList(
+                        new ZoneValidator(),
                         new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_DATA_CENTER",
                                 TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)

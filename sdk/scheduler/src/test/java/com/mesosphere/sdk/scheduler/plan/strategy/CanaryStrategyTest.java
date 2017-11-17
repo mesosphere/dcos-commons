@@ -4,7 +4,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.testing.TestPodFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
