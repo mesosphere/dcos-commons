@@ -749,7 +749,7 @@ In this case, we have changed the resources consumed for a running task. In orde
 
 #### Horizontal Scale Example
 
-In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below changes HELLO_COUNT to 2, adding an additional instance of the hello pod.
+In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below increases HELLO_COUNT to 2, adding an additional instance of the hello pod.
 
 ```
 {
@@ -789,7 +789,7 @@ This generates the following Plan:
 }
 ```
 
-The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration.
+The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration. Note that by default, pods can be scaled up but not scaled down. Decreasing the number of pods count will result in a validation error when the Scheduler is restarted. As a safety measure, if you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod.
 
 ### Rollback
 
@@ -1307,6 +1307,21 @@ $ py.test frameworks/helloworld/
 ## `ServiceSpec` (YAML)
 
 The most basic set of features present in the YAML representation of the `ServiceSpec` are [presented above](#service-spec). The remaining features are introduced below.
+
+### Count
+
+You may specify the number of pod instances to be run for every pod. As a safety measure, after initial install users can increase but not decrease this value. If you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod, like this:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 3
+    allow-decommission: true
+    ...
+```
+
+You should only enable this option if it is safe for the pod's tasks be destroyed, without needing to perform additional rebalancing or drain operations beforehand.
 
 ### Containers
 
