@@ -46,6 +46,37 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
+@pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        # Install Hello World using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
+        )
+        config.check_running(foldered_name)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        # reinstall the v1 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}})
+
+        # wait for brokers to finish registering before starting tests
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
+                                      service_name=foldered_name)
+
+
 # --------- Endpoints -------------
 
 

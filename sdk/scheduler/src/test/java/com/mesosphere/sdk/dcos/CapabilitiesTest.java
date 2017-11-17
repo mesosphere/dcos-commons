@@ -81,6 +81,8 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertFalse(capabilities.supportsV1APIByDefault());
     }
 
     @Test
@@ -93,6 +95,8 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertFalse(capabilities.supportsV1APIByDefault());
     }
 
     @Test
@@ -106,7 +110,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
-        Assert.assertTrue(capabilities.supportsStrictModeV1API());
+        Assert.assertTrue(capabilities.supportsV1APIByDefault());
     }
 
     @Test
@@ -120,7 +124,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
-        Assert.assertTrue(capabilities.supportsStrictModeV1API());
+        Assert.assertTrue(capabilities.supportsV1APIByDefault());
     }
 
     @Test

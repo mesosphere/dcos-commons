@@ -95,7 +95,7 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 10);
     }
 
-    public boolean supportsStrictModeV1API() {
+    public boolean supportsV1APIByDefault() {
         // The Mesos V1 HTTP API with strict mode enabled is supported by DC/OS 1.11 upwards
         return hasOrExceedsVersion(1, 11);
     }

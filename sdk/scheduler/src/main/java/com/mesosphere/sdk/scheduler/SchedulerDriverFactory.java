@@ -86,7 +86,7 @@ public class SchedulerDriverFactory {
                     scheduler, TextFormat.shortDebugString(frameworkInfo), masterUrl);
             credential = null;
         }
-        return createInternal(scheduler, frameworkInfo, masterUrl, credential);
+        return createInternal(scheduler, frameworkInfo, masterUrl, credential, schedulerConfig.getMesosApiVersion());
     }
 
     /**
@@ -96,17 +96,18 @@ public class SchedulerDriverFactory {
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
-            final Credential credential) {
+            final Credential credential,
+            final String mesosAPIVersion) {
         Capabilities capabilities = Capabilities.getInstance();
         if (credential != null) {
             return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential) {
                 @Override
                 protected Mesos startInternal() {
-                    if (capabilities.supportsStrictModeV1API()) {
+                    if (capabilities.supportsV1APIByDefault()) {
                         return super.startInternal();
                     }
 
-                    if (System.getenv("MESOS_API_VERSION").equals("V1")) {
+                    if (mesosAPIVersion.equals("V1")) {
                         LOGGER.warn(
                                 "Current DC/OS cluster doesn't support the Mesos V1 API in strict mode. Using V0...");
                     }
@@ -124,11 +125,11 @@ public class SchedulerDriverFactory {
         return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true) {
             @Override
             protected Mesos startInternal() {
-                if (capabilities.supportsStrictModeV1API()) {
+                if (capabilities.supportsV1APIByDefault()) {
                     return super.startInternal();
                 }
 
-                if (System.getenv("MESOS_API_VERSION").equals("V1")) {
+                if (mesosAPIVersion.equals("V1")) {
                     LOGGER.warn(
                             "Current DC/OS cluster doesn't support the Mesos V1 API in strict mode. Using V0...");
                 }

@@ -50,6 +50,35 @@ def test_service_health():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = config.get_foldered_service_name()
+        # Install Cassandra using the v1 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.get_foldered_service_name(),
+            config.DEFAULT_TASK_COUNT,
+            additional_options={
+                "service": {"name": foldered_name, "mesos_api_version": "V0"}
+            }
+        )
+        config.check_running(foldered_name)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        # reinstall the v0 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}})
+
+
+@pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = cmd.svc_cli(

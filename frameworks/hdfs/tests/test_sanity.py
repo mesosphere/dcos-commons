@@ -50,6 +50,35 @@ def pre_test_setup():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        # Install HDFS using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}},
+            timeout_seconds=30 * 60)
+        )
+        config.check_running(foldered_name)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        # reinstall the v1 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}},
+            timeout_seconds=30 * 60)
+
+
+@pytest.mark.sanity
 def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
