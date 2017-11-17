@@ -90,12 +90,13 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
-    world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
-    log.info('world ids: ' + str(world_ids))
+
+    original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
+    log.info('world ids: ' + str(original_world_ids))
 
     updated_cpus = config.bump_world_cpus(foldered_name)
 
-    sdk_tasks.check_tasks_updated(foldered_name, 'world', world_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, 'world', original_world_ids)
     config.check_running(foldered_name)
 
     all_tasks = shakedown.get_service_tasks(foldered_name)
@@ -107,17 +108,29 @@ def test_bump_world_cpus():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_bump_hello_nodes():
+def test_increase_decrease_world_nodes():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
-    hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
-    log.info('hello ids: ' + str(hello_ids))
+    original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
+    log.info('world ids: ' + str(original_world_ids))
 
-    sdk_marathon.bump_task_count_config(foldered_name, 'HELLO_COUNT')
+    # add 2 world nodes
+    sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', 2)
 
     config.check_running(foldered_name)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'hello', hello_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
+
+    # check 2 world tasks added:
+    assert len(original_world_ids) == len(sdk_tasks.get_task_ids(foldered_name, 'world'))
+
+    # subtract 2 world nodes
+    sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', -2)
+
+    config.check_running(foldered_name)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
+    # check back to previous task ids:
+    assert original_world_ids == sdk_tasks.get_task_ids(foldered_name, 'world')
 
 
 @pytest.mark.sanity
@@ -171,11 +184,11 @@ def test_pod_status_one():
 @pytest.mark.sanity
 def test_pod_info():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info hello-1', json=True)
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
-    assert task['info']['name'] == 'hello-1-server'
+    assert task['info']['name'] == 'world-1-server'
     assert task['info']['taskId']['value'] == task['status']['taskId']['value']
     assert task['status']['state'] == 'TASK_RUNNING'
 
@@ -188,7 +201,6 @@ def test_state_properties_get():
     # should be in alphabetical order:
     expected = [
         "hello-0-server:task-status",
-        "hello-1-server:task-status",
         "last-completed-update-type",
         "world-0-server:task-status",
         "world-1-server:task-status"]
