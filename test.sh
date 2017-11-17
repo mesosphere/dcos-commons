@@ -145,7 +145,8 @@ if [ -z $interactive ]; then
         echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
         exit 1
     else
-        if [ x"$security" == x"strict" -a $CLUSTER_URL != https* ]; then
+        if [[ x"$security" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
+            echo $CLUSTER_URL
             echo "CLUSTER_URL must be https in strict mode"
             exit 1
         fi
