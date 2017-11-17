@@ -6,6 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 '''
 import functools
 import logging
+import operator
 
 import dcos
 import shakedown
@@ -75,3 +76,11 @@ def is_strict_mode():
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
+
+
+# Pretty much https://github.com/pytoolz/toolz/blob/a8cd0adb5f12ec5b9541d6c2ef5a23072e1b11a3/toolz/dicttoolz.py#L279
+def get_in(keys, coll, default=None, use_default=True):
+    try:
+        return functools.reduce(operator.getitem, keys, coll)
+    except (KeyError, IndexError, TypeError):
+        return default
