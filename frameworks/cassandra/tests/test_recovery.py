@@ -7,7 +7,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -26,11 +25,13 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.9', reason='dcos task exec not supported < 1.9')
 def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
+
+    # CASSANDRA-649 Experimental change to potentially resolve flakes: attempt nodetool removenode before replace
+    nodetool_decommission(pod_to_replace)
 
     # start replace and wait for it to finish
     cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
@@ -52,6 +53,9 @@ def test_node_replace_replaces_node():
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
 
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+    # CASSANDRA-649 Experimental change to potentially resolve flakes: attempt nodetool removenode before replace
+    nodetool_decommission(pod_to_replace)
 
     # start replace and wait for it to finish
     cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
@@ -114,3 +118,34 @@ def get_pod_host(pod_name):
         if labels[i]['key'] == 'offer_hostname':
             return labels[i]['value']
     return None
+
+
+def nodetool_decommission(target_pod_name):
+    '''Performs a 'nodetool decommission' for the specified pod, removing it from the ring.
+
+    There is also 'nodetool removenode <uuid>', but that requires that the target node already be down.
+    If the target node is in a UN state, a 'removenode' command fails with an error like this:
+    java.lang.UnsupportedOperationException: Node /10.0.2.186 is alive and owns this ID. Use decommission command to remove it from the ring
+    '''
+
+    # use a node other than the target to check status:
+    all_pods = ['node-{}'.format(i) for i in range(config.DEFAULT_TASK_COUNT)]
+    all_pods.remove(target_pod_name)
+    driver_pod_name = all_pods[0]
+    log.info('Checking status of {} removal from {}'.format(target_pod_name, driver_pod_name))
+
+    # print "before" status:
+    run_nodetool_cmd(driver_pod_name, 'status')
+
+    # perform decommission:
+    run_nodetool_cmd(target_pod_name, 'decommission') # THIS MAY TAKE SEVERAL SECONDS
+
+    # print "after" status from different node:
+    run_nodetool_cmd(driver_pod_name, 'status')
+
+
+def run_nodetool_cmd(pod_name, command):
+    cmds = [
+        'export JAVA_HOME=$(ls -d jre*/)'
+        './apache-cassandra-*/bin/nodetool {}'.format(command)]
+    cmd.run_cli("task exec {}-server bash -c '{}'".format(pod_name, ' && '.join(cmds)))

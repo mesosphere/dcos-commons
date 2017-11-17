@@ -51,7 +51,9 @@ def run_raw_cli(cmd, print_output=True):
     $ dcos package install <package-name>
     """
     dcos_cmd = "dcos {}".format(cmd)
+    log.info('Running CLI command: {}'.format(dcos_cmd))
     result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    log.info('CLI returned code {}'.format(result.returncode))
     stdout = ""
     stderr = ""
 
@@ -62,8 +64,8 @@ def run_raw_cli(cmd, print_output=True):
         stderr = result.stderr.decode('utf-8').strip()
 
     if print_output:
-        print(stdout)
-        print(stderr)
+        log.info(stdout)
+        log.info(stderr)
 
     return result.returncode, stdout, stderr
 
