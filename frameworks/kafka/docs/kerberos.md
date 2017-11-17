@@ -71,6 +71,53 @@ $ dcos task log kafka-0
 
 ## Testing with a Kerberized client
 
+### Using the pre-built client
+Starting a Marathon app with the following definition:
+```json
+{
+    "id": "kafka-producer",
+    "mem": 512,
+    "user": "nobody",
+    "container": {
+        "type": "MESOS",
+        "docker": {
+            "image": "elezar/kafka-client:latest",
+            "forcePullImage": true
+        },
+        "volumes": [
+            {
+                "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
+                "secret": "kafka_keytab"
+            }
+        ]
+    },
+    "secrets": {
+        "kafka_keytab": {
+            "source": "__dcos_base64___keytab"
+        }
+    },
+    "networks": [
+        {
+            "mode": "host"
+        }
+    ],
+    "env": {
+        "JVM_MaxHeapSize": "512",
+        "KAFKA_CLIENT_MODE": "producer"
+    }
+}
+```
+Will start a Kafka console producer which publishes a message on the `securetest` topic every 10 seconds.
+
+Running:
+```bash
+$ dcos task log kafka-producer
+```
+should show the messages being written to the topic.
+
+Changing the `KAFAK_CLIENT_MODE` environment variable to `consumer` (and adjusting the name accordingly) will start a Kafka console consumer subscribed to the same `securetest` topic.
+
+### Building your own client
 In order to configure a Kerberized Kafka client, three things are needed:
 1. The Kerberos keytab as a file `kafka-client.keytab` (This can be downloaded from the KDC application)
 1. A file `client-jaas.conf` containing:
