@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 
@@ -122,7 +123,10 @@ func HTTPQuery(request *http.Request) *http.Response {
 	}
 	if config.TLSCliSetting == config.TLSUnknown {
 		// get CA settings from CLI
-		cliVerifySetting := OptionalCLIConfigValue("core.ssl_verify")
+		cliVerifySetting := os.Getenv("DCOS_SSL_VERIFY") // supported in main CLI
+		if len(cliVerifySetting) == 0 {
+			cliVerifySetting = OptionalCLIConfigValue("core.ssl_verify")
+		}
 		if strings.EqualFold(cliVerifySetting, "false") {
 			// 'false': disable cert validation
 			config.TLSCliSetting = config.TLSUnverified

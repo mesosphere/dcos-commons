@@ -13,6 +13,7 @@ import (
 )
 
 const dcosConfigDirName = ".dcos"
+const dcosConfigFileName = "dcos.toml"
 
 var (
 	// cachedConfig stores a previously fetched toml config, or is nil.
@@ -75,7 +76,7 @@ func configDir() (string, error) {
 	// Apparently this is due to lack of support with cross-compiled binaries? Therefore we DIY it here.
 
 	// DC/OS CLI allows users to manually override the config dir with a DCOS_DIR envvar:
-	configDir := os.Getenv("DCOS_DIR")
+	configDir := os.Getenv("DCOS_DIR") // supported in main CLI 0.5.x
 	if len(configDir) != 0 {
 		return configDir, nil
 	}
@@ -164,23 +165,51 @@ func cliDiskConfig(configDir string) (map[string]interface{}, error) {
 	clustersPath := path.Join(configDir, "clusters")
 	clusters, err := ioutil.ReadDir(clustersPath)
 	if err == nil {
-		for _, cluster := range clusters {
-			if !cluster.IsDir() {
-				continue // not a directory
+		attachedClusterNameOverride := os.Getenv("DCOS_CLUSTER") // supported in main CLI 0.5.x
+		if len(attachedClusterNameOverride) != 0 {
+			// Cluster name defined, find the config with a matching name.
+			for _, cluster := range clusters {
+				if !cluster.IsDir() {
+					continue // not a directory
+				}
+				configPath = path.Join(clustersPath, cluster.Name(), dcosConfigFileName)
+
+				configData := make(map[string]interface{})
+				_, err = toml.DecodeFile(configPath, &configData)
+				if err != nil {
+					continue
+				}
+				name, err := cliDiskConfigValue(configData, "cluster.name")
+				if err == nil && name == attachedClusterNameOverride {
+					// Matching name found. Use this config.
+					return configData, nil
+				}
 			}
-			if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
-				continue // not the attached/active cluster
+			return nil, fmt.Errorf("Unable to find a cluster config named %s (DCOS_CLUSTER)",
+				attachedClusterNameOverride)
+		} else {
+			// No DCOS_CLUSTER defined, fall back to finding the directory with an "attached" file
+			for _, cluster := range clusters {
+				if !cluster.IsDir() {
+					continue // not a directory
+				}
+				if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
+					continue // not the attached/active cluster
+				}
+				if len(configPath) != 0 {
+					return nil, fmt.Errorf("Multiple configs have an 'attached' flag, unable to decide which to use")
+				}
+				configPath = path.Join(clustersPath, cluster.Name(), dcosConfigFileName)
 			}
-			if len(configPath) != 0 {
-				return nil, fmt.Errorf("Multiple configs have an 'attached' flag, unable to decide which to use")
-			}
-			configPath = path.Join(clustersPath, cluster.Name(), "dcos.toml")
 		}
 	}
 
 	// Fall back to old-style single config:
-	if configPath == "" {
-		configPath = path.Join(configDir, "dcos.toml")
+	if len(configPath) == 0 {
+		configPath = os.Getenv("DCOS_CONFIG") // supported in main CLI 0.4.x
+		if len(configPath) == 0 {
+			configPath = path.Join(configDir, dcosConfigFileName)
+		}
 		if config.Verbose {
 			PrintMessage("No config found in new location: %s, falling back to old location: %s", clustersPath, configPath)
 		}
