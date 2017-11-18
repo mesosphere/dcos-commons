@@ -12,7 +12,6 @@ import sdk_utils
 import shakedown
 from tests import config
 
-
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     test_jobs = []
@@ -29,7 +28,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name()}})
+            additional_options={"service": {"name": config.get_foldered_service_name(), "detect_zones": False}})
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in test_jobs:

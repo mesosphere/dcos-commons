@@ -95,7 +95,7 @@ pods:
             kafka_server_log_files=${kafka_dir}/logs/server.log*
 
             echo "Checking for started log line in $kafka_server_log_files."
-            grep -q "INFO \[Kafka Server $POD_INSTANCE_INDEX\], started (kafka.server.KafkaServer)" $kafka_server_log_files
+            grep -q "INFO \[KafkaServer id=$POD_INSTANCE_INDEX\] started (kafka.server.KafkaServer)" $kafka_server_log_files
             if [ $? -eq 0 ] ; then
               echo "Found started log line."
             else
