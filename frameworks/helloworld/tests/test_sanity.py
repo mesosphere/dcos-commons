@@ -6,6 +6,7 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
@@ -112,6 +113,7 @@ def test_increase_decrease_world_nodes():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
+    original_hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
     log.info('world ids: ' + str(original_world_ids))
 
@@ -128,8 +130,18 @@ def test_increase_decrease_world_nodes():
     sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', -2)
 
     config.check_running(foldered_name)
+    # wait for the decommission plan for this subtraction to be complete
+    sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
+    # check that the total task count is back to original
+    sdk_tasks.check_running(
+        foldered_name,
+        len(original_hello_ids) + len(original_world_ids),
+        allow_more=False)
+    # check that original tasks weren't affected/relaunched in the process
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'hello', original_hello_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
-    # check back to previous task ids:
+
+    # check that the world tasks are back to their prior state (also without changing task ids)
     assert original_world_ids == sdk_tasks.get_task_ids(foldered_name, 'world')
 
 

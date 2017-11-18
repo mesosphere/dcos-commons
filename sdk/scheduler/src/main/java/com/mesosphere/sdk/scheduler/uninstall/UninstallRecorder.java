@@ -57,8 +57,8 @@ public class UninstallRecorder implements OperationRecorder {
 
         // Broadcast the resulting uninstallRecommendation to each resource step in the uninstall plan.
         // We need to manually pass the uninstall recommendation to the resource cleanup steps. They do not get this
-        // information via DefaultPlanScheduler because that only handles deployment
-        // (and is not used by UninstallScheduler), whereas these are handled via the ResourceCleanerScheduler.
+        // information via DefaultPlanScheduler because that only handles deployment (and therefore is not used by
+        // UninstallScheduler), whereas these are handled via the ResourceCleanerScheduler.
         List<OfferRecommendation> uninstallRecommendations = Collections.singletonList(uninstallRecommendation);
         resourceSteps.forEach(step -> step.updateOfferStatus(uninstallRecommendations));
     }
