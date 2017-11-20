@@ -41,7 +41,7 @@ pods:
     placement: '{{{JOURNAL_NODE_PLACEMENT}}}'
     tasks:
       bootstrap:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
           echo "Creating version directory in the journal-data persistent volume" &&
           mkdir -p journal-data/hdfs/current &&
@@ -210,7 +210,7 @@ pods:
             type: KEYSTORE
         {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       format:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
           mv hdfs {{HDFS_VERSION}}/bin/ ;
@@ -242,7 +242,7 @@ pods:
         env:
           NAMENODE: true
       bootstrap:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
           mv hdfs {{HDFS_VERSION}}/bin/ ;
@@ -311,7 +311,7 @@ pods:
         env:
           ZKFC: true
       zkfc-format:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
           mv hdfs {{HDFS_VERSION}}/bin/ ;

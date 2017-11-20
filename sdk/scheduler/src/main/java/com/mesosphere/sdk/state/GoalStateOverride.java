@@ -157,7 +157,7 @@ public enum GoalStateOverride {
                     this.name(), serializedName, pendingName, validLabelPattern.pattern()));
         }
 
-        // Validation: Overrides may not overlap with existing GoalStates (RUNNING, FINISHED)
+        // Validation: Overrides may not overlap with existing GoalStates (RUNNING, ONCE)
         for (GoalState goalState : GoalState.values()) {
             if (goalState.toString().equals(serializedName)) {
                 throw new IllegalArgumentException(String.format(

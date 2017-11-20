@@ -18,7 +18,7 @@ pods:
         env:
           SLEEP_DURATION: 1000
       sidecar:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo 'sidecar' >> hello-container-path/output"
         cpus: 0.1
         memory: 256
@@ -38,9 +38,9 @@ pods:
         env:
           SLEEP_DURATION: 1000
       once:
-        goal: FINISHED
+        goal: FINISH
         cmd: "echo $TASK_NAME >> world-container-path/output"
-        cpus: 0.1
+        cpus: {{HELLO_CPUS}}
         memory: 256
 plans:
   deploy:

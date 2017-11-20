@@ -35,11 +35,11 @@ pods:
           delay: 0
           timeout: 10
       once:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo 'I run only once' >> once-container-path/runonce"
         resource-set: once-resources
       other:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo 'I should fail because run alongside once with the same resources' >> hello-container-path/other"
         resource-set: once-resources
   world:

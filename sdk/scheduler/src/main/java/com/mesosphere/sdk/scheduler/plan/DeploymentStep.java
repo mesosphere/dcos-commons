@@ -199,7 +199,7 @@ public class DeploymentStep extends AbstractStep {
                 }
                 break;
             case TASK_FINISHED:
-                if (goalState.equals(GoalState.FINISHED)) {
+                if (goalState.equals(GoalState.ONCE) || goalState.equals(GoalState.FINISH)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
                 } else {
                     setTaskStatus(status.getTaskId(), Status.PENDING);

@@ -17,5 +17,10 @@ public enum GoalState {
     /**
      * Running and then exiting successfully. Should not be restarted upon a successful exit.
      */
-    FINISHED
+    FINISH,
+
+    /**
+     * Running only once over the lifetime of a service. Should not be run again for the duration of this install.
+     */
+    ONCE
 }

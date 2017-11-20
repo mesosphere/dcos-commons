@@ -1183,7 +1183,7 @@ $ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configura
 			}]
 		}, {
 			name: "format",
-			goal: "FINISHED",
+			goal: "ONCE",
 			resource - set: {
 				id: "name-resources",
 				resource - specifications: [{
@@ -1362,7 +1362,7 @@ $ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configura
 			}]
 		}, {
 			name: "bootstrap",
-			goal: "FINISHED",
+			goal: "ONCE",
 			resource - set: {
 				id: "name-resources",
 				resource - specifications: [{
@@ -1670,7 +1670,7 @@ $ curl -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/configura
 			}]
 		}, {
 			name: "format",
-			goal: "FINISHED",
+			goal: "ONCE",
 			resource - set: {
 				id: "zkfc-resources",
 				resource - specifications: [{

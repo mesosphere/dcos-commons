@@ -12,8 +12,8 @@ public enum RecoveryType {
     NONE,
 
     /**
-     * Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=FINISHED, or 'pod restart' cmd),
-     * relaunch the task in-place without modifying its persistent volumes.
+     * Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=ONCE or FINISHED, or
+     * 'pod restart' cmd), relaunch the task in-place without modifying its persistent volumes.
      */
     TRANSIENT,
 
