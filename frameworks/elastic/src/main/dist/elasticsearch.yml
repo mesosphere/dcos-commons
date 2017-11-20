@@ -20,8 +20,8 @@ metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
 
 {{#SHARD_ALLOCATION_AWARENESS_ENABLED}}
-node.attr.region: ${REGION}
-node.attr.zone: ${ZONE}
+node.attr.region: {{REGION}}
+node.attr.zone: {{ZONE}}
 cluster.routing.allocation.awareness.attributes: region,zone
 {{/SHARD_ALLOCATION_AWARENESS_ENABLED}}
 
