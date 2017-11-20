@@ -55,12 +55,19 @@ def test_mesos_v0_api():
         # Install Hello World using the v0 api.
         # Then, clean up afterwards.
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
-        )
+        if sdk_utils.dcos_version_less_than("1.9"):
+            # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
+            sdk_install.install(
+                config.PACKAGE_NAME,
+                foldered_name,
+                config.DEFAULT_TASK_COUNT,
+                additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}})
+        else:
+            sdk_upgrade.test_upgrade(
+                config.PACKAGE_NAME,
+                foldered_name,
+                config.DEFAULT_TASK_COUNT,
+                additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}, "brokers": {"cpus": 0.5}})
         sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
