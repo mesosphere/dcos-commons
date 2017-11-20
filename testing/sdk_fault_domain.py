@@ -36,10 +36,10 @@ def is_valid_aws_region(region: str):
     return region in AWS_REGIONS
 
 
-def is_valid_aws_zone(region: str, zone: str):
-    return is_valid_region(region) and \
-           zone.startswith(region) and \
-           zone.lstrip(region) in AWS_ZONE_SUFFIXES
+def is_valid_aws_zone(zone: str):
+    region = zone[:-1]
+    zone_suffix = zone.lstrip(region)
+    return is_valid_region(region) and zone_suffix in AWS_ZONE_SUFFIXES
 
 
 # TODO: handle multiple cloud providers.
@@ -48,5 +48,5 @@ def is_valid_region(region: str):
 
 
 # TODO: handle multiple cloud providers.
-def is_valid_zone(region: str, zone: str):
-    return is_valid_aws_zone(region, zone)
+def is_valid_zone(zone: str):
+    return is_valid_aws_zone(zone)

@@ -25,6 +25,11 @@
           "type": "string",
           "default": ""
         },
+        "detect_zones": {
+          "description": "Whether or not to configure nodes with zone information for Shard Allocation Awareness",
+          "type": "boolean",
+          "default": false
+        },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
           "type": "boolean",
@@ -316,11 +321,6 @@
           "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
           "type": "boolean",
           "default": false
-        },
-        "shard_allocation_awareness_enabled": {
-          "description": "Whether or not to enable Shard Allocation Awareness",
-          "type": "boolean",
-          "default": true
         },
         "plugins": {
           "description": "Comma-separated list of plugins to install",

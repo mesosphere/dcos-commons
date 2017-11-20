@@ -62,6 +62,8 @@
     "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
     {{/service.tls}}
 
+    "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
+
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "UPDATE_STRATEGY": "{{service.update_strategy}}",
     "MASTER_NODE_CPUS": "{{master_nodes.cpus}}",
@@ -93,7 +95,6 @@
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
-    "TASKCFG_ALL_SHARD_ALLOCATION_AWARENESS_ENABLED": "{{elasticsearch.shard_allocation_awareness_enabled}}",
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
     "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
     "TASKCFG_ALL_ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
