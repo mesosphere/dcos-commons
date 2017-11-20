@@ -164,6 +164,11 @@ public class SchedulerRunner implements Runnable {
                     .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
         }
 
+        if (Capabilities.getInstance().supportsRegionAwareness()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.PARTITION_AWARE));
+        }
+
         return fwkInfoBuilder.build();
     }
 
