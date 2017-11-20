@@ -11,6 +11,7 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+import sdk_tasks
 import shakedown
 from tests import config
 
@@ -64,8 +65,7 @@ def test_mesos_v0_api():
             config.DEFAULT_TASK_COUNT,
             additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}},
             timeout_seconds=30 * 60)
-        )
-        config.check_running(foldered_name)
+        sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
