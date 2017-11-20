@@ -29,7 +29,7 @@ AWS_REGIONS = [
 ]
 
 # TODO: use cloud provider library APIs to get list of zones.
-AWS_ZONE_SUFFIXES = ['a', 'b', 'c']
+AWS_ZONE_SUFFIXES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 
 def is_valid_aws_region(region: str):
