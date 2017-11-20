@@ -56,7 +56,7 @@ def test_service_health():
 def test_mesos_v0_api():
     try:
         foldered_name = config.get_foldered_service_name()
-        # Install Cassandra using the v1 api.
+        # Install Cassandra using the v0 api.
         # Then, clean up afterwards.
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         sdk_install.install(
@@ -71,7 +71,7 @@ def test_mesos_v0_api():
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
-        # reinstall the v0 version for the following tests
+        # reinstall the v1 version for the following tests
         sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
