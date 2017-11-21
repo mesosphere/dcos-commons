@@ -18,7 +18,7 @@ from tests import config, test_utils
 
 
 def install_kafka(use_v0=False):
-    mesos_api_version = if use_v0 then "V0" else "V1"
+    mesos_api_version = "V0" if use_v0 else "V1"
     if sdk_utils.dcos_version_less_than("1.9"):
         # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
         sdk_install.install(
