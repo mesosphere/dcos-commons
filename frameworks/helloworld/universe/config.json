@@ -86,7 +86,10 @@
           "placement": {
             "description": "Marathon-style placement constraint for Hello pods",
             "type": "string",
-            "default": "hostname:UNIQUE"
+            "default": "hostname:UNIQUE",
+            "media": {
+              "type": "application/x-zone-constraints+json"
+            }
           },
           "secret1": {
             "description": "secret1",
@@ -139,7 +142,10 @@
           "placement": {
             "description": "Marathon-style placement constraint for World pods",
             "type": "string",
-            "default": "hostname:UNIQUE"
+            "default": "hostname:UNIQUE",
+            "media": {
+              "type": "application/x-zone-constraints+json"
+            }
           },
           "secret1": {
             "description": "secret1",
