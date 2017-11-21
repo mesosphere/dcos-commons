@@ -62,6 +62,8 @@
     "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
     {{/service.tls}}
 
+    "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
+
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "UPDATE_STRATEGY": "{{service.update_strategy}}",
     "MASTER_NODE_CPUS": "{{master_nodes.cpus}}",
@@ -264,9 +266,6 @@
     {{#elasticsearch.cluster_routing_allocation_total_shards_per_node}}
     "TASKCFG_ALL_CLUSTER_ROUTING_ALLOCATION_TOTAL_SHARDS_PER_NODE": "{{elasticsearch.cluster_routing_allocation_total_shards_per_node}}",
     {{/elasticsearch.cluster_routing_allocation_total_shards_per_node}}
-    {{#elasticsearch.cluster_routing_allocation_awareness_attributes}}
-    "TASKCFG_ALL_CLUSTER_ROUTING_ALLOCATION_AWARENESS_ATTRIBUTES": "{{elasticsearch.cluster_routing_allocation_awareness_attributes}}",
-    {{/elasticsearch.cluster_routing_allocation_awareness_attributes}}
     {{#elasticsearch.cluster_routing_allocation_disk_threshold_enabled}}
     "TASKCFG_ALL_CLUSTER_ROUTING_ALLOCATION_DISK_THRESHOLD_ENABLED": "{{elasticsearch.cluster_routing_allocation_disk_threshold_enabled}}",
     {{/elasticsearch.cluster_routing_allocation_disk_threshold_enabled}}

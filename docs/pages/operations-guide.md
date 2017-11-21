@@ -1118,6 +1118,111 @@ $ dcos task log --follow broker-0__75 # 'tail -f' the stdout logs from that brok
 $ dcos task log broker-0__75 stderr   # get recent stderr logs from that broker instance
 ```
 
+## Metrics
+
+### DC/OS >= 1.11
+The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
+
+The JSON representation of the metrics is available at the `/v1/metrics` endpoint`.
+
+###### JSON
+```json
+{
+	"version": "3.1.3",
+	"gauges": {},
+	"counters": {
+		"declines.long": {
+			"count": 15
+		},
+		"offers.processed": {
+			"count": 18
+		},
+		"offers.received": {
+			"count": 18
+		},
+		"operation.create": {
+			"count": 5
+		},
+		"operation.launch_group": {
+			"count": 3
+		},
+		"operation.reserve": {
+			"count": 20
+		},
+		"revives": {
+			"count": 3
+		},
+		"task_status.task_running": {
+			"count": 6
+		}
+	},
+	"histograms": {},
+	"meters": {},
+	"timers": {
+		"offers.process": {
+			"count": 10,
+			"max": 0.684745927,
+			"mean": 0.15145255818999337,
+			"min": 5.367950000000001E-4,
+			"p50": 0.0035879090000000002,
+			"p75": 0.40317217800000005,
+			"p95": 0.684745927,
+			"p98": 0.684745927,
+			"p99": 0.684745927,
+			"p999": 0.684745927,
+			"stddev": 0.24017017290826104,
+			"m15_rate": 0.5944843686231079,
+			"m1_rate": 0.5250565015924039,
+			"m5_rate": 0.583689104996544,
+			"mean_rate": 0.3809369986002824,
+			"duration_units": "seconds",
+			"rate_units": "calls/second"
+		}
+	}
+}
+```
+
+The Prometheus representation of the metrics is available at the `/v1/metrics/prometheus` endpoint.
+###### Prometheus
+```
+# HELP declines_long Generated from Dropwizard metric import (metric=declines.long, type=com.codahale.metrics.Counter)
+# TYPE declines_long gauge
+declines_long 20.0
+# HELP offers_processed Generated from Dropwizard metric import (metric=offers.processed, type=com.codahale.metrics.Counter)
+# TYPE offers_processed gauge
+offers_processed 24.0
+# HELP offers_received Generated from Dropwizard metric import (metric=offers.received, type=com.codahale.metrics.Counter)
+# TYPE offers_received gauge
+offers_received 24.0
+# HELP operation_create Generated from Dropwizard metric import (metric=operation.create, type=com.codahale.metrics.Counter)
+# TYPE operation_create gauge
+operation_create 5.0
+# HELP operation_launch_group Generated from Dropwizard metric import (metric=operation.launch_group, type=com.codahale.metrics.Counter)
+# TYPE operation_launch_group gauge
+operation_launch_group 4.0
+# HELP operation_reserve Generated from Dropwizard metric import (metric=operation.reserve, type=com.codahale.metrics.Counter)
+# TYPE operation_reserve gauge
+operation_reserve 20.0
+# HELP revives Generated from Dropwizard metric import (metric=revives, type=com.codahale.metrics.Counter)
+# TYPE revives gauge
+revives 4.0
+# HELP task_status_task_finished Generated from Dropwizard metric import (metric=task_status.task_finished, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_finished gauge
+task_status_task_finished 1.0
+# HELP task_status_task_running Generated from Dropwizard metric import (metric=task_status.task_running, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_running gauge
+task_status_task_running 8.0
+# HELP offers_process Generated from Dropwizard metric import (metric=offers.process, type=com.codahale.metrics.Timer)
+# TYPE offers_process summary
+offers_process{quantile="0.5",} 2.0609500000000002E-4
+offers_process{quantile="0.75",} 2.2853200000000001E-4
+offers_process{quantile="0.95",} 0.005792643
+offers_process{quantile="0.98",} 0.005792643
+offers_process{quantile="0.99",} 0.111950848
+offers_process{quantile="0.999",} 0.396119612
+offers_process_count 244.0
+```
+
 ## Running commands within containers
 
 An extremely useful tool for diagnosing task state is the ability to run arbitrary commands _within_ the task. The available tools for doing this depend on the version of DC/OS you're using:
