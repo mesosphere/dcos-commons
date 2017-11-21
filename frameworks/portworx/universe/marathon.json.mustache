@@ -39,7 +39,7 @@
     "PORTWORX_KVDB": "{{node.kvdb_servers}}",
     {{/etcd.enabled}}
     {{#node.container_parameters}}
-    "NODE_CONTAINER_PARAMETERS": "{{node.container_parameters}}",
+    "NODE_CONTAINER_PARAMETERS": "{{{node.container_parameters}}}",
     {{/node.container_parameters}}
 
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",

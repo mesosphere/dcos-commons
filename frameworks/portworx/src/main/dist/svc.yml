@@ -84,7 +84,7 @@ pods:
                           -v /lib/modules:/lib/modules                   \
                           $USR_SRC_MOUNT                                 \
                           {{#NODE_CONTAINER_PARAMETERS}}
-                          {{NODE_CONTAINER_PARAMETERS}}                  \
+                          {{{NODE_CONTAINER_PARAMETERS}}}                  \
                           {{/NODE_CONTAINER_PARAMETERS}}
                           {{#LIGHTHOUSE_ENABLED}}
                           -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
