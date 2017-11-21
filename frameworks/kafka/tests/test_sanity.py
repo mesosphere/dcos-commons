@@ -68,7 +68,7 @@ def test_mesos_v0_api():
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         install_kafka(use_v0=True)
 
-        sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
+        sdk_tasks.check_running(foldered_name, config.DEFAULT_BROKER_COUNT)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
