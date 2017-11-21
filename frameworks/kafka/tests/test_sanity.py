@@ -48,6 +48,12 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+def test_service_health():
+    assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
 @pytest.mark.mesos_v0
 def test_mesos_v0_api():
     try:
