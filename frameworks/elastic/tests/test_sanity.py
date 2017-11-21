@@ -74,10 +74,10 @@ def test_mesos_v0_api():
         sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
-            config.DEFAULT_TASK_COUNT,
+            current_expected_task_count,
             additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
         )
-        config.check_running(foldered_name)
+        sdk_tasks.check_running(foldered_name, current_expected_task_count)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
