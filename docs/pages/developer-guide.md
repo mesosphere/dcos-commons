@@ -1308,7 +1308,7 @@ $ py.test frameworks/helloworld/
 
 The most basic set of features present in the YAML representation of the `ServiceSpec` are [presented above](#service-spec). The remaining features are introduced below.
 
-### Count
+### Pods
 
 You may specify the number of pod instances to be run for every pod. As a safety measure, after initial install users can increase but not decrease this value. If you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod, like this:
 
@@ -1322,6 +1322,47 @@ pods:
 ```
 
 You should only enable this option if it is safe for the pod's tasks be destroyed, without needing to perform additional rebalancing or drain operations beforehand.
+
+Pods which are removed from a service specification entirely will be decommissioned.  All instances of undefined pods will have their tasks killed and all their resources released back to the cluster.
+
+For example updating a `ServiceSpec` from:
+ ```yaml
+ name: "hello-world"
+ pods:
+   hello:
+     count: 1
+     tasks:
+       server:
+         goal: RUNNING
+         cmd: "echo hello"
+         cpus: 1.0
+         memory: 256
+   world:
+     count: 1
+     tasks:
+       server:
+         goal: RUNNING
+         cmd: "echo world"
+         cpus: 1.0
+         memory: 256
+ ```
+
+ to:
+
+ ```yaml
+ name: "hello-world"
+ pods:
+   world:
+     count: 1
+     tasks:
+       server:
+         goal: RUNNING
+         cmd: "echo world"
+         cpus: 1.0
+         memory: 256
+ ```
+
+ would result in all `hello-<index>-server` tasks being killed and the resources unrserved.
 
 ### Containers
 
