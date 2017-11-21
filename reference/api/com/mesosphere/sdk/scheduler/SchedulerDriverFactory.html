@@ -166,10 +166,11 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>protected SchedulerDriver</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-">createInternal</a></span>(Scheduler&nbsp;scheduler,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerDriverFactory.html#createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-java.lang.String-">createInternal</a></span>(Scheduler&nbsp;scheduler,
               FrameworkInfo&nbsp;frameworkInfo,
               java.lang.String&nbsp;masterUrl,
-              Credential&nbsp;credential)</code>
+              Credential&nbsp;credential,
+              java.lang.String&nbsp;mesosAPIVersion)</code>
 <div class="block">Broken out into a separate function to allow testing with custom SchedulerDrivers.</div>
 </td>
 </tr>
@@ -267,7 +268,7 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-">
+<a name="createInternal-Scheduler-FrameworkInfo-java.lang.String-Credential-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -276,7 +277,8 @@ extends java.lang.Object</pre>
 <pre>protected&nbsp;SchedulerDriver&nbsp;createInternal(Scheduler&nbsp;scheduler,
                                          FrameworkInfo&nbsp;frameworkInfo,
                                          java.lang.String&nbsp;masterUrl,
-                                         Credential&nbsp;credential)</pre>
+                                         Credential&nbsp;credential,
+                                         java.lang.String&nbsp;mesosAPIVersion)</pre>
 <div class="block">Broken out into a separate function to allow testing with custom SchedulerDrivers.</div>
 </li>
 </ul>
