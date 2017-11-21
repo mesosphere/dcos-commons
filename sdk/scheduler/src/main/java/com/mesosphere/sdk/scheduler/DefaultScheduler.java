@@ -134,10 +134,47 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
+        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
         return planCoordinator;
+    }
+
+    private static void killUnneededTasks(
+            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
+        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIds = taskInfos.stream()
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
+        // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+                .map(taskInfo -> taskInfo.toBuilder())
+                .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
+                .collect(Collectors.toSet());
+
+        // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
+        // event of an untimely scheduler crash
+        for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
+            stateStore.clearTask(taskInfo.getName());
+            stateStore.storeTasks(Arrays.asList(taskInfo));
+        }
+
+        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
+
+        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
+            GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
+            if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
+                // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
+                // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
+                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+            }
+        }
     }
 
     private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
