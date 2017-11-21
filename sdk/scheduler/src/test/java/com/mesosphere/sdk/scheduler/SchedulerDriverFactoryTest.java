@@ -159,7 +159,8 @@ public class SchedulerDriverFactoryTest {
                 final Scheduler scheduler,
                 final FrameworkInfo frameworkInfo,
                 final String masterUrl,
-                final Credential credential) {
+                final Credential credential,
+                final String mesosAPIVersion) {
             createCalls++;
             if (credential != null) {
                 lastCallHadCredential = true;

@@ -143,6 +143,11 @@ public class SchedulerConfig {
     private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
 
     /**
+     * Environment variables for configuring Mesos API version.
+     */
+    private static String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
+
+    /**
      * Environment variables for configuring goal state override behavior.
      */
     private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
@@ -311,6 +316,13 @@ public class SchedulerConfig {
      */
     public int getStatsdPort() {
         return envStore.getRequiredInt(STATSD_UDP_PORT_ENV);
+    }
+
+    /**
+     * Returns the Mesos API version.
+     */
+    public String getMesosApiVersion() {
+        return envStore.getRequired(MESOS_API_VERSION_ENV);
     }
 
     /**

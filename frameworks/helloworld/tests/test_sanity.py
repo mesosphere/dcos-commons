@@ -37,32 +37,31 @@ def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
-# Note: presently the mesos v1 api does _not_ work in strict mode.
-# As such, we expect this test to fail until it does in fact work in strict mode.
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.mesos_v1
-@pytest.mark.skipif(sdk_utils.is_strict_mode(), reason='v1 API is not yet supported in strict mode')
-def test_mesos_v1_api():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    # Install Hello World using the v1 api.
-    # Then, clean up afterwards.
-    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"service": {"name": foldered_name, "mesos_api_version": "V1"}}
-    )
-    config.check_running(foldered_name)
-    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        # Install Hello World using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
+        )
+        config.check_running(foldered_name)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
-    # reinstall the v0 version for the following tests
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"service": {"name": foldered_name}})
+        # reinstall the v1 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}})
 
 
 @pytest.mark.sanity
