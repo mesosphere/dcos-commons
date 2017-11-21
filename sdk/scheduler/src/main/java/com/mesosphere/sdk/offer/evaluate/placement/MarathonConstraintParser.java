@@ -28,6 +28,7 @@ public class MarathonConstraintParser {
         SUPPORTED_OPERATORS.put("LIKE", new LikeOperator());
         SUPPORTED_OPERATORS.put("UNLIKE", new UnlikeOperator());
         SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
+        SUPPORTED_OPERATORS.put("IS", new IsOperator());
     }
 
     private MarathonConstraintParser() {
@@ -216,7 +217,7 @@ public class MarathonConstraintParser {
     }
 
     /**
-     * {@code IS} tells Marathon to match the value of the attribute exactly.  For example the following constraint
+     * {@code IS} tells Marathon to match the value of the key exactly.  For example the following constraint
      * ensures that tasks only run on agents with the attribute "foo" equal to "bar": {@code [["foo", "IS", "bar"]]}
      */
     private static class IsOperator implements Operator {
