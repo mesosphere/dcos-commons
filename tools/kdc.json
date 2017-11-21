@@ -28,7 +28,6 @@
   ],
   "requirePorts": true,
   "env": {
-    "LOG_LEVEL": "LOG_DEBUG",
-    "ENC_TYPES": "aes256-cts des3-cbc-sha1 des-cbc-md5 des-cbc-crc"
+    "LOG_LEVEL": "LOG_DEBUG"
   }
 }
