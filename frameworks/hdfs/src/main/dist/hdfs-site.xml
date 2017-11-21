@@ -830,13 +830,6 @@
 
         <!-- Security Configuration -->
         <property>
-            <name>hadoop.security.auth_to_local</name>
-            <value>
-                RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
-                RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
-            </value>
-        </property>
-        <property>
             <name>dfs.block.access.token.enable</name>
             <value>true</value>
         </property>
@@ -888,6 +881,22 @@
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
             <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.keytab.file</name>
+            <value>hdfs.keytab</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.kerberos.principal</name>
+            <value>{{KERBEROS_PRIMARY}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.kerberos.http.principal</name>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.kerberos.internal.spnego.principal</name>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         {{/NAMENODE}}
 

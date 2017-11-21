@@ -25,9 +25,9 @@ public class Main {
 
     private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
         Base64.Decoder decoder = Base64.getDecoder();
-        String base64_yaml = System.getenv(TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64_ENV);
-        byte[] es_yaml_bytes = decoder.decode(base64_yaml);
-        String es_yaml_block = new String(es_yaml_bytes, "UTF-8");
+        String base64Yaml = System.getenv(TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64_ENV);
+        byte[] esYamlBytes = decoder.decode(base64Yaml);
+        String esYamlBlock = new String(esYamlBytes, "UTF-8");
 
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
@@ -39,7 +39,7 @@ public class Main {
                 DefaultServiceSpec.newGenerator(
                         rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
                         .setAllPodsEnv("CLUSTER_NAME", SchedulerUtils.withEscapedSlashes(rawServiceSpec.getName()))
-                        .setAllPodsEnv("CUSTOM_YAML_BLOCK", es_yaml_block)
+                        .setAllPodsEnv("CUSTOM_YAML_BLOCK", esYamlBlock)
                         .build(),
                 schedulerConfig)
                 .setPlansFrom(rawServiceSpec);

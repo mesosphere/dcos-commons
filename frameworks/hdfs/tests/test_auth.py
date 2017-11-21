@@ -1,8 +1,6 @@
 import logging
-import os
 import pytest
-import subprocess
-import time
+import itertools
 
 import sdk_auth
 import sdk_hosts
@@ -34,16 +32,15 @@ def kerberos(configure_security):
             "data-2-node",
         ]
         principals = []
-        for instance in instances:
-            for primary in primaries:
-                principals.append(
-                    "{primary}/{instance}.{fqdn}@{REALM}".format(
-                        primary=primary,
-                        instance=instance,
-                        fqdn=fqdn,
-                        REALM=sdk_auth.REALM
-                    )
+        for (primary, instance) in itertools.product(primaries, instances):
+            principals.append(
+                "{primary}/{instance}.{fqdn}@{REALM}".format(
+                    primary=primary,
+                    instance=instance,
+                    fqdn=fqdn,
+                    REALM=sdk_auth.REALM
                 )
+            )
         principals.append(config.GENERIC_HDFS_USER_PRINCIPAL)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
@@ -51,14 +48,14 @@ def kerberos(configure_security):
         kerberos_env.finalize()
         service_kerberos_options = {
             "service": {
-                "kerberos": {
-                    "enabled": True,
-                    "kdc_host_name": kerberos_env.get_host(),
-                    "kdc_host_port": kerberos_env.get_port(),
-                    "keytab_secret": kerberos_env.get_keytab_path(),
-                    "primary": primaries[0],
-                    "primary_http": primaries[1],
-                    "realm": sdk_auth.REALM
+                "security": {
+                    "kerberos": {
+                        "enabled": True,
+                        "kdc_host_name": kerberos_env.get_host(),
+                        "kdc_host_port": kerberos_env.get_port(),
+                        "keytab_secret": kerberos_env.get_keytab_path(),
+                        "realm": sdk_auth.REALM
+                    }
                 }
             }
         }

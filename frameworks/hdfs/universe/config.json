@@ -63,55 +63,51 @@
           "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
           "default": "INFO"
         },
-        "tls": {
+        "security": {
+          "description": "HDFS security settings.",
           "type": "object",
-          "description": "TLS configuration properties.",
           "properties": {
-            "enabled": {
-              "description": "Enable TLS support (requires Strict mode).",
-              "type": "boolean",
-              "default": false
-            }
-          }
-        },
-        "kerberos": {
-          "type": "object",
-          "description": "Kerberos configuration properties.",
-          "properties": {
-            "enabled": {
-              "description": "Enable kerberos authentication.",
-              "type": "boolean",
-              "default": false
+            "tls": {
+              "type": "object",
+              "description": "TLS configuration properties.",
+              "properties": {
+                "enabled": {
+                  "description": "Enable TLS support (requires Strict mode).",
+                  "type": "boolean",
+                  "default": false
+                }
+              }
             },
-            "kdc_host_name": {
-              "type": "string",
-              "description": "The name or address of a host running a KDC for the realm.",
-              "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
-            },
-            "kdc_host_port": {
-              "type": "string",
-              "description": "The port of the host running a KDC for that realm.",
-              "default": "2500"
-            },
-            "keytab_secret": {
-              "type": "string",
-              "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
-              "default": "__dcos_base64__hdfs_keytab"
-            },
-            "primary": {
-              "type": "string",
-              "description": "The Kerberos primary used by HDFS tasks.  The full principal will be <service.kerberos.primary>/<mesos_dns_address>@<service.kerberos.realm>",
-              "default": "hdfs"
-            },
-            "primary_http": {
-              "type": "string",
-              "description": "The Kerberos primary used by the HTTP server running on HDFS tasks.  See <service.kerberos.primary>.",
-              "default": "HTTP"
-            },
-            "realm": {
-              "type": "string",
-              "description": "The Kerberos realm used to render the principal of HDFS tasks.",
-              "default": "LOCAL"
+            "kerberos": {
+              "type": "object",
+              "description": "Kerberos configuration properties.",
+              "properties": {
+                "enabled": {
+                  "description": "Enable kerberos authentication.",
+                  "type": "boolean",
+                  "default": false
+                },
+                "kdc_host_name": {
+                  "type": "string",
+                  "description": "The name or address of a host running a KDC for the realm.",
+                  "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                },
+                "kdc_host_port": {
+                  "type": "string",
+                  "description": "The port of the host running a KDC for that realm.",
+                  "default": "2500"
+                },
+                "keytab_secret": {
+                  "type": "string",
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
+                  "default": "__dcos_base64__hdfs_keytab"
+                },
+                "realm": {
+                  "type": "string",
+                  "description": "The Kerberos realm used to render the principal of HDFS tasks.",
+                  "default": "LOCAL"
+                }
+              }
             }
           }
         }
@@ -1289,7 +1285,7 @@
         "tmp_dir": {
           "type": "string",
           "description": "A base for other temporary directories.",
-          "default": "/tmp/hadoop-${user.name}"
+          "default": "/tmp/hadoop-$(whoami)"
         },
         "http_filter_initializer": {
           "type": "string",
@@ -1300,16 +1296,6 @@
           "type": "boolean",
           "description": "Is service-level authorization enabled?",
           "default": false
-        },
-        "security_instrumentation_requires_admin": {
-          "type": "boolean",
-          "description": "Indicates if administrator ACLs are required to access instrumentation servlets (JMX, METRICS, CONF, STACKS).",
-          "default": false
-        },
-        "security_authentication": {
-          "type": "string",
-          "description": "Possible values are simple (no authentication), and kerberos",
-          "default": "simple"
         },
         "security_group_mapping": {
           "type": "string",
@@ -1423,8 +1409,12 @@
         },
         "security_auth_to_local": {
           "type": "string",
-          "description": "Maps kerberos principals to local user names",
-          "default": ""
+          "description": "Maps kerberos principals to local user names. This field must be base64 encoded.",
+          "media": {
+            "binaryEncoding": "base64",
+            "type": "application/x-yaml"
+          },
+          "default": "UlVMRTpbMjokMUAkMF0oLiopcy8uKi97e1RBU0tfVVNFUn19LwpSVUxFOlsxOiQxQCQwXSguKilzLy4qL3t7VEFTS19VU0VSfX0vCg=="
         },
         "io_file_buffer_size": {
           "type": "string",
@@ -2087,8 +2077,6 @@
         "tmp_dir",
         "http_filter_initializer",
         "security_authorization",
-        "security_instrumentation_requires_admin",
-        "security_authentication",
         "security_group_mapping",
         "security_groups_cache_secs",
         "security_groups_negative-cache_secs",
