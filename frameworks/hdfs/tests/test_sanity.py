@@ -11,6 +11,7 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+import sdk_tasks
 import shakedown
 from tests import config
 
@@ -47,6 +48,34 @@ def configure_package(configure_security):
 @pytest.fixture(autouse=True)
 def pre_test_setup():
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        # Install HDFS using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}},
+            timeout_seconds=30 * 60)
+        sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        # reinstall the v1 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}},
+            timeout_seconds=30 * 60)
 
 
 @pytest.mark.sanity

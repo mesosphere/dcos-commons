@@ -24,9 +24,9 @@ def configure_package(configure_security):
         # user=root because Azure CLI needs to run in root...
         # We don't run the Azure tests in strict however, so don't set it then.
         if os.environ.get("SECURITY") == "strict":
-            additional_options={"service": { "name": config.get_foldered_service_name(), "detect_zones": False } }
+            additional_options={"service": { "name": config.get_foldered_service_name() } }
         else:
-            additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root", "detect_zones": False } }
+            additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root" } }
 
         sdk_install.install(
             config.PACKAGE_NAME,

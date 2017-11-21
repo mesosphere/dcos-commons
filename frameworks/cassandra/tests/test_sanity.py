@@ -7,6 +7,7 @@ import sdk_install
 import sdk_jobs
 import sdk_metrics
 import sdk_plan
+import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 import shakedown
@@ -28,7 +29,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name(), "detect_zones": False}})
+            additional_options={"service": {"name": config.get_foldered_service_name()} })
 
         tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in test_jobs:
@@ -47,6 +48,35 @@ def configure_package(configure_security):
 @pytest.mark.smoke
 def test_service_health():
     assert shakedown.service_healthy(config.get_foldered_service_name())
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = config.get_foldered_service_name()
+        # Install Cassandra using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.get_foldered_service_name(),
+            config.DEFAULT_TASK_COUNT,
+            additional_options={
+                "service": {"name": foldered_name, "mesos_api_version": "V0"}
+            }
+        )
+        sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        # reinstall the v1 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}})
 
 
 @pytest.mark.sanity

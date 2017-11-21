@@ -10,16 +10,20 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         yield # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
 
 @pytest.mark.sanity
 def test_rack():
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.get_foldered_service_name(),
+        3,
+        additional_options={"service": {"name": config.get_foldered_service_name(), "detect_zones": True}})
 
     # dcos task exec node-0-server bash -c 'JAVA_HOME=jre1.8.0_144 apache-cassandra-3.0.14/bin/nodetool status'
     raw_status = nodetool.cmd('node-0', 'status')
