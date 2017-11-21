@@ -17,7 +17,7 @@ import (
 
 	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
 	"github.com/aryann/difflib"
-	"github.com/nickbp/mustache"
+	"github.com/gabrielhartmann/mustache"
 
 	"github.com/dcos/dcos-cni/pkg/mesos"
 )
@@ -215,11 +215,15 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 
 func renderTemplate(origContent string, outPath string, envMap map[string]string, source string) {
 	dirpath, _ := path.Split(outPath)
-	template, err := mustache.ParseStringInDir(origContent, dirpath)
+	template, err := mustache.ParseStringPartialsRawInDir(origContent, dirpath, nil, false)
 	if err != nil {
 		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, outPath, err)
 	}
-	newContent := template.Render(envMap)
+
+	newContent, err := template.Render(envMap)
+	if err != nil {
+		log.Fatalf("Failed to render template from %s to '%s': %s", source, outPath, err)
+	}
 
 	// Print a nice debuggable diff of the changes before they're written.
 	log.Printf("Writing rendered '%s' from %s with the following changes (%d bytes -> %d bytes):",

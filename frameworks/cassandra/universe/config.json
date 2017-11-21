@@ -35,10 +35,10 @@
           "type": "string",
           "default": "datacenter1"
         },
-        "rack": {
-          "description": "The name of the rack this cluster is running on",
-          "type": "string",
-          "default": "rack1"
+        "detect_zones": {
+          "description": "Whether to use Zones when available for Cassandra racks.  This value cannot be changed after initial deployment",
+          "type": "boolean",
+          "default": true
         },
         "remote_seeds": {
           "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",

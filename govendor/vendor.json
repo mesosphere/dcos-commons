@@ -88,6 +88,12 @@
 			"tree": true
 		},
 		{
+			"checksumSHA1": "BU+lI0p8Di+hQzRQ6D9deU5IEI4=",
+			"path": "github.com/gabrielhartmann/mustache",
+			"revision": "d20021ab1d8bed0152d0d305cc613839cc86b55f",
+			"revisionTime": "2017-11-16T21:26:17Z"
+		},
+		{
 			"checksumSHA1": "AIxWUvzOjHni8IwkElJw+b1IES8=",
 			"path": "github.com/nickbp/mustache",
 			"revision": "a219940dea5cbaf16473ee0d23386def39111593",

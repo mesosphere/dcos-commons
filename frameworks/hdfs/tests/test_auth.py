@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_universe):
+def kerberos(configure_security):
     try:
         primaries = ["hdfs", "HTTP"]
         fqdn = "{service_name}.{host_suffix}".format(
@@ -78,21 +78,17 @@ def kerberos(configure_universe):
         if kerberos_env:
             kerberos_env.cleanup()
 
-# General process for each test
-# 1. Will use a keytab local to the client binary (key will either be a generic one or one made within the test context)
-# 2. Launch marathon app referencing said keytab via secret store
-# 3. container environment will have kerberos CLI and conf file setup
-# 4. task exec to app's container
-# 5. within each test, depending on the keytab that's pulled, one should kinit with appropriate principal
-# 6. use service client binary to interact with client once authed
 
-
+@pytest.fixture(autouse=True)
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
 @pytest.mark.smoke
 def test_health_of_kerberized_hdfs():
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
-sdk_utils.is_strict_mode()
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_write_and_read(kerberos):
