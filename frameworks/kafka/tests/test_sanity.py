@@ -19,7 +19,6 @@ from tests import config, test_utils
 
 def install_kafka(use_v0=False):
     mesos_api_version = "V0" if use_v0 else "V1"
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     if sdk_utils.dcos_version_less_than("1.9"):
         # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
         sdk_install.install(
@@ -295,8 +294,6 @@ def test_no_unavailable_partitions_exist():
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
         'topic unavailable_partitions', json=True)
 
-    assert len(partition_info) == 1
-    assert partition_info['message'] == ''
 
 
 # --------- CLI -------------
