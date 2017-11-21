@@ -25,13 +25,13 @@ def install_kafka(use_v0=False):
         sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
-            config.DEFAULT_TASK_COUNT,
+            config.DEFAULT_BROKER_COUNT,
             additional_options={"service": {"name": foldered_name, "mesos_api_version": mesos_api_version}})
     else:
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
             foldered_name,
-            config.DEFAULT_TASK_COUNT,
+            config.DEFAULT_BROKER_COUNT,
             additional_options={"service": {"name": foldered_name, "mesos_api_version": mesos_api_version}, "brokers": {"cpus": 0.5}})
 
 
