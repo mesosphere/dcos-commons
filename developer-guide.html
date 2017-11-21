@@ -415,6 +415,21 @@
       <li><a href="#virtual-networks" id="markdown-toc-virtual-networks">Virtual networks</a></li>
     </ul>
   </li>
+  <li><a href="#metrics" id="markdown-toc-metrics">Metrics</a>    <ul>
+      <li><a href="#default" id="markdown-toc-default">Default</a>        <ul>
+          <li><a href="#offers" id="markdown-toc-offers">Offers</a></li>
+          <li><a href="#operations" id="markdown-toc-operations">Operations</a></li>
+          <li><a href="#status" id="markdown-toc-status">Status</a></li>
+          <li><a href="#reporting" id="markdown-toc-reporting">Reporting</a>            <ul>
+              <li><a href="#json" id="markdown-toc-json">JSON</a></li>
+              <li><a href="#prometheus" id="markdown-toc-prometheus">Prometheus</a></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li><a href="#custom-metrics" id="markdown-toc-custom-metrics">Custom Metrics</a></li>
+    </ul>
+  </li>
   <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a>    <ul>
       <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
     </ul>
@@ -1506,6 +1521,143 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
   </li>
   <li>A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.</li>
 </ul>
+
+<h1 id="metrics">Metrics</h1>
+<h2 id="default">Default</h2>
+<p>Schedulers generate a set of default metrics.  Three main categories of metrics are reported for: offers, operations, and status messages.</p>
+
+<h5 id="offers">Offers</h5>
+<ol>
+  <li>Received</li>
+  <li>Processed</li>
+  <li>Decline (long/short)</li>
+</ol>
+
+<p>Offers are counted as received as soon as they are offered to the scheduler by Mesos.  They are counted as processed afterthey have been compared against the current work the scheduler needs to do, and either accepted or rejected.</p>
+
+<p>Offers which are declined fall into two categories, those which are declined for a long time (2 weeks) and those which are declined for a short time (5 seconds).  In general, offers are declined for a short time when the offer queue is fulland they are declined for a long time when they fail to match any of the current work requirements.</p>
+
+<p>The <code class="highlighter-rouge">offers.process</code> timer reports statistics about how long it takes the scheduler to process all offers in the offer queue.</p>
+
+<h5 id="operations">Operations</h5>
+<p>Mesos has a set of operations which may be performed on offers.  These include <code class="highlighter-rouge">RESERVE</code> and <code class="highlighter-rouge">LAUNCH_GROUP</code> for example.
+The count of all operations is reported.</p>
+
+<h5 id="status">Status</h5>
+<p>Mesos has a set of TaskStatus messages that scheduler’s receive.  These include <code class="highlighter-rouge">TASK_RUNNING</code> and <code class="highlighter-rouge">TASK_FAILED</code> for example.
+The count of all TaskStatus messages is reported.</p>
+
+<h5 id="reporting">Reporting</h5>
+<p>The scheduler’s metrics are reported via three different mechanisms: <code class="highlighter-rouge">JSON</code>, <a href="https://prometheus.io/">prometheus</a> and <a href="https://github.com/etsy/statsd">StatsD</a>. The StatsD metrics are pushed to the address defined by the environment variables <code class="highlighter-rouge">STATSD_UDP_HOST</code> and <code class="highlighter-rouge">STATSD_UDP_PORT</code>. See <a href="https://dcos.io/docs/1.10/metrics/">DC/OS Metrics documentation</a> for more details.</p>
+
+<p>The JSON representation of the metrics is available at the <code class="highlighter-rouge">/v1/metrics</code> endpoint`.</p>
+
+<h6 id="json">JSON</h6>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+	</span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.1.3"</span><span class="p">,</span><span class="w">
+	</span><span class="nt">"gauges"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+	</span><span class="nt">"counters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="nt">"declines.long"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"offers.processed"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"offers.received"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"operation.create"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"operation.launch_group"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"operation.reserve"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"revives"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="nt">"task_status.task_running"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="w">
+		</span><span class="p">}</span><span class="w">
+	</span><span class="p">},</span><span class="w">
+	</span><span class="nt">"histograms"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+	</span><span class="nt">"meters"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+	</span><span class="nt">"timers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="nt">"offers.process"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"mean"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.15145255818999337</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.367950000000001E-4</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"p50"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0035879090000000002</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"p75"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.40317217800000005</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"p95"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"p98"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"p99"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"p999"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"stddev"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.24017017290826104</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"m15_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5944843686231079</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"m1_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5250565015924039</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"m5_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.583689104996544</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"mean_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3809369986002824</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"duration_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"seconds"</span><span class="p">,</span><span class="w">
+			</span><span class="nt">"rate_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calls/second"</span><span class="w">
+		</span><span class="p">}</span><span class="w">
+	</span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<p>The Prometheus representation of the metrics is available at the <code class="highlighter-rouge">/v1/metrics/prometheus</code> endpoint.</p>
+<h6 id="prometheus">Prometheus</h6>
+<div class="highlighter-rouge"><pre class="highlight"><code># HELP declines_long Generated from Dropwizard metric import (metric=declines.long, type=com.codahale.metrics.Counter)
+# TYPE declines_long gauge
+declines_long 20.0
+# HELP offers_processed Generated from Dropwizard metric import (metric=offers.processed, type=com.codahale.metrics.Counter)
+# TYPE offers_processed gauge
+offers_processed 24.0
+# HELP offers_received Generated from Dropwizard metric import (metric=offers.received, type=com.codahale.metrics.Counter)
+# TYPE offers_received gauge
+offers_received 24.0
+# HELP operation_create Generated from Dropwizard metric import (metric=operation.create, type=com.codahale.metrics.Counter)
+# TYPE operation_create gauge
+operation_create 5.0
+# HELP operation_launch_group Generated from Dropwizard metric import (metric=operation.launch_group, type=com.codahale.metrics.Counter)
+# TYPE operation_launch_group gauge
+operation_launch_group 4.0
+# HELP operation_reserve Generated from Dropwizard metric import (metric=operation.reserve, type=com.codahale.metrics.Counter)
+# TYPE operation_reserve gauge
+operation_reserve 20.0
+# HELP revives Generated from Dropwizard metric import (metric=revives, type=com.codahale.metrics.Counter)
+# TYPE revives gauge
+revives 4.0
+# HELP task_status_task_finished Generated from Dropwizard metric import (metric=task_status.task_finished, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_finished gauge
+task_status_task_finished 1.0
+# HELP task_status_task_running Generated from Dropwizard metric import (metric=task_status.task_running, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_running gauge
+task_status_task_running 8.0
+# HELP offers_process Generated from Dropwizard metric import (metric=offers.process, type=com.codahale.metrics.Timer)
+# TYPE offers_process summary
+offers_process{quantile="0.5",} 2.0609500000000002E-4
+offers_process{quantile="0.75",} 2.2853200000000001E-4
+offers_process{quantile="0.95",} 0.005792643
+offers_process{quantile="0.98",} 0.005792643
+offers_process{quantile="0.99",} 0.111950848
+offers_process{quantile="0.999",} 0.396119612
+offers_process_count 244.0
+</code></pre>
+</div>
+
+<h2 id="custom-metrics">Custom Metrics</h2>
+<p>A service author may choose to expose custom metrics by using the metrics registry.  The popular <a href="http://metrics.dropwizard.io">dropwizard metrics library</a> is used.  An instance of a <a href="http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html">MetricsRegistry</a> can be acquired in the following way.</p>
+
+<div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">MetricsRegistry</span> <span class="n">registry</span> <span class="o">=</span> <span class="n">Metrics</span><span class="o">.</span><span class="na">getRegistry</span><span class="o">();</span>
+</code></pre>
+</div>
+
+<p>Use of this registry will guarantee that metrics are reported on all the appropriate interfaces.</p>
 
 <h1 id="secrets">Secrets</h1>
 
