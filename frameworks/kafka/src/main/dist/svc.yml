@@ -14,6 +14,7 @@ pods:
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
+      - {{SETUP_HELPER_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
@@ -71,6 +72,9 @@ pods:
           export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
         {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
+          ./setup-helper &&
+          export ADVERTISED_LISTENERS=`cat advertised-listeners-config` &&
+          export LISTENERS=`cat listeners-config` &&
           ./bootstrap -resolve=false &&
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \

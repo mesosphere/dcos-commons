@@ -33,25 +33,11 @@ broker.id={{POD_INSTANCE_INDEX}}
 # returned from java.net.InetAddress.getCanonicalHostName().
 #
 # advertised.listeners=PLAINTEXT://your.host.name:9092
-
-{{^SECURITY_KERBEROS_ENABLED}}
-{{^KAFKA_ENABLE_TLS}}
-listeners=PLAINTEXT://{{MESOS_CONTAINER_IP}}:{{KAFKA_BROKER_PORT}}
-port={{KAFKA_BROKER_PORT}}
-advertised.listeners=PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
-{{/KAFKA_ENABLE_TLS}}
-{{/SECURITY_KERBEROS_ENABLED}}
-
+{{ADVERTISED_LISTENERS}}
+{{LISTENERS}}
 
 {{#KAFKA_ENABLE_TLS}}
 ############################# TLS Settings #############################
-{{#KAFKA_ALLOW_PLAINTEXT}}
-listeners=PLAINTEXT://{{MESOS_CONTAINER_IP}}:{{KAFKA_BROKER_PORT}},SSL://{{MESOS_CONTAINER_IP}}:{{KAFKA_BROKER_PORT_TLS}}
-{{/KAFKA_ALLOW_PLAINTEXT}}
-{{^KAFKA_ALLOW_PLAINTEXT}}
-listeners=SSL://{{MESOS_CONTAINER_IP}}:{{KAFKA_BROKER_PORT_TLS}}
-{{/KAFKA_ALLOW_PLAINTEXT}}
-
 ssl.keystore.location={{MESOS_SANDBOX}}/broker.keystore
 ssl.keystore.password=notsecure
 ssl.key.password=notsecure
@@ -62,12 +48,6 @@ ssl.truststore.password=notsecure
 ssl.enabled.protocols=TLSv1.2
 
 security.inter.broker.protocol=SSL
-{{#KAFKA_ALLOW_PLAINTEXT}}
-advertised.listeners=PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}},SSL://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT_TLS}}
-{{/KAFKA_ALLOW_PLAINTEXT}}
-{{^KAFKA_ALLOW_PLAINTEXT}}
-advertised.listeners=SSL://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT_TLS}}
-{{/KAFKA_ALLOW_PLAINTEXT}}
 
 {{#KAFKA_ALLOW_PLAINTEXT}}
 port={{KAFKA_BROKER_PORT}}
@@ -78,9 +58,6 @@ port={{KAFKA_BROKER_PORT_TLS}}
 {{/KAFKA_ENABLE_TLS}}
 
 {{#SECURITY_KERBEROS_ENABLED}}
-############################# SASL Settings #############################
-listeners=SASL_PLAINTEXT://{{MESOS_CONTAINER_IP}}:{{KAFKA_BROKER_PORT}}
-advertised.listeners=SASL_PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
 security.inter.broker.protocol=SASL_PLAINTEXT
 
 sasl.mechanism.inter.broker.protocol=GSSAPI
