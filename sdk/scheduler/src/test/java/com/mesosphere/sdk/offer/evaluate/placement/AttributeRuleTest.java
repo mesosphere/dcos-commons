@@ -6,7 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
+import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
