@@ -234,19 +234,19 @@ class KerberosEnvironment:
         """
         # TODO: Perform sanitation check against validity of format for all given principals and raise an
         # exception when the format of a principal is invalid.
-        self.principals = principals
+        self.principals = list(map(lambda x: x.strip(), principals))
 
-        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=principals))
+        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=self.principals))
         kadmin_options = ["-l"]
         kadmin_cmd = "add"
         kadmin_args = ["--use-defaults", "--random-password"]
 
         try:
-            kadmin_args.extend(principals)
+            kadmin_args.extend(self.principals)
             self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
         except Exception as e:
             raise RuntimeError("Failed to add principals {principals}: {err_msg}".format(
-                principals=principals, err_msg=repr(e)))
+                principals=self.principals, err_msg=repr(e)))
 
         log.info("Principals successfully added to KDC")
 
