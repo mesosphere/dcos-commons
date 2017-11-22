@@ -27,7 +27,7 @@ public class ServiceTest {
     @Test
     public void testSpecSSL() throws Exception {
         SchedulerConfigResult result = getTestBuilder()
-                .setOptions("service.tls", "true")
+                .setOptions("service.security.tls.enabled", "true")
                 .run();
         Assert.assertTrue(result.getTaskConfig("node", "server", "cassandra").contains("internode_encryption: all"));
         Assert.assertTrue(result.getTaskConfig("node", "server", "cassandra").contains(

@@ -41,13 +41,13 @@
     {{/service.service_account_secret}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
-    {{#service.tls}}
-    "TASKCFG_ALL_CASSANDRA_ENABLE_TLS": "{{service.tls}}",
+    {{#service.security.tls.enabled}}
+    "TASKCFG_ALL_SECURITY_TLS_ENABLED": "{{service.security.tls.enabled}}",
     "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.14/conf/cqlshrc",
-    {{#service.tls_allow_plaintext}}
-    "TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
-    {{/service.tls_allow_plaintext}}
-    {{/service.tls}}
+    {{#service.security.tls.allow_plaintext}}
+    "TASKCFG_ALL_SECURITY_TLS_ALLOW_PLAINTEXT": "{{service.security.tls.allow_plaintext}}",
+    {{/service.security.tls.allow_plaintext}}
+    {{/service.security.tls.enabled}}
 
     "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
