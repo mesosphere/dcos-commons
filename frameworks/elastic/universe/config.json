@@ -62,16 +62,28 @@
           "type": "string",
           "default": "V1"
         },
-        "tls": {
-          "description": "Enable TLS support (requires Enterprise DC/OS running in strict or permissive security mode).",
-          "type": "boolean",
-          "default": false
-        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
           "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
           "default": "INFO"
+        },
+        "security": {
+          "description": "Elastic security settings",
+          "type": "object",
+          "properties": {
+              "tls": {
+                "description": "TLS settings",
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                      "description": "Enable TLS support (requires Enterprise DC/OS running in permissive or strict security mode)",
+                      "type": "boolean",
+                      "default": false
+                    }
+                }
+              }
+          }
         }
       },
       "required": [
