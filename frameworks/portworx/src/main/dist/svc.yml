@@ -121,7 +121,7 @@ pods:
 
              systemctl daemon-reload && systemctl restart portworx
 
-             while ! /opt/pwx/bin/pxctl status ; do sleep 5 ;  done
+             while ! /opt/pwx/bin/pxctl -j status | grep status | grep STATUS_OK; do /opt/pwx/bin/pxctl status; sleep 5 ; done
 
   etcd-cluster:
     user: {{SERVICE_USER}}
