@@ -1001,7 +1001,7 @@ Schedulers generate a set of default metrics.  Metrics are reported in three mai
 
 Offers are counted as received as soon as they are offered to the scheduler by Mesos. They are counted as processed after they have been compared against the current work the scheduler needs to do, and then either accepted or rejected.
 
-Declined offers fall into two categories,: those that are declined for a long time (e.g., 2 weeks) and those that are declined for a short time (e.g., 5 seconds). In general, offers are declined for a short time when the offer queue is full. They are declined for a long time when they fail to match any of the current work requirements.
+Declined offers fall into two categories: those that are declined for a long time (e.g., 2 weeks) and those that are declined for a short time (e.g., 5 seconds). In general, offers are declined for a short time when the offer queue is full. They are declined for a long time when they fail to match any of the current work requirements.
 
 The `offers.process` timer reports statistics about how long it takes the scheduler to process all offers in the offer queue.
 
@@ -1014,7 +1014,7 @@ Mesos has a set of TaskStatus messages that schedulers receive. These include, f
 The count of all TaskStatus messages is reported.
 
 ##### Reporting
-The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See  the [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
+The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See the [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
 
 The JSON representation of the metrics is available at the `/v1/metrics` endpoint`.
 
