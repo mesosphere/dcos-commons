@@ -330,6 +330,21 @@ public class TaskUtils {
                 .findFirst();
     }
 
+    public static Optional<TaskSpec> getTaskSpec(ServiceSpec serviceSpec, String podType, String taskName) {
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            if (!podSpec.getType().equals(podType)) {
+                continue;
+            }
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                if (taskSpec.getName().equals(taskName)) {
+                    return Optional.of(taskSpec);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
