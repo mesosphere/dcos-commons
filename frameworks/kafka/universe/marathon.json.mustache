@@ -67,9 +67,9 @@
 
     {{#service.security.tls.enabled}}
     "BROKER_PORT_TLS": "{{brokers.port_tls}}",
-    "TASKCFG_ALL_KAFKA_ENABLE_TLS": "{{service.security.tls.enabled}}",
+    "TASKCFG_ALL_SECURITY_TLS_ENABLED": "{{service.security.tls.enabled}}",
     {{#service.security.tls.allow_plaintext}}
-    "TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT": "{{service.security.tls.allow_plaintext}}",
+    "TASKCFG_ALL_SECURITY_TLS_ALLOW_PLAINTEXT": "{{service.security.tls.allow_plaintext}}",
     {{/service.security.tls.allow_plaintext}}
     {{/service.security.tls.enabled}}
 
