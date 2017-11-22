@@ -1524,31 +1524,31 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 
 <h1 id="metrics">Metrics</h1>
 <h2 id="default">Default</h2>
-<p>Schedulers generate a set of default metrics.  Three main categories of metrics are reported for: offers, operations, and status messages.</p>
+<p>Schedulers generate a set of default metrics.  Metrics are reported in three main categories: offers, operations, and status messages.</p>
 
 <h5 id="offers">Offers</h5>
 <ol>
-  <li>Received</li>
-  <li>Processed</li>
-  <li>Decline (long/short)</li>
+  <li>Received.</li>
+  <li>Processed.</li>
+  <li>Decline (long/short).</li>
 </ol>
 
-<p>Offers are counted as received as soon as they are offered to the scheduler by Mesos.  They are counted as processed afterthey have been compared against the current work the scheduler needs to do, and either accepted or rejected.</p>
+<p>Offers are counted as received as soon as they are offered to the scheduler by Mesos. They are counted as processed after they have been compared against the current work the scheduler needs to do, and then either accepted or rejected.</p>
 
-<p>Offers which are declined fall into two categories, those which are declined for a long time (2 weeks) and those which are declined for a short time (5 seconds).  In general, offers are declined for a short time when the offer queue is fulland they are declined for a long time when they fail to match any of the current work requirements.</p>
+<p>Declined offers fall into two categories: those that are declined for a long time (e.g., 2 weeks) and those that are declined for a short time (e.g., 5 seconds). In general, offers are declined for a short time when the offer queue is full. They are declined for a long time when they fail to match any of the current work requirements.</p>
 
 <p>The <code class="highlighter-rouge">offers.process</code> timer reports statistics about how long it takes the scheduler to process all offers in the offer queue.</p>
 
 <h5 id="operations">Operations</h5>
-<p>Mesos has a set of operations which may be performed on offers.  These include <code class="highlighter-rouge">RESERVE</code> and <code class="highlighter-rouge">LAUNCH_GROUP</code> for example.
+<p>Mesos has a set of operations that can be performed on offers. These include, for example, <code class="highlighter-rouge">RESERVE</code> and <code class="highlighter-rouge">LAUNCH_GROUP</code>.
 The count of all operations is reported.</p>
 
 <h5 id="status">Status</h5>
-<p>Mesos has a set of TaskStatus messages that scheduler’s receive.  These include <code class="highlighter-rouge">TASK_RUNNING</code> and <code class="highlighter-rouge">TASK_FAILED</code> for example.
+<p>Mesos has a set of TaskStatus messages that schedulers receive. These include, for example, <code class="highlighter-rouge">TASK_RUNNING</code> and <code class="highlighter-rouge">TASK_FAILED</code>.
 The count of all TaskStatus messages is reported.</p>
 
 <h5 id="reporting">Reporting</h5>
-<p>The scheduler’s metrics are reported via three different mechanisms: <code class="highlighter-rouge">JSON</code>, <a href="https://prometheus.io/">prometheus</a> and <a href="https://github.com/etsy/statsd">StatsD</a>. The StatsD metrics are pushed to the address defined by the environment variables <code class="highlighter-rouge">STATSD_UDP_HOST</code> and <code class="highlighter-rouge">STATSD_UDP_PORT</code>. See <a href="https://dcos.io/docs/1.10/metrics/">DC/OS Metrics documentation</a> for more details.</p>
+<p>The scheduler’s metrics are reported via three different mechanisms: <code class="highlighter-rouge">JSON</code>, <a href="https://prometheus.io/">prometheus</a> and <a href="https://github.com/etsy/statsd">StatsD</a>. The StatsD metrics are pushed to the address defined by the environment variables <code class="highlighter-rouge">STATSD_UDP_HOST</code> and <code class="highlighter-rouge">STATSD_UDP_PORT</code>. See the <a href="https://dcos.io/docs/1.10/metrics/">DC/OS Metrics documentation</a> for more details.</p>
 
 <p>The JSON representation of the metrics is available at the <code class="highlighter-rouge">/v1/metrics</code> endpoint`.</p>
 
@@ -1651,7 +1651,7 @@ offers_process_count 244.0
 </div>
 
 <h2 id="custom-metrics">Custom Metrics</h2>
-<p>A service author may choose to expose custom metrics by using the metrics registry.  The popular <a href="http://metrics.dropwizard.io">dropwizard metrics library</a> is used.  An instance of a <a href="http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html">MetricsRegistry</a> can be acquired in the following way.</p>
+<p>A service author may choose to expose custom metrics by using the metrics registry. The popular <a href="http://metrics.dropwizard.io">dropwizard metrics library</a> is used.  An instance of a <a href="http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html">MetricsRegistry</a> can be acquired in the following way.</p>
 
 <div class="language-java highlighter-rouge"><pre class="highlight"><code><span class="n">MetricsRegistry</span> <span class="n">registry</span> <span class="o">=</span> <span class="n">Metrics</span><span class="o">.</span><span class="na">getRegistry</span><span class="o">();</span>
 </code></pre>
