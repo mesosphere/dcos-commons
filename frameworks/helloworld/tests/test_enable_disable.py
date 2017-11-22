@@ -23,6 +23,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.10')
 def test_disable():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_plan.recovery_plan_is_empty(config.SERVICE_NAME)
@@ -34,6 +35,7 @@ def test_disable():
 
 
 @pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.10')
 def test_enable():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_plan.recovery_plan_is_empty(config.SERVICE_NAME)
