@@ -50,12 +50,12 @@ The Cassandra service can be launched with TLS encryption. Enabling TLS will use
 
 Enabling TLS is possible only in `permissive` and `strict` cluster security modes. Both modes require a [service account](https://docs.mesosphere.com/service-docs/cassandra/cass-auth/). Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.
 
-*   **In DC/OS CLI options.json**: `tls`: boolean (default: `false`)
+*   **In DC/OS CLI options.json**: `service.security.tls.enabled`: boolean (default: `false`)
 *   **DC/OS web interface**: `TASKCFG_ALL_SECURITY_TLS_ENABLED`: `boolean`
 
 To enable support for both TLS encrypted and non-TLS plaintext connections set the `tls_allow_plaintext` option to `true`. This option is disabled by default, so when the TLS is enabled, the non-encrypted connections would get refused.
 
-*   **In DC/OS CLI options.json**: `tls_allow_plaintext`: boolean (default: `false`)
+*   **In DC/OS CLI options.json**: `service.security.tls.allow_plaintext`: boolean (default: `false`)
 *   **DC/OS web interface**: `TASKCFG_ALL_SECURITY_TLS_ALLOW_PLAINTEXT`: `boolean`
 
 ## Clients
