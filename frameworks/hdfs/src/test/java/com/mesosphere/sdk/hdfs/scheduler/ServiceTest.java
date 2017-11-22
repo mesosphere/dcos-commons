@@ -37,7 +37,7 @@ public class ServiceTest {
                 .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
-                .setOptions("service.tls.enabled", "true")
+                .setOptions("service.security.tls.enabled", "true")
                 .setOptions("hdfs.name_node_https_port", "2000")
                 .setOptions("hdfs.journal_node_https_port", "2001")
                 .setOptions("hdfs.data_node_https_port", "2002")

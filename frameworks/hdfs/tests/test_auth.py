@@ -51,14 +51,16 @@ def kerberos(configure_security):
         kerberos_env.finalize()
         service_kerberos_options = {
             "service": {
-                "kerberos": {
-                    "enabled": True,
-                    "kdc_host_name": kerberos_env.get_host(),
-                    "kdc_host_port": kerberos_env.get_port(),
-                    "keytab_secret": kerberos_env.get_keytab_path(),
-                    "primary": primaries[0],
-                    "primary_http": primaries[1],
-                    "realm": sdk_auth.REALM
+                "security": {
+                    "kerberos": {
+                        "enabled": True,
+                        "kdc_host_name": kerberos_env.get_host(),
+                        "kdc_host_port": kerberos_env.get_port(),
+                        "keytab_secret": kerberos_env.get_keytab_path(),
+                        "primary": primaries[0],
+                        "primary_http": primaries[1],
+                        "realm": sdk_auth.REALM
+                    }
                 }
             }
         }
