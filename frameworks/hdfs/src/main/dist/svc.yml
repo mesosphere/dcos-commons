@@ -13,7 +13,7 @@ pods:
     {{#KERBEROS_ENABLED}}
     secrets:
       keytab:
-        secret: {{KEYTAB_SECRET_PATH}}
+        secret: {{KEYTAB_SECRET}}
         file: hdfs.keytab
     {{/KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -116,7 +116,7 @@ pods:
     {{#KERBEROS_ENABLED}}
     secrets:
       keytab:
-        secret: {{KEYTAB_SECRET_PATH}}
+        secret: {{KEYTAB_SECRET}}
         file: hdfs.keytab
     {{/KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -326,7 +326,7 @@ pods:
     {{#KERBEROS_ENABLED}}
     secrets:
       keytab:
-        secret: {{KEYTAB_SECRET_PATH}}
+        secret: {{KEYTAB_SECRET}}
         file: hdfs.keytab
     {{/KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}

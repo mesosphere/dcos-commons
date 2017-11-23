@@ -66,17 +66,6 @@
         "security": {
           "description": "HDFS security settings.",
           "type": "object",
-          "tls": {
-            "type": "object",
-            "description": "TLS configuration properties.",
-            "properties": {
-              "enabled": {
-                "description": "Enable TLS support (requires Strict mode).",
-                "type": "boolean",
-                "default": false
-              }
-            }
-          },
           "kerberos": {
             "type": "object",
             "description": "Kerberos configuration properties.",
@@ -115,6 +104,17 @@
                 "type": "string",
                 "description": "The Kerberos realm used to render the principal of HDFS tasks.",
                 "default": "LOCAL"
+              }
+            }
+          },
+          "tls": {
+            "type": "object",
+            "description": "TLS configuration properties.",
+            "properties": {
+              "enabled": {
+                "description": "Enable TLS support.",
+                "type": "boolean",
+                "default": false
               }
             }
           }
