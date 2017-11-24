@@ -27,6 +27,8 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
 import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.StrategyFactory;
 import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -66,6 +68,8 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
 
+    private Collection<Strategy> customStrategies = new ArrayList<>();
+
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
                 serviceSpec,
@@ -98,11 +102,11 @@ public class SchedulerBuilder {
     /**
      * Specifies a custom {@link StateStore}, otherwise the return value of
      * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
-     *
+     * <p>
      * The state store persists copies of task information and task status for all tasks running in the service.
      *
      * @throws IllegalStateException if the state store is already set, via a previous call to either
-     * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+     *                               {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
      */
     public SchedulerBuilder setStateStore(StateStore stateStore) {
         if (stateStoreOptional.isPresent()) {
@@ -116,7 +120,7 @@ public class SchedulerBuilder {
     /**
      * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
      * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
-     *
+     * <p>
      * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
      * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
      */
@@ -129,7 +133,7 @@ public class SchedulerBuilder {
 
     /**
      * Specifies a custom {@link ConfigStore}.
-     *
+     * <p>
      * The config store persists a copy of the current configuration ('target' configuration),
      * while also storing historical configurations.
      */
@@ -146,7 +150,7 @@ public class SchedulerBuilder {
     /**
      * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default
      * created via {@link DefaultScheduler#createConfigStore(ServiceSpec, Collection)}.
-     *
+     * <p>
      * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
      * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
      */
@@ -171,6 +175,14 @@ public class SchedulerBuilder {
     }
 
     /**
+     * Specifies custom strategies which should be referred in the generated plans.
+     */
+    public SchedulerBuilder setCustomStrategies(Collection<Strategy> strategies) {
+        this.customStrategies = strategies;
+        return this;
+    }
+
+    /**
      * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
      * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.
      */
@@ -183,7 +195,7 @@ public class SchedulerBuilder {
      * Specifies a custom {@link EndpointProducer} to be added to the /endpoints API. This may be used by services
      * which wish to expose custom endpoint information via that API.
      *
-     * @param name the name of the endpoint to be exposed
+     * @param name             the name of the endpoint to be exposed
      * @param endpointProducer the producer to be invoked when the provided endpoint name is requested
      */
     public SchedulerBuilder setEndpointProducer(String name, EndpointProducer endpointProducer) {
@@ -271,7 +283,12 @@ public class SchedulerBuilder {
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
                 Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
-                        getPlans(stateStore, configStore, lastServiceSpec, manualPlans, yamlPlans));
+                        getPlans(stateStore,
+                                configStore,
+                                lastServiceSpec,
+                                manualPlans,
+                                yamlPlans,
+                                this.customStrategies));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
                     LOGGER.info("Marking deployment as having been previously completed");
                     StateStoreUtils.setDeploymentWasCompleted(stateStore);
@@ -303,7 +320,13 @@ public class SchedulerBuilder {
         }
 
         // Now that a ServiceSpec has been chosen, generate the plans.
-        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans);
+        Collection<Plan> plans = getPlans(
+                stateStore,
+                configStore,
+                serviceSpec,
+                manualPlans,
+                yamlPlans,
+                this.customStrategies);
         plans = selectDeployPlan(plans, hasCompletedDeployment);
         Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
         if (!deployPlan.isPresent()) {
@@ -331,7 +354,7 @@ public class SchedulerBuilder {
     /**
      * Gets or generate plans against the given service spec.
      *
-     * @param stateStore The state store to use for plan generation.
+     * @param stateStore  The state store to use for plan generation.
      * @param configStore The config store to use for plan generation.
      * @return a collection of plans
      */
@@ -340,7 +363,8 @@ public class SchedulerBuilder {
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
             List<Plan> manualPlans,
-            Map<String, RawPlan> yamlPlans) {
+            Map<String, RawPlan> yamlPlans,
+            Collection<Strategy> customStrategies) {
         final String plansType;
         final Collection<Plan> plans;
         if (!manualPlans.isEmpty()) {
@@ -352,9 +376,15 @@ public class SchedulerBuilder {
             plans = new ArrayList<>(manualPlans);
         } else if (!yamlPlans.isEmpty()) {
             plansType = "YAML";
+            StrategyFactory strategyFactory = new StrategyFactory();
+            List<Strategy> list = new ArrayList<>();
+            list.addAll(customStrategies);
+            for (int it = 0; it < list.size(); it++) {
+                strategyFactory.addCustomStrategy(list.get(it));
+            }
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.
-            DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
+            DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore, strategyFactory);
             plans = yamlPlans.entrySet().stream()
                     .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                     .collect(Collectors.toList());
@@ -405,7 +435,7 @@ public class SchedulerBuilder {
     @VisibleForTesting
     static ConfigStore<ServiceSpec> createConfigStore(
             ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
-                    throws ConfigStoreException {
+            throws ConfigStoreException {
         return new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
                 persister);
@@ -428,7 +458,7 @@ public class SchedulerBuilder {
         }
 
         LOGGER.info("Overriding deploy plan with custom update plan. " +
-                "(Has completed deployment: {}, Custom update plan defined: {})",
+                        "(Has completed deployment: {}, Custom update plan defined: {})",
                 hasCompletedDeployment, updatePlanOptional.isPresent());
         Collection<Plan> newPlans = new ArrayList<>();
         newPlans.addAll(plans.stream()
@@ -446,13 +476,13 @@ public class SchedulerBuilder {
      * Updates the configuration target to reflect the provided {@code serviceSpec} using the provided
      * {@code configValidators}, or stays with the previous configuration if there were validation errors.
      *
-     * @param serviceSpec the service specification to use
-     * @param stateStore the state store to pass to the updater
-     * @param configStore the config store to pass to the updater
+     * @param serviceSpec      the service specification to use
+     * @param stateStore       the state store to pass to the updater
+     * @param configStore      the config store to pass to the updater
      * @param configValidators the list of config validators, see {@link SchedulerBuilder#defaultConfigValidators()}
-     *     for reasonable defaults
+     *                         for reasonable defaults
      * @return the config update result, which may contain one or more validation errors produced by
-     *     {@code configValidators}
+     * {@code configValidators}
      */
     private static ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,

@@ -6,36 +6,37 @@ import org.springframework.util.Assert;
 import java.util.Collections;
 
 public class StrategyFactoryTest {
+    private StrategyFactory factory = new StrategyFactory();
 
     @Test
     public void testParallelPhase() {
-        Assert.isInstanceOf(ParallelStrategy.class, StrategyFactory.generateForPhase("parallel"));
+        Assert.isInstanceOf(ParallelStrategy.class, factory.generateForPhase("parallel"));
     }
 
     @Test
     public void testSerialPhase() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForPhase("serial"));
+        Assert.isInstanceOf(SerialStrategy.class, factory.generateForPhase("serial"));
     }
 
     @Test
     public void testNullPhase() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForPhase(null));
+        Assert.isInstanceOf(SerialStrategy.class, factory.generateForPhase(null));
     }
 
     @Test
     public void testParallelStep() {
         Assert.isInstanceOf(
                 ParallelStrategy.class,
-                StrategyFactory.generateForSteps("parallel", Collections.emptyList()));
+                factory.generateForSteps("parallel", Collections.emptyList()));
     }
 
     @Test
     public void testSerialStep() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps("serial", Collections.emptyList()));
+        Assert.isInstanceOf(SerialStrategy.class, factory.generateForSteps("serial", Collections.emptyList()));
     }
 
     @Test
     public void testNullStep() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps(null, Collections.emptyList()));
+        Assert.isInstanceOf(SerialStrategy.class, factory.generateForSteps(null, Collections.emptyList()));
     }
 }
