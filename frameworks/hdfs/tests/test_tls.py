@@ -47,8 +47,10 @@ def hdfs_service_tls(service_account):
                 "service": {
                     "service_account_secret": service_account,
                     "service_account": service_account,
-                    "tls": {
-                        "enabled": True,
+                    "security": {
+                        "tls": {
+                            "enabled": True
+                        }
                     }
                 }
             }

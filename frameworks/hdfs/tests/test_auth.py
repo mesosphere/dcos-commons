@@ -51,14 +51,16 @@ def kerberos(configure_security):
         kerberos_env.finalize()
         service_kerberos_options = {
             "service": {
-                "kerberos": {
-                    "enabled": True,
-                    "kdc_host_name": kerberos_env.get_host(),
-                    "kdc_host_port": kerberos_env.get_port(),
-                    "keytab_secret": kerberos_env.get_keytab_path(),
-                    "primary": primaries[0],
-                    "primary_http": primaries[1],
-                    "realm": sdk_auth.REALM
+                "security": {
+                    "kerberos": {
+                        "enabled": True,
+                        "kdc_host_name": kerberos_env.get_host(),
+                        "kdc_host_port": kerberos_env.get_port(),
+                        "keytab_secret": kerberos_env.get_keytab_path(),
+                        "primary": primaries[0],
+                        "primary_http": primaries[1],
+                        "realm": sdk_auth.REALM
+                    }
                 }
             }
         }
@@ -71,6 +73,8 @@ def kerberos(configure_security):
             additional_options=service_kerberos_options,
             timeout_seconds=30*60)
 
+        config.check_healthy(service_name=config.SERVICE_NAME)
+
         yield kerberos_env
 
     finally:
@@ -79,11 +83,11 @@ def kerberos(configure_security):
             kerberos_env.cleanup()
 
 
-@pytest.fixture(autouse=True)
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.smoke
-def test_health_of_kerberized_hdfs():
+@pytest.mark.sanity
+def test_health_of_kerberized_hdfs(kerberos):
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
@@ -111,4 +115,3 @@ def test_user_can_write_and_read(kerberos):
 
     finally:
         sdk_marathon.destroy_app(client_task_id)
-

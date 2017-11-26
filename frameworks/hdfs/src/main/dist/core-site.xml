@@ -132,12 +132,12 @@
         <name>hadoop.security.uid.cache.secs</name>
         <value>{{HADOOP_SECURITY_UID_CACHE_SECS}}</value>
     </property>
-    {{^KERBEROS_ENABLED}}
+    {{^SECURITY_KERBEROS_ENABLED}}
     <property>
         <name>hadoop.rpc.protection</name>
         <value>{{HADOOP_RPC_PROTECTION}}</value>
     </property>
-    {{/KERBEROS_ENABLED}}
+    {{/SECURITY_KERBEROS_ENABLED}}
     <property>
         <name>hadoop.security.saslproperties.resolver.class</name>
         <value>{{HADOOP_SECURITY_SASLPROPERTIES_RESOLVER_CLASS}}</value>
@@ -607,7 +607,7 @@
         <value>{{RPC_METRICS_PERCENTILES_INTERVALS}}</value>
     </property>
 
-    {{#TLS_ENABLED}}
+    {{#SECURITY_TLS_ENABLED}}
     <property>
         <name>hadoop.ssl.enabled.protocols</name>
         <value>TLSv1.2</value>
@@ -616,11 +616,11 @@
         <name>hadoop.ssl.hostname.verifier</name>
         <value>ALLOW_ALL</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#KERBEROS_ENABLED}}
+    {{/SECURITY_TLS_ENABLED}}
+    {{#SECURITY_KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
-        <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
+        <value>{{SECURITY_KERBEROS_PRIMARY}}/*@{{SECURITY_KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>hadoop.security.authentication</name>
@@ -666,5 +666,5 @@
         <name>hadoop.http.authentication.kerberos.keytab</name>
         <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
     </property>
-    {{/KERBEROS_ENABLED}}
+    {{/SECURITY_KERBEROS_ENABLED}}
 </configuration>
