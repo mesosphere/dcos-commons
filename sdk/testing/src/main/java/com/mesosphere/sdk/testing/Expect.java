@@ -8,20 +8,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.Persister;
 
 
 /**
@@ -175,23 +181,37 @@ public interface Expect extends SimulationTick {
     }
 
     /**
-     * Verifies that an explicit task reconciliation for the specified task statuses was invoked.
+     * Verifies that an explicit task reconciliation for the task statuses in the provided persister was invoked.
      */
-    public static Expect reconciledExplicitly(Collection<Protos.TaskStatus> taskStatuses) {
+    public static Expect reconciledExplicitly(Persister persisterWithStatuses) {
+        // Use a custom comparator for sorting: Protos don't implement Comparable
+        final Comparator<Protos.TaskStatus> statusComparator = new Comparator<Protos.TaskStatus>() {
+            @Override
+            public int compare(TaskStatus o1, TaskStatus o2) {
+                return o1.getTaskId().getValue().compareTo(o2.getTaskId().getValue());
+            }
+        };
+
         return new Expect() {
+            // Use this form instead of using ArgumentCaptor.forClass() to avoid problems with typecasting generics:
             @Captor private ArgumentCaptor<Collection<Protos.TaskStatus>> statusCaptor;
 
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                MockitoAnnotations.initMocks(this);
                 verify(mockDriver, atLeastOnce()).reconcileTasks(statusCaptor.capture());
-                Assert.assertEquals(taskStatuses, statusCaptor.getValue());
+                Set<Protos.TaskStatus> expected = new TreeSet<>(statusComparator);
+                expected.addAll(new StateStore(persisterWithStatuses).fetchStatuses());
+                Set<Protos.TaskStatus> got = new TreeSet<>(statusComparator);
+                got.addAll(statusCaptor.getValue());
+                Assert.assertEquals(expected, got);
             }
 
             @Override
             public String getDescription() {
                 return String.format("Explicit task reconcile call for statuses: %s",
-                        taskStatuses.stream()
-                                .map(status -> TextFormat.shortDebugString(status))
+                        new StateStore(persisterWithStatuses).fetchStatuses().stream()
+                                .map(status -> String.format("%s=%s", status.getTaskId().getValue(), status.getState()))
                                 .collect(Collectors.toList()));
             }
         };
@@ -235,6 +255,30 @@ public interface Expect extends SimulationTick {
             @Override
             public String getDescription() {
                 return "All plans complete";
+            }
+        };
+    }
+
+    /**
+     * Verifies that the scheduler's list of tasks in the state store matches the provided set.
+     */
+    public static Expect knownTasks(Persister persisterWithTasks, String... taskNames) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                Set<String> expectedTasks = new HashSet<>(Arrays.asList(taskNames));
+                Set<String> tasks = new StateStore(persisterWithTasks).fetchTasks().stream()
+                        .map(Protos.TaskInfo::getName)
+                        .collect(Collectors.toSet());
+                Assert.assertEquals(expectedTasks, tasks);
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("State store task names: %s",
+                        new StateStore(persisterWithTasks).fetchTasks().stream()
+                                .map(Protos.TaskInfo::getName)
+                                .collect(Collectors.toList()));
             }
         };
     }

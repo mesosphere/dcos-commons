@@ -27,6 +27,7 @@ pods:
           max-consecutive-failures: 3
   world:
     count: {{WORLD_COUNT}}
+    allow-decommission: true
     placement: "{{WORLD_PLACEMENT}}"
     tasks:
       server:

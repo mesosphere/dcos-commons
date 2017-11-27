@@ -14,7 +14,8 @@ import java.util.stream.Collectors;
 import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 
 /**
- * Records to persistent storage the result of uninstalling/destroying resources.
+ * Records to persistent storage the result of uninstalling/destroying resources in the process of installing the
+ * service by marking them with a tombstone id, then notifying the uninstall plan of the changes.
  */
 public class UninstallRecorder implements OperationRecorder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -24,16 +25,6 @@ public class UninstallRecorder implements OperationRecorder {
     UninstallRecorder(StateStore stateStore, Collection<Step> resourceSteps) {
         this.stateStore = stateStore;
         this.resourceSteps = resourceSteps;
-    }
-
-    private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
-        return ResourceUtils.getAllResources(taskInfo).stream()
-                .anyMatch(taskInfoResource -> resourcesMatch(taskInfoResource, resource));
-    }
-
-    private static boolean resourcesMatch(Protos.Resource taskInfoResource, Protos.Resource resource) {
-        return ResourceUtils.getResourceId(resource)
-                .equals(ResourceUtils.getResourceId(taskInfoResource));
     }
 
     @Override
@@ -51,46 +42,59 @@ public class UninstallRecorder implements OperationRecorder {
         List<Protos.TaskInfo> tasksToUpdate = stateStore.fetchTasks().stream()
                 .filter(taskSpec -> containsResource(taskSpec, resource))
                 .collect(Collectors.toList());
-        logger.info("Resource {} found in {} task(s).", resource.getName(), tasksToUpdate.size());
-        tasksToUpdate.forEach(taskInfo ->
-                logger.info("Resource {} found in task: {}",
-                        resource.getName(),
-                        TextFormat.shortDebugString(taskInfo)));
-        if (!tasksToUpdate.isEmpty()) {
-            stateStore.storeTasks(updateResources(resource, tasksToUpdate));
-
-            // broadcast uninstallRecommendation to each UninstallStep in resource phase
-            List<OfferRecommendation> uninstallRecommendations = Collections.singletonList(uninstallRecommendation);
-            resourceSteps.forEach(step -> step.updateOfferStatus(uninstallRecommendations));
+        if (tasksToUpdate.isEmpty()) {
+            return;
         }
+
+        logger.info("Resource {}/{} found in {} task{}: {}",
+                resource.getName(),
+                ResourceUtils.getResourceId(resource),
+                tasksToUpdate.size(),
+                tasksToUpdate.size() == 1 ? "" : "s",
+                tasksToUpdate.stream().map(Protos.TaskInfo::getName).collect(Collectors.toList()));
+
+        stateStore.storeTasks(updateResources(resource, tasksToUpdate));
+
+        // Broadcast the resulting uninstallRecommendation to each resource step in the uninstall plan.
+        // We need to manually pass the uninstall recommendation to the resource cleanup steps. They do not get this
+        // information via DefaultPlanScheduler because that only handles deployment (and therefore is not used by
+        // UninstallScheduler), whereas these are handled via the ResourceCleanerScheduler.
+        List<OfferRecommendation> uninstallRecommendations = Collections.singletonList(uninstallRecommendation);
+        resourceSteps.forEach(step -> step.updateOfferStatus(uninstallRecommendations));
     }
 
-    private Collection<Protos.TaskInfo> updateResources(
-            Protos.Resource resource, List<Protos.TaskInfo> tasksToUpdate) {
+    private static boolean containsResource(Protos.TaskInfo taskInfo, Protos.Resource resource) {
+        return ResourceUtils.getAllResources(taskInfo).stream()
+                .anyMatch(taskInfoResource -> resourcesMatch(taskInfoResource, resource));
+    }
+
+    private static boolean resourcesMatch(Protos.Resource resource1, Protos.Resource resource2) {
+        return ResourceUtils.getResourceId(resource1).equals(ResourceUtils.getResourceId(resource2));
+    }
+
+    private static Collection<Protos.TaskInfo> updateResources(
+            Protos.Resource resource, Collection<Protos.TaskInfo> tasksToUpdate) {
         // create new copies of taskinfos with updated resources
-        Optional<String> initialResourceId = ResourceUtils.getResourceId(resource);
-        List<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
+        final Optional<String> initialResourceId = ResourceUtils.getResourceId(resource);
+        Collection<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
         if (!initialResourceId.isPresent()) {
             return updatedTaskInfos;
         }
         for (Protos.TaskInfo taskInfoToUpdate : tasksToUpdate) {
-            Collection<Protos.Resource> updatedResources =
-                    updatedResources(initialResourceId.get(), taskInfoToUpdate.getResourcesList());
-            Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(taskInfoToUpdate)
+            updatedTaskInfos.add(Protos.TaskInfo.newBuilder(taskInfoToUpdate)
                     .clearResources()
-                    .addAllResources(updatedResources)
-                    .build();
-            updatedTaskInfos.add(taskInfo);
+                    .addAllResources(updatedResources(initialResourceId.get(), taskInfoToUpdate.getResourcesList()))
+                    .build());
         }
         return updatedTaskInfos;
     }
 
-    private Collection<Protos.Resource> updatedResources(
-            String initialResourceId, List<Protos.Resource> resourcesList) {
+    private static Collection<Protos.Resource> updatedResources(
+            String initialResourceId, Collection<Protos.Resource> resources) {
         // find the matching resource in each task and update its resource_id
-        String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
-        List<Protos.Resource> updatedResources = new ArrayList<>();
-        for (Protos.Resource resource : resourcesList) {
+        final String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
+        Collection<Protos.Resource> updatedResources = new ArrayList<>();
+        for (Protos.Resource resource : resources) {
             Optional<String> thisResourceId = ResourceUtils.getResourceId(resource);
             if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
                 updatedResources.add(ResourceBuilder.fromExistingResource(resource)
@@ -102,5 +106,4 @@ public class UninstallRecorder implements OperationRecorder {
         }
         return updatedResources;
     }
-
 }

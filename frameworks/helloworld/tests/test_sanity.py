@@ -6,6 +6,7 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
@@ -89,12 +90,13 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
-    world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
-    log.info('world ids: ' + str(world_ids))
+
+    original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
+    log.info('world ids: ' + str(original_world_ids))
 
     updated_cpus = config.bump_world_cpus(foldered_name)
 
-    sdk_tasks.check_tasks_updated(foldered_name, 'world', world_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, 'world', original_world_ids)
     config.check_running(foldered_name)
 
     all_tasks = shakedown.get_service_tasks(foldered_name)
@@ -106,17 +108,40 @@ def test_bump_world_cpus():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_bump_hello_nodes():
+def test_increase_decrease_world_nodes():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
-    hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
-    log.info('hello ids: ' + str(hello_ids))
+    original_hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
+    original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
+    log.info('world ids: ' + str(original_world_ids))
 
-    sdk_marathon.bump_task_count_config(foldered_name, 'HELLO_COUNT')
+    # add 2 world nodes
+    sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', 2)
 
     config.check_running(foldered_name)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'hello', hello_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
+
+    # check 2 world tasks added:
+    assert 2 + len(original_world_ids) == len(sdk_tasks.get_task_ids(foldered_name, 'world'))
+
+    # subtract 2 world nodes
+    sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', -2)
+
+    config.check_running(foldered_name)
+    # wait for the decommission plan for this subtraction to be complete
+    sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
+    # check that the total task count is back to original
+    sdk_tasks.check_running(
+        foldered_name,
+        len(original_hello_ids) + len(original_world_ids),
+        allow_more=False)
+    # check that original tasks weren't affected/relaunched in the process
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'hello', original_hello_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
+
+    # check that the world tasks are back to their prior state (also without changing task ids)
+    assert original_world_ids == sdk_tasks.get_task_ids(foldered_name, 'world')
 
 
 @pytest.mark.sanity
@@ -170,11 +195,11 @@ def test_pod_status_one():
 @pytest.mark.sanity
 def test_pod_info():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info hello-1', json=True)
+        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
-    assert task['info']['name'] == 'hello-1-server'
+    assert task['info']['name'] == 'world-1-server'
     assert task['info']['taskId']['value'] == task['status']['taskId']['value']
     assert task['status']['state'] == 'TASK_RUNNING'
 
@@ -184,18 +209,22 @@ def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
-    # should be in alphabetical order:
-    expected = [
+    # Just check that some expected properties are present. The following may also be present:
+    # - "suppressed": Depends on internal scheduler state at the time of the query.
+    # - "world-[2,3]-server:task-status": Leftovers from an earlier expansion to 4 world tasks.
+    #     In theory, the SDK could clean these up as part of the decommission operation, but they
+    #     won't hurt or affect the service, and are arguably useful in terms of leaving behind some
+    #     evidence of pods that had existed prior to a decommission operation.
+    for required in [
         "hello-0-server:task-status",
-        "hello-1-server:task-status",
         "last-completed-update-type",
         "world-0-server:task-status",
-        "world-1-server:task-status"]
-    # the properties list may also have a 'suppressed' bit, which would have been left behind by the
-    # prior version when upgrades were being tested during suite setup
-    expected_with_suppressed = list(expected)
-    expected_with_suppressed.insert(3, 'suppressed')
-    assert jsonobj == expected or jsonobj == expected_with_suppressed
+        "world-1-server:task-status"]:
+        assert required in jsonobj
+    # also check that the returned list was in alphabetical order:
+    list_sorted = list(jsonobj) # copy
+    list_sorted.sort()
+    assert list_sorted == jsonobj
 
 
 @pytest.mark.sanity

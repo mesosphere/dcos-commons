@@ -9,7 +9,7 @@ import org.apache.mesos.Protos;
 import java.util.Optional;
 
 /**
- * Step which issues kill commands to all .
+ * Step which issues a kill command for a given task.
  */
 public class TaskKillStep extends UninstallStep {
 
