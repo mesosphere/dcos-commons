@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -173,14 +173,14 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult</a></code></td>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#run--">run</a></span>()</code>
 <div class="block">Exercises the service's packaging and resulting Service Specification YAML file without running any simulation
  afterwards.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult</a></code></td>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#run-java.util.Collection-">run</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing">SimulationTick</a>&gt;&nbsp;ticks)</code>
 <div class="block">Exercises the service's packaging and resulting Service Specification YAML file, then runs the provided
  simulation ticks, if any are provided.</div>
@@ -219,18 +219,12 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPersister-com.mesosphere.sdk.storage.Persister-">setPersister</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Configures the test with the provided custom persister, which reflects state from a prior scheduler.</div>
-</td>
-</tr>
-<tr id="i10" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPodEnv-java.lang.String-java.util.Map-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
          java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;podEnvMap)</code>
 <div class="block">Equivalent of <a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPodEnv-java.lang.String-java.lang.String...-"><code>setPodEnv(String, String...)</code></a> for a <code>Map</code> instead of string pairs.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPodEnv-java.lang.String-java.lang.String...-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
          java.lang.String...&nbsp;podEnvKeyVals)</code>
@@ -238,17 +232,23 @@ extends java.lang.Object</pre>
  included by the Scheduler or by Mesos.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setSchedulerEnv-java.util.Map-">setSchedulerEnv</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;schedulerEnvMap)</code>
 <div class="block">Equivalent of <a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setSchedulerEnv-java.lang.String...-"><code>setSchedulerEnv(String...)</code></a> for a <code>Map</code> instead of string pairs.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setSchedulerEnv-java.lang.String...-">setSchedulerEnv</a></span>(java.lang.String...&nbsp;schedulerEnvKeyVals)</code>
 <div class="block">Configures the test with additional environment variables in the Scheduler beyond those which would be included
  by the service's <code>marathon.json.mustache</code>.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setState-com.mesosphere.sdk.testing.ServiceTestResult-">setState</a></span>(<a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a>&nbsp;serviceTestResult)</code>
+<div class="block">Configures the test with the provided state from a prior run.</div>
 </td>
 </tr>
 </table>
@@ -427,19 +427,19 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="setPersister-com.mesosphere.sdk.storage.Persister-">
+<a name="setState-com.mesosphere.sdk.testing.ServiceTestResult-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setPersister</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;setPersister(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
-<div class="block">Configures the test with the provided custom persister, which reflects state from a prior scheduler. This may be
- used to initialize the scheduler with some non-empty state. Otherwise the scheduler will be created with an empty
- persister, simulating an initial install.</div>
+<h4>setState</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;setState(<a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a>&nbsp;serviceTestResult)</pre>
+<div class="block">Configures the test with the provided state from a prior run. This may be used to initialize a second simulation
+ with the state of a first simulation. Otherwise the simulation will be performed with empty state, simulating
+ an initial install.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>persister</code> - the persister to be used by the scheduler</dd>
+<dd><code>serviceTestResult</code> - the result from a previous simulation, from which state will be retrieved</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>this</code></dd>
 </dl>
@@ -519,13 +519,13 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>run</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult</a>&nbsp;run()
-                          throws java.lang.Exception</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a>&nbsp;run()
+                      throws java.lang.Exception</pre>
 <div class="block">Exercises the service's packaging and resulting Service Specification YAML file without running any simulation
  afterwards.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a <a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing"><code>SchedulerConfigResult</code></a> containing the resulting scheduler environment and spec information</dd>
+<dd>a <a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing"><code>ServiceTestResult</code></a> containing the resulting scheduler environment and spec information</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code> - if the test failed</dd>
 </dl>
@@ -537,13 +537,13 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>run</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing">SchedulerConfigResult</a>&nbsp;run(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing">SimulationTick</a>&gt;&nbsp;ticks)
-                          throws java.lang.Exception</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a>&nbsp;run(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing">SimulationTick</a>&gt;&nbsp;ticks)
+                      throws java.lang.Exception</pre>
 <div class="block">Exercises the service's packaging and resulting Service Specification YAML file, then runs the provided
  simulation ticks, if any are provided.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a <a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing"><code>SchedulerConfigResult</code></a> containing the resulting scheduler environment and spec information</dd>
+<dd>a <a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing"><code>ServiceTestResult</code></a> containing the resulting scheduler environment and spec information</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code> - if the test failed</dd>
 </dl>
@@ -576,7 +576,7 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" title="interface in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

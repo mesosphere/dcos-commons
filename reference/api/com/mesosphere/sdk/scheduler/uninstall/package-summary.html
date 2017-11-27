@@ -95,7 +95,7 @@
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TaskKillStep</a></td>
 <td class="colLast">
-<div class="block">Step which issues kill commands to all .</div>
+<div class="block">Step which issues a kill command for a given task.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -113,7 +113,8 @@
 <tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a></td>
 <td class="colLast">
-<div class="block">Records to persistent storage the result of uninstalling/destroying resources.</div>
+<div class="block">Records to persistent storage the result of uninstalling/destroying resources in the process of installing the
+ service by marking them with a tombstone id, then notifying the uninstall plan of the changes.</div>
 </td>
 </tr>
 <tr class="altColor">

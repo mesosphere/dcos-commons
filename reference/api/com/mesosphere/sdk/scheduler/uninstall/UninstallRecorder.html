@@ -114,7 +114,8 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">UninstallRecorder</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a></pre>
-<div class="block">Records to persistent storage the result of uninstalling/destroying resources.</div>
+<div class="block">Records to persistent storage the result of uninstalling/destroying resources in the process of installing the
+ service by marking them with a tombstone id, then notifying the uninstall plan of the changes.</div>
 </li>
 </ul>
 </div>

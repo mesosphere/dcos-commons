@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":17,"i1":17,"i2":6,"i3":17,"i4":17,"i5":17,"i6":17,"i7":17,"i8":17,"i9":17};
+var methods = {"i0":17,"i1":17,"i2":6,"i3":17,"i4":17,"i5":17,"i6":17,"i7":17,"i8":17,"i9":17,"i10":17};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/testing/CosmosRenderer.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/testing/Expect.html" target="_top">Frames</a></li>
@@ -151,35 +151,42 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-java.util.Collection-">launchedTasks</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames)</code>
-<div class="block">Verifies that a pod was launched with exactly the provided task names.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#knownTasks-com.mesosphere.sdk.storage.Persister-java.lang.String...-">knownTasks</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithTasks,
+          java.lang.String...&nbsp;taskNames)</code>
+<div class="block">Verifies that the scheduler's list of tasks in the state store matches the provided set.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-java.lang.String...-">launchedTasks</a></span>(java.lang.String...&nbsp;taskNames)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-java.util.Collection-">launchedTasks</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames)</code>
 <div class="block">Verifies that a pod was launched with exactly the provided task names.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#reconciledExplicitly-java.util.Collection-">reconciledExplicitly</a></span>(java.util.Collection&lt;Protos.TaskStatus&gt;&nbsp;taskStatuses)</code>
-<div class="block">Verifies that an explicit task reconciliation for the specified task statuses was invoked.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-java.lang.String...-">launchedTasks</a></span>(java.lang.String...&nbsp;taskNames)</code>
+<div class="block">Verifies that a pod was launched with exactly the provided task names.</div>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#reconciledExplicitly-com.mesosphere.sdk.storage.Persister-">reconciledExplicitly</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithStatuses)</code>
+<div class="block">Verifies that an explicit task reconciliation for the task statuses in the provided persister was invoked.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#reconciledImplicitly--">reconciledImplicitly</a></span>()</code>
 <div class="block">Verifies that an implicit task reconciliation was invoked.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#unreservedTasks-java.util.Collection-">unreservedTasks</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames)</code>
 <div class="block">Verifies that the resources for the provided task names have been unreserved.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#unreservedTasks-java.lang.String...-">unreservedTasks</a></span>(java.lang.String...&nbsp;taskNames)</code>
 <div class="block">Verifies that the resources for the provided task names have been unreserved.</div>
@@ -267,14 +274,14 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="block">Verifies that the specified task was killed.</div>
 </li>
 </ul>
-<a name="reconciledExplicitly-java.util.Collection-">
+<a name="reconciledExplicitly-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>reconciledExplicitly</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;reconciledExplicitly(java.util.Collection&lt;Protos.TaskStatus&gt;&nbsp;taskStatuses)</pre>
-<div class="block">Verifies that an explicit task reconciliation for the specified task statuses was invoked.</div>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;reconciledExplicitly(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithStatuses)</pre>
+<div class="block">Verifies that an explicit task reconciliation for the task statuses in the provided persister was invoked.</div>
 </li>
 </ul>
 <a name="reconciledImplicitly--">
@@ -295,6 +302,17 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <h4>allPlansComplete</h4>
 <pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;allPlansComplete()</pre>
 <div class="block">Verifies that the scheduler's plans are all complete -- that there's no pending work.</div>
+</li>
+</ul>
+<a name="knownTasks-com.mesosphere.sdk.storage.Persister-java.lang.String...-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>knownTasks</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;knownTasks(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithTasks,
+                         java.lang.String...&nbsp;taskNames)</pre>
+<div class="block">Verifies that the scheduler's list of tasks in the state store matches the provided set.</div>
 </li>
 </ul>
 <a name="expect-com.mesosphere.sdk.testing.ClusterState-SchedulerDriver-">
@@ -344,7 +362,7 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/testing/CosmosRenderer.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/testing/SchedulerConfigResult.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/testing/Expect.html" target="_top">Frames</a></li>

@@ -15,6 +15,7 @@ com.mesosphere.sdk.offer.taskdata
 com.mesosphere.sdk.queue
 com.mesosphere.sdk.reconciliation
 com.mesosphere.sdk.scheduler
+com.mesosphere.sdk.scheduler.decommission
 com.mesosphere.sdk.scheduler.plan
 com.mesosphere.sdk.scheduler.plan.strategy
 com.mesosphere.sdk.scheduler.recovery
