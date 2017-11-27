@@ -335,13 +335,10 @@ public class OfferEvaluator {
                 shouldAddExecutorResources = false;
             }
 
-            TaskSpec taskSpec = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                    .filter(taskSpec1 -> taskSpec1.getName().equals(taskName))
-                    .findFirst()
-                    .get();
-
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                if (!taskSpec.getTransportEncryption().isEmpty()) {
+                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+                }
             }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
@@ -402,6 +399,12 @@ public class OfferEvaluator {
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
 
+        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+            if (!taskSpec.getTransportEncryption().isEmpty()) {
+                evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+            }
+        }
+
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent() &&
                 podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
             evaluationStages.add(new PlacementRuleEvaluationStage(
@@ -438,10 +441,6 @@ public class OfferEvaluator {
             taskResourceMapper.getOrphanedResources()
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
-
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
-            }
 
             boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
             evaluationStages.add(new LaunchEvaluationStage(taskSpec.getName(), shouldLaunch, useDefaultExecutor));
