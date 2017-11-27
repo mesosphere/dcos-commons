@@ -72,6 +72,10 @@ pods:
           export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
         {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
+          # We add some custom statsd libraries for statsd metrics as well
+          # as a custom zookeeper library to support our own ZK running
+          # kerberized. The custom zk library does not do DNS reverse resolution
+          # of the ZK hostnames.
           ./bootstrap -resolve=false &&
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
           mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
