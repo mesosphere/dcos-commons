@@ -14,6 +14,7 @@ from retrying import retry
 from subprocess import run
 from tempfile import TemporaryDirectory
 
+import base64
 import dcos
 import json
 import logging
@@ -271,11 +272,17 @@ class KerberosEnvironment:
         log.info("Creating and uploading the keytab file to the secret store")
 
         try:
-            base64_encode_cmd = "base64 -w 0 {source} > {destination}".format(
-                source=os.path.join(self.temp_working_dir.name, self.keytab_file_name),
-                destination=os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
-            )
-            run(base64_encode_cmd, shell=True)
+            keytab_path = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
+            base64_encoded_keytab_path = os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
+            with open(keytab_path, "rb") as f:
+                keytab = f.read()
+
+            base64_encoding = base64.b64encode(keytab).decode("utf-8")
+            with open(base64_encoded_keytab_path, "w") as f:
+                f.write(base64_encoding)
+
+            log.info("Finished base64-encoding secret content.")
+
         except Exception as e:
             raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
 
