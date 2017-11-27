@@ -206,7 +206,7 @@ public class PodResourceTest {
         assertEquals(3, task.length());
         assertEquals("test-1-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("FINISH", task.getString("status"));
+        assertEquals("FINISHED", task.getString("status"));
 
         task = tasks.getJSONObject(1);
         assertEquals(3, task.length());
@@ -223,7 +223,7 @@ public class PodResourceTest {
         assertEquals(3, task.length());
         assertEquals("test-2-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("FINISH", task.getString("status"));
+        assertEquals("FINISHED", task.getString("status"));
 
         pod = pods.getJSONObject(1);
         assertEquals(2, pod.length());
@@ -263,7 +263,7 @@ public class PodResourceTest {
         assertEquals(3, task.length());
         assertEquals("test-1-a", task.getString("name"));
         assertTrue(task.getString("id").startsWith("a__"));
-        assertEquals("FINISH", task.getString("status"));
+        assertEquals("FINISHED", task.getString("status"));
 
         task = tasks.getJSONObject(1);
         assertEquals(3, task.length());
