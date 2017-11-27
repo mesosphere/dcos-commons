@@ -6,8 +6,6 @@ import com.mesosphere.sdk.offer.UninstallRecommendation;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
-import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
-
 import java.util.Collection;
 import java.util.Optional;
 
@@ -21,9 +19,9 @@ public class ResourceCleanupStep extends UninstallStep {
     /**
      * Creates a new instance with the provided {@code resourceId} and initial {@code status}.
      */
-    public ResourceCleanupStep(String resourceId) {
+    public ResourceCleanupStep(String resourceId, Status status) {
         // Avoid having the step name be a pure UUID. Otherwise PlansResource will confuse this UUID with the step UUID:
-        super("unreserve-" + resourceId, resourceId.startsWith(TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING);
+        super("unreserve-" + resourceId, status);
         this.resourceId = resourceId;
     }
 
@@ -49,7 +47,7 @@ public class ResourceCleanupStep extends UninstallStep {
                 .filter(uninstallResourceId -> uninstallResourceId.isPresent())
                 .anyMatch(uninstallResourceId -> resourceId.equals(uninstallResourceId.get()));
         if (isMatched) {
-            logger.info("Completed uninstall step for resource {}", resourceId);
+            logger.info("Completed dereservation of resource {}", resourceId);
             setStatus(Status.COMPLETE);
         }
     }

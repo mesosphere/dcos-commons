@@ -23,7 +23,7 @@ public class TLSRequiresServiceAccount implements ConfigValidator<ServiceSpec> {
 
     @Override
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
-        if (!TaskUtils.getTasksWithTLS(newConfig).isEmpty()) {
+        if (TaskUtils.hasTasksWithTLS(newConfig)) {
             try {
                 // Just check that construction succeeds.
                 schedulerConfig.getDcosAuthTokenProvider();

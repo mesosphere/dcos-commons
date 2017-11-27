@@ -7,6 +7,8 @@ import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
+import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
@@ -39,6 +41,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
     private final ServiceSpec serviceSpec;
+
     private final Collection<Plan> plans;
     private final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final TaskKiller taskKiller;
@@ -89,10 +92,9 @@ public class DefaultScheduler extends AbstractScheduler {
         this.plans = plans;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
-        this.offerAccepter = new OfferAccepter(
-                Arrays.asList(
-                        new PersistentLaunchRecorder(stateStore, serviceSpec),
-                        Metrics.OperationsCounter.getInstance()));
+        this.offerAccepter = new OfferAccepter(Arrays.asList(
+                new PersistentLaunchRecorder(stateStore, serviceSpec),
+                Metrics.OperationsCounter.getInstance()));
 
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
@@ -132,63 +134,14 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededAndPendingOverrideTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         podResource.setTaskKiller(taskKiller);
         return planCoordinator;
     }
 
-    private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
-        final Collection<PlanManager> planManagers = new ArrayList<>();
-
-        // Deployment plan manager
-        PlanManager deploymentPlanManager = new DefaultPlanManager(SchedulerUtils.getDeployPlan(plans).get());
-        // All plans are initially created with an interrupted strategy. We generally don't want the deployment plan to
-        // start out interrupted. CanaryStrategy is an exception which explicitly indicates that the deployment plan
-        // should start out interrupted, but CanaryStrategies are only applied to individual Phases, not the Plan as a
-        // whole.
-        deploymentPlanManager.getPlan().proceed();
-        planManagers.add(deploymentPlanManager);
-
-        // Recovery plan manager
-        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
-        if (recoveryPlanOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
-        }
-        final LaunchConstrainer launchConstrainer;
-        final FailureMonitor failureMonitor;
-        if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
-            ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
-            launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
-            failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
-                    stateStore,
-                    configStore);
-        } else {
-            launchConstrainer = new UnconstrainedLaunchConstrainer();
-            failureMonitor = new NeverFailureMonitor();
-        }
-        planManagers.add(new DefaultRecoveryPlanManager(
-                stateStore,
-                configStore,
-                PlanUtils.getLaunchableTasks(plans),
-                launchConstrainer,
-                failureMonitor,
-                overrideRecoveryPlanManagers));
-
-        // Other custom plan managers
-        planManagers.addAll(plans.stream()
-                .filter(plan -> !plan.isDeployPlan())
-                .map(DefaultPlanManager::new)
-                .collect(Collectors.toList()));
-
-        return new DefaultPlanCoordinator(planManagers);
-    }
-
-    private static void killUnneededAndPendingOverrideTasks(
+    private static void killUnneededTasks(
             StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
@@ -222,6 +175,60 @@ public class DefaultScheduler extends AbstractScheduler {
                 taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
             }
         }
+    }
+
+    private PlanCoordinator buildPlanCoordinator() throws ConfigStoreException {
+        final Collection<PlanManager> planManagers = new ArrayList<>();
+
+        PlanManager deploymentPlanManager =
+                DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
+        planManagers.add(deploymentPlanManager);
+
+        // Recovery plan manager
+        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
+        if (recoveryPlanOverriderFactory.isPresent()) {
+            LOGGER.info("Adding overriding recovery plan manager.");
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
+        }
+        final LaunchConstrainer launchConstrainer;
+        final FailureMonitor failureMonitor;
+        if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
+            ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
+            launchConstrainer = new TimedLaunchConstrainer(
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+            failureMonitor = new TimedFailureMonitor(
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    stateStore,
+                    configStore);
+        } else {
+            launchConstrainer = new UnconstrainedLaunchConstrainer();
+            failureMonitor = new NeverFailureMonitor();
+        }
+        planManagers.add(new DefaultRecoveryPlanManager(
+                stateStore,
+                configStore,
+                PlanUtils.getLaunchableTasks(plans),
+                launchConstrainer,
+                failureMonitor,
+                overrideRecoveryPlanManagers));
+
+        // If decommissioning nodes, set up decommission plan:
+        DecommissionPlanFactory decommissionPlanFactory =
+                new DecommissionPlanFactory(serviceSpec, stateStore, taskKiller);
+        Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
+        if (decommissionPlan.isPresent()) {
+            // Set things up for a decommission operation.
+            offerAccepter.addRecorder(new DecommissionRecorder(stateStore, decommissionPlanFactory.getResourceSteps()));
+            planManagers.add(DefaultPlanManager.createProceeding(decommissionPlan.get()));
+        }
+
+        // Other custom plan managers
+        planManagers.addAll(plans.stream()
+                .filter(plan -> !plan.isDeployPlan())
+                .map(DefaultPlanManager::createInterrupted)
+                .collect(Collectors.toList()));
+
+        return new DefaultPlanCoordinator(planManagers);
     }
 
     @Override

@@ -11,7 +11,6 @@ import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -91,14 +90,13 @@ public class SendOffer implements Send {
     }
 
     private Protos.Offer getOfferForPod(ClusterState state) {
-        ServiceSpec serviceSpec = state.getSchedulerConfig().getServiceSpec();
-        Optional<PodSpec> matchingSpec = serviceSpec.getPods().stream()
+        Optional<PodSpec> matchingSpec = state.getServiceSpec().getPods().stream()
                 .filter(podSpec -> podType.equals(podSpec.getType()))
                 .findAny();
         if (!matchingSpec.isPresent()) {
             throw new IllegalArgumentException(String.format("No PodSpec found with type=%s: types=%s",
                     podType,
-                    serviceSpec.getPods().stream()
+                    state.getServiceSpec().getPods().stream()
                             .map(podSpec -> podSpec.getType())
                             .collect(Collectors.toList())));
         }

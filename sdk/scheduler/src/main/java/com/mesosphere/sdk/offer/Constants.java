@@ -14,8 +14,10 @@ public class Constants {
 
     /** The name used for the deployment plan. */
     public static final String DEPLOY_PLAN_NAME = "deploy";
-    /** The name used for the update plan. */
+    /** The name used in specifications for the update plan. Overrides the deploy plan when relevant. */
     public static final String UPDATE_PLAN_NAME = "update";
+    /** The name used for the decommission plan. */
+    public static final String DECOMMISSION_PLAN_NAME = "decommission";
 
     /** The name used for reserved network port resources. */
     public static final String PORTS_RESOURCE_TYPE = "ports";

@@ -11,11 +11,22 @@ import java.util.*;
 public class DefaultPlanManager implements PlanManager {
     private final Plan plan;
 
-    public DefaultPlanManager(final Plan plan) {
-        // All plans begin in an interrupted state.  The deploy plan will
-        // be automatically proceeded when appropriate.  Other plans are
-        // sidecar plans and should be externally proceeded.
+    /**
+     * Creates a new plan manager for the provided {@link Plan}, which will not be set to an interrupted state.
+     */
+    public static DefaultPlanManager createProceeding(Plan plan) {
+        return new DefaultPlanManager(plan);
+    }
+
+    /**
+     * Creates a new plan manager for the provided {@link Plan}, which will be set to an interrupted state.
+     */
+    public static DefaultPlanManager createInterrupted(Plan plan) {
         plan.interrupt();
+        return new DefaultPlanManager(plan);
+    }
+
+    private DefaultPlanManager(final Plan plan) {
         this.plan = plan;
     }
 

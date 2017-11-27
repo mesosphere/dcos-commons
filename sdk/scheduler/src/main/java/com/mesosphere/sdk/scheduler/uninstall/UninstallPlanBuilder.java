@@ -106,7 +106,9 @@ class UninstallPlanBuilder {
                 .collect(Collectors.toList());
 
         resourceSteps = ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasksNotFailedAndErrored)).stream()
-                .map(resourceId -> new ResourceCleanupStep(resourceId))
+                .map(resourceId -> new ResourceCleanupStep(
+                        resourceId,
+                        resourceId.startsWith(Constants.TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING))
                 .collect(Collectors.toList());
         LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
                 tasksNotFailedAndErrored.size(), allTasks.size(),
@@ -119,7 +121,7 @@ class UninstallPlanBuilder {
         // before uninstalling the service. Ideally, at uninstall time (and no sooner, to avoid deleting certs that were
         // only disabled temporarily) we would detect that TLS was *ever* enabled, rather than just *currently* enabled.
         // See also INFINITY-2464.
-        if (!TaskUtils.getTasksWithTLS(serviceSpec).isEmpty()) {
+        if (TaskUtils.hasTasksWithTLS(serviceSpec)) {
             try {
                 // Use any provided custom test client, or otherwise construct a default client
                 SecretsClient secretsClient = customSecretsClientForTests.isPresent()

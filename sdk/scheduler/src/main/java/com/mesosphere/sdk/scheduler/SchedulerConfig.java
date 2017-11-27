@@ -138,9 +138,9 @@ public class SchedulerConfig {
     /**
      * Environment variables for configuring metrics reporting behavior.
      */
-    private static String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
-    private static String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
-    private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+    private static final String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
+    private static final String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
+    private static final String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
 
     /**
      * Environment variables for configuring Mesos API version.
