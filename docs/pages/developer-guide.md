@@ -1221,6 +1221,23 @@ pods:
       ....
 ```
 
+# Regions and Zones
+
+Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task's environment. For example:
+
+```
+REGION: us-west-2
+ZONE: us-west-2a
+```
+
+Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
+
+```
+@zone:GROUP_BY:2
+```
+
+The placement rule above would apply the `GROUP_BY` operator to zones.  The SDK does not currently enable region awareness, so any given service will only receive offers in the local region.
+
 
 # TLS
 
@@ -1268,23 +1285,6 @@ $MESOS_SANDBOX/
 ```
 
 Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PEM format (if applicable, this file also includes corresponding intermediate CA certificates). The `server.key` contains the private key corresponding to the end-entity certificate, in the PKCS#8 PEM format. The file `server.ca` contains the root CA certificate in the OpenSSL PEM format.
-
-# Regions and Zones
-
-Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task's environment. For example:
-
-```
-REGION: us-west-2
-ZONE: us-west-2a
-```
-
-Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
-
-```
-@zone:GROUP_BY:2
-```
-
-The placement rule above would apply the `GROUP_BY` operator to zones.
 
 ## Provisioning
 
