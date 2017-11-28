@@ -14,6 +14,7 @@ pods:
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
+      - {{ZOOKEEPER_CLIENT_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
@@ -65,6 +66,10 @@ pods:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
+        # NOTE: We add some custom statsd libraries for statsd metrics as well
+        # as a custom zookeeper library to support our own ZK running
+        # kerberized. The custom zk library does not do DNS reverse resolution
+        # of the ZK hostnames.
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
         {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
@@ -73,6 +78,7 @@ pods:
 
           ./bootstrap -resolve=false &&
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
                $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
