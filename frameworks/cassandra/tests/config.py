@@ -46,6 +46,28 @@ def get_foldered_node_address():
     return sdk_hosts.autoip_host(get_foldered_service_name(), 'node-0-server')
 
 
+def get_replicate_system_traces_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_traces WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_replicate_job('replicate-system-traces', cql, node_address, node_port)
+
+
+def get_replicate_system_auth_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_auth WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_replicate_job('replicate-system-auth', cql, node_address, node_port)
+
+
+def get_replicate_system_distributed_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_replicate_job('replicate-system-distributed', cql, node_address, node_port)
+
+
+def _get_replicate_job(name, cql, node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_traces WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_test_job(
+        'replicate-system-traces',
+        'cqlsh --cqlversion=3.4.0 -e "{}" {} {}'.format(cql, node_address, node_port))
+
+
 def get_delete_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
     cql = ' '.join([
         'TRUNCATE testspace1.testtable1;',
@@ -96,7 +118,18 @@ def get_all_jobs(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT)
     verify_data_job = get_verify_data_job(node_address)
     delete_data_job = get_delete_data_job(node_address)
     verify_deletion_job = get_verify_deletion_job(node_address)
-    return [write_data_job, verify_data_job, delete_data_job, verify_deletion_job]
+    replicate_system_traces_job = get_replicate_system_traces_job()
+    replicate_system_auth_job = get_replicate_system_auth_job()
+    replicate_system_distributed_job = get_replicate_system_distributed_job()
+
+    return [
+        write_data_job,
+        verify_data_job,
+        delete_data_job,
+        verify_deletion_job,
+        replicate_system_traces_job,
+        replicate_system_auth_job,
+        replicate_system_distributed_job]
 
 
 def run_backup_and_restore(

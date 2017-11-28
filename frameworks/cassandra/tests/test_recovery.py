@@ -1,9 +1,11 @@
 import logging
+import tempfile
 import time
 
 import pytest
 import sdk_cmd as cmd
 import sdk_install
+import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
@@ -19,12 +21,32 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
+        test_jobs = config.get_all_jobs()
+        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
-        yield  # let the test session execute
+        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
+        for job in test_jobs:
+            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
+
+        # these jobs replicate the system tables which can be replicated to a factor of 3 in an attempt to make
+        # replace operations more robust
+        with sdk_jobs.RunJobContext(
+            before_jobs=[
+                config.get_replicate_system_traces_job(),
+                config.get_replicate_system_auth_job(),
+                config.get_replicate_system_distributed_job()
+            ],
+            after_jobs=[]):
+
+            yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        # sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        pass
 
 
 @pytest.mark.sanity
