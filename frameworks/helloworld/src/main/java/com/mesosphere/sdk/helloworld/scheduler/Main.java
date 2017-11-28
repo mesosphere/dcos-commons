@@ -26,7 +26,7 @@ public class Main {
         if (args.length == 0) {
             // Create a sample config in Java
             runner = SchedulerRunner.fromServiceSpec(
-                    createSampleServiceSpec(schedulerConfig), schedulerConfig, Collections.emptyList());
+                    createSampleServiceSpec(schedulerConfig), schedulerConfig);
         } else if (args.length == 1) {
             // Read config from provided file, and assume any config templates are in the same directory as the file:
             File yamlSpecFile = new File(args[0]);

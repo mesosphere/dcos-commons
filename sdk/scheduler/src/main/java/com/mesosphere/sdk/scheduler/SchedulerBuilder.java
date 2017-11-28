@@ -10,11 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
-import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.scheduler.plan.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +23,6 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.DefaultPhaseFactory;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
-import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
-import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -61,12 +51,12 @@ public class SchedulerBuilder {
     private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
 
     // When these collections are empty, we don't do anything extra:
-    private final List<Plan> manualPlans = new ArrayList<>();
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
     private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
     private Collection<ConfigValidator<ServiceSpec>> customConfigValidators = new ArrayList<>();
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
+    private PlanCustomizer planCustomizer;
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -207,22 +197,17 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Sets the provided {@link Plan}s to this instance. This may be used when no {@link RawServiceSpec} is
-     * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
-     */
-    public SchedulerBuilder setPlans(Collection<Plan> plans) {
-        this.manualPlans.clear();
-        this.manualPlans.addAll(plans);
-        return this;
-    }
-
-    /**
      * Assigns a {@link RecoveryPlanOverriderFactory} to be used for generating the recovery plan manager.
      *
      * @param recoveryPlanOverriderFactory the factory which generates the custom recovery plan manager
      */
     public SchedulerBuilder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
+        return this;
+    }
+
+    public SchedulerBuilder setPlanCustomizer(PlanCustomizer planCustomizer) {
+        this.planCustomizer = planCustomizer;
         return this;
     }
 
@@ -273,7 +258,7 @@ public class SchedulerBuilder {
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
                 Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
-                        getPlans(stateStore, configStore, lastServiceSpec, manualPlans, yamlPlans));
+                        getPlans(stateStore, configStore, lastServiceSpec, yamlPlans));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
                     LOGGER.info("Marking deployment as having been previously completed");
                     StateStoreUtils.setDeploymentWasCompleted(stateStore);
@@ -309,7 +294,7 @@ public class SchedulerBuilder {
         }
 
         // Now that a ServiceSpec has been chosen, generate the plans.
-        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans);
+        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, yamlPlans);
         plans = selectDeployPlan(plans, hasCompletedDeployment);
         Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
         if (!deployPlan.isPresent()) {
@@ -319,8 +304,11 @@ public class SchedulerBuilder {
         List<String> errors = configUpdateResult.getErrors().stream()
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
+
         if (!errors.isEmpty()) {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
+        } else if (planCustomizer != null){
+            plans = customizePlans(plans, planCustomizer);
         }
 
         return new DefaultScheduler(
@@ -357,6 +345,12 @@ public class SchedulerBuilder {
         return DefaultPodSpec.newBuilder(podSpec).placementRule(rule).build();
     }
 
+    Collection<Plan> customizePlans(Collection<Plan> plans, PlanCustomizer planCustomizer) {
+        return plans.stream()
+                .map(plan -> planCustomizer.updatePlan(plan))
+                .collect(Collectors.toList());
+    }
+
     /**
      * Gets or generate plans against the given service spec.
      *
@@ -368,18 +362,10 @@ public class SchedulerBuilder {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
-            List<Plan> manualPlans,
             Map<String, RawPlan> yamlPlans) {
         final String plansType;
         final Collection<Plan> plans;
-        if (!manualPlans.isEmpty()) {
-            if (!yamlPlans.isEmpty()) {
-                throw new IllegalArgumentException(String.format("Cannot use both manual plans and raw YAML plans. " +
-                        "Only one or the other may be provided: manual=%s yaml=%s", manualPlans, yamlPlans));
-            }
-            plansType = "manual";
-            plans = new ArrayList<>(manualPlans);
-        } else if (!yamlPlans.isEmpty()) {
+        if (!yamlPlans.isEmpty()) {
             plansType = "YAML";
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.
