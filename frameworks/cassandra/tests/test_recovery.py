@@ -33,6 +33,8 @@ def configure_package(configure_security):
         for job in test_jobs:
             sdk_jobs.install_job(job, tmp_dir=tmp_dir)
 
+        # these jobs replicate the system tables which can be replicated to a factor of 3 in an attempt to make
+        # replace operations more robust
         with sdk_jobs.RunJobContext(
             before_jobs=[
                 config.get_replicate_system_traces_job(),
