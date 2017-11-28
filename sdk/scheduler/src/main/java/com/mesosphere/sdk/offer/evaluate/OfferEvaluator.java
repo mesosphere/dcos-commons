@@ -335,6 +335,8 @@ public class OfferEvaluator {
                 shouldAddExecutorResources = false;
             }
 
+            // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
+            // ExecutorInfo equality when launching new tasks
             for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
                 if (!taskSpec.getTransportEncryption().isEmpty()) {
                     evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
@@ -399,6 +401,8 @@ public class OfferEvaluator {
 
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
 
+        // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
+        // ExecutorInfo equality when launching new tasks
         for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
             if (!taskSpec.getTransportEncryption().isEmpty()) {
                 evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));

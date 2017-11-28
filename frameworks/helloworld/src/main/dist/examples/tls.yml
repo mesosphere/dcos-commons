@@ -127,7 +127,6 @@ pods:
         goal: RUNNING
         cmd: >
                 ./bootstrap -verbose -resolve=false
-
                 ls -lah && cat secure-tls-pod-second.crt && cat keystore-second.keystore && sleep $SLEEP_DURATION
         cpus: 0.1
         memory: 256
