@@ -40,13 +40,23 @@ if [ x$PULLREQUEST = "xtrue" ]; then
     git pull origin $MERGE_FROM --no-commit --ff
 fi
 
+
+if [ ! -d $GOPATH ]; then
+    mkdir -p $GOPATH
+fi
+
+# TODO: Should we do something more along the lines of what is done in build_go_exe.sh?
+if [ ! -e $GOPATH/src ]; then
+    ln -s $REPO_ROOT_DIR/govendor $GOPATH/src
+fi
+
 # Verify golang-based projects: SDK CLI (exercised via helloworld, our model service)
 # and SDK bootstrap, run unit tests
-for golang_sub_project in frameworks/helloworld/cli/dcos-hello-world sdk/bootstrap; do
+for golang_sub_project in cli sdk/bootstrap; do
     pushd $golang_sub_project
-    go test .
+    go test -v ./...
     popd
 done
 
 # Build steps for SDK libraries:
-./gradlew clean jar check
+./gradlew clean jar test check
