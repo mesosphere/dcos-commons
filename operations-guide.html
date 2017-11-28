@@ -396,6 +396,7 @@
         </ul>
       </li>
       <li><a href="#placement-constraints" id="markdown-toc-placement-constraints">Placement Constraints</a>        <ul>
+          <li><a href="#zones" id="markdown-toc-zones">Zones</a></li>
           <li><a href="#updating-placement-constraints" id="markdown-toc-updating-placement-constraints">Updating placement constraints</a></li>
         </ul>
       </li>
@@ -1015,6 +1016,10 @@ only as a file such that it will be autoatically decoded and made available as a
 </div>
 
 <p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
+
+<h3 id="zones">Zones</h3>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key.  For example one could spread pods across a minimum of 3 different zones by specifying the constraint <code class="highlighter-rouge">@zone:GROUP_BY:3</code>.</p>
 
 <h3 id="updating-placement-constraints">Updating placement constraints</h3>
 

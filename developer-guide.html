@@ -434,8 +434,8 @@
       <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
     </ul>
   </li>
-  <li><a href="#tls" id="markdown-toc-tls">TLS</a></li>
-  <li><a href="#regions-and-zones" id="markdown-toc-regions-and-zones">Regions and Zones</a>    <ul>
+  <li><a href="#regions-and-zones" id="markdown-toc-regions-and-zones">Regions and Zones</a></li>
+  <li><a href="#tls" id="markdown-toc-tls">TLS</a>    <ul>
       <li><a href="#provisioning" id="markdown-toc-provisioning">Provisioning</a>        <ul>
           <li><a href="#lifetime-of-secrets-containing-the-tls-artifacts" id="markdown-toc-lifetime-of-secrets-containing-the-tls-artifacts">Lifetime of secrets containing the TLS artifacts</a></li>
           <li><a href="#task-artifacts-access" id="markdown-toc-task-artifacts-access">Task artifacts access</a></li>
@@ -1809,6 +1809,23 @@ SDK-based example service using DC/OS secrets.</p>
 </code></pre>
 </div>
 
+<h1 id="regions-and-zones">Regions and Zones</h1>
+
+<p>Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task’s environment. For example:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>REGION: us-west-2
+ZONE: us-west-2a
+</code></pre>
+</div>
+
+<p>Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing <code class="highlighter-rouge">@region</code> and <code class="highlighter-rouge">@zone</code> keys.  For example:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>@zone:GROUP_BY:2
+</code></pre>
+</div>
+
+<p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones.  The SDK does not currently enable region awareness, so any given service will only receive offers in the local region.</p>
+
 <h1 id="tls">TLS</h1>
 
 <p><strong>This feature works only on Mesosphere DC/OS Enterprise and is not supported on Open Source DC/OS.</strong></p>
@@ -1855,23 +1872,6 @@ SDK-based example service using DC/OS secrets.</p>
 </div>
 
 <p>Here, the file <code class="highlighter-rouge">server.crt</code> contains an end-entity certificate in the OpenSSL PEM format (if applicable, this file also includes corresponding intermediate CA certificates). The <code class="highlighter-rouge">server.key</code> contains the private key corresponding to the end-entity certificate, in the PKCS#8 PEM format. The file <code class="highlighter-rouge">server.ca</code> contains the root CA certificate in the OpenSSL PEM format.</p>
-
-<h1 id="regions-and-zones">Regions and Zones</h1>
-
-<p>Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task’s environment. For example:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>REGION: us-west-2
-ZONE: us-west-2a
-</code></pre>
-</div>
-
-<p>Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing <code class="highlighter-rouge">@region</code> and <code class="highlighter-rouge">@zone</code> keys.  For example:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>@zone:GROUP_BY:2
-</code></pre>
-</div>
-
-<p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones.</p>
 
 <h2 id="provisioning">Provisioning</h2>
 
