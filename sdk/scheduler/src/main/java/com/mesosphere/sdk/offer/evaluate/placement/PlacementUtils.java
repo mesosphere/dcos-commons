@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,5 +119,13 @@ public class PlacementUtils {
             default:
                 return PlacementField.ATTRIBUTE;
         }
+    }
+
+    public static boolean placementRulesReferenceRegions(ServiceSpec serviceSpec) {
+        return serviceSpec.getPods().stream()
+                .filter(podSpec -> podSpec.getPlacementRule().isPresent())
+                .map(podSpec -> podSpec.getPlacementRule().get())
+                .flatMap(rule -> rule.getPlacementFields().stream())
+                .anyMatch(placementField -> placementField.equals(PlacementField.REGION));
     }
 }
