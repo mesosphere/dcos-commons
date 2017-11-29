@@ -62,6 +62,52 @@ def test_service_health():
     assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_pod_replace_then_immediate_config_update():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    plugin_name = 'analysis-phonetic'
+
+    cfg = sdk_marathon.get_config(foldered_name)
+    cfg['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
+    cfg['env']['UPDATE_STRATEGY'] = 'parallel'
+
+    sdk_cmd.run_cli('beta-elastic --name={} pod replace data-0'.format(foldered_name))
+
+    # issue config update immediately
+    sdk_marathon.update_app(foldered_name, cfg)
+
+    # ensure all nodes, especially data-0, get launched with the updated config
+    config.check_plugin_installed(plugin_name, service_name=foldered_name)
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        # Install Elastic using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            current_expected_task_count,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
+        )
+        sdk_tasks.check_running(foldered_name, current_expected_task_count)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        # reinstall the v1 version for the following tests
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options={"service": {"name": foldered_name}})
+
+
 @pytest.mark.sanity
 def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)

@@ -81,6 +81,8 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertFalse(capabilities.supportsV1APIByDefault());
     }
 
     @Test
@@ -93,6 +95,36 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertFalse(capabilities.supportsV1APIByDefault());
+    }
+
+    @Test
+    public void test_1110() throws IOException {
+        Capabilities capabilities = testCapabilities("1.11.0");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
+        Assert.assertTrue(capabilities.supportsRLimits());
+        // Secrets
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
+        Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertTrue(capabilities.supportsV1APIByDefault());
+    }
+
+    @Test
+    public void test_111dev() throws IOException {
+        Capabilities capabilities = testCapabilities("1.11-dev");
+        Assert.assertTrue(capabilities.supportsNamedVips());
+        Assert.assertTrue(capabilities.supportsGpuResource());
+        Assert.assertTrue(capabilities.supportsRLimits());
+        // Secrets
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
+        Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
+        Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+
+        Assert.assertTrue(capabilities.supportsV1APIByDefault());
     }
 
     @Test

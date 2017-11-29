@@ -1,0 +1,6 @@
+[core]
+ssl_verify = "false"
+dcos_url = "http://old-cluster.com/"
+dcos_acs_token = "old-cluster-token"
+[package]
+cosmos_url = "https://old-cluster-cosmos"

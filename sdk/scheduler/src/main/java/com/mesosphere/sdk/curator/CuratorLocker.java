@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class CuratorLocker {
     private final String zookeeperConnection;
 
     private CuratorFramework curatorClient;
-    private InterProcessMutex curatorMutex;
+    private InterProcessSemaphoreMutex curatorMutex;
 
     public CuratorLocker(ServiceSpec serviceSpec) {
         this.serviceName = serviceSpec.getName();
@@ -47,7 +47,7 @@ public class CuratorLocker {
         curatorClient.start();
 
         final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
-        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
+        InterProcessSemaphoreMutex curatorMutex = new InterProcessSemaphoreMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);
         final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +

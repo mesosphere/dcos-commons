@@ -1,0 +1,35 @@
+{
+    "id": "hdfsclient",
+    "mem": 1024,
+    "user": "nobody",
+    "container": {
+        "type": "MESOS",
+        "docker": {
+            "image": "nvaziri/hdfs-client:dev",
+            "forcePullImage": true
+        },
+        "volumes": [
+            {
+                "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
+                "secret": "hdfs_keytab"
+            }
+        ]
+    },
+    "secrets": {
+        "hdfs_keytab": {
+            "source": "__dcos_base64___keytab"
+        }
+    },
+    "networks": [
+        {
+            "mode": "host"
+        }
+    ],
+    "env": {
+        "REALM": "LOCAL",
+        "KDC_ADDRESS": "kdc.marathon.autoip.dcos.thisdcos.directory:2500",
+        "JAVA_HOME": "/usr/lib/jvm/default-java",
+        "KRB5_CONFIG": "/etc/krb5.conf",
+        "HDFS_SERVICE_NAME": "hdfs"
+    }
+}

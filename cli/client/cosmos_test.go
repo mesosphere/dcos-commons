@@ -55,8 +55,8 @@ func TestUpdateTestSuite(t *testing.T) {
 }
 
 func (suite *CosmosTestSuite) createExampleRequest() (*http.Request, []byte) {
-	requestBody := suite.loadFile("testdata/requests/example.json")
-	return createCosmosHTTPJSONRequest("POST", "describe", string(requestBody)), requestBody
+	requestBody := `{ "appId" : "my-app" }`
+	return createCosmosHTTPJSONRequest("POST", "describe", requestBody), []byte(requestBody)
 }
 
 func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename string) (http.Response, []byte) {
@@ -75,52 +75,65 @@ func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename str
 
 func (suite *CosmosTestSuite) Test404ErrorResponse() {
 	config.Command = "describe"
-
-	// fake 404 response
-	fourOhFourResponse, body := suite.createExampleResponse(http.StatusNotFound, "")
-
-	err := checkCosmosHTTPResponse(&fourOhFourResponse, body)
-
-	expectedOutput := suite.loadFile("testdata/output/404.txt")
-	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+	response, body := suite.createExampleResponse(http.StatusNotFound, "")
+	err := checkCosmosHTTPResponse(&response, body)
+	assert.Equal(suite.T(), "dcos hello-world describe requires Enterprise DC/OS 1.10 or newer.", err.Error())
 }
 
-func (suite *CosmosTestSuite) test400ErrorResponse(responseBody, output string) {
-	// fake 400 response for MarathonAppNotFound
-	fourHundredResponse, body := suite.createExampleResponse(http.StatusBadRequest, responseBody)
+func (suite *CosmosTestSuite) Test500ErrorResponse() {
+	config.Command = "describe"
+	response, body := suite.createExampleResponse(
+		http.StatusInternalServerError, "testdata/responses/cosmos/1.10/enterprise/marathon-error.json")
+	err := checkCosmosHTTPResponse(&response, body)
+	assert.Equal(suite.T(), `HTTP POST Query for https://my.dcos.url/cosmos/service/describe failed: 500 Internal Server Error
+Response: {"type":"unhandled_exception","message":"java.lang.Error: {\"message\":\"App is locked by one or more deployments. Override with the option '?force=true'. View details at '/v2/deployments/<DEPLOYMENT_ID>'.\",\"deployments\":[{\"id\":\"839314dd-f223-4d55-9d74-a556119e84be\"}]}"}
+`, err.Error())
+}
 
-	err := checkCosmosHTTPResponse(&fourHundredResponse, body)
-
-	expectedOutput := suite.loadFile(output)
-	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+func (suite *CosmosTestSuite) test400ErrorResponse(responseBody, outputContains string) {
+	response, body := suite.createExampleResponse(http.StatusBadRequest, responseBody)
+	err := checkCosmosHTTPResponse(&response, body)
+	assert.Contains(suite.T(), err.Error(), outputContains)
 }
 
 func (suite *CosmosTestSuite) TestAppNotFoundErrorResponse() {
 	config.ServiceName = "hello-world-1"
 
 	// fake 400 response for MarathonAppNotFound
-	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-name.json", "testdata/output/bad-name.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-name.json",
+		`Unable to find the service named 'hello-world-1'.
+Possible causes:
+- Did you provide the correct service name? Specify a service name with '--name=<name>', or with 'dcos config set hello-world.service_name <name>'.
+- Was the service recently installed or updated? It may still be initializing, wait a bit and try again.`)
 }
 
 func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
 	// create 400 responses for BadVersionUpdate
-	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version.json", "testdata/output/bad-version.txt")
-	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version-no-versions.json", "testdata/output/bad-version-no-versions.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version.json",
+		`Unable to update hello-world to requested version: "not-a-valid"
+Valid package versions are: ["v0.8", "v0.9", "v1.1", "v2.0"]`)
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version-no-versions.json",
+		`Unable to update hello-world to requested version: "not-a-valid"
+No valid package versions to update to.`)
 }
 
 func (suite *CosmosTestSuite) TestJSONMismatchErrorResponse() {
 	// create 400 response for JsonSchemaMismatch
-	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-json.json", "testdata/output/bad-json.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-json.json",
+		`Unable to update hello-world to requested configuration: options JSON failed validation.`)
 }
 
 func (suite *CosmosTestSuite) TestAppIDChangedErrorResponse() {
 	// create 400 response for JsonSchemaMismatch
-	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-app-id.json", "testdata/output/bad-app-id.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-app-id.json",
+		`Could not update service name from "/hello-world2" to "/hello-world".
+The service name cannot be changed once installed. Ensure service.name is set to "/hello-world2" in options JSON.`)
 }
 
 func (suite *CosmosTestSuite) TestGenericErrorResponse() {
 	// create 400 response for a generic error
-	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/generic-error.json", "testdata/output/generic-error.txt")
+	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/generic-error.json",
+		`Could not execute command: This an example of a generic Cosmos error response. (GenericErrorType)`)
 }
 
 func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {

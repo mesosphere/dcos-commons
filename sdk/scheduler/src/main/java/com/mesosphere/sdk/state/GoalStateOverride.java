@@ -18,8 +18,10 @@ public enum GoalStateOverride {
 
     /** The definition of the default no-override state. Refer to the task's {@link GoalState} setting. */
     NONE("NONE", "STARTING"),
-    /** The definition of the "PAUSED" override state, where commands are replaced with sleep()s.*/
-    PAUSED("PAUSED", "PAUSING");
+    /** The definition of the "PAUSED" override state, where commands are replaced with sleep()s. */
+    PAUSED("PAUSED", "PAUSING"),
+    /** The definition of the "DECOMMISSIONED" override state, where tasks are removed from the service. */
+    DECOMMISSIONED("DECOMMISSIONED", "DECOMMISSIONING");
 
     /** Sleep forever when pausing. */
     public static final String PAUSE_COMMAND =
@@ -129,6 +131,11 @@ public enum GoalStateOverride {
         @Override
         public int hashCode() {
             return HashCodeBuilder.reflectionHashCode(this);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s/%s", target, progress);
         }
     }
 

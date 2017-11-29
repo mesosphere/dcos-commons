@@ -52,14 +52,14 @@ def test_soak_secrets_update():
     world_tasks = sdk_tasks.get_task_ids(FRAMEWORK_NAME, "world-0")
 
     # make sure content is changed
-    assert secret_content_alternative == sdk_tasks.task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")
-    assert secret_content_alternative == sdk_tasks.task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == sdk_tasks.task_exec(world_tasks[0], "cat secrets/secret3")
+    assert secret_content_alternative == sdk_tasks.task_exec(world_tasks[0], "bash -c 'echo $WORLD_SECRET1_ENV'")[1]
+    assert secret_content_alternative == sdk_tasks.task_exec(world_tasks[0], "cat WORLD_SECRET2_FILE")[1]
+    assert secret_content_alternative == sdk_tasks.task_exec(world_tasks[0], "cat secrets/secret3")[1]
 
     # make sure content is changed
-    assert secret_content_alternative == sdk_tasks.task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")
-    assert secret_content_alternative == sdk_tasks.task_exec(hello_tasks[0], "cat HELLO_SECRET1_FILE")
-    assert secret_content_alternative == sdk_tasks.task_exec(hello_tasks[0], "cat HELLO_SECRET2_FILE")
+    assert secret_content_alternative == sdk_tasks.task_exec(hello_tasks[0], "bash -c 'echo $HELLO_SECRET1_ENV'")[1]
+    assert secret_content_alternative == sdk_tasks.task_exec(hello_tasks[0], "cat HELLO_SECRET1_FILE")[1]
+    assert secret_content_alternative == sdk_tasks.task_exec(hello_tasks[0], "cat HELLO_SECRET2_FILE")[1]
 
     # revert back to some other value
     sdk_cmd.run_cli("security secrets update --value=SECRET1 secrets/secret1")

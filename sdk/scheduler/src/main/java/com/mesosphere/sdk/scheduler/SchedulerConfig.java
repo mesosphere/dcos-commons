@@ -138,9 +138,14 @@ public class SchedulerConfig {
     /**
      * Environment variables for configuring metrics reporting behavior.
      */
-    private static String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
-    private static String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
-    private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+    private static final String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
+    private static final String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
+    private static final String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+
+    /**
+     * Environment variables for configuring Mesos API version.
+     */
+    private static String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
     /**
      * Environment variables for configuring goal state override behavior.
@@ -311,6 +316,13 @@ public class SchedulerConfig {
      */
     public int getStatsdPort() {
         return envStore.getRequiredInt(STATSD_UDP_PORT_ENV);
+    }
+
+    /**
+     * Returns the Mesos API version.
+     */
+    public String getMesosApiVersion() {
+        return envStore.getRequired(MESOS_API_VERSION_ENV);
     }
 
     /**

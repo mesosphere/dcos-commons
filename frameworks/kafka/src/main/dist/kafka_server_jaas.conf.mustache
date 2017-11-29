@@ -1,0 +1,23 @@
+{{#SECURITY_KERBEROS_ENABLED}}
+KafkaServer {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    useTicketCache=false
+    keyTab="kafka.keytab"
+    principal="{{SECURITY_KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}";
+};
+
+{{#SECURITY_KERBEROS_ENABLED_FOR_ZOOKEEPER}}
+// Zookeeper client authentication
+Client {
+    com.sun.security.auth.module.Krb5LoginModule required
+    useKeyTab=true
+    storeKey=true
+    useTicketCache=false
+    keyTab="kafka.keytab"
+    principal="{{SECURITY_KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}";
+};
+{{/SECURITY_KERBEROS_ENABLED_FOR_ZOOKEEPER}}
+
+{{/SECURITY_KERBEROS_ENABLED}}

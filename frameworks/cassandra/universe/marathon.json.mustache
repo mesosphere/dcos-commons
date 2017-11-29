@@ -35,8 +35,9 @@
 
     {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
@@ -48,6 +49,7 @@
     {{/service.tls_allow_plaintext}}
     {{/service.tls}}
 
+    "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
     "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
     "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{cassandra.authorizer}}",
@@ -153,7 +155,6 @@
     "CASSANDRA_DOCKER_IMAGE": "{{resource.assets.container.docker.cassandra}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "TASKCFG_ALL_CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
-    "TASKCFG_ALL_CASSANDRA_LOCATION_RACK": "{{service.rack}}",
     "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}"
   },
   "uris": [

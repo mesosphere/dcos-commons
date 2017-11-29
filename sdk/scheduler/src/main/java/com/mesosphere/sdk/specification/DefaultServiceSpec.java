@@ -320,16 +320,22 @@ public class DefaultServiceSpec implements ServiceSpec {
                 HostnameRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
+                MaxPerRegionRule.class,
+                MaxPerZoneRule.class,
                 NamedVIPSpec.class,
                 NotRule.class,
                 OrRule.class,
                 PassthroughRule.class,
                 PortSpec.class,
                 RegexMatcher.class,
+                RegionRule.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,
+                RoundRobinByRegionRule.class,
+                RoundRobinByZoneRule.class,
                 TaskTypeLabelConverter.class,
                 TaskTypeRule.class,
+                ZoneRule.class,
                 DefaultSecretSpec.class);
 
         private final ObjectMapper objectMapper;

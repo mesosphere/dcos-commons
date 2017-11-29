@@ -12,7 +12,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testing.ServiceTestRunner;
-import com.mesosphere.sdk.testing.SchedulerConfigResult;
+import com.mesosphere.sdk.testing.ServiceTestResult;
 
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -34,7 +34,7 @@ public class CassandraRecoveryPlanOverriderTest {
     private StateStore stateStore;
 
     public CassandraRecoveryPlanOverriderTest() throws Exception {
-        SchedulerConfigResult result = new ServiceTestRunner()
+        ServiceTestResult result = new ServiceTestRunner()
                 .setPodEnv("node", "LOCAL_SEEDS", "foo,bar")
                 .run();
         rawSpec = result.getRawServiceSpec();

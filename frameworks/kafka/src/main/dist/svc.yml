@@ -14,11 +14,18 @@ pods:
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
+      - {{ZOOKEEPER_CLIENT_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+    secrets:
+      keytab:
+        secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
+        file: kafka.keytab
+    {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
@@ -59,38 +66,50 @@ pods:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
+        # NOTE: We add some custom statsd libraries for statsd metrics as well
+        # as a custom zookeeper library to support our own ZK running
+        # kerberized. The custom zk library does not do DNS reverse resolution
+        # of the ZK hostnames.
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
-          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+
           ./bootstrap -resolve=false &&
-          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
+          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
+               $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
           server-properties:
             template: server.properties.mustache
             dest: {{KAFKA_VERSION_PATH}}/config/server.properties
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          kafka-server-jaas:
+            template: kafka_server_jaas.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf
+          krb5-conf:
+            template: krb5.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/krb5.conf
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
         readiness-check:
           cmd: |
-            # since the server is just started, the starting and started log lines
-            # should be present in the server.log file, independent of whether or
-            # not the server.log file is being logrotated.
-            #
-            # Example log lines follow:
-            ## starting:
-            # [2017-06-14 22:20:54,260] INFO starting (kafka.server.KafkaServer)
-            ## started:
+            # The broker has started when it logs a specific "started" log line. An example is below:
             # [2017-06-14 22:20:55,464] INFO [Kafka Server 1], started (kafka.server.KafkaServer)
-
             kafka_dir=$(ls -d kafka_* |head -n 1)
-            kafka_server_log_file=${kafka_dir}/logs/server.log
-            starting_date_s=$(awk '/.*starting.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
-            starting_date=$(date -d $starting_date_s +%s)
-            started_date_s=$(awk '/.*started.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
-            started_date=$(date -d $started_date_s +%s)
-            [ ! -z $started_date_s ] && \
-                [ ! -z $starting_date_s ] && \
-                [ $starting_date -le $started_date ]
-            is_ready=$?
-            exit $is_ready
+            kafka_server_log_files=${kafka_dir}/logs/server.log*
+
+            echo "Checking for started log line in $kafka_server_log_files."
+            grep -q "INFO \[KafkaServer id=$POD_INSTANCE_INDEX\] started (kafka.server.KafkaServer)" $kafka_server_log_files
+            if [ $? -eq 0 ] ; then
+              echo "Found started log line."
+            else
+              echo "started log line not found. Exiting."
+              exit 1
+            fi
+            echo "Required log line found. Broker is ready."
+            exit 0
           interval: 5
           delay: 0
           timeout: 10
@@ -104,6 +123,6 @@ plans:
   deploy:
     strategy: serial
     phases:
-      Deployment:
+      broker:
         strategy: {{DEPLOY_STRATEGY}}
         pod: kafka

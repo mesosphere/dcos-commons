@@ -55,7 +55,7 @@ public class UninstallScheduler extends AbstractScheduler {
         super(stateStore, configStore, schedulerConfig);
         uninstallPlanBuilder = new UninstallPlanBuilder(
                 serviceSpec, stateStore, configStore, schedulerConfig, customSecretsClientForTests);
-        uninstallPlanManager = new DefaultPlanManager(uninstallPlanBuilder.getPlan());
+        uninstallPlanManager = DefaultPlanManager.createProceeding(uninstallPlanBuilder.getPlan());
         resources = Collections.singletonList(new PlansResource()
                 .setPlanManagers(Collections.singletonList(uninstallPlanManager)));
     }
@@ -86,9 +86,6 @@ public class UninstallScheduler extends AbstractScheduler {
         uninstallPlanBuilder.registered(driver);
         offerAccepter = new OfferAccepter(Collections.singletonList(
                 new UninstallRecorder(stateStore, uninstallPlanBuilder.getResourceSteps())));
-
-        LOGGER.info("Proceeding with uninstall plan...");
-        uninstallPlanManager.getPlan().proceed();
 
         LOGGER.info("Done initializing.");
 

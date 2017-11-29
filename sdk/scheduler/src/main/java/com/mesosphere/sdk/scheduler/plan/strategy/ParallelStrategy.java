@@ -18,6 +18,11 @@ public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C
         return new DependencyStrategyHelper<C>(elements).getCandidates(isInterrupted(), dirtyAssets);
     }
 
+    @Override
+    public String getName() {
+        return "parallel";
+    }
+
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }

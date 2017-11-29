@@ -213,7 +213,7 @@ func GetDCOSURL() {
 		config.DcosURL = RequiredCLIConfigValue(
 			"core.dcos_url",
 			"DC/OS Cluster URL",
-			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure.")
+			"Run 'dcos config set core.dcos_url http://your-cluster.com' to configure")
 	}
 	// Trim eg "/#/" from copy-pasted Dashboard URL:
 	config.DcosURL = strings.TrimRight(config.DcosURL, "#/")

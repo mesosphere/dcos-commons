@@ -2,6 +2,7 @@ import json
 import logging
 
 import pytest
+import sdk_api
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -22,6 +23,25 @@ def configure_package(configure_security):
         yield # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_region_zone_injection():
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
+    assert fault_domain_vars_are_present('hello-0')
+    assert fault_domain_vars_are_present('world-0')
+    assert fault_domain_vars_are_present('world-1')
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+def fault_domain_vars_are_present(pod_instance):
+    info = sdk_api.get(config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
+    variables = info['command']['environment']['variables']
+    region = next((var for var in variables if var['name'] == 'REGION'), ['NO_REGION'])
+    zone = next((var for var in variables if var['name'] == 'ZONE'), ['NO_ZONE'])
+
+    return region != 'NO_REGION' and zone != 'NO_ZONE' and len(region) > 0 and len(zone) > 0
 
 
 @pytest.mark.dcos_min_version('1.9')
@@ -70,6 +90,143 @@ def test_rack_not_found():
     assert len(steps2) == 2
     assert steps2[0]['status'] == 'PENDING'
     assert steps2[1]['status'] == 'PENDING'
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_unique_zone_fails():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:UNIQUE'
+        },
+        'world': {
+            'placement': '@zone:UNIQUE'
+        }
+    }
+
+    fail_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_max_per_zone_fails():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:MAX_PER:1'
+        },
+        'world': {
+            'placement': '@zone:MAX_PER:1'
+        }
+    }
+
+    fail_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_max_per_zone_succeeds():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:MAX_PER:1'
+        },
+        'world': {
+            'placement': '@zone:MAX_PER:2'
+        }
+    }
+
+    succeed_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_group_by_zone_succeeds():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:GROUP_BY:1'
+        },
+        'world': {
+            'placement': '@zone:GROUP_BY:1'
+        }
+    }
+    succeed_placement(options)
+
+
+@pytest.mark.dcos_min_version('1.11')
+@pytest.mark.sanity
+def test_group_by_zone_fails():
+    options = {
+        'service': {
+            'spec_file': 'examples/marathon_constraint.yml'
+        },
+        'hello': {
+            'placement': '@zone:GROUP_BY:1'
+        },
+        'world': {
+            'placement': '@zone:GROUP_BY:2'
+        }
+    }
+
+    fail_placement(options)
+
+
+def succeed_placement(options):
+    """
+    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
+    """
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+def fail_placement(options):
+    """
+    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
+    """
+
+    # scheduler should fail to deploy, don't wait for it to complete:
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
+                        additional_options=options, wait_for_deployment=False)
+    sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'world', 'world-0:[server]', 'COMPLETE')
+
+    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
+
+    # check that everything is still stuck looking for a match:
+    assert pl['status'] == 'IN_PROGRESS'
+
+    assert len(pl['phases']) == 2
+
+    phase1 = pl['phases'][0]
+    assert phase1['status'] == 'COMPLETE'
+    steps1 = phase1['steps']
+    assert len(steps1) == 1
+
+    phase2 = pl['phases'][1]
+    assert phase2['status'] == 'IN_PROGRESS'
+    steps2 = phase2['steps']
+    assert len(steps2) == 2
+    assert steps2[0]['status'] == 'COMPLETE'
+    assert steps2[1]['status'] in ('PREPARED', 'PENDING')
+
+    try:
+        sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
+        assert False, "Should have failed to deploy world-1"
+    except AssertionError as arg:
+        raise arg
+    except:
+        pass # expected to fail
+
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 

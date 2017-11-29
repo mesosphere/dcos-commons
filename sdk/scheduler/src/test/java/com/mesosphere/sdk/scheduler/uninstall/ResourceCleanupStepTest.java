@@ -21,7 +21,7 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
 
     @Before
     public void beforeEach() throws Exception {
-        resourceCleanupStep = new ResourceCleanupStep(TestConstants.RESOURCE_ID);
+        resourceCleanupStep = new ResourceCleanupStep(TestConstants.RESOURCE_ID, Status.PENDING);
     }
 
     @Test

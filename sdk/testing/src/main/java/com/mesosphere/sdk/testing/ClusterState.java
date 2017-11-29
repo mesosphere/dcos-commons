@@ -15,27 +15,40 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.ServiceSpec;
 
 /**
  * Representation of the state of a cluster. Effectively a log of prior offers and task launches during a test run.
  */
 public class ClusterState {
 
-    private final SchedulerConfigResult configResult;
+    private final ServiceSpec serviceSpec;
     private final AbstractScheduler scheduler;
     private final List<Protos.Offer> sentOffers = new ArrayList<>();
     private final List<Collection<Protos.TaskInfo>> createdPods = new ArrayList<>();
 
-    public ClusterState(SchedulerConfigResult configResult, AbstractScheduler scheduler) {
-        this.configResult = configResult;
+    private ClusterState(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
+        this.serviceSpec = serviceSpec;
         this.scheduler = scheduler;
+    }
+
+    public static ClusterState create(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
+        return new ClusterState(serviceSpec, scheduler);
+    }
+
+    public static ClusterState withUpdatedConfig(
+            ClusterState clusterState, ServiceSpec serviceSpec, AbstractScheduler scheduler) {
+        ClusterState updatedClusterState = create(serviceSpec, scheduler);
+        updatedClusterState.sentOffers.addAll(clusterState.sentOffers);
+        updatedClusterState.createdPods.addAll(clusterState.createdPods);
+        return updatedClusterState;
     }
 
     /**
      * Returns the rendered scheduler/service configuration.
      */
-    public SchedulerConfigResult getSchedulerConfig() {
-        return configResult;
+    public ServiceSpec getServiceSpec() {
+        return serviceSpec;
     }
 
     /**
@@ -123,7 +136,7 @@ public class ClusterState {
     }
 
     /**
-     * Returns the last task launched with the specified name
+     * Returns the last task launched with the specified name.
      *
      * @param taskName the task name to be found
      * @return the task's info
@@ -154,7 +167,7 @@ public class ClusterState {
     }
 
     /**
-     * Returns the last task id for a task of the specified name
+     * Returns the last task id for a task of the specified name.
      *
      * @param taskName the task name to be found
      * @return the task id

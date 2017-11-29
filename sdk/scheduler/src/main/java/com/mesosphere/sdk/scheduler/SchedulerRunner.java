@@ -98,22 +98,24 @@ public class SchedulerRunner implements Runnable {
     @Override
     public void run() {
         CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
-        locker.lock();
-        try {
-            SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
-            Metrics.configureStatsd(schedulerConfig);
-            AbstractScheduler scheduler = schedulerBuilder.build();
-            scheduler.start();
-            Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
-            if (mesosScheduler.isPresent()) {
-                runScheduler(
-                        mesosScheduler.get(),
-                        schedulerBuilder.getServiceSpec(),
-                        schedulerBuilder.getSchedulerConfig(),
-                        schedulerBuilder.getStateStore());
-            }
-        } finally {
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Shutdown initiated, releasing curator lock");
             locker.unlock();
+        }));
+        locker.lock();
+
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        Metrics.configureStatsd(schedulerConfig);
+        AbstractScheduler scheduler = schedulerBuilder.build();
+        scheduler.start();
+        Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
+        if (mesosScheduler.isPresent()) {
+            runScheduler(
+                    mesosScheduler.get(),
+                    schedulerBuilder.getServiceSpec(),
+                    schedulerBuilder.getSchedulerConfig(),
+                    schedulerBuilder.getStateStore());
         }
     }
 

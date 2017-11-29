@@ -1,18 +1,22 @@
 import logging
 import os
 import pytest
+import subprocess
 import time
 
 import sdk_auth
 import sdk_hosts
 import sdk_install
+import sdk_marathon
+import sdk_tasks
+import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_universe):
+def kerberos(configure_security):
     try:
         primaries = ["hdfs", "HTTP"]
         fqdn = "{service_name}.{host_suffix}".format(
@@ -40,40 +44,71 @@ def configure_package(configure_universe):
                         REALM=sdk_auth.REALM
                     )
                 )
+        principals.append(config.GENERIC_HDFS_USER_PRINCIPAL)
 
-        kerberos = sdk_auth.KerberosEnvironment()
-        kerberos.add_principals(principals)
-        kerberos.finalize_environment()
+        kerberos_env = sdk_auth.KerberosEnvironment()
+        kerberos_env.add_principals(principals)
+        kerberos_env.finalize()
         service_kerberos_options = {
             "service": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": kerberos.get_port(),
-                    "keytab_secret_path": kerberos.get_keytab_path(),
+                    "kdc_host_name": kerberos_env.get_host(),
+                    "kdc_host_port": kerberos_env.get_port(),
+                    "keytab_secret": kerberos_env.get_keytab_path(),
                     "primary": primaries[0],
                     "primary_http": primaries[1],
                     "realm": sdk_auth.REALM
                 }
             }
         }
-        # TODO: uncomment install when kerberized-HDFS branch is merged
-        #sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        #sdk_install.install(
-        #    config.PACKAGE_NAME,
-        #    config.SERVICE_NAME,
-        #    config.DEFAULT_TASK_COUNT,
-        #    additional_options=service_kerberos_options,
-        #    timeout_seconds=30*60)
 
-        yield  # let test session execute
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            config.DEFAULT_TASK_COUNT,
+            additional_options=service_kerberos_options,
+            timeout_seconds=30*60)
+
+        yield kerberos_env
+
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        kerberos.cleanup()
+        if kerberos_env:
+            kerberos_env.cleanup()
 
 
-@pytest.mark.skipif(os.environ.get("SECURITY") == "strict", reason="auth tests currently broken in strict")
+@pytest.fixture(autouse=True)
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.smoke
+def test_health_of_kerberized_hdfs():
+    config.check_healthy(service_name=config.SERVICE_NAME)
+
+
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_user_can_write():
-    pass
+def test_user_can_write_and_read(kerberos):
+    try:
+        client_app_def = config.get_kerberized_hdfs_client_app()
+        client_app_def["secrets"]["hdfs_keytab"]["source"] = kerberos.get_keytab_path()
+        client_app_def["env"]["REALM"] = kerberos.get_realm()
+        client_app_def["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
+        sdk_marathon.install_app(client_app_def)
+        client_task_id = client_app_def["id"]
+
+        sdk_auth.kinit(client_task_id, keytab=config.KEYTAB, principal=config.GENERIC_HDFS_USER_PRINCIPAL)
+
+        write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_FILE_1_NAME, config.TEST_CONTENT_SMALL))
+        sdk_tasks.task_exec(client_task_id, write_cmd)
+
+        read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(config.TEST_FILE_1_NAME))
+        _, stdout, _ = sdk_tasks.task_exec(client_task_id, read_cmd)
+        assert stdout == config.TEST_CONTENT_SMALL
+
+    finally:
+        sdk_marathon.destroy_app(client_task_id)
+

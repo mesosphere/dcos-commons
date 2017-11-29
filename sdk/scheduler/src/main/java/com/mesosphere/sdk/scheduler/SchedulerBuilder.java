@@ -290,8 +290,7 @@ public class SchedulerBuilder {
         final ConfigurationUpdater.UpdateResult configUpdateResult =
                 updateConfig(serviceSpec, stateStore, configStore, configValidators);
         if (!configUpdateResult.getErrors().isEmpty()) {
-            LOGGER.warn("Failed to update configuration due to errors with configuration {}: {}",
-                    configUpdateResult.getTargetId(), configUpdateResult.getErrors());
+            LOGGER.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
             try {
                 // If there were errors, stick with the last accepted target configuration.
                 serviceSpec = configStore.fetch(configStore.getTargetConfig());

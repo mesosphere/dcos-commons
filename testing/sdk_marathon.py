@@ -33,7 +33,7 @@ def get_config(app_name):
     return config
 
 
-def install_app_from_file(app_def_path: str) -> (bool, str):
+def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
     """
     Installs a marathon app using the path to an app definition.
 
@@ -47,9 +47,13 @@ def install_app_from_file(app_def_path: str) -> (bool, str):
     output = sdk_cmd.run_cli("{cmd} {file_path}".format(
         cmd="marathon app add ", file_path=app_def_path
     ))
-    if output:
+    if "Created deployment" not in output:
         return 1, output
+
+    log.info("Waiting for app to be running...")
+    shakedown.wait_for_task("marathon", app_name)
     return 0, ""
+
 
 
 def install_app(app_definition: dict) -> (bool, str):
@@ -66,10 +70,12 @@ def install_app(app_definition: dict) -> (bool, str):
     app_name = app_definition["id"]
     app_def_file = "{}.json".format(app_name)
 
+    log.info("Launching {} marathon app".format(app_name))
+
     with open(app_def_file, "w") as f:
         json.dump(app_definition, f)
 
-    return install_app_from_file(app_def_file)
+    return install_app_from_file(app_name, app_def_file)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
