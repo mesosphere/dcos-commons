@@ -60,7 +60,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
@@ -170,7 +170,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
@@ -207,7 +207,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
@@ -236,7 +236,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
@@ -270,7 +270,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
@@ -299,7 +299,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
@@ -364,7 +364,7 @@ pods:
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
-            template: krb5.conf
+            template: krb5.conf.mustache
             dest: {{JRE_VERSION}}/lib/security/krb5.conf
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
