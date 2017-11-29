@@ -140,7 +140,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -198,7 +201,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -256,7 +262,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -314,7 +323,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
