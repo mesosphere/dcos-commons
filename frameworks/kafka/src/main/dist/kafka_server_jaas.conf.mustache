@@ -3,6 +3,7 @@ KafkaServer {
     com.sun.security.auth.module.Krb5LoginModule required
     useKeyTab=true
     storeKey=true
+    useTicketCache=false
     keyTab="kafka.keytab"
     principal="{{SECURITY_KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}";
 };
@@ -13,6 +14,7 @@ Client {
     com.sun.security.auth.module.Krb5LoginModule required
     useKeyTab=true
     storeKey=true
+    useTicketCache=false
     keyTab="kafka.keytab"
     principal="{{SECURITY_KERBEROS_PRIMARY}}/{{TASK_NAME}}.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}";
 };
