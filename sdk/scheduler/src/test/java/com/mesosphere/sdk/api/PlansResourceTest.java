@@ -58,7 +58,7 @@ public class PlansResourceTest {
         when(mockPlan.getName()).thenReturn(planName);
 
         resource = new PlansResource();
-        resource.setPlanManagers(Arrays.asList(new DefaultPlanManager(mockPlan)));
+        resource.setPlanManagers(Arrays.asList(DefaultPlanManager.createInterrupted(mockPlan)));
         verify(mockPlan).interrupt(); // invoked by DefaultPlanManager
     }
 

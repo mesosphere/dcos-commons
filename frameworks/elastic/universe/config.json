@@ -60,7 +60,7 @@
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
-          "default": "V0"
+          "default": "V1"
         },
         "tls": {
           "description": "Enable TLS support (requires Enterprise DC/OS running in strict or permissive security mode).",
@@ -128,7 +128,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -186,7 +189,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -244,7 +250,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -302,7 +311,10 @@
         "placement": {
           "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [

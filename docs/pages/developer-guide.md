@@ -992,29 +992,29 @@ Specifying that pods join a virtual network has the following indirect effects:
 
 # Metrics
 ## Default
-Schedulers generate a set of default metrics.  Three main categories of metrics are reported for: offers, operations, and status messages.
+Schedulers generate a set of default metrics.  Metrics are reported in three main categories: offers, operations, and status messages.
 
 ##### Offers
-1. Received
-2. Processed
-3. Decline (long/short)
+1. Received.
+1. Processed.
+1. Decline (long/short).
 
-Offers are counted as received as soon as they are offered to the scheduler by Mesos.  They are counted as processed afterthey have been compared against the current work the scheduler needs to do, and either accepted or rejected.
+Offers are counted as received as soon as they are offered to the scheduler by Mesos. They are counted as processed after they have been compared against the current work the scheduler needs to do, and then either accepted or rejected.
 
-Offers which are declined fall into two categories, those which are declined for a long time (2 weeks) and those which are declined for a short time (5 seconds).  In general, offers are declined for a short time when the offer queue is fulland they are declined for a long time when they fail to match any of the current work requirements.
+Declined offers fall into two categories: those that are declined for a long time (e.g., 2 weeks) and those that are declined for a short time (e.g., 5 seconds). In general, offers are declined for a short time when the offer queue is full. They are declined for a long time when they fail to match any of the current work requirements.
 
 The `offers.process` timer reports statistics about how long it takes the scheduler to process all offers in the offer queue.
 
 ##### Operations
-Mesos has a set of operations which may be performed on offers.  These include `RESERVE` and `LAUNCH_GROUP` for example.
+Mesos has a set of operations that can be performed on offers. These include, for example, `RESERVE` and `LAUNCH_GROUP`.
 The count of all operations is reported.
 
 ##### Status
-Mesos has a set of TaskStatus messages that scheduler's receive.  These include `TASK_RUNNING` and `TASK_FAILED` for example.
+Mesos has a set of TaskStatus messages that schedulers receive. These include, for example, `TASK_RUNNING` and `TASK_FAILED`.
 The count of all TaskStatus messages is reported.
 
 ##### Reporting
-The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
+The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See the [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
 
 The JSON representation of the metrics is available at the `/v1/metrics` endpoint`.
 
@@ -1117,7 +1117,7 @@ offers_process_count 244.0
 ```
 
 ## Custom Metrics
-A service author may choose to expose custom metrics by using the metrics registry.  The popular [dropwizard metrics library](http://metrics.dropwizard.io) is used.  An instance of a [MetricsRegistry](http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html) can be acquired in the following way.
+A service author may choose to expose custom metrics by using the metrics registry. The popular [dropwizard metrics library](http://metrics.dropwizard.io) is used.  An instance of a [MetricsRegistry](http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html) can be acquired in the following way.
 
 ```java
 MetricsRegistry registry = Metrics.getRegistry();
@@ -1221,6 +1221,23 @@ pods:
       ....
 ```
 
+# Regions and Zones
+
+Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task's environment. For example:
+
+```
+REGION: us-west-2
+ZONE: us-west-2a
+```
+
+Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
+
+```
+@zone:GROUP_BY:2
+```
+
+The placement rule above would apply the `GROUP_BY` operator to zones.  The SDK does not currently enable region awareness, so any given service will only receive offers in the local region.
+
 
 # TLS
 
@@ -1268,23 +1285,6 @@ $MESOS_SANDBOX/
 ```
 
 Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PEM format (if applicable, this file also includes corresponding intermediate CA certificates). The `server.key` contains the private key corresponding to the end-entity certificate, in the PKCS#8 PEM format. The file `server.ca` contains the root CA certificate in the OpenSSL PEM format.
-
-# Regions and Zones
-
-Mesos allows agents to expose fault domain information in the form of a region and zone. A region is larger than a zone and should be thought of as containing zones. For example, a region could be a particular datacenter and the racks within that datacenter could be its zones. When this information is provided by Mesos, it is injected into each task's environment. For example:
-
-```
-REGION: us-west-2
-ZONE: us-west-2a
-```
-
-Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
-
-```
-@zone:GROUP_BY:2
-```
-
-The placement rule above would apply the `GROUP_BY` operator to zones.
 
 ## Provisioning
 

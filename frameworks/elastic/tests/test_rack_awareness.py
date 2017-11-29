@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.11')
 def test_detect_zones_disabled_by_default():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
@@ -25,6 +26,8 @@ def test_detect_zones_disabled_by_default():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.11')
 def test_detect_zones_enabled():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(

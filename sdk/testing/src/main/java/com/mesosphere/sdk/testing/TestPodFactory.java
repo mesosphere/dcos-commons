@@ -1,6 +1,7 @@
-package com.mesosphere.sdk.specification;
+package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
@@ -148,7 +149,19 @@ public class TestPodFactory {
             double cpu,
             double mem,
             double disk) {
-        return getPodSpec(type, user, count, Arrays.asList(getTaskSpec(taskName, cmd, resourceSetId, null, cpu, mem, disk)));
+        return getPodSpec(
+                type,
+                user,
+                count,
+                Arrays.asList(
+                        getTaskSpec(
+                                taskName,
+                                cmd,
+                                resourceSetId,
+                                null,
+                                cpu,
+                                mem,
+                                disk)));
     }
 
     public static PodSpec getPodSpec(String type, String user, int count, List<TaskSpec> taskSpecs) {

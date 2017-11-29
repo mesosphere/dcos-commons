@@ -7,7 +7,7 @@ import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.testing.CosmosRenderer;
 import com.mesosphere.sdk.testing.ServiceTestRunner;
 
-import com.mesosphere.sdk.testing.SchedulerConfigResult;
+import com.mesosphere.sdk.testing.ServiceTestResult;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,14 +33,15 @@ public class ServiceTest {
 
     @Test
     public void testTLS() throws Exception {
-        SchedulerConfigResult result = new ServiceTestRunner()
+        ServiceTestResult result = new ServiceTestRunner()
                 .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
-                .setOptions("service.tls.enabled", "true")
-                .setOptions("hdfs.name_node_https_port", "2000")
-                .setOptions("hdfs.journal_node_https_port", "2001")
-                .setOptions("hdfs.data_node_https_port", "2002")
+                .setOptions(
+                        "service.tls.enabled", "true",
+                        "hdfs.name_node_https_port", "2000",
+                        "hdfs.journal_node_https_port", "2001",
+                        "hdfs.data_node_https_port", "2002")
                 .run();
 
         RawPort nameHttpsPort = result

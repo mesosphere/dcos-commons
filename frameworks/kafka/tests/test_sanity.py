@@ -17,25 +17,30 @@ import shakedown
 from tests import config, test_utils
 
 
+def install_kafka(use_v0=False):
+    mesos_api_version = "V0" if use_v0 else "V1"
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    if sdk_utils.dcos_version_less_than("1.9"):
+        # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_BROKER_COUNT,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": mesos_api_version}})
+    else:
+        sdk_upgrade.test_upgrade(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_BROKER_COUNT,
+            additional_options={"service": {"name": foldered_name, "mesos_api_version": mesos_api_version}, "brokers": {"cpus": 0.5}})
+
+
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
-        if sdk_utils.dcos_version_less_than("1.9"):
-            # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
-            sdk_install.install(
-                config.PACKAGE_NAME,
-                foldered_name,
-                config.DEFAULT_BROKER_COUNT,
-                additional_options={"service": {"name": foldered_name}})
-        else:
-            sdk_upgrade.test_upgrade(
-                config.PACKAGE_NAME,
-                foldered_name,
-                config.DEFAULT_BROKER_COUNT,
-                additional_options={"service": {"name": foldered_name}, "brokers": {"cpus": 0.5}})
+        install_kafka()
 
         # wait for brokers to finish registering before starting tests
         test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
@@ -44,6 +49,33 @@ def configure_package(configure_security):
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_service_health():
+    assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+@pytest.mark.mesos_v0
+def test_mesos_v0_api():
+    try:
+        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        # Install Hello World using the v0 api.
+        # Then, clean up afterwards.
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        install_kafka(use_v0=True)
+
+        sdk_tasks.check_running(foldered_name, config.DEFAULT_BROKER_COUNT)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+
+        install_kafka()
+        # wait for brokers to finish registering before starting tests
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
+                                      service_name=foldered_name)
 
 
 # --------- Endpoints -------------
@@ -263,8 +295,6 @@ def test_no_unavailable_partitions_exist():
         config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
         'topic unavailable_partitions', json=True)
 
-    assert len(partition_info) == 1
-    assert partition_info['message'] == ''
 
 
 # --------- CLI -------------

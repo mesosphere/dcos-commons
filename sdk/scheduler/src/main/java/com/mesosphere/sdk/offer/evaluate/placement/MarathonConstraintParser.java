@@ -28,6 +28,7 @@ public class MarathonConstraintParser {
         SUPPORTED_OPERATORS.put("LIKE", new LikeOperator());
         SUPPORTED_OPERATORS.put("UNLIKE", new UnlikeOperator());
         SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
+        SUPPORTED_OPERATORS.put("IS", new IsOperator());
     }
 
     private MarathonConstraintParser() {
@@ -215,6 +216,34 @@ public class MarathonConstraintParser {
                 Optional<String> parameter) throws IOException;
     }
 
+    /**
+     * {@code IS} tells Marathon to match the value of the key exactly.  For example the following constraint
+     * ensures that tasks only run on agents with the attribute "foo" equal to "bar": {@code [["foo", "IS", "bar"]]}
+     */
+    private static class IsOperator implements Operator {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
+            String parameter = validateRequiredParameter(operatorName, requiredParameter);
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ATTRIBUTE:
+                    return AttributeRuleFactory.getInstance().require(
+                            ExactMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown LIKE placement type encountered: %s", fieldName));
+            }
+        }
+    }
 
     /**
      * {@code UNIQUE} tells Marathon to enforce uniqueness of the attribute across all

@@ -1,4 +1,5 @@
 py==1.4.33
+git+https://github.com/dcos/dcos-cli.git@14f97067d971b6daa9aa67f5a876c99741a321b2#egg=dcoscli&subdirectory=cli
 git+https://github.com/dcos/dcos-cli.git@14f97067d971b6daa9aa67f5a876c99741a321b2
 dcos-shakedown==1.4.5
 git+https://github.com/dcos/dcos-test-utils.git@449eb8018468c0eafbc85342b68639ac89e8f6be
