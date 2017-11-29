@@ -2,7 +2,6 @@
 This module tests the interaction of Kafka with Zookeeper with authentication enabled
 """
 import logging
-import uuid
 import pytest
 
 import shakedown
@@ -13,7 +12,6 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_repository
-import sdk_tasks
 import sdk_utils
 
 from tests import auth

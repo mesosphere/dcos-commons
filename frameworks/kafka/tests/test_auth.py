@@ -1,16 +1,11 @@
 import logging
-import uuid
 import pytest
-
-import shakedown
 
 import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_repository
-import sdk_tasks
 import sdk_utils
 
 from tests import auth

@@ -1,24 +1,15 @@
 import logging
 import uuid
-import pytest
 
-import shakedown
-
-import sdk_auth
-import sdk_cmd
-import sdk_hosts
-import sdk_install
-import sdk_marathon
-import sdk_repository
 import sdk_tasks
-import sdk_utils
-
-from tests import config
 
 LOG = logging.getLogger(__name__)
 
 
 def wait_for_brokers(client: str, brokers: list):
+    """
+    Run bootstrap on the specified client to resolve the list of brokers
+    """
     LOG.info("Running bootstrap to wait for DNS resolution")
     bootstrap_cmd = ['/opt/bootstrap',
                      '-resolve-hosts', ','.join(brokers), '-verbose']
@@ -27,6 +18,9 @@ def wait_for_brokers(client: str, brokers: list):
 
 
 def send_and_receive_message(client: str):
+    """
+    Use the specified client to send a message and ensure that it can be recieved
+    """
     LOG.info("Starting send-recieve test")
     message = uuid.uuid4()
     producer_cmd = ['/tmp/kafkaconfig/start.sh', 'producer', str(message)]
