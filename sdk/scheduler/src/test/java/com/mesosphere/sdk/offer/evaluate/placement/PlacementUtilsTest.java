@@ -40,7 +40,7 @@ public class PlacementUtilsTest {
     }
 
     @Test
-    public void emptyRuleFails() {
+    public void emptyRuleNotRegion() {
         PlacementRule rule = new PassthroughRule();
         ServiceSpec serviceSpec = getServiceSpec(Arrays.asList(rule));
         assertFalse(PlacementUtils.placementRulesReferenceRegions(serviceSpec));
@@ -54,7 +54,7 @@ public class PlacementUtilsTest {
     }
 
     @Test
-    public void simpleRegionRuleFails() {
+    public void simpleNotRegionRuleFails() {
         PlacementRule rule = new ZoneRule(ExactMatcher.create("zone"));
         ServiceSpec serviceSpec = getServiceSpec(Arrays.asList(rule));
         assertFalse(PlacementUtils.placementRulesReferenceRegions(serviceSpec));
@@ -71,7 +71,7 @@ public class PlacementUtilsTest {
     }
 
     @Test
-    public void orRegionRuleFails() {
+    public void orNotRegionRuleFails() {
         PlacementRule regionRule = new AttributeRule(ExactMatcher.create("attribute"));
         PlacementRule zoneRule = new ZoneRule(ExactMatcher.create("zone"));
         PlacementRule orRule = new OrRule(regionRule, zoneRule);
@@ -94,7 +94,7 @@ public class PlacementUtilsTest {
     }
 
     @Test
-    public void nestedOrRegionRuleFails() {
+    public void nestedOrNotRegionRuleFails() {
         PlacementRule regionRule = new AttributeRule(ExactMatcher.create("attribute"));
         PlacementRule zoneRule = new ZoneRule(ExactMatcher.create("zone"));
         PlacementRule orRule = new OrRule(regionRule, zoneRule);
