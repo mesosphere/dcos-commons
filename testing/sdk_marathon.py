@@ -57,7 +57,6 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
     return 0, ""
 
 
-
 def install_app(app_definition: dict) -> (bool, str):
     """
     Installs a marathon app using the given `app_definition`.
