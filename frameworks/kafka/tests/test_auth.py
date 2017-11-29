@@ -13,6 +13,7 @@ import sdk_repository
 import sdk_tasks
 import sdk_utils
 
+from tests import auth
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -148,33 +149,5 @@ def kafka_client(kerberos, kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client):
-    wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
-    send_and_receive_message(kafka_client["id"])
-
-
-def wait_for_brokers(client: str, brokers: list):
-    log.info("Running bootstrap to wait for DNS resolution")
-    bootstrap_cmd = ['/opt/bootstrap',
-                     '-resolve-hosts', ','.join(brokers), '-verbose']
-    bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
-    log.info(bootstrap_output)
-
-
-def send_and_receive_message(client: str):
-    message = uuid.uuid4()
-    producer_cmd = ['/tmp/kafkaconfig/start.sh', 'producer', str(message)]
-
-    for i in range(2):
-        log.info("Running(%s) %s", i, producer_cmd)
-        producer_output = sdk_tasks.task_exec(client, ' '.join(producer_cmd))
-        log.info("Producer output(%s): %s", i, producer_output)
-
-    assert "Sent message: '{message}'".format(message=str(
-        message)) in ' '.join(str(p) for p in producer_output)
-
-    consumer_cmd = ['/tmp/kafkaconfig/start.sh', 'consumer', 'single']
-    log.info("Running %s", consumer_cmd)
-    consumer_output = sdk_tasks.task_exec(client, ' '.join(consumer_cmd))
-    log.info("Consumer output: %s", consumer_output)
-
-    assert str(message) in ' '.join(str(c) for c in consumer_output)
+    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    auth.send_and_receive_message(kafka_client["id"])
