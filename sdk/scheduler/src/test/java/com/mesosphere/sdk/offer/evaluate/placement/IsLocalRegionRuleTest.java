@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.OfferUtilsTest;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;

@@ -1,9 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.specification.DefaultPodSpec;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Test;
@@ -41,7 +39,6 @@ public class PlacementUtilsTest {
 
     @Test
     public void emptyRuleNotRegion() {
-        PlacementRule rule = new PassthroughRule();
         PodSpec podSpec = getPodSpec();
         assertFalse(PlacementUtils.placementRuleReferencesRegion(podSpec));
     }
