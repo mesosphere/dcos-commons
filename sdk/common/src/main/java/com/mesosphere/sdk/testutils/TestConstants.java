@@ -96,7 +96,6 @@ public class TestConstants {
     public static final Protos.DomainInfo LOCAL_DOMAIN_INFO = getDomainInfo(LOCAL_REGION);
     public static final Protos.DomainInfo REMOTE_DOMAIN_INFO = getDomainInfo(REMOTE_REGION);
 
-
     private static final Protos.DomainInfo getDomainInfo(String region) {
         return Protos.DomainInfo.newBuilder()
                 .setFaultDomain(Protos.DomainInfo.FaultDomain.newBuilder()

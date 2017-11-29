@@ -1,16 +1,26 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
+
 /**
  * This class tests the {@link IsLocalRegionRule}.
  */
 public class IsLocalRegionRuleTest {
     private static final PlacementRule rule = new IsLocalRegionRule();
+
+    @Test
+    public void testSerializeDeserialize() throws IOException {
+        PlacementRule rule = new IsLocalRegionRule();
+        Assert.assertEquals(rule, SerializationUtils.fromString(
+                SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
+    }
 
     @Test
     public void offerLacksDomain() {

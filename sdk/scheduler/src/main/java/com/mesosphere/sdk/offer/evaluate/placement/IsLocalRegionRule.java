@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
@@ -57,5 +59,20 @@ public class IsLocalRegionRule implements PlacementRule {
     @Override
     public Collection<PlacementField> getPlacementFields() {
         return Arrays.asList(PlacementField.REGION);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public String toString() {
+        return "IsLocalRegionRule";
     }
 }

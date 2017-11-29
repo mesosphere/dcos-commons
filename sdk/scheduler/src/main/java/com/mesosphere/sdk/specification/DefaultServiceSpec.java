@@ -318,6 +318,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultVolumeSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
+                IsLocalRegionRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
                 MaxPerRegionRule.class,

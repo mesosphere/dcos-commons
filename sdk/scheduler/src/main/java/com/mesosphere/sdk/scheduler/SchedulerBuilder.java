@@ -285,6 +285,11 @@ public class SchedulerBuilder {
             }
         }
 
+        List<PodSpec> pods = serviceSpec.getPods().stream()
+                .map(podSpec -> updatePodPlacement(podSpec))
+                .collect(Collectors.toList());
+        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).pods(pods).build();
+
         // Update/validate config as needed to reflect the new service spec:
         Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
         configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
@@ -317,14 +322,6 @@ public class SchedulerBuilder {
         if (!errors.isEmpty()) {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
         }
-
-        // Update pods with appropriate placement constraints to enforce user REGION intent.
-        // If a pod's placement rules do not explicitly reference a REGION the assumption should be that
-        // the user intends that a pod be restriced to the local REGION.
-        List<PodSpec> pods = serviceSpec.getPods().stream()
-                .map(podSpec -> updatePodPlacement(podSpec))
-                .collect(Collectors.toList());
-        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).pods(pods).build();
 
         return new DefaultScheduler(
                 serviceSpec,
