@@ -41,11 +41,51 @@ def kafka_principals():
     yield principals
 
 
+def get_node_principals():
+    """Get a list of zookeeper principals for the agent nodes in the cluster"""
+    principals = []
+
+    agent_ips = shakedown.get_private_agents()
+    agent_dashed_ips = list(map(
+        lambda ip: "ip-{dashed_ip}".format(dashed_ip="-".join(ip.split("."))), agent_ips))
+    for b in agent_dashed_ips:
+        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
+            instance=b,
+            # TODO(elezar) we need to infer the region too
+            domain="us-west-2.compute.internal",
+            realm=sdk_auth.REALM))
+
+    return principals
+
+
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals):
+def zookeeper_principals():
+    zk_fqdn = "{service_name}.{host_suffix}".format(service_name="kafka-zookeeper",
+                                                    host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+
+    zk_ensemble = [
+        "zookeeper-0-server",
+        "zookeeper-1-server",
+        "zookeeper-2-server",
+    ]
+
+    principals = []
+    for b in zk_ensemble:
+        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
+            instance=b,
+            domain=zk_fqdn,
+            realm=sdk_auth.REALM))
+
+    principals.extend(get_node_principals())
+    yield principals
+
+
+@pytest.fixture(scope='module', autouse=True)
+def kerberos(configure_security, kafka_principals, zookeeper_principals):
     try:
         principals = []
         principals.extend(kafka_principals)
+        principals.extend(zookeeper_principals)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -57,16 +97,11 @@ def kerberos(configure_security, kafka_principals):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos):
-    """
-    A pytest fixture that installs a Kerberized kafka service.
-
-    On teardown, the service is uninstalled.
-    """
+@pytest.fixture(scope='module')
+def zookeeper_server(kerberos):
     service_kerberos_options = {
         "service": {
-            "name": config.SERVICE_NAME,
+            "name": "kafka-zookeeper",
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -75,6 +110,52 @@ def kafka_server(kerberos):
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
+        }
+    }
+
+    # TODO: Remove once kafka-zookeeper is available in the universe
+    zookeeper_stub = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts-ci.s3.amazonaws.com/autodelete7d/kafka-zookeeper/20171128-192118-JfgDpTht4Zubc3J4/stub-universe-kafka-zookeeper.json"
+    stub_urls = sdk_repository.add_stub_universe_urls([zookeeper_stub, ])
+
+    try:
+        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_install.install(
+            "beta-kafka-zookeeper",
+            "kafka-zookeeper",
+            6,
+            additional_options=service_kerberos_options,
+            timeout_seconds=30 * 60)
+
+        yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
+
+    finally:
+        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_repository.remove_universe_repos(stub_urls)
+
+
+@pytest.fixture(scope='module', autouse=True)
+def kafka_server(kerberos, zookeeper_server):
+
+    # Get the zookeeper DNS values
+    zookeeper_dns = sdk_cmd.svc_cli(zookeeper_server["package_name"],
+                                    zookeeper_server["service"]["name"],
+                                    "endpoint clientport", json=True)["dns"]
+
+    service_kerberos_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "security": {
+                "kerberos": {
+                    "enabled": True,
+                    "enabled_for_zookeeper": True,
+                    "kdc_host_name": kerberos.get_host(),
+                    "kdc_host_port": int(kerberos.get_port()),
+                    "keytab_secret": kerberos.get_keytab_path(),
+                }
+            }
+        },
+        "kafka": {
+            "kafka_zookeeper_uri": ",".join(zookeeper_dns)
         }
     }
 
@@ -149,6 +230,59 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client):
     wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    send_and_receive_message(kafka_client["id"])
+
+
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.sanity
+def test_client_can_read_and_write_from_kerberized_zookeeper(kafka_client,
+                                                             kafka_server,
+                                                             zookeeper_server):
+
+    # Uninstall the KAFKA client
+    client_config = sdk_marathon.get_config(kafka_client["id"])
+    sdk_marathon.destroy_app(client_config)
+
+    # Uninstall the kafka service
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+    # Get the zookeeper DNS values
+    zookeeper_dns = sdk_cmd.svc_cli(zookeeper_server["package_name"],
+                                    zookeeper_server["service"]["name"],
+                                    "endpoint clientport", json=True)["dns"]
+
+    zookeeper_options = kafka_server.copy()
+    additional_options = {
+        "service": {
+            "security": {
+                "kerberos": {
+                    "enabled_for_zookeeper": True
+                }
+            }
+        },
+        "kafka": {
+            "kafka_zookeeper_uri": ",".join(zookeeper_dns)
+        }
+    }
+    zookeeper_options.update(additional_options)
+
+    # Reinstall Kafka with zookeeper
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_BROKER_COUNT,
+        additional_options=zookeeper_options,
+        timeout_seconds=30 * 60)
+
+    # Reinstall the client
+    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME,
+                              config.SERVICE_NAME,
+                              "endpoint broker", json=True)["dns"]
+    client_config["env"]["KAFKA_BROKER_LIST"] = ",".join(brokers)
+    sdk_marathon.install_app(client_config)
+
+    wait_for_brokers(kafka_client["id"], brokers)
     send_and_receive_message(kafka_client["id"])
 
 
