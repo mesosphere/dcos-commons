@@ -15,6 +15,7 @@ public class CapabilitiesTest {
         Capabilities capabilities = testCapabilities("0.9.0");
         Assert.assertFalse(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -22,6 +23,7 @@ public class CapabilitiesTest {
         Capabilities capabilities = testCapabilities("1.7.0");
         Assert.assertFalse(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -29,6 +31,7 @@ public class CapabilitiesTest {
         Capabilities capabilities = testCapabilities("1.7-dev");
         Assert.assertFalse(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -37,6 +40,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -45,6 +49,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertFalse(capabilities.supportsRLimits());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -57,6 +62,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertFalse(capabilities.supportsFileBasedSecrets());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -69,6 +75,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertFalse(capabilities.supportsFileBasedSecrets());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -83,6 +90,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
         Assert.assertFalse(capabilities.supportsV1APIByDefault());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -97,6 +105,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
         Assert.assertFalse(capabilities.supportsV1APIByDefault());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -111,6 +120,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
         Assert.assertTrue(capabilities.supportsV1APIByDefault());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -125,6 +135,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
         Assert.assertTrue(capabilities.supportsV1APIByDefault());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -137,6 +148,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     @Test
@@ -149,6 +161,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
+        Assert.assertFalse(capabilities.supportsRegionAwareness());
     }
 
     private Capabilities testCapabilities(String version) throws IOException {
