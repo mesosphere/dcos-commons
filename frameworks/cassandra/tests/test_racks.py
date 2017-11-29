@@ -1,7 +1,10 @@
 import logging
 import pytest
+import shakedown
 import sdk_install
 import sdk_tasks
+import sdk_utils
+
 from tests import config
 from tests import nodetool
 
@@ -17,6 +20,8 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
 
+
+@pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_rack():
     sdk_install.install(
