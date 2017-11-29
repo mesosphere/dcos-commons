@@ -101,7 +101,8 @@ public class Capabilities {
     }
 
     public boolean supportsRegionAwareness() {
-        return hasOrExceedsVersion(1, 11);
+        // This is disabled for now
+        return false;
     }
 
     private boolean hasOrExceedsVersion(int major, int minor) {
