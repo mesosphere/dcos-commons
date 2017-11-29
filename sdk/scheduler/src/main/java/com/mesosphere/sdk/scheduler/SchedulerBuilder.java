@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
+import com.mesosphere.sdk.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +35,6 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
-import com.mesosphere.sdk.specification.DefaultPlanGenerator;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -316,6 +318,14 @@ public class SchedulerBuilder {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
         }
 
+        // Update pods with appropriate placement constraints to enforce user REGION intent.
+        // If a pod's placement rules do not explicitly reference a REGION the assumption should be that
+        // the user intends that a pod be restriced to the local REGION.
+        List<PodSpec> pods = serviceSpec.getPods().stream()
+                .map(podSpec -> updatePodPlacement(podSpec))
+                .collect(Collectors.toList());
+        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).pods(pods).build();
+
         return new DefaultScheduler(
                 serviceSpec,
                 schedulerConfig,
@@ -325,6 +335,21 @@ public class SchedulerBuilder {
                 configStore,
                 endpointProducers,
                 Optional.ofNullable(recoveryPlanOverriderFactory));
+    }
+
+    private PodSpec updatePodPlacement(PodSpec podSpec) {
+        if (PlacementUtils.placementRuleReferencesRegion(podSpec)) {
+            return podSpec;
+        }
+
+        PlacementRule rule;
+        if (podSpec.getPlacementRule().isPresent()) {
+            rule = new AndRule(new IsLocalRegionRule(), podSpec.getPlacementRule().get());
+        } else {
+            rule = new IsLocalRegionRule();
+        }
+
+        return DefaultPodSpec.newBuilder(podSpec).placementRule(rule).build();
     }
 
     /**
