@@ -337,7 +337,15 @@ public class SchedulerBuilder {
                 Optional.ofNullable(recoveryPlanOverriderFactory));
     }
 
-    private PodSpec updatePodPlacement(PodSpec podSpec) {
+    /**
+     * Update pods with appropriate placement constraints to enforce user REGION intent.
+     * If a pod's placement rules do not explicitly reference a REGION the assumption should be that
+     * the user intends that a pod be restriced to the local REGION.
+     *
+     * @param podSpec The {@link PodSpec} whose placement rule will be updated to enforce appropriate region placement.
+     * @return The updated {@link PodSpec}
+     */
+    static PodSpec updatePodPlacement(PodSpec podSpec) {
         if (PlacementUtils.placementRuleReferencesRegion(podSpec)) {
             return podSpec;
         }
