@@ -33,7 +33,10 @@
           "placement_constraint": {
             "description": "Marathon-style placement constraint for Broker nodes. Example: rack_id:LIKE:rack-foo-.*,rack_id:MAX_PER:2",
             "type": "string",
-            "default": "hostname:MAX_PER:1"
+            "default": "hostname:MAX_PER:1",
+            "media": {
+              "type": "application/x-zone-constraints+json"
+            }
           },
           "virtual_network_enabled": {
             "description": "Enable virtual networking",
