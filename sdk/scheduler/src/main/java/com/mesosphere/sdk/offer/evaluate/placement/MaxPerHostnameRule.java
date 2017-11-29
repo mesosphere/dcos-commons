@@ -100,6 +100,11 @@ public class MaxPerHostnameRule extends MaxPerRule {
     }
 
     @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.HOSTNAME);
+    }
+
+    @Override
     public Collection<String> getKeys(TaskInfo taskInfo) {
         try {
             return Arrays.asList(new TaskLabelReader(taskInfo).getHostname());

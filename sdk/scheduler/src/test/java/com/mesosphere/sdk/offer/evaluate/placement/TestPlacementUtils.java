@@ -16,6 +16,7 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Utilities for testing placement constraints.
@@ -74,6 +75,11 @@ public class TestPlacementUtils {
         }
 
         @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
+
+        @Override
         public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
 
         @Override
@@ -87,6 +93,11 @@ public class TestPlacementUtils {
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.fail(this, "test fail").build();
+        }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
         }
 
         @Override

@@ -100,6 +100,10 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 11);
     }
 
+    public boolean supportsRegionAwareness() {
+        return hasOrExceedsVersion(1, 11);
+    }
+
     private boolean hasOrExceedsVersion(int major, int minor) {
         DcosVersion.Elements versionElements = dcosVersion.getElements();
         try {

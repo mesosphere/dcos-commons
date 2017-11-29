@@ -106,17 +106,17 @@ public class PlacementUtils {
         return matchers;
     }
 
-    public static PlacementKey getField(String fieldName) {
+    public static PlacementField getField(String fieldName) {
         switch (fieldName) {
             case PlacementUtils.HOSTNAME_FIELD_LEGACY:
             case PlacementUtils.HOSTNAME_FIELD:
-                return PlacementKey.HOSTNAME;
+                return PlacementField.HOSTNAME;
             case PlacementUtils.REGION_FIELD:
-                return PlacementKey.REGION;
+                return PlacementField.REGION;
             case PlacementUtils.ZONE_FIELD:
-                return PlacementKey.ZONE;
+                return PlacementField.ZONE;
             default:
-                return PlacementKey.ATTRIBUTE;
+                return PlacementField.ATTRIBUTE;
         }
     }
 }

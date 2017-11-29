@@ -6,6 +6,8 @@ import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -20,9 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -164,7 +164,20 @@ public class SchedulerRunner implements Runnable {
                     .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
         }
 
+        if (Capabilities.getInstance().supportsRegionAwareness() && isRegionAware(serviceSpec)) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE));
+        }
+
         return fwkInfoBuilder.build();
+    }
+
+    static boolean isRegionAware(ServiceSpec serviceSpec) {
+        return serviceSpec.getPods().stream()
+                .filter(podSpec -> podSpec.getPlacementRule().isPresent())
+                .map(podSpec -> podSpec.getPlacementRule().get())
+                .flatMap(rule -> rule.getPlacementFields().stream())
+                .anyMatch(placementField -> placementField.equals(PlacementField.REGION));
     }
 
     @SuppressWarnings("deprecation") // mute warning for FrameworkInfo.setRole()

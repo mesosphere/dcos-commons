@@ -35,6 +35,8 @@ public interface PlacementRule {
      */
     EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks);
 
+    Collection<PlacementField> getPlacementFields();
+
     /**
      * Must be explicitly implemented by all PlacementRules.
      *
