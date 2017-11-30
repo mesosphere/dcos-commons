@@ -357,9 +357,9 @@ You must include spare capacity in this list, so that if one of the whitelisted 
 
 ### Regions and Zones
 
-Placement constraints can be applied to zones by referring to the `@zone` key.  For example one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
 
-When the region awareness feature is enabled (currently in beta), the `@region` key may also be refenced for defining placement constraints.  Any placement constraints which do not reference the `@region` key are constrained to the local region.
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
 ### Updating placement constraints
 
