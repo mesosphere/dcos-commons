@@ -71,18 +71,31 @@ pods:
         # as a custom zookeeper library to support our own ZK running
         # kerberized. The custom zk library does not do DNS reverse resolution
         # of the ZK hostnames.
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
+        cmd: |
+          # Exit on any error.
+          set -e
+          
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
         {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
-          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS"
         {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
-          ./setup-helper &&
-          export ADVERTISED_LISTENERS=`cat advertised-listeners-config` &&
-          export LISTENERS=`cat listeners-config` &&
-          ./bootstrap -resolve=false &&
-          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
-          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+          # setup-helper determines the correct listeners and security.inter.broker.protocol.
+          ./setup-helper
+          export ADVERTISED_LISTENERS=`cat advertised-listeners-config`
+          export LISTENERS=`cat listeners-config`
+          export SECURITY_INTER_BROKER_PROTOCOL=`cat security.inter.broker.protocol`
+
+          ./bootstrap -resolve=false
+
+          # NOTE: We add some custom statsd libraries for statsd metrics as well
+          # as a custom zookeeper library to support our own ZK running
+          # kerberized. The custom zk library does not do DNS reverse resolution
+          # of the ZK hostnames.
+          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          
+          # Start kafka.
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
                $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:

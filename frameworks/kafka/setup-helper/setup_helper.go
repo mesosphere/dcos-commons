@@ -16,7 +16,6 @@ const (
 	tlsAllowPlainEnvvar   = "KAFKA_ALLOW_PLAINTEXT"
 	brokerPort            = "KAFKA_BROKER_PORT"
 	brokerPortTLS         = "KAFKA_BROKER_PORT_TLS"
-	mesosSandboxEnvvar    = "MESOS_SANDBOX"
 	taskNameEnvvar        = "TASK_NAME"
 	frameworkHostEnvvar   = "FRAMEWORK_HOST"
 	ipEnvvar              = "MESOS_CONTAINER_IP"
@@ -61,56 +60,80 @@ func calculateSettings() error {
 		return err
 	}
 	log.Printf("Set listeners.")
-	// log.Printf("Setting security settings...")
+
+	log.Print("Setting security.inter.broker.protocol...")
+	err = setInterBrokerProtocol()
+	if err != nil {
+		return err
+	}
+	log.Print("Set security.inter.broker.protocol.")
 	return nil
+}
+
+func parseToggles() (kerberos bool, tls bool, plaintext bool, err error) {
+	kerberosEnabled, err := getBooleanEnvvar(kerberosEnvvar)
+	if err != nil {
+		return false, false, false, err
+	}
+	tlsEncryptionEnabled, err := getBooleanEnvvar(tlsEncryptionEnvvar)
+	if err != nil {
+		return false, false, false, err
+	}
+	allowPlainText, err := getBooleanEnvvar(tlsAllowPlainEnvvar)
+	if err != nil {
+		return false, false, false, err
+	}
+
+	return kerberosEnabled, tlsEncryptionEnabled, allowPlainText, err
 }
 
 func setListeners() error {
 	var listeners []string
 	var advertisedListeners []string
 
-	kerberosEnabled, err := getBooleanEnvvar(kerberosEnvvar)
-	if err != nil {
-		return err
-	}
-	tlsEncryptionEnabled, err := getBooleanEnvvar(tlsEncryptionEnvvar)
-	if err != nil {
-		return err
-	}
-	allowPlainText, err := getBooleanEnvvar(tlsAllowPlainEnvvar)
+	kerberosEnabled, tlsEncryptionEnabled, allowPlainText, err := parseToggles()
 	if err != nil {
 		return err
 	}
 
-	if kerberosEnabled {
-		// Kerberos is enabled.
-		if allowPlainText {
+	if kerberosEnabled { // Kerberos enabled
+
+		if tlsEncryptionEnabled { // Transport encryption on
+			listeners = append(listeners,
+				getListener("SASL_SSL", brokerPortTLS))
+			advertisedListeners = append(advertisedListeners,
+				getAdvertisedListener("SASL_SSL", brokerPortTLS))
+
+			if allowPlainText { // Allow plaintext as well
+				listeners = append(listeners,
+					getListener("SASL_PLAINTEXT", brokerPort))
+				advertisedListeners = append(advertisedListeners,
+					getAdvertisedListener("SASL_PLAINTEXT", brokerPort))
+			}
+		} else { // Plaintext only
 			listeners = append(listeners,
 				getListener("SASL_PLAINTEXT", brokerPort))
 			advertisedListeners = append(advertisedListeners,
 				getAdvertisedListener("SASL_PLAINTEXT", brokerPort))
 		}
 
-		if tlsEncryptionEnabled {
-			listeners = append(listeners,
-				getListener("SASL_SSL", brokerPortTLS))
-			advertisedListeners = append(advertisedListeners,
-				getAdvertisedListener("SASL_SSL", brokerPortTLS))
-		}
-	} else {
-		if allowPlainText {
+	} else if tlsEncryptionEnabled { // No kerberos, but Transport encryption is on
+		listeners = append(listeners,
+			getListener("SSL", brokerPortTLS))
+		advertisedListeners = append(advertisedListeners,
+			getAdvertisedListener("SSL", brokerPortTLS))
+
+		if allowPlainText { // Plaintext allowed
 			listeners = append(listeners,
 				getListener("PLAINTEXT", brokerPort))
 			advertisedListeners = append(advertisedListeners,
 				getAdvertisedListener("PLAINTEXT", brokerPort))
 		}
-
-		if tlsEncryptionEnabled {
-			listeners = append(listeners,
-				getListener("SSL", brokerPortTLS))
-			advertisedListeners = append(advertisedListeners,
-				getAdvertisedListener("SSL", brokerPortTLS))
-		}
+	} else { // No TLS, no Kerberos, Plaintext only
+		listeners = append(listeners,
+			getListener("PLAINTEXT", brokerPort))
+		advertisedListeners = append(advertisedListeners,
+			getAdvertisedListener("PLAINTEXT", brokerPort))
 	}
 
 	err = writeToWorkingDirectory("listeners-config",
@@ -148,4 +171,28 @@ func writeToWorkingDirectory(filename string, content string) error {
 		[]byte(content),
 		0644,
 	)
+}
+
+func setInterBrokerProtocol() error {
+	const property = "security.inter.broker.protocol"
+	kerberosEnabled, tlsEncryptionEnabled, _, err := parseToggles()
+	if err != nil {
+		return err
+	}
+
+	protocol := ""
+	if kerberosEnabled {
+		if tlsEncryptionEnabled {
+			protocol = "SASL_SSL"
+		} else {
+			protocol = "SASL_PLAINTEXT"
+		}
+	} else if tlsEncryptionEnabled {
+		protocol = "SSL"
+	} else {
+		protocol = "PLAINTEXT"
+	}
+
+	err = writeToWorkingDirectory(property, fmt.Sprintf("%s=%s", property, protocol))
+	return err
 }

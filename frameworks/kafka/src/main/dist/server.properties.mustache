@@ -46,25 +46,18 @@ ssl.truststore.location={{MESOS_SANDBOX}}/broker.truststore
 ssl.truststore.password=notsecure
 
 ssl.enabled.protocols=TLSv1.2
-
-security.inter.broker.protocol=SSL
-
-{{#KAFKA_ALLOW_PLAINTEXT}}
-port={{KAFKA_BROKER_PORT}}
-{{/KAFKA_ALLOW_PLAINTEXT}}
-{{^KAFKA_ALLOW_PLAINTEXT}}
-port={{KAFKA_BROKER_PORT_TLS}}
-{{/KAFKA_ALLOW_PLAINTEXT}}
 {{/KAFKA_ENABLE_TLS}}
 
 {{#SECURITY_KERBEROS_ENABLED}}
-security.inter.broker.protocol=SASL_PLAINTEXT
-
+############################# Kerberos Settings #############################
 sasl.mechanism.inter.broker.protocol=GSSAPI
 sasl.enabled.mechanisms=GSSAPI
 sasl.kerberos.service.name={{SECURITY_KERBEROS_PRIMARY}}
 
 {{/SECURITY_KERBEROS_ENABLED}}
+
+## Inter Broker Protocol
+{{SECURITY_INTER_BROKER_PROTOCOL}}
 
 # The number of threads handling network requests
 num.network.threads={{KAFKA_NUM_NETWORK_THREADS}}
