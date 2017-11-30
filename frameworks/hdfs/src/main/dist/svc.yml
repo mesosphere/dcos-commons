@@ -53,15 +53,18 @@ pods:
       node:
         goal: RUNNING
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
         configs:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -153,16 +156,20 @@ pods:
       node:
         goal: RUNNING
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
           cmd: >
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
-          {{#KERBEROS_ENABLED}}
-            KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$KERBEROS_REALM &&
-          {{/KERBEROS_ENABLED}}
+            {{#KERBEROS_ENABLED}}
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+            KRB5_CONFIG=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$KERBEROS_REALM &&
+            {{/KERBEROS_ENABLED}}
             ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME
           interval: 5
           delay: 0
@@ -171,7 +178,7 @@ pods:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -200,15 +207,18 @@ pods:
       format:
         goal: FINISHED
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -229,15 +239,18 @@ pods:
       bootstrap:
         goal: FINISHED
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -263,15 +276,18 @@ pods:
       zkfc:
         goal: RUNNING
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST && ./{{HDFS_VERSION}}/bin/hdfs zkfc
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST && ./{{HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -292,15 +308,18 @@ pods:
       zkfc-format:
         goal: FINISHED
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -341,9 +360,12 @@ pods:
       node:
         goal: RUNNING
         cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-              mv hdfs {{HDFS_VERSION}}/bin/ ;
-              ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+          mv hdfs {{HDFS_VERSION}}/bin/ ;
+          {{#KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          {{/KERBEROS_ENABLED}}
+          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
@@ -365,7 +387,7 @@ pods:
           {{#KERBEROS_ENABLED}}
           krb5-conf:
             template: krb5.conf
-            dest: {{JRE_VERSION}}/lib/security/krb5.conf
+            dest: {{HDFS_VERSION}}/etc/hadoop/krb5.conf
           {{/KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -387,9 +409,10 @@ pods:
         readiness-check:
           cmd: >
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
-          {{#KERBEROS_ENABLED}}
-            KRB5_CONFIG={{JRE_VERSION}}/lib/security/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$KERBEROS_REALM &&
-          {{/KERBEROS_ENABLED}}
+            {{#KERBEROS_ENABLED}}
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+            KRB5_CONFIG=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$KERBEROS_REALM &&
+            {{/KERBEROS_ENABLED}}
             export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" &&
             [[ $MATCH -ge 1 ]]
           interval: 10
