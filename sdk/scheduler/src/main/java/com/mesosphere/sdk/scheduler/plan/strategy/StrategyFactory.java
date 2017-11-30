@@ -4,52 +4,59 @@ import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  * Factory for generating Strategy objects for Phases and steps.
  */
 public class StrategyFactory {
-    public static Strategy<Phase> generateForPhase(String strategyType) {
+
+    private List<Strategy> strategies;
+
+    public StrategyFactory() {
+      strategies = new ArrayList<Strategy>(Arrays.asList(
+        new SerialStrategy(),
+        new ParallelStrategy()));
+    }
+
+    public void addCustomStrategy(Strategy strategy) {
+      strategies.add(strategy);
+    }
+
+    public Strategy<Phase> generateForPhase(String strategyType) {
         if (strategyType == null) {
             return new SerialStrategy.Generator<Phase>().generate();
         }
-        Strategy<Phase> strategy = null;
-        switch (strategyType) {
-            case "parallel":
-                strategy = new ParallelStrategy.Generator<Phase>().generate();
-                break;
-            case "serial":
-                // fall through
-            default:
-                strategy = new SerialStrategy.Generator<Phase>().generate();
+        for (int it = 0; it < strategies.size(); it++){
+          Strategy s = strategies.get(it);
+          if (strategyType.equals(s.getName())) {
+            return s.getGenerator().generate();
+          }
         }
-
-        return strategy;
+        return new SerialStrategy.Generator<Phase>().generate();
     }
 
-    public static Strategy<Step> generateForSteps(String strategyType, List<Step> steps) {
+    public Strategy<Step> generateForSteps(String strategyType, List<Step> steps) {
         if (strategyType == null) {
             return new SerialStrategy.Generator<Step>().generate();
         }
-        Strategy<Step> strategy = null;
-        switch (strategyType) {
-            case "parallel":
-                strategy = new ParallelStrategy.Generator<Step>().generate();
-                break;
-            case "parallel-canary":
-                strategy = new CanaryStrategy.Generator(new ParallelStrategy<>(), steps).generate();
-                break;
-            case "canary":
-                // fall through: default to serial behavior following canary stage
-            case "serial-canary":
-                strategy = new CanaryStrategy.Generator(new SerialStrategy<>(), steps).generate();
-                break;
-            case "serial":
-                // fall through
-            default:
-                strategy = new SerialStrategy.Generator<Step>().generate();
-        }
 
-        return strategy;
+        for (int it = 0; it < strategies.size(); it++){
+          Strategy s = strategies.get(it);
+          if (strategyType.equals(s.getName())) {
+            return s.getGenerator().generate();
+          } else {
+            switch (strategyType) {
+                case "parallel-canary":
+                    return new CanaryStrategy.Generator(new ParallelStrategy<>(), steps).generate();
+                case "canary":
+                    return new SerialStrategy.Generator<Step>().generate();
+                case "serial-canary":
+                    return new CanaryStrategy.Generator(new SerialStrategy<>(), steps).generate();
+            }
+          }
+        }
+        return new SerialStrategy.Generator<Step>().generate();
     }
 }

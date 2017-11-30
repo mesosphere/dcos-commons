@@ -28,4 +28,9 @@ public class DependencyStrategy<C extends Element> extends InterruptibleStrategy
     public String getName() {
         return "dependency";
     }
+
+    @Override
+    public StrategyGenerator<C> getGenerator() {
+        return null;
+    }
 }

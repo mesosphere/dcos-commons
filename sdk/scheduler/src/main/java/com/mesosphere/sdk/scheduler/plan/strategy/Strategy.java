@@ -25,4 +25,6 @@ public interface Strategy<C extends Element> extends Interruptible {
     Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets);
 
     String getName();
+
+    StrategyGenerator<C> getGenerator();
 }

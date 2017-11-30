@@ -20,22 +20,32 @@ import java.util.stream.Collectors;
 public class DefaultPlanGenerator implements PlanGenerator {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanGenerator.class);
     private final StepFactory stepFactory;
+    private StrategyFactory strategyFactory;
 
     public DefaultPlanGenerator(ConfigTargetStore configTargetStore, StateStore stateStore) {
         this(new DefaultStepFactory(configTargetStore, stateStore));
+        this.strategyFactory = new StrategyFactory();
+    }
+
+    public DefaultPlanGenerator(ConfigTargetStore configTargetStore,
+                                StateStore stateStore,
+                                StrategyFactory strategyFactory) {
+        this(new DefaultStepFactory(configTargetStore, stateStore));
+        this.strategyFactory = strategyFactory;
     }
 
     public DefaultPlanGenerator(StepFactory stepFactory) {
         this.stepFactory = stepFactory;
+        this.strategyFactory = new StrategyFactory();
     }
 
     @Override
     public Plan generate(RawPlan rawPlan, String planName, Collection<PodSpec> podsSpecs) {
         final List<Phase> phases = rawPlan.getPhases().entrySet().stream()
-                .map(entry-> from(entry.getValue(), entry.getKey(), podsSpecs))
+                .map(entry -> from(entry.getValue(), entry.getKey(), podsSpecs))
                 .collect(Collectors.toList());
         return DeployPlanFactory.getPlan(planName, phases,
-                StrategyFactory.generateForPhase(rawPlan.getStrategy()));
+                strategyFactory.generateForPhase(rawPlan.getStrategy()));
     }
 
     @VisibleForTesting
@@ -92,7 +102,7 @@ public class DefaultPlanGenerator implements PlanGenerator {
         return DefaultPhaseFactory.getPhase(
                 phaseName,
                 steps,
-                StrategyFactory.generateForSteps(rawPhase.getStrategy(), steps));
+                strategyFactory.generateForSteps(rawPhase.getStrategy(), steps));
     }
 
     private void validateSingletonStepMaps(

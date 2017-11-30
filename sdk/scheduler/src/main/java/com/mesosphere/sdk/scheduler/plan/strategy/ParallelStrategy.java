@@ -23,6 +23,7 @@ public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C
         return "parallel";
     }
 
+    @Override
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }

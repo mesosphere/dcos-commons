@@ -27,6 +27,7 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
         return "serial";
     }
 
+    @Override
     public StrategyGenerator<C> getGenerator() {
         return new Generator<>();
     }

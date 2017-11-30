@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -87,6 +88,11 @@ public class CanaryStrategy implements Strategy<Step> {
     @Override
     public String getName() {
         return strategy.getName() + "-canary";
+    }
+
+    @Override
+    public StrategyGenerator<Step> getGenerator() {
+        return new Generator(strategy, new ArrayList<Step>());
     }
 
     @Override
