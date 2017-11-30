@@ -301,14 +301,18 @@ public class SchedulerBuilder {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
 
+        if (planCustomizer != null) {
+            plans = plans.stream()
+                    .map(plan -> planCustomizer.updatePlan(plan))
+                    .collect(Collectors.toList());
+        }
+
         List<String> errors = configUpdateResult.getErrors().stream()
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
 
         if (!errors.isEmpty()) {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
-        } else if (planCustomizer != null){
-            plans = customizePlans(plans, planCustomizer);
         }
 
         return new DefaultScheduler(
