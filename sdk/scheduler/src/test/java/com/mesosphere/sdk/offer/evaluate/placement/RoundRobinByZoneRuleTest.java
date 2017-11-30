@@ -32,11 +32,11 @@ public class RoundRobinByZoneRuleTest {
     public void getZoneOfferKey() {
         RoundRobinByZoneRule rule = new RoundRobinByZoneRule(2);
         Protos.Offer offer = OfferTestUtils.getEmptyOfferBuilder()
-                .setDomain(TestConstants.DOMAIN_INFO)
+                .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
         String key = rule.getKey(offer);
         Assert.assertNotNull(key);
-        Assert.assertEquals(TestConstants.DOMAIN_INFO.getFaultDomain().getZone().getName(), key);
+        Assert.assertEquals(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone().getName(), key);
     }
 
     @Test
@@ -51,11 +51,11 @@ public class RoundRobinByZoneRuleTest {
         Protos.TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setLabels(
                         new TaskLabelWriter(TestConstants.TASK_INFO)
-                                .setZone(TestConstants.DOMAIN_INFO.getFaultDomain().getZone())
+                                .setZone(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone())
                                 .toProto())
                 .build();
         String key = rule.getKey(taskInfo);
         Assert.assertNotNull(key);
-        Assert.assertEquals(TestConstants.DOMAIN_INFO.getFaultDomain().getZone().getName(), key);
+        Assert.assertEquals(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone().getName(), key);
     }
 }

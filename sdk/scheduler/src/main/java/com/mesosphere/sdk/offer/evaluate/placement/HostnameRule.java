@@ -36,6 +36,11 @@ public class HostnameRule extends StringMatcherRule {
     }
 
     @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.HOSTNAME);
+    }
+
+    @Override
     public Collection<String> getKeys(Offer offer) {
         return Arrays.asList(offer.getHostname());
     }

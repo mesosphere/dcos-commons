@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import java.util.Collection;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -34,6 +35,12 @@ public interface PlacementRule {
      * @return an {@link EvaluationOutcome} object describing whether the placement succeeded or failed and why
      */
     EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks);
+
+    /**
+     * Returns the {@link PlacementField}s to which this rule applies.
+     */
+    @JsonIgnore
+    Collection<PlacementField> getPlacementFields();
 
     /**
      * Must be explicitly implemented by all PlacementRules.
