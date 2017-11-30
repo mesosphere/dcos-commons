@@ -38,7 +38,7 @@ pods:
         env:
           SLEEP_DURATION: 1000
       once:
-        goal: FINISH
+        goal: ONCE
         cmd: "echo $TASK_NAME >> world-container-path/output"
         cpus: {{HELLO_CPUS}}
         memory: 256
