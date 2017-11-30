@@ -355,9 +355,11 @@ hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
 
-### Zones
+### Regions and Zones
 
-Placement constraints can be applied to zones by referring to the `@zone` key.  For example one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
+
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
 ### Updating placement constraints
 
