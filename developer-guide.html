@@ -1818,13 +1818,19 @@ ZONE: us-west-2a
 </code></pre>
 </div>
 
-<p>Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. One may apply placement constraints against regions and zones by referencing <code class="highlighter-rouge">@region</code> and <code class="highlighter-rouge">@zone</code> keys.  For example:</p>
+<p>Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. Apply placement constraints against regions and zones by referencing <code class="highlighter-rouge">@region</code> and <code class="highlighter-rouge">@zone</code> keys.  For example:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>@zone:GROUP_BY:2
 </code></pre>
 </div>
 
-<p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones.  The SDK does not currently enable region awareness, so any given service will only receive offers in the local region.</p>
+<p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones. The SDK allows region-aware scheduling as a beta feature.  It may be enabled by setting the environment variable <code class="highlighter-rouge">ALLOW_REGION_AWARENESS</code> to <code class="highlighter-rouge">true</code>.  Once enabled, placement rules can be written that reference the <code class="highlighter-rouge">@region</code> key.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>@region:IS:us-west-2
+</code></pre>
+</div>
+
+<p>Any placement rules that do <em>not</em> reference the <code class="highlighter-rouge">@region</code> key require placement in the local region.</p>
 
 <h1 id="tls">TLS</h1>
 
