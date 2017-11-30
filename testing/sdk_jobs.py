@@ -79,14 +79,16 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     def fun():
         # catch errors from CLI: ensure that the only error raised is our own:
         try:
-            runs = json.loads(sdk_cmd.run_cli(
-                'job history --show-failures --json {}'.format(job_name), print_output=False))
+            successful_runs = json.loads(sdk_cmd.run_cli(
+                'job history --json {}'.format(job_name), print_output=False))
+            failed_runs = json.loads(sdk_cmd.run_cli(
+                'job history --failures --json {}'.format(job_name), print_output=False))
         except:
             log.info(traceback.format_exc())
             return False
 
-        successful_ids = [r['id'] for r in runs['history']['successfulFinishedRuns']]
-        failed_ids = [r['id'] for r in runs['history']['failedFinishedRuns']]
+        successful_ids = [r['id'] for r in successful_runs]
+        failed_ids = [r['id'] for r in failed_runs]
 
         log.info('Job {} run history (waiting for successful {}): successful={} failed={}'.format(
             job_name, run_id, successful_ids, failed_ids))
