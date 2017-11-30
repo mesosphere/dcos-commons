@@ -167,6 +167,7 @@ pods:
           cmd: >
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
             {{#KERBEROS_ENABLED}}
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
             KRB5_CONFIG=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$KERBEROS_REALM &&
             {{/KERBEROS_ENABLED}}
             ./{{HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME
@@ -409,6 +410,7 @@ pods:
           cmd: >
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
             {{#KERBEROS_ENABLED}}
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
             KRB5_CONFIG=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$KERBEROS_REALM &&
             {{/KERBEROS_ENABLED}}
             export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" &&
