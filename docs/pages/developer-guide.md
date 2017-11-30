@@ -1236,7 +1236,13 @@ Services may choose to use this information to enable rack awareness. When doing
 @zone:GROUP_BY:2
 ```
 
-The placement rule above would apply the `GROUP_BY` operator to zones.  The SDK does not currently enable region awareness, so any given service will only receive offers in the local region.
+The placement rule above would apply the `GROUP_BY` operator to zones.  The SDK allows region aware scheduling as a beta feature.  It may be enabled by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules may be written which reference the `@region` key.
+
+```
+@region:IS:us-west-2
+```
+
+Any placement rules which do *not* reference the `@region` key require placement in the local region.
 
 
 # TLS
