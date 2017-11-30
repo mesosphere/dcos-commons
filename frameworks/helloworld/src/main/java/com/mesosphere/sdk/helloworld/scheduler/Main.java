@@ -26,7 +26,8 @@ public class Main {
         final SchedulerRunner runner;
         File yamlSpecFile;
 
-        switch (getScenario(args)) {
+        Scenario scenario = getScenario(args);
+        switch (scenario) {
             case Java:
                 // Create a sample config in Java
                 runner = SchedulerRunner.fromServiceSpec(
@@ -42,7 +43,6 @@ public class Main {
                         yamlSpecFile.getParentFile());
                 break;
             case CustomPlan:
-            default:
                 yamlSpecFile = new File(args[0]);
                 ServiceSpec serviceSpec = DefaultServiceSpec
                         .newGenerator(yamlSpecFile, SchedulerConfig.fromEnv())
@@ -50,6 +50,9 @@ public class Main {
                 SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv());
                 builder.setPlanCustomizer(new ReversePhasesCustomizer());
                 runner = SchedulerRunner.fromSchedulerBuilder(builder);
+                break;
+            default:
+                throw new IllegalStateException(String.format("Unexpected scnenario '%s'", scenario.name()));
         }
 
         runner.run();
