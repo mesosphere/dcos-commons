@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -233,6 +233,12 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#getKeys-TaskInfo-">getKeys</a></span>(TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement">PlacementField</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#getPlacementFields--">getPlacementFields</a></span>()</code>
+<div class="block">Returns the <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementField</code></a>s to which this rule applies.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -337,6 +343,17 @@ extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/M
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a> object describing whether the placement succeeded or failed and why</dd>
 </dl>
+</li>
+</ul>
+<a name="getPlacementFields--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPlacementFields</h4>
+<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement">PlacementField</a>&gt;&nbsp;getPlacementFields()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html#getPlacementFields--">PlacementRule</a></code></span></div>
+<div class="block">Returns the <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementField</code></a>s to which this rule applies.</div>
 </li>
 </ul>
 <a name="getKeys-TaskInfo-">
