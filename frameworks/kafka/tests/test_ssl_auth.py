@@ -10,21 +10,40 @@ import sdk_install
 import sdk_marathon
 import sdk_tasks
 import sdk_utils
+import sdk_security
 
 from tests import config
 
 log = logging.getLogger(__name__)
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_security):
+def service_account(configure_security):
+    """
+    Creates service account and yields the name.
+    """
+    name = config.SERVICE_NAME
+    sdk_security.create_service_account(
+        service_account_name=name, service_account_secret=name)
+    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+    sdk_cmd.run_cli(
+        "security org groups add_user superusers {name}".format(name=name))
+    yield name
+    sdk_security.delete_service_account(
+        service_account_name=name, service_account_secret=name)
+
+
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(service_account):
     try:
-        install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
             additional_options={
                 "service": {
+                    "service_account": service_account,
+                    "service_account_secret": service_account,
                     "security": {
                         "transport_encryption": {
                             "enabled": True
@@ -38,7 +57,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 @pytest.fixture(scope='module', autouse=True)
 def kafka_client(configure_package):
@@ -53,18 +72,6 @@ def kafka_client(configure_package):
                 "docker": {
                     "image": "elezar/kafka-client:latest",
                     "forcePullImage": True
-                },
-                "volumes": [
-                    {
-                        "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
-                        "secret": "kafka_keytab"
-                    }
-                ]
-            },
-            "secrets": {
-                "kafka_keytab": {
-                    "source": kerberos.get_keytab_path(),
-
                 }
             },
             "networks": [
@@ -85,8 +92,8 @@ def kafka_client(configure_package):
     finally:
         sdk_marathon.destroy_app(client_id)
 
+
 @pytest.mark.dcos_min_version('1.10')
-@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client):
     brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "endpoint broker", json=True)
@@ -96,5 +103,13 @@ def test_client_can_read_and_write(kafka_client):
     bootstrap_cmd = ['/opt/bootstrap', '-resolve-hosts', ','.join(broker_dns), '-verbose']
     bootstrap_output = sdk_tasks.task_exec(kafka_client, ' '.join(bootstrap_cmd))
     log.info(bootstrap_output)
+
+    log.info("Generating certificate")
+    token = sdk_cmd.run_cli("config show core.dcos_acs_token")
+    output = sdk_tasks.task_exec(kafka_client,
+        'openssl req -nodes -newkey rsa:2048 -keyout private.key -out CSR.csr \
+        -subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN=kafka-tester"')
+    log.info(output)
+
     
     pass
