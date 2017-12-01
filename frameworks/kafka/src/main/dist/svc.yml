@@ -130,11 +130,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: broker
             type: KEYSTORE
-        {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
