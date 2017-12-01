@@ -713,6 +713,10 @@
         <value>{{WEBHDFS_ENABLED}}</value>
     </property>
     <property>
+        <name>dfs.webhdfs.user.provider.user.pattern</name>
+        <value>{{WEBHDFS_USER_PROVIDER_USER_PATTERN}}</value>
+    </property>
+    <property>
         <name>hadoop.fuse.connection.timeout</name>
         <value>{{FUSE_CONNECTION_TIMEOUT}}</value>
     </property>
@@ -798,10 +802,6 @@
     </property>
 
     <property>
-        <name>dfs.webhdfs.user.provider.user.pattern</name>
-        <value>{{WEBHDFS_USER_PROVIDER_USER_PATTERN}}</value>
-    </property>
-    <property>
         <name>dfs.block.local-path-access.user</name>
         <value>{{BLOCK_LOCAL_PATH_ACCESS_USER}}</value>
     </property>
@@ -840,10 +840,6 @@
         <property>
             <name>dfs.block.access.token.lifetime</name>
             <value>{{BLOCK_ACCESS_TOKEN_LIFETIME}}</value>
-        </property>
-        <property>
-            <name>dfs.cluster.administrators</name>
-            <value>core,root,hdfs,nobody</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.principal.pattern</name>

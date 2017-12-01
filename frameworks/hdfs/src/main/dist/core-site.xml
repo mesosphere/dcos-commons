@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration>
     <property>
-        <name>fs.default.name</name>
+        <name>fs.defaultFS</name>
         <value>hdfs://hdfs</value>
     </property>
     <property>
@@ -547,19 +547,19 @@
     </property>
     <property>
         <name>hadoop.http.authentication.cookie.domain</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN}}</value>
+        <value>{{FRAMEWORK_HOST}}</value>
     </property>
     <property>
         <name>hadoop.http.authentication.simple.anonymous.allowed</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
+        <value>false</value>
     </property>
     <property>
         <name>hadoop.http.authentication.kerberos.principal</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL}}</value>
+        <value>{{KERBEROS_PRIMARY_HTTP}}/{{FRAMEWORK_NAME}}.marathon.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>hadoop.http.authentication.kerberos.keytab</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
+        <value>hdfs.keytab</value>
     </property>
 
 

@@ -72,7 +72,7 @@
               "description": "TLS configuration properties.",
               "properties": {
                 "enabled": {
-                  "description": "Enable TLS support (requires Strict mode).",
+                  "description": "Enable TLS support.",
                   "type": "boolean",
                   "default": false
                 }
@@ -785,7 +785,7 @@
         "administrators": {
           "type": "string",
           "description": "Administrators for the HDFS cluster",
-          "default": "core,centos,azureuser"
+          "default": "core,centos,azureuser,hdfs,nobody"
         },
         "name_node_rpc_port": {
           "type": "string",
@@ -841,6 +841,11 @@
           "type": "string",
           "description": "The IPS port used by Data Nodes.",
           "default": "9005"
+        },
+        "hadoop_opts": {
+          "type": "string",
+          "description": "Extra Java runtime options.",
+          "default": ""
         },
         "permissions_enabled": {
           "type": "boolean",
@@ -1290,7 +1295,7 @@
         "http_filter_initializer": {
           "type": "string",
           "description": "A comma separated list of class names. Each class in the list must extend org.apache.hadoop.http.FilterInitializer. The corresponding Filter will be initialized. Then, the Filter will be applied to all user facing jsp and servlet web pages. The ordering of the list defines the ordering of the filters.",
-          "default": "org.apache.hadoop.http.lib.StaticUserWebFilter"
+          "default": "org.apache.hadoop.security.AuthenticationFilterInitializer"
         },
         "security_authorization": {
           "type": "boolean",
@@ -1414,7 +1419,7 @@
             "binaryEncoding": "base64",
             "type": "application/x-yaml"
           },
-          "default": "UlVMRTpbMjokMUAkMF0oLiopcy8uKi97e1RBU0tfVVNFUn19LwpSVUxFOlsxOiQxQCQwXSguKilzLy4qL3t7VEFTS19VU0VSfX0vCg=="
+          "default": "UlVMRTpbMjokMUAkMF0oLiopcy8uKi9ub2JvZHkvClJVTEU6WzE6JDFAJDBdKC4qKXMvLiovbm9ib2R5Lwo="
         },
         "io_file_buffer_size": {
           "type": "string",
