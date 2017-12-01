@@ -184,7 +184,10 @@ public class DecommissionPlanFactory {
         private final int podIndex;
 
         /**
-         * @param taskInfo a taskinfo whose pod is to be sorted
+         * Constructor for {@link PodKey}.
+         *
+         * @param podType The type of pod. See: {@link PodSpec#getType()}
+         * @param podIndex The index of the pod instance.  See: {@link PodInstance#getIndex()}.
          * @param orderedPodTypes the list of known pod types in order of priority (reverse of ServiceSpec ordering)
          */
         PodKey(String podType, int podIndex, List<String> orderedPodTypes) throws TaskException {

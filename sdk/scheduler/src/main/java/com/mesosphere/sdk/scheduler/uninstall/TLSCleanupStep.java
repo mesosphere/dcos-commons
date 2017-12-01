@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.evaluate.security.TLSArtifact;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -15,7 +16,7 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * A {@link TLSCleanupStep} removes all provisioned {@link TLSArtifacts} from secrets service in a given namespace.
+ * A {@link TLSCleanupStep} removes all provisioned {@link TLSArtifact}s from secrets service in a given namespace.
  */
 public class TLSCleanupStep extends AbstractStep {
 

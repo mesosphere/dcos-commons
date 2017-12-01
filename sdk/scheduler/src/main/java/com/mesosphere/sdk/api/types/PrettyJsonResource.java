@@ -4,13 +4,15 @@ import javax.ws.rs.ext.ContextResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.mesosphere.sdk.api.ResponseUtils;
 import com.mesosphere.sdk.config.SerializationUtils;
+import org.json.JSONArray;
 
 /**
  * Implements pretty-printed/indented JSON output for API Resources.
  *
- * API Resources which return JSON bean objects via {@link ResponseUtils#jsonResponse(Object, Status)} should extend
- * this class.
+ * API Resources which return JSON bean objects via
+ * {@link ResponseUtils#jsonResponse(JSONArray, javax.ws.rs.core.Response.Status)} should extend this class.
  */
 public class PrettyJsonResource implements ContextResolver<ObjectMapper> {
 

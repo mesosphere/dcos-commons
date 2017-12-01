@@ -34,7 +34,7 @@ public class DefaultCommandSpec implements CommandSpec {
     }
 
     /**
-     * Creates a new builder instance using the provided {@link ConfigNamespace} for any additional config overrides.
+     * Creates a new builder instance using the provided Map for any additional config overrides.
      */
     public static Builder newBuilder(Map<String, String> envOverride) {
         return new Builder(envOverride);
@@ -81,7 +81,7 @@ public class DefaultCommandSpec implements CommandSpec {
         private Map<String, String> environment;
 
         /**
-         * Creates a new {@link Builder} with the provided {@link ConfigNamespace} containing override envvars.
+         * Creates a new {@link Builder} with the provided Map containing override envvars.
          */
         private Builder(Map<String, String> envOverride) {
             this.envOverride = envOverride;

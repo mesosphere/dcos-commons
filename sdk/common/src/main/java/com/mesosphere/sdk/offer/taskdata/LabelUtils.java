@@ -54,7 +54,7 @@ class LabelUtils {
     /**
      * Returns an encoded representation of the provided {@link HealthCheck}, suitable for storing in a Label.
      *
-     * @see #decode(String)
+     * @see #decodeHealthCheck(String)
      */
     static String encodeHealthCheck(HealthCheck healthCheck) {
         return new String(Base64.encodeBase64(healthCheck.toByteArray()), StandardCharsets.UTF_8);
@@ -63,7 +63,7 @@ class LabelUtils {
     /**
      * Decodes the provided encoded data as a {@link HealthCheck}, or throws {@link TaskException} if decoding failed.
      *
-     * @see #encode(HealthCheck)
+     * @see #encodeHealthCheck(HealthCheck)
      */
     static HealthCheck decodeHealthCheck(String data) throws TaskException {
         byte[] decodedBytes = Base64.decodeBase64(data);
