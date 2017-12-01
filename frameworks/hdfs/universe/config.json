@@ -152,9 +152,9 @@
           "default": "0"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Marathon-style placement constraints (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -507,9 +507,9 @@
           "default": ""
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Marathon-style placement constraints (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -745,9 +745,9 @@
           "default": "12"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Marathon-style placement constraints (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
