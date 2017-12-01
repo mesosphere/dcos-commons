@@ -154,6 +154,27 @@
                       "default": "__dcos_base64__kafka_keytab"
                     }
                   }
+                },
+                "authorization": {
+                  "type": "object",
+                  "description": "Authorization configuration properties",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable authorization.",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "super_users": {
+                      "description": "Semi-colon delimited list of principals.",
+                      "type": "string",
+                      "default": ""
+                    },
+                    "allow_everyone_if_no_acl": {
+                      "description": "Allow any user to perform an action if no ACL is found for the resource.",
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
                 }
             }
           }
