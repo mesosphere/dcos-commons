@@ -67,13 +67,17 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
 
-    {{#service.tls}}
+    {{#service.security.transport_encryption.enabled}}
     "BROKER_PORT_TLS": "{{brokers.port_tls}}",
-    "TASKCFG_ALL_KAFKA_ENABLE_TLS": "{{service.tls}}",
-    {{#service.tls_allow_plaintext}}
-    "TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
-    {{/service.tls_allow_plaintext}}
-    {{/service.tls}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
+    {{#service.security.transport_encryption.allow_plaintext}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
+    {{/service.security.transport_encryption.allow_plaintext}}
+
+    {{#service.security.ssl_auth.enable_authentication}}
+    "TASKCFG_ALL_SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION": "{{service.security.ssl_auth.enable_authentication}}",
+    {{/service.security.ssl_auth.enable_authentication}}
+    {{/service.security.transport_encryption.enabled}}
 
     {{#service.security.kerberos.enabled}}
     "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",

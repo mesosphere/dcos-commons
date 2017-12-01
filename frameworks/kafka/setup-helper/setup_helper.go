@@ -12,8 +12,8 @@ import (
 
 const (
 	kerberosEnvvar        = "SECURITY_KERBEROS_ENABLED"
-	tlsEncryptionEnvvar   = "KAFKA_ENABLE_TLS"
-	tlsAllowPlainEnvvar   = "KAFKA_ALLOW_PLAINTEXT"
+	tlsEncryptionEnvvar   = "SECURITY_TRANSPORT_ENCRYPTION_ENABLED"
+	tlsAllowPlainEnvvar   = "SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT"
 	brokerPort            = "KAFKA_BROKER_PORT"
 	brokerPortTLS         = "KAFKA_BROKER_PORT_TLS"
 	taskNameEnvvar        = "TASK_NAME"
