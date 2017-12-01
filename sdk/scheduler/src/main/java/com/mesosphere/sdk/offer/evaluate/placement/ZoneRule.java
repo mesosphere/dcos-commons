@@ -42,4 +42,9 @@ public class ZoneRule extends StringMatcherRule {
                     .build();
         }
     }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ZONE);
+    }
 }

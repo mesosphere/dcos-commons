@@ -271,13 +271,22 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
 
         final String podType;
+        final boolean isPermanentlyFailed;
         try {
-            podType = new TaskLabelReader(taskInfo).getType();
+            TaskLabelReader reader = new TaskLabelReader(taskInfo);
+            podType = reader.getType();
+            isPermanentlyFailed = reader.isPermanentlyFailed();
         } catch (TaskException e) {
             LOGGER.error(String.format(
                     "Unable to extract pod type from task '%s'. Will assume the task needs a configuration update",
                     taskInfo.getName()), e);
             return true;
+        }
+
+        // Permanently failed tasks should be placed on the target configuration immediately.  They do not need
+        // to transition from their former config to the new target.
+        if (isPermanentlyFailed) {
+            return false;
         }
 
         Optional<PodSpec> targetSpecOptional = getPodSpec(targetConfig, podType);

@@ -35,72 +35,65 @@ KEYSTORE_APP_CONFIG_NAME = 'integration-test.yml'
 DISCOVERY_TASK_PREFIX = 'discovery-prefix'
 
 
-@pytest.fixture(scope='module')
-def service_account():
-    """
-    Creates service account and yields the name.
-    """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+@pytest.fixture(scope='module', autouse=True)
+def configure_package(configure_security):
+    try:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
+        # Create service account
+        sdk_security.create_service_account(
+            service_account_name=config.SERVICE_NAME, service_account_secret=config.SERVICE_NAME)
+        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+        sdk_cmd.run_cli(
+            "security org groups add_user superusers {name}".format(name=config.SERVICE_NAME))
 
-@pytest.fixture(scope='module')
-def hello_world_service(service_account):
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        1,
-        additional_options={
-            "service": {
-                "spec_file": "examples/tls.yml",
-                "service_account": service_account,
-                "service_account_secret": service_account,
-                # Legacy values
-                "principal": service_account,
-                "secret_name": service_account,
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            6,
+            additional_options={
+                "service": {
+                    "spec_file": "examples/tls.yml",
+                    "service_account": config.SERVICE_NAME,
+                    "service_account_secret": config.SERVICE_NAME,
+                    # Legacy values
+                    "principal": config.SERVICE_NAME,
+                    "secret_name": config.SERVICE_NAME,
                 },
-            "tls": {
-                "discovery_task_prefix": DISCOVERY_TASK_PREFIX,
+                "tls": {
+                    "discovery_task_prefix": DISCOVERY_TASK_PREFIX,
                 },
             }
         )
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    # Wait for service health check to pass
-    shakedown.service_healthy(config.SERVICE_NAME)
+        # Wait for service health check to pass
+        shakedown.service_healthy(config.SERVICE_NAME)
 
-    # TODO(mh): Add proper wait for health check
-    time.sleep(15)
+        yield  # let the test session execute
 
-    yield service_account
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_security.delete_service_account(
+            service_account_name=config.SERVICE_NAME, service_account_secret=config.SERVICE_NAME)
 
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-    # Make sure that all the TLS artifacts were removed from the secrets store.
-    output = sdk_cmd.run_cli('security secrets list {name}'.format(name=config.SERVICE_NAME))
-    artifact_suffixes = [
-        'certificate', 'private-key', 'root-ca-certificate',
-        'keystore', 'truststore'
+        # Make sure that all the TLS artifacts were removed from the secrets store.
+        output = sdk_cmd.run_cli('security secrets list {name}'.format(name=config.SERVICE_NAME))
+        artifact_suffixes = [
+            'certificate', 'private-key', 'root-ca-certificate',
+            'keystore', 'truststore'
         ]
 
-    for suffix in artifact_suffixes:
-        assert suffix not in output
+        for suffix in artifact_suffixes:
+            assert suffix not in output
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
-def test_java_truststore(hello_world_service):
+def test_java_truststore():
     """
     Make an HTTP request from CLI to nginx exposed service.
     Test that CLI reads and uses truststore to verify HTTPS connection.
@@ -129,7 +122,7 @@ def test_java_truststore(hello_world_service):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
-def test_tls_basic_artifacts(hello_world_service):
+def test_tls_basic_artifacts():
     task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'artifacts')[0]
     assert task_id
 
@@ -162,7 +155,7 @@ def test_tls_basic_artifacts(hello_world_service):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
-def test_java_keystore(hello_world_service):
+def test_java_keystore():
     """
     Java `keystore-app` presents itself with provided TLS certificate
     from keystore.
@@ -196,7 +189,7 @@ def test_java_keystore(hello_world_service):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
-def test_tls_nginx(hello_world_service):
+def test_tls_nginx():
     """
     Checks that NGINX exposes TLS service with correct PEM encoded end-entity
     certificate.
@@ -225,7 +218,7 @@ def test_tls_nginx(hello_world_service):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
-def test_changing_discovery_replaces_certificate_sans(hello_world_service):
+def test_changing_discovery_replaces_certificate_sans():
     """
     Update service configuration to change discovery prefix of a task.
     Scheduler should update task and new SANs should be generated.

@@ -6,6 +6,7 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -838,6 +839,11 @@ public class DefaultSchedulerTest {
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass").build();
         }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
     }
 
     private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
@@ -852,6 +858,11 @@ public class DefaultSchedulerTest {
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass").build();
+        }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
         }
 
         @JsonProperty("message")
