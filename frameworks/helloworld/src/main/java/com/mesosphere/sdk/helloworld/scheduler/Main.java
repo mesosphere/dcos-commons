@@ -68,7 +68,7 @@ public class Main {
         if (args.length == 0) {
             return Scenario.Java;
         } else if (args.length == 1) {
-            if (System.getenv().get("CUSTOMIZE_DEPLOY_PLAN") != null) {
+            if (Boolean.valueOf(System.getenv().get("CUSTOMIZE_DEPLOY_PLAN"))) {
                 return Scenario.CustomPlan;
             } else {
                 return Scenario.YAML;

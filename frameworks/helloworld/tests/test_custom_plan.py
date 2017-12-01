@@ -33,7 +33,7 @@ def test_custom_plan():
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         3,
-        additional_options={"service": {"custom_plan": True}})
+        additional_options={"service": {"customize_plan": True}})
 
     plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     world_steps = plan['phases'][1]['steps']
