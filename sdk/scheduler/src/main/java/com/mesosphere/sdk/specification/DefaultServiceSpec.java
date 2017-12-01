@@ -400,7 +400,9 @@ public class DefaultServiceSpec implements ServiceSpec {
                 String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
                 if (value.equals("FINISHED") || value.equals("ONCE")) {
-                    return GoalState.FINISHED;
+                    return GoalState.ONCE;
+                } else if (value.equals("FINISH")) {
+                    return GoalState.FINISH;
                 } else if (value.equals("RUNNING")) {
                     return GoalState.RUNNING;
                 } else {
