@@ -549,14 +549,6 @@
         <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value>
     </property>
     <property>
-        <name>dfs.permissions.enabled</name>
-        <value>{{PERMISSIONS_ENABLED}}</value>
-    </property>
-    <property>
-        <name>dfs.permissions.superusergroup</name>
-        <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
-    </property>
-    <property>
         <name>dfs.client.cached.conn.retry</name>
         <value>{{CLIENT_CACHED_CONN_RETRY}}</value>
     </property>
@@ -821,8 +813,24 @@
         <name>dfs.storage.policy.enabled</name>
         <value>{{STORAGE_POLICY_ENABLED}}</value>
     </property>
+    <property>
+        <name>dfs.permissions.superusergroup</name>
+        <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
+    </property>
+
+    {{^KERBEROS_ENABLED}}
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>{{PERMISSIONS_ENABLED}}</value>
+    </property>
+    {{/KERBEROS_ENABLED}}
+
 
     {{#KERBEROS_ENABLED}}
+        <property>
+            <name>dfs.permissions.enabled</name>
+            <value>true</value>
+        </property>
         <property>
             <name>ignore.secure.ports.for.testing</name>
             <value>true</value>
