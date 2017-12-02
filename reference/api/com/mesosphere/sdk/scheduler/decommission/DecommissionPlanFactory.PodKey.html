@@ -139,7 +139,9 @@ implements java.lang.Comparable&lt;<a href="../../../../../com/mesosphere/sdk/sc
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html#PodKey-java.lang.String-int-java.util.List-">PodKey</a></span>(java.lang.String&nbsp;podType,
       int&nbsp;podIndex,
-      java.util.List&lt;java.lang.String&gt;&nbsp;orderedPodTypes)</code>&nbsp;</td>
+      java.util.List&lt;java.lang.String&gt;&nbsp;orderedPodTypes)</code>
+<div class="block">Constructor for <a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission"><code>DecommissionPlanFactory.PodKey</code></a>.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -211,9 +213,11 @@ implements java.lang.Comparable&lt;<a href="../../../../../com/mesosphere/sdk/sc
        int&nbsp;podIndex,
        java.util.List&lt;java.lang.String&gt;&nbsp;orderedPodTypes)
 throws <a href="../../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<div class="block">Constructor for <a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission"><code>DecommissionPlanFactory.PodKey</code></a>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>taskInfo</code> - a taskinfo whose pod is to be sorted</dd>
+<dd><code>podType</code> - The type of pod. See: <a href="../../../../../com/mesosphere/sdk/specification/PodSpec.html#getType--"><code>PodSpec.getType()</code></a></dd>
+<dd><code>podIndex</code> - The index of the pod instance.  See: <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html#getIndex--"><code>PodInstance.getIndex()</code></a>.</dd>
 <dd><code>orderedPodTypes</code> - the list of known pod types in order of priority (reverse of ServiceSpec ordering)</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>

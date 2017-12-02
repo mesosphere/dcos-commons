@@ -244,7 +244,7 @@ extends java.lang.Object</pre>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--">fetchStatuses</a></span>()</code>
-<div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
+<div class="block">Fetches all <code>Protos.TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
@@ -262,7 +262,7 @@ extends java.lang.Object</pre>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--">fetchTasks</a></span>()</code>
-<div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
+<div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
 <tr id="i13" class="rowColor">
@@ -442,8 +442,8 @@ extends java.lang.Object</pre>
 <h4>storeTasks</h4>
 <pre>public&nbsp;void&nbsp;storeTasks(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)
                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before <code>#storeStatus(TaskStatus)</code> for any given task id, and it must behave as an atomic transaction: On success,
- everything is written, while on failure nothing is written.</div>
+<div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-"><code>storeStatus(String, Protos.TaskStatus)</code></a> for any given task id, and it must behave as an atomic transaction: On
+ success, everything is written, while on failure nothing is written.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>tasks</code> - Tasks to be stored, which each meet the above requirements</dd>
@@ -461,8 +461,9 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;storeStatus(java.lang.String&nbsp;taskName,
                         Protos.TaskStatus&nbsp;status)
                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores the TaskStatus of a particular Task. The <code>TaskInfo</code> for this exact task MUST have already been
- written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by <a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-"><code>CommonIdUtils.toTaskId(String)</code></a>.</div>
+<div class="block">Stores the TaskStatus of a particular Task. The <code>Protos.TaskInfo</code> for this exact task MUST have already
+ been written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by
+ <a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-"><code>CommonIdUtils.toTaskId(String)</code></a>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>status</code> - The status to be stored, which meets the above requirements</dd>
@@ -515,8 +516,8 @@ extends java.lang.Object</pre>
 <h4>fetchTasks</h4>
 <pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchTasks()
                                                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Fetches and returns all <code>TaskInfo</code>s from the underlying storage, or an empty list if none are found. This
- list should be a superset of the list returned by <a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--"><code>fetchStatuses()</code></a>.</div>
+<div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s from the underlying storage, or an empty list if none are found.
+ This list should be a superset of the list returned by <a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--"><code>fetchStatuses()</code></a>.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>All TaskInfos</dd>
@@ -553,8 +554,8 @@ extends java.lang.Object</pre>
 <h4>fetchStatuses</h4>
 <pre>public&nbsp;java.util.Collection&lt;Protos.TaskStatus&gt;&nbsp;fetchStatuses()
                                                       throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Fetches all <code>TaskStatus</code>es from the underlying storage, or an empty list if none are found. Note that this
- list may have fewer entries than <a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--"><code>fetchTasks()</code></a> if some tasks are lacking statuses.</div>
+<div class="block">Fetches all <code>Protos.TaskStatus</code>es from the underlying storage, or an empty list if none are found. Note
+ that this list may have fewer entries than <a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--"><code>fetchTasks()</code></a> if some tasks are lacking statuses.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The TaskStatus objects associated with all tasks</dd>
@@ -572,7 +573,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.util.Optional&lt;Protos.TaskStatus&gt;&nbsp;fetchStatus(java.lang.String&nbsp;taskName)
                                                   throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.
- A given task may sometimes have <code>TaskInfo</code> while lacking <code>TaskStatus</code>.</div>
+ A given task may sometimes have <code>Protos.TaskInfo</code> while lacking <code>Protos.TaskStatus</code>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>taskName</code> - The name of the Task which should have its status retrieved</dd>
@@ -601,8 +602,8 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if the key or value fail validation, or if storing the data otherwise fails</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>StateStoreUtils#validateKey(String)</code>, 
-<code>StateStoreUtils#validateValue(byte[])</code></dd>
+<dd><a href="../../../../com/mesosphere/sdk/state/StateStore.html#validateKey-java.lang.String-"><code>validateKey(String)</code></a>, 
+<a href="../../../../com/mesosphere/sdk/state/StateStore.html#validateValue-byte:A-"><code>validateValue(byte[])</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -621,7 +622,7 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if no data was found for the requested key, or if fetching the data otherwise fails</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>StateStoreUtils#validateKey(String)</code></dd>
+<dd><a href="../../../../com/mesosphere/sdk/state/StateStore.html#validateKey-java.lang.String-"><code>validateKey(String)</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -666,8 +667,8 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;storeGoalOverrideStatus(java.lang.String&nbsp;taskName,
                                     <a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a>&nbsp;status)
                              throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores the goal state override status of a particular Task. The <code>TaskInfo</code> for this exact task MUST have
- already been written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand.</div>
+<div class="block">Stores the goal state override status of a particular Task. The <code>Protos.TaskInfo</code> for this exact task MUST
+ have already been written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - in the event of a storage error</dd>
@@ -683,7 +684,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a>&nbsp;fetchGoalOverrideStatus(java.lang.String&nbsp;taskName)
                                                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Retrieves the goal state override status of a particular task. A lack of override will result in a
- <code>GoalOverrideStatus</code> with <code>override=NONE</code> and <code>state=NONE</code>.</div>
+ <a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state"><code>GoalStateOverride.Status</code></a> with <code>override=NONE</code> and <code>state=NONE</code>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - in the event of a storage error</dd>

@@ -146,7 +146,8 @@ extends java.lang.Object</pre>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setConfigTemplateReader-com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers.ConfigTemplateReader-">setConfigTemplateReader</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/YAMLToInternalMappers.ConfigTemplateReader.html" title="class in com.mesosphere.sdk.specification.yaml">YAMLToInternalMappers.ConfigTemplateReader</a>&nbsp;configTemplateReader)</code>
-<div class="block">Assigns a custom <code>YAMLToInternalMappers.FileReader</code> implementation for reading config file templates.</div>
+<div class="block">Assigns a custom <code>YAMLToInternalMappers.ConfigTemplateReader</code> implementation for reading config file
+ templates.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
@@ -213,8 +214,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setConfigTemplateReader</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;setConfigTemplateReader(<a href="../../../../com/mesosphere/sdk/specification/yaml/YAMLToInternalMappers.ConfigTemplateReader.html" title="class in com.mesosphere.sdk.specification.yaml">YAMLToInternalMappers.ConfigTemplateReader</a>&nbsp;configTemplateReader)</pre>
-<div class="block">Assigns a custom <code>YAMLToInternalMappers.FileReader</code> implementation for reading config file templates.
- This is exposed to support mockery in tests.</div>
+<div class="block">Assigns a custom <code>YAMLToInternalMappers.ConfigTemplateReader</code> implementation for reading config file
+ templates.  This is exposed to support mocking in tests.</div>
 </li>
 </ul>
 <a name="build--">

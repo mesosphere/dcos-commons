@@ -137,8 +137,8 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>static java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchPodTasks-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-">fetchPodTasks</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
-<div class="block">Returns all <code>TaskInfo</code>s associated with the provided <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>, or an empty list if none were
- found.</div>
+<div class="block">Returns all <code>Protos.TaskInfo</code>s associated with the provided <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>, or an empty list if none
+ were found.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -152,7 +152,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>static java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-">fetchTasksNeedingRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>
-<div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
+<div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s for tasks needing recovery.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
@@ -160,7 +160,7 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#fetchTasksNeedingRecovery-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Set-">fetchTasksNeedingRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                          java.util.Set&lt;java.lang.String&gt;&nbsp;launchableTaskNames)</code>
-<div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery and in the list of
+<div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s for tasks needing recovery and in the list of
  launchable Tasks.</div>
 </td>
 </tr>
@@ -261,7 +261,7 @@ extends java.lang.Object</pre>
                                                                               <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                                                                               java.util.Set&lt;java.lang.String&gt;&nbsp;launchableTaskNames)
                                                                        throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
-<div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery and in the list of
+<div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s for tasks needing recovery and in the list of
  launchable Tasks.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
@@ -280,7 +280,7 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchTasksNeedingRecovery(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                                               <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)
                                                                        throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
-<div class="block">Fetches and returns all <code>TaskInfo</code>s for tasks needing recovery.</div>
+<div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s for tasks needing recovery.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Terminated TaskInfos</dd>
@@ -298,8 +298,8 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;fetchPodTasks(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                                   <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)
                                                            throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Returns all <code>TaskInfo</code>s associated with the provided <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>, or an empty list if none were
- found.</div>
+<div class="block">Returns all <code>Protos.TaskInfo</code>s associated with the provided <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>, or an empty list if none
+ were found.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - in the event of an IO error other than missing tasks</dd>
@@ -344,10 +344,7 @@ extends java.lang.Object</pre>
  <li>TaskInfo(name=foo, id=2) is written</li>
  <li>Scheduler is restarted before new TaskStatus is written</li>
  <li>Scheduler comes back and sees TaskInfo(name=foo, id=2) and TaskStatus(name=foo, id=1, status=RUNNING)</li>
- </ol>
-
- Note that this ID mismatch would specifically cause problems with calls against
- <code>#getTaskName(StateStore, TaskStatus)</code> which requires that the ids align.</div>
+ </ol></div>
 </li>
 </ul>
 <a name="isUninstalling-com.mesosphere.sdk.state.StateStore-">

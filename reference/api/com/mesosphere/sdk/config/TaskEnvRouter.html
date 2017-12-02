@@ -111,11 +111,14 @@ var activeTableTab = "activeTableTab";
 extends java.lang.Object</pre>
 <div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config"><code>TaskEnvRouter</code></a> which handles forwarding environment variables from two sources:
  <ul>
- <li>Scheduler's system environment: searches for environment variables that start with <code>"TASKCFG_&lt;TASKTYPE&gt;_"</code>
- and/or <code>"TASKCFG_ALL_"</code>, and returns appropriate <code>ConfigNamespace</code>s for task types based on that
- environment.</li>
- <li>Manually-provided values: The service developer may provide custom values which will then be forwarded to tasks
- as needed.</li>
+ <li>
+ Scheduler's system environment: searches for environment variables that start with <code>"TASKCFG_&lt;TASKTYPE&gt;_"</code>
+ and/or <code>"TASKCFG_ALL_"</code>, and returns appropriate Maps for task types based on that environment.
+ </li>
+ <li>
+ Manually-provided values: The service developer may provide custom values which will then be forwarded to tasks as
+ needed.
+ </li>
  </ul></div>
 </li>
 </ul>
