@@ -5,7 +5,7 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
 /**
- * A type of {@link Tick} that performs an operation against the scheduler.
+ * A type of {@link SimulationTick} that performs an operation against the scheduler.
  */
 public interface Send extends SimulationTick {
 
