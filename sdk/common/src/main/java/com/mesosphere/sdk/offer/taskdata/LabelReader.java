@@ -9,8 +9,7 @@ import com.mesosphere.sdk.offer.TaskException;
 
 /**
  * Implements common logic for read access to a task's Labels. Any access to component-specific values is provided by
- * {@link com.mesosphere.sdk.offer.taskdata.ExecutorLabelReader} and
- * {@link com.mesosphere.sdk.offer.taskdata.SchedulerLabelReader}.
+ * subclasses.
  */
 class LabelReader {
 

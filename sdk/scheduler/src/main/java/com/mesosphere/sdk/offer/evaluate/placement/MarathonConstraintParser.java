@@ -13,7 +13,7 @@ import java.util.*;
 /**
  * Implements support for generating {@link PlacementRule}s from Marathon-style constraint strings.
  *
- * @see https://mesosphere.github.io/marathon/docs/constraints.html
+ * @see <a href="https://mesosphere.github.io/marathon/docs/constraints.html">Marathon Constraints</a>
  */
 public class MarathonConstraintParser {
 

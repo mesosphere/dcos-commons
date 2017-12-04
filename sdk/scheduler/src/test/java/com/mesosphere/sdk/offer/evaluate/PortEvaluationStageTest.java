@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -75,8 +76,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
-                .placementRule((offer, offerRequirement, taskInfos) ->
-                        EvaluationOutcome.pass(this, "pass for test").build())
+                .placementRule(TestPlacementUtils.PASS)
                 .build();
 
         serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)

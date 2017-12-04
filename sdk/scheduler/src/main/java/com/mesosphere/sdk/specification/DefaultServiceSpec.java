@@ -318,6 +318,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultVolumeSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
+                IsLocalRegionRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
                 MaxPerRegionRule.class,
@@ -413,8 +414,8 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Assigns a custom {@link YAMLToInternalMappers.FileReader} implementation for reading config file templates.
-         * This is exposed to support mockery in tests.
+         * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
+         * templates.  This is exposed to support mocking in tests.
          */
         @VisibleForTesting
         public Generator setConfigTemplateReader(YAMLToInternalMappers.ConfigTemplateReader configTemplateReader) {

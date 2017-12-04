@@ -45,7 +45,7 @@ public class StateStoreUtils {
     }
 
     /**
-     * Fetches and returns all {@link TaskInfo}s for tasks needing recovery and in the list of
+     * Fetches and returns all {@link Protos.TaskInfo}s for tasks needing recovery and in the list of
      * launchable Tasks.
      *
      * @return Terminated TaskInfos
@@ -61,7 +61,7 @@ public class StateStoreUtils {
     }
 
     /**
-     * Fetches and returns all {@link TaskInfo}s for tasks needing recovery.
+     * Fetches and returns all {@link Protos.TaskInfo}s for tasks needing recovery.
      *
      * @return Terminated TaskInfos
      */
@@ -102,8 +102,8 @@ public class StateStoreUtils {
     }
 
     /**
-     * Returns all {@link TaskInfo}s associated with the provided {@link PodInstance}, or an empty list if none were
-     * found.
+     * Returns all {@link Protos.TaskInfo}s associated with the provided {@link PodInstance}, or an empty list if none
+     * were found.
      *
      * @throws StateStoreException in the event of an IO error other than missing tasks
      */
@@ -166,9 +166,6 @@ public class StateStoreUtils {
      * <li>Scheduler is restarted before new TaskStatus is written</li>
      * <li>Scheduler comes back and sees TaskInfo(name=foo, id=2) and TaskStatus(name=foo, id=1, status=RUNNING)</li>
      * </ol>
-     *
-     * Note that this ID mismatch would specifically cause problems with calls against
-     * {@link #getTaskName(StateStore, TaskStatus)} which requires that the ids align.
      */
     static void repairTaskIDs(StateStore stateStore) {
         Map<String, Protos.TaskStatus> repairedStatuses = new HashMap<>();
