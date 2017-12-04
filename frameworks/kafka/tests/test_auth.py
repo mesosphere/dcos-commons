@@ -10,6 +10,7 @@ import sdk_utils
 
 from tests import auth
 from tests import config
+from tests import test_utils
 
 log = logging.getLogger(__name__)
 
@@ -129,6 +130,7 @@ def kafka_client(kerberos, kafka_server):
             "env": {
                 "JVM_MaxHeapSize": "512",
                 "KAFKA_CLIENT_MODE": "test",
+                "KAFKA_TOPIC": "securetest",
                 "KAFKA_BROKER_LIST": ",".join(brokers)
             }
         }
@@ -143,6 +145,13 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client):
+def test_client_can_read_and_write(kafka_client, kafka_server):
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+
+    topicname = kafka_client["env"]["KAFKA_TOPIC"]
+    sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
+                    "topic create {}".format(topicname),
+                    json=True)
+    test_utils.wait_for_topic(kafka_server, topicname)
+
     auth.send_and_receive_message(kafka_client["id"])
