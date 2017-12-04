@@ -141,6 +141,31 @@ Steps:
 
 <!-- END DUPLICATE BLOCK -->
 
+# Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
+ 
+<!--
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+-->
+## Example
+
+Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
+
+## Balanced Placement for a Single Region
+
+```
+{
+   ...
+  "instances": 6,
+  "constraints": [
+    ["@zone", "GROUP_BY", "3"]
+  ]
+}
+```
+
+- Instances will all be evenly divided between zones `a`,`b`,`c`.
+
 # Alternate ZooKeeper
 
 By default, the Kafka services uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster. You can configure an alternate ZooKeeper at install time. This enables you to increase Kafka's capacity and removes the system ZooKeeper's involvment in the service.

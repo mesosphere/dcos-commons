@@ -120,7 +120,7 @@ Placement constraints can be applied to zones by referring to the `@zone` key. F
 <!--
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 -->
-## Examples
+## Example
 
 Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 
