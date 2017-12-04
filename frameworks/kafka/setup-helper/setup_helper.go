@@ -33,20 +33,22 @@ func main() {
 	log.Printf("setup-helper complete.")
 }
 
-func getBooleanEnvvar(envvar string) (bool, error) {
+func getBooleanEnvvar(envvar string) bool {
 	val, set := os.LookupEnv(envvar)
 	if !set {
-		return false, nil
+		return false
 	}
 
 	result, err := strconv.ParseBool(val)
 	if err != nil {
-		return false, fmt.Errorf("Could not parse boolean for envvar %s: %s",
+		log.Printf("Could not parse boolean for envvar: %s (%s)",
 			envvar,
-			err.Error())
+			err.Error(),
+		)
+		return false
 	}
 
-	return result, nil
+	return result
 }
 
 func getStringEnvvar(envvar string) string {
@@ -70,31 +72,19 @@ func calculateSettings() error {
 	return nil
 }
 
-func parseToggles() (kerberos bool, tls bool, plaintext bool, err error) {
-	kerberosEnabled, err := getBooleanEnvvar(kerberosEnvvar)
-	if err != nil {
-		return false, false, false, err
-	}
-	tlsEncryptionEnabled, err := getBooleanEnvvar(tlsEncryptionEnvvar)
-	if err != nil {
-		return false, false, false, err
-	}
-	allowPlainText, err := getBooleanEnvvar(tlsAllowPlainEnvvar)
-	if err != nil {
-		return false, false, false, err
-	}
+func parseToggles() (kerberos bool, tls bool, plaintext bool) {
+	kerberosEnabled := getBooleanEnvvar(kerberosEnvvar)
+	tlsEncryptionEnabled := getBooleanEnvvar(tlsEncryptionEnvvar)
+	allowPlainText := getBooleanEnvvar(tlsAllowPlainEnvvar)
 
-	return kerberosEnabled, tlsEncryptionEnabled, allowPlainText, err
+	return kerberosEnabled, tlsEncryptionEnabled, allowPlainText
 }
 
 func setListeners() error {
 	var listeners []string
 	var advertisedListeners []string
 
-	kerberosEnabled, tlsEncryptionEnabled, allowPlainText, err := parseToggles()
-	if err != nil {
-		return err
-	}
+	kerberosEnabled, tlsEncryptionEnabled, allowPlainText := parseToggles()
 
 	if kerberosEnabled { // Kerberos enabled
 
@@ -136,7 +126,7 @@ func setListeners() error {
 			getAdvertisedListener("PLAINTEXT", brokerPort))
 	}
 
-	err = writeToWorkingDirectory("listeners-config",
+	err := writeToWorkingDirectory("listeners-config",
 		"listeners="+strings.Join(listeners, ","))
 	err = writeToWorkingDirectory("advertised-listeners-config",
 		"advertised.listeners="+strings.Join(advertisedListeners, ","))
@@ -175,10 +165,7 @@ func writeToWorkingDirectory(filename string, content string) error {
 
 func setInterBrokerProtocol() error {
 	const property = "security.inter.broker.protocol"
-	kerberosEnabled, tlsEncryptionEnabled, _, err := parseToggles()
-	if err != nil {
-		return err
-	}
+	kerberosEnabled, tlsEncryptionEnabled, _ := parseToggles()
 
 	protocol := ""
 	if kerberosEnabled {
@@ -193,6 +180,5 @@ func setInterBrokerProtocol() error {
 		protocol = "PLAINTEXT"
 	}
 
-	err = writeToWorkingDirectory(property, fmt.Sprintf("%s=%s", property, protocol))
-	return err
+	return writeToWorkingDirectory(property, fmt.Sprintf("%s=%s", property, protocol))
 }
