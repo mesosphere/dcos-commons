@@ -20,6 +20,10 @@ const (
 	frameworkHostEnvvar   = "FRAMEWORK_HOST"
 	ipEnvvar              = "MESOS_CONTAINER_IP"
 	kerberosPrimaryEnvvar = "SECURITY_KERBEROS_PRIMARY"
+
+	listenersProperty           = "listeners"
+	advertisedListenersProperty = "advertised.listeners"
+	interBrokerProtocolProperty = "security.inter.broker.protocol"
 )
 
 func main() {
@@ -29,8 +33,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to calculate security and listener settings: %s", err.Error())
 	}
-	log.Printf("Calculated security and listener settings.")
-	log.Printf("setup-helper complete.")
+	log.Printf("Calculated security and listener settings")
+	log.Printf("setup-helper complete")
 }
 
 func getBooleanEnvvar(envvar string) bool {
@@ -61,14 +65,14 @@ func calculateSettings() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Set listeners.")
+	log.Printf("Set listeners")
 
 	log.Print("Setting security.inter.broker.protocol...")
 	err = setInterBrokerProtocol()
 	if err != nil {
 		return err
 	}
-	log.Print("Set security.inter.broker.protocol.")
+	log.Print("Set security.inter.broker.protocol")
 	return nil
 }
 
@@ -126,9 +130,9 @@ func setListeners() error {
 			getAdvertisedListener("PLAINTEXT", brokerPort))
 	}
 
-	err := writeToWorkingDirectory("listeners-config",
+	err := writeToWorkingDirectory(listenersProperty,
 		"listeners="+strings.Join(listeners, ","))
-	err = writeToWorkingDirectory("advertised-listeners-config",
+	err = writeToWorkingDirectory(advertisedListenersProperty,
 		"advertised.listeners="+strings.Join(advertisedListeners, ","))
 	return err
 }
@@ -151,10 +155,12 @@ func getAdvertisedListener(protocol string, portEnvvar string) string {
 }
 
 func writeToWorkingDirectory(filename string, content string) error {
+	log.Printf("Attempting to write to %s:\n%s", filename, content)
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+	log.Printf("Calculated working directory as: %s", wd)
 
 	return ioutil.WriteFile(
 		path.Join(wd, filename),
@@ -164,7 +170,6 @@ func writeToWorkingDirectory(filename string, content string) error {
 }
 
 func setInterBrokerProtocol() error {
-	const property = "security.inter.broker.protocol"
 	kerberosEnabled, tlsEncryptionEnabled, _ := parseToggles()
 
 	protocol := ""
@@ -180,5 +185,6 @@ func setInterBrokerProtocol() error {
 		protocol = "PLAINTEXT"
 	}
 
-	return writeToWorkingDirectory(property, fmt.Sprintf("%s=%s", property, protocol))
+	return writeToWorkingDirectory(interBrokerProtocolProperty,
+		fmt.Sprintf("%s=%s", interBrokerProtocolProperty, protocol))
 }

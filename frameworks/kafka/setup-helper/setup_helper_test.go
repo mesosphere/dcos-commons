@@ -99,8 +99,8 @@ func TestSetListeners(t *testing.T) {
 	for _, test := range listenerTests {
 		log.Print(test)
 
-		cleanUpWDFile("listeners-config")
-		cleanUpWDFile("advertised-listeners-config")
+		cleanUpWDFile(listenersProperty)
+		cleanUpWDFile(advertisedListenersProperty)
 
 		// Set the envvars
 		os.Clearenv()
@@ -117,18 +117,18 @@ func TestSetListeners(t *testing.T) {
 		err := setListeners()
 		asrt.NoError(err)
 
-		out, err := readWDFile("listeners-config")
+		out, err := readWDFile(listenersProperty)
 		asrt.NoError(err)
 		asrt.Equal(test.expectedListeners, string(out))
 
-		out, err = readWDFile("advertised-listeners-config")
+		out, err = readWDFile(advertisedListenersProperty)
 		asrt.NoError(err)
 		asrt.Equal(test.expectedAdvertisedListeners, string(out))
 	}
 
 	// Don't leave a trace.
-	cleanUpWDFile("listeners-config")
-	cleanUpWDFile("advertised-listeners-config")
+	cleanUpWDFile(listenersProperty)
+	cleanUpWDFile(advertisedListenersProperty)
 }
 func TestGetBooleanEnvvar(t *testing.T) {
 	asrt := assert.New(t)
@@ -156,10 +156,10 @@ func TestGetListener(t *testing.T) {
 func TestGetListenerTLS(t *testing.T) {
 	asrt := assert.New(t)
 
-	os.Setenv(ipEnvvar, "127.0.0.1")
+	os.Setenv(ipEnvvar, "127.0.0.2")
 	os.Setenv(brokerPortTLS, "1001")
 
-	asrt.Equal("SSL://127.0.0.1:1001", getListener("SSL", brokerPortTLS))
+	asrt.Equal("SSL://127.0.0.2:1001", getListener("SSL", brokerPortTLS))
 	os.Clearenv()
 }
 
@@ -228,7 +228,7 @@ func TestSetInterBrokerProtocol(t *testing.T) {
 	for _, test := range brokerProtocolTests {
 		// Wipe environment.
 		os.Clearenv()
-		cleanUpWDFile("security.inter.broker.protocol")
+		cleanUpWDFile(interBrokerProtocolProperty)
 
 		log.Print(test)
 
@@ -239,13 +239,13 @@ func TestSetInterBrokerProtocol(t *testing.T) {
 		err := setInterBrokerProtocol()
 		asrt.NoError(err)
 
-		out, err := readWDFile("security.inter.broker.protocol")
+		out, err := readWDFile(interBrokerProtocolProperty)
 		asrt.NoError(err)
 		asrt.Equal(test.expectedProtocol, string(out))
 	}
 
 	// Leave no trace.
-	cleanUpWDFile("security.inter.broker.protocol")
+	cleanUpWDFile(interBrokerProtocolProperty)
 }
 
 func cleanUpWDFile(file string) {
