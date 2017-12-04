@@ -67,10 +67,6 @@ pods:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
-        # NOTE: We add some custom statsd libraries for statsd metrics as well
-        # as a custom zookeeper library to support our own ZK running
-        # kerberized. The custom zk library does not do DNS reverse resolution
-        # of the ZK hostnames.
         cmd: |
           # Exit on any error.
           set -e
@@ -82,8 +78,8 @@ pods:
 
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
           ./setup-helper
-          export ADVERTISED_LISTENERS=`cat advertised-listeners-config`
-          export LISTENERS=`cat listeners-config`
+          export ADVERTISED_LISTENERS=`cat advertised.listeners`
+          export LISTENERS=`cat listeners`
           export SECURITY_INTER_BROKER_PROTOCOL=`cat security.inter.broker.protocol`
 
           ./bootstrap -resolve=false
