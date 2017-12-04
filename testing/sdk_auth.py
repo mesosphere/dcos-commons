@@ -179,7 +179,7 @@ class KerberosEnvironment:
         self.framework_id = self.kdc_task["framework_id"]
         self.task_id = self.kdc_task["id"]
         self.kdc_host_id = self.kdc_task["slave_id"]
-        self.kdc_host_name = _get_host_name(self.kdc_host_id)
+        self.kdc_hostname = _get_host_name(self.kdc_host_id)
         self.master_public_ip = _get_master_public_ip()
         self.principals = []
         self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME

@@ -30,8 +30,8 @@ Create the following `kerberos-options.json` file:
         "security": {
             "kerberos": {
                 "enabled": true,
-                "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
-                "kdc_host_port": 2500,
+                "kdc_hostname": "kdc.marathon.autoip.dcos.thisdcos.directory",
+                "kdc_port": 2500,
                 "keytab_secret": "__dcos_base64__keytab"
             }
         }
@@ -78,8 +78,8 @@ Create a `kerberos-zookeeper-options.json` file with the following contents:
             "kerberos": {
                 "enabled": true,
                 "enabled_for_zookeeper": true,
-                "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
-                "kdc_host_port": 2500,
+                "kdc_hostname": "kdc.marathon.autoip.dcos.thisdcos.directory",
+                "kdc_port": 2500,
                 "keytab_secret": "__dcos_base64__keytab"
             }
         }

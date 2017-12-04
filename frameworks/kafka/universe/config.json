@@ -83,12 +83,12 @@
                       "type": "boolean",
                       "default": false
                     },
-                    "kdc_host_name": {
+                    "kdc_hostname": {
                       "type": "string",
                       "description": "The name or address of a host running a KDC for the realm.",
                       "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
                     },
-                    "kdc_host_port": {
+                    "kdc_port": {
                       "type": "integer",
                       "description": "The port of the host running a KDC for that realm.",
                       "default": 2500

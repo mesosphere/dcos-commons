@@ -47,8 +47,8 @@ def kerberos(configure_security):
                 "security": {
                     "kerberos": {
                         "enabled": True,
-                        "kdc_host_name": kerberos_env.get_host(),
-                        "kdc_host_port": int(kerberos_env.get_port()),
+                        "kdc_hostname": kerberos_env.get_host(),
+                        "kdc_port": int(kerberos_env.get_port()),
                         "keytab_secret": kerberos_env.get_keytab_path(),
                     }
                 }
