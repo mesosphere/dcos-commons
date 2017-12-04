@@ -1499,7 +1499,7 @@ name: "hello-world"
 pods:
   hello:
     count: 3
-    placement: {{HELLO_PLACEMENT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
     tasks:
       server:
         goal: RUNNING

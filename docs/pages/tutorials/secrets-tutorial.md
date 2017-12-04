@@ -77,7 +77,7 @@ pods:
     container:
       image-name: ubuntu:14.04
     count: {{HELLO_COUNT}}
-    placement: {{HELLO_PLACEMENT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
     secrets:
       s1:
         secret: {{HELLO_SECRET1}}
@@ -96,7 +96,7 @@ pods:
         ................
   world:
     count: {{WORLD_COUNT}}
-    placement: {{WORLD_PLACEMENT}}
+    placement: '{{{WORLD_PLACEMENT}}}'
     secrets:
       s1:
         secret: {{WORLD_SECRET1}}
