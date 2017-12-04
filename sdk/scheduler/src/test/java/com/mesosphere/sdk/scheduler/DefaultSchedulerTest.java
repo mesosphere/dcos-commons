@@ -2,6 +2,9 @@ package com.mesosphere.sdk.scheduler;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
@@ -656,6 +659,22 @@ public class DefaultSchedulerTest {
                 .findFirst().get();
 
         Assert.assertEquals(2, deployPlan.getChildren().size());
+    }
+
+    @Test
+    public void testGoalStateDeserializesFutureValues() throws IOException {
+        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
+                new DefaultServiceSpec.ConfigFactory.GoalStateDeserializer();
+
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(GoalState.class, goalStateDeserializer);
+        objectMapper.registerModule(module);
+
+        Assert.assertEquals(
+                SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper), GoalState.FINISHED);
+        Assert.assertEquals(
+                SerializationUtils.fromString("\"FINISH\"", GoalState.class, objectMapper), GoalState.FINISHED);
     }
 
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.

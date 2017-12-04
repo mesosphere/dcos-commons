@@ -2,8 +2,14 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
@@ -353,6 +359,10 @@ public class DefaultServiceSpec implements ServiceSpec {
             for (Class<?> subtype : additionalSubtypes) {
                 objectMapper.registerSubtypes(subtype);
             }
+
+            SimpleModule module = new SimpleModule();
+            module.addDeserializer(GoalState.class, new GoalStateDeserializer());
+            objectMapper.registerModule(module);
         }
 
         @Override
@@ -369,6 +379,36 @@ public class DefaultServiceSpec implements ServiceSpec {
         @VisibleForTesting
         public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
             return defaultRegisteredSubtypes;
+        }
+
+        /**
+         * Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.
+         */
+        public static class GoalStateDeserializer extends StdDeserializer<GoalState> {
+
+            public GoalStateDeserializer() {
+                this(null);
+            }
+
+            protected GoalStateDeserializer(Class<?> vc) {
+                super(vc);
+            }
+
+            @Override
+            public GoalState deserialize(
+                    JsonParser p, DeserializationContext ctxt) throws IOException, JsonParseException {
+                String value = ((TextNode) p.getCodec().readTree(p)).textValue();
+
+                if (value.equals("FINISHED") || value.equals("ONCE") || value.equals("FINISH")) {
+                    return GoalState.FINISHED;
+                } else if (value.equals("RUNNING")) {
+                    return GoalState.RUNNING;
+                } else if (value.equals("UNKNOWN")) {
+                    return GoalState.UNKNOWN;
+                }
+
+                throw new JsonParseException(String.format("Unknown goal state: %s", value), p.getCurrentLocation());
+            }
         }
     }
 
