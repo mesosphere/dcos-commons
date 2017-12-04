@@ -11,19 +11,18 @@ from tests import test_utils
 @pytest.fixture(scope='module', autouse=True)
 def kafka_server(configure_security):
     try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         config.install(
             config.PACKAGE_NAME,
-            foldered_name,
+            config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT)
 
         # Since the tests below interact with the brokers, ensure that the DNS resolves
-        test_utils.wait_for_broker_dns(config.PACKAGE_NAME, foldered_name)
+        test_utils.wait_for_broker_dns(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield {"package_name": config.PACKAGE_NAME, "service": {"name": foldered_name}}
+        yield {"package_name": config.PACKAGE_NAME, "service": {"name": config.SERVICE_NAME}}
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.smoke
@@ -41,21 +40,21 @@ def test_topic_delete(kafka_server: dict):
 @pytest.mark.sanity
 def test_topic_partition_count(kafka_server: dict):
     package_name = kafka_server["package_name"]
-    foldered_name = kafka_server["service"]["name"]
+    service_name = kafka_server["service"]["name"]
     sdk_cmd.svc_cli(
-        package_name, foldered_name,
+        package_name, service_name,
         'topic create {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
     topic_info = sdk_cmd.svc_cli(
-        package_name, foldered_name,
+        package_name, service_name,
         'topic describe {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
 @pytest.mark.sanity
 def test_topic_offsets_increase_with_writes(kafka_server: dict):
-    foldered_name = kafka_server["service"]["name"]
+    service_name = kafka_server["service"]["name"]
     offset_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
+        config.PACKAGE_NAME, service_name,
         'topic offsets --time="-1" {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
     assert len(offset_info) == config.DEFAULT_PARTITION_COUNT
 
@@ -68,13 +67,13 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     num_messages = 10
     write_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
+        config.PACKAGE_NAME, service_name,
         'topic producer_test {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
     assert len(write_info) == 1
     assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
 
     offset_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
+        config.PACKAGE_NAME, service_name,
         'topic offsets --time="-1" {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
     assert len(offset_info) == config.DEFAULT_PARTITION_COUNT
 
