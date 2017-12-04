@@ -44,44 +44,30 @@ You can configure whether the creation, transfer, and restoration of backups occ
 
 The Cassandra service can be run on a virtual network such as the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the [documentation](/latest/networking/virtual-networks/#virtual-network-service-dns). For the Cassandra service, using a virtual network means that nodes no longer use reserved port resources on the Mesos agents.  This allows nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarantee that the ports on the agents containing the reserved resources for Cassandra will be available, therefore we do not allow a service to change from a virtual network to the host network. **Once the service is deployed on a virtual network it must remain on that virtual network**. The only way to move your data to Cassandra on the host network is through a migration.
 
-# Regions and Zones
+# Zones
 
 Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
  
+<!--
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
-
+-->
 ## Examples
 
-Suppose we have a Mesos cluster that spans 3 regions: `aws-us-east1`, `aws-us-east2`, and `local`. Each region has zones `a`,`b`,`c`,`d`.
+Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 
-### Specify only a remote region
-
-```
-{
-  "instances": 5,
-  "constraints": [
-    ["@region", "IS", "aws-us-east1"]
-  ]
-}
-```
-
-- No instance will launch in the local region.
-- All of the 5 instances will be launched in the `aws-us-east1` region.
-
-### Balanced Placement for a Single Region
+## Balanced Placement for a Single Region
 
 ```
 {
    ...
   "instances": 6,
   "constraints": [
-    ["@region", "IS", "aws-us-east1"],
-    ["@zone", "GROUP_BY", "4"]
+    ["@zone", "GROUP_BY", "3"]
   ]
 }
 ```
 
-- Instances will all be launched in the `aws-us-east1` region and evenly divided between `aws-us-east1`‘s zones `a`,`b`,`c`,`d`.
+- Instances will all be evenly divided between zones `a`,`b`,`c`.
 
 # TLS
 
