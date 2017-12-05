@@ -67,7 +67,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
-                    retry_on_result=lambda result_pair: result_pair[1] not in result_pair[0])
+                    retry_on_result=lambda result_pair: result_pair[1] in result_pair[0])
     def get_offset_change(topic_name, initial_offsets=[]):
         """
         Run:
