@@ -150,9 +150,8 @@ implements java.lang.Runnable</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler">SchedulerRunner</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html#fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-">fromServiceSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-               <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
-               java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html#fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">fromServiceSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+               <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Builds a new instance using a <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> representing the serializable Java representation of a service
  specification.</div>
 </td>
@@ -210,15 +209,14 @@ implements java.lang.Runnable</pre>
 </dl>
 </li>
 </ul>
-<a name="fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-">
+<a name="fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromServiceSpec</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler">SchedulerRunner</a>&nbsp;fromServiceSpec(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                                              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
-                                              java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)
+                                              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)
                                        throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block">Builds a new instance using a <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> representing the serializable Java representation of a service
  specification.</div>
@@ -226,7 +224,6 @@ implements java.lang.Runnable</pre>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>serviceSpec</code> - the service specification converted to be used by the config store</dd>
 <dd><code>schedulerConfig</code> - the scheduler configuration to use (usually based on process environment)</dd>
-<dd><code>plans</code> - a list of one or more custom plans to be used by the service</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a new <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerRunner</code></a> instance, which may be launched with <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html#run--"><code>run()</code></a></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
