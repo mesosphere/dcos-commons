@@ -1,11 +1,16 @@
+import uuid
+import logging
+import retrying
 import pytest
 
 import sdk_cmd
 import sdk_install
-import sdk_utils
 
 from tests import config
 from tests import test_utils
+
+
+LOG = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -16,6 +21,10 @@ def kafka_server(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT)
+
+        # wait for brokers to finish registering before starting tests
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
+                                      service_name=config.SERVICE_NAME)
 
         # Since the tests below interact with the brokers, ensure that the DNS resolves
         test_utils.wait_for_broker_dns(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -41,6 +50,7 @@ def test_topic_delete(kafka_server: dict):
 def test_topic_partition_count(kafka_server: dict):
     package_name = kafka_server["package_name"]
     service_name = kafka_server["service"]["name"]
+
     sdk_cmd.svc_cli(
         package_name, service_name,
         'topic create {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
@@ -52,37 +62,47 @@ def test_topic_partition_count(kafka_server: dict):
 
 @pytest.mark.sanity
 def test_topic_offsets_increase_with_writes(kafka_server: dict):
+    package_name = kafka_server["package_name"]
     service_name = kafka_server["service"]["name"]
-    offset_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name,
-        'topic offsets --time="-1" {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert len(offset_info) == config.DEFAULT_PARTITION_COUNT
 
-    offsets = {}
-    for o in offset_info:
-        assert len(o) == config.DEFAULT_REPLICATION_FACTOR
-        offsets.update(o)
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=60 * 1000,
+                    retry_on_result=lambda result: result[0] == result[1])
+    def get_offset_change(topic_name, initial_offset=None):
+        """
+        Run:
+            `dcos kafa topic offsets --time="-1"`
+        until the output is not the initial output specified
+        """
+        offsets = sdk_cmd.svc_cli(package_name, service_name,
+                                  'topic offsets --time="-1" {}'.format(topic_name), json=True)
+        return initial_offset, offsets
 
-    assert len(offsets) == config.DEFAULT_PARTITION_COUNT
+    topic_name = str(uuid.uuid4())
+
+    test_utils.create_topic(topic_name, service_name)
+
+    _, offset_info = get_offset_change(topic_name, {})
+
+    # offset_info is a list of (partition index, offset) key-value pairs sum the
+    # integer representations of the offsets
+    initial_offset = sum(map(lambda partition: sum(map(int, partition.values())), offset_info))
+    LOG.info("Initial offset=%s", initial_offset)
 
     num_messages = 10
+    LOG.info("Sending %s messages", num_messages)
     write_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name,
-        'topic producer_test {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
+        package_name, service_name,
+        'topic producer_test {} {}'.format(topic_name, num_messages), json=True)
     assert len(write_info) == 1
     assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
 
-    offset_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name,
-        'topic offsets --time="-1" {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert len(offset_info) == config.DEFAULT_PARTITION_COUNT
+    _, post_write_offset_info = get_offset_change(topic_name, offset_info)
 
-    post_write_offsets = {}
-    for offsets in offset_info:
-        assert len(o) == config.DEFAULT_REPLICATION_FACTOR
-        post_write_offsets.update(o)
+    post_write_offset = sum(map(lambda partition: sum(map(int, partition.values())), post_write_offset_info))
+    LOG.info("Post-write offset=%s", post_write_offset)
 
-    assert not offsets == post_write_offsets
+    assert post_write_offset - initial_offset == num_messages
 
 
 @pytest.mark.sanity
@@ -124,8 +144,7 @@ def test_no_under_replicated_topics_exist(kafka_server: dict):
         config.PACKAGE_NAME, kafka_server["service"]["name"],
         'topic under_replicated_partitions', json=True)
 
-    assert len(partition_info) == 1
-    assert partition_info['message'] == ''
+    assert partition_info == {"message": ""}
 
 
 @pytest.mark.sanity
@@ -134,4 +153,4 @@ def test_no_unavailable_partitions_exist(kafka_server: dict):
         config.PACKAGE_NAME, kafka_server["service"]["name"],
         'topic unavailable_partitions', json=True)
 
-    assert len(partition_info) == 0
+    assert partition_info == {"message": ""}
