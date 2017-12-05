@@ -3,6 +3,8 @@ import pytest
 import subprocess
 import uuid
 import json
+import time
+import shakedown
 
 import sdk_auth
 import sdk_cmd
@@ -59,7 +61,6 @@ def configure_package(service_account):
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        pass
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -110,86 +111,108 @@ def test_client_can_read_and_write(kafka_client):
     bootstrap_output = sdk_tasks.task_exec(kafka_client['id'], ' '.join(bootstrap_cmd))
     log.info(bootstrap_output)
 
-    log.info("Generating certificate")
-    token = sdk_cmd.run_cli("config show core.dcos_acs_token")
-    log.info("Generating certificate: generating CSR")
+    create_signed_cert("kafka-tester", kafka_client["id"], "pub.crt", "priv.key")
+    create_keystore_truststore(kafka_client["id"], "pub.crt", "priv.key", "keystore.jks", "truststore.jks")
+
     output = sdk_tasks.task_exec(kafka_client['id'],
-        'openssl req -nodes -newkey rsa:2048 -keyout priv.key -out request.csr \
-        -subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN=kafka-tester"')
+    """bash -c \"cat >tls-client.properties << EOL
+security.protocol = SSL
+ssl.truststore.location = truststore.jks
+ssl.truststore.password = changeit
+ssl.keystore.location = keystore.jks 
+ssl.keystore.password = changeit
+EOL\"""")
+
+    message = uuid.uuid4()
+
+    # Write to the topic
+    log.info("Writing and reading: Writing to the topic, with authn")
+    output = sdk_tasks.task_exec(kafka_client['id'],
+        "bash -c \"echo {} | kafka-console-producer \
+        --topic tls.topic \
+        --producer.config tls-client.properties \
+        --broker-list \$KAFKA_BROKER_LIST\"".format(message))
+    log.info(output)
+    assert output[0] is 0
+    assert ">>" in " ".join(str(o) for o in output)
+
+    log.info("Writing and reading: reading from the topic, with authn")
+    # Read from the topic
+    output = sdk_tasks.task_exec(kafka_client['id'],
+        "bash -c \"kafka-console-consumer \
+        --topic tls.topic --from-beginning --max-messages 1 \
+        --timeout-ms 10000 \
+        --consumer.config tls-client.properties \
+        --bootstrap-server \$KAFKA_BROKER_LIST\"")
+    log.info(output)
+    assert output[0] is 0
+    assert str(message) in " ".join(str(o) for o in output)
+
+
+def create_signed_cert(cn: str, task: str, pub_path: str, priv_path: str) -> str:
+    log.info("Generating certificate. cn={}, task={}".format(cn, task))
+    
+    output = sdk_tasks.task_exec(task,
+        'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr \
+        -subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
+    log.info(output)
     assert output[0] is 0
     
-    log.info("Generating certificate: fetching CSR")
-    raw_csr = sdk_tasks.task_exec(kafka_client['id'], 'cat request.csr')
+    raw_csr = sdk_tasks.task_exec(task, 'cat request.csr')
     assert raw_csr[0] is 0
     request = {
         "certificate_request": raw_csr[1] # The actual content is second in the array
     }
-    log.info("Generating certificate: generated certificate request: {}".format(request))
 
-    # output = sdk_tasks.task_exec(kafka_client['id'], 'bash -c "echo \'{}\' > request.json"'.format(json.dumps(request)))
-    # output = sdk_tasks.task_exec(kafka_client['id'], "cat request.json".format(json.dumps(request)))
+    token = sdk_cmd.run_cli("config show core.dcos_acs_token")
+
     cmd = "curl -X POST \
         -H 'Authorization: token={}' \
         leader.mesos/ca/api/v2/sign \
         -d '{}'".format(token, json.dumps(request))
 
-    log.info("Generating certificate: issuing request")
-    output = sdk_tasks.task_exec(kafka_client['id'],
+    output = sdk_tasks.task_exec(task,
         "curl -X POST \
         -H 'Authorization: token={}' \
         leader.mesos/ca/api/v2/sign \
         -d '{}'".format(token, json.dumps(request)))
+    log.info(output)
     assert output[0] is 0
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_tasks.task_exec(kafka_client['id'], "bash -c \"echo '{}' > pub.crt\"".format(certificate))
+    output = sdk_tasks.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    log.info(output)
     assert output[0] is 0
+
+    return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
+
+def create_keystore_truststore(task: str, pub_path: str, priv_path: str, keystore_path: str, truststore_path: str):
+    log.info("Generating keystore and truststore, task:{}".format(task))
+    output = sdk_tasks.task_exec(task, "curl -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
 
     # Convert to a PKCS12 key
-    output = sdk_tasks.task_exec(kafka_client['id'],
+    output = sdk_tasks.task_exec(task,
         'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && \
-        openssl pkcs12 -export -in pub.crt -inkey priv.key \
+        openssl pkcs12 -export -in {} -inkey {} \
         -out keypair.p12 -name keypair -passout pass:export \
-        -CAfile /run/dcos/pki/CA/ca-bundle.crt -caname root"')
-    assert output[0] is 0
-    
-    # Import into the keystore and truststore
-    output = sdk_tasks.task_exec(kafka_client['id'],
-        "keytool -importkeystore \
-        -deststorepass changeit -destkeypass changeit -destkeystore /tmp/keystore.jks \
-        -srckeystore /tmp/keypair.p12 -srcstoretype PKCS12 -srcstorepass export \
-        -alias keypair")
-    assert output[0] is 0
-
-    output = sdk_tasks.task_exec(kafka_client['id'],
-        "-import -trustcacerts -noprompt \
-        -file /run/dcos/pki/CA/ca-bundle.crt -storepass changeit \
-        -keystore /tmp/truststore.jks")
-    assert output[0] is 0
-
-    # Write the client properties
-    output = sdk_tasks.task_exec(kafka_client['id'],
-        """bash -c \"cat >/tmp/tls-client.properties << EOL
-security.protocol = SSL
-ssl.truststore.location = /tmp/truststore.jks
-ssl.truststore.password = changeit
-ssl.keystore.location = /tmp/keystore.jks 
-ssl.keystore.password = changeit
-EOL\"""")
-
-    # Write to the topic
-    output = sdk_tasks.task_exec(kafka_client['id'],
-        "echo test | kafka-console-producer \
-        --broker-list $(KAFKA_BROKER_LIST) \
-        --topic tls.topic \
-        --producer.config /tmp/tls-client.properties")
-
-    # Read from the topic
-    output = sdk_tasks.task_exec(kafka_client['id'],
-        "kafka-console-consumer \
-        --bootstrap-server ${KAFKA_BROKER_LIST} \
-        --topic securetest --from-beginning --max-messages 1 \
-        --timeout-ms 10000 \
-        --consumer.config /tmp/tls-client.properties")
+        -CAfile dcos-ca.crt -caname root"'.format(pub_path, priv_path))
     log.info(output)
+    assert output[0] is 0
+
+    log.info("Generating certificate: importing into keystore and truststore")
+    # Import into the keystore and truststore
+    output = sdk_tasks.task_exec(task,
+        "keytool -importkeystore \
+        -deststorepass changeit -destkeypass changeit -destkeystore {} \
+        -srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export \
+        -alias keypair".format(keystore_path))
+    log.info(output)
+    assert output[0] is 0
+
+    output = sdk_tasks.task_exec(task,
+        "keytool -import -trustcacerts -noprompt \
+        -file dcos-ca.crt -storepass changeit \
+        -keystore {}".format(truststore_path))
+    log.info(output)
+    assert output[0] is 0
