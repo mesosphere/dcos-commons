@@ -607,7 +607,7 @@
         <value>{{RPC_METRICS_PERCENTILES_INTERVALS}}</value>
     </property>
 
-    {{#SECURITY_TRANSPORT_LAYER_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>hadoop.ssl.enabled.protocols</name>
         <value>TLSv1.2</value>
@@ -616,7 +616,7 @@
         <name>hadoop.ssl.hostname.verifier</name>
         <value>ALLOW_ALL</value>
     </property>
-    {{/SECURITY_TRANSPORT_LAYER_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     {{#SECURITY_KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>

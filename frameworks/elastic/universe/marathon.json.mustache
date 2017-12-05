@@ -56,13 +56,13 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
 
-    {{#service.security.transport_layer.enabled}}
-    "TASKCFG_ALL_SECURITY_TRANSPORT_LAYER_ENABLED": "{{service.security.transport_layer.enabled}}",
+    {{#service.security.transport_encryption.enabled}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
     "ELASTICSEARCH_HEALTH_PROTOCOL": "https",
-    {{/service.security.transport_layer.enabled}}
-    {{^service.security.transport_layer.enabled}}
+    {{/service.security.transport_encryption.enabled}}
+    {{^service.security.transport_encryption.enabled}}
     "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
-    {{/service.security.transport_layer.enabled}}
+    {{/service.security.transport_encryption.enabled}}
 
     "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
 
