@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.logging.log4j.util.Strings;
 
 import com.mesosphere.sdk.specification.CommandSpec;
@@ -56,7 +57,7 @@ public class TaskEnvCannotChange implements ConfigValidator<ServiceSpec> {
             return Collections.emptyList();
         }
 
-        Optional<TaskSpec> oldTask = getTask(oldConfig.get(), podType, taskName);
+        Optional<TaskSpec> oldTask = TaskUtils.getTaskSpec(oldConfig.get(), podType, taskName);
         if (!oldTask.isPresent()) {
             // Maybe the pod or task was renamed? Lets avoid enforcing whether those are rename- able and assume it's OK
             return Collections.emptyList();
@@ -66,7 +67,7 @@ public class TaskEnvCannotChange implements ConfigValidator<ServiceSpec> {
             return Collections.emptyList();
         }
 
-        Optional<TaskSpec> newTask = getTask(newConfig, podType, taskName);
+        Optional<TaskSpec> newTask = TaskUtils.getTaskSpec(newConfig, podType, taskName);
         if (!newTask.isPresent()) {
             throw new IllegalArgumentException(String.format("Unable to find requested pod=%s, task=%s in config: %s",
                     podType, taskName, newConfig));
@@ -80,20 +81,6 @@ public class TaskEnvCannotChange implements ConfigValidator<ServiceSpec> {
         Optional<ConfigValidationError> error =
                 validateEnvChange(oldTask.get().getCommand().get(), newTask.get().getCommand().get());
         return error.isPresent() ? Arrays.asList(error.get()) : Collections.emptyList();
-    }
-
-    private static Optional<TaskSpec> getTask(ServiceSpec serviceSpec, String podType, String taskName) {
-        for (PodSpec podSpec : serviceSpec.getPods()) {
-            if (!podSpec.getType().equals(podType)) {
-                continue;
-            }
-            for (TaskSpec taskSpec : podSpec.getTasks()) {
-                if (taskSpec.getName().equals(taskName)) {
-                    return Optional.of(taskSpec);
-                }
-            }
-        }
-        return Optional.empty();
     }
 
     private Optional<ConfigValidationError> validateEnvChange(CommandSpec oldCommand, CommandSpec newCommand) {

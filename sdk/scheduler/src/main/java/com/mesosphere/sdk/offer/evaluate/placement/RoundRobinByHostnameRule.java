@@ -10,6 +10,8 @@ import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -82,6 +84,11 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
     public String toString() {
         return String.format("RoundRobinByHostnameRule{agent-count=%s, task-filter=%s}",
                 distinctKeyCount, taskFilter);
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.HOSTNAME);
     }
 }
 

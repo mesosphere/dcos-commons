@@ -6,15 +6,10 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
-import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.Phase;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -23,8 +18,11 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.testutils.*;
-
+import com.mesosphere.sdk.testing.TestPodFactory;
+import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -841,6 +839,11 @@ public class DefaultSchedulerTest {
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass").build();
         }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
     }
 
     private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
@@ -855,6 +858,11 @@ public class DefaultSchedulerTest {
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.pass(this, "test pass").build();
+        }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
         }
 
         @JsonProperty("message")

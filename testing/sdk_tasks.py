@@ -17,7 +17,7 @@ DEFAULT_TIMEOUT_SECONDS = 30 * 60
 log = logging.getLogger(__name__)
 
 
-def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS, allow_more=True):
     def fn():
         try:
             tasks = shakedown.get_service_tasks(service_name)
@@ -36,7 +36,10 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
             len(running_task_names), len(tasks),
             sorted(running_task_names),
             sorted(other_tasks)))
-        return len(running_task_names) >= expected_task_count
+        if allow_more:
+            return len(running_task_names) >= expected_task_count
+        else:
+            return len(running_task_names) == expected_task_count
 
     shakedown.wait_for(lambda: fn(), noisy=True, timeout_seconds=timeout_seconds)
 
@@ -119,7 +122,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))
 
 
-def task_exec(task_name : str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     """
     Invokes the given command on the task via `dcos task exec`.
     :param task_name: Name of task to run command on.

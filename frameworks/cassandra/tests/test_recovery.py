@@ -1,9 +1,11 @@
 import logging
+import tempfile
 import time
 
 import pytest
 import sdk_cmd as cmd
 import sdk_install
+import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks

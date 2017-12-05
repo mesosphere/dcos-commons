@@ -324,7 +324,7 @@ def test_increase_count():
 @pytest.mark.sanity
 def test_increase_cpu():
     hello_0_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0-server')
-    sdk_marathon.bump_cpu_count_config(config.SERVICE_NAME, 'HELLO_CPUS')
+    config.bump_hello_cpus()
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)

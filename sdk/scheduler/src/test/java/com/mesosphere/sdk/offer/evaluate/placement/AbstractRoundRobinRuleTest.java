@@ -179,5 +179,10 @@ public class AbstractRoundRobinRuleTest {
                 return null;
             }
         }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
     }
 }

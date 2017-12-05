@@ -6,12 +6,46 @@ Wrapper script around sdk_auth.py used to ad-hoc setup and tear down a KDC envir
 This assumes there will be only one KDC in the cluster at any time, and thus that only instance
 of the KDC will be aptly named `kdc`.
 
-If invoked from the repo root, PYTHONPATH must also be set. For eg
-`PYTHONPATH=testing ./tools/kdc.py deploy PRINCIPALS_FILE`
+In order to run the script from the `dcos-commons` repo root, the `PYTHONPATH` environment
+variable must also be set:
+```bash
+$ PYTHONPATH=testing ./tools/kdc.py SUBCOMMAND
+```
 
-This tool expects as its arguments:
-    - subcommand for setup or teardown
-    - path to file holding principals as newline-separated strings
+## Deploying KDC
+
+This tool can be used to deploy a KDC applciation for testing.
+
+First create a principals file containing a newline-separated list of principals.
+As an example, a file (`kafka-principals.txt`) for Apache Kafka would contain:
+```
+kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
+kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
+kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
+client@LOCAL
+```
+(assuming three Kafka brokers and a single client principal)
+
+Running this utility as follows:
+```bash
+$ PYTHONPATH=testing ./tools/kdc.py deploy kafka-principals.txt
+```
+will perform the following actions:
+1. Deploys a KDC Marathon application named `kdc` as defined in `tools/kdc.json`
+2. Adds the principals in `kafka-principals.txt` to the KDC store
+3. Saves the generated keytab as the DC/OS secret `__dcos_base64___keytab`
+
+## Removing KDC
+
+This tool can be used to remove an existing KDC deployment.
+
+Running this utility as follows:
+```bash
+$ PYTHONPATH=testing ./tools/kdc.py
+```
+will perform the following actions:
+1. Remove the KDC Marathoin application named `kdc`
+2. Remove the DC/OS secret `__dcos_base64___keytab`
 """
 import argparse
 import logging
@@ -40,7 +74,7 @@ def parse_principals(principals_file: str) -> list:
         raise RuntimeError("The provided principal file path is invalid")
 
     with open(principals_file) as f:
-        principals = f.readlines()
+        principals = list(filter(lambda x: x, map(lambda line: line.strip(), f.readlines())))
 
     print("Successfully parsed principals")
     for principal in principals:

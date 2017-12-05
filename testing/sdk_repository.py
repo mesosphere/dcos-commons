@@ -17,18 +17,23 @@ log = logging.getLogger(__name__)
 
 
 def add_universe_repos():
-    stub_urls = {}
-
     log.info('Adding universe repos')
 
     # prepare needed universe repositories
-    stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL')
+    stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL', "")
+
+    return add_stub_universe_urls(stub_universe_urls.split(","))
+
+
+def add_stub_universe_urls(stub_universe_urls: list) -> dict:
+    stub_urls = {}
+
     if not stub_universe_urls:
         return stub_urls
 
     log.info('Adding stub URLs: {}'.format(stub_universe_urls))
-    for url in stub_universe_urls.split():
-        print('url: {}'.format(url))
+    for url in stub_universe_urls:
+        log.info('url: {}'.format(url))
         package_name = 'testpkg-'
         package_name += ''.join(random.choice(string.ascii_lowercase +
                                               string.digits) for _ in range(8))

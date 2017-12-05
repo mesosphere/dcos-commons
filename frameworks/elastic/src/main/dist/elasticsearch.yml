@@ -19,6 +19,11 @@ bootstrap.memory_lock: false
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
 
+{{#DETECT_ZONES}}
+node.attr.zone: {{ZONE}}
+cluster.routing.allocation.awareness.attributes: zone
+{{/DETECT_ZONES}}
+
 {{#MASTER_ENABLED}}
 gateway.expected_master_nodes: 3
 gateway.expected_data_nodes: {{DATA_NODE_COUNT}}

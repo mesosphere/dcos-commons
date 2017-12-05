@@ -51,12 +51,12 @@ public class MaxPerRegionRuleTest {
     public void getRegionOfferKeys() {
         MaxPerRegionRule rule = new MaxPerRegionRule(2);
         Protos.Offer offer = OfferTestUtils.getEmptyOfferBuilder()
-                .setDomain(TestConstants.DOMAIN_INFO)
+                .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
         Collection<String> keys = rule.getKeys(offer);
         Assert.assertEquals(1, keys.size());
         Assert.assertEquals(
-                TestConstants.DOMAIN_INFO.getFaultDomain().getRegion().getName(),
+                TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getRegion().getName(),
                 keys.stream().findFirst().get());
     }
 
@@ -72,13 +72,13 @@ public class MaxPerRegionRuleTest {
         Protos.TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setLabels(
                         new TaskLabelWriter(TestConstants.TASK_INFO)
-                                .setRegion(TestConstants.DOMAIN_INFO.getFaultDomain().getRegion())
+                                .setRegion(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getRegion())
                                 .toProto())
                 .build();
         Collection<String> keys = rule.getKeys(taskInfo);
         Assert.assertEquals(1, keys.size());
         Assert.assertEquals(
-                TestConstants.DOMAIN_INFO.getFaultDomain().getRegion().getName(),
+                TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getRegion().getName(),
                 keys.stream().findFirst().get());
     }
 }

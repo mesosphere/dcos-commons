@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
@@ -23,8 +22,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 public class Metrics {
     private static MetricRegistry metrics = new MetricRegistry();
 
-    @VisibleForTesting
-    static MetricRegistry getRegistry() {
+    public static MetricRegistry getRegistry() {
         return metrics;
     }
 

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -40,6 +41,11 @@ public class AttributeRule extends StringMatcherRule {
                     getMatcher().toString())
                     .build();
         }
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ATTRIBUTE);
     }
 
     @Override

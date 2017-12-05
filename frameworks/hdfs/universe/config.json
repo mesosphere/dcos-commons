@@ -38,7 +38,7 @@
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
-          "default": "V0"
+          "default": "V1"
         },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
@@ -150,6 +150,14 @@
           "description": "The number of transactions that this JournalNode is lagging",
           "type": "string",
           "default": "0"
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -497,6 +505,14 @@
           "type": "string",
           "description": "Determines where to save the namespace in the old fsimage format during checkpointing by standby NameNode or SecondaryNameNode. Users can dump the contents of the old format fsimage by oiv_legacy command. If the value is not specified, old format fsimage will not be saved in checkpoint.",
           "default": ""
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
@@ -727,6 +743,14 @@
           "type": "string",
           "description": "The number of threads to use when creating hard links from current to previous blocks during upgrade of a DataNode to block ID-based block layout (see HDFS-6482 for details on the layout).",
           "default": "12"
+        },
+        "placement": {
+          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [

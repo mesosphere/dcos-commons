@@ -28,7 +28,7 @@
         "mesos_api_version" : {
           "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type":"string",
-          "default":"V0"
+          "default":"V1"
         },
         "data_center": {
           "description": "The name of the data center this cluster is running in",
@@ -38,7 +38,7 @@
         "detect_zones": {
           "description": "Whether to use Zones when available for Cassandra racks.  This value cannot be changed after initial deployment",
           "type": "boolean",
-          "default": true
+          "default": false
         },
         "remote_seeds": {
           "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
@@ -121,7 +121,10 @@
         "placement_constraint": {
           "type": "string",
           "description": "The Marathon-style placement constraint string controlling node placement",
-          "default": "hostname:MAX_PER:1"
+          "default": "hostname:MAX_PER:1",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         },
         "heap": {
           "type": "object",

@@ -17,7 +17,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
  * Implementation of {@link Persister} which stores the data in local memory. Mirrors the behavior of
- * {@link CuratorPersister}.
+ * {@link com.mesosphere.sdk.curator.CuratorPersister}.
  */
 public class MemPersister implements Persister {
 

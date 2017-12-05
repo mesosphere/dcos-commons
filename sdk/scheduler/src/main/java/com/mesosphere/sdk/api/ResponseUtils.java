@@ -62,7 +62,7 @@ public class ResponseUtils {
     /**
      * Returns a 200 OK response containing the provided JSON {@link String}.
      *
-     * Resources which call this directly should extend {@link PrettyJsonResource}.
+     * Resources which call this directly should extend {@link com.mesosphere.sdk.api.types.PrettyJsonResource}.
      */
     public static Response jsonResponseBean(Object entity, Response.Status status) {
         return Response.status(status).entity(entity).type(MediaType.APPLICATION_JSON_TYPE).build();

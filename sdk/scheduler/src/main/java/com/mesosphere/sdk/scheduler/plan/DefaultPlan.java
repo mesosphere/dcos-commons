@@ -77,7 +77,14 @@ public class DefaultPlan implements Plan {
         for (Phase phase : getChildren()) {
             rows.add(String.format("  Phase: %s (%s)", phase.getName(), phase.getStatus()));
             for (Step step : phase.getChildren()) {
-                rows.add(String.format("    Step: %s (%s)", step.getName(), phase.getStatus()));
+                rows.add(String.format("    Step: %s (%s)", step.getName(), step.getStatus()));
+            }
+        }
+        List<String> errors = getErrors();
+        if (!errors.isEmpty()) {
+            rows.add("Errors:");
+            for (String error : errors) {
+                rows.add(String.format("  %s", error));
             }
         }
         return Joiner.on('\n').join(rows);
