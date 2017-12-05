@@ -20,8 +20,10 @@ metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
 
 {{#DETECT_ZONES}}
+{{#ZONE}}
 node.attr.zone: {{ZONE}}
 cluster.routing.allocation.awareness.attributes: zone
+{{/ZONE}}
 {{/DETECT_ZONES}}
 
 {{#MASTER_ENABLED}}
