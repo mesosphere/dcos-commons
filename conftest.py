@@ -32,7 +32,7 @@ def get_task_ids(user: str=None):
     that can return the wrong user for schedulers
     """
     tasks = subprocess.check_output(['dcos', 'task']).decode().split('\n')
-    for task_str in tasks[1:]: # First line is the header line
+    for task_str in tasks[1:]:  # First line is the header line
         task = task_str.split()
         if len(task) < 5:
             continue
@@ -94,7 +94,7 @@ def pytest_runtest_setup(item):
 
 
 def get_rotating_task_log_lines(task_id: str, task_file: str):
-    rotated_filenames = [task_file,]
+    rotated_filenames = [task_file, ]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
     for filename in rotated_filenames:
         lines = get_task_logs_for_id(task_id, filename)

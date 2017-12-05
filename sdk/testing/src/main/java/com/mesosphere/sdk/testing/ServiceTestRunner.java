@@ -85,7 +85,7 @@ public class ServiceTestRunner {
     /**
      * Creates a new instance against the default {@code svc.yml} Service Specification YAML file.
      *
-     * <p>WARNING: If you do not invoke the {@link test()} method, your test will not run!
+     * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
      */
     public ServiceTestRunner() {
         this("svc.yml");
@@ -97,7 +97,8 @@ public class ServiceTestRunner {
      *
      * <p>WARNING: If you do not invoke the {@link #run()} method, your test will not run!
      *
-     * @param specPath path to the Service Specification YAML file, relative to the {@code src/main/dist} directory
+     * @param specDistFilename path to the Service Specification YAML file, relative to the {@code src/main/dist}
+     *                         directory
      */
     public ServiceTestRunner(String specDistFilename) {
         this(getDistFile(specDistFilename));

@@ -63,4 +63,9 @@ public class MaxPerZoneRule extends MaxPerRule {
                     .build();
         }
     }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ZONE);
+    }
 }

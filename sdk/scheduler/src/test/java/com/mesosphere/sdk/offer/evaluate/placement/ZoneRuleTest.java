@@ -35,7 +35,7 @@ public class ZoneRuleTest {
     public void getKeys() {
         ZoneRule rule = new ZoneRule(ExactMatcher.create(TestConstants.ZONE));
         Protos.Offer offer = OfferTestUtils.getEmptyOfferBuilder()
-                .setDomain(TestConstants.DOMAIN_INFO)
+                .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
         Collection<String> keys = rule.getKeys(offer);
         Assert.assertEquals(1, keys.size());

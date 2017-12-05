@@ -36,7 +36,7 @@ broker.id={{POD_INSTANCE_INDEX}}
 {{ADVERTISED_LISTENERS}}
 {{LISTENERS}}
 
-{{#KAFKA_ENABLE_TLS}}
+{{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 ############################# TLS Settings #############################
 ssl.keystore.location={{MESOS_SANDBOX}}/broker.keystore
 ssl.keystore.password=notsecure
@@ -53,7 +53,7 @@ ssl.enabled.protocols=TLSv1.2
 ssl.client.auth=required
 {{/SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION}}
 {{/SECURITY_KERBEROS_ENABLED}}
-{{/KAFKA_ENABLE_TLS}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
 {{#SECURITY_KERBEROS_ENABLED}}
 ############################# Kerberos Settings #############################

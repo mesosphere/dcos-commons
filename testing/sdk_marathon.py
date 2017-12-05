@@ -7,6 +7,8 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import json
+import os
+import tempfile
 
 import shakedown
 
@@ -55,7 +57,6 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
     return 0, ""
 
 
-
 def install_app(app_definition: dict) -> (bool, str):
     """
     Installs a marathon app using the given `app_definition`.
@@ -68,14 +69,18 @@ def install_app(app_definition: dict) -> (bool, str):
         error message if install attempt failed.
     """
     app_name = app_definition["id"]
-    app_def_file = "{}.json".format(app_name)
 
-    log.info("Launching {} marathon app".format(app_name))
+    with tempfile.TemporaryDirectory() as d:
+        app_def_file = "{}.json".format(app_name)
+        log.info("Launching {} marathon app".format(app_name))
 
-    with open(app_def_file, "w") as f:
-        json.dump(app_definition, f)
+        app_def_path = os.path.join(d, app_def_file)
 
-    return install_app_from_file(app_name, app_def_file)
+        log.info("Writing app definition to %s", app_def_path)
+        with open(app_def_path, "w") as f:
+            json.dump(app_definition, f)
+
+        return install_app_from_file(app_name, app_def_path)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):

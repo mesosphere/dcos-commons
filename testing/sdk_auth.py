@@ -72,7 +72,7 @@ def _get_host_name(host_id: str) -> str:
     if raw_nodes:
         nodes = json.loads(raw_nodes)
         for node in nodes:
-            if node["id"] == host_id:
+            if "id" in node and node["id"] == host_id:
                 log.info("Host name is {host_name}".format(host_name=node["hostname"]))
                 return node["hostname"]
 

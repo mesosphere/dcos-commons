@@ -151,8 +151,8 @@ public class StateStore {
 
     /**
      * Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before {@link
-     * #storeStatus(TaskStatus)} for any given task id, and it must behave as an atomic transaction: On success,
-     * everything is written, while on failure nothing is written.
+     * #storeStatus(String, Protos.TaskStatus)} for any given task id, and it must behave as an atomic transaction: On
+     * success, everything is written, while on failure nothing is written.
      *
      * @param tasks Tasks to be stored, which each meet the above requirements
      * @throws StateStoreException when persisting TaskInfo information fails, or if its TaskId is malformed
@@ -170,9 +170,9 @@ public class StateStore {
     }
 
     /**
-     * Stores the TaskStatus of a particular Task. The {@link TaskInfo} for this exact task MUST have already been
-     * written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by {@link
-     * com.mesosphere.sdk.offer.CommonIdUtils#toTaskId(String)}.
+     * Stores the TaskStatus of a particular Task. The {@link Protos.TaskInfo} for this exact task MUST have already
+     * been written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by
+     * {@link com.mesosphere.sdk.offer.CommonIdUtils#toTaskId(String)}.
      *
      * @param status The status to be stored, which meets the above requirements
      * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
@@ -243,8 +243,8 @@ public class StateStore {
     }
 
     /**
-     * Fetches and returns all {@link TaskInfo}s from the underlying storage, or an empty list if none are found. This
-     * list should be a superset of the list returned by {@link #fetchStatuses()}.
+     * Fetches and returns all {@link Protos.TaskInfo}s from the underlying storage, or an empty list if none are found.
+     * This list should be a superset of the list returned by {@link #fetchStatuses()}.
      *
      * @return All TaskInfos
      * @throws StateStoreException if fetching the TaskInfo information otherwise fails
@@ -298,8 +298,8 @@ public class StateStore {
     }
 
     /**
-     * Fetches all {@link TaskStatus}es from the underlying storage, or an empty list if none are found. Note that this
-     * list may have fewer entries than {@link #fetchTasks()} if some tasks are lacking statuses.
+     * Fetches all {@link Protos.TaskStatus}es from the underlying storage, or an empty list if none are found. Note
+     * that this list may have fewer entries than {@link #fetchTasks()} if some tasks are lacking statuses.
      *
      * @return The TaskStatus objects associated with all tasks
      * @throws StateStoreException if fetching the TaskStatus information fails
@@ -327,7 +327,7 @@ public class StateStore {
 
     /**
      * Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.
-     * A given task may sometimes have {@link TaskInfo} while lacking {@link TaskStatus}.
+     * A given task may sometimes have {@link Protos.TaskInfo} while lacking {@link Protos.TaskStatus}.
      *
      * @param taskName The name of the Task which should have its status retrieved
      * @return The TaskStatus associated with a particular Task
@@ -364,8 +364,8 @@ public class StateStore {
      * @param key must be a non-blank String without any forward slashes ('/')
      * @param value The value should be a byte array no larger than 1MB (1024 * 1024 bytes)
      * @throws StateStoreException if the key or value fail validation, or if storing the data otherwise fails
-     * @see StateStoreUtils#validateKey(String)
-     * @see StateStoreUtils#validateValue(byte[])
+     * @see StateStore#validateKey(String)
+     * @see StateStore#validateValue(byte[])
      */
     public void storeProperty(final String key, final byte[] value) throws StateStoreException {
         validateKey(key);
@@ -385,7 +385,7 @@ public class StateStore {
      *
      * @param key must be a non-blank String without any forward slashes ('/')
      * @throws StateStoreException if no data was found for the requested key, or if fetching the data otherwise fails
-     * @see StateStoreUtils#validateKey(String)
+     * @see StateStore#validateKey(String)
      */
     public byte[] fetchProperty(final String key) throws StateStoreException {
         validateKey(key);
@@ -442,8 +442,8 @@ public class StateStore {
     // Read/Write task metadata
 
     /**
-     * Stores the goal state override status of a particular Task. The {@link TaskInfo} for this exact task MUST have
-     * already been written via {@link #storeTasks(Collection)} beforehand.
+     * Stores the goal state override status of a particular Task. The {@link Protos.TaskInfo} for this exact task MUST
+     * have already been written via {@link #storeTasks(Collection)} beforehand.
      *
      * @throws StateStoreException in the event of a storage error
      */
@@ -470,7 +470,7 @@ public class StateStore {
 
     /**
      * Retrieves the goal state override status of a particular task. A lack of override will result in a
-     * {@link GoalOverrideStatus} with {@code override=NONE} and {@code state=NONE}.
+     * {@link GoalStateOverride.Status} with {@code override=NONE} and {@code state=NONE}.
      *
      * @throws StateStoreException in the event of a storage error
      */

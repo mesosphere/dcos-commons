@@ -4,6 +4,7 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
@@ -53,12 +54,12 @@ public abstract class AbstractScheduler {
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     /**
-     * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
+     * Executor for handling TaskStatus updates in {@link Scheduler#statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
      */
     protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Executor for processing offers off the queue in {@link #executePlansLoop()}.
+     * Executor for processing offers off the queue in {@link #start()}.
      */
     private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
 
@@ -268,9 +269,22 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            restartReconciliation();
+            postRegister(masterInfo);
 
             isInitialized.set(true);
+        }
+
+        @Override
+        public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
+            LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
+            postRegister(masterInfo);
+        }
+
+        private void postRegister(Protos.MasterInfo masterInfo) {
+            restartReconciliation();
+            if (masterInfo.hasDomain()) {
+                IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
+            }
         }
 
         @Override
@@ -331,12 +345,6 @@ public abstract class AbstractScheduler {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
-        }
-
-        @Override
-        public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-            LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-            restartReconciliation();
         }
 
         @Override
