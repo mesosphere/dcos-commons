@@ -268,7 +268,7 @@ Sample JSON options file named `hdfs-tls.json`:
     "service_account_secret": "hdfs",
     "service_account": "hdfs",
     "security": {
-      "tls": {
+      "transport_encryption": {
         "enabled": true
       }
     }

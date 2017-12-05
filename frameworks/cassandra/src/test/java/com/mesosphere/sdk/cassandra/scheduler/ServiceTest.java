@@ -34,7 +34,7 @@ public class ServiceTest {
     @Test
     public void testSpecSSL() throws Exception {
         ServiceTestResult result = new ServiceTestRunner()
-                .setOptions("service.security.tls.enabled", "true")
+                .setOptions("service.security.transport_layer.enabled", "true")
                 .setPodEnv("node", getDefaultNodeEnv())
                 .run();
         Assert.assertTrue(result.getTaskConfig("node", "server", "cassandra").contains("internode_encryption: all"));

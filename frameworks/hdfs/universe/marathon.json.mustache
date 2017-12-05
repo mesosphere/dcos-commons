@@ -72,13 +72,13 @@
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
 
-    {{#service.security.tls.enabled}}
-    "SECURITY_TLS_ENABLED": "{{service.security.tls.enabled}}",
-    "TASKCFG_ALL_SECURITY_TLS_ENABLED": "{{service.security.tls.enabled}}",
+    {{#service.security.transport_layer.enabled}}
+    "SECURITY_TRANSPORT_LAYER_ENABLED": "{{service.security.transport_layer.enabled}}",
+    "TASKCFG_ALL_SECURITY_TRANSPORT_LAYER_ENABLED": "{{service.security.transport_layer.enabled}}",
     "TASKCFG_ALL_NAME_NODE_HTTPS_PORT":"{{hdfs.name_node_https_port}}",
     "TASKCFG_ALL_JOURNAL_NODE_HTTPS_PORT":"{{hdfs.journal_node_https_port}}",
     "TASKCFG_ALL_DATA_NODE_HTTPS_PORT":"{{hdfs.data_node_https_port}}",
-    {{/service.security.tls.enabled}}
+    {{/service.security.transport_layer.enabled}}
 
     {{#journal_node.enable_readiness_check}}
     "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",

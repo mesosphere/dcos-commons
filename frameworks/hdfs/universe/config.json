@@ -107,12 +107,17 @@
               }
             }
           },
-          "tls": {
+          "transport_encryption": {
             "type": "object",
-            "description": "TLS configuration properties.",
+            "description": "Transport encryption settings",
             "properties": {
               "enabled": {
-                "description": "Enable TLS support.",
+                "description": "Enable transport encryption (TLS)",
+                "type": "boolean",
+                "default": false
+              },
+              "allow_plaintext": {
+                "description": "Allow plaintext alongside encrypted traffic",
                 "type": "boolean",
                 "default": false
               }

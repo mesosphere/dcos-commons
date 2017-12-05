@@ -72,17 +72,22 @@
           "description": "Elastic security settings",
           "type": "object",
           "properties": {
-              "tls": {
-                "description": "TLS settings",
-                "type": "object",
-                "properties": {
-                    "enabled": {
-                      "description": "Enable TLS support (requires Enterprise DC/OS running in permissive or strict security mode)",
-                      "type": "boolean",
-                      "default": false
-                    }
+            "transport_encryption": {
+              "type": "object",
+              "description": "Transport encryption settings",
+              "properties": {
+                "enabled": {
+                  "description": "Enable transport encryption (TLS)",
+                  "type": "boolean",
+                  "default": false
+                },
+                "allow_plaintext": {
+                  "description": "Allow plaintext alongside encrypted traffic",
+                  "type": "boolean",
+                  "default": false
                 }
               }
+            }
           }
         }
       },

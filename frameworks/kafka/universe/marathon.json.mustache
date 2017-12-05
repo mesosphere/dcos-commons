@@ -66,13 +66,13 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
 
-    {{#service.security.tls.enabled}}
+    {{#service.security.transport_layer.enabled}}
     "BROKER_PORT_TLS": "{{brokers.port_tls}}",
-    "TASKCFG_ALL_SECURITY_TLS_ENABLED": "{{service.security.tls.enabled}}",
-    {{#service.security.tls.allow_plaintext}}
-    "TASKCFG_ALL_SECURITY_TLS_ALLOW_PLAINTEXT": "{{service.security.tls.allow_plaintext}}",
-    {{/service.security.tls.allow_plaintext}}
-    {{/service.security.tls.enabled}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_LAYER_ENABLED": "{{service.security.transport_layer.enabled}}",
+    {{#service.security.transport_layer.allow_plaintext}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_LAYER_ALLOW_PLAINTEXT": "{{service.security.transport_layer.allow_plaintext}}",
+    {{/service.security.transport_layer.allow_plaintext}}
+    {{/service.security.transport_layer.enabled}}
 
     {{#service.security.kerberos.enabled}}
     "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",

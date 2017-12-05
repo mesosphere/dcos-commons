@@ -128,7 +128,7 @@ Sample JSON options file named `elastic-tls.json`:
     "service_account_secret": "elastic",
     "service_account": "elastic",
     "security": {
-        "tls": {
+        "transport_encryption": {
             "enabled": true
         }
     }
