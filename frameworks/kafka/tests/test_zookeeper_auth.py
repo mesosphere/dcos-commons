@@ -1,16 +1,23 @@
+"""
+This module tests the interaction of Kafka with Zookeeper with authentication enabled
+"""
 import logging
 import pytest
+
+import shakedown
 
 import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
+import sdk_repository
 import sdk_utils
 
 from tests import auth
 from tests import config
 from tests import test_utils
+
 
 log = logging.getLogger(__name__)
 
@@ -38,11 +45,51 @@ def kafka_principals():
     yield principals
 
 
+def get_node_principals():
+    """Get a list of zookeeper principals for the agent nodes in the cluster"""
+    principals = []
+
+    agent_ips = shakedown.get_private_agents()
+    agent_dashed_ips = list(map(
+        lambda ip: "ip-{dashed_ip}".format(dashed_ip="-".join(ip.split("."))), agent_ips))
+    for b in agent_dashed_ips:
+        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
+            instance=b,
+            # TODO(elezar) we need to infer the region too
+            domain="us-west-2.compute.internal",
+            realm=sdk_auth.REALM))
+
+    return principals
+
+
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals):
+def zookeeper_principals():
+    zk_fqdn = "{service_name}.{host_suffix}".format(service_name="kafka-zookeeper",
+                                                    host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+
+    zk_ensemble = [
+        "zookeeper-0-server",
+        "zookeeper-1-server",
+        "zookeeper-2-server",
+    ]
+
+    principals = []
+    for b in zk_ensemble:
+        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
+            instance=b,
+            domain=zk_fqdn,
+            realm=sdk_auth.REALM))
+
+    principals.extend(get_node_principals())
+    yield principals
+
+
+@pytest.fixture(scope='module', autouse=True)
+def kerberos(configure_security, kafka_principals, zookeeper_principals):
     try:
         principals = []
         principals.extend(kafka_principals)
+        principals.extend(zookeeper_principals)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -54,16 +101,11 @@ def kerberos(configure_security, kafka_principals):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos):
-    """
-    A pytest fixture that installs a Kerberized kafka service.
-
-    On teardown, the service is uninstalled.
-    """
+@pytest.fixture(scope='module')
+def zookeeper_server(kerberos):
     service_kerberos_options = {
         "service": {
-            "name": config.SERVICE_NAME,
+            "name": "kafka-zookeeper",
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -72,6 +114,52 @@ def kafka_server(kerberos):
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
+        }
+    }
+
+    # TODO: Remove once kafka-zookeeper is available in the universe
+    zookeeper_stub = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts-ci.s3.amazonaws.com/autodelete7d/kafka-zookeeper/20171128-192118-JfgDpTht4Zubc3J4/stub-universe-kafka-zookeeper.json"
+    stub_urls = sdk_repository.add_stub_universe_urls([zookeeper_stub, ])
+
+    try:
+        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_install.install(
+            "beta-kafka-zookeeper",
+            "kafka-zookeeper",
+            6,
+            additional_options=service_kerberos_options,
+            timeout_seconds=30 * 60)
+
+        yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
+
+    finally:
+        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_repository.remove_universe_repos(stub_urls)
+
+
+@pytest.fixture(scope='module', autouse=True)
+def kafka_server(kerberos, zookeeper_server):
+
+    # Get the zookeeper DNS values
+    zookeeper_dns = sdk_cmd.svc_cli(zookeeper_server["package_name"],
+                                    zookeeper_server["service"]["name"],
+                                    "endpoint clientport", json=True)["dns"]
+
+    service_kerberos_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "security": {
+                "kerberos": {
+                    "enabled": True,
+                    "enabled_for_zookeeper": True,
+                    "kdc_host_name": kerberos.get_host(),
+                    "kdc_host_port": int(kerberos.get_port()),
+                    "keytab_secret": kerberos.get_keytab_path(),
+                }
+            }
+        },
+        "kafka": {
+            "kafka_zookeeper_uri": ",".join(zookeeper_dns)
         }
     }
 

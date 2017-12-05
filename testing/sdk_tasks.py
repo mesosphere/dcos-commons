@@ -122,7 +122,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))
 
 
-def task_exec(task_name : str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     """
     Invokes the given command on the task via `dcos task exec`.
     :param task_name: Name of task to run command on.
