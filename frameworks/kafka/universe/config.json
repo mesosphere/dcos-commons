@@ -165,11 +165,11 @@
                       "default": false
                     },
                     "super_users": {
-                      "description": "Semi-colon delimited list of principals.",
+                      "description": "Semi-colon delimited list of principals. For Kerberos principals, these will be of the form User:<Kerberos-Primary>. For TLS, they will be of the form: CN=host1.example.com,OU=,O=Confluent,L=London,ST=London,C=GB",
                       "type": "string",
                       "default": ""
                     },
-                    "allow_everyone_if_no_acl": {
+                    "allow_everyone_if_no_acl_found": {
                       "description": "Allow any user to perform an action if no ACL is found for the resource.",
                       "type": "boolean",
                       "default": false

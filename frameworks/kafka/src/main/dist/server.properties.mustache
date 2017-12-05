@@ -81,6 +81,12 @@ socket.receive.buffer.bytes={{KAFKA_SOCKET_RECEIVE_BUFFER_BYTES}}
 # The maximum size of a request that the socket server will accept (protection against OOM)
 socket.request.max.bytes={{KAFKA_SOCKET_REQUEST_MAX_BYTES}}
 
+{{#SECURITY_AUTHORIZATION_ENABLED}}
+############################# Authorization Settings #############################
+authorizer.class.name=kafka.security.auth.SimpleAclAuthorizer
+super.users={{SECURITY_AUTHORIZATION_SUPER_USERS}}
+allow.everyone.if.no.acl.found={{SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND}}
+{{/SECURITY_AUTHORIZATION_ENABLED}}
 
 ############################# Log Basics #############################
 
