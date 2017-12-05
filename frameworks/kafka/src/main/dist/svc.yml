@@ -66,6 +66,15 @@ pods:
               port: 9093
             {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#BROKER_JMX_PORT}}
+          jmx:
+            port: {BROKER_JMX_PORT}
+            env-key: JMX_PORT
+            advertise: true
+            vip:
+              prefix: jmx
+              port: 9998
+          {{/BROKER_JMX_PORT}}
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
@@ -73,6 +82,9 @@ pods:
         env:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
+          {{#BROKER_JMX_PORT}}
+          JMX_PORT: {{BROKER_JMX_PORT}}
+          {{/BROKER_JMX_PORT}}
         goal: RUNNING
         cmd: |
           # Exit on any error.
