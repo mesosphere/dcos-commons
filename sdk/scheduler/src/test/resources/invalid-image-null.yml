@@ -1,9 +1,8 @@
-name: "valid-container-image-legacy-test"
+name: "invalid-image-null-test"
 pods:
   server:
     count: 1
-    container:
-      image-name: group/image
+    image:
     tasks:
       server:
         goal: RUNNING

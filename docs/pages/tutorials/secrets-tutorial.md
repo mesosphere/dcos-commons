@@ -74,8 +74,7 @@ scheduler:
   user: {{SERVICE_USER}}
 pods:
   hello:
-    container:
-      image-name: ubuntu:14.04
+    image: ubuntu:14.04
     count: {{HELLO_COUNT}}
     placement: {{HELLO_PLACEMENT}}
     secrets:
