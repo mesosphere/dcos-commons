@@ -8,7 +8,7 @@ import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskID;
 
 /**
- * Various utility methods for manipulating data in {@link TaskInfo}s.
+ * Various utility methods for manipulating data in {@link Protos.TaskInfo}s.
  */
 public class CommonIdUtils {
 

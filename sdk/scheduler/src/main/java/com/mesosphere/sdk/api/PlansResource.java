@@ -129,7 +129,7 @@ public class PlansResource extends PrettyJsonResource {
      * Idempotently stops a plan.  If a plan is in progress, it is interrupted and the plan is reset such that all
      * elements are pending.  If a plan is already stopped, it has no effect.
      *
-     * @see interruptCommand for the distinctions between Stop and Interrupt actions.
+     * @see #interruptCommand(String, String) for the distinctions between Stop and Interrupt actions.
      */
     @POST
     @Path("/plans/{planName}/stop")

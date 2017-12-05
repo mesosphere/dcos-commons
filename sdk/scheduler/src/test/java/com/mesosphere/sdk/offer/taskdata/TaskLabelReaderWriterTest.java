@@ -74,10 +74,10 @@ public class TaskLabelReaderWriterTest {
         Assert.assertFalse(new TaskLabelReader(getTestTaskInfo()).getRegion().isPresent());
 
         Protos.TaskInfo.Builder tb = getTestTaskInfo().toBuilder();
-        tb.setLabels(new TaskLabelWriter(tb).setRegion(TestConstants.DOMAIN_INFO.getFaultDomain().getRegion()).toProto());
+        tb.setLabels(new TaskLabelWriter(tb).setRegion(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getRegion()).toProto());
 
         Assert.assertTrue(new TaskLabelReader(tb.build()).getRegion().isPresent());
-        Assert.assertEquals(TestConstants.REGION, new TaskLabelReader(tb.build()).getRegion().get());
+        Assert.assertEquals(TestConstants.LOCAL_REGION, new TaskLabelReader(tb.build()).getRegion().get());
     }
 
     @Test
@@ -85,7 +85,7 @@ public class TaskLabelReaderWriterTest {
         Assert.assertFalse(new TaskLabelReader(getTestTaskInfo()).getZone().isPresent());
 
         Protos.TaskInfo.Builder tb = getTestTaskInfo().toBuilder();
-        tb.setLabels(new TaskLabelWriter(tb).setZone(TestConstants.DOMAIN_INFO.getFaultDomain().getZone()).toProto());
+        tb.setLabels(new TaskLabelWriter(tb).setZone(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone()).toProto());
 
         Assert.assertTrue(new TaskLabelReader(tb.build()).getZone().isPresent());
         Assert.assertEquals(TestConstants.ZONE, new TaskLabelReader(tb.build()).getZone().get());

@@ -62,9 +62,9 @@ public class TaskPackingUtils {
     }
 
     /**
-     * This method reverses the work done in {@link #packTaskInfo(TaskInfo)} such that the original
-     * TaskInfo is regenerated. If the provided {@link TaskInfo} doesn't appear to have packed data
-     * then this operation does nothing.
+     * This method reverses the work done in {@link TaskPackingUtils#pack(TaskInfo)} such that the original TaskInfo is
+     * regenerated. If the provided {@link TaskInfo} doesn't appear to have packed data then this operation does
+     * nothing.
      *
      * @see #pack(TaskInfo)
      */

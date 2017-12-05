@@ -27,7 +27,7 @@ import com.mesosphere.sdk.offer.evaluate.security.PEMUtils;
 
 /**
  * Represents abstraction over DC/OS Certificate Authority.
- * @see https://docs.mesosphere.com/1.9/networking/tls-ssl/ca-api/
+ * @see <a href="https://docs.mesosphere.com/1.9/networking/tls-ssl/ca-api/">TLS CA API</a>
  */
 public class CertificateAuthorityClient {
 

@@ -10,6 +10,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
+import com.mesosphere.sdk.specification.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,9 +35,6 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
-import com.mesosphere.sdk.specification.DefaultPlanGenerator;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -89,17 +91,15 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Returns the {@link SchedulerFlags} object which was provided via the constructor.
+     * Returns the {@link SchedulerConfig} object which was provided via the constructor.
      */
     public SchedulerConfig getSchedulerConfig() {
         return schedulerConfig;
     }
 
     /**
-     * Specifies a custom {@link StateStore}, otherwise the return value of
-     * {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)} will be used.
-     *
-     * The state store persists copies of task information and task status for all tasks running in the service.
+     * Specifies a custom {@link StateStore}.  The state store persists copies of task information and task status for
+     * all tasks running in the service.
      *
      * @throws IllegalStateException if the state store is already set, via a previous call to either
      * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
@@ -114,8 +114,7 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default
-     * created via {@link DefaultScheduler#createStateStore(ServiceSpec, SchedulerFlags)}.
+     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
      *
      * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
      * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
@@ -144,8 +143,7 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default
-     * created via {@link DefaultScheduler#createConfigStore(ServiceSpec, Collection)}.
+     * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default.
      *
      * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
      * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
@@ -172,7 +170,8 @@ public class SchedulerBuilder {
 
     /**
      * Specifies a custom list of configuration validators to be run when updating to a new target configuration,
-     * or otherwise uses the default validators returned by {@link DefaultScheduler#defaultConfigValidators()}.
+     * or otherwise uses the default validators returned by
+     * {@link DefaultConfigValidators#getValidators(SchedulerConfig)}.
      */
     public SchedulerBuilder setCustomConfigValidators(Collection<ConfigValidator<ServiceSpec>> customConfigValidators) {
         this.customConfigValidators = customConfigValidators;
@@ -283,6 +282,11 @@ public class SchedulerBuilder {
             }
         }
 
+        List<PodSpec> pods = serviceSpec.getPods().stream()
+                .map(podSpec -> updatePodPlacement(podSpec))
+                .collect(Collectors.toList());
+        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).pods(pods).build();
+
         // Update/validate config as needed to reflect the new service spec:
         Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
         configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
@@ -325,6 +329,29 @@ public class SchedulerBuilder {
                 configStore,
                 endpointProducers,
                 Optional.ofNullable(recoveryPlanOverriderFactory));
+    }
+
+    /**
+     * Update pods with appropriate placement constraints to enforce user REGION intent.
+     * If a pod's placement rules do not explicitly reference a REGION the assumption should be that
+     * the user intends that a pod be restriced to the local REGION.
+     *
+     * @param podSpec The {@link PodSpec} whose placement rule will be updated to enforce appropriate region placement.
+     * @return The updated {@link PodSpec}
+     */
+    static PodSpec updatePodPlacement(PodSpec podSpec) {
+        if (PlacementUtils.placementRuleReferencesRegion(podSpec)) {
+            return podSpec;
+        }
+
+        PlacementRule rule;
+        if (podSpec.getPlacementRule().isPresent()) {
+            rule = new AndRule(new IsLocalRegionRule(), podSpec.getPlacementRule().get());
+        } else {
+            rule = new IsLocalRegionRule();
+        }
+
+        return DefaultPodSpec.newBuilder(podSpec).placementRule(rule).build();
     }
 
     /**
@@ -448,8 +475,9 @@ public class SchedulerBuilder {
      * @param serviceSpec the service specification to use
      * @param stateStore the state store to pass to the updater
      * @param configStore the config store to pass to the updater
-     * @param configValidators the list of config validators, see {@link SchedulerBuilder#defaultConfigValidators()}
-     *     for reasonable defaults
+     * @param configValidators the list of config validators,
+     *                         see {@link DefaultConfigValidators#getValidators(SchedulerConfig)} for reasonable
+     *                         defaults
      * @return the config update result, which may contain one or more validation errors produced by
      *     {@code configValidators}
      */

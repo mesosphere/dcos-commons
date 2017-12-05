@@ -67,8 +67,7 @@ class TLSArtifactsGenerator {
     }
 
     /**
-     * Returns a mapping of {@link TLSArtifact} types to generated secret content, to be stored in a
-     * {@link SecretStore}.
+     * Returns a mapping of {@link TLSArtifact} types to generated secret content, to be stored in a SecretStore.
      */
     Map<TLSArtifact, String> generate(CertificateNamesGenerator certificateNamesGenerator) throws Exception {
         KeyPair keyPair = keyPairGenerator.generateKeyPair();

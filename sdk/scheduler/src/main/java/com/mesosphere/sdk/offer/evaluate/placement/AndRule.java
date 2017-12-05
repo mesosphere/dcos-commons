@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -52,6 +53,13 @@ public class AndRule implements PlacementRule {
         } else {
             return EvaluationOutcome.fail(this, "%d of %d rules are passing:", passingCount, rules.size()).build();
         }
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return rules.stream()
+                .flatMap(rule -> rule.getPlacementFields().stream())
+                .collect(Collectors.toList());
     }
 
     @JsonProperty("rules")

@@ -58,4 +58,9 @@ public class MaxPerRegionRule extends MaxPerRule {
                     .build();
         }
     }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.REGION);
+    }
 }

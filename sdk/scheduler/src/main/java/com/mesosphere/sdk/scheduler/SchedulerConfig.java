@@ -153,6 +153,11 @@ public class SchedulerConfig {
     private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
 
     /**
+     * Environment variable for allowing region awareness.
+     */
+    private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
+
+    /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
      */
     public static SchedulerConfig fromEnv() {
@@ -330,6 +335,10 @@ public class SchedulerConfig {
      */
     public String getPauseOverrideCmd() {
         return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
+    }
+
+    public boolean isregionAwarenessEnabled() {
+        return Boolean.valueOf(envStore.getOptional(ALLOW_REGION_AWARENESS_ENV, "false"));
     }
 
     /**
