@@ -67,8 +67,8 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
-                    retry_on_result=lambda result: result[0] == result[1])
-    def get_offset_change(topic_name, initial_offset=None):
+                    retry_on_result=lambda result_pair: result_pair[1] not in result_pair[0])
+    def get_offset_change(topic_name, initial_offsets=[]):
         """
         Run:
             `dcos kafa topic offsets --time="-1"`
@@ -76,13 +76,13 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         """
         offsets = sdk_cmd.svc_cli(package_name, service_name,
                                   'topic offsets --time="-1" {}'.format(topic_name), json=True)
-        return initial_offset, offsets
+        return initial_offsets, offsets
 
     topic_name = str(uuid.uuid4())
 
     test_utils.create_topic(topic_name, service_name)
 
-    _, offset_info = get_offset_change(topic_name, {})
+    _, offset_info = get_offset_change(topic_name, [None, {}, {"0": ""}])
 
     # offset_info is a list of (partition index, offset) key-value pairs sum the
     # integer representations of the offsets
