@@ -31,6 +31,11 @@
             "type": "boolean",
             "default": true
           },
+          "customize_plan" : {
+            "description": "A boolean value to test programmatic plan customization",
+            "type": "boolean",
+            "default": false
+          },
           "allow_region_awareness" : {
             "description": "Allow region awareness",
             "type": "boolean",
