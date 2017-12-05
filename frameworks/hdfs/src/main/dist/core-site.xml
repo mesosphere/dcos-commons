@@ -502,6 +502,10 @@
         <name>rpc.metrics.percentiles.intervals</name>
         <value>{{RPC_METRICS_PERCENTILES_INTERVALS}}</value>
     </property>
+    <property>
+        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
+    </property>
 
     {{#TLS_ENABLED}}
     <property>
@@ -550,10 +554,6 @@
         <value>{{FRAMEWORK_HOST}}</value>
     </property>
     <property>
-        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
-        <value>false</value>
-    </property>
-    <property>
         <name>hadoop.http.authentication.kerberos.principal</name>
         <value>{{KERBEROS_PRIMARY_HTTP}}/{{FRAMEWORK_NAME}}.marathon.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
@@ -569,7 +569,7 @@
     </property>
     <property>
         <name>hadoop.security.instrumentation.requires.admin</name>
-        <value>true</value>
+        <value>{{HADOOP_SECURITY_INSTRUMENTATION_REQUIRES_ADMIN}}</value>
     </property>
     <property>
         <name>hadoop.security.group.mapping</name>

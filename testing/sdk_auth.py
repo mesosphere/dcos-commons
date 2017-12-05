@@ -159,7 +159,7 @@ def kinit(task_id: str, keytab: str, principal:str):
 
 def kdestroy(task_id: str):
     """
-    Performs a kdestroy command to erase an auth sessions for a principal.
+    Performs a kdestroy command to erase an auth session for a principal.
     :param task_id: The task in whose environment the kinit will run.
     """
     sdk_tasks.task_exec(task_id, "kdestroy")

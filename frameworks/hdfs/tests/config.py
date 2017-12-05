@@ -25,7 +25,7 @@ KEYTAB = "hdfs.keytab"
 CLIENT_PRINCIPALS = {
     "hdfs": "hdfs@{}".format(sdk_auth.REALM),
     "alice": "alice@{}".format(sdk_auth.REALM),
-    "bob": "bob".format(sdk_auth.REALM)
+    "bob": "bob@{}".format(sdk_auth.REALM)
 }
 
 
