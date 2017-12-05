@@ -30,6 +30,11 @@
             "type": "string",
             "default": ""
           },
+          "detect_zones": {
+            "description": "Whether or not to configure nodes with zone information for rack awareness",
+            "type": "boolean",
+            "default": false
+          },
           "placement_constraint": {
             "description": "Marathon-style placement constraint for Broker nodes. Example: rack_id:LIKE:rack-foo-.*,rack_id:MAX_PER:2",
             "type": "string",

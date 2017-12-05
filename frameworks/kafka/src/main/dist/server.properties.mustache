@@ -19,6 +19,10 @@
 # The id of the broker. This must be set to a unique integer for each broker.
 broker.id={{POD_INSTANCE_INDEX}}
 
+{{#DETECT_ZONES}}
+broker.rack={{ZONE}}
+{{/DETECT_ZONES}}
+
 ############################# Socket Server Settings #############################
 
 # The address the socket server listens on. It will get the value returned from
