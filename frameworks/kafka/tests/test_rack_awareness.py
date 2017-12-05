@@ -6,7 +6,7 @@ import sdk_install
 import sdk_tasks
 import sdk_utils
 
-from tests import config
+from tests import config, test_utils
 
 
 @pytest.mark.sanity
@@ -24,6 +24,9 @@ def test_detect_zones_disabled_by_default():
                 "name": foldered_name
             }
         })
+
+    test_utils.broker_count_check(
+        config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
     broker_ids = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, foldered_name, 'broker list', json=True)
@@ -56,6 +59,9 @@ def test_detect_zones_enabled():
                 "detect_zones": True
             }
         })
+
+    test_utils.broker_count_check(
+        config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
     broker_ids = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, foldered_name, 'broker list', json=True)
