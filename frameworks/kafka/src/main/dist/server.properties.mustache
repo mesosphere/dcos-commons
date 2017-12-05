@@ -20,7 +20,9 @@
 broker.id={{POD_INSTANCE_INDEX}}
 
 {{#DETECT_ZONES}}
+{{#ZONE}}
 broker.rack={{ZONE}}
+{{/ZONE}}
 {{/DETECT_ZONES}}
 
 ############################# Socket Server Settings #############################
