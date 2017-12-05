@@ -20,6 +20,10 @@ const (
 	frameworkHostEnvvar   = "FRAMEWORK_HOST"
 	ipEnvvar              = "MESOS_CONTAINER_IP"
 	kerberosPrimaryEnvvar = "SECURITY_KERBEROS_PRIMARY"
+
+	listenersProperty           = "listeners"
+	advertisedListenersProperty = "advertised.listeners"
+	interBrokerProtocolProperty = "security.inter.broker.protocol"
 )
 
 func main() {
@@ -29,24 +33,26 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to calculate security and listener settings: %s", err.Error())
 	}
-	log.Printf("Calculated security and listener settings.")
-	log.Printf("setup-helper complete.")
+	log.Printf("Calculated security and listener settings")
+	log.Printf("setup-helper complete")
 }
 
-func getBooleanEnvvar(envvar string) (bool, error) {
+func getBooleanEnvvar(envvar string) bool {
 	val, set := os.LookupEnv(envvar)
 	if !set {
-		return false, nil
+		return false
 	}
 
 	result, err := strconv.ParseBool(val)
 	if err != nil {
-		return false, fmt.Errorf("Could not parse boolean for envvar %s: %s",
+		log.Printf("Could not parse boolean for envvar: %s (%s)",
 			envvar,
-			err.Error())
+			err.Error(),
+		)
+		return false
 	}
 
-	return result, nil
+	return result
 }
 
 func getStringEnvvar(envvar string) string {
@@ -59,42 +65,30 @@ func calculateSettings() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Set listeners.")
+	log.Printf("Set listeners")
 
 	log.Print("Setting security.inter.broker.protocol...")
 	err = setInterBrokerProtocol()
 	if err != nil {
 		return err
 	}
-	log.Print("Set security.inter.broker.protocol.")
+	log.Print("Set security.inter.broker.protocol")
 	return nil
 }
 
-func parseToggles() (kerberos bool, tls bool, plaintext bool, err error) {
-	kerberosEnabled, err := getBooleanEnvvar(kerberosEnvvar)
-	if err != nil {
-		return false, false, false, err
-	}
-	tlsEncryptionEnabled, err := getBooleanEnvvar(tlsEncryptionEnvvar)
-	if err != nil {
-		return false, false, false, err
-	}
-	allowPlainText, err := getBooleanEnvvar(tlsAllowPlainEnvvar)
-	if err != nil {
-		return false, false, false, err
-	}
+func parseToggles() (kerberos bool, tls bool, plaintext bool) {
+	kerberosEnabled := getBooleanEnvvar(kerberosEnvvar)
+	tlsEncryptionEnabled := getBooleanEnvvar(tlsEncryptionEnvvar)
+	allowPlainText := getBooleanEnvvar(tlsAllowPlainEnvvar)
 
-	return kerberosEnabled, tlsEncryptionEnabled, allowPlainText, err
+	return kerberosEnabled, tlsEncryptionEnabled, allowPlainText
 }
 
 func setListeners() error {
 	var listeners []string
 	var advertisedListeners []string
 
-	kerberosEnabled, tlsEncryptionEnabled, allowPlainText, err := parseToggles()
-	if err != nil {
-		return err
-	}
+	kerberosEnabled, tlsEncryptionEnabled, allowPlainText := parseToggles()
 
 	if kerberosEnabled { // Kerberos enabled
 
@@ -136,9 +130,9 @@ func setListeners() error {
 			getAdvertisedListener("PLAINTEXT", brokerPort))
 	}
 
-	err = writeToWorkingDirectory("listeners-config",
+	err := writeToWorkingDirectory(listenersProperty,
 		"listeners="+strings.Join(listeners, ","))
-	err = writeToWorkingDirectory("advertised-listeners-config",
+	err = writeToWorkingDirectory(advertisedListenersProperty,
 		"advertised.listeners="+strings.Join(advertisedListeners, ","))
 	return err
 }
@@ -161,10 +155,12 @@ func getAdvertisedListener(protocol string, portEnvvar string) string {
 }
 
 func writeToWorkingDirectory(filename string, content string) error {
+	log.Printf("Attempting to write to %s:\n%s", filename, content)
 	wd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
+	log.Printf("Calculated working directory as: %s", wd)
 
 	return ioutil.WriteFile(
 		path.Join(wd, filename),
@@ -174,11 +170,7 @@ func writeToWorkingDirectory(filename string, content string) error {
 }
 
 func setInterBrokerProtocol() error {
-	const property = "security.inter.broker.protocol"
-	kerberosEnabled, tlsEncryptionEnabled, _, err := parseToggles()
-	if err != nil {
-		return err
-	}
+	kerberosEnabled, tlsEncryptionEnabled, _ := parseToggles()
 
 	protocol := ""
 	if kerberosEnabled {
@@ -193,6 +185,6 @@ func setInterBrokerProtocol() error {
 		protocol = "PLAINTEXT"
 	}
 
-	err = writeToWorkingDirectory(property, fmt.Sprintf("%s=%s", property, protocol))
-	return err
+	return writeToWorkingDirectory(interBrokerProtocolProperty,
+		fmt.Sprintf("%s=%s", interBrokerProtocolProperty, protocol))
 }
