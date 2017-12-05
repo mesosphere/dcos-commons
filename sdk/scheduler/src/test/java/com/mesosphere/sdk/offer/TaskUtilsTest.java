@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;

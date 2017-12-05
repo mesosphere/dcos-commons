@@ -56,8 +56,11 @@ def as_json(fn):
     def wrapper(*args, **kwargs):
         try:
             return json.loads(fn(*args, **kwargs))
-        except ValueError:
-            return None
+        except (TypeError, json.JSONDecodeError) as e:
+            print("Failed to parse value returned by {} as JSON".format(fn.__name__))
+            raise e
+        except ValueError as e:
+            raise e
 
     return wrapper
 
@@ -273,6 +276,12 @@ def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, http
     exit_status, output = shakedown.run_command_on_master(
         "{}/{}/{}/{}'".format(
             _curl_api(service_name, "GET", https=https), index_name, index_type, doc_id))
+    return output
+
+
+@as_json
+def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
+    exit_status, output = shakedown.run_command_on_master("{}/_nodes'".format(_curl_api(service_name, "GET")))
     return output
 
 

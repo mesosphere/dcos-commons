@@ -9,6 +9,8 @@ import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -91,5 +93,10 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     public String toString() {
         return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",
                 attributeName, distinctKeyCount, taskFilter);
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ATTRIBUTE);
     }
 }

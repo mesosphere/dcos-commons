@@ -14,6 +14,7 @@ from retrying import retry
 from subprocess import run
 from tempfile import TemporaryDirectory
 
+import base64
 import dcos
 import json
 import logging
@@ -234,19 +235,19 @@ class KerberosEnvironment:
         """
         # TODO: Perform sanitation check against validity of format for all given principals and raise an
         # exception when the format of a principal is invalid.
-        self.principals = principals
+        self.principals = list(map(lambda x: x.strip(), principals))
 
-        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=principals))
+        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=self.principals))
         kadmin_options = ["-l"]
         kadmin_cmd = "add"
         kadmin_args = ["--use-defaults", "--random-password"]
 
         try:
-            kadmin_args.extend(principals)
+            kadmin_args.extend(self.principals)
             self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
         except Exception as e:
             raise RuntimeError("Failed to add principals {principals}: {err_msg}".format(
-                principals=principals, err_msg=repr(e)))
+                principals=self.principals, err_msg=repr(e)))
 
         log.info("Principals successfully added to KDC")
 
@@ -271,11 +272,17 @@ class KerberosEnvironment:
         log.info("Creating and uploading the keytab file to the secret store")
 
         try:
-            base64_encode_cmd = "base64 -w 0 {source} > {destination}".format(
-                source=os.path.join(self.temp_working_dir.name, self.keytab_file_name),
-                destination=os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
-            )
-            run(base64_encode_cmd, shell=True)
+            keytab_path = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
+            base64_encoded_keytab_path = os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
+            with open(keytab_path, "rb") as f:
+                keytab = f.read()
+
+            base64_encoding = base64.b64encode(keytab).decode("utf-8")
+            with open(base64_encoded_keytab_path, "w") as f:
+                f.write(base64_encoding)
+
+            log.info("Finished base64-encoding secret content.")
+
         except Exception as e:
             raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
 

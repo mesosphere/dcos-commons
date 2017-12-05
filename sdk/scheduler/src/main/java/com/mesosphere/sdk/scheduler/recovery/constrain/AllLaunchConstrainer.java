@@ -3,7 +3,7 @@ package com.mesosphere.sdk.scheduler.recovery.constrain;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -17,10 +17,7 @@ public class AllLaunchConstrainer implements LaunchConstrainer {
     private List<LaunchConstrainer> constrainers;
 
     public AllLaunchConstrainer(LaunchConstrainer... constrainers) {
-        this.constrainers = new ArrayList<>();
-        for (LaunchConstrainer constrainer : constrainers) {
-            this.constrainers.add(constrainer);
-        }
+        this.constrainers = Arrays.asList(constrainers);
     }
 
     @Override

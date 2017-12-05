@@ -6,7 +6,6 @@ import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -20,9 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -58,13 +55,12 @@ public class SchedulerRunner implements Runnable {
      *
      * @param serviceSpec the service specification converted to be used by the config store
      * @param schedulerConfig the scheduler configuration to use (usually based on process environment)
-     * @param plans a list of one or more custom plans to be used by the service
      * @return a new {@link SchedulerRunner} instance, which may be launched with {@link #run()}
      */
     public static SchedulerRunner fromServiceSpec(
-            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Collection<Plan> plans)
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig)
                     throws PersisterException {
-        return fromSchedulerBuilder(DefaultScheduler.newBuilder(serviceSpec, schedulerConfig).setPlans(plans));
+        return fromSchedulerBuilder(DefaultScheduler.newBuilder(serviceSpec, schedulerConfig));
     }
 
     /**
@@ -162,6 +158,11 @@ public class SchedulerRunner implements Runnable {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
             fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
                     .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        }
+
+        if (Capabilities.getInstance().supportsRegionAwareness()) {
+            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE));
         }
 
         return fwkInfoBuilder.build();

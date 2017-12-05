@@ -15,9 +15,9 @@ import time
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = 'https://downloads.mesosphere.com/java/jre-8u144-linux-x64.tar.gz'
-_jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u131-linux-x64-jce-unlimited.tar.gz'
-_libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-1.10-1.4-63e0814.tar.gz'
+_jre_url = 'https://downloads.mesosphere.com/java/jre-8u152-linux-x64.tar.gz'
+_jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u152-linux-x64-jce-unlimited.tar.gz'
+_libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-master-28f8827.tar.gz'
 
 _docs_root = "https://docs.mesosphere.com"
 

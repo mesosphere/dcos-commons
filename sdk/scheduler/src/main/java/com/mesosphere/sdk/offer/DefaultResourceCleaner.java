@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * unexpected Reserved resources and persistent volumes.
  */
 public class DefaultResourceCleaner implements ResourceCleaner {
-    private static final Logger logger = LoggerFactory.getLogger(DefaultResourceCleaner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultResourceCleaner.class);
 
     private final Collection<Resource> expectedResources;
 
@@ -65,7 +66,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
 
         for (Map.Entry<String, Resource> entry : resourcesById.entrySet()) {
             if (!expectedIds.contains(entry.getKey())) {
-                logger.info("Unexpected reserved resource found: {}", TextFormat.shortDebugString(entry.getValue()));
+                LOGGER.info("Unexpected reserved resource found: {}", TextFormat.shortDebugString(entry.getValue()));
                 unexpectedResources.add(entry.getValue());
             }
         }
@@ -73,12 +74,18 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     }
 
     /**
-     * Returns a list of all expected resources, which are extracted from all {@link Protos.TaskInfo}s
+     * Returns a list of all expected resources, which are extracted from all {@link org.apache.mesos.Protos.TaskInfo}s
      * produced by the provided {@link StateStore}.
      */
     private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {
         return stateStore.fetchTasks().stream()
-                .filter(taskInfo -> !FailureUtils.isPermanentlyFailed(taskInfo))
+                // The task's resources should be unreserved if:
+                // - the task is marked as permanently failed, or
+                // - the task is in the process of being decommissioned
+                .filter(taskInfo ->
+                        !FailureUtils.isPermanentlyFailed(taskInfo) &&
+                        !stateStore.fetchGoalOverrideStatus(taskInfo.getName())
+                                .equals(DecommissionPlanFactory.DECOMMISSIONING_STATUS))
                 .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());

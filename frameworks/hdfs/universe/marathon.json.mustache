@@ -52,6 +52,7 @@
     "DATA_DISK_TYPE": "{{data_node.disk_type}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
+    "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "HDFS_BIN_URI": "{{resource.assets.uris.hdfs-bin-tar-gz}}",
     "HDFS_JAVA_URI": "{{resource.assets.uris.hdfs-jre-tar-gz}}",
@@ -66,8 +67,9 @@
 
     {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
 
     {{#service.tls.enabled}}
@@ -83,6 +85,9 @@
     "TASKCFG_ALL_JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
     {{/journal_node.enable_readiness_check}}
 
+    "JOURNAL_NODE_PLACEMENT": "{{journal_node.placement}}",
+    "NAME_NODE_PLACEMENT": "{{name_node.placement}}",
+    "DATA_NODE_PLACEMENT": "{{data_node.placement}}",
 
     {{#service.kerberos.enabled}}
     "KERBEROS_ENABLED": "{{service.kerberos.enabled}}",

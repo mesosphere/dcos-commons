@@ -10,6 +10,7 @@ import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -112,6 +113,11 @@ public class MaxPerAttributeRule extends MaxPerRule {
                     attributeMatcher.toString())
                     .build();
         }
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ATTRIBUTE);
     }
 
     @JsonProperty("matcher")

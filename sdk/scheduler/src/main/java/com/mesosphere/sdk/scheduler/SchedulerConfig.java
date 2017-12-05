@@ -138,14 +138,24 @@ public class SchedulerConfig {
     /**
      * Environment variables for configuring metrics reporting behavior.
      */
-    private static String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
-    private static String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
-    private static String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+    private static final String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
+    private static final String STATSD_UDP_HOST_ENV = "STATSD_UDP_HOST";
+    private static final String STATSD_UDP_PORT_ENV = "STATSD_UDP_PORT";
+
+    /**
+     * Environment variables for configuring Mesos API version.
+     */
+    private static String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
     /**
      * Environment variables for configuring goal state override behavior.
      */
     private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
+
+    /**
+     * Environment variable for allowing region awareness.
+     */
+    private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
 
     /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -314,10 +324,21 @@ public class SchedulerConfig {
     }
 
     /**
+     * Returns the Mesos API version.
+     */
+    public String getMesosApiVersion() {
+        return envStore.getRequired(MESOS_API_VERSION_ENV);
+    }
+
+    /**
      * Returns the command to be run when pausing a Task.
      */
     public String getPauseOverrideCmd() {
         return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
+    }
+
+    public boolean isregionAwarenessEnabled() {
+        return Boolean.valueOf(envStore.getOptional(ALLOW_REGION_AWARENESS_ENV, "false"));
     }
 
     /**
