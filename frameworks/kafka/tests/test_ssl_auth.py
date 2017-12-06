@@ -77,10 +77,28 @@ def kafka_client():
         sdk_marathon.destroy_app(client_id)
 
 
+@pytest.fixture(scope='module', autouse=True)
+def setup_principals(kafka_client):
+    client_id = kafka_client["id"]
+
+    create_tls_artifacts(
+        cn="kafka-tester",
+        task=client_id)
+    create_tls_artifacts(
+        cn="authorized",
+        task=client_id)
+    create_tls_artifacts(
+        cn="unauthorized",
+        task=client_id)
+    create_tls_artifacts(
+        cn="super",
+        task=client_id)
+
+
 @pytest.mark.dcos_min_version('1.10')
 @pytest.mark.ee_only
 @pytest.mark.sanity
-def test_authn_client_can_read_and_write(kafka_client, service_account):
+def test_authn_client_can_read_and_write(kafka_client, service_account, setup_principals):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         config.install(
@@ -111,8 +129,6 @@ def test_authn_client_can_read_and_write(kafka_client, service_account):
         bootstrap_output = sdk_tasks.task_exec(client_id, ' '.join(bootstrap_cmd))
         log.info(bootstrap_output)
 
-        create_tls_artifacts("kafka-tester", client_id)
-
         message = str(uuid.uuid4())
 
         # Write to the topic
@@ -126,19 +142,8 @@ def test_authn_client_can_read_and_write(kafka_client, service_account):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def test_authz_acls_required(kafka_client, service_account):
+def test_authz_acls_required(kafka_client, service_account, setup_principals):
     client_id = kafka_client["id"]
-    # Reconfigure to have authz enabled
-    # First, create certs  for super, authorized, and unauthorized
-    authorized = create_tls_artifacts(
-        cn="authorized",
-        task=client_id)
-    unauthorized = create_tls_artifacts(
-        cn="unauthorized",
-        task=client_id)
-    super_principal = create_tls_artifacts(
-        cn="super",
-        task=client_id)
 
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -205,19 +210,8 @@ def test_authz_acls_required(kafka_client, service_account):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def test_authz_acls_not_required(kafka_client, service_account):
+def test_authz_acls_not_required(kafka_client, service_account, setup_principals):
     client_id = kafka_client["id"]
-    # Reconfigure to have authz enabled
-    # First, create certs  for super, authorized, and unauthorized
-    authorized = create_tls_artifacts(
-        cn="authorized",
-        task=client_id)
-    unauthorized = create_tls_artifacts(
-        cn="unauthorized",
-        task=client_id)
-    super_principal = create_tls_artifacts(
-        cn="super",
-        task=client_id)
 
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -275,7 +269,7 @@ def test_authz_acls_not_required(kafka_client, service_account):
         assert unauthorized_message in read_from_topic("unauthorized", client_id, "authz.test", 3)
         
         log.info("Writing and reading: Reading from the topic, as super user")
-        assert super_message in read_from_topic("super", client_id, "authz.test", 1)
+        assert super_message in read_from_topic("super", client_id, "authz.test", 3)
 
         log.info("Writing and reading: Adding acl for authorized user")
         zookeeper_endpoint = str(sdk_cmd.svc_cli(
@@ -300,7 +294,7 @@ def test_authz_acls_not_required(kafka_client, service_account):
         
         log.info("Writing and reading: Reading from the topic, as authorized user")
         read_result = read_from_topic("authorized", client_id, "authz.test", 5)
-        assert message in read_result and unauthorized_message not in read_result
+        assert authorized_message in read_result and unauthorized_message not in read_result
         
         log.info("Writing and reading: Reading from the topic, as unauthorized user")
         assert "Not authorized to access" in read_from_topic("unauthorized", client_id, "authz.test", 1)
