@@ -152,19 +152,6 @@ func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	assert.Equal(suite.T(), requestBody, actualBody)
 }
 
-func (suite *CosmosTestSuite) TestLocalCosmosUrl() {
-	// create a URL where the user has manually specified a URL to Cosmos
-	config.CosmosURL = "https://my.local.cosmos/"
-
-	describeURL := createCosmosURL("describe")
-	updateURL := createCosmosURL("update")
-
-	assert.Equal(suite.T(), "https://my.local.cosmos/service/describe", describeURL.String())
-	assert.Equal(suite.T(), "https://my.local.cosmos/service/update", updateURL.String())
-
-	config.CosmosURL = ""
-}
-
 func (suite *CosmosTestSuite) TestCosmosUrl() {
 	// create a URL where Cosmos is running on the DC/OS cluster
 	describeURL := createCosmosURL("describe")

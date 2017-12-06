@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
@@ -63,7 +64,7 @@ func (suite *UpdateTestSuite) SetupSuite() {
 func (suite *UpdateTestSuite) SetupTest() {
 	// set up test server
 	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
-	config.DcosURL = suite.server.URL
+	os.Setenv("DCOS_URL", suite.server.URL)
 }
 
 func (suite *UpdateTestSuite) TearDownTest() {
@@ -83,7 +84,7 @@ func (suite *UpdateTestSuite) TestDescribe() {
 	if err != nil {
 		suite.T().Fatal(err)
 	}
-	assert.Equal(suite.T(), config.ServiceName, requestBody["appId"].(string))
+	assert.Equal(suite.T(), "hello-world", requestBody["appId"].(string))
 	// assert that printed output is the resolvedOptions field from the JSON
 	expectedOutput := suite.loadFile("testdata/output/describe.txt")
 	assert.JSONEq(suite.T(), string(expectedOutput), suite.capturedOutput.String())
@@ -182,7 +183,7 @@ func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
 
-func (suite *UpdateTestSuite) TestUdateWithInvalidMinumum() {
+func (suite *UpdateTestSuite) TestUpdateWithInvalidMinimum() {
 	responseJSON := `{
     "type": "JsonSchemaMismatch",
     "message": "Options JSON failed validation",
@@ -279,5 +280,4 @@ func (suite *UpdateTestSuite) TestUpdateWithTwoValidationErrors() {
 		"/nodes/cpus  instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])\n"
 
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
-
 }

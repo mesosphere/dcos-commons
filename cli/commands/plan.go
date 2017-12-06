@@ -323,7 +323,7 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) string {
 	}
 	planStrategy, ok := planJSON["strategy"]
 	if !ok {
-		planStatus = UNKNOWN_VALUE
+		planStrategy = UNKNOWN_VALUE
 	}
 	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
 

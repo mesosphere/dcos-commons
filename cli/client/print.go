@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
 // PrintMessage is a placeholder function that wraps a call to
@@ -22,6 +24,14 @@ func printMessage(format string, a ...interface{}) (int, error) {
 func printMessageAndExit(format string, a ...interface{}) (int, error) {
 	PrintMessage(format, a...)
 	os.Exit(1)
+	return 0, nil
+}
+
+// PrintVerbose prints a message using PrintMessage iff config.Verbose is enabled
+func PrintVerbose(format string, a ...interface{}) (int, error) {
+	if config.Verbose {
+		return PrintMessage(format, a...)
+	}
 	return 0, nil
 }
 
