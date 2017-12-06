@@ -21,7 +21,7 @@ DEFAULT_DATA_NODE_TLS_PORT = 9006
 
 
 @pytest.fixture(scope='module')
-def service_account():
+def service_account(configure_security):
     """
     Creates service account with `hdfs` name and yields the name.
     """

@@ -153,8 +153,16 @@ def kinit(task_id: str, keytab: str, principal:str):
     :param keytab: The keytab used by kinit to authenticate.
     :param principal: The name of the principal the user wants to authenticate as.
     """
-    kinit_cmd = "kinit -k -t {keytab} {principal}".format(keytab=keytab, principal=principal)
+    kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     sdk_tasks.task_exec(task_id, kinit_cmd)
+
+
+def kdestroy(task_id: str):
+    """
+    Performs a kdestroy command to erase an auth session for a principal.
+    :param task_id: The task in whose environment the kinit will run.
+    """
+    sdk_tasks.task_exec(task_id, "kdestroy")
 
 
 class KerberosEnvironment:
