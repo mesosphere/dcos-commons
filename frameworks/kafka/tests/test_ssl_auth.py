@@ -17,6 +17,7 @@ import sdk_security
 
 from tests import config
 from tests import auth
+from tests import topics
 
 log = logging.getLogger(__name__)
 
@@ -191,6 +192,11 @@ def test_authz_acls_required(kafka_client, service_account):
 
         # Add acl
         log.info("Writing and reading: Adding acl for authorized user")
+        zookeeper_endpoint = str(sdk_cmd.svc_cli(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            "endpoint zookeeper")).strip()
+        topics.add_acls("authorized", client_id, "authz.test", zookeeper_endpoint, env_str=None)
 
         log.info("Writing and reading: Writing and reading as authorized user")
         assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
@@ -272,6 +278,12 @@ def test_authz_acls_not_required(kafka_client, service_account):
         assert super_message in read_from_topic("super", client_id, "authz.test", 1)
 
         log.info("Writing and reading: Adding acl for authorized user")
+        zookeeper_endpoint = str(sdk_cmd.svc_cli(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            "endpoint zookeeper")).strip()
+        topics.add_acls("authorized", client_id, "authz.test", zookeeper_endpoint, env_str=None)
+        
         # Re-roll the messages so we really prove auth is in place.
         super_message = str(uuid.uuid4())
         authorized_message = str(uuid.uuid4())
