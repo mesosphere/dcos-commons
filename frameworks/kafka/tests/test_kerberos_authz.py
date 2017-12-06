@@ -92,9 +92,6 @@ def kafka_server(kerberos):
                     "super_users": "User:{}".format(super_principal)
                 }
             }
-        },
-        "brokers": {
-            "port": 1030
         }
     }
 
@@ -116,9 +113,10 @@ def kafka_server(kerberos):
 @pytest.fixture(scope='module', autouse=True)
 def kafka_client(kerberos, kafka_server):
 
-    brokers = ["kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1030",
-               "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030",
-               "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1030"]
+    brokers = sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "endpoint broker", json=True)["dns"]
 
     try:
         client_id = "kafka-client"
@@ -187,27 +185,29 @@ def test_authz_acls_required(kafka_client):
     assert message in read_from_topic("super", client_id, "authz.test", 1)
 
 
-def write_client_properties(cn: str, task: str) -> str:
-#     sdk_tasks.task_exec(task,
-#     """bash -c \"cat >{cn}-client.properties << EOL
-# security.protocol = SSL
-# ssl.truststore.location = {cn}_truststore.jks
-# ssl.truststore.password = changeit
-# ssl.keystore.location = {cn}_keystore.jks
-# ssl.keystore.password = changeit
-# EOL\"""".format(cn=cn))
+def write_client_properties(primary: str, task: str) -> str:
+    output_file = "{primary}-client.properties".format(primary=primary)
+    log.info("Generating %s", output_file)
 
-#     return "{}-client.properties".format(cn)
-    return "/tmp/kafkaconfig/client.properties"
+    output_cmd = """bash -c \"cat >{output_file} << EOL
+security.protocol=SASL_PLAINTEXT
+sasl.mechanism=GSSAPI
+sasl.kerberos.service.name=kafka
+EOL\"""".format(output_file=output_file, primary=primary)
+    log.info("Running: %s", output_cmd)
+    output = sdk_tasks.task_exec(task, output_cmd)
+    log.info(output)
+
+    return output_file
 
 
 def write_jaas_config_file(primary: str, task: str) -> str:
-    jaas_config_file = "{primary}-client-jaas.config".format(primary=primary)
+    output_file = "{primary}-client-jaas.config".format(primary=primary)
 
-    log.info("Generating %s", jaas_config_file)
+    log.info("Generating %s", output_file)
 
     # TODO: use kafka_client keytab path
-    jaas_cmd = """bash -c \"cat >{file} << EOL
+    output_cmd = """bash -c \"cat >{output_file} << EOL
 KafkaClient {{
     com.sun.security.auth.module.Krb5LoginModule required
     doNotPrompt=true
@@ -218,17 +218,41 @@ KafkaClient {{
     keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"
 client=true;
 }};
-EOL\"""".format(file=jaas_config_file, primary=primary)
-    log.info("Running: %s", jaas_cmd)
-
-    output = sdk_tasks.task_exec(task, jaas_cmd)
+EOL\"""".format(output_file=output_file, primary=primary)
+    log.info("Running: %s", output_cmd)
+    output = sdk_tasks.task_exec(task, output_cmd)
     log.info(output)
 
-    return jaas_config_file
+    return output_file
+
+
+def write_krb5_config_file(task: str) -> str:
+    output_file = "krb5.config"
+
+    log.info("Generating %s", output_file)
+
+    # TODO: Set realm and kdc properties
+    output_cmd = """bash -c \"cat >{output_file} << EOL
+[libdefaults]
+default_realm = LOCAL
+
+[realms]
+  LOCAL = {{
+    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500
+  }}
+EOL\"""".format(output_file=output_file)
+    log.info("Running: %s", output_cmd)
+    output = sdk_tasks.task_exec(task, output_cmd)
+    log.info(output)
+
+    return output_file
 
 
 def setup_env(primary: str, task: str) -> str:
-    env_setup_string = "export KAFKA_OPTS=\\\"-Djava.security.auth.login.config={} -Djava.security.krb5.conf=/tmp/kafkaconfig/krb5.conf\\\"".format(write_jaas_config_file(primary, task))
+    env_setup_string = "export KAFKA_OPTS=\\\"" \
+                       "-Djava.security.auth.login.config={} " \
+                       "-Djava.security.krb5.conf={}" \
+                       "\\\"".format(write_jaas_config_file(primary, task), write_krb5_config_file(task))
     log.info("Setting environment to %s", env_setup_string)
     return env_setup_string
 
