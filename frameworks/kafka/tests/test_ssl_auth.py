@@ -169,24 +169,133 @@ def test_authz_acls_required(kafka_client, service_account):
 
         auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+            "topic create authz.test",
+            json=True)
+
+        super_message = str(uuid.uuid4())
+        authorized_message = str(uuid.uuid4())
+
+        log.info("Writing and reading: Writing to the topic, as authorized user")
+        assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+
+        log.info("Writing and reading: Writing to the topic, as super user")
+        assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
+
+        log.info("Writing and reading: Reading from the topic, as authorized user")
+        assert "Not authorized to access" in read_from_topic("authorized", client_id, "authz.test", 1)
+        
+        log.info("Writing and reading: Reading from the topic, as super user")
+        read_result = read_from_topic("super", client_id, "authz.test", 1)
+        assert super_message in read_result and authorized_message not in read_result
+
+        # Add acl
+        log.info("Writing and reading: Adding acl for authorized user")
+
+        log.info("Writing and reading: Writing and reading as authorized user")
+        assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        assert authorized_message in read_from_topic("authorized", client_id, "authz.test", 2)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+def test_authz_acls_not_required(kafka_client, service_account):
+    client_id = kafka_client["id"]
+    # Reconfigure to have authz enabled
+    # First, create certs  for super, authorized, and unauthorized
+    authorized = create_tls_artifacts(
+        cn="authorized",
+        task=client_id)
+    unauthorized = create_tls_artifacts(
+        cn="unauthorized",
+        task=client_id)
+    super_principal = create_tls_artifacts(
+        cn="super",
+        task=client_id)
+
+    try:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        config.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            config.DEFAULT_BROKER_COUNT,
+            additional_options={
+                "brokers": {
+                    "port_tls": 1030
+                },
+                "service": {
+                    "service_account": service_account,
+                    "service_account_secret": service_account,
+                    "security": {
+                        "transport_encryption": {
+                            "enabled": True
+                        },
+                        "ssl_auth": {
+                            "enable_authentication": True
+                        },
+                        "authorization": {
+                            "enabled": True,
+                            "super_users": "User:{}".format("super"),
+                            "allow_everyone_if_no_acl_found": True
+                        }
+                    }
+                }
+            })
+
+        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+
         # Create the topic
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
             "topic create authz.test",
             json=True)
 
-        message = str(uuid.uuid4())
+        super_message = str(uuid.uuid4())
+        authorized_message = str(uuid.uuid4())
+        unauthorized_message = str(uuid.uuid4())
 
-        log.info("Writing and reading: Writing to the topic, but not super user")
-        assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, "authz.test", message)
+        log.info("Writing and reading: Writing to the topic, as authorized user")
+        assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        
+        log.info("Writing and reading: Writing to the topic, as unauthorized user")
+        assert ">>" in write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
 
         log.info("Writing and reading: Writing to the topic, as super user")
-        assert ">>" in write_to_topic("super", client_id, "authz.test", message)
+        assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
 
-        log.info("Writing and reading: Reading from the topic, but not super user")
-        assert "Not authorized to access topics: [authz.test]" in read_from_topic("authorized", client_id, "authz.test", 1)
+        log.info("Writing and reading: Reading from the topic, as authorized user")
+        assert authorized_message in read_from_topic("authorized", client_id, "authz.test", 3)
+        
+        log.info("Writing and reading: Reading from the topic, as unauthorized user")
+        assert unauthorized_message in read_from_topic("unauthorized", client_id, "authz.test", 3)
         
         log.info("Writing and reading: Reading from the topic, as super user")
-        assert message in read_from_topic("super", client_id, "authz.test", 1)
+        assert super_message in read_from_topic("super", client_id, "authz.test", 1)
+
+        log.info("Writing and reading: Adding acl for authorized user")
+        # Re-roll the messages so we really prove auth is in place.
+        super_message = str(uuid.uuid4())
+        authorized_message = str(uuid.uuid4())
+        unauthorized_message = str(uuid.uuid4())
+
+        log.info("Writing and reading: Writing to the topic, as authorized user")
+        assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        
+        log.info("Writing and reading: Writing to the topic, as unauthorized user")
+        assert "Not authorized to access" in write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
+
+        log.info("Writing and reading: Writing to the topic, as super user")
+        assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
+        
+        log.info("Writing and reading: Reading from the topic, as authorized user")
+        read_result = read_from_topic("authorized", client_id, "authz.test", 5)
+        assert message in read_result and unauthorized_message not in read_result
+        
+        log.info("Writing and reading: Reading from the topic, as unauthorized user")
+        assert "Not authorized to access" in read_from_topic("unauthorized", client_id, "authz.test", 1)
+        
+        log.info("Writing and reading: Reading from the topic, as super user")
+        read_result = read_from_topic("super", client_id, "authz.test", 5)
+        assert super_message in read_result and unauthorized_message not in read_result
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
