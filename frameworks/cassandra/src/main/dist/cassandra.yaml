@@ -74,13 +74,13 @@ server_encryption_options:
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 client_encryption_options:
+    enabled: true
 {{#SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
     optional: true
 {{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
 {{^SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
     optional: false
 {{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-    enabled: true
     keystore: node.keystore
     keystore_password: notsecure
     protocol: TLSv1.2
