@@ -12,7 +12,10 @@ def wait_for_brokers(client: str, brokers: list):
     """
     LOG.info("Running bootstrap to wait for DNS resolution")
     bootstrap_cmd = ['/opt/bootstrap',
-                     '-resolve-hosts', ','.join(brokers), '-verbose']
+                     '-print-env=false',
+                     '-template=false',
+                     '-install-certs=false',
+                     '-resolve-hosts', ','.join(brokers)]
     bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
 
