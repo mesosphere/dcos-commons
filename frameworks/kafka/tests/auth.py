@@ -137,11 +137,14 @@ def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
     env_str = setup_env(cn, task)
+    timeout_ms = 60000
     read_cmd = "bash -c \"{} && kafka-console-consumer \
-        --topic {} --from-beginning --max-messages {} \
-        --timeout-ms 10000 \
+        --topic {} \
         --consumer.config {} \
-        --bootstrap-server \$KAFKA_BROKER_LIST\"".format(env_str, topic, messages, write_client_properties(cn, task))
+        --bootstrap-server \$KAFKA_BROKER_LIST \
+        --from-beginning --max-messages {} \
+        --timeout-ms {} \
+        \"".format(env_str, topic, write_client_properties(cn, task), messages, timeout_ms)
     LOG.info("Running: %s", read_cmd)
     output = sdk_tasks.task_exec(task, read_cmd)
     LOG.info(output)
