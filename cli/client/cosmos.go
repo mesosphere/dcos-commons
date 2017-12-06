@@ -66,8 +66,7 @@ func createBadVersionError(data cosmosData) error {
 	writer := bufio.NewWriter(&buf)
 	fmt.Fprintf(writer, "Unable to update %s to requested version: \"%s\"\n", config.ServiceName, data.UpdateVersion)
 	if len(data.ValidVersions) > 0 {
-		validVersions := PrettyPrintSlice(data.ValidVersions)
-		fmt.Fprintf(writer, "Valid package versions are: %s", validVersions)
+		fmt.Fprintf(writer, "Valid package versions are: %s", PrettyPrintSlice(data.ValidVersions))
 	} else {
 		fmt.Fprint(writer, "No valid package versions to update to.")
 	}
@@ -88,7 +87,7 @@ func createJSONMismatchError(data cosmosData) error {
 	}
 	tWriter.Flush()
 	writer.Flush()
-	return fmt.Errorf(buf.String(), config.ServiceName)
+	return fmt.Errorf(buf.String())
 }
 
 func createAppIDChangedError(data cosmosData) error {
@@ -136,7 +135,7 @@ func checkCosmosHTTPResponse(response *http.Response, body []byte) error {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
 		PrintVerbose(createResponseError(response, body).Error())
-		return fmt.Errorf("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		return fmt.Errorf("This command requires Enterprise DC/OS 1.10 or newer.")
 	case response.StatusCode == http.StatusBadRequest:
 		return parseCosmosHTTPErrorResponse(response, body)
 	case response.StatusCode == http.StatusInternalServerError:

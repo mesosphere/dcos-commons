@@ -190,7 +190,6 @@ func (suite *PlanTestSuite) TestForceRestart() {
 func (suite *PlanTestSuite) TestPause() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/interrupt.json")
 	suite.responseStatus = http.StatusOK
-	config.Command = "plan pause"
 
 	pause("deploy", "hello")
 	expectedOutput := "\"deploy\" plan has been paused.\n"
@@ -200,7 +199,6 @@ func (suite *PlanTestSuite) TestPause() {
 func (suite *PlanTestSuite) TestPauseBadName() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan pause"
 
 	err := pause("bad-name", "")
 
@@ -211,7 +209,6 @@ func (suite *PlanTestSuite) TestPauseBadName() {
 func (suite *PlanTestSuite) TestPauseBadPhase() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan pause"
 
 	err := pause("deploy", "bad-phase")
 
@@ -222,7 +219,6 @@ func (suite *PlanTestSuite) TestPauseBadPhase() {
 func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan pause"
 
 	err := pause("deploy", "hello")
 
@@ -233,7 +229,6 @@ func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
 func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan pause"
 
 	err := pause("deploy", "hello")
 
@@ -244,7 +239,6 @@ func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
 func (suite *PlanTestSuite) TestResume() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/continue.json")
 	suite.responseStatus = http.StatusOK
-	config.Command = "plan resume"
 
 	resume("deploy", "hello")
 
@@ -255,7 +249,6 @@ func (suite *PlanTestSuite) TestResume() {
 func (suite *PlanTestSuite) TestResumeBadPlan() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan resume"
 
 	err := resume("bad-name", "")
 
@@ -266,7 +259,6 @@ func (suite *PlanTestSuite) TestResumeBadPlan() {
 func (suite *PlanTestSuite) TestResumeBadPhase() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan resume"
 
 	err := resume("deploy", "bad-phase")
 
@@ -277,7 +269,6 @@ func (suite *PlanTestSuite) TestResumeBadPhase() {
 func (suite *PlanTestSuite) TestResumeInProgress() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan resume"
 
 	err := resume("deploy", "hello")
 
@@ -288,7 +279,6 @@ func (suite *PlanTestSuite) TestResumeInProgress() {
 func (suite *PlanTestSuite) TestResumeAlreadyCompleted() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan resume"
 
 	err := resume("deploy", "hello")
 

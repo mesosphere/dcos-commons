@@ -17,8 +17,6 @@ var (
 	// ServiceName represents the name of this instantiation of the service.
 	// This defaults to the value of ModuleName unless overridden by the user.
 	ServiceName string
-	// Command represents the name of the specific subcommand and is used to provide more helpful error messages.
-	Command string
 
 	// Verbose will print additional messages to aid with debugging if set to true.
 	Verbose bool

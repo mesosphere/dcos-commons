@@ -101,31 +101,14 @@ func configDir() (string, error) {
 	return "", fmt.Errorf("Unable to resolve CLI config directory: DCOS_DIR, HOME, HOMEDRIVE+HOMEPATH, or USERPROFILE")
 }
 
-// cliConfigValue attempts to read the requested config setting from the active
-// YAML config file directly before falling back to querying disk
+// cliConfigValue attempts to retrieve the requested config setting from one of the following places:
+// 1. DCOS_* envvar override
+// 2. CLI config file (dcos.toml)
+// 3. Running 'dcos config show <name>'
 func cliConfigValue(name string) (string, error) {
-	// dcos-cli supports envvar overrides of config file settings, using one of the following conventions:
-	envName := ""
-	envVal := ""
-	if strings.HasPrefix(name, "core.dcos_") {
-		// core.dcos_foo_bar => DCOS_FOO_BAR or DCOS_DCOS_FOO_BAR
-		envName = "DCOS_" + strings.ToUpper(strings.TrimPrefix(name, "core.dcos_")) // DCOS_FOO_BAR
-		envVal = os.Getenv(envName)
-		if len(envVal) == 0 {
-			envName = "DCOS_" + envName // DCOS_DCOS_FOO_BAR
-			envVal = os.Getenv(envName)
-		}
-	} else if strings.HasPrefix(name, "core.") {
-		// core.foo_bar => DCOS_FOO_BAR
-		envName = "DCOS_" + strings.ToUpper(strings.TrimPrefix(name, "core."))
-		envVal = os.Getenv(envName)
-	} else {
-		// other.foo_bar => DCOS_OTHER_FOO_BAR
-		envName = "DCOS_" + strings.ToUpper(strings.Replace(name, ".", "_", -1))
-		envVal = os.Getenv(envName)
-	}
-	if len(envVal) != 0 {
-		PrintVerbose("Using provided envvar %s for config value %s=%s", envName, name, envVal)
+	// dcos-cli supports envvar overrides of config file settings, using one of several conventions:
+	envVal := cliEnvConfigValue(name)
+	if len(envVal) > 0 {
 		return envVal, nil
 	}
 
@@ -143,8 +126,38 @@ func cliConfigValue(name string) (string, error) {
 	}
 
 	// If no value was listed in the env override and no cluster config file was found,
-	// give up and fall back to querying the CLI directly.
+	// give up and fall back to querying the CLI directly. This is much slower than the above
+	// methods but is a reasonable worst-case fallback.
 	return RunCLICommand("config", "show", name)
+}
+
+func cliEnvConfigValue(name string) string {
+	// dcos-cli supports envvar overrides of config file settings, using one of the following conventions:
+	envName := ""
+	envVal := ""
+	if strings.HasPrefix(name, "core.dcos_") {
+		// core.dcos_foo_bar => DCOS_FOO_BAR or DCOS_DCOS_FOO_BAR
+		// (so e.g. core.dcos_url could be DCOS_DCOS_URL or just DCOS_URL)
+		envName = "DCOS_" + strings.ToUpper(strings.TrimPrefix(name, "core.dcos_")) // DCOS_FOO_BAR
+		envVal = os.Getenv(envName)
+		if len(envVal) == 0 {
+			envName = "DCOS_" + envName // DCOS_DCOS_FOO_BAR
+			envVal = os.Getenv(envName)
+		}
+	} else if strings.HasPrefix(name, "core.") {
+		// core.foo_bar => DCOS_FOO_BAR
+		envName = "DCOS_" + strings.ToUpper(strings.TrimPrefix(name, "core."))
+		envVal = os.Getenv(envName)
+	} else {
+		// other.foo_bar => DCOS_OTHER_FOO_BAR
+		envName = "DCOS_" + strings.ToUpper(strings.Replace(name, ".", "_", -1))
+		envVal = os.Getenv(envName)
+	}
+	if len(envVal) != 0 {
+		PrintVerbose("Using provided envvar %s for config value %s=%s", envName, name, envVal)
+		return envVal
+	}
+	return ""
 }
 
 // cliDiskConfigValue returns a value from the user's CLI configuration on disk,
@@ -206,6 +219,7 @@ func cliDiskConfig(configDir string) (map[string]interface{}, error) {
 				name, err := cliDiskConfigValue(configData, "cluster.name")
 				if err == nil && name == attachedClusterNameOverride {
 					// Matching name found. Use this config.
+					cachedConfig = configData
 					return configData, nil
 				}
 			}
