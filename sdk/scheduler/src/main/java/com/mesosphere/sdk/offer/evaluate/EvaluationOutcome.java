@@ -177,7 +177,7 @@ public class EvaluationOutcome {
         }
 
         public Builder addAllChildren(Collection<EvaluationOutcome> children) {
-            children.addAll(children);
+            this.children.addAll(children);
             return this;
         }
 

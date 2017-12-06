@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -175,7 +176,7 @@ public class ZoneValidatorTest {
 
     private static ServiceSpec getServiceSpec(String detectZones) {
         Map<String, String> env = new HashMap<>();
-        env.put(ZoneValidator.DETECT_ZONES_ENV, detectZones);
+        env.put(EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV, detectZones);
         TaskSpec taskSpec = getTaskSpec(env);
         return getServiceSpec(taskSpec);
     }
