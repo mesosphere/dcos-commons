@@ -125,17 +125,18 @@ def test_authn_client_can_read_and_write(kafka_client, service_account):
 
 
 def test_authz_acls_required(kafka_client, service_account):
+    client_id = kafka_client["id"]
     # Reconfigure to have authz enabled
     # First, create certs  for super, authorized, and unauthorized
     authorized = create_tls_artifacts(
         cn="authorized",
-        task=kafka_client["id"])
+        task=client_id)
     unauthorized = create_tls_artifacts(
         cn="unauthorized",
-        task=kafka_client["id"])
+        task=client_id)
     super_principal = create_tls_artifacts(
         cn="super",
-        task=kafka_client["id"])
+        task=client_id)
 
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

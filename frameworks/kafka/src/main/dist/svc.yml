@@ -81,7 +81,7 @@ pods:
           export SETUP_HELPER_ADVERTISED_LISTENERS=`cat advertised.listeners`
           export SETUP_HELPER_LISTENERS=`cat listeners`
           export SETUP_HELPER_SECURITY_INTER_BROKER_PROTOCOL=`cat security.inter.broker.protocol`
-          export SETUP_HELPER_CALCULATED_SUPER_USERS=`cat super.users`
+          export SETUP_HELPER_SUPER_USERS=`cat super.users`
 
           ./bootstrap -resolve=false
 
