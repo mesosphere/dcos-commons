@@ -225,7 +225,7 @@ public class OfferEvaluator {
         return Optional.empty();
     }
 
-    private static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
+    static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
         stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
         for (EvaluationOutcome child : outcome.getChildren()) {
             logOutcome(stringBuilder, child, indent + "  ");
