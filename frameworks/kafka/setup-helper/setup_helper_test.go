@@ -285,7 +285,7 @@ var setSuperUserTests = []struct {
 		kerberos:       "false",
 		sslAuth:        "true",
 		authz:          "true",
-		expectedOutput: "User:CN=kafka-0-broker.framework,O=Mesosphere\\\\, Inc,L=San Francisco,ST=CA,C=US",
+		expectedOutput: "User:kafka-0-broker.framework",
 	},
 	{
 		description:    "Kerberos disabled, sslAuth enabled, authz enabled, with super users => ssl auth super.users file appended to",
@@ -293,7 +293,7 @@ var setSuperUserTests = []struct {
 		sslAuth:        "true",
 		authz:          "true",
 		superUsers:     "User:evan;User:ben",
-		expectedOutput: "User:evan;User:ben;User:CN=kafka-0-broker.framework,O=Mesosphere\\\\, Inc,L=San Francisco,ST=CA,C=US",
+		expectedOutput: "User:evan;User:ben;User:kafka-0-broker.framework",
 	},
 }
 
@@ -342,17 +342,17 @@ var brokerSuperUserTests = []struct {
 	{
 		brokerCount:    "1",
 		frameworkName:  "framework",
-		expectedOutput: "User:CN=kafka-0-broker.framework,O=Mesosphere\\\\, Inc,L=San Francisco,ST=CA,C=US",
+		expectedOutput: "User:kafka-0-broker.framework",
 	},
 	{
 		brokerCount:    "2",
 		frameworkName:  "framework",
-		expectedOutput: "User:CN=kafka-0-broker.framework,O=Mesosphere\\\\, Inc,L=San Francisco,ST=CA,C=US;User:CN=kafka-1-broker.framework,O=Mesosphere\\\\, Inc,L=San Francisco,ST=CA,C=US",
+		expectedOutput: "User:kafka-0-broker.framework;User:kafka-1-broker.framework",
 	},
 	{
 		brokerCount:    "1",
 		frameworkName:  "a/long/framework/with/slashes/that/is/very/long/friends/seriously/so/long",
-		expectedOutput: "User:CN=er.alongframeworkwithslashesthatisverylongfriendsseriouslysolong,O=Mesosphere\\\\, Inc,L=San Francisco,ST=CA,C=US",
+		expectedOutput: "User:er.alongframeworkwithslashesthatisverylongfriendsseriouslysolong",
 	},
 }
 

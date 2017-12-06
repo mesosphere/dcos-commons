@@ -20,20 +20,20 @@ from tests import auth
 
 log = logging.getLogger(__name__)
 
-@pytest.fixture(scope='module', autouse=True)
-def service_account(configure_security):
-    """
-    Creates service account and yields the name.
-    """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+# @pytest.fixture(scope='module', autouse=True)
+# def service_account(configure_security):
+#     """
+#     Creates service account and yields the name.
+#     """
+#     name = config.SERVICE_NAME
+#     sdk_security.create_service_account(
+#         service_account_name=name, service_account_secret=name)
+#     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+#     sdk_cmd.run_cli(
+#         "security org groups add_user superusers {name}".format(name=name))
+#     yield name
+#     sdk_security.delete_service_account(
+#         service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -125,7 +125,7 @@ def test_authn_client_can_read_and_write(kafka_client, service_account):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def test_authz_acls_required(kafka_client, service_account):
+def test_authz_acls_required(kafka_client):
     client_id = kafka_client["id"]
     # Reconfigure to have authz enabled
     # First, create certs  for super, authorized, and unauthorized
@@ -139,51 +139,51 @@ def test_authz_acls_required(kafka_client, service_account):
         cn="super",
         task=client_id)
 
-    try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        config.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options={
-                "brokers": {
-                    "port_tls": 1030
-                },
-                "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
-                    "security": {
-                        "transport_encryption": {
-                            "enabled": True
-                        },
-                        "ssl_auth": {
-                            "enable_authentication": True
-                        },
-                        "authorization": {
-                            "enabled": True,
-                            "super_users": "User:{}".format(super_principal)
-                        }
-                    }
-                }
-            })
+    # try:
+        # sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        # config.install(
+        #     config.PACKAGE_NAME,
+        #     config.SERVICE_NAME,
+        #     config.DEFAULT_BROKER_COUNT,
+        #     additional_options={
+        #         "brokers": {
+        #             "port_tls": 1030
+        #         },
+        #         "service": {
+        #             "service_account": service_account,
+        #             "service_account_secret": service_account,
+        #             "security": {
+        #                 "transport_encryption": {
+        #                     "enabled": True
+        #                 },
+        #                 "ssl_auth": {
+        #                     "enable_authentication": True
+        #                 },
+        #                 "authorization": {
+        #                     "enabled": True,
+        #                     "super_users": "User:{}".format("super")
+        #                 }
+        #             }
+        #         }
+        #     })
 
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+    auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
-        message = str(uuid.uuid4())
+    message = str(uuid.uuid4())
 
-        log.info("Writing and reading: Writing to the topic, but not super user")
-        assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, "authz.test", message)
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, "authz.test", message)
 
-        log.info("Writing and reading: Writing to the topic, as super user")
-        assert ">>" in write_to_topic("super", client_id, "authz.test", message)
+    log.info("Writing and reading: Writing to the topic, as super user")
+    assert ">>" in write_to_topic("super", client_id, "authz.test", message)
 
-        log.info("Writing and reading: Reading from the topic, but not super user")
-        assert "Not authorized to access topics: [authz.test]" in read_from_topic("authorized", client_id, "authz.test", 1)
-        
-        log.info("Writing and reading: Reading from the topic, as super user")
-        assert message in read_from_topic("super", client_id, "authz.test", 1)
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    assert "Not authorized to access topics: [authz.test]" in read_from_topic("authorized", client_id, "authz.test", 1)
+    
+    log.info("Writing and reading: Reading from the topic, as super user")
+    assert message in read_from_topic("super", client_id, "authz.test", 1)
+    # finally:
+    #     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 def create_tls_artifacts(cn: str, task: str) -> str:
