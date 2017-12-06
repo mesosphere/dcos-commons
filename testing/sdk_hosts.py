@@ -5,6 +5,12 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import logging
+
+import sdk_tasks
+
+LOG = logging.getLogger(__name__)
+
 
 SYSTEM_HOST_SUFFIX = 'mesos'
 AUTOIP_HOST_SUFFIX = 'autoip.dcos.thisdcos.directory'
@@ -64,3 +70,31 @@ def _to_host(host_first, host_second, host_third, port):
     if port != -1:
         return '{}:{}'.format(host, port)
     return host
+
+
+def resolve_hosts(task_id: str, hosts: list) -> bool:
+    """
+    Use bootstrap to resolve the specified list of hosts
+    """
+    bootstrap_cmd = ['bootstrap',
+                     '-print-env=false',
+                     '-template=false',
+                     '-install-certs=false',
+                     '-resolve-hosts', ','.join(hosts)]
+    LOG.info("Running bootstrap to wait for DNS resolution of %s\n\t%s", hosts, bootstrap_cmd)
+    return_code, bootstrap_stdout, bootstrap_stderr = sdk_tasks.task_exec(task_id, ' '.join(bootstrap_cmd))
+
+    LOG.info("bootstrap return code: %s", return_code)
+    LOG.info("bootstrap STDOUT: %s", bootstrap_stdout)
+    LOG.info("bootstrap STDERR: %s", bootstrap_stderr)
+
+    # Note that bootstrap returns its output in STDERR
+    resolved = 'SDK Bootstrap successful.' in bootstrap_stderr
+    if not resolved:
+        for host in hosts:
+            resolved_host_string = "Resolved '{host}' =>".format(host=host)
+            host_resolved = resolved_host_string in bootstrap_stdout
+            if not host_resolved:
+                LOG.error("Could not resolve: %s", host)
+
+    return resolved
