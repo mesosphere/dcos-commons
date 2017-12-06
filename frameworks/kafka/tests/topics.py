@@ -6,7 +6,7 @@ import sdk_tasks
 LOG = logging.getLogger(__name__)
 
 
-def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: list, env_str=None):
+def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
     """
     Add Read/Write ACLs for the specifed user and topic
     """
