@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Kafka: Troubleshooting</title>
+<title>Kafka: SSL Auth</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -362,84 +362,199 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Kafka: Troubleshooting</h1>
+<h1>Kafka: SSL Auth</h1>
 <div id="content">
-<p>The Kafka service will be listed as “Unhealthy” when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the <code class="highlighter-rouge">dcos beta-kafka topic under_replicated_partitions</code> and <code class="highlighter-rouge">dcos beta-kafka topic describe &lt;topic-name&gt;</code> commands to find the problem broker and determine what actions are required.</p>
+<h2 id="how-to-connect-an-authenticated-client">How to connect an authenticated client</h2>
 
-<p>Possible repair actions include <code class="highlighter-rouge">dcos beta-kafka broker restart &lt;broker-id&gt;</code> and <code class="highlighter-rouge">dcos beta-kafka broker replace &lt;broker-id&gt;</code>. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.</p>
+<h3 id="create-a-dcos-ca-signed-certificate-note-this-can-be-replaced-with-some-enterprise-cli-calls">Create a DC/OS CA signed certificate (Note: This can be replaced with some enterprise CLI calls)</h3>
 
-<h1 id="configuration-update-errors">Configuration Update Errors</h1>
+<h4 id="manually">Manually</h4>
+<ol>
+  <li>Generate a private key
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>openssl genrsa -out priv.key 2048
+</code></pre>
+    </div>
+  </li>
+  <li>Generate a CSR. Note: The <code class="highlighter-rouge">principal</code> of the TLS cert is the values of the CSR (e.g. CN=host1.example.com,OU=,O=Confluent,L=London,ST=London,C=GB)
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>openssl req -new -sha256 -key priv.key -out request.csr
+</code></pre>
+    </div>
+  </li>
+  <li>Make a request to the DC/OS CA
+```bash
+#Request
+curl -X POST \
+  -H “Authorization: token=$(dcos config show core.dcos_acs_token)” \
+  http://bwood-8zp-elasticl-1tcip3im8ushp-1069834978.us-west-2.elb.amazonaws.com/ca/api/v2/sign \
+  -d ‘{“certificate_request”: “<json-encoded-value-of-request.csr>"}'</json-encoded-value-of-request.csr></li>
+</ol>
 
-<p>The bolded entries below indicate the necessary changes needed to create a valid configuration:</p>
+<h1 id="response">Response</h1>
+<p>{“success”:true,”result”:{“certificate”:”&lt;json-encoded-public-key”},”errors”:[],”messages”:[]}</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>4. Decode the JSON and save the generated certificate to `pub.crt`
 
-<pre>
-$ curl -H "Authorization: token=$AUTH_TOKEN" "$DCOS_URI/service/kafka/v1/plan"
-GET /service/kafka/v1/plan HTTP/1.1
-
-{
-    "phases": [
-        {
-             "id": "c26bec40-3290-4501-b3da-945d0abef55f",
-            "name": "Reconciliation",
-            "steps": [
-                {
-                    "id": "e56d2e4a-e05b-42ad-b4a0-d74b68d206af",
-                    "message": "Reconciliation complete",
-                    "name": "Reconciliation",
-                    "status": "COMPLETE"
-                },
-                "status": "COMPLETE"
-            ]
-        },
-        {
-            "id": "226a780e-132f-4fea-b584-7712b07cf357",
-            "name": "Update to: 72cecf77-dbc5-4ae6-8f91-c88702b9a6a8",
-            "steps": [
-                {
-                    "id": "d4e72ee8-4608-423a-9566-1632ff0ab211",
-                    "message": "Broker-0 is COMPLETE",
-                    "name": "broker-0",
-                    "status": "COMPLETE"
-                },
-                {
-                    "id": "3ea30deb-9660-42f1-ad23-bd418d718999",
-                    "message": "Broker-1 is COMPLETE",
-                    "name": "broker-1",
-                    "status": "COMPLETE"
-                },
-                {
-                    "id": "4da21440-de73-4772-9c85-877f2677e62a",
-                    "message": "Broker-2 is COMPLETE",
-                    "name": "broker-2",
-                    "status": "COMPLETE"
-                }
-            ],
-            "status": "COMPLETE"
-        }
-    ],
-    <b>"errors": [
-        "Validation error on field \"BROKER_COUNT\": Decreasing this value (from 3 to 2) is not supported."
-    ],</b>
-    <b>"status": "Error"</b>
-}
-</pre>
-
-<h1 id="replacing-a-permanently-failed-server">Replacing a Permanently Failed Server</h1>
-
-<p>If a machine has permanently failed, manual intervention is required to replace the broker or brokers that resided on that machine. Because DC/OS Kafka uses persistent volumes, the service continuously attempts to replace brokers where their data has been persisted. In the case where a machine has permanently failed, use the Kafka CLI to replace the brokers.</p>
-
-<p>In the example below, the broker with id <code class="highlighter-rouge">0</code> will be replaced on new machine as long as cluster resources are sufficient to satisfy the service’s placement constraints and resource requirements.</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>```bash
-$ dcos beta-kafka broker replace 0
-```
+#### Using the Enterprise CLI
+1. Install the DC/OS Enterprise CLI
+```bash
+dcos package install dcos-enterprise-cli --yes
 </code></pre>
 </div>
+<ol>
+  <li>Create a signed certificate
+```bash
+dcos security cluster ca newcert –cn test –host test
+certificate: ‘<Cert>'
+certificate_request: '<CSR>'
+private_key: '<Private Key=""> '</Private></CSR></Cert></li>
+</ol>
 
-<h1 id="extending-the-kill-grace-period">Extending the Kill Grace Period</h1>
+<h1 id="note-right-now-these-output-with-extra-newlines-">Note: right now these output with extra newlines :(</h1>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+### Install Kafka with TLS Auth Enabled
+1. Create a DC/OS Service Account
+```bash
+# Install the enterprise CLI
+dcos package install dcos-enterprise-cli --yes
 
-<p>If the Kafka brokers are not completing the clean shutdown within the configured
-<code class="highlighter-rouge">brokers.kill_grace_period</code> (Kill Grace Period), extend the Kill Grace Period, see <a href="managing.md#extend-the-kill-grace-period">Managing - Extend the Kill Grace Period</a>.</p>
+# Create a service account
+dcos security org service-accounts keypair priv.pem pub.pem
+dcos security org service-accounts create -p pub.pem -d "testing" service-acct
+
+# Set the service account secret
+dcos security secrets create-sa-secret priv.pem service-acct secret
+
+# Grant it superuser permissions (required for TLS currently)
+dcos security org users grant service-acct dcos:superuser full
+</code></pre>
+</div>
+<ol>
+  <li>Install the kafka package
+```bash
+vi /tmp/options.json
+{
+  “service”: {
+ “service_account”: “service-acct”,
+ “service_account_secret”: “secret”,
+ “security”: {
+   “tls”: true,
+   “tls_enable_authn”: true
+ }
+  }
+}</li>
+</ol>
+
+<p>dcos package install beta-kafka –options=/tmp/options.json</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>
+### Connect a client
+0. Get the VIP from the endpoints API
+```bash
+dcos beta-kafka --name=kafka endpoints broker-tls
+
+{
+  "address": [
+    "10.0.1.168:1025",
+    "10.0.3.145:1025",
+    "10.0.2.176:1025"
+  ],
+  "dns": [
+    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025",
+    "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025"
+  ],
+  "vip": "broker-tls.kafka.l4lb.thisdcos.directory:9093"
+}
+</code></pre>
+</div>
+<ol>
+  <li>SSH to the leader
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos node ssh --master-proxy --leader
+</code></pre>
+    </div>
+  </li>
+  <li>Copy over the content of pub.crt and priv.key via copy/paste</li>
+  <li>Copy the ca bundle to the working directory
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>cp /run/dcos/pki/CA/ca-bundle.crt .
+</code></pre>
+    </div>
+  </li>
+  <li>Convert the pub/priv keypair to a PKCS12 key
+```bash
+openssl pkcs12 -export -in pub.crt -inkey priv.key \
+            -out keypair.p12 -name keypair \
+            -CAfile ca-bundle.crt -caname root</li>
+</ol>
+
+<h1 id="when-prompted-set-the-password-to-export">When prompted, set the password to “export”</h1>
+<div class="highlighter-rouge"><pre class="highlight"><code>5. Run the kafka docker image
+```bash
+docker run --rm -ti \
+    -v /home/core:/tmp \
+    -w /opt/kafka/bin \
+    wurstmeister/kafka \
+    bash
+</code></pre>
+</div>
+<ol>
+  <li>Create the keystore
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>keytool -importkeystore <span class="se">\</span>
+     -deststorepass changeit -destkeypass changeit -destkeystore /tmp/keystore.jks <span class="se">\</span>
+     -srckeystore /tmp/keypair.p12 -srcstoretype PKCS12 -srcstorepass <span class="nb">export</span> <span class="se">\</span>
+     -alias keypair
+</code></pre>
+    </div>
+  </li>
+  <li>Create the truststore
+```bash
+keytool -import \
+  -trustcacerts \
+  -alias root \
+  -file /tmp/ca-bundle.crt \
+  -storepass changeit \
+  -keystore /tmp/truststore.jks</li>
+</ol>
+
+<h1 id="youll-be-prompted-to-trust-a-cert-just-say-yes-">You’ll be prompted to trust a cert. Just say yes :)</h1>
+<div class="highlighter-rouge"><pre class="highlight"><code>8. Write the client config
+```bash
+cat &gt;/tmp/client.properties &lt;&lt; EOL
+security.protocol = SSL
+ssl.truststore.location = /tmp/truststore.jks 
+ssl.truststore.password = changeit
+ssl.keystore.location = /tmp/keystore.jks 
+ssl.keystore.password = changeit
+EOL
+</code></pre>
+</div>
+<ol>
+  <li>Open a second terminal. SSH to the master. Start the docker container with the same command in step 5.</li>
+  <li>Start the consumer in one terminal, and the producer in another
+```bash
+    <h1 id="terminal-session-1">Terminal session 1</h1>
+    <p>./kafka-console-producer.sh \
+  –broker-list broker-tls.kafka.l4lb.thisdcos.directory:9093 \
+  –topic test \
+  –producer.config /tmp/client.properties</p>
+  </li>
+</ol>
+
+<h1 id="terminal-session-2">Terminal session 2</h1>
+<p>./kafka-console-consumer.sh \
+  –bootstrap-server broker-tls.kafka.l4lb.thisdcos.directory:9093 \
+  –topic test \
+  –consumer.config /tmp/client.properties
+```</p>
+<ol>
+  <li>Send messages to your heart’s content. Note: Starting the producer will create the topic test, but it will take the consumer a few moments to be happy (a leader for the test topic must be elected).</li>
+</ol>
+
+<h4 id="references">References</h4>
+<ul>
+  <li>https://docs.mesosphere.com/1.10/cli/enterprise-cli/#ent-cli-install</li>
+  <li>https://docs.mesosphere.com/1.10/security/service-auth/custom-service-auth/</li>
+  <li>https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.2/bk_security/content/ch_wire-kafka.html</li>
+  <li>https://www.confluent.io/blog/apache-kafka-security-authorization-authentication-encryption/</li>
+  <li>https://stackoverflow.com/questions/906402/how-to-import-an-existing-x509-certificate-and-private-key-in-java-keystore-to-u</li>
+</ul>
 
 </div>
 </div>
