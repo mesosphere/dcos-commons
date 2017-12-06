@@ -16,6 +16,7 @@ import sdk_utils
 import sdk_security
 
 from tests import config
+from tests import auth
 
 log = logging.getLogger(__name__)
 
@@ -165,7 +166,9 @@ def test_authz_acls_required(kafka_client, service_account):
                     }
                 }
             })
-            
+
+        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+
         message = str(uuid.uuid4())
 
         log.info("Writing and reading: Writing to the topic, but not super user")

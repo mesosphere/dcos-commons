@@ -16,6 +16,7 @@ pods:
       - {{CLIENT_STATSD_URI}}
       - {{SETUP_HELPER_URI}}
       - {{ZOOKEEPER_CLIENT_URI}}
+      - {{CUSTOM_KAFKA_PRINCIPAL_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
@@ -89,8 +90,11 @@ pods:
           # as a custom zookeeper library to support our own ZK running
           # kerberized. The custom zk library does not do DNS reverse resolution
           # of the ZK hostnames.
+          #
+          # Additionally, we include a custom principal builder
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
           mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          mv -v kafka-custom-principal-builder* $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
           
           # Start kafka.
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \

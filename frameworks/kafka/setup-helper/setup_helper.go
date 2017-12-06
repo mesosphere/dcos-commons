@@ -255,7 +255,7 @@ func getBrokerSSLSuperUsers() []string {
 		if length := len(cn); length > cnMaxLength {
 			cn = cn[length-cnMaxLength:]
 		}
-		supers = append(supers, fmt.Sprintf("User:CN=%s,O=Mesosphere\\, Inc,L=San Francisco,ST=CA,C=US", cn))
+		supers = append(supers, fmt.Sprintf(`User:CN=%s,O=Mesosphere\\, Inc,L=San Francisco,ST=CA,C=US`, cn))
 	}
 
 	return supers
