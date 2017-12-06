@@ -91,13 +91,15 @@ socket.request.max.bytes={{KAFKA_SOCKET_REQUEST_MAX_BYTES}}
 ############################# Authorization Settings #############################
 authorizer.class.name=kafka.security.auth.SimpleAclAuthorizer
 super.users={{SETUP_HELPER_SUPER_USERS}}
-principal.builder.class=de.thmshmm.kafka.CustomPrincipalBuilder
 allow.everyone.if.no.acl.found={{SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND}}
+{{#SECURITY_SSL_AUTHENTICATION_ENABLED}}
+principal.builder.class=de.thmshmm.kafka.CustomPrincipalBuilder
+{{/SECURITY_SSL_AUTHENTICATION_ENABLED}}
 {{/SECURITY_AUTHORIZATION_ENABLED}}
 
 ############################# Log Basics #############################
 
-# A comma seperated list of directories under which to store log files
+# A comma separated list of directories under which to store log files
 log.dirs={{KAFKA_DISK_PATH}}/broker-{{POD_INSTANCE_INDEX}}
 
 # The default number of log partitions per topic. More partitions allow greater
