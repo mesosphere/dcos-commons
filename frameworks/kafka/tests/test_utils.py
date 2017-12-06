@@ -1,4 +1,5 @@
 import logging
+import retrying
 
 import sdk_cmd
 import sdk_tasks
@@ -72,6 +73,20 @@ def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(topic_name), json=True)
     assert len(topic_info) == 1
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
+
+
+def wait_for_topic(kafka: dict, topic_name: str):
+    """
+    Execute `dcos kafka topic describe` to wait for topic creation.
+    """
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=60 * 1000)
+    def describe(topic):
+        sdk_cmd.svc_cli(kafka["package_name"], kafka["service"]["name"],
+                        "topic describe {}".format(topic),
+                        json=True)
+
+    describe(topic_name)
 
 
 def assert_topic_lists_are_equal_without_automatic_topics(expected, actual):
