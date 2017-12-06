@@ -92,22 +92,6 @@
               }
             ],
             "properties": {
-                "transport_encryption": {
-                  "type": "object",
-                  "description": "Transport encryption settings.",
-                  "properties": {
-                    "enabled": {
-                      "description": "Enable transport encryption (TLS).",
-                      "type": "boolean",
-                      "default": false
-                    },
-                    "allow_plaintext": {
-                      "description": "Allow plainttext alongside encrypted traffic. ",
-                      "type": "boolean",
-                      "default": false
-                    }
-                  }
-                },
                 "ssl_auth": {
                   "type": "object",
                   "description": "SSL Authn/z configuration properties.",
