@@ -84,7 +84,7 @@ socket.request.max.bytes={{KAFKA_SOCKET_REQUEST_MAX_BYTES}}
 {{#SECURITY_AUTHORIZATION_ENABLED}}
 ############################# Authorization Settings #############################
 authorizer.class.name=kafka.security.auth.SimpleAclAuthorizer
-super.users={{SETUP_HELPER_SUPER_USERS}}
+super.users="{{SETUP_HELPER_SUPER_USERS}}"
 allow.everyone.if.no.acl.found={{SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND}}
 {{/SECURITY_AUTHORIZATION_ENABLED}}
 
