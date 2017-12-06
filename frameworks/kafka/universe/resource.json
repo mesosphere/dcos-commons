@@ -12,7 +12,7 @@
       "statsd-client-jar": "http://downloads.mesosphere.com/kafka/assets/java-dogstatsd-client-2.3.jar",
       "setup-helper-zip": "{{artifact-dir}}/setup-helper.zip",
       "zookeeper-client-jar": "http://downloads.mesosphere.com/kafka/assets/zookeeper-3.4.10.jar",
-      "custom-kafka-principal-jar": "https://s3-us-west-2.amazonaws.com/infinity-artifacts/autodelete7d/kafka-custom-principal-builder-1.0-SNAPSHOT.jar"
+      "custom-kafka-principal-jar": "http://downloads.mesosphere.com/kafka/assets/kafka-custom-principal-builder-1.0-0.jar"
     }
   },
   "images": {
