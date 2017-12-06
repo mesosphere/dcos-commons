@@ -22,7 +22,7 @@ const (
 	ipEnvvar              = "MESOS_CONTAINER_IP"
 	kerberosPrimaryEnvvar = "SECURITY_KERBEROS_PRIMARY"
 	kerberosRealmEnvvar   = "SECURITY_KERBEROS_REALM"
-	sslAuthEnvvar         = "SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION"
+	sslAuthEnvvar         = "SECURITY_SSL_AUTHENTICATION_ENABLED"
 	authorizationEnvvar   = "SECURITY_AUTHORIZATION_ENABLED"
 	superUsersEnvvar      = "SECURITY_AUTHORIZATION_SUPER_USERS"
 	brokerCountEnvvar     = "BROKER_COUNT"

@@ -82,9 +82,9 @@
                         "enabled": {"enum": [ false ]}
                       }
                     },
-                    "ssl_auth": {
+                    "ssl_authentication": {
                       "properties": {
-                        "enable_authentication": { "enum": [ true ]}
+                        "enabled": { "enum": [ true ]}
                       }
                     }
                   }
@@ -108,11 +108,11 @@
                     }
                   }
                 },
-                "ssl_auth": {
+                "ssl_authentication": {
                   "type": "object",
                   "description": "SSL Authn/z configuration properties.",
                   "properties": {
-                    "enable_authentication": {
+                    "enabled": {
                       "description": "Enable SSL authentication.",
                       "type": "boolean",
                       "default": false

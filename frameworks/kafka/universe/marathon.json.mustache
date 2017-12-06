@@ -78,9 +78,9 @@
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
     {{/service.security.transport_encryption.allow_plaintext}}
 
-    {{#service.security.ssl_auth.enable_authentication}}
-    "TASKCFG_ALL_SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION": "{{service.security.ssl_auth.enable_authentication}}",
-    {{/service.security.ssl_auth.enable_authentication}}
+    {{#service.security.ssl_authentication.enabled}}
+    "TASKCFG_ALL_SECURITY_SSL_AUTHENTICATION_ENABLED": "{{service.security.ssl_authentication.enabled}}",
+    {{/service.security.ssl_authentication.enabled}}
     {{/service.security.transport_encryption.enabled}}
 
     {{#service.security.kerberos.enabled}}

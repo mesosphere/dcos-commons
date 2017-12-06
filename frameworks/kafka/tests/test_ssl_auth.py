@@ -116,8 +116,8 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
                         "transport_encryption": {
                             "enabled": True
                         },
-                        "ssl_auth": {
-                            "enable_authentication": True
+                        "ssl_authentication": {
+                            "enabled": True
                         }
                     }
                 }
@@ -162,8 +162,8 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
                         "transport_encryption": {
                             "enabled": True
                         },
-                        "ssl_auth": {
-                            "enable_authentication": True
+                        "ssl_authentication": {
+                            "enabled": True
                         },
                         "authorization": {
                             "enabled": True,
@@ -190,7 +190,7 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
 
         log.info("Writing and reading: Reading from the topic, as authorized user")
         assert "Not authorized to access" in read_from_topic("authorized", client_id, "authz.test", 1)
-        
+
         log.info("Writing and reading: Reading from the topic, as super user")
         read_result = read_from_topic("super", client_id, "authz.test", 1)
         assert super_message in read_result and authorized_message not in read_result
@@ -230,8 +230,8 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                         "transport_encryption": {
                             "enabled": True
                         },
-                        "ssl_auth": {
-                            "enable_authentication": True
+                        "ssl_authentiation": {
+                            "enabled": True
                         },
                         "authorization": {
                             "enabled": True,
@@ -255,7 +255,7 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
 
         log.info("Writing and reading: Writing to the topic, as authorized user")
         assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
-        
+
         log.info("Writing and reading: Writing to the topic, as unauthorized user")
         assert ">>" in write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
 
@@ -264,10 +264,10 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
 
         log.info("Writing and reading: Reading from the topic, as authorized user")
         assert authorized_message in read_from_topic("authorized", client_id, "authz.test", 3)
-        
+
         log.info("Writing and reading: Reading from the topic, as unauthorized user")
         assert unauthorized_message in read_from_topic("unauthorized", client_id, "authz.test", 3)
-        
+
         log.info("Writing and reading: Reading from the topic, as super user")
         assert super_message in read_from_topic("super", client_id, "authz.test", 3)
 
@@ -277,7 +277,7 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
             config.SERVICE_NAME,
             "endpoint zookeeper")).strip()
         topics.add_acls("authorized", client_id, "authz.test", zookeeper_endpoint, env_str=None)
-        
+
         # Re-roll the messages so we really prove auth is in place.
         super_message = str(uuid.uuid4())
         authorized_message = str(uuid.uuid4())
@@ -285,20 +285,20 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
 
         log.info("Writing and reading: Writing to the topic, as authorized user")
         assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
-        
+
         log.info("Writing and reading: Writing to the topic, as unauthorized user")
         assert "Not authorized to access" in write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
 
         log.info("Writing and reading: Writing to the topic, as super user")
         assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
-        
+
         log.info("Writing and reading: Reading from the topic, as authorized user")
         read_result = read_from_topic("authorized", client_id, "authz.test", 5)
         assert authorized_message in read_result and unauthorized_message not in read_result
-        
+
         log.info("Writing and reading: Reading from the topic, as unauthorized user")
         assert "Not authorized to access" in read_from_topic("unauthorized", client_id, "authz.test", 1)
-        
+
         log.info("Writing and reading: Reading from the topic, as super user")
         read_result = read_from_topic("super", client_id, "authz.test", 5)
         assert super_message in read_result and unauthorized_message not in read_result
@@ -310,13 +310,13 @@ def create_tls_artifacts(cn: str, task: str) -> str:
     pub_path = "{}_pub.crt".format(cn)
     priv_path = "{}_priv.key".format(cn)
     log.info("Generating certificate. cn={}, task={}".format(cn, task))
-    
+
     output = sdk_tasks.task_exec(task,
         'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr \
         -subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
     log.info(output)
     assert output[0] is 0
-    
+
     raw_csr = sdk_tasks.task_exec(task, 'cat request.csr')
     assert raw_csr[0] is 0
     request = {
@@ -352,7 +352,7 @@ def create_keystore_truststore(cn: str, task: str):
     priv_path = "{}_priv.key".format(cn)
     keystore_path = "{}_keystore.jks".format(cn)
     truststore_path = "{}_truststore.jks".format(cn)
-    
+
     log.info("Generating keystore and truststore, task:{}".format(task))
     output = sdk_tasks.task_exec(task, "curl -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
 
@@ -389,7 +389,7 @@ def write_client_properties(cn: str, task: str) -> str:
 security.protocol = SSL
 ssl.truststore.location = {cn}_truststore.jks
 ssl.truststore.password = changeit
-ssl.keystore.location = {cn}_keystore.jks 
+ssl.keystore.location = {cn}_keystore.jks
 ssl.keystore.password = changeit
 EOL\"""".format(cn=cn))
 
