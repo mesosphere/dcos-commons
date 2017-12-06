@@ -47,10 +47,11 @@ pods:
       server:
         goal: RUNNING
         resource-set: server-resources
-        cmd: >
-                ./bootstrap
+        cmd: |
+                set -e
 
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                ./bootstrap
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -77,7 +78,8 @@ pods:
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-                export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                export TASK_IP=$(./bootstrap --get-task-ip) &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60
