@@ -16,6 +16,7 @@ def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=
         --authorizer-properties zookeeper.connect={zookeeper_endpoint} \
         --add \
         --allow-principal User:{user} \
+        --consumer --group=* \
         --operation Read --operation Write\"".format(setup_env="{}  && ".format(env_str) if env_str else "",
                                                      topic_name=topic,
                                                      zookeeper_endpoint=zookeeper_endpoint,
