@@ -48,16 +48,6 @@
             "type": "boolean",
             "default":  false
           },
-          "tls": {
-            "description": "Enable TLS support (requires Enterprise DC/OS running in strict security mode).",
-            "type": "boolean",
-            "default": false
-          },
-          "tls_allow_plaintext": {
-            "description": "Keep the plaintext port open when the TLS is enabled. (Allows clients to connect using a non-encrypted connection and takes effect only if the TLS is enabled.)",
-            "type": "boolean",
-            "default": false
-          },
           "virtual_network_name": {
             "description": "The name of the virtual network to join",
             "type": "string",
@@ -83,7 +73,52 @@
           "security": {
             "description": "Kafka security settings",
             "type": "object",
+            "allOf": [
+              {
+                "not": {
+                  "properties": {
+                    "transport_encryption": {
+                      "properties": {
+                        "enabled": {"enum": [ false ]}
+                      }
+                    },
+                    "ssl_auth": {
+                      "properties": {
+                        "enable_authentication": { "enum": [ true ]}
+                      }
+                    }
+                  }
+                }
+              }
+            ],
             "properties": {
+                "transport_encryption": {
+                  "type": "object",
+                  "description": "Transport encryption settings.",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable transport encryption (TLS).",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "allow_plaintext": {
+                      "description": "Allow plainttext alongside encrypted traffic. ",
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
+                "ssl_auth": {
+                  "type": "object",
+                  "description": "SSL Authn/z configuration properties.",
+                  "properties": {
+                    "enable_authentication": {
+                      "description": "Enable SSL authentication.",
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
                 "kerberos": {
                   "type": "object",
                   "description": "Kerberos configuration properties.",

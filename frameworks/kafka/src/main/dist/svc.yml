@@ -32,7 +32,7 @@ pods:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
-          {{^TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+          {{^TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
@@ -40,9 +40,9 @@ pods:
             vip:
               prefix: broker
               port: 9092
-          {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
-          {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
-          {{#TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT}}
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
@@ -50,7 +50,7 @@ pods:
             vip:
               prefix: broker
               port: 9092
-          {{/TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT}}
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
           broker-tls:
             port: {{BROKER_PORT_TLS}}
             env-key: KAFKA_BROKER_PORT_TLS
@@ -58,7 +58,7 @@ pods:
             vip:
               prefix: broker-tls
               port: 9093
-          {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
@@ -126,11 +126,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: broker
             type: KEYSTORE
-        {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
