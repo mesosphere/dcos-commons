@@ -1,10 +1,6 @@
 import logging
 import pytest
-import subprocess
 import uuid
-import json
-import time
-import shakedown
 
 import sdk_auth
 import sdk_cmd
@@ -13,7 +9,6 @@ import sdk_install
 import sdk_marathon
 import sdk_tasks
 import sdk_utils
-import sdk_security
 
 from tests import auth
 from tests import config
@@ -177,56 +172,53 @@ def test_authz_acls_required(kafka_client, kafka_server):
     message = str(uuid.uuid4())
 
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, topic_name, message)
+    assert is_not_authorized(write_to_topic("authorized", client_id, topic_name, message))
 
     log.info("Writing and reading: Writing to the topic, as super user")
     assert ">>" in write_to_topic("super", client_id, topic_name, message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert "Not authorized to access topics: [authz.test]" in read_from_topic("authorized", client_id, topic_name, 1)
+    assert is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1))
 
     log.info("Writing and reading: Reading from the topic, as super user")
     assert message in read_from_topic("super", client_id, topic_name, 1)
 
-    try:
+    zookeeper_endpoint = sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "endpoint zookeeper").strip()
 
-        zookeeper_endpoint = sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "endpoint zookeeper").strip()
+    # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
+    topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
 
-        # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
-        topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
+    # Send a second message which should not be authorized
+    second_message = str(uuid.uuid4())
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert ">>" in write_to_topic("authorized", client_id, topic_name, second_message)
 
-        second_message = str(uuid.uuid4())
-        log.info("Writing and reading: Writing to the topic, but not super user")
-        assert ">>" in write_to_topic("authorized", client_id, topic_name, second_message)
+    log.info("Writing and reading: Writing to the topic, as super user")
+    assert ">>" in write_to_topic("super", client_id, topic_name, second_message)
 
-        log.info("Writing and reading: Writing to the topic, as super user")
-        assert ">>" in write_to_topic("super", client_id, topic_name, second_message)
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    topic_output = read_from_topic("authorized", client_id, topic_name, 3)
+    assert message in topic_output
+    assert second_message in topic_output
 
-        log.info("Writing and reading: Reading from the topic, but not super user")
-        topic_output = read_from_topic("authorized", client_id, topic_name, 3)
-        assert message in topic_output
-        assert second_message in topic_output
+    log.info("Writing and reading: Reading from the topic, as super user")
+    topic_output = read_from_topic("super", client_id, topic_name, 3)
+    assert message in topic_output
+    assert second_message in topic_output
 
-        log.info("Writing and reading: Reading from the topic, as super user")
-        topic_output = read_from_topic("super", client_id, topic_name, 3)
-        assert message in topic_output
-        assert second_message in topic_output
+    # Check that the unauthorized client can still not read or write from the topic.
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert is_not_authorized(write_to_topic("unauthorized", client_id, topic_name, second_message))
 
-        log.info("Writing and reading: Writing to the topic, but not super user")
-        assert "Not authorized to access topics: [authz.test]" in write_to_topic("unauthorized", client_id, topic_name, second_message)
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    assert is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1))
 
-        log.info("Writing and reading: Reading from the topic, but not super user")
-        assert "Not authorized to access topics: [authz.test]" in read_from_topic("unauthorized", client_id, topic_name, 1)
 
-    except Exception as e:
-
-        log.error("%s", e)
-        while True:
-            log.info("Sleeping for 30s...")
-            time.sleep(30)
+def is_not_authorized(output: str) -> bool:
+    return "Not authorized to access topics: [authz.test]" in output
 
 
 def write_client_properties(primary: str, task: str) -> str:
