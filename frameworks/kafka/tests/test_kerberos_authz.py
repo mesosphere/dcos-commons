@@ -17,6 +17,7 @@ import sdk_security
 
 from tests import auth
 from tests import config
+from tests import topics
 
 log = logging.getLogger(__name__)
 
@@ -166,23 +167,64 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(kafka_client):
+def test_authz_acls_required(kafka_client, kafka_server):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+
+    topic_name = "authz.test"
+
     message = str(uuid.uuid4())
 
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, "authz.test", message)
+    assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, topic_name, message)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert ">>" in write_to_topic("super", client_id, "authz.test", message)
+    assert ">>" in write_to_topic("super", client_id, topic_name, message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert "Not authorized to access topics: [authz.test]" in read_from_topic("authorized", client_id, "authz.test", 1)
+    assert "Not authorized to access topics: [authz.test]" in read_from_topic("authorized", client_id, topic_name, 1)
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    assert message in read_from_topic("super", client_id, "authz.test", 1)
+    assert message in read_from_topic("super", client_id, topic_name, 1)
+
+    try:
+
+        zookeeper_dns = sdk_cmd.svc_cli(
+            kafka_server["package_name"],
+            kafka_server["service"]["name"],
+            "endpoint zookeeper", json=True)["dns"]
+
+        # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
+        topics.add_acls("authorized", client_id, topic_name, zookeeper_dns, env_str=None)
+
+        second_message = str(uuid.uuid4())
+        log.info("Writing and reading: Writing to the topic, but not super user")
+        assert ">>" in write_to_topic("authorized", client_id, topic_name, second_message)
+
+        log.info("Writing and reading: Writing to the topic, as super user")
+        assert ">>" in write_to_topic("super", client_id, topic_name, second_message)
+
+        log.info("Writing and reading: Reading from the topic, but not super user")
+        topic_output = read_from_topic("authorized", client_id, topic_name, 3)
+        assert message in topic_output
+        assert second_message in topic_output
+
+        log.info("Writing and reading: Reading from the topic, as super user")
+        topic_output = read_from_topic("super", client_id, topic_name, 3)
+        assert message in topic_output
+        assert second_message in topic_output
+
+        log.info("Writing and reading: Writing to the topic, but not super user")
+        assert "Not authorized to access topics: [authz.test]" in write_to_topic("unauthorized", client_id, topic_name, second_message)
+
+        log.info("Writing and reading: Reading from the topic, but not super user")
+        assert "Not authorized to access topics: [authz.test]" in read_from_topic("unauthorized", client_id, topic_name, 1)
+
+    except:
+        while True:
+            log.info("Sleeping for 30s...")
+            time.sleep(30)
 
 
 def write_client_properties(primary: str, task: str) -> str:
