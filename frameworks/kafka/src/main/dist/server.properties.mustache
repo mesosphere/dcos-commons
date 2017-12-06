@@ -19,6 +19,12 @@
 # The id of the broker. This must be set to a unique integer for each broker.
 broker.id={{POD_INSTANCE_INDEX}}
 
+{{#DETECT_ZONES}}
+{{#ZONE}}
+broker.rack={{ZONE}}
+{{/ZONE}}
+{{/DETECT_ZONES}}
+
 ############################# Socket Server Settings #############################
 
 # The address the socket server listens on. It will get the value returned from
@@ -27,23 +33,17 @@ broker.id={{POD_INSTANCE_INDEX}}
 #     listeners = security_protocol://host_name:port
 #   EXAMPLE:
 #     listeners = PLAINTEXT://your.host.name:9092
-{{^SECURITY_KERBEROS_ENABLED}}
-{{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
-listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}}
-port={{KAFKA_BROKER_PORT}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
-{{/SECURITY_KERBEROS_ENABLED}}
-
+#
+# Hostname and port the broker will advertise to producers and consumers. If not set,
+# it uses the value for "listeners" if configured.  Otherwise, it will use the value
+# returned from java.net.InetAddress.getCanonicalHostName().
+#
+# advertised.listeners=PLAINTEXT://your.host.name:9092
+{{ADVERTISED_LISTENERS}}
+{{LISTENERS}}
 
 {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 ############################# TLS Settings #############################
-{{#SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-listeners=PLAINTEXT://:{{KAFKA_BROKER_PORT}},SSL://:{{KAFKA_BROKER_PORT_TLS}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-{{^SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-listeners=SSL://:{{KAFKA_BROKER_PORT_TLS}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-
 ssl.keystore.location={{MESOS_SANDBOX}}/broker.keystore
 ssl.keystore.password=notsecure
 ssl.key.password=notsecure
@@ -53,38 +53,24 @@ ssl.truststore.password=notsecure
 
 ssl.enabled.protocols=TLSv1.2
 
-security.inter.broker.protocol=SSL
-{{#SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-advertised.listeners=PLAINTEXT://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT}},SSL://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT_TLS}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-{{^SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-advertised.listeners=SSL://kafka-{{POD_INSTANCE_INDEX}}-broker.{{FRAMEWORK_NAME}}.autoip.dcos.thisdcos.directory:{{KAFKA_BROKER_PORT_TLS}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-
-{{#SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-port={{KAFKA_BROKER_PORT}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-{{^SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
-port={{KAFKA_BROKER_PORT_TLS}}
-{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
+# If Kerberos is NOT enabled, then SSL authentication can be turned on.
+{{^SECURITY_KERBEROS_ENABLED}}
+{{#SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION}}
+ssl.client.auth=required
+{{/SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION}}
+{{/SECURITY_KERBEROS_ENABLED}}
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
 {{#SECURITY_KERBEROS_ENABLED}}
-############################# SASL Settings #############################
-listeners=SASL_PLAINTEXT://:{{KAFKA_BROKER_PORT}}
-advertised.listeners=SASL_PLAINTEXT://{{TASK_NAME}}.{{FRAMEWORK_HOST}}:{{KAFKA_BROKER_PORT}}
-security.inter.broker.protocol=SASL_PLAINTEXT
-
+############################# Kerberos Settings #############################
 sasl.mechanism.inter.broker.protocol=GSSAPI
 sasl.enabled.mechanisms=GSSAPI
 sasl.kerberos.service.name={{SECURITY_KERBEROS_PRIMARY}}
 
 {{/SECURITY_KERBEROS_ENABLED}}
 
-# Hostname and port the broker will advertise to producers and consumers. If not set,
-# it uses the value for "listeners" if configured.  Otherwise, it will use the value
-# returned from java.net.InetAddress.getCanonicalHostName().
-#advertised.listeners=PLAINTEXT://your.host.name:9092
+## Inter Broker Protocol
+{{SECURITY_INTER_BROKER_PROTOCOL}}
 
 # The number of threads handling network requests
 num.network.threads={{KAFKA_NUM_NETWORK_THREADS}}
@@ -174,10 +160,6 @@ external.kafka.statsd.host={{STATSD_UDP_HOST}}
 external.kafka.statsd.reporter.enabled=true
 external.kafka.statsd.tag.enabled=true
 external.kafka.statsd.metrics.exclude_regex=
-
-{{#KAFKA_ADVERTISE_HOST}}
-advertised.host.name={{MESOS_CONTAINER_IP}}
-{{/KAFKA_ADVERTISE_HOST}}
 
 auto.create.topics.enable={{KAFKA_AUTO_CREATE_TOPICS_ENABLE}}
 auto.leader.rebalance.enable={{KAFKA_AUTO_LEADER_REBALANCE_ENABLE}}

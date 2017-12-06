@@ -30,6 +30,11 @@
             "type": "string",
             "default": ""
           },
+          "detect_zones": {
+            "description": "Whether or not to configure nodes with zone information for rack awareness",
+            "type": "boolean",
+            "default": false
+          },
           "placement_constraint": {
             "description": "Marathon-style placement constraint for Broker nodes. Example: rack_id:LIKE:rack-foo-.*,rack_id:MAX_PER:2",
             "type": "string",
@@ -68,7 +73,52 @@
           "security": {
             "description": "Kafka security settings",
             "type": "object",
+            "allOf": [
+              {
+                "not": {
+                  "properties": {
+                    "transport_encryption": {
+                      "properties": {
+                        "enabled": {"enum": [ false ]}
+                      }
+                    },
+                    "ssl_auth": {
+                      "properties": {
+                        "enable_authentication": { "enum": [ true ]}
+                      }
+                    }
+                  }
+                }
+              }
+            ],
             "properties": {
+                "transport_encryption": {
+                  "type": "object",
+                  "description": "Transport encryption settings.",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable transport encryption (TLS).",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "allow_plaintext": {
+                      "description": "Allow plainttext alongside encrypted traffic. ",
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
+                "ssl_auth": {
+                  "type": "object",
+                  "description": "SSL Authn/z configuration properties.",
+                  "properties": {
+                    "enable_authentication": {
+                      "description": "Enable SSL authentication.",
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
                 "kerberos": {
                   "type": "object",
                   "description": "Kerberos configuration properties.",

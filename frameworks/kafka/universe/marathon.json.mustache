@@ -40,6 +40,7 @@
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "KAFKA_STATSD_URI": "{{resource.assets.uris.kafka-statsd-jar}}",
     "CLIENT_STATSD_URI": "{{resource.assets.uris.statsd-client-jar}}",
+    "SETUP_HELPER_URI": "{{resource.assets.uris.setup-helper-zip}}",
     "ZOOKEEPER_CLIENT_URI": "{{resource.assets.uris.zookeeper-client-jar}}",
 
     "PLACEMENT_CONSTRAINTS": "{{service.placement_constraint}}",
@@ -52,6 +53,8 @@
     "BROKER_DISK_PATH": "{{brokers.disk_path}}",
     "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
+
+    "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
 
     {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
@@ -72,6 +75,10 @@
     {{#service.security.transport_encryption.allow_plaintext}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
     {{/service.security.transport_encryption.allow_plaintext}}
+
+    {{#service.security.ssl_auth.enable_authentication}}
+    "TASKCFG_ALL_SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION": "{{service.security.ssl_auth.enable_authentication}}",
+    {{/service.security.ssl_auth.enable_authentication}}
     {{/service.security.transport_encryption.enabled}}
 
     {{#service.security.kerberos.enabled}}

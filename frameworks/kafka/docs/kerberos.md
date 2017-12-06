@@ -1,3 +1,9 @@
+---
+post_title: Kerberos
+menu_order: 22
+enterprise: 'yes'
+---
+
 # Setting up Apache Kafka with Kerberos
 
 ## Create principals
