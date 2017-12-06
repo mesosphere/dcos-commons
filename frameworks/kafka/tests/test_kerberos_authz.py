@@ -190,13 +190,13 @@ def test_authz_acls_required(kafka_client, kafka_server):
 
     try:
 
-        zookeeper_dns = sdk_cmd.svc_cli(
+        zookeeper_endpoint = sdk_cmd.svc_cli(
             kafka_server["package_name"],
             kafka_server["service"]["name"],
-            "endpoint zookeeper", json=True)["dns"]
+            "endpoint zookeeper").strip()
 
         # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
-        topics.add_acls("authorized", client_id, topic_name, zookeeper_dns, env_str=None)
+        topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
 
         second_message = str(uuid.uuid4())
         log.info("Writing and reading: Writing to the topic, but not super user")
@@ -221,7 +221,9 @@ def test_authz_acls_required(kafka_client, kafka_server):
         log.info("Writing and reading: Reading from the topic, but not super user")
         assert "Not authorized to access topics: [authz.test]" in read_from_topic("unauthorized", client_id, topic_name, 1)
 
-    except:
+    except Exception as e:
+
+        log.error("%s", e)
         while True:
             log.info("Sleeping for 30s...")
             time.sleep(30)
