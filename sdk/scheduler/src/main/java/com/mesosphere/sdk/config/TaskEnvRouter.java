@@ -24,7 +24,7 @@ import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 public class TaskEnvRouter {
 
     private static final String TASKCFG_PREFIX = "TASKCFG_";
-    private static final String TASKCFG_GLOBAL_ENV_PREFIX = TASKCFG_PREFIX + "ALL_";
+    public static final String TASKCFG_GLOBAL_ENV_PREFIX = TASKCFG_PREFIX + "ALL_";
 
     // First priority: Scheduler TASKCFG_* environment
     private final Map<String, String> envConfig;

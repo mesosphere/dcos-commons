@@ -549,14 +549,6 @@
         <value>{{CLIENT_FAILOVER_PROXY_PROVIDER_HDFS}}</value>
     </property>
     <property>
-        <name>dfs.permissions.enabled</name>
-        <value>{{PERMISSIONS_ENABLED}}</value>
-    </property>
-    <property>
-        <name>dfs.permissions.superusergroup</name>
-        <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
-    </property>
-    <property>
         <name>dfs.client.cached.conn.retry</name>
         <value>{{CLIENT_CACHED_CONN_RETRY}}</value>
     </property>
@@ -713,6 +705,10 @@
         <value>{{WEBHDFS_ENABLED}}</value>
     </property>
     <property>
+        <name>dfs.webhdfs.user.provider.user.pattern</name>
+        <value>{{WEBHDFS_USER_PROVIDER_USER_PATTERN}}</value>
+    </property>
+    <property>
         <name>hadoop.fuse.connection.timeout</name>
         <value>{{FUSE_CONNECTION_TIMEOUT}}</value>
     </property>
@@ -798,10 +794,6 @@
     </property>
 
     <property>
-        <name>dfs.webhdfs.user.provider.user.pattern</name>
-        <value>{{WEBHDFS_USER_PROVIDER_USER_PATTERN}}</value>
-    </property>
-    <property>
         <name>dfs.block.local-path-access.user</name>
         <value>{{BLOCK_LOCAL_PATH_ACCESS_USER}}</value>
     </property>
@@ -821,21 +813,30 @@
         <name>dfs.storage.policy.enabled</name>
         <value>{{STORAGE_POLICY_ENABLED}}</value>
     </property>
+    <property>
+        <name>dfs.permissions.superusergroup</name>
+        <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
+    </property>
+
+    {{^KERBEROS_ENABLED}}
+    <property>
+        <name>dfs.permissions.enabled</name>
+        <value>{{PERMISSIONS_ENABLED}}</value>
+    </property>
+    {{/KERBEROS_ENABLED}}
+
 
     {{#KERBEROS_ENABLED}}
+        <property>
+            <name>dfs.permissions.enabled</name>
+            <value>true</value>
+        </property>
         <property>
             <name>ignore.secure.ports.for.testing</name>
             <value>true</value>
         </property>
 
         <!-- Security Configuration -->
-        <property>
-            <name>hadoop.security.auth_to_local</name>
-            <value>
-                RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
-                RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
-            </value>
-        </property>
         <property>
             <name>dfs.block.access.token.enable</name>
             <value>true</value>
@@ -847,10 +848,6 @@
         <property>
             <name>dfs.block.access.token.lifetime</name>
             <value>{{BLOCK_ACCESS_TOKEN_LIFETIME}}</value>
-        </property>
-        <property>
-            <name>dfs.cluster.administrators</name>
-            <value>core,root,hdfs,nobody</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.principal.pattern</name>
@@ -888,6 +885,22 @@
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
             <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.keytab.file</name>
+            <value>hdfs.keytab</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.kerberos.principal</name>
+            <value>{{KERBEROS_PRIMARY}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.kerberos.http.principal</name>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+        </property>
+        <property>
+            <name>dfs.secondary.namenode.kerberos.internal.spnego.principal</name>
+            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
         </property>
         {{/NAMENODE}}
 

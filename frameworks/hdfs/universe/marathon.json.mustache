@@ -72,13 +72,13 @@
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
 
-    {{#service.tls.enabled}}
-    "TLS_ENABLED": "{{service.tls.enabled}}",
-    "TASKCFG_ALL_TLS_ENABLED": "{{service.tls.enabled}}",
+    {{#service.security.tls.enabled}}
+    "TLS_ENABLED": "{{service.security.tls.enabled}}",
+    "TASKCFG_ALL_TLS_ENABLED": "{{service.security.tls.enabled}}",
     "TASKCFG_ALL_NAME_NODE_HTTPS_PORT":"{{hdfs.name_node_https_port}}",
     "TASKCFG_ALL_JOURNAL_NODE_HTTPS_PORT":"{{hdfs.journal_node_https_port}}",
     "TASKCFG_ALL_DATA_NODE_HTTPS_PORT":"{{hdfs.data_node_https_port}}",
-    {{/service.tls.enabled}}
+    {{/service.security.tls.enabled}}
 
     {{#journal_node.enable_readiness_check}}
     "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
@@ -89,16 +89,16 @@
     "NAME_NODE_PLACEMENT": "{{name_node.placement}}",
     "DATA_NODE_PLACEMENT": "{{data_node.placement}}",
 
-    {{#service.kerberos.enabled}}
-    "KERBEROS_ENABLED": "{{service.kerberos.enabled}}",
-    "TASKCFG_ALL_KERBEROS_ENABLED": "{{service.kerberos.enabled}}",
-    "TASKCFG_ALL_KDC_HOST_NAME": "{{service.kerberos.kdc_host_name}}",
-    "TASKCFG_ALL_KDC_HOST_PORT": "{{service.kerberos.kdc_host_port}}",
-    "KEYTAB_SECRET_PATH": "{{service.kerberos.keytab_secret}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY": "{{service.kerberos.primary}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "{{service.kerberos.primary_http}}",
-    "TASKCFG_ALL_KERBEROS_REALM": "{{service.kerberos.realm}}",
-    {{/service.kerberos.enabled}}
+    {{#service.security.kerberos.enabled}}
+    "KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
+    "TASKCFG_ALL_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
+    "TASKCFG_ALL_KDC_HOST_NAME": "{{service.security.kerberos.kdc_host_name}}",
+    "TASKCFG_ALL_KDC_HOST_PORT": "{{service.security.kerberos.kdc_host_port}}",
+    "KEYTAB_SECRET_PATH": "{{service.security.kerberos.keytab_secret}}",
+    "TASKCFG_ALL_KERBEROS_PRIMARY": "hdfs",
+    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "HTTP",
+    "TASKCFG_ALL_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
+    {{/service.security.kerberos.enabled}}
     "TASKCFG_ALL_TASK_USER": "{{service.user}}",
     "TASKCFG_ALL_HADOOP_HDFS_CONFIGURATION_VERSION": "{{hdfs.hadoop_hdfs_configuration_version}}",
     "TASKCFG_ALL_ADMINISTRATORS": "{{hdfs.administrators}}",
@@ -110,6 +110,7 @@
     "TASKCFG_ALL_DATA_NODE_RPC_PORT":"{{hdfs.data_node_rpc_port}}",
     "TASKCFG_ALL_DATA_NODE_HTTP_PORT":"{{hdfs.data_node_http_port}}",
     "TASKCFG_ALL_DATA_NODE_IPC_PORT":"{{hdfs.data_node_ipc_port}}",
+    "TASKCFG_ALL_HADOOP_OPTS":"{{hdfs.hadoop_opts}}",
     "TASKCFG_ALL_PERMISSIONS_ENABLED":"{{hdfs.permissions_enabled}}",
     "TASKCFG_ALL_IMAGE_COMPRESS":"{{hdfs.compress_image}}",
     "TASKCFG_ALL_IMAGE_COMPRESSION_CODEC":"{{hdfs.image_compression_codec}}",
@@ -288,9 +289,6 @@
     "TASKCFG_ALL_HADOOP_COMMON_CONFIGURATION_VERSION": "{{hdfs.common_configuration_version}}",
     "TASKCFG_ALL_HADOOP_TMP_DIR": "{{hdfs.tmp_dir}}",
     "TASKCFG_ALL_HADOOP_HTTP_FILTER_INITIALIZER": "{{hdfs.http_filter_initializer}}",
-    "TASKCFG_ALL_HADOOP_SECURITY_AUTHORIZATION": "{{hdfs.security_authorization}}",
-    "TASKCFG_ALL_HADOOP_SECURITY_INSTRUMENTATION_REQUIRES_ADMIN": "{{hdfs.security_instrumentation_requires_admin}}",
-    "TASKCFG_ALL_HADOOP_SECURITY_AUTHENTICATION": "{{hdfs.security_authentication}}",
     "TASKCFG_ALL_HADOOP_SECURITY_GROUP_MAPPING": "{{hdfs.security_group_mapping}}",
     "TASKCFG_ALL_HADOOP_SECURITY_GROUPS_CACHE_SECS": "{{hdfs.security_groups_cache_secs}}",
     "TASKCFG_ALL_HADOOP_SECURITY_GROUPS_NEGATIVE_CACHE_SECS": "{{hdfs.security_groups_negative-cache_secs}}",
@@ -313,7 +311,8 @@
     "TASKCFG_ALL_HADOOP_SECURITY_SASLPROPERTIES_RESOLVER_CLASS": "{{hdfs.security_saslproperties_resolver_class}}",
     "TASKCFG_ALL_HADOOP_WORK_AROUND_NON_THREADSAFE_GETPWUID": "{{hdfs.work_around_non_threadsafe_getpwuid}}",
     "TASKCFG_ALL_HADOOP_KERBEROS_KINIT_COMMAND": "{{hdfs.kerberos_kinit_command}}",
-    "TASKCFG_ALL_HADOOP_SECURITY_AUTH_TO_LOCAL": "{{hdfs.security_auth_to_local}}",
+    "TASKCFG_ALL_HADOOP_SECURITY_INSTRUMENTATION_REQUIRES_ADMIN": "{{hdfs.hadoop_security_instrumentation_requires_admin}}",
+    "TASKCFG_ALL_AUTH_TO_LOCAL": "{{hdfs.security_auth_to_local}}",
     "TASKCFG_ALL_IO_FILE_BUFFER_SIZE": "{{hdfs.io_file_buffer_size}}",
     "TASKCFG_ALL_IO_BYTES_PER_CHECKSUM": "{{hdfs.io_bytes_per_checksum}}",
     "TASKCFG_ALL_IO_SKIP_CHECKSUM_ERRORS": "{{hdfs.io_skip_checksum_errors}}",
