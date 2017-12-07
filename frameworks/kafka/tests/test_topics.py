@@ -76,13 +76,13 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         """
         offsets = sdk_cmd.svc_cli(package_name, service_name,
                                   'topic offsets --time="-1" {}'.format(topic_name), json=True)
-        return initial_offsets, offsets
+        return initial_offsets + [None, {}, {"0": ""}], offsets
 
     topic_name = str(uuid.uuid4())
 
     test_utils.create_topic(topic_name, service_name)
 
-    _, offset_info = get_offset_change(topic_name, [None, {}, {"0": ""}])
+    _, offset_info = get_offset_change(topic_name)
 
     # offset_info is a list of (partition index, offset) key-value pairs sum the
     # integer representations of the offsets
