@@ -123,6 +123,7 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
                 }
             })
 
+        client_id = kafka_client["id"]
         auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
