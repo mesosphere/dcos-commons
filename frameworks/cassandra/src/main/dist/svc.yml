@@ -222,6 +222,29 @@ pods:
           - name: node
             type: KEYSTORE
         {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+      init_system_keyspaces:
+        goal: FINISHED
+        cmd: >
+                {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
+                {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                ./bootstrap --resolve=false &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        resource-set: sidecar-resources
+        configs:
+          cassandra:
+            template: cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+          cqlshrc:
+            template: cqlshrc
+            dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        transport-encryption:
+          - name: cqlsh
+            type: TLS
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
 plans:
   deploy:
     strategy: serial
@@ -230,6 +253,7 @@ plans:
         strategy: serial
         pod: node
         steps:
+          - 0: [[server], [init_system_keyspaces]]
           - default: [[server]]
   replace:
     strategy: serial

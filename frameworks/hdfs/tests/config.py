@@ -22,7 +22,11 @@ DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
 KEYTAB = "hdfs.keytab"
-GENERIC_HDFS_USER_PRINCIPAL = "hdfs@{realm}".format(realm=sdk_auth.REALM)
+CLIENT_PRINCIPALS = {
+    "hdfs": "hdfs@{}".format(sdk_auth.REALM),
+    "alice": "alice@{}".format(sdk_auth.REALM),
+    "bob": "bob@{}".format(sdk_auth.REALM)
+}
 
 
 def get_kerberized_hdfs_client_app():
@@ -36,18 +40,22 @@ def get_kerberized_hdfs_client_app():
     return app_def
 
 
-def hdfs_write_command(filename, content_to_write):
-    return "echo {} | ./bin/hdfs dfs -put - /{}".format(content_to_write, filename)
+def hdfs_command(command):
+    return "./bin/hdfs dfs -{}".format(command)
+
+
+def hdfs_write_command(content_to_write, filename):
+    return "echo {} | ./bin/hdfs dfs -put - {}".format(content_to_write, filename)
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
-    rc, _ = run_hdfs_command(service_name, hdfs_write_command(filename, content_to_write))
+    rc, _ = run_hdfs_command(service_name, hdfs_write_command(content_to_write, filename))
     # rc being True is effectively it being 0...
     return rc
 
 
 def hdfs_read_command(filename):
-    return "./bin/hdfs dfs -cat /{}".format(filename)
+    return "./bin/hdfs dfs -cat {}".format(filename)
 
 
 def read_data_from_hdfs(service_name, filename):

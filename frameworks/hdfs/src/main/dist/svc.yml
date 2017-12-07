@@ -160,6 +160,11 @@ pods:
           mv hdfs {{HDFS_VERSION}}/bin/ ;
           {{#KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          if [[ $POD_INSTANCE_INDEX -eq 0 ]]; then
+            export OTHER_NN_INDEX=1
+          else
+            export OTHER_NN_INDEX=0
+          fi &&
           {{/KERBEROS_ENABLED}}
           ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources

@@ -29,12 +29,10 @@ func CheckHTTPResponse(response *http.Response) ([]byte, error) {
 		return nil, fmt.Errorf("Failed to read response data from %s %s query: %s",
 			response.Request.Method, response.Request.URL, err)
 	}
-	if config.Verbose {
-		if response.ContentLength > 0 {
-			PrintMessage("Response (%d byte payload): %s\n%s", response.ContentLength, response.Status, body)
-		} else {
-			PrintMessage("Response: %s", response.Status)
-		}
+	if response.ContentLength > 0 {
+		PrintVerbose("Response (%d byte payload): %s\n%s", response.ContentLength, response.Status, body)
+	} else {
+		PrintVerbose("Response: %s", response.Status)
 	}
 	if customCheck != nil {
 		err := customCheck(response, body)

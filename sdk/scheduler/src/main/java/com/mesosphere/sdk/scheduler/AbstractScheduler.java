@@ -54,12 +54,12 @@ public abstract class AbstractScheduler {
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     /**
-     * Executor for handling TaskStatus updates in {@link #statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
+     * Executor for handling TaskStatus updates in {@link Scheduler#statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
      */
     protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Executor for processing offers off the queue in {@link #executePlansLoop()}.
+     * Executor for processing offers off the queue in {@link #start()}.
      */
     private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
 

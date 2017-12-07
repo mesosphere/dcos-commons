@@ -40,10 +40,11 @@ def kafka_service_tls(service_account):
             "service": {
                 "service_account": service_account,
                 "service_account_secret": service_account,
-                # Legacy values
-                "principal": service_account,
-                "secret_name": service_account,
-                "tls": True
+                "security": {
+                    "transport_encryption": {
+                        "enabled": True
+                    }
+                }
             }
         }
     )

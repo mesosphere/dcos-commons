@@ -14,7 +14,9 @@ pods:
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
+      - {{SETUP_HELPER_URI}}
       - {{ZOOKEEPER_CLIENT_URI}}
+      - {{CUSTOM_KAFKA_PRINCIPAL_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
@@ -31,7 +33,7 @@ pods:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
-          {{^TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+          {{^TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
@@ -39,9 +41,9 @@ pods:
             vip:
               prefix: broker
               port: 9092
-          {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
-          {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
-          {{#TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT}}
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
@@ -49,7 +51,7 @@ pods:
             vip:
               prefix: broker
               port: 9092
-          {{/TASKCFG_ALL_KAFKA_ALLOW_PLAINTEXT}}
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
           broker-tls:
             port: {{BROKER_PORT_TLS}}
             env-key: KAFKA_BROKER_PORT_TLS
@@ -57,7 +59,7 @@ pods:
             vip:
               prefix: broker-tls
               port: 9093
-          {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
@@ -66,19 +68,35 @@ pods:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
-        # NOTE: We add some custom statsd libraries for statsd metrics as well
-        # as a custom zookeeper library to support our own ZK running
-        # kerberized. The custom zk library does not do DNS reverse resolution
-        # of the ZK hostnames.
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
+        cmd: |
+          # Exit on any error.
+          set -e
+          
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
         {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
-          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS" &&
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS"
         {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
-          ./bootstrap -resolve=false &&
-          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
-          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
+          # setup-helper determines the correct listeners and security.inter.broker.protocol.
+          ./setup-helper
+          export SETUP_HELPER_ADVERTISED_LISTENERS=`cat advertised.listeners`
+          export SETUP_HELPER_LISTENERS=`cat listeners`
+          export SETUP_HELPER_SECURITY_INTER_BROKER_PROTOCOL=`cat security.inter.broker.protocol`
+          export SETUP_HELPER_SUPER_USERS=`cat super.users`
+
+          ./bootstrap -resolve=false
+
+          # NOTE: We add some custom statsd libraries for statsd metrics as well
+          # as a custom zookeeper library to support our own ZK running
+          # kerberized. The custom zk library does not do DNS reverse resolution
+          # of the ZK hostnames.
+          #
+          # Additionally, we include a custom principal builder
+          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          mv -v kafka-custom-principal-builder* $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          
+          # Start kafka.
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
                $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
@@ -113,11 +131,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: broker
             type: KEYSTORE
-        {{/TASKCFG_ALL_KAFKA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
