@@ -167,6 +167,9 @@ def test_authz_acls_required(kafka_client, kafka_server):
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authz.test"
+    sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
+                    "topic create {}".format(topic_name),
+                    json=True)
 
     message = str(uuid.uuid4())
 
