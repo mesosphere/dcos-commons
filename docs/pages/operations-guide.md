@@ -160,10 +160,14 @@ Mesos will periodically notify subscribed Schedulers of resources in the cluster
 Schedulers written using the SDK perform the following operations as Offers are received from Mesos:
 
 1. __Task Reconciliation__: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
-1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger nodes, or reduce the requirements of the service.
+1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger machines to the cluster, or reduce the requirements of the service.
 1. __Resource Cleanup__: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn't know about it anymore. At this point, the Scheduler will automatically clean up those resources.
 
 SDK Schedulers will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task's reservation, and then launching the task against those resources once more.
+
+## Pods
+
+A Task generally maps to a single process within the service. A Pod is a collection of colocated Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, most maintenance operations against the service are at [Pod granularity](#pod-operations) rather than Task granularity.
 
 ## Plans
 
@@ -273,10 +277,6 @@ Agent 3: X B
 ```
 
 Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services will support customizing this setting when it is relevant, while others may assume one or the other.
-
-## Pods vs Tasks
-
-A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
 
 ## Virtual networks
 
@@ -705,7 +705,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 [<img src="img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](img/ops-guide-edit-scheduler.png)
 
-1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
+1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service. See [finding the correct environment variable](#finding-the-correct-environment-variable) for more information on determining the correct value to be updated.
 
 1. After you click `Change and deploy`, the following will happen:
    - Marathon will restart the Scheduler so that it picks up our change.
@@ -739,11 +739,9 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
 
 The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task `N+1` is only redeployed after task `N` appears to be healthy and ready after being relaunched with the new configuration. Some services may have defined a custom `update` plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom `update` plan was defined, is to use the `deploy` plan.
 
-### Add a node
+#### Finding the correct environment variable
 
-Adding a task node to the service is just another type of configuration change. In this case, we're looking for a specific config value in the package's `config.json`, and then mapping that configuration value to the relevant environment variable in the Scheduler. In the case of the above `dse` service, we need to increase the Scheduler's `DSE_NODE_POD_COUNT` from `3` (the default) to `4`. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.
-
-### Finding the correct environment variable
+While DC/OS Enterprise 1.10+ supports changing the configuration using the option schema directly, DC/OS Open and versions 1.9 and earlier require mapping those options to the environment variables that are passed to the Scheduler.
 
 The correct environment variable for a given setting can vary depending on the service. For instance, some services have multiple types of nodes, each with separate count settings. If you want to increase the number of nodes, it would take some detective work to find the correct environment variable.
 
@@ -777,7 +775,54 @@ To see where this setting is passed when the Scheduler is first launched, we can
 
 This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).
 
-## Restart a pod
+## Uninstall
+
+The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:
+
+### DC/OS 1.10 and newer
+
+If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
+
+1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+
+```bash
+dcos package uninstall --app-id=kafka-dev confluent-kafka
+```
+
+### Older versions
+
+If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:
+
+1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
+
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+
+```bash
+$ MY_SERVICE_NAME=kafka-dev
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
+    -r $MY_SERVICE_NAME-role \
+    -p $MY_SERVICE_NAME-principal \
+    -z dcos-service-$MY_SERVICE_NAME"
+```
+
+## Pod operations
+
+Most operations for maintaining a service will involve interacting with and manipulating its [Pods](#pods).
+
+### Add or Remove a pod
+
+Adding or removing pod instances within the service is treated as a configuration change, not a command.
+
+In this case, we're increasing a pod count value, as provided by the service's configuration schema. In the case of the above `dse` service, we need to increase the configured `dsenode.count` from `3` (the default) to `4`. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.
+
+For safety reasons, pod instances cannot be removed after they have been deployed by default. However, some services may allow some pods to be removed in cases where doing so is not a problem. To remove pod instances, you would simply decrease the count value, and then instances exceeding that count will be removed automatically in reverse order. For example, if you decreased `dsenode.count` from `4` to `2` and this was allowed by the DSE service, you would see `dsenode-3` be removed followed by `dsenode-2`, leaving only `dsenode-0` and `dsenode-1` still running. If the DSE service doesn't allow the number of instances to be decreased, the Scheduler would instead reject the decrease and show a validation error in its [deploy Plan](#status).
+
+### Restart a pod
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
@@ -786,7 +831,7 @@ Restarting a pod can be done either via the CLI or via the underlying Scheduler 
 Via the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse pod list
+$ dcos datastax-dse --name=mydse pod list
 [
   "dse-0",
   "dse-1",
@@ -794,7 +839,7 @@ $ dcos beta-dse --name=dse pod list
   "opscenter-0",
   "studio-0"
 ]
-$ dcos beta-dse --name=dse pod restart dse-1
+$ dcos datastax-dse --name=mydse pod restart dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -827,7 +872,7 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 All tasks within the pod are restarted as a unit. The response lists the names of the two tasks that were members of the pod.
 
-## Replace a pod
+### Replace a pod
 
 Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if an agent machine has gone down and is never coming back, or if an agent is about to undergo downtime.
 
@@ -836,7 +881,7 @@ Pod replacement is not currently done automatically by the SDK, as making the co
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
 ```bash
-$ dcos beta-dse --name=dse pod replace dse-1
+$ dcos datastax-dse --name=mydse pod replace dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -857,7 +902,7 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 }
 ```
 
-## Pause a pod
+### Pause a pod
 
 Pausing a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed.
 
@@ -929,42 +974,10 @@ myservice
 
 In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos myservice debug pod pause index-1 -t agent` will pause only the `agent` task within the `index-1` pod.
 
-## Uninstall
-
-The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:
-
-### DC/OS 1.10 and newer
-
-If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
-
-1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
-
-For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
-
-```bash
-dcos package uninstall --app-id=kafka-dev confluent-kafka
-```
-
-### Older versions
-
-If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:
-
-1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
-   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
-
-For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
-
-```bash
-$ MY_SERVICE_NAME=kafka-dev
-$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
-$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
-    -r $MY_SERVICE_NAME-role \
-    -p $MY_SERVICE_NAME-principal \
-    -z dcos-service-$MY_SERVICE_NAME"
-```
-
 ## Plan Operations
+
+This lists available commands for viewing and manipulating the [Plans](#plans) used by the Scheduler to perform work against the underlying service.
+
 ### List
 Show all plans for this service.
 
@@ -1341,7 +1354,7 @@ These endpoints may also be conveniently accessed using the SDK CLI after instal
 For example, let's get a list of pods using the CLI, and then via the HTTP API:
 
 ```bash
-$ dcos beta-dse --name=dse pod list
+$ dcos datastax-dse --name=mydse pod list
 [
   "dse-0",
   "dse-1",
@@ -1362,7 +1375,7 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
 The `-v` (or `--verbose`) argument allows you to view and diagnose the underlying requests made by the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse -v pod list
+$ dcos datastax-dse --name=mydse -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI command: dcos config show core.dcos_url
 2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.dcos_acs_token

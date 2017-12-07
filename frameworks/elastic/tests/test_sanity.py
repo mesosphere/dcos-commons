@@ -182,7 +182,7 @@ def test_custom_yaml_base64():
     base64_str = 'Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KIC' \
                  'AgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz'
 
-    config.update_app(foldered_name, {'TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64': base64_str}, current_expected_task_count)
+    config.update_app(foldered_name, {'CUSTOM_YAML_BLOCK_BASE64': base64_str}, current_expected_task_count)
     config.check_custom_elasticsearch_cluster_setting(service_name=foldered_name)
 
 
