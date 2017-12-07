@@ -2,7 +2,6 @@ package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
 import java.util.*;
