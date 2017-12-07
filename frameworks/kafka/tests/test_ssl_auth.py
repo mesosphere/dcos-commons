@@ -237,7 +237,7 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                         "transport_encryption": {
                             "enabled": True
                         },
-                        "ssl_authentiation": {
+                        "ssl_authentication": {
                             "enabled": True
                         },
                         "authorization": {
