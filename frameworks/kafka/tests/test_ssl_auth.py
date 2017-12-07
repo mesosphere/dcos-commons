@@ -123,11 +123,11 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
                 }
             })
 
-        client_id = kafka_client["id"]
-        log.info("Running bootstrap to wait for DNS resolution")
-        bootstrap_cmd = ['/opt/bootstrap', '-resolve-hosts', ','.join(kafka_client['brokers']), '-verbose']
-        bootstrap_output = sdk_tasks.task_exec(client_id, ' '.join(bootstrap_cmd))
-        log.info(bootstrap_output)
+        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+            "topic create tls.topic",
+            json=True)
 
         message = str(uuid.uuid4())
 
