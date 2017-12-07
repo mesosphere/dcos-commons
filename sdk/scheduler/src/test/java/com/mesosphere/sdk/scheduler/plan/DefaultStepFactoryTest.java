@@ -6,9 +6,9 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.junit.Assert;
 import org.junit.Test;
 

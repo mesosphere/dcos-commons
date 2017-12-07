@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.testing;
+package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;

@@ -2,8 +2,9 @@ package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.TestPodFactory;
+
 import org.junit.Assert;
 import org.junit.Test;
 
