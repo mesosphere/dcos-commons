@@ -23,11 +23,9 @@ import javax.ws.rs.core.Response;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
@@ -171,6 +169,35 @@ public class StateResource {
     }
 
     /**
+     * Returns the Zone information for all of the tasks of the service.
+     */
+    @Path("/zones")
+    @GET
+    public Response getTasksZones() {
+        try {
+            return ResponseUtils.jsonOkResponse(new JSONObject(getTasksZones(stateStore)));
+        } catch (StateStoreException ex) {
+            logger.error("Failed to fetch the zone information for the service's tasks: ", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Returns the Zone information for all of the tasks of the service.
+     */
+    @Path("/zones/{taskName}")
+    @GET
+    public Response getTaskZone(@PathParam("taskName") String taskName) {
+        try {
+            Map<String, String> tasksZones = getTasksZones(stateStore);
+            return ResponseUtils.jsonOkResponse(new JSONObject(new HashMap<>().put(taskName, tasksZones.get(taskName))));
+        } catch (StateStoreException ex) {
+            logger.error("Failed to fetch the zone information for the service's tasks: ", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
      * Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
      * exist or the data couldn't be read.
      */
@@ -283,5 +310,27 @@ public class StateResource {
                 .filter(key -> key.startsWith(FILE_NAME_PREFIX))
                 .map(file_name -> file_name.replaceFirst(FILE_NAME_PREFIX, ""))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Constructs a map of task names to zones indicating in what zone the respective task name is in.
+     * @param stateStore The state store to get task infos from.
+     * @return Returns the map of task names to zones.
+     */
+    private static Map<String, String> getTasksZones(StateStore stateStore) {
+        Collection<String> taskNames = stateStore.fetchTaskNames();
+        Map<String, String> taskZones = new HashMap<>();
+        for (String taskName : taskNames) {
+            Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskName);
+            if (taskInfo.isPresent()) {
+                Stream<Protos.Environment.Variable> envVars = taskInfo.get().getCommand().getEnvironment().
+                        getVariablesList().stream();
+                if (envVars.anyMatch(variable -> variable.getName().equals("ZONE"))) {
+                    taskZones.put(taskName,
+                            envVars.filter(variable -> variable.getName().equals("ZONE")).findFirst().get().getValue());
+                }
+            }
+        }
+        return taskZones;
     }
 }
