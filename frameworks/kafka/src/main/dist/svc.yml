@@ -5,7 +5,7 @@ scheduler:
 pods:
   kafka:
     count: {{BROKER_COUNT}}
-    placement: {{PLACEMENT_CONSTRAINTS}}
+    placement: "{{PLACEMENT_CONSTRAINTS}}"
     uris:
       - {{KAFKA_URI}}
       - {{KAFKA_JAVA_URI}}
@@ -70,7 +70,7 @@ pods:
         cmd: |
           # Exit on any error.
           set -e
-          
+
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
         {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS"
@@ -90,7 +90,7 @@ pods:
           # of the ZK hostnames.
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
           mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
-          
+
           # Start kafka.
           exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
                $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
