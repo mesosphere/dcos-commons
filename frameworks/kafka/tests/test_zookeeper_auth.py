@@ -118,7 +118,7 @@ def zookeeper_server(kerberos):
     }
 
     # TODO: Remove once kafka-zookeeper is available in the universe
-    zookeeper_stub = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts-ci.s3.amazonaws.com/autodelete7d/kafka-zookeeper/20171128-192118-JfgDpTht4Zubc3J4/stub-universe-kafka-zookeeper.json"
+    zookeeper_stub = "https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/20171128-113715-h2qHdoIXKgAEgPOy/stub-universe-kafka-zookeeper.json"
     stub_urls = sdk_repository.add_stub_universe_urls([zookeeper_stub, ])
 
     try:
