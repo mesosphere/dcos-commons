@@ -1288,7 +1288,7 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
 
-Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
+Below is a valid secret definition with a Docker `image`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
   * Supported: `etc/keys/Secret_FilePath1`
   * Not supported: `/etc/keys/Secret_FilePath1`
 
@@ -1297,8 +1297,7 @@ name: secret-svc/instance2
 pods:
   pod-with-image:
     count: {{COUNT}}
-    container:
-      image-name: ubuntu:14.04
+    image: ubuntu:14.04
     user: nobody
     secrets:
       secret_name4:

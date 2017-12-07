@@ -416,12 +416,12 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
-    @Test
-    public void validImageLegacy() throws Exception {
+    @Test(expected = ConstraintViolationException.class)
+    public void invalidImageNull() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-image-legacy.yml").getFile());
+        File file = new File(classLoader.getResource("invalid-image-null.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
+        Assert.assertEquals(null, defaultServiceSpec.getPods().get(0).getImage());
     }
 
     @Test
@@ -472,13 +472,6 @@ public class DefaultServiceSpecTest {
         }
     }
 
-    @Test
-    public void validNetworksLegacy() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
-    }
 
     @Test(expected = IllegalArgumentException.class)
     public void invalidNetworks() throws Exception {
@@ -532,13 +525,6 @@ public class DefaultServiceSpecTest {
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
-        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-    }
-
-    @Test(expected = RLimitSpec.InvalidRLimitException.class)
-    public void invalidRLimitNameLegacy() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-rlimit-legacy-name.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
