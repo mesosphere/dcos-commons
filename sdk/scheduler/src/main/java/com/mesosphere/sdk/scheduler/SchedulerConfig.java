@@ -145,7 +145,7 @@ public class SchedulerConfig {
     /**
      * Environment variables for configuring Mesos API version.
      */
-    private static String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
+    private static final String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
     /**
      * Environment variables for configuring goal state override behavior.

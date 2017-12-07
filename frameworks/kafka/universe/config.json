@@ -82,9 +82,9 @@
                         "enabled": {"enum": [ false ]}
                       }
                     },
-                    "ssl_auth": {
+                    "ssl_authentication": {
                       "properties": {
-                        "enable_authentication": { "enum": [ true ]}
+                        "enabled": { "enum": [ true ]}
                       }
                     }
                   }
@@ -108,11 +108,11 @@
                     }
                   }
                 },
-                "ssl_auth": {
+                "ssl_authentication": {
                   "type": "object",
                   "description": "SSL Authn/z configuration properties.",
                   "properties": {
-                    "enable_authentication": {
+                    "enabled": {
                       "description": "Enable SSL authentication.",
                       "type": "boolean",
                       "default": false
@@ -157,6 +157,27 @@
                       "type": "string",
                       "description": "The name of the DC/OS secret storing the keytab",
                       "default": "__dcos_base64__kafka_keytab"
+                    }
+                  }
+                },
+                "authorization": {
+                  "type": "object",
+                  "description": "Authorization configuration properties",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable authorization.",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "super_users": {
+                      "description": "Semi-colon delimited list of principals. For Kerberos principals, these will be of the form User:<Kerberos-Primary>. For TLS, they will be of the form: CN=host1.example.com,OU=,O=Confluent,L=London,ST=London,C=GB",
+                      "type": "string",
+                      "default": ""
+                    },
+                    "allow_everyone_if_no_acl_found": {
+                      "description": "Allow any user to perform an action if no ACL is found for the resource.",
+                      "type": "boolean",
+                      "default": false
                     }
                   }
                 }

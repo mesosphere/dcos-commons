@@ -17,13 +17,24 @@ const (
 	brokerPort            = "KAFKA_BROKER_PORT"
 	brokerPortTLS         = "KAFKA_BROKER_PORT_TLS"
 	taskNameEnvvar        = "TASK_NAME"
+	frameworkNameEnvvar   = "FRAMEWORK_NAME"
 	frameworkHostEnvvar   = "FRAMEWORK_HOST"
 	ipEnvvar              = "MESOS_CONTAINER_IP"
 	kerberosPrimaryEnvvar = "SECURITY_KERBEROS_PRIMARY"
+	kerberosRealmEnvvar   = "SECURITY_KERBEROS_REALM"
+	sslAuthEnvvar         = "SECURITY_SSL_AUTHENTICATION_ENABLED"
+	authorizationEnvvar   = "SECURITY_AUTHORIZATION_ENABLED"
+	superUsersEnvvar      = "SECURITY_AUTHORIZATION_SUPER_USERS"
+	brokerCountEnvvar     = "BROKER_COUNT"
 
 	listenersProperty           = "listeners"
 	advertisedListenersProperty = "advertised.listeners"
 	interBrokerProtocolProperty = "security.inter.broker.protocol"
+	superUsersProperty          = "super.users"
+
+	// Based on the RFC5280 the CN cannot be longer than 64 characters
+	// ub-common-name INTEGER ::= 64
+	cnMaxLength = 64
 )
 
 func main() {
@@ -55,6 +66,24 @@ func getBooleanEnvvar(envvar string) bool {
 	return result
 }
 
+func getIntEnvvar(envvar string) int {
+	val, set := os.LookupEnv(envvar)
+	if !set {
+		return 0
+	}
+
+	result, err := strconv.Atoi(val)
+	if err != nil {
+		log.Printf("Could not parse int for envvar: %s (%s)",
+			envvar,
+			err.Error(),
+		)
+		return 0
+	}
+
+	return result
+}
+
 func getStringEnvvar(envvar string) string {
 	return os.Getenv(envvar)
 }
@@ -73,22 +102,29 @@ func calculateSettings() error {
 		return err
 	}
 	log.Print("Set security.inter.broker.protocol")
+
+	log.Print("Setting super.users")
+	err = setSuperUsers()
+	if err != nil {
+		return err
+	}
+	log.Print("Set super.users")
 	return nil
 }
 
-func parseToggles() (kerberos bool, tls bool, plaintext bool) {
-	kerberosEnabled := getBooleanEnvvar(kerberosEnvvar)
-	tlsEncryptionEnabled := getBooleanEnvvar(tlsEncryptionEnvvar)
-	allowPlainText := getBooleanEnvvar(tlsAllowPlainEnvvar)
-
-	return kerberosEnabled, tlsEncryptionEnabled, allowPlainText
+func parseToggles() (kerberos bool, tls bool, plaintext bool, authz bool, sslAuth bool) {
+	return getBooleanEnvvar(kerberosEnvvar),
+		getBooleanEnvvar(tlsEncryptionEnvvar),
+		getBooleanEnvvar(tlsAllowPlainEnvvar),
+		getBooleanEnvvar(authorizationEnvvar),
+		getBooleanEnvvar(sslAuthEnvvar)
 }
 
 func setListeners() error {
 	var listeners []string
 	var advertisedListeners []string
 
-	kerberosEnabled, tlsEncryptionEnabled, allowPlainText := parseToggles()
+	kerberosEnabled, tlsEncryptionEnabled, allowPlainText, _, _ := parseToggles()
 
 	if kerberosEnabled { // Kerberos enabled
 
@@ -170,7 +206,7 @@ func writeToWorkingDirectory(filename string, content string) error {
 }
 
 func setInterBrokerProtocol() error {
-	kerberosEnabled, tlsEncryptionEnabled, _ := parseToggles()
+	kerberosEnabled, tlsEncryptionEnabled, _, _, _ := parseToggles()
 
 	protocol := ""
 	if kerberosEnabled {
@@ -187,4 +223,40 @@ func setInterBrokerProtocol() error {
 
 	return writeToWorkingDirectory(interBrokerProtocolProperty,
 		fmt.Sprintf("%s=%s", interBrokerProtocolProperty, protocol))
+}
+
+func setSuperUsers() error {
+	kerberosEnabled, _, _, authzEnabled, sslAuthEnabled := parseToggles()
+
+	var superUsers []string
+	superUsersString := getStringEnvvar(superUsersEnvvar)
+	if superUsersString != "" {
+		superUsers = strings.Split(superUsersString, ";")
+	}
+
+	if authzEnabled {
+		if kerberosEnabled {
+			superUsers = append(superUsers, fmt.Sprintf("User:%s", getStringEnvvar(kerberosPrimaryEnvvar)))
+		} else if sslAuthEnabled {
+			superUsers = append(superUsers, getBrokerSSLSuperUsers()...)
+		}
+	}
+
+	return writeToWorkingDirectory(superUsersProperty, strings.Join(superUsers, ";"))
+}
+
+func getBrokerSSLSuperUsers() []string {
+	var supers []string
+	for i := 0; i < getIntEnvvar(brokerCountEnvvar); i++ {
+		cn := fmt.Sprintf("kafka-%d-broker.%s",
+			i,
+			strings.Replace(getStringEnvvar(frameworkNameEnvvar), "/", "", -1))
+
+		if length := len(cn); length > cnMaxLength {
+			cn = cn[length-cnMaxLength:]
+		}
+		supers = append(supers, fmt.Sprintf(`User:%s`, cn))
+	}
+
+	return supers
 }

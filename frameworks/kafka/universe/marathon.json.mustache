@@ -42,10 +42,12 @@
     "CLIENT_STATSD_URI": "{{resource.assets.uris.statsd-client-jar}}",
     "SETUP_HELPER_URI": "{{resource.assets.uris.setup-helper-zip}}",
     "ZOOKEEPER_CLIENT_URI": "{{resource.assets.uris.zookeeper-client-jar}}",
+    "CUSTOM_KAFKA_PRINCIPAL_URI": "{{resource.assets.uris.custom-kafka-principal-jar}}",
 
     "PLACEMENT_CONSTRAINTS": "{{service.placement_constraint}}",
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
     "BROKER_COUNT": "{{brokers.count}}",
+    "TASKCFG_ALL_BROKER_COUNT": "{{brokers.count}}",
     "BROKER_CPUS": "{{brokers.cpus}}",
     "BROKER_MEM": "{{brokers.mem}}",
     "BROKER_DISK_SIZE": "{{brokers.disk}}",
@@ -76,9 +78,9 @@
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
     {{/service.security.transport_encryption.allow_plaintext}}
 
-    {{#service.security.ssl_auth.enable_authentication}}
-    "TASKCFG_ALL_SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION": "{{service.security.ssl_auth.enable_authentication}}",
-    {{/service.security.ssl_auth.enable_authentication}}
+    {{#service.security.ssl_authentication.enabled}}
+    "TASKCFG_ALL_SECURITY_SSL_AUTHENTICATION_ENABLED": "{{service.security.ssl_authentication.enabled}}",
+    {{/service.security.ssl_authentication.enabled}}
     {{/service.security.transport_encryption.enabled}}
 
     {{#service.security.kerberos.enabled}}
@@ -90,6 +92,12 @@
     "TASKCFG_ALL_KDC_HOST_NAME": "{{service.security.kerberos.kdc_host_name}}",
     "TASKCFG_ALL_KDC_HOST_PORT": "{{service.security.kerberos.kdc_host_port}}",
     {{/service.security.kerberos.enabled}}
+
+    {{#service.security.authorization.enabled}}
+    "TASKCFG_ALL_SECURITY_AUTHORIZATION_ENABLED": "{{service.security.authorization.enabled}}",
+    "TASKCFG_ALL_SECURITY_AUTHORIZATION_SUPER_USERS": "{{service.security.authorization.super_users}}",
+    "TASKCFG_ALL_SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND": "{{service.security.authorization.allow_everyone_if_no_acl_found}}",
+    {{/service.security.authorization.enabled}}
 
     "KAFKA_VERSION_PATH": "kafka_2.11-1.0.0",
 

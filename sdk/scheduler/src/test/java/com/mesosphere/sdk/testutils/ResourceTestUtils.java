@@ -82,16 +82,35 @@ public class ResourceTestUtils {
         return addReservation(getUnreservedPorts(begin, end).toBuilder(), resourceId).build();
     }
 
+    public static Protos.Resource getUnreservedCpus(double cpus, String preReservedRole) {
+        return getUnreservedScalar("cpus", cpus, preReservedRole);
+    }
+
+    public static Protos.Resource getUnreservedMem(double mem, String preReservedRole) {
+        return getUnreservedScalar("mem", mem, preReservedRole);
+    }
+
+    public static Protos.Resource getUnreservedDisk(double disk, String preReservedRole) {
+        return getUnreservedScalar("disk", disk, preReservedRole);
+    }
+
     public static Protos.Resource getUnreservedCpus(double cpus) {
-        return getUnreservedScalar("cpus", cpus);
+        return getUnreservedCpus(cpus, Constants.ANY_ROLE);
     }
 
     public static Protos.Resource getUnreservedMem(double mem) {
-        return getUnreservedScalar("mem", mem);
+        return getUnreservedMem(mem, Constants.ANY_ROLE);
     }
 
     public static Protos.Resource getUnreservedDisk(double disk) {
-        return getUnreservedScalar("disk", disk);
+        return getUnreservedDisk(disk, Constants.ANY_ROLE);
+    }
+
+    private static Protos.Resource getUnreservedScalar(String name, double value, String role) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.SCALAR);
+        builder.getScalarBuilder().setValue(value);
+        return getUnreservedResource(name, builder.build(), role);
     }
 
     public static Protos.Resource getUnreservedMountVolume(double diskSize) {
@@ -108,7 +127,7 @@ public class ResourceTestUtils {
         builder.getRangesBuilder().addRangeBuilder()
                 .setBegin(begin)
                 .setEnd(end);
-        return getUnreservedResource("ports", builder.build());
+        return getUnreservedResource("ports", builder.build(), Constants.ANY_ROLE);
     }
 
     @SuppressWarnings("deprecation") // for Resource.setRole()
@@ -129,11 +148,17 @@ public class ResourceTestUtils {
     }
 
     @SuppressWarnings("deprecation") // for Resource.setRole()
-    private static Protos.Resource getUnreservedResource(String name, Protos.Value value) {
+    private static Protos.Resource getUnreservedResource(String name, Protos.Value value, String role) {
         Protos.Resource.Builder resBuilder = Protos.Resource.newBuilder()
-                .setRole("*")
                 .setName(name)
-                .setType(value.getType());
+                .setType(value.getType())
+                .setRole(role);
+        if (!role.equals(Constants.ANY_ROLE)) {
+            // Fill in the prereserved role info:
+            resBuilder.addReservationsBuilder()
+                    .setRole(role)
+                    .setPrincipal(TestConstants.PRINCIPAL);
+        }
         switch (value.getType()) {
             case SCALAR:
                 return resBuilder.setScalar(value.getScalar()).build();
@@ -144,12 +169,5 @@ public class ResourceTestUtils {
             default:
                 return null;
         }
-    }
-
-    private static Protos.Resource getUnreservedScalar(String name, double value) {
-        Protos.Value.Builder builder = Protos.Value.newBuilder()
-                .setType(Protos.Value.Type.SCALAR);
-        builder.getScalarBuilder().setValue(value);
-        return getUnreservedResource(name, builder.build());
     }
 }

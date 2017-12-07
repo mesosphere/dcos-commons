@@ -197,45 +197,30 @@ public class YAMLToInternalMappers {
                 .sharePidNamespace(rawPod.getSharePidNamespace())
                 .allowDecommission(rawPod.getAllowDecommission());
 
-        // ContainerInfo parsing section: we allow Networks and RLimits to be within RawContainer, but new
-        // functionality (CNI or otherwise) will land in the pod-level only.
-        RawContainerInfoProvider containerInfoProvider = null;
         List<String> networkNames = new ArrayList<>();
-        if (rawPod.getImage() != null || !rawPod.getNetworks().isEmpty() || !rawPod.getRLimits().isEmpty()) {
-            if (rawPod.getContainer() != null) {
-                throw new IllegalArgumentException(String.format("You may define container settings directly under the "
-                        + "pod %s or under %s:container, but not both.", podName, podName));
-            }
-            containerInfoProvider = rawPod;
-        } else if (rawPod.getContainer() != null) {
-            containerInfoProvider = rawPod.getContainer();
+        List<RLimitSpec> rlimits = new ArrayList<>();
+        for (Map.Entry<String, RawRLimit> entry : rawPod.getRLimits().entrySet()) {
+            RawRLimit rawRLimit = entry.getValue();
+            rlimits.add(new RLimitSpec(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
         }
 
-        if (containerInfoProvider != null) {
-            List<RLimitSpec> rlimits = new ArrayList<>();
-            for (Map.Entry<String, RawRLimit> entry : containerInfoProvider.getRLimits().entrySet()) {
-                RawRLimit rawRLimit = entry.getValue();
-                rlimits.add(new RLimitSpec(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
-            }
-
-            WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = containerInfoProvider.getNetworks();
-            final Collection<NetworkSpec> networks = new ArrayList<>();
-            if (MapUtils.isNotEmpty(rawNetworks)) {
-                networks.addAll(rawNetworks.entrySet().stream()
-                        .map(rawNetworkEntry -> {
-                            String networkName = rawNetworkEntry.getKey();
-                            DcosConstants.warnIfUnsupportedNetwork(networkName);
-                            networkNames.add(networkName);
-                            RawNetwork rawNetwork = rawNetworks.get(networkName);
-                            return convertNetwork(networkName, rawNetwork, collatePorts(rawPod));
-                        })
-                        .collect(Collectors.toList()));
-            }
-
-            builder.image(containerInfoProvider.getImage())
-                    .networks(networks)
-                    .rlimits(rlimits);
+        WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetworks();
+        final Collection<NetworkSpec> networks = new ArrayList<>();
+        if (MapUtils.isNotEmpty(rawNetworks)) {
+            networks.addAll(rawNetworks.entrySet().stream()
+                    .map(rawNetworkEntry -> {
+                        String networkName = rawNetworkEntry.getKey();
+                        DcosConstants.warnIfUnsupportedNetwork(networkName);
+                        networkNames.add(networkName);
+                        RawNetwork rawNetwork = rawNetworks.get(networkName);
+                        return convertNetwork(networkName, rawNetwork, collatePorts(rawPod));
+                    })
+                    .collect(Collectors.toList()));
         }
+
+        builder.image(rawPod.getImage())
+                .networks(networks)
+                .rlimits(rlimits);
 
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();

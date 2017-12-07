@@ -11,6 +11,7 @@ import sdk_utils
 
 from tests import auth
 from tests import config
+from tests import topics
 
 log = logging.getLogger(__name__)
 
@@ -68,6 +69,9 @@ def kafka_server(kerberos):
 
     On teardown, the service is uninstalled.
     """
+
+    super_principal = "super"
+
     service_kerberos_options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -77,6 +81,10 @@ def kafka_server(kerberos):
                     "kdc_host_name": kerberos.get_host(),
                     "kdc_host_port": int(kerberos.get_port()),
                     "keytab_secret": kerberos.get_keytab_path(),
+                },
+                "authorization": {
+                    "enabled": True,
+                    "super_users": "User:{}".format(super_principal)
                 }
             }
         }
@@ -91,7 +99,8 @@ def kafka_server(kerberos):
             additional_options=service_kerberos_options,
             timeout_seconds=30 * 60)
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
+        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME,
+                                              "super_principal": super_principal}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -152,15 +161,56 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server):
+def test_authz_acls_required(kafka_client, kafka_server):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
-    topic_name = "authn.test"
+    topic_name = "authz.test"
 
     message = str(uuid.uuid4())
 
-    assert ">>" in auth.write_to_topic("client", client_id, topic_name, message)
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert auth.is_not_authorized(auth.write_to_topic("authorized", client_id, topic_name, message))
 
-    assert message in auth.read_from_topic("client", client_id, topic_name, 1)
+    log.info("Writing and reading: Writing to the topic, as super user")
+    assert ">>" in auth.write_to_topic("super", client_id, topic_name, message)
+
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    assert auth.is_not_authorized(auth.read_from_topic("authorized", client_id, topic_name, 1))
+
+    log.info("Writing and reading: Reading from the topic, as super user")
+    assert message in auth.read_from_topic("super", client_id, topic_name, 1)
+
+    zookeeper_endpoint = sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "endpoint zookeeper").strip()
+
+    # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
+    topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
+
+    # Send a second message which should not be authorized
+    second_message = str(uuid.uuid4())
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert ">>" in auth.write_to_topic("authorized", client_id, topic_name, second_message)
+
+    log.info("Writing and reading: Writing to the topic, as super user")
+    assert ">>" in auth.write_to_topic("super", client_id, topic_name, second_message)
+
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    topic_output = auth.read_from_topic("authorized", client_id, topic_name, 3)
+    assert message in topic_output
+    assert second_message in topic_output
+
+    log.info("Writing and reading: Reading from the topic, as super user")
+    topic_output = auth.read_from_topic("super", client_id, topic_name, 3)
+    assert message in topic_output
+    assert second_message in topic_output
+
+    # Check that the unauthorized client can still not read or write from the topic.
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert auth.is_not_authorized(auth.write_to_topic("unauthorized", client_id, topic_name, second_message))
+
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    assert auth.is_not_authorized(auth.read_from_topic("unauthorized", client_id, topic_name, 1))
