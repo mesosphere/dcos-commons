@@ -39,9 +39,9 @@ def service_account(configure_security):
 
 @pytest.fixture(scope='module', autouse=True)
 def kafka_client():
-    brokers = ["kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1030",
-               "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030",
-               "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1030"]
+    brokers = ["kafka-0-broker.{}.autoip.dcos.thisdcos.directory:1030".format(config.SERVICE_NAME),
+               "kafka-1-broker.{}.autoip.dcos.thisdcos.directory:1030".format(config.SERVICE_NAME),
+               "kafka-2-broker.{}.autoip.dcos.thisdcos.directory:1030".format(config.SERVICE_NAME)]
 
     try:
         client_id = "kafka-client"
