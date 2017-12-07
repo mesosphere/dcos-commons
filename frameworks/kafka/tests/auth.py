@@ -1,23 +1,18 @@
 import logging
 import uuid
 
+import sdk_hosts
 import sdk_tasks
+
 
 LOG = logging.getLogger(__name__)
 
 
-def wait_for_brokers(client: str, brokers: list):
+def wait_for_brokers(client: str, hosts: list):
     """
-    Run bootstrap on the specified client to resolve the list of brokers
+    Use bootstrap to resolve the specified list of hosts
     """
-    LOG.info("Running bootstrap to wait for DNS resolution")
-    bootstrap_cmd = ['/opt/bootstrap',
-                     '-print-env=false',
-                     '-template=false',
-                     '-install-certs=false',
-                     '-resolve-hosts', ','.join(brokers)]
-    bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
-    LOG.info(bootstrap_output)
+    return sdk_hosts.resolve_hosts(client, hosts, bootstrap="/opt/bootstrap")
 
 
 def send_and_receive_message(client: str):

@@ -234,7 +234,7 @@ def kafka_client(kerberos, kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client, kafka_server):
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    assert auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
     topicname = kafka_client["env"]["KAFKA_TOPIC"]
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],

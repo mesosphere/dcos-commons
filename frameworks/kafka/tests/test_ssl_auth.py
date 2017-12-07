@@ -124,7 +124,7 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
             })
 
         client_id = kafka_client["id"]
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+        assert auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
             "topic create tls.topic",
@@ -177,7 +177,7 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
                 }
             })
 
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+        assert auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
             "topic create authz.test",
@@ -249,7 +249,7 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                 }
             })
 
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+        assert auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
         # Create the topic
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
