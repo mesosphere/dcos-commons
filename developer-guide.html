@@ -383,7 +383,10 @@
       </li>
       <li><a href="#plans" id="markdown-toc-plans">Plans</a>        <ul>
           <li><a href="#default-deployment-plan" id="markdown-toc-default-deployment-plan">Default Deployment Plan</a></li>
-          <li><a href="#custom-deployment-plan" id="markdown-toc-custom-deployment-plan">Custom Deployment Plan</a></li>
+          <li><a href="#custom-deployment-plan" id="markdown-toc-custom-deployment-plan">Custom Deployment Plan</a>            <ul>
+              <li><a href="#removal-from-deployment-plans" id="markdown-toc-removal-from-deployment-plans">Removal From Deployment Plans</a></li>
+            </ul>
+          </li>
           <li><a href="#custom-update-plans" id="markdown-toc-custom-update-plans">Custom Update Plans</a></li>
           <li><a href="#custom-auxiliary-plans" id="markdown-toc-custom-auxiliary-plans">Custom Auxiliary Plans</a></li>
         </ul>
@@ -469,6 +472,7 @@
   </li>
   <li><a href="#advanced-dcos-service-definition" id="markdown-toc-advanced-dcos-service-definition">Advanced DC/OS Service Definition</a>    <ul>
       <li><a href="#servicespec-yaml" id="markdown-toc-servicespec-yaml"><code class="highlighter-rouge">ServiceSpec</code> (YAML)</a>        <ul>
+          <li><a href="#pods" id="markdown-toc-pods">Pods</a></li>
           <li><a href="#containers" id="markdown-toc-containers">Containers</a></li>
           <li><a href="#placement-rules" id="markdown-toc-placement-rules">Placement Rules</a></li>
           <li><a href="#resource-sets" id="markdown-toc-resource-sets">Resource Sets</a></li>
@@ -909,6 +913,97 @@ now, you must manually run the janitor script as shown above.</p>
   <li><code class="highlighter-rouge">hello-1-main</code></li>
 </ol>
 
+<h4 id="removal-from-deployment-plans">Removal From Deployment Plans</h4>
+
+<p>If your custom deployment plan is later updated to no longer reference pods or tasks which are still listed in your pod spec, the affected tasks will be killed but their resources will not be returned to the cluster. <strong>Note:</strong> If you instead wish to kill tasks <em>and</em> release their resources back to the cluster, you may do so through the <a href="#pods">pod decommission</a> process.</p>
+
+<p>For example, updating a <code class="highlighter-rouge">ServiceSpec</code> from:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+  <span class="s">world</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+      <span class="s">world-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">world</span>
+</code></pre>
+</div>
+
+<p>to:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+  <span class="s">world</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+</code></pre>
+</div>
+
+<p>would result in all tasks in the <code class="highlighter-rouge">world-&lt;index&gt;</code> pod instances being killed, but their resources would not be returned to the cluster. To unreserve resources associated with the <code class="highlighter-rouge">world</code> pod instances, a <a href="#pods">decommission operation</a> would need to be performed.</p>
+
+<p>This behavior can also function at per-task granularity when custom <code class="highlighter-rouge">steps</code> are being specified. For example, updating a <code class="highlighter-rouge">ServiceSpec</code> from:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">monitor</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">main</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">monitor</span><span class="pi">,</span> <span class="nv">main</span><span class="pi">]]</span>
+</code></pre>
+</div>
+
+<p>to:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">monitor</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+      <span class="s">main</span><span class="pi">:</span>
+        <span class="pi">[</span><span class="nv">...</span><span class="pi">]</span>
+<span class="s">plans</span><span class="pi">:</span>
+  <span class="s">deploy</span><span class="pi">:</span>
+    <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+    <span class="s">phases</span><span class="pi">:</span>
+      <span class="s">hello-phase</span><span class="pi">:</span>
+        <span class="s">strategy</span><span class="pi">:</span> <span class="s">serial</span>
+        <span class="s">pod</span><span class="pi">:</span> <span class="s">hello</span>
+        <span class="s">steps</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">main</span><span class="pi">]]</span>
+</code></pre>
+</div>
+
+<p>would result in all <code class="highlighter-rouge">hello-&lt;index&gt;-monitor</code> tasks being killed without their resources being returned to the cluster, while the <code class="highlighter-rouge">hello-&lt;index&gt;-main</code> tasks would continue running. To unreserve resources associated with the <code class="highlighter-rouge">monitor</code> tasks, a <a href="#pods">decommission operation</a> would need to be performed.</p>
+
 <h3 id="custom-update-plans">Custom Update Plans</h3>
 
 <p>When a configuration change is being rolled out, the Scheduler will by default use the current Deploy plan, whether that’s a custom plan named <code class="highlighter-rouge">deploy</code> or the default deployment plan. Some services require additional logic when performing configuration or software updates, in which case a plan named <code class="highlighter-rouge">update</code> may be provided. The <code class="highlighter-rouge">update</code> plan, if defined, will be used instead of the <code class="highlighter-rouge">deploy</code> plan when rolling out a configuration change. It’s otherwise functionally similar to the custom <code class="highlighter-rouge">deploy</code> logic described above.</p>
@@ -1224,7 +1319,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 
 <p>This example updates the target configuration we defined in the install above. The new target configuration below increases the amount of CPU consumed by the server task.</p>
 
-<p>In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS. Below, we update this value in Marathon from 0.1 to 0.2.</p>
+<p>In the <code class="highlighter-rouge">marathon.json.mustache</code> template we defined an environment variable named <code class="highlighter-rouge">HELLO_CPUS</code>. Below, we update this value in Marathon from <code class="highlighter-rouge">0.1</code> to <code class="highlighter-rouge">0.2</code>.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/hello-world"</span><span class="p">,</span><span class="w">
@@ -1239,7 +1334,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </span></code></pre>
 </div>
 
-<p>This will result in restarting the scheduler and re-rendering the <code class="highlighter-rouge">ServiceSpec</code> template. The new template is shown below. Note that the value of <code class="highlighter-rouge">cpus</code> has changed to 0.2.</p>
+<p>This will result in restarting the scheduler and re-rendering the <code class="highlighter-rouge">ServiceSpec</code> template. The new template is shown below, with the value of <code class="highlighter-rouge">cpus</code> changed to <code class="highlighter-rouge">0.2</code>.</p>
 
 <div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
 <span class="s">pods</span><span class="pi">:</span>
@@ -1258,7 +1353,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </code></pre>
 </div>
 
-<p>A new plan is then generated and execution begins:</p>
+<p>This generates the following <code class="highlighter-rouge">deploy</code> Plan:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"phases"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
@@ -1278,11 +1373,11 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </span></code></pre>
 </div>
 
-<p>In this case, we have changed the resources consumed for a running task. In order for it to consume new resources, the task must be killed and restarted consuming more resources. When in the PREPARED state, the task has been killed and will be restarted as soon as appropriate resources are available.</p>
+<p>In this case, we have changed the resources consumed for a running task. The task must be killed and then restarted with an updated resource reservation. When the Step for a task is in the <code class="highlighter-rouge">PREPARED</code> state, the task has been killed and will be restarted as soon as the appropriate resources are available. Once the task is successfully relaunched with the increased resource allocation to reflect the new target configuration, the <code class="highlighter-rouge">deploy</code> Plan will be in a <code class="highlighter-rouge">COMPLETE</code> state.</p>
 
 <h4 id="horizontal-scale-example">Horizontal Scale Example</h4>
 
-<p>In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below changes HELLO_COUNT to 2, adding an additional instance of the hello pod.</p>
+<p>In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below increases <code class="highlighter-rouge">HELLO_COUNT</code> to <code class="highlighter-rouge">2</code>, adding an additional instance of the hello pod.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/hello-world"</span><span class="p">,</span><span class="w">
@@ -1297,7 +1392,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </span></code></pre>
 </div>
 
-<p>This generates the following Plan:</p>
+<p>This generates the following <code class="highlighter-rouge">deploy</code> Plan:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"phases"</span><span class="p">:</span><span class="w"> </span><span class="p">[{</span><span class="w">
@@ -1322,7 +1417,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 </span></code></pre>
 </div>
 
-<p>The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration.</p>
+<p>Because instance 0 of the hello pod is unaffected by the increase in pod count, we see that <code class="highlighter-rouge">hello-0</code> is never restarted and its step is initialized as <code class="highlighter-rouge">COMPLETE</code>. Another step named <code class="highlighter-rouge">hello-1</code> has been generated for instance 1. Once <code class="highlighter-rouge">hello-1</code> has been deployed, the service will have transitioned from its previous configuration to the new target configuration, and the above <code class="highlighter-rouge">deploy</code> Plan will be in a <code class="highlighter-rouge">COMPLETE</code> state. <strong>Note:</strong> By default, pods can be scaled up but not scaled down. Decreasing the number of pods will result in a validation error when the Scheduler is restarted. As a safety measure, if you wish to allow scale-in of your pods, you must specify <code class="highlighter-rouge">allow-decommission: true</code> for each applicable pod.</p>
 
 <h3 id="rollback">Rollback</h3>
 
@@ -2052,6 +2147,64 @@ installed the
 <h2 id="servicespec-yaml"><code class="highlighter-rouge">ServiceSpec</code> (YAML)</h2>
 
 <p>The most basic set of features present in the YAML representation of the <code class="highlighter-rouge">ServiceSpec</code> are <a href="#service-spec">presented above</a>. The remaining features are introduced below.</p>
+
+<h3 id="pods">Pods</h3>
+
+<p>You may specify the number of pod instances to be run for every pod. As a safety measure, after initial install, users can increase but not decrease this value. If you wish to allow scale-in of your pods, you must specify <code class="highlighter-rouge">allow-decommission: true</code> for each applicable pod:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">3</span>
+    <span class="s">allow-decommission</span><span class="pi">:</span> <span class="s">true</span>
+    <span class="s">...</span>
+</code></pre>
+</div>
+
+<p>You should only enable this option if it is safe for the pod’s tasks be destroyed without needing to perform additional rebalancing or drain operations beforehand.</p>
+
+<p>Pods removed from a service specification entirely will be decommissioned.  All instances of undefined pods will have their tasks killed and all their resources released back to the cluster.  <strong>Note:</strong> If you instead wish to kill tasks <em>without</em> releasing their resources back to the cluster, you may do this using a <a href="#custom-deployment-plan">custom deployment plan</a>.</p>
+
+<p>For example, updating a <code class="highlighter-rouge">ServiceSpec</code> from:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">allow-decommission</span><span class="pi">:</span> <span class="s">true</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+  <span class="s">world</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">world"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+</code></pre>
+</div>
+
+<p>to:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">world</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">world"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+</code></pre>
+</div>
+
+<p>would result in all <code class="highlighter-rouge">hello-&lt;index&gt;-server</code> tasks being killed and their resources unreserved. <strong>Note:</strong> In order for the pod to be removed, it <em>must</em> have specified <code class="highlighter-rouge">allow-decommission: true</code> before the removal. If you wish to decommission a pod which doesn’t currently allow decommissioning, two configuration updates must be performed: one to add <code class="highlighter-rouge">allow-decommission: true</code> to the pod specification and another to remove the pod specification.</p>
 
 <h3 id="containers">Containers</h3>
 

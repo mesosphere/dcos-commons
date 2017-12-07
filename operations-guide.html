@@ -387,6 +387,7 @@
         </ul>
       </li>
       <li><a href="#offer-cycle" id="markdown-toc-offer-cycle">Offer Cycle</a></li>
+      <li><a href="#pods" id="markdown-toc-pods">Pods</a></li>
       <li><a href="#plans" id="markdown-toc-plans">Plans</a>        <ul>
           <li><a href="#custom-update-plan" id="markdown-toc-custom-update-plan">Custom Update Plan</a></li>
           <li><a href="#recovery-plan" id="markdown-toc-recovery-plan">Recovery Plan</a>            <ul>
@@ -396,7 +397,6 @@
         </ul>
       </li>
       <li><a href="#persistent-volumes" id="markdown-toc-persistent-volumes">Persistent Volumes</a></li>
-      <li><a href="#pods-vs-tasks" id="markdown-toc-pods-vs-tasks">Pods vs Tasks</a></li>
       <li><a href="#virtual-networks" id="markdown-toc-virtual-networks">Virtual networks</a></li>
       <li><a href="#secrets" id="markdown-toc-secrets">Secrets</a>        <ul>
           <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
@@ -442,17 +442,22 @@
               </li>
             </ul>
           </li>
-          <li><a href="#open-source-dcos-dcos-19-and-earlier" id="markdown-toc-open-source-dcos-dcos-19-and-earlier">Open Source DC/OS, DC/OS 1.9, and Earlier</a></li>
-          <li><a href="#add-a-node" id="markdown-toc-add-a-node">Add a node</a></li>
-          <li><a href="#finding-the-correct-environment-variable" id="markdown-toc-finding-the-correct-environment-variable">Finding the correct environment variable</a></li>
+          <li><a href="#open-source-dcos-dcos-19-and-earlier" id="markdown-toc-open-source-dcos-dcos-19-and-earlier">Open Source DC/OS, DC/OS 1.9, and Earlier</a>            <ul>
+              <li><a href="#finding-the-correct-environment-variable" id="markdown-toc-finding-the-correct-environment-variable">Finding the correct environment variable</a></li>
+            </ul>
+          </li>
         </ul>
       </li>
-      <li><a href="#restart-a-pod" id="markdown-toc-restart-a-pod">Restart a pod</a></li>
-      <li><a href="#replace-a-pod" id="markdown-toc-replace-a-pod">Replace a pod</a></li>
-      <li><a href="#pause-a-pod" id="markdown-toc-pause-a-pod">Pause a pod</a></li>
       <li><a href="#uninstall-1" id="markdown-toc-uninstall-1">Uninstall</a>        <ul>
           <li><a href="#dcos-110-and-newer" id="markdown-toc-dcos-110-and-newer">DC/OS 1.10 and newer</a></li>
           <li><a href="#older-versions" id="markdown-toc-older-versions">Older versions</a></li>
+        </ul>
+      </li>
+      <li><a href="#pod-operations" id="markdown-toc-pod-operations">Pod operations</a>        <ul>
+          <li><a href="#add-or-remove-a-pod" id="markdown-toc-add-or-remove-a-pod">Add or Remove a pod</a></li>
+          <li><a href="#restart-a-pod" id="markdown-toc-restart-a-pod">Restart a pod</a></li>
+          <li><a href="#replace-a-pod" id="markdown-toc-replace-a-pod">Replace a pod</a></li>
+          <li><a href="#pause-a-pod" id="markdown-toc-pause-a-pod">Pause a pod</a></li>
         </ul>
       </li>
       <li><a href="#plan-operations" id="markdown-toc-plan-operations">Plan Operations</a>        <ul>
@@ -731,11 +736,15 @@
 
 <ol>
   <li><strong>Task Reconciliation</strong>: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler’s tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.</li>
-  <li><strong>Offer Acceptance</strong>: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn’t launching tasks. This is generally because the Scheduler isn’t able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger nodes, or reduce the requirements of the service.</li>
+  <li><strong>Offer Acceptance</strong>: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn’t launching tasks. This is generally because the Scheduler isn’t able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger machines to the cluster, or reduce the requirements of the service.</li>
   <li><strong>Resource Cleanup</strong>: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn’t know about it anymore. At this point, the Scheduler will automatically clean up those resources.</li>
 </ol>
 
 <p>SDK Schedulers will automatically notify Mesos to stop sending offers, or “suspend” offers, when the Scheduler doesn’t have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task’s reservation, and then launching the task against those resources once more.</p>
+
+<h2 id="pods">Pods</h2>
+
+<p>A Task generally maps to a single process within the service. A Pod is a collection of colocated Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, most maintenance operations against the service are at <a href="#pod-operations">Pod granularity</a> rather than Task granularity.</p>
 
 <h2 id="plans">Plans</h2>
 
@@ -893,10 +902,6 @@ Agent 3: X B
 </div>
 
 <p>Configuring <code class="highlighter-rouge">ROOT</code> vs <code class="highlighter-rouge">MOUNT</code> volumes may depend on the service. Some services will support customizing this setting when it is relevant, while others may assume one or the other.</p>
-
-<h2 id="pods-vs-tasks">Pods vs Tasks</h2>
-
-<p>A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, <a href="#restart-a-pod">restart</a> and <a href="#replace-a-pod">replace</a> operations are at Pod granularity rather than Task granularity.</p>
 
 <h2 id="virtual-networks">Virtual networks</h2>
 
@@ -1421,7 +1426,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 
 <ol>
   <li>
-    <p>In the window that appears, click the <strong>Environment</strong> tab to show a list of the Scheduler’s environment variables. For the sake of this demo, we will increase the <code class="highlighter-rouge">OPSCENTER_MEM</code> value from <code class="highlighter-rouge">4000</code> to <code class="highlighter-rouge">5000</code>, thereby increasing the RAM quota for the OpsCenter task in this service:</p>
+    <p>In the window that appears, click the <strong>Environment</strong> tab to show a list of the Scheduler’s environment variables. For the sake of this demo, we will increase the <code class="highlighter-rouge">OPSCENTER_MEM</code> value from <code class="highlighter-rouge">4000</code> to <code class="highlighter-rouge">5000</code>, thereby increasing the RAM quota for the OpsCenter task in this service. See <a href="#finding-the-correct-environment-variable">finding the correct environment variable</a> for more information on determining the correct value to be updated.</p>
   </li>
   <li>After you click <code class="highlighter-rouge">Change and deploy</code>, the following will happen:
     <ul>
@@ -1458,11 +1463,9 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 
 <p>The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task <code class="highlighter-rouge">N+1</code> is only redeployed after task <code class="highlighter-rouge">N</code> appears to be healthy and ready after being relaunched with the new configuration. Some services may have defined a custom <code class="highlighter-rouge">update</code> plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom <code class="highlighter-rouge">update</code> plan was defined, is to use the <code class="highlighter-rouge">deploy</code> plan.</p>
 
-<h3 id="add-a-node">Add a node</h3>
+<h4 id="finding-the-correct-environment-variable">Finding the correct environment variable</h4>
 
-<p>Adding a task node to the service is just another type of configuration change. In this case, we’re looking for a specific config value in the package’s <code class="highlighter-rouge">config.json</code>, and then mapping that configuration value to the relevant environment variable in the Scheduler. In the case of the above <code class="highlighter-rouge">dse</code> service, we need to increase the Scheduler’s <code class="highlighter-rouge">DSE_NODE_POD_COUNT</code> from <code class="highlighter-rouge">3</code> (the default) to <code class="highlighter-rouge">4</code>. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.</p>
-
-<h3 id="finding-the-correct-environment-variable">Finding the correct environment variable</h3>
+<p>While DC/OS Enterprise 1.10+ supports changing the configuration using the option schema directly, DC/OS Open and versions 1.9 and earlier require mapping those options to the environment variables that are passed to the Scheduler.</p>
 
 <p>The correct environment variable for a given setting can vary depending on the service. For instance, some services have multiple types of nodes, each with separate count settings. If you want to increase the number of nodes, it would take some detective work to find the correct environment variable.</p>
 
@@ -1496,7 +1499,58 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 
 <p>This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).</p>
 
-<h2 id="restart-a-pod">Restart a pod</h2>
+<h2 id="uninstall-1">Uninstall</h2>
+
+<p>The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:</p>
+
+<h3 id="dcos-110-and-newer">DC/OS 1.10 and newer</h3>
+
+<p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
+
+<ol>
+  <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.</li>
+</ol>
+
+<p>For example, to uninstall a Confluent Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --app-id<span class="o">=</span>kafka-dev confluent-kafka
+</code></pre>
+</div>
+
+<h3 id="older-versions">Older versions</h3>
+
+<p>If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:</p>
+
+<ol>
+  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
+For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kafka-dev confluent-kafka</code>.</li>
+  <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
+</ol>
+
+<p>For example, to uninstall a Confluent Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">MY_SERVICE_NAME</span><span class="o">=</span>kafka-dev
+<span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> confluent-kafka<span class="sb">`</span>.
+<span class="gp">$ </span>dcos node ssh --master-proxy --leader <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
+    -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
+    -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
+    -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
+</code></pre>
+</div>
+
+<h2 id="pod-operations">Pod operations</h2>
+
+<p>Most operations for maintaining a service will involve interacting with and manipulating its <a href="#pods">Pods</a>.</p>
+
+<h3 id="add-or-remove-a-pod">Add or Remove a pod</h3>
+
+<p>Adding or removing pod instances within the service is treated as a configuration change, not a command.</p>
+
+<p>In this case, we’re increasing a pod count value, as provided by the service’s configuration schema. In the case of the above <code class="highlighter-rouge">dse</code> service, we need to increase the configured <code class="highlighter-rouge">dsenode.count</code> from <code class="highlighter-rouge">3</code> (the default) to <code class="highlighter-rouge">4</code>. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.</p>
+
+<p>For safety reasons, pod instances cannot be removed after they have been deployed by default. However, some services may allow some pods to be removed in cases where doing so is not a problem. To remove pod instances, you would simply decrease the count value, and then instances exceeding that count will be removed automatically in reverse order. For example, if you decreased <code class="highlighter-rouge">dsenode.count</code> from <code class="highlighter-rouge">4</code> to <code class="highlighter-rouge">2</code> and this was allowed by the DSE service, you would see <code class="highlighter-rouge">dsenode-3</code> be removed followed by <code class="highlighter-rouge">dsenode-2</code>, leaving only <code class="highlighter-rouge">dsenode-0</code> and <code class="highlighter-rouge">dsenode-1</code> still running. If the DSE service doesn’t allow the number of instances to be decreased, the Scheduler would instead reject the decrease and show a validation error in its <a href="#status">deploy Plan</a>.</p>
+
+<h3 id="restart-a-pod">Restart a pod</h3>
 
 <p>Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see <a href="#recovery-plan">Recovery</a>.</p>
 
@@ -1504,7 +1558,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 
 <p>Via the CLI:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos datastax-dse --name<span class="o">=</span>mydse pod list
 <span class="o">[</span>
   <span class="s2">"dse-0"</span>,
   <span class="s2">"dse-1"</span>,
@@ -1512,7 +1566,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
   <span class="s2">"opscenter-0"</span>,
   <span class="s2">"studio-0"</span>
 <span class="o">]</span>
-<span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod restart dse-1
+<span class="gp">$ </span>dcos datastax-dse --name<span class="o">=</span>mydse pod restart dse-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1546,7 +1600,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 
 <p>All tasks within the pod are restarted as a unit. The response lists the names of the two tasks that were members of the pod.</p>
 
-<h2 id="replace-a-pod">Replace a pod</h2>
+<h3 id="replace-a-pod">Replace a pod</h3>
 
 <p>Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if an agent machine has gone down and is never coming back, or if an agent is about to undergo downtime.</p>
 
@@ -1554,7 +1608,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 
 <p>As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod replace dse-1
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos datastax-dse --name<span class="o">=</span>mydse pod replace dse-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"dse-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -1576,7 +1630,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
 </code></pre>
 </div>
 
-<h2 id="pause-a-pod">Pause a pod</h2>
+<h3 id="pause-a-pod">Pause a pod</h3>
 
 <p>Pausing a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed.</p>
 
@@ -1650,46 +1704,10 @@ myservice
 
 <p>In the above example, all tasks in the pod were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos myservice debug pod pause index-1 -t agent</code> will pause only the <code class="highlighter-rouge">agent</code> task within the <code class="highlighter-rouge">index-1</code> pod.</p>
 
-<h2 id="uninstall-1">Uninstall</h2>
-
-<p>The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:</p>
-
-<h3 id="dcos-110-and-newer">DC/OS 1.10 and newer</h3>
-
-<p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
-
-<ol>
-  <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.</li>
-</ol>
-
-<p>For example, to uninstall a Confluent Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos package uninstall --app-id<span class="o">=</span>kafka-dev confluent-kafka
-</code></pre>
-</div>
-
-<h3 id="older-versions">Older versions</h3>
-
-<p>If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:</p>
-
-<ol>
-  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
-For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kafka-dev confluent-kafka</code>.</li>
-  <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
-</ol>
-
-<p>For example, to uninstall a Confluent Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
-
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nv">MY_SERVICE_NAME</span><span class="o">=</span>kafka-dev
-<span class="gp">$ </span>dcos package uninstall --app-id<span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> confluent-kafka<span class="sb">`</span>.
-<span class="gp">$ </span>dcos node ssh --master-proxy --leader <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
-    -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
-    -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
-    -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
-</code></pre>
-</div>
-
 <h2 id="plan-operations">Plan Operations</h2>
+
+<p>This lists available commands for viewing and manipulating the <a href="#plans">Plans</a> used by the Scheduler to perform work against the underlying service.</p>
+
 <h3 id="list">List</h3>
 <p>Show all plans for this service.</p>
 
@@ -2078,7 +2096,7 @@ broker-container#
 
 <p>For example, let’s get a list of pods using the CLI, and then via the HTTP API:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse pod list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos datastax-dse --name<span class="o">=</span>mydse pod list
 <span class="o">[</span>
   <span class="s2">"dse-0"</span>,
   <span class="s2">"dse-1"</span>,
@@ -2099,7 +2117,7 @@ broker-container#
 
 <p>The <code class="highlighter-rouge">-v</code> (or <code class="highlighter-rouge">--verbose</code>) argument allows you to view and diagnose the underlying requests made by the CLI:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-dse --name<span class="o">=</span>dse -v pod list
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos datastax-dse --name<span class="o">=</span>mydse -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_url
 2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_acs_token
