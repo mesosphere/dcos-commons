@@ -389,6 +389,97 @@ This plan would result in steps generating the following tasks:
 1. `hello-0-main`
 1. `hello-1-main`
 
+#### Removal From Deployment Plans
+
+If your custom deployment plan is later updated to no longer reference pods or tasks which are still listed in your pod spec, the affected tasks will be killed but their resources will not be returned to the cluster. **Note:** If you instead wish to kill tasks _and_ release their resources back to the cluster, you may do so through the [pod decommission](#pods) process.
+
+For example, updating a `ServiceSpec` from:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    [...]
+  world:
+    [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+      world-phase:
+        strategy: serial
+        pod: world
+```
+
+to:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    [...]
+  world:
+    [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+```
+
+would result in all tasks in the `world-<index>` pod instances being killed, but their resources would not be returned to the cluster. To unreserve resources associated with the `world` pod instances, a [decommission operation](#pods) would need to be performed.
+
+This behavior can also function at per-task granularity when custom `steps` are being specified. For example, updating a `ServiceSpec` from:
+
+```yaml
+pods:
+  hello:
+    [...]
+    tasks:
+      monitor:
+        [...]
+      main:
+        [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[monitor, main]]
+```
+
+to:
+
+```yaml
+pods:
+  hello:
+    [...]
+    tasks:
+      monitor:
+        [...]
+      main:
+        [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[main]]
+```
+
+would result in all `hello-<index>-monitor` tasks being killed without their resources being returned to the cluster, while the `hello-<index>-main` tasks would continue running. To unreserve resources associated with the `monitor` tasks, a [decommission operation](#pods) would need to be performed.
+
 ### Custom Update Plans
 
 When a configuration change is being rolled out, the Scheduler will by default use the current Deploy plan, whether that's a custom plan named `deploy` or the default deployment plan. Some services require additional logic when performing configuration or software updates, in which case a plan named `update` may be provided. The `update` plan, if defined, will be used instead of the `deploy` plan when rolling out a configuration change. It's otherwise functionally similar to the custom `deploy` logic described above.
@@ -691,7 +782,7 @@ In the update case, a scheduler goes from one target configuration to the next. 
 
 This example updates the target configuration we defined in the install above. The new target configuration below increases the amount of CPU consumed by the server task.
 
-In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS. Below, we update this value in Marathon from 0.1 to 0.2.
+In the `marathon.json.mustache` template we defined an environment variable named `HELLO_CPUS`. Below, we update this value in Marathon from `0.1` to `0.2`.
 
 ```
 {
@@ -706,7 +797,7 @@ In the marathon.json.mustache template we defined an environment variable named 
 }
 ```
 
-This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below. Note that the value of `cpus` has changed to 0.2.
+This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below, with the value of `cpus` changed to `0.2`.
 
 ```yaml
 name: "hello-world"
@@ -725,7 +816,7 @@ pods:
           size: 50
 ```
 
-A new plan is then generated and execution begins:
+This generates the following `deploy` Plan:
 
 ```
 {
@@ -745,11 +836,11 @@ A new plan is then generated and execution begins:
 }
 ```
 
-In this case, we have changed the resources consumed for a running task. In order for it to consume new resources, the task must be killed and restarted consuming more resources. When in the PREPARED state, the task has been killed and will be restarted as soon as appropriate resources are available.
+In this case, we have changed the resources consumed for a running task. The task must be killed and then restarted with an updated resource reservation. When the Step for a task is in the `PREPARED` state, the task has been killed and will be restarted as soon as the appropriate resources are available. Once the task is successfully relaunched with the increased resource allocation to reflect the new target configuration, the `deploy` Plan will be in a `COMPLETE` state.
 
 #### Horizontal Scale Example
 
-In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below changes HELLO_COUNT to 2, adding an additional instance of the hello pod.
+In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below increases `HELLO_COUNT` to `2`, adding an additional instance of the hello pod.
 
 ```
 {
@@ -764,7 +855,7 @@ In the previous example, the change in target configuration affected currently r
 }
 ```
 
-This generates the following Plan:
+This generates the following `deploy` Plan:
 
 ```
 {
@@ -789,7 +880,7 @@ This generates the following Plan:
 }
 ```
 
-The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration.
+Because instance 0 of the hello pod is unaffected by the increase in pod count, we see that `hello-0` is never restarted and its step is initialized as `COMPLETE`. Another step named `hello-1` has been generated for instance 1. Once `hello-1` has been deployed, the service will have transitioned from its previous configuration to the new target configuration, and the above `deploy` Plan will be in a `COMPLETE` state. **Note:** By default, pods can be scaled up but not scaled down. Decreasing the number of pods will result in a validation error when the Scheduler is restarted. As a safety measure, if you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod.
 
 ### Rollback
 
@@ -1447,6 +1538,64 @@ $ py.test frameworks/helloworld/
 ## `ServiceSpec` (YAML)
 
 The most basic set of features present in the YAML representation of the `ServiceSpec` are [presented above](#service-spec). The remaining features are introduced below.
+
+### Pods
+
+You may specify the number of pod instances to be run for every pod. As a safety measure, after initial install, users can increase but not decrease this value. If you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 3
+    allow-decommission: true
+    ...
+```
+
+You should only enable this option if it is safe for the pod's tasks be destroyed without needing to perform additional rebalancing or drain operations beforehand.
+
+Pods removed from a service specification entirely will be decommissioned.  All instances of undefined pods will have their tasks killed and all their resources released back to the cluster.  **Note:** If you instead wish to kill tasks _without_ releasing their resources back to the cluster, you may do this using a [custom deployment plan](#custom-deployment-plan).
+
+For example, updating a `ServiceSpec` from:
+
+ ```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    allow-decommission: true
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello"
+        cpus: 1.0
+        memory: 256
+  world:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world"
+        cpus: 1.0
+        memory: 256
+```
+
+to:
+
+```yaml
+name: "hello-world"
+pods:
+  world:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world"
+        cpus: 1.0
+        memory: 256
+```
+
+would result in all `hello-<index>-server` tasks being killed and their resources unreserved. **Note:** In order for the pod to be removed, it _must_ have specified `allow-decommission: true` before the removal. If you wish to decommission a pod which doesn't currently allow decommissioning, two configuration updates must be performed: one to add `allow-decommission: true` to the pod specification and another to remove the pod specification.
 
 ### Containers
 
