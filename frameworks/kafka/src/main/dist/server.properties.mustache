@@ -19,11 +19,11 @@
 # The id of the broker. This must be set to a unique integer for each broker.
 broker.id={{POD_INSTANCE_INDEX}}
 
-{{#DETECT_ZONES}}
+{{#PLACEMENT_REFERENCED_ZONE}}
 {{#ZONE}}
 broker.rack={{ZONE}}
 {{/ZONE}}
-{{/DETECT_ZONES}}
+{{/PLACEMENT_REFERENCED_ZONE}}
 
 ############################# Socket Server Settings #############################
 
