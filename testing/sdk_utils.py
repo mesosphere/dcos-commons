@@ -16,6 +16,14 @@ import os
 log = logging.getLogger(__name__)
 
 
+def get_package_name(default: str) -> str:
+    return os.environ.get("INTEGRATION_TEST__PACKAGE_NAME") or default
+
+
+def get_service_name(default: str) -> str:
+    return os.environ.get("INTEGRATION_TEST__SERVICE_NAME") or default
+
+
 def list_reserved_resources():
     '''Displays the currently reserved resources on all agents via state.json;
        Currently for INFINITY-1881 where we believe uninstall may not be

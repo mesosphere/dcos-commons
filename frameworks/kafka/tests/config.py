@@ -1,11 +1,9 @@
-import os
-
 import sdk_install
 import sdk_utils
 
 
-PACKAGE_NAME = os.environ.get("INTEGRATION_TEST__PACKAGE_NAME") or "beta-kafka"
-SERVICE_NAME = os.environ.get("INTEGRATION_TEST__SERVICE_NAME") or PACKAGE_NAME.lstrip("beta-")
+PACKAGE_NAME = sdk_utils.get_package_name("beta-kafka")
+SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
 
 DEFAULT_BROKER_COUNT = 3
 DEFAULT_PARTITION_COUNT = 1
