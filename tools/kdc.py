@@ -74,7 +74,7 @@ def parse_principals(principals_file: str) -> list:
         raise RuntimeError("The provided principal file path is invalid")
 
     with open(principals_file) as f:
-        principals = list(filter(lambda x: x, map(lambda line: line.strip(), f.readlines())))
+        principals = [principal.strip() for principal in f.readlines()]
 
     print("Successfully parsed principals")
     for principal in principals:
