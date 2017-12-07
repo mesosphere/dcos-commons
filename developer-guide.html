@@ -1886,7 +1886,7 @@ SDK-based example service using DC/OS secrets.</p>
 
 <p><strong>Note:</strong> Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.</p>
 
-<p>Below is a valid secret definition with a Docker <code class="highlighter-rouge">image-name</code>. The <code class="highlighter-rouge">$MESOS_SANDBOX/etc/keys</code> and <code class="highlighter-rouge">$MESOS_SANDBOX/data/keys/keyset</code> directories will be created if they do not exist.</p>
+<p>Below is a valid secret definition with a Docker <code class="highlighter-rouge">image</code>. The <code class="highlighter-rouge">$MESOS_SANDBOX/etc/keys</code> and <code class="highlighter-rouge">$MESOS_SANDBOX/data/keys/keyset</code> directories will be created if they do not exist.</p>
 <ul>
   <li>Supported: <code class="highlighter-rouge">etc/keys/Secret_FilePath1</code></li>
   <li>Not supported: <code class="highlighter-rouge">/etc/keys/Secret_FilePath1</code></li>
@@ -1896,8 +1896,7 @@ SDK-based example service using DC/OS secrets.</p>
 <span class="s">pods</span><span class="pi">:</span>
   <span class="s">pod-with-image</span><span class="pi">:</span>
     <span class="s">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
-    <span class="s">container</span><span class="pi">:</span>
-      <span class="s">image-name</span><span class="pi">:</span> <span class="s">ubuntu:14.04</span>
+    <span class="s">image</span><span class="pi">:</span> <span class="s">ubuntu:14.04</span>
     <span class="s">user</span><span class="pi">:</span> <span class="s">nobody</span>
     <span class="s">secrets</span><span class="pi">:</span>
       <span class="s">secret_name4</span><span class="pi">:</span>
