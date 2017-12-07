@@ -6,6 +6,7 @@ import "path"
 import "io/ioutil"
 import "github.com/stretchr/testify/assert"
 import "log"
+import "strings"
 
 func TestCalculateSettingsHappyPath(t *testing.T) {
 	asrt := assert.New(t)
@@ -246,6 +247,126 @@ func TestSetInterBrokerProtocol(t *testing.T) {
 
 	// Leave no trace.
 	cleanUpWDFile(interBrokerProtocolProperty)
+}
+
+var setSuperUserTests = []struct {
+	description    string
+	kerberos       string
+	sslAuth        string
+	authz          string
+	superUsers     string
+	expectedOutput string
+}{
+	{
+		description: "No envvars set, should create empty super.users file.",
+	},
+	{
+		description: "Kerberos enabled, sslAuth enabled, authz disabled => empty super.users file",
+		kerberos:    "true",
+		sslAuth:     "true",
+	},
+	{
+		description:    "Kerberos enabled, sslAuth enabled, authz enabled => kerberos super.users file",
+		kerberos:       "true",
+		sslAuth:        "true",
+		authz:          "true",
+		expectedOutput: "User:kafka",
+	},
+	{
+		description:    "Kerberos enabled, sslAuth enabled, authz enabled, with super users => kerberos super.users file appended to",
+		kerberos:       "true",
+		sslAuth:        "true",
+		authz:          "true",
+		superUsers:     "User:evan;User:ben",
+		expectedOutput: "User:evan;User:ben;User:kafka",
+	},
+	{
+		description:    "Kerberos disabled, sslAuth enabled, authz enabled => ssl auth super.users file",
+		kerberos:       "false",
+		sslAuth:        "true",
+		authz:          "true",
+		expectedOutput: "User:kafka-0-broker.framework",
+	},
+	{
+		description:    "Kerberos disabled, sslAuth enabled, authz enabled, with super users => ssl auth super.users file appended to",
+		kerberos:       "false",
+		sslAuth:        "true",
+		authz:          "true",
+		superUsers:     "User:evan;User:ben",
+		expectedOutput: "User:evan;User:ben;User:kafka-0-broker.framework",
+	},
+}
+
+func TestSetSuperUsers(t *testing.T) {
+	asrt := assert.New(t)
+
+	for _, test := range setSuperUserTests {
+		cleanUpWDFile(superUsersProperty)
+		os.Clearenv()
+
+		os.Setenv(brokerCountEnvvar, "1")
+		os.Setenv(frameworkNameEnvvar, "framework")
+		os.Setenv(kerberosPrimaryEnvvar, "kafka")
+
+		os.Setenv(kerberosEnvvar, test.kerberos)
+		os.Setenv(sslAuthEnvvar, test.sslAuth)
+		os.Setenv(authorizationEnvvar, test.authz)
+		os.Setenv(superUsersEnvvar, test.superUsers)
+
+		setSuperUsers()
+
+		out, err := readWDFile(superUsersProperty)
+		asrt.NoError(err)
+		asrt.Equal(test.expectedOutput, string(out))
+	}
+
+	// Leave no trace!
+	cleanUpWDFile(superUsersProperty)
+}
+
+var brokerSuperUserTests = []struct {
+	brokerCount    string
+	frameworkName  string
+	expectedOutput string
+}{
+	{
+		brokerCount:    "not an int",
+		frameworkName:  "framework",
+		expectedOutput: "",
+	},
+	{
+		brokerCount:    "0",
+		frameworkName:  "framework",
+		expectedOutput: "",
+	},
+	{
+		brokerCount:    "1",
+		frameworkName:  "framework",
+		expectedOutput: "User:kafka-0-broker.framework",
+	},
+	{
+		brokerCount:    "2",
+		frameworkName:  "framework",
+		expectedOutput: "User:kafka-0-broker.framework;User:kafka-1-broker.framework",
+	},
+	{
+		brokerCount:    "1",
+		frameworkName:  "a/long/framework/with/slashes/that/is/very/long/friends/seriously/so/long",
+		expectedOutput: "User:er.alongframeworkwithslashesthatisverylongfriendsseriouslysolong",
+	},
+}
+
+func TestGetBrokerSSLSuperUsers(t *testing.T) {
+	asrt := assert.New(t)
+
+	for _, test := range brokerSuperUserTests {
+		os.Clearenv()
+		os.Setenv(frameworkNameEnvvar, test.frameworkName)
+		os.Setenv(brokerCountEnvvar, test.brokerCount)
+
+		asrt.Equal(test.expectedOutput, strings.Join(getBrokerSSLSuperUsers(), ";"))
+	}
+
 }
 
 func cleanUpWDFile(file string) {
