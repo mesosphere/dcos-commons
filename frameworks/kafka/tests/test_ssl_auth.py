@@ -18,6 +18,7 @@ import sdk_security
 from tests import config
 from tests import auth
 from tests import topics
+from tests import test_utils
 
 log = logging.getLogger(__name__)
 
@@ -130,6 +131,8 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
             "topic create tls.topic",
             json=True)
 
+        test_utils.wait_for_topic(config.PACKAGE_NAME, config.SERVICE_NAME, "tls.topic")
+
         message = str(uuid.uuid4())
 
         # Write to the topic
@@ -182,6 +185,8 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
             "topic create authz.test",
             json=True)
+
+        test_utils.wait_for_topic(config.PACKAGE_NAME, config.SERVICE_NAME, "authz.test")
 
         super_message = str(uuid.uuid4())
         authorized_message = str(uuid.uuid4())
@@ -255,6 +260,8 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
             "topic create authz.test",
             json=True)
+
+        test_utils.wait_for_topic(config.PACKAGE_NAME, config.SERVICE_NAME, "authz.test")
 
         super_message = str(uuid.uuid4())
         authorized_message = str(uuid.uuid4())
