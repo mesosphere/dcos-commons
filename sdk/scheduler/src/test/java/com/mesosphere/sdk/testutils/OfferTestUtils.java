@@ -5,6 +5,8 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 
+import com.mesosphere.sdk.offer.Constants;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -49,14 +51,21 @@ public class OfferTestUtils {
      * @return An offer with both executor resources and the supplied resources available
      */
     public static Protos.Offer getCompleteOffer(List<Protos.Resource> resources) {
-        return getEmptyOfferBuilder().addAllResources(getExecutorResources()).addAllResources(resources).build();
+        return getCompleteOffer(resources, Constants.ANY_ROLE);
     }
 
-    public static Collection<Resource> getExecutorResources() {
+    public static Protos.Offer getCompleteOffer(List<Protos.Resource> resources, String preReservedRole) {
+        return getEmptyOfferBuilder()
+                .addAllResources(getExecutorResources(preReservedRole))
+                .addAllResources(resources)
+                .build();
+    }
+
+    private static Collection<Resource> getExecutorResources(String preReservedRole) {
         return Arrays.asList(
-                ResourceTestUtils.getUnreservedCpus(0.1),
-                ResourceTestUtils.getUnreservedMem(256),
-                ResourceTestUtils.getUnreservedDisk(512));
+                ResourceTestUtils.getUnreservedCpus(0.1, preReservedRole),
+                ResourceTestUtils.getUnreservedMem(256, preReservedRole),
+                ResourceTestUtils.getUnreservedDisk(512, preReservedRole));
     }
 
     public static List<Protos.Offer> getCompleteOffers(Protos.Resource resource) {
