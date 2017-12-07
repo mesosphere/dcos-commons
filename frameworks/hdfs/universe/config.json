@@ -92,16 +92,6 @@
                     }
                   }
                 },
-                "primary": {
-                  "type": "string",
-                  "description": "The Kerberos primary used by HDFS tasks.  The full principal will be <service.kerberos.primary>/<mesos_dns_address>@<service.kerberos.realm>",
-                  "default": "hdfs"
-                },
-                "primary_http": {
-                  "type": "string",
-                  "description": "The Kerberos primary used by the HTTP server running on HDFS tasks.  See <service.kerberos.primary>.",
-                  "default": "HTTP"
-                },
                 "realm": {
                   "type": "string",
                   "description": "The Kerberos realm used to render the principal of HDFS tasks.",
