@@ -107,11 +107,10 @@ def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
         --producer.config {} \
         --broker-list \$KAFKA_BROKER_LIST\"".format(env_str, message, topic, client_properties)
 
-    def write_failed(output: tuple) -> bool:
-
+    def write_failed(output) -> bool:
         LOG.info("Checking write output: %s", output)
         rc = output[0]
-        stderr = output[2]
+        stderr = output[1]
 
         if rc:
             LOG.error("Write failed with non-zero return code")
@@ -121,6 +120,8 @@ def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
 
             LOG.error("Write failed due to stderr. unknown=%s", unknown)
             return unknown
+
+        LOG.info("Output check passed")
 
         return False
 
@@ -150,8 +151,33 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
         --from-beginning --max-messages {} \
         --timeout-ms {} \
         \"".format(env_str, topic, write_client_properties(cn, task), messages, timeout_ms)
-    LOG.info("Running: %s", read_cmd)
-    output = sdk_tasks.task_exec(task, read_cmd)
-    LOG.info(output)
+
+    def read_failed(output) -> bool:
+        LOG.info("Checking read output: %s", output)
+        rc = output[0]
+        stderr = output[1]
+
+        if rc:
+            LOG.error("Read failed with non-zero return code")
+            return True
+        if "kafka.consumer.ConsumerTimeoutException" in stderr:
+            True
+
+        LOG.info("Output check passed")
+
+        return False
+
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=60 * 1000,
+                    retry_on_result=read_failed)
+    def read_wrapper():
+        LOG.info("Running: %s", read_cmd)
+        rc, stdout, stderr = sdk_tasks.task_exec(task, read_cmd)
+        LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
+
+        return rc, stdout, stderr
+
+    output = read_wrapper()
+
     assert output[0] is 0
     return " ".join(str(o) for o in output)
