@@ -323,7 +323,8 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             return true;
         }
 
-        return filterIrrelevantFieldsForComparison(podSpec1).equals(filterIrrelevantFieldsForComparison(podSpec2));
+        return filterIrrelevantFieldsForUpdateComparison(podSpec1)
+                .equals(filterIrrelevantFieldsForUpdateComparison(podSpec2));
     }
 
     /**
@@ -332,14 +333,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
      * <li>Count: Extant pods do not care if they will have more fellows</li>
      * <li>Placement Rules: Extant pods should not (immediately) move around due to placement changes</li>
      * <li>Allow decommission: Does not affect the pods themselves, only how we treat them</li>
-     * <li>Relaunch parameters: Does not affect the pods themselves, only how we treat them</li>
      * </ol>
      * As such, ignore these fields when checking for differences.
      *
      * @return a new {@link PodSpec} with irrelevant parameters filtered out
      */
-    private static PodSpec filterIrrelevantFieldsForComparison(PodSpec podSpec) {
-        // Set arbitrary values. We just want the two copies to be equivalent where these fields are concerned:
+    private static PodSpec filterIrrelevantFieldsForUpdateComparison(PodSpec podSpec) {
+        // Set arbitrary values. We just want the two spec copies to be equivalent where these fields are concerned:
         return DefaultPodSpec.newBuilder(podSpec)
                 .count(0)
                 .placementRule(null)
