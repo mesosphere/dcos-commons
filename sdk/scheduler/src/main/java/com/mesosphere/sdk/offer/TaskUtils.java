@@ -339,7 +339,6 @@ public class TaskUtils {
         return Optional.empty();
     }
 
-
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
@@ -355,7 +354,7 @@ public class TaskUtils {
             }
         }
 
-        List<String> allTaskNames = allTasks.stream()
+        List<String> failedTaskNames = failedTasks.stream()
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
 
@@ -365,7 +364,7 @@ public class TaskUtils {
             List<String> tasksToLaunch = new ArrayList<>();
             for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
                 String fullTaskName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
-                if (taskSpec.getGoal() == GoalState.RUNNING && allTaskNames.contains(fullTaskName)) {
+                if (taskSpec.getGoal() == GoalState.RUNNING && failedTaskNames.contains(fullTaskName)) {
                     tasksToLaunch.add(taskSpec.getName());
                 }
             }
