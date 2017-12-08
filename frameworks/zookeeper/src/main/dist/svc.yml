@@ -1,0 +1,68 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  zookeeper:
+    count: {{NODE_COUNT}}
+    placement: {{NODE_PLACEMENT}}
+    uris:
+      - {{SCHEDULER_URI}}
+      - {{BOOTSTRAP_URI}}
+      - {{ZOOKEEPER_URI}}
+    user: {{SERVICE_USER}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    resource-sets:
+      node-resources:
+        cpus: {{ZOOKEEPER_CPUS}}
+        memory: {{ZOOKEEPER_MEM_MB}}
+        ports:
+          client-port:
+            port: {{TASKCFG_ALL_ZOOKEEPER_CLIENT_PORT}}
+            advertise: true
+        volume:
+          path: "zookeeper-container"
+          type: DOCKER
+          docker_volume_driver: pxd
+          docker_volume_name: {{{ZOOKEEPER_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{ZOOKEEPER_DOCKER_VOLUME_OPTIONS}}}
+          size: {{ZOOKEEPER_DISK_MB}}
+    tasks:
+      node:
+        goal: RUNNING
+        resource-set: node-resources
+        cmd: >
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) &&
+          ./bootstrap &&
+          echo $(($POD_INSTANCE_INDEX + 1)) > $MESOS_SANDBOX/zookeeper-container/myid &&
+          cd $MESOS_SANDBOX/zookeeper-{{ZOOKEEPER_VERSION}} &&
+          $JAVA_HOME/bin/java -cp zookeeper-{{ZOOKEEPER_VERSION}}.jar:lib/log4j-1.2.16.jar:lib/slf4j-log4j12-1.6.1.jar:lib/slf4j-api-1.6.1.jar:conf \
+            org.apache.zookeeper.server.quorum.QuorumPeerMain \
+            conf/zoo.cfg
+        configs:
+          zookeeper:
+            template: zoo.cfg
+            dest: zookeeper-{{ZOOKEEPER_VERSION}}/conf/zoo.cfg
+        readiness-check:
+          cmd: >
+            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) &&
+            cd $MESOS_SANDBOX/zookeeper-{{ZOOKEEPER_VERSION}} &&
+            $JAVA_HOME/bin/java -cp zookeeper-{{ZOOKEEPER_VERSION}}.jar:lib/log4j-1.2.16.jar:lib/slf4j-log4j12-1.6.1.jar:lib/slf4j-api-1.6.1.jar:conf \
+              org.apache.zookeeper.client.FourLetterWordMain \
+              localhost {{TASKCFG_ALL_ZOOKEEPER_CLIENT_PORT}} srvr | grep Mode
+          interval: 5
+          delay: 0
+          timeout: 300
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: parallel
+        pod: zookeeper
+        steps:
+          - default: [[node]]

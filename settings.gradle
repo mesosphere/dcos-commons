@@ -35,3 +35,6 @@ project(":frameworks/helloworld/tests/tls/keystore").name = 'keystore-app'
 
 include 'frameworks/portworx'
 project(":frameworks/portworx").name = "portworx"
+
+include 'frameworks/zookeeper'
+project(":frameworks/zookeeper").name = "zookeeper"

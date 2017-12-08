@@ -1,0 +1,3 @@
+PACKAGE_NAME = 'zookeeper'
+DEFAULT_TASK_COUNT = 1
+
