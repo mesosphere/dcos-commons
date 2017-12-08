@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import org.apache.logging.log4j.util.Strings;
 
 import java.util.*;
 
@@ -52,38 +51,17 @@ public class ZoneValidator implements ConfigValidator<ServiceSpec> {
     }
 
     List<ConfigValidationError> validateTransition(String oldEnv, String newEnv) {
-        if (Strings.isBlank(newEnv)) {
-            throw new IllegalArgumentException(String.format(
-                    "%s is not present in the pod=%s task=%s command environment.",
-                    EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV, POD_TYPE, TASK_NAME));
-        }
+        boolean oldZones = Boolean.valueOf(oldEnv);
+        boolean newZones = Boolean.valueOf(newEnv);
 
-        if (Strings.isBlank(oldEnv)) {
-            if (newEnv.toLowerCase().equals("false")) {
-                return Collections.emptyList();
-            } else if (newEnv.toLowerCase().equals("true")) {
-                ConfigValidationError error = ConfigValidationError.transitionError(
-                        String.format("%s.%s.env.%s", POD_TYPE, TASK_NAME, EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV),
-                        "null", newEnv,
-                        String.format(
-                                "Env value %s cannot change from null to false",
-                                EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV));
+        ConfigValidationError error = ConfigValidationError.transitionError(
+                String.format("%s.%s.env.%s", POD_TYPE, TASK_NAME, EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV),
+                oldEnv, newEnv,
+                String.format(
+                        "Env value %s cannot change from %s to %s",
+                        EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV, oldEnv, newEnv));
 
-                return Arrays.asList(error);
-            } else {
-                throw new IllegalStateException(
-                        String.format("%s must be either true or false.", EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV));
-            }
-        }
-
-        if (!oldEnv.equals(newEnv)) {
-            ConfigValidationError error = ConfigValidationError.transitionError(
-                    String.format("%s.%s.env.%s", POD_TYPE, TASK_NAME, EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV),
-                    oldEnv, newEnv,
-                    String.format(
-                            "Env value %s cannot change from %s to %s",
-                            EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV, oldEnv, newEnv));
-
+        if (oldZones != newZones) {
             return Arrays.asList(error);
         }
 

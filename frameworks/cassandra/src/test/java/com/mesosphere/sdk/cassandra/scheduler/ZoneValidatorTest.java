@@ -43,17 +43,6 @@ public class ZoneValidatorTest {
         validator.validate(Optional.of(oldSpec), newSpec);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void detectZonesMissingInNewSpec() {
-        TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
-        TaskSpec newTaskSpec = getTaskSpec(Collections.emptyMap());
-
-        ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
-        ServiceSpec newSpec = getServiceSpec(newTaskSpec);
-
-        validator.validate(Optional.of(oldSpec), newSpec);
-    }
-
     @Test
     public void emptyToTrueShouldFail() {
         TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
@@ -92,16 +81,6 @@ public class ZoneValidatorTest {
 
         Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
         Assert.assertTrue(errors.isEmpty());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void emptyToUnexpectedShouldThrow() {
-        TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
-
-        ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
-        ServiceSpec newSpec = getServiceSpec("foo");
-
-        validator.validate(Optional.of(oldSpec), newSpec);
     }
 
     @Test
@@ -170,6 +149,18 @@ public class ZoneValidatorTest {
     @Test
     public void envTrueToTrueShouldSucceed() {
         Collection<ConfigValidationError> errors = validator.validateTransition("true", "true");
+        Assert.assertTrue(errors.isEmpty());
+    }
+
+    @Test
+    public void envNullToNullShouldSucceed() {
+        Collection<ConfigValidationError> errors = validator.validateTransition(null, null);
+        Assert.assertTrue(errors.isEmpty());
+    }
+
+    @Test
+    public void envFalseToFalseShouldSucceed() {
+        Collection<ConfigValidationError> errors = validator.validateTransition("false", "false");
         Assert.assertTrue(errors.isEmpty());
     }
 
