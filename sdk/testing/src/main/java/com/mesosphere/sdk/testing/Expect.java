@@ -2,6 +2,7 @@ package com.mesosphere.sdk.testing;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
@@ -174,7 +175,7 @@ public interface Expect extends SimulationTick {
     /**
      * Verifies that the specified task was killed.
      */
-    public static Expect killedTask(String taskName) {
+    public static Expect taskKilled(String taskName) {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
@@ -186,6 +187,23 @@ public interface Expect extends SimulationTick {
             @Override
             public String getDescription() {
                 return String.format("Task named %s was killed", taskName);
+            }
+        };
+    }
+
+    /**
+     * Verifies that the specified task was not killed. Note that this applies to the whole simulation as of this point.
+     */
+    public static Expect taskNotKilled(String taskName) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                verify(mockDriver, never()).killTask(state.getTaskId(taskName));
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Task named %s was not killed", taskName);
             }
         };
     }
