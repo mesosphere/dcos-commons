@@ -359,7 +359,9 @@ public class TaskUtils {
             Collection<TaskInfo> allLaunchedTasks) {
 
         // Mapping of pods, to failed tasks within those pods.
-        Map<PodInstance, Collection<TaskSpec>> podsToFailedTasks = new HashMap<>();
+        // Arbitrary consistent ordering: by pod instance name (e.g. "otherpodtype-0","podtype-0","podtype-1")
+        Map<PodInstance, Collection<TaskSpec>> podsToFailedTasks =
+                new TreeMap<>(Comparator.comparing(PodInstance::getName));
         for (TaskInfo taskInfo : failedTasks) {
             try {
                 PodInstance podInstance = getPodInstance(configStore, taskInfo);
@@ -445,7 +447,7 @@ public class TaskUtils {
                     configId, taskInfo.getName()), e);
         }
 
-        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        Optional<PodSpec> podSpecOptional = getPodSpec(serviceSpec, taskInfo);
         if (!podSpecOptional.isPresent()) {
             throw new TaskException(String.format(
                     "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
