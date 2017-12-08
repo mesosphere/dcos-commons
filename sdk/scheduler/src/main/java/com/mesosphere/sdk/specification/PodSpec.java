@@ -15,7 +15,6 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultPodSpec.class)
 public interface PodSpec {
-
     @JsonProperty("type")
     String getType();
 

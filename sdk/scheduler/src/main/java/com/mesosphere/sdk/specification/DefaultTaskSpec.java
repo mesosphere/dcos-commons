@@ -65,6 +65,7 @@ public class DefaultTaskSpec implements TaskSpec {
     @Valid
     private Collection<TransportEncryptionSpec> transportEncryption;
 
+    @SuppressWarnings("PMD.SimplifiedTernary")
     @JsonCreator
     public DefaultTaskSpec(
             @JsonProperty("name") String name,
@@ -90,8 +91,8 @@ public class DefaultTaskSpec implements TaskSpec {
         this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
         this.discoverySpec = discoverySpec;
         this.taskKillGracePeriodSeconds = (taskKillGracePeriodSeconds != null)
-            ? taskKillGracePeriodSeconds
-            : TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT;
+                ? taskKillGracePeriodSeconds
+                : TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT;
         this.transportEncryption = (transportEncryption != null) ? transportEncryption : Collections.emptyList();
     }
 

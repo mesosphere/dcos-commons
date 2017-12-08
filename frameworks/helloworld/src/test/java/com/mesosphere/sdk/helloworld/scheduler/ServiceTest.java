@@ -88,7 +88,7 @@ public class ServiceTest {
         ticks.add(Expect.taskNotKilled("hello-0-server"));
 
         // Send the matching offer to relaunch ONLY the agent against:
-        ticks.add(Send.offerBuilder("hello").setPodToReoffer(0).build());
+        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
         ticks.add(Expect.launchedTasks("hello-0-agent"));
 
         ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
@@ -137,7 +137,7 @@ public class ServiceTest {
         ticks.add(Expect.taskNotKilled("hello-0-server"));
 
         // Send the matching offer to relaunch both the server and agent:
-        ticks.add(Send.offerBuilder("hello").setPodToReoffer(0).build());
+        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
         ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
 
         ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
@@ -265,12 +265,12 @@ public class ServiceTest {
         ticks.add(Expect.taskKilled("world-1-server"));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
-        ticks.add(Send.offerBuilder("world").setPodToReoffer(0).build());
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 4, 1, 1), new StepCount("world-0", 6, 0, 0))));
 
         // Offer world-1 resources and check that world-1 resources are wiped:
-        ticks.add(Send.offerBuilder("world").setPodToReoffer(1).build());
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
         ticks.add(Expect.unreservedTasks("world-1-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 1, 0, 5), new StepCount("world-0", 6, 0, 0))));
@@ -286,7 +286,7 @@ public class ServiceTest {
 
         // Now let's proceed with decommissioning world-0. This time a single offer with the correct resources results
         // in both killing/flagging the task, and clearing its resources:
-        ticks.add(Send.offerBuilder("world").setPodToReoffer(0).build());
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 1, 0, 5))));
         ticks.add(Expect.taskKilled("world-0-server"));
