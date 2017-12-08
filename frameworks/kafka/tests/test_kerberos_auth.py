@@ -11,6 +11,7 @@ import sdk_utils
 
 from tests import auth
 from tests import config
+from tests import test_utils
 
 log = logging.getLogger(__name__)
 
@@ -158,6 +159,11 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authn.test"
+    sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
+                    "topic create {}".format(topic_name),
+                    json=True)
+
+    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
 
     message = str(uuid.uuid4())
 
