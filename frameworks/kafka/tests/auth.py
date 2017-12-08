@@ -98,14 +98,20 @@ def setup_env(primary: str, task: str) -> str:
     return env_setup_string
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
-    env_str = setup_env(cn, task)
-    client_properties = write_client_properties(cn, task)
+def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) -> str:
+    if not cmd:
+        env_str = setup_env(cn, task)
+        client_properties = write_client_properties(cn, task)
 
-    write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
-        --topic {} \
-        --producer.config {} \
-        --broker-list \$KAFKA_BROKER_LIST\"".format(env_str, message, topic, client_properties)
+        write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
+            --topic {} \
+            --producer.config {} \
+            --broker-list \$KAFKA_BROKER_LIST\"".format(env_str,
+                                                        message,
+                                                        topic,
+                                                        client_properties)
+    else:
+        write_cmd = cmd
 
     def write_failed(output) -> bool:
         LOG.info("Checking write output: %s", output)
@@ -141,16 +147,20 @@ def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
     return " ".join(str(o) for o in output)
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
-    env_str = setup_env(cn, task)
-    timeout_ms = 60000
-    read_cmd = "bash -c \"{} && kafka-console-consumer \
-        --topic {} \
-        --consumer.config {} \
-        --bootstrap-server \$KAFKA_BROKER_LIST \
-        --from-beginning --max-messages {} \
-        --timeout-ms {} \
-        \"".format(env_str, topic, write_client_properties(cn, task), messages, timeout_ms)
+def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
+    if not cmd:
+        env_str = setup_env(cn, task)
+        client_properties = write_client_properties(cn, task)
+        timeout_ms = 60000
+        read_cmd = "bash -c \"{} && kafka-console-consumer \
+            --topic {} \
+            --consumer.config {} \
+            --bootstrap-server \$KAFKA_BROKER_LIST \
+            --from-beginning --max-messages {} \
+            --timeout-ms {} \
+            \"".format(env_str, topic, client_properties, messages, timeout_ms)
+    else:
+        read_cmd = cmd
 
     def read_failed(output) -> bool:
         LOG.info("Checking read output: %s", output)
