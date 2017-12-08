@@ -1,4 +1,5 @@
 import logging
+import retrying
 import uuid
 
 import sdk_tasks
@@ -19,30 +20,6 @@ def wait_for_brokers(client: str, brokers: list):
     bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
     assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
-
-
-def send_and_receive_message(client: str):
-    """
-    Use the specified client to send a message and ensure that it can be recieved
-    """
-    LOG.info("Starting send-recieve test")
-    message = uuid.uuid4()
-    producer_cmd = ['/tmp/kafkaconfig/start.sh', 'producer', str(message)]
-
-    for i in range(2):
-        LOG.info("Running(%s) %s", i, producer_cmd)
-        producer_output = sdk_tasks.task_exec(client, ' '.join(producer_cmd))
-        LOG.info("Producer output(%s): %s", i, producer_output)
-
-    assert "Sent message: '{message}'".format(message=str(
-        message)) in ' '.join(str(p) for p in producer_output)
-
-    consumer_cmd = ['/tmp/kafkaconfig/start.sh', 'consumer', 'single']
-    LOG.info("Running %s", consumer_cmd)
-    consumer_output = sdk_tasks.task_exec(client, ' '.join(consumer_cmd))
-    LOG.info("Consumer output: %s", consumer_output)
-
-    assert str(message) in ' '.join(str(c) for c in consumer_output)
 
 
 def is_not_authorized(output: str) -> bool:
@@ -123,15 +100,42 @@ def setup_env(primary: str, task: str) -> str:
 
 def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
     env_str = setup_env(cn, task)
+    client_properties = write_client_properties(cn, task)
 
     write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
         --topic {} \
         --producer.config {} \
-        --broker-list \$KAFKA_BROKER_LIST\"".format(env_str, message, topic, write_client_properties(cn, task))
+        --broker-list \$KAFKA_BROKER_LIST\"".format(env_str, message, topic, client_properties)
 
-    LOG.info("Running: %s", write_cmd)
-    output = sdk_tasks.task_exec(task, write_cmd)
-    LOG.info(output)
+    def write_failed(output: tuple) -> bool:
+
+        LOG.info("Checking write output: %s", output)
+        rc = output[0]
+        stderr = output[2]
+
+        if rc:
+            LOG.error("Write failed with non-zero return code")
+            return True
+        if "ERROR Error when sending message to topic" in stderr:
+            unknown = "Error: UNKNOWN_TOPIC_OR_PARTITION" in stderr
+
+            LOG.error("Write failed due to stderr. unknown=%s", unknown)
+            return unknown
+
+        return False
+
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=60 * 1000,
+                    retry_on_result=write_failed)
+    def write_wrapper():
+        LOG.info("Running: %s", write_cmd)
+        rc, stdout, stderr = sdk_tasks.task_exec(task, write_cmd)
+        LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
+
+        return rc, stdout, stderr
+
+    output = write_wrapper()
+
     assert output[0] is 0
     return " ".join(str(o) for o in output)
 
