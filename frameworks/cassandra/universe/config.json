@@ -120,7 +120,7 @@
         },
         "placement_constraint": {
           "type": "string",
-          "description": "The Marathon-style placement constraint string controlling node placement",
+          "description": "Placement constraints for nodes (e.g., hostname:UNIQUE).",
           "default": "hostname:MAX_PER:1",
           "media": {
             "type": "application/x-zone-constraints+json"

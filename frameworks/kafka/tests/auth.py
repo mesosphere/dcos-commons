@@ -18,6 +18,7 @@ def wait_for_brokers(client: str, brokers: list):
                      '-resolve-hosts', ','.join(brokers)]
     bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
+    assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
 
 
 def send_and_receive_message(client: str):
