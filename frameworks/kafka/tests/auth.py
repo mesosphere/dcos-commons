@@ -161,7 +161,7 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
             LOG.error("Read failed with non-zero return code")
             return True
         if "kafka.consumer.ConsumerTimeoutException" in stderr:
-            True
+            return True
 
         LOG.info("Output check passed")
 
