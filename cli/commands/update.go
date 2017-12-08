@@ -45,12 +45,11 @@ func describe() {
 		client.PrintJSONBytes(resolvedOptionsBytes)
 	} else {
 		client.PrintMessage("Package configuration is not available for service %s.", config.ServiceName)
-		client.PrintMessage("dcos %s %s is only available for packages installed with Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		client.PrintMessage("This command is only available for packages installed with Enterprise DC/OS 1.10 or newer.")
 	}
 }
 
 func (cmd *describeHandler) handleDescribe(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	describe()
 	return nil
 }
@@ -108,7 +107,6 @@ func printPackageVersions() {
 }
 
 func (cmd *updateHandler) ViewPackageVersions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	printPackageVersions()
 	return nil
 }
@@ -163,7 +161,6 @@ func doUpdate(optionsFile, packageVersion string, replace bool) {
 }
 
 func (cmd *updateHandler) UpdateConfiguration(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	doUpdate(cmd.OptionsFile, cmd.PackageVersion, cmd.Replace)
 	return nil
 }

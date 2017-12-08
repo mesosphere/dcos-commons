@@ -13,6 +13,7 @@ import (
 )
 
 const dcosConfigDirName = ".dcos"
+const dcosConfigFileName = "dcos.toml"
 
 var (
 	// cachedConfig stores a previously fetched toml config, or is nil.
@@ -21,9 +22,7 @@ var (
 
 // RunCLICommand runs a DC/OS CLI command
 func RunCLICommand(arg ...string) (string, error) {
-	if config.Verbose {
-		PrintMessage("Running DC/OS CLI command: dcos %s", strings.Join(arg, " "))
-	}
+	PrintVerbose("Running DC/OS CLI command: dcos %s", strings.Join(arg, " "))
 	outBytes, err := exec.Command("dcos", arg...).CombinedOutput()
 	if err != nil {
 		execErr, ok := err.(*exec.Error)
@@ -74,8 +73,8 @@ func configDir() (string, error) {
 	// At the moment (go1.8.3), os.user.Current() just produces: "user: Current not implemented on YOUROS/YOURARCH"
 	// Apparently this is due to lack of support with cross-compiled binaries? Therefore we DIY it here.
 
-	// DC/OS CLI allows users to manually override the config dir with a DCOS_DIR envvar:
-	configDir := os.Getenv("DCOS_DIR")
+	// DC/OS CLI allows users to manually override the config dir (default ~/.dcos) with a DCOS_DIR envvar:
+	configDir := config.DcosConfigRootDir // proxy for DCOS_DIR envvar
 	if len(configDir) != 0 {
 		return configDir, nil
 	}
@@ -97,29 +96,68 @@ func configDir() (string, error) {
 		return path.Join(homeDir, dcosConfigDirName), nil
 	}
 
+	// If we get here, it means that we couldn't figure out the user's home directory.
+	// Shouldn't happen in practice.
 	return "", fmt.Errorf("Unable to resolve CLI config directory: DCOS_DIR, HOME, HOMEDRIVE+HOMEPATH, or USERPROFILE")
 }
 
-// getCLIConfigValue attempts to read the requested config setting from the active
-// YAML config file directly before falling back to querying disk
+// cliConfigValue attempts to retrieve the requested config setting from one of the following places:
+// 1. DCOS_* envvar override
+// 2. CLI config file (dcos.toml)
+// 3. Running 'dcos config show <name>'
 func cliConfigValue(name string) (string, error) {
-	// dcos-cli allows providing a custom envvar for configs, we honor that here:
+	// dcos-cli supports envvar overrides of config file settings, using one of several conventions:
+	envVal := cliEnvConfigValue(name)
+	if len(envVal) > 0 {
+		return envVal, nil
+	}
+
+	// dcos-cli allows providing a custom envvar for the config path, we honor that here:
 	configDir, err := configDir()
 	if err != nil {
-		if config.Verbose {
-			PrintMessage("Falling back to querying CLI: %s", err.Error())
-		}
+		PrintVerbose("Falling back to querying CLI: %s", err.Error())
 	} else {
 		diskConfig, err := cliDiskConfig(configDir)
 		if err == nil {
 			return cliDiskConfigValue(diskConfig, name)
-		} else if config.Verbose {
-			PrintMessage("No cluster config found, falling back to querying CLI: %s", err.Error())
+		} else {
+			PrintVerbose("No cluster config found, falling back to querying CLI: %s", err.Error())
 		}
 	}
 
-	// Fall back to querying the CLI directly: slower but works on older CLIs.
+	// If no value was listed in the env override and no cluster config file was found,
+	// give up and fall back to querying the CLI directly. This is much slower than the above
+	// methods but is a reasonable worst-case fallback.
 	return RunCLICommand("config", "show", name)
+}
+
+func cliEnvConfigValue(name string) string {
+	// dcos-cli supports envvar overrides of config file settings, using one of the following conventions:
+	envName := ""
+	envVal := ""
+	if strings.HasPrefix(name, "core.dcos_") {
+		// core.dcos_foo_bar => DCOS_FOO_BAR or DCOS_DCOS_FOO_BAR
+		// (so e.g. core.dcos_url could be DCOS_DCOS_URL or just DCOS_URL)
+		envName = "DCOS_" + strings.ToUpper(strings.TrimPrefix(name, "core.dcos_")) // DCOS_FOO_BAR
+		envVal = os.Getenv(envName)
+		if len(envVal) == 0 {
+			envName = "DCOS_" + envName // DCOS_DCOS_FOO_BAR
+			envVal = os.Getenv(envName)
+		}
+	} else if strings.HasPrefix(name, "core.") {
+		// core.foo_bar => DCOS_FOO_BAR
+		envName = "DCOS_" + strings.ToUpper(strings.TrimPrefix(name, "core."))
+		envVal = os.Getenv(envName)
+	} else {
+		// other.foo_bar => DCOS_OTHER_FOO_BAR
+		envName = "DCOS_" + strings.ToUpper(strings.Replace(name, ".", "_", -1))
+		envVal = os.Getenv(envName)
+	}
+	if len(envVal) != 0 {
+		PrintVerbose("Using provided envvar %s for config value %s=%s", envName, name, envVal)
+		return envVal
+	}
+	return ""
 }
 
 // cliDiskConfigValue returns a value from the user's CLI configuration on disk,
@@ -164,31 +202,56 @@ func cliDiskConfig(configDir string) (map[string]interface{}, error) {
 	clustersPath := path.Join(configDir, "clusters")
 	clusters, err := ioutil.ReadDir(clustersPath)
 	if err == nil {
-		for _, cluster := range clusters {
-			if !cluster.IsDir() {
-				continue // not a directory
+		attachedClusterNameOverride := config.DcosClusterName // custom cluster name (override attach bit)
+		if len(attachedClusterNameOverride) != 0 {
+			// Cluster name defined, find the config with a matching name.
+			for _, cluster := range clusters {
+				if !cluster.IsDir() {
+					continue // not a directory
+				}
+				configPath = path.Join(clustersPath, cluster.Name(), dcosConfigFileName)
+
+				configData := make(map[string]interface{})
+				_, err = toml.DecodeFile(configPath, &configData)
+				if err != nil {
+					continue
+				}
+				name, err := cliDiskConfigValue(configData, "cluster.name")
+				if err == nil && name == attachedClusterNameOverride {
+					// Matching name found. Use this config.
+					cachedConfig = configData
+					return configData, nil
+				}
 			}
-			if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
-				continue // not the attached/active cluster
+			return nil, fmt.Errorf("Unable to find a cluster config named %s (DCOS_CLUSTER)",
+				attachedClusterNameOverride)
+		} else {
+			// No DCOS_CLUSTER defined, fall back to finding the directory with an "attached" file
+			for _, cluster := range clusters {
+				if !cluster.IsDir() {
+					continue // not a directory
+				}
+				if _, err := os.Stat(path.Join(clustersPath, cluster.Name(), "attached")); os.IsNotExist(err) {
+					continue // not the attached/active cluster
+				}
+				if len(configPath) != 0 {
+					return nil, fmt.Errorf("Multiple configs have an 'attached' flag, unable to decide which to use")
+				}
+				configPath = path.Join(clustersPath, cluster.Name(), dcosConfigFileName)
 			}
-			if len(configPath) != 0 {
-				return nil, fmt.Errorf("Multiple configs have an 'attached' flag, unable to decide which to use")
-			}
-			configPath = path.Join(clustersPath, cluster.Name(), "dcos.toml")
 		}
 	}
 
-	// Fall back to old-style single config:
-	if configPath == "" {
-		configPath = path.Join(configDir, "dcos.toml")
-		if config.Verbose {
-			PrintMessage("No config found in new location: %s, falling back to old location: %s", clustersPath, configPath)
+	// No new-style multicluster config found, fall back to old-style single config handling:
+	if len(configPath) == 0 {
+		configPath = config.DcosConfigPath // custom config path, proxy for 0.4.x DCOS_CONFIG
+		if len(configPath) == 0 {
+			configPath = path.Join(configDir, dcosConfigFileName)
 		}
+		PrintVerbose("No config found in new location: %s, falling back to old location: %s", clustersPath, configPath)
 	}
 
-	if config.Verbose {
-		PrintMessage("Using CLI config file: %s", configPath)
-	}
+	PrintVerbose("Using CLI config file: %s", configPath)
 
 	configData := make(map[string]interface{})
 	_, err = toml.DecodeFile(configPath, &configData)

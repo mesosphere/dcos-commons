@@ -22,16 +22,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Main entry point for the Scheduler.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    private static final String AUTH_TO_LOCAL = "AUTH_TO_LOCAL";
+    private static final String DECODED_AUTH_TO_LOCAL = "DECODED_" + AUTH_TO_LOCAL;
+    private static final String TASKCFG_ALL_AUTH_TO_LOCAL = TaskEnvRouter.TASKCFG_GLOBAL_ENV_PREFIX + AUTH_TO_LOCAL;
 
     static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
     static final String HDFS_SITE_XML = "hdfs-site.xml";
@@ -53,7 +53,10 @@ public class Main {
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
+                .setAllPodsEnv(DECODED_AUTH_TO_LOCAL,
+                                getHDFSUserAuthMappings(System.getenv(), TASKCFG_ALL_AUTH_TO_LOCAL))
                 .build();
+
         return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec)
@@ -63,7 +66,7 @@ public class Main {
                         renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())));
     }
 
-    private static String renderTemplate(File configFile, String serviceName) {
+    private static String renderTemplate(File configFile, String serviceName) throws Exception {
         byte[] bytes;
         try {
             bytes = Files.readAllBytes(configFile.toPath());
@@ -80,6 +83,7 @@ public class Main {
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
+        env.put(DECODED_AUTH_TO_LOCAL, getHDFSUserAuthMappings(env, AUTH_TO_LOCAL));
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
         return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
@@ -115,5 +119,13 @@ public class Main {
                     "Missing required pod named '%s' in service spec", podName));
         }
         return match.get();
+    }
+
+    private static String getHDFSUserAuthMappings(Map<String, String> env, String envVarKeyName) throws Exception {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String base64Mappings = env.get(envVarKeyName);
+        byte[] hdfsUserAuthMappingsBytes = decoder.decode(base64Mappings);
+        String authMappings = new String(hdfsUserAuthMappingsBytes, "UTF-8");
+        return authMappings;
     }
 }

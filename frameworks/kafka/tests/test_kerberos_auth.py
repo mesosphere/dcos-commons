@@ -1,5 +1,6 @@
 import logging
 import pytest
+import uuid
 
 import sdk_auth
 import sdk_cmd
@@ -33,7 +34,14 @@ def kafka_principals():
             domain=fqdn,
             realm=sdk_auth.REALM))
 
-    principals.append("client@{realm}".format(realm=sdk_auth.REALM))
+    clients = [
+        "client",
+        "authorized",
+        "unauthorized",
+        "super"
+    ]
+    for c in clients:
+        principals.append("{client}@{realm}".format(client=c, realm=sdk_auth.REALM))
 
     yield principals
 
@@ -146,12 +154,19 @@ def kafka_client(kerberos, kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client, kafka_server):
+    client_id = kafka_client["id"]
+
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
-    topicname = kafka_client["env"]["KAFKA_TOPIC"]
+    topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                    "topic create {}".format(topicname),
+                    "topic create {}".format(topic_name),
                     json=True)
-    test_utils.wait_for_topic(kafka_server, topicname)
 
-    auth.send_and_receive_message(kafka_client["id"])
+    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
+
+    message = str(uuid.uuid4())
+
+    assert ">>" in auth.write_to_topic("client", client_id, topic_name, message)
+
+    assert message in auth.read_from_topic("client", client_id, topic_name, 1)

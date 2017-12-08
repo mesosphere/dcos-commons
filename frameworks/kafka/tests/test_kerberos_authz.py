@@ -1,24 +1,18 @@
-"""
-This module tests the interaction of Kafka with Zookeeper with authentication enabled
-"""
 import logging
-import uuid
 import pytest
-
-import shakedown
+import uuid
 
 import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_repository
 import sdk_utils
 
 from tests import auth
 from tests import config
+from tests import topics
 from tests import test_utils
-
 
 log = logging.getLogger(__name__)
 
@@ -41,56 +35,23 @@ def kafka_principals():
             domain=fqdn,
             realm=sdk_auth.REALM))
 
-    principals.append("client@{realm}".format(realm=sdk_auth.REALM))
-
-    yield principals
-
-
-def get_node_principals():
-    """Get a list of zookeeper principals for the agent nodes in the cluster"""
-    principals = []
-
-    agent_ips = shakedown.get_private_agents()
-    agent_dashed_ips = list(map(
-        lambda ip: "ip-{dashed_ip}".format(dashed_ip="-".join(ip.split("."))), agent_ips))
-    for b in agent_dashed_ips:
-        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
-            instance=b,
-            # TODO(elezar) we need to infer the region too
-            domain="us-west-2.compute.internal",
-            realm=sdk_auth.REALM))
-
-    return principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def zookeeper_principals():
-    zk_fqdn = "{service_name}.{host_suffix}".format(service_name="kafka-zookeeper",
-                                                    host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    zk_ensemble = [
-        "zookeeper-0-server",
-        "zookeeper-1-server",
-        "zookeeper-2-server",
+    clients = [
+        "client",
+        "authorized",
+        "unauthorized",
+        "super"
     ]
+    for c in clients:
+        principals.append("{client}@{realm}".format(client=c, realm=sdk_auth.REALM))
 
-    principals = []
-    for b in zk_ensemble:
-        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=zk_fqdn,
-            realm=sdk_auth.REALM))
-
-    principals.extend(get_node_principals())
     yield principals
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals, zookeeper_principals):
+def kerberos(configure_security, kafka_principals):
     try:
         principals = []
         principals.extend(kafka_principals)
-        principals.extend(zookeeper_principals)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -102,49 +63,15 @@ def kerberos(configure_security, kafka_principals, zookeeper_principals):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module')
-def zookeeper_server(kerberos):
-    service_kerberos_options = {
-        "service": {
-            "name": "kafka-zookeeper",
-            "security": {
-                "kerberos": {
-                    "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
-                    "keytab_secret": kerberos.get_keytab_path(),
-                }
-            }
-        }
-    }
-
-    # TODO: Remove once kafka-zookeeper is available in the universe
-    zookeeper_stub = "https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/20171128-113715-h2qHdoIXKgAEgPOy/stub-universe-kafka-zookeeper.json"
-    stub_urls = sdk_repository.add_stub_universe_urls([zookeeper_stub, ])
-
-    try:
-        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
-        sdk_install.install(
-            "beta-kafka-zookeeper",
-            "kafka-zookeeper",
-            6,
-            additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
-
-        yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
-
-    finally:
-        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
-        sdk_repository.remove_universe_repos(stub_urls)
-
-
 @pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos, zookeeper_server):
+def kafka_server(kerberos):
+    """
+    A pytest fixture that installs a Kerberized kafka service.
 
-    # Get the zookeeper DNS values
-    zookeeper_dns = sdk_cmd.svc_cli(zookeeper_server["package_name"],
-                                    zookeeper_server["service"]["name"],
-                                    "endpoint clientport", json=True)["dns"]
+    On teardown, the service is uninstalled.
+    """
+
+    super_principal = "super"
 
     service_kerberos_options = {
         "service": {
@@ -152,15 +79,15 @@ def kafka_server(kerberos, zookeeper_server):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "enabled_for_zookeeper": True,
                     "kdc_host_name": kerberos.get_host(),
                     "kdc_host_port": int(kerberos.get_port()),
                     "keytab_secret": kerberos.get_keytab_path(),
+                },
+                "authorization": {
+                    "enabled": True,
+                    "super_users": "User:{}".format(super_principal)
                 }
             }
-        },
-        "kafka": {
-            "kafka_zookeeper_uri": ",".join(zookeeper_dns)
         }
     }
 
@@ -173,7 +100,8 @@ def kafka_server(kerberos, zookeeper_server):
             additional_options=service_kerberos_options,
             timeout_seconds=30 * 60)
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
+        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME,
+                                              "super_principal": super_principal}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -234,20 +162,62 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server):
+def test_authz_acls_required(kafka_client, kafka_server):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
-    topic_name = "authn.test"
+    topic_name = "authz.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
                     "topic create {}".format(topic_name),
                     json=True)
 
     test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
 
+
     message = str(uuid.uuid4())
 
-    assert ">>" in auth.write_to_topic("client", client_id, topic_name, message)
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert auth.is_not_authorized(auth.write_to_topic("authorized", client_id, topic_name, message))
 
-    assert message in auth.read_from_topic("client", client_id, topic_name, 1)
+    log.info("Writing and reading: Writing to the topic, as super user")
+    assert ">>" in auth.write_to_topic("super", client_id, topic_name, message)
+
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    assert auth.is_not_authorized(auth.read_from_topic("authorized", client_id, topic_name, 1))
+
+    log.info("Writing and reading: Reading from the topic, as super user")
+    assert message in auth.read_from_topic("super", client_id, topic_name, 1)
+
+    zookeeper_endpoint = sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "endpoint zookeeper").strip()
+
+    # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
+    topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
+
+    # Send a second message which should not be authorized
+    second_message = str(uuid.uuid4())
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert ">>" in auth.write_to_topic("authorized", client_id, topic_name, second_message)
+
+    log.info("Writing and reading: Writing to the topic, as super user")
+    assert ">>" in auth.write_to_topic("super", client_id, topic_name, second_message)
+
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    topic_output = auth.read_from_topic("authorized", client_id, topic_name, 3)
+    assert message in topic_output
+    assert second_message in topic_output
+
+    log.info("Writing and reading: Reading from the topic, as super user")
+    topic_output = auth.read_from_topic("super", client_id, topic_name, 3)
+    assert message in topic_output
+    assert second_message in topic_output
+
+    # Check that the unauthorized client can still not read or write from the topic.
+    log.info("Writing and reading: Writing to the topic, but not super user")
+    assert auth.is_not_authorized(auth.write_to_topic("unauthorized", client_id, topic_name, second_message))
+
+    log.info("Writing and reading: Reading from the topic, but not super user")
+    assert auth.is_not_authorized(auth.read_from_topic("unauthorized", client_id, topic_name, 1))
