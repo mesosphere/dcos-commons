@@ -339,10 +339,17 @@ public class TaskUtils {
         return Optional.empty();
     }
 
+    /**
+     * Given a list of all tasks and failed tasks, returns a list of tasks
+     * (via {@link PodInstanceRequirement#getTasksToLaunch()}) that should be relaunched.
+     * @param failedTasks tasks marked as needing recovery
+     * @param allTasks all known tasks in the service
+     * @return list of pods, each with contained named tasks to be relaunched
+     */
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
-            Collection<TaskInfo> allTasks) throws TaskException {
+            Collection<TaskInfo> allTasks) {
 
         Set<PodInstance> pods = new HashSet<>();
 
@@ -353,19 +360,41 @@ public class TaskUtils {
                 LOGGER.error("Failed to get pod instance for TaskInfo: {} with exception: {}", taskInfo, e);
             }
         }
+        if (pods.isEmpty()) {
+            return Collections.emptyList();
+        }
 
-        List<String> failedTaskNames = failedTasks.stream()
+        Set<String> failedTaskNames = failedTasks.stream()
                 .map(taskInfo -> taskInfo.getName())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
+        Set<String> allTaskNames = allTasks.stream()
+                .map(taskInfo -> taskInfo.getName())
+                .collect(Collectors.toSet());
 
         List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
-
         for (PodInstance podInstance : pods) {
             List<String> tasksToLaunch = new ArrayList<>();
             for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
+                if (taskSpec.getGoal() != GoalState.RUNNING) {
+                    // Disregard FINISHED tasks.
+                    continue;
+                }
                 String fullTaskName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
-                if (taskSpec.getGoal() == GoalState.RUNNING && failedTaskNames.contains(fullTaskName)) {
-                    tasksToLaunch.add(taskSpec.getName());
+                switch (podInstance.getPod().getFailureMode()) {
+                case ATOMIC:
+                    // Atomic relaunch: All known tasks in this pod are marked as launchable. Just check that the task
+                    // names are known and listed under allTasks.
+                    if (allTaskNames.contains(fullTaskName)) {
+                        tasksToLaunch.add(taskSpec.getName());
+                    }
+                    break;
+                case INDEPENDENT:
+                    // Independent relaunch: Only failed tasks in this pod are relaunched. Check that the task names are
+                    // listed as being failed before relaunching them.
+                    if (failedTaskNames.contains(fullTaskName)) {
+                        tasksToLaunch.add(taskSpec.getName());
+                    }
+                    break;
                 }
             }
 
