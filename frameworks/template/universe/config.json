@@ -79,7 +79,7 @@
           },
           "placement_constraint": {
             "title": "Placement constraint",
-            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "description": "Placement constraints for nodes. Example: (e.g., hostname:UNIQUE).",
             "type": "string",
             "default": "",
             "media": {

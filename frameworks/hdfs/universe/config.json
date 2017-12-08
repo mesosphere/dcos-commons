@@ -159,7 +159,7 @@
           "default": "0"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for journal nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {
@@ -514,7 +514,7 @@
           "default": ""
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for name nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {
@@ -752,7 +752,7 @@
           "default": "12"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for data nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {

@@ -94,7 +94,7 @@
             "default": 1
           },
           "placement": {
-            "description": "Marathon-style placement constraint for Hello pods",
+            "description": "Placement constraints for Hello pods",
             "type": "string",
             "default": "hostname:UNIQUE",
             "media": {
@@ -150,7 +150,7 @@
             "default": 2
           },
           "placement": {
-            "description": "Marathon-style placement constraint for World pods",
+            "description": "Placement constraints for World pods",
             "type": "string",
             "default": "hostname:UNIQUE",
             "media": {
