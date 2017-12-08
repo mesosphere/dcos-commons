@@ -116,16 +116,17 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
     def write_failed(output) -> bool:
         LOG.info("Checking write output: %s", output)
         rc = output[0]
-        stderr = output[1]
+        stderr = output[2]
 
         if rc:
             LOG.error("Write failed with non-zero return code")
             return True
-        if "ERROR Error when sending message to topic" in stderr:
-            unknown = "Error: UNKNOWN_TOPIC_OR_PARTITION" in stderr
-
-            LOG.error("Write failed due to stderr. unknown=%s", unknown)
-            return unknown
+        if "UNKNOWN_TOPIC_OR_PARTITION" in stderr:
+            LOG.error("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
+            return True
+        if "LEADER_NOT_AVAILABLE" in stderr:
+            LOG.error("Write failed due to stderr: LEADER_NOT_AVAILABLE")
+            return True
 
         LOG.info("Output check passed")
 
@@ -165,7 +166,7 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None
     def read_failed(output) -> bool:
         LOG.info("Checking read output: %s", output)
         rc = output[0]
-        stderr = output[1]
+        stderr = output[2]
 
         if rc:
             LOG.error("Read failed with non-zero return code")
