@@ -49,7 +49,7 @@ public class SendOffer implements Send {
          *
          * @param podIndex the index of the previous pod to be offered
          */
-        public Builder setPodToReuse(int podIndex) {
+        public Builder setPodToReoffer(int podIndex) {
             this.podToReuse = Optional.of(getPodName(podType, podIndex));
             return this;
         }

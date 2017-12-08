@@ -111,7 +111,7 @@ public interface Expect extends SimulationTick {
 
             @Override
             public String getDescription() {
-                return String.format("Tasks were launched in a new pod: %s", taskNames);
+                return String.format("Tasks were launched into a pod: %s", taskNames);
             }
         };
     }

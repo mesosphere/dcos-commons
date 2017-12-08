@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -78,20 +80,22 @@ public class ServiceTest {
         // When server task fails, both server+agent are relaunched:
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
 
-        // Turn the crank with an arbitrary offer so that the failure is processed
+        // Turn the crank with an arbitrary offer so that the failure is processed.
+        // This also tests that the task is still tied to the agent where it was previously located.
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
         // Only the agent task is killed: server is already in a terminal state, whereas the agent is still running
         ticks.add(Expect.killedTask("hello-0-agent"));
 
         // Send the matching offer to relaunch against:
-        ticks.add(Send.offerBuilder("hello").setPodToReuse(0).build());
+        ticks.add(Send.offerBuilder("hello").setPodToReoffer(0).build());
         ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
 
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
         ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
 
         ticks.add(Expect.allPlansComplete());
+        ticks.add(new ExpectTasksShareExecutor("hello-0-server", "hello-0-agent"));
 
         new ServiceTestRunner("examples/tasks_fail_atomically.yml").run(ticks);
     }
@@ -124,19 +128,49 @@ public class ServiceTest {
         // When server task fails, both server+agent are relaunched:
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
 
-        // Turn the crank with an arbitrary offer so that the failure is processed
+        // Turn the crank with an arbitrary offer so that the failure is processed.
+        // This also tests that the task is still tied to the agent where it was previously located.
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
 
         // Send the matching offer to relaunch ONLY the server against:
-        ticks.add(Send.offerBuilder("hello").setPodToReuse(0).build());
+        ticks.add(Send.offerBuilder("hello").setPodToReoffer(0).build());
         ticks.add(Expect.launchedTasks("hello-0-server"));
 
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
 
         ticks.add(Expect.allPlansComplete());
+        ticks.add(new ExpectTasksShareExecutor("hello-0-server", "hello-0-agent"));
 
         new ServiceTestRunner("examples/tasks_fail_independently.yml").run(ticks);
+    }
+
+    /**
+     * Verifies that a set of two or more tasks all share the same ExecutorInfo (i.e. the same pod).
+     */
+    private static class ExpectTasksShareExecutor implements Expect {
+
+        private final List<String> taskNames;
+
+        private ExpectTasksShareExecutor(String... taskNames) {
+            this.taskNames = Arrays.asList(taskNames);
+        }
+
+        @Override
+        public String getDescription() {
+            return String.format("Tasks share the same executor: %s", taskNames);
+        }
+
+        @Override
+        public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+            Set<Protos.ExecutorInfo> executors = taskNames.stream()
+                    .map(name -> state.getLastLaunchedTask(name).getExecutor())
+                    .collect(Collectors.toSet());
+            Assert.assertEquals(String.format(
+                    "Expected tasks to share a single matching executor, but had: %s",
+                    executors.stream().map(e -> TextFormat.shortDebugString(e)).collect(Collectors.toList())),
+                    1, executors.size());
+        }
     }
 
     /**
@@ -225,12 +259,12 @@ public class ServiceTest {
         ticks.add(Expect.killedTask("world-1-server"));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
-        ticks.add(Send.offerBuilder("world").setPodToReuse(0).build());
+        ticks.add(Send.offerBuilder("world").setPodToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 4, 1, 1), new StepCount("world-0", 6, 0, 0))));
 
         // Offer world-1 resources and check that world-1 resources are wiped:
-        ticks.add(Send.offerBuilder("world").setPodToReuse(1).build());
+        ticks.add(Send.offerBuilder("world").setPodToReoffer(1).build());
         ticks.add(Expect.unreservedTasks("world-1-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 1, 0, 5), new StepCount("world-0", 6, 0, 0))));
@@ -246,7 +280,7 @@ public class ServiceTest {
 
         // Now let's proceed with decommissioning world-0. This time a single offer with the correct resources results
         // in both killing/flagging the task, and clearing its resources:
-        ticks.add(Send.offerBuilder("world").setPodToReuse(0).build());
+        ticks.add(Send.offerBuilder("world").setPodToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 1, 0, 5))));
         ticks.add(Expect.killedTask("world-0-server"));
