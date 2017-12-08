@@ -402,6 +402,8 @@ public class DefaultPodSpec implements PodSpec {
         public Builder failureMode(FailureMode failureMode) {
             if (failureMode != null) {
                 this.failureMode = failureMode;
+            } else {
+                this.failureMode = FailureMode.ATOMIC; // default
             }
             return this;
         }

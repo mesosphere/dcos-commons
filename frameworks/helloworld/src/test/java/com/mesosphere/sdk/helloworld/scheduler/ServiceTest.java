@@ -51,6 +51,76 @@ public class ServiceTest {
     }
 
     /**
+     * Checks that if one task in a pod fails, that the other task in the same pod is unaffected.
+     */
+    @Test
+    public void testTasksFailAtomically() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+
+        // No more hellos to launch:
+        ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        ticks.add(Expect.allPlansComplete());
+
+        // When server task fails, both server+agent are relaunched:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+        ticks.add(Send.offerBuilder("hello").setResourcesFromPod(0).build());
+        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+
+        ticks.add(Expect.allPlansComplete());
+
+        new ServiceTestRunner("examples/tasks-fail-atomically.yml").run(ticks);
+    }
+
+    /**
+     * Checks that if one task in a pod fails, that the other task in the same pod is unaffected.
+     */
+    @Test
+    public void testTasksFailIndependently() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+
+        // No more hellos to launch:
+        ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        ticks.add(Expect.allPlansComplete());
+
+        // When server task fails, only server is relaunched (agent left as-is):
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+        ticks.add(Send.offerBuilder("hello").setResourcesFromPod(0).build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        ticks.add(Expect.allPlansComplete());
+
+        new ServiceTestRunner("examples/tasks-fail-independently.yml").run(ticks);
+    }
+
+    /**
      * Tests scheduler behavior when the number of {@code world} pods is reduced.
      */
     @Test

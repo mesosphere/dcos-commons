@@ -14,7 +14,6 @@ import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.PodSpec.FailureMode;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
@@ -344,7 +343,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         return DefaultPodSpec.newBuilder(podSpec)
                 .count(0)
                 .placementRule(null)
-                .failureMode(FailureMode.ATOMIC)
+                .failureMode(null)
                 .allowDecommission(false)
                 .build();
     }
