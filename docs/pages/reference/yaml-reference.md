@@ -146,6 +146,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
       </ul></div>
 
+    * `essential`
+
+      Marks this task as either "Essential", where relaunching this task results in relaunching all `RUNNING` tasks in the pod instance, or "Non-essential", where relaunching it does not affect other `RUNNING` tasks in the pod instance. By default this value is `true`, such that if this task needs to be relaunched, then all other tasks sharing the same pod instance are relaunched alongside it. This is only a factor in cases where a given pod has multiple `RUNNING` tasks defined.
+
     * `cmd`
 
       The command to be run by the task, in the form of a shell script. This script may execute any executables that are visible within the pod environment.

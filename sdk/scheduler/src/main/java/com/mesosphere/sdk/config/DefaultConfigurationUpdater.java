@@ -343,7 +343,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         return DefaultPodSpec.newBuilder(podSpec)
                 .count(0)
                 .placementRule(null)
-                .failureMode(null)
                 .allowDecommission(false)
                 .build();
     }

@@ -15,13 +15,6 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultPodSpec.class)
 public interface PodSpec {
-    /**
-     * Methods to recover tasks within this pod.
-     */
-    enum FailureMode {
-        ATOMIC, // default: if task dies, restart all tasks in pod
-        INDEPENDENT // if task dies, restart only that task
-    }
 
     @JsonProperty("type")
     String getType();
@@ -49,9 +42,6 @@ public interface PodSpec {
 
     @JsonProperty("task-specs")
     List<TaskSpec> getTasks();
-
-    @JsonProperty("failure-mode")
-    FailureMode getFailureMode();
 
     @JsonProperty("placement-rule")
     Optional<PlacementRule> getPlacementRule();

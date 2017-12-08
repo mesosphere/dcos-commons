@@ -41,7 +41,6 @@ public class DefaultPodSpec implements PodSpec {
     @Size(min = 1)
     @UniqueTaskName(message = "Task names must be unique")
     private final List<TaskSpec> tasks;
-    private FailureMode failureMode;
     @Valid
     private final PlacementRule placementRule;
     @Valid
@@ -64,7 +63,6 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("rlimits") Collection<RLimitSpec> rlimits,
             @JsonProperty("uris") Collection<URI> uris,
             @JsonProperty("task-specs") List<TaskSpec> tasks,
-            @JsonProperty("failure-mode") FailureMode failureMode,
             @JsonProperty("placement-rule") PlacementRule placementRule,
             @JsonProperty("volumes") Collection<VolumeSpec> volumes,
             @JsonProperty("pre-reserved-role") String preReservedRole,
@@ -81,7 +79,6 @@ public class DefaultPodSpec implements PodSpec {
                         .rlimits(rlimits)
                         .uris(uris)
                         .tasks(tasks)
-                        .failureMode(failureMode)
                         .placementRule(placementRule)
                         .volumes(volumes)
                         .preReservedRole(preReservedRole)
@@ -100,7 +97,6 @@ public class DefaultPodSpec implements PodSpec {
         this.rlimits = builder.rlimits;
         this.secrets = builder.secrets;
         this.tasks = builder.tasks;
-        this.failureMode = builder.failureMode;
         this.type = builder.type;
         this.uris = builder.uris;
         this.user = builder.user;
@@ -178,11 +174,6 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public FailureMode getFailureMode() {
-        return failureMode;
-    }
-
-    @Override
     public Optional<PlacementRule> getPlacementRule() {
         return Optional.ofNullable(placementRule);
     }
@@ -239,7 +230,6 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<RLimitSpec> rlimits =  new ArrayList<>();
         private Collection<URI> uris = new ArrayList<>();
         private List<TaskSpec> tasks = new ArrayList<>();
-        private FailureMode failureMode = FailureMode.ATOMIC;
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
@@ -389,22 +379,6 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder addTask(TaskSpec task) {
             this.tasks.add(task);
-            return this;
-        }
-
-        /**
-         * Sets the {@link FailureMode} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param failureMode the {@link FailureMode} to set, or {@code null} to use the default
-         * @return a reference to this Builder
-         */
-        public Builder failureMode(FailureMode failureMode) {
-            if (failureMode != null) {
-                this.failureMode = failureMode;
-            } else {
-                this.failureMode = FailureMode.ATOMIC; // default
-            }
             return this;
         }
 

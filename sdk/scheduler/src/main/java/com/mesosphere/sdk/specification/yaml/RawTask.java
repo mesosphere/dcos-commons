@@ -12,6 +12,7 @@ import java.util.Map;
 public class RawTask {
 
     private final String goal;
+    private final Boolean essential;
     private final String cmd;
     private final Map<String, String> env;
     private final WriteOnceLinkedHashMap<String, RawConfig> configs;
@@ -30,6 +31,7 @@ public class RawTask {
 
     private RawTask(
             @JsonProperty("goal") String goal,
+            @JsonProperty("essential") Boolean essential,
             @JsonProperty("cmd") String cmd,
             @JsonProperty("env") Map<String, String> env,
             @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
@@ -46,6 +48,7 @@ public class RawTask {
             @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
             @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption) {
         this.goal = goal;
+        this.essential = essential;
         this.cmd = cmd;
         this.env = env;
         this.configs = configs;
@@ -97,6 +100,10 @@ public class RawTask {
 
     public String getGoal() {
         return goal;
+    }
+
+    public Boolean isEssential() {
+        return essential;
     }
 
     public String getCmd() {

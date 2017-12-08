@@ -17,6 +17,7 @@ public class DefaultTaskSpecTest {
         DefaultTaskSpec original = new DefaultTaskSpec(
                 "task",
                 GoalState.RUNNING,
+                true,
                 new DefaultResourceSet(
                         "rs-id",
                         Arrays.asList(

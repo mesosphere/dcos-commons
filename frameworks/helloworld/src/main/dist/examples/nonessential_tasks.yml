@@ -5,7 +5,6 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    failure-mode: INDEPENDENT
     tasks:
       server:
         goal: RUNNING
@@ -16,6 +15,7 @@ pods:
           SLEEP_DURATION: {{SLEEP_DURATION}}
       agent:
         goal: RUNNING
+        essential: false
         cmd: "echo agent >> output && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}

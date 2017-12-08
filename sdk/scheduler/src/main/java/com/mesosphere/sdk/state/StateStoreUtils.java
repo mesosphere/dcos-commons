@@ -84,10 +84,7 @@ public class StateStoreUtils {
                 continue;
             }
 
-            Optional<TaskSpec> taskSpec = TaskUtils.getTaskSpec(
-                    TaskUtils.getPodInstance(configStore, info),
-                    info.getName());
-
+            Optional<TaskSpec> taskSpec = TaskUtils.getTaskSpec(configStore, info);
             if (!taskSpec.isPresent()) {
                 throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
             }
