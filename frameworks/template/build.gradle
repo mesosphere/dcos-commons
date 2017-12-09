@@ -22,7 +22,6 @@ ext {
 
 dependencies {
     compile project(":scheduler")
-    compile project(":executor")
     testCompile project(":testing")
 }
 

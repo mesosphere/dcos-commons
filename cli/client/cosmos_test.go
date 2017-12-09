@@ -2,14 +2,13 @@ package client
 
 import (
 	"bytes"
-	"io"
-	"net/http"
-	"testing"
-
-	"io/ioutil"
-
 	"fmt"
-
+	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
 	"github.com/mesosphere/dcos-commons/cli/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -17,6 +16,10 @@ import (
 
 type CosmosTestSuite struct {
 	suite.Suite
+	server         *httptest.Server
+	requestBody    []byte
+	responseBody   []byte
+	responseStatus int
 	capturedOutput bytes.Buffer
 }
 
@@ -33,9 +36,23 @@ func (suite *CosmosTestSuite) loadFile(filename string) []byte {
 	return data
 }
 
+func (suite *CosmosTestSuite) exampleHandler(w http.ResponseWriter, r *http.Request) {
+	// write the request data to our suite's struct
+	requestBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		suite.T().Fatalf("%s", err)
+	}
+	suite.requestBody = requestBody
+
+	if suite.responseStatus == 0 {
+		suite.responseStatus = http.StatusOK
+	}
+	w.WriteHeader(suite.responseStatus)
+	w.Write(suite.responseBody)
+}
+
 func (suite *CosmosTestSuite) SetupSuite() {
-	config.DcosURL = "https://my.dcos.url/"
-	config.DcosAuthToken = "dummytoken"
+	os.Setenv("DCOS_ACS_TOKEN", "dummytoken")
 
 	// reassign printing functions to allow us to check output
 	PrintMessage = suite.printRecorder
@@ -45,10 +62,15 @@ func (suite *CosmosTestSuite) SetupSuite() {
 func (suite *CosmosTestSuite) SetupTest() {
 	config.ModuleName = "hello-world"
 	config.ServiceName = "hello-world"
+	// set up test server
+	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
+	os.Setenv("DCOS_URL", suite.server.URL)
 }
 
 func (suite *CosmosTestSuite) TearDownTest() {
 	suite.capturedOutput.Reset()
+	suite.server.Close()
+	suite.responseStatus = 0
 }
 func TestUpdateTestSuite(t *testing.T) {
 	suite.Run(t, new(CosmosTestSuite))
@@ -74,18 +96,16 @@ func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename str
 }
 
 func (suite *CosmosTestSuite) Test404ErrorResponse() {
-	config.Command = "describe"
 	response, body := suite.createExampleResponse(http.StatusNotFound, "")
 	err := checkCosmosHTTPResponse(&response, body)
-	assert.Equal(suite.T(), "dcos hello-world describe requires Enterprise DC/OS 1.10 or newer.", err.Error())
+	assert.Equal(suite.T(), "This command requires Enterprise DC/OS 1.10 or newer.", err.Error())
 }
 
 func (suite *CosmosTestSuite) Test500ErrorResponse() {
-	config.Command = "describe"
 	response, body := suite.createExampleResponse(
 		http.StatusInternalServerError, "testdata/responses/cosmos/1.10/enterprise/marathon-error.json")
 	err := checkCosmosHTTPResponse(&response, body)
-	assert.Equal(suite.T(), `HTTP POST Query for https://my.dcos.url/cosmos/service/describe failed: 500 Internal Server Error
+	assert.Equal(suite.T(), `HTTP POST Query for ` + suite.server.URL + `/cosmos/service/describe failed: 500 Internal Server Error
 Response: {"type":"unhandled_exception","message":"java.lang.Error: {\"message\":\"App is locked by one or more deployments. Override with the option '?force=true'. View details at '/v2/deployments/<DEPLOYMENT_ID>'.\",\"deployments\":[{\"id\":\"839314dd-f223-4d55-9d74-a556119e84be\"}]}"}
 `, err.Error())
 }
@@ -144,7 +164,7 @@ func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	assert.Equal(suite.T(), "application/vnd.dcos.service.describe-response+json;charset=utf-8;version=v1", request.Header["Accept"][0])
 	assert.Equal(suite.T(), "application/vnd.dcos.service.describe-request+json;charset=utf-8;version=v1", request.Header["Content-Type"][0])
 	assert.Equal(suite.T(), "token=dummytoken", request.Header["Authorization"][0])
-	assert.Equal(suite.T(), "https://my.dcos.url/cosmos/service/describe", request.URL.String())
+	assert.Equal(suite.T(), suite.server.URL + "/cosmos/service/describe", request.URL.String())
 	actualBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		suite.T().Fatal(err)
@@ -154,7 +174,7 @@ func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 
 func (suite *CosmosTestSuite) TestLocalCosmosUrl() {
 	// create a URL where the user has manually specified a URL to Cosmos
-	config.CosmosURL = "https://my.local.cosmos/"
+	os.Setenv("DCOS_PACKAGE_COSMOS_URL", "https://my.local.cosmos/")
 
 	describeURL := createCosmosURL("describe")
 	updateURL := createCosmosURL("update")
@@ -162,7 +182,7 @@ func (suite *CosmosTestSuite) TestLocalCosmosUrl() {
 	assert.Equal(suite.T(), "https://my.local.cosmos/service/describe", describeURL.String())
 	assert.Equal(suite.T(), "https://my.local.cosmos/service/update", updateURL.String())
 
-	config.CosmosURL = ""
+	os.Unsetenv("DCOS_PACKAGE_COSMOS_URL")
 }
 
 func (suite *CosmosTestSuite) TestCosmosUrl() {
@@ -170,6 +190,105 @@ func (suite *CosmosTestSuite) TestCosmosUrl() {
 	describeURL := createCosmosURL("describe")
 	updateURL := createCosmosURL("update")
 
-	assert.Equal(suite.T(), "https://my.dcos.url/cosmos/service/describe", describeURL.String())
-	assert.Equal(suite.T(), "https://my.dcos.url/cosmos/service/update", updateURL.String())
+	assert.Equal(suite.T(), suite.server.URL + "/cosmos/service/describe", describeURL.String())
+	assert.Equal(suite.T(), suite.server.URL + "/cosmos/service/update", updateURL.String())
+}
+
+func (suite *CosmosTestSuite) TestInvalidMinimumErrorResponse() {
+	responseJSON := `{
+    "type": "JsonSchemaMismatch",
+    "message": "Options JSON failed validation",
+    "data": {
+        "errors": [
+            {
+                "level": "error",
+                "schema": {
+                    "loadingURI": "#",
+                    "pointer": "/properties/nodes/properties/count"
+                },
+                "instance": {
+                    "pointer": "/nodes/count"
+                },
+                "domain": "validation",
+                "keyword": "minimum",
+                "message": "numeric instance is lower than the required minimum (minimum: 3, found: 2)",
+                "minimum": 3,
+                "found": 2
+            }
+        ]
+    }
+}`
+	suite.responseBody = []byte(responseJSON)
+	suite.responseStatus = http.StatusBadRequest
+
+	_, err := HTTPCosmosPostJSON("update", "test-payload")
+
+	// assert CLI output is what we expect
+	expectedOutput := "Unable to update hello-world to requested configuration: options JSON failed validation.\n" +
+		"\n" +
+		"Field        Error \n" +
+		"-----        ----- \n" +
+		"/nodes/count numeric instance is lower than the required minimum (minimum: 3, found: 2)"
+
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
+}
+
+func (suite *CosmosTestSuite) TestTwoValidationErrorsResponse() {
+	responseJSON := `{
+    "type": "JsonSchemaMismatch",
+    "message": "Options JSON failed validation",
+    "data": {
+        "errors": [
+            {
+                "level": "error",
+                "schema": {
+                    "loadingURI": "#",
+                    "pointer": "/properties/nodes/properties/count"
+                },
+                "instance": {
+                    "pointer": "/nodes/count"
+                },
+                "domain": "validation",
+                "keyword": "minimum",
+                "message": "numeric instance is lower than the required minimum (minimum: 3, found: 2)",
+                "minimum": 3,
+                "found": 2
+            },
+            {
+                "level": "error",
+                "schema": {
+                    "loadingURI": "#",
+                    "pointer": "/properties/nodes/properties/cpus"
+                },
+                "instance": {
+                    "pointer": "/nodes/cpus"
+                },
+                "domain": "validation",
+                "keyword": "type",
+                "message": "instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])",
+                "found": "string",
+                "expected": [
+                    "integer",
+                    "number"
+                ]
+            }
+        ]
+    }
+}
+`
+
+	suite.responseBody = []byte(responseJSON)
+	suite.responseStatus = http.StatusBadRequest
+
+	_, err := HTTPCosmosPostJSON("update", "test-payload")
+
+	// assert CLI output is what we expect
+	expectedOutput := "Unable to update hello-world to requested configuration: options JSON failed validation.\n" +
+		"\n" +
+		"Field        Error                                                                      \n" +
+		"-----        -----                                                                      \n" +
+		"/nodes/count numeric instance is lower than the required minimum (minimum: 3, found: 2) \n" +
+		"/nodes/cpus  instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])"
+
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }

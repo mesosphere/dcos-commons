@@ -121,7 +121,7 @@
           "default": 9300
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for master nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {
@@ -182,7 +182,7 @@
           "default": "ROOT"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for data nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {
@@ -243,7 +243,7 @@
           "default": "ROOT"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for ingest nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {
@@ -304,7 +304,7 @@
           "default": "ROOT"
         },
         "placement": {
-          "description": "Marathon-style placement constraints (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for coordinator nodes (e.g., hostname:UNIQUE).",
           "type": "string",
           "default": "",
           "media": {

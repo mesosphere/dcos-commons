@@ -39,8 +39,8 @@ broker.rack={{ZONE}}
 # returned from java.net.InetAddress.getCanonicalHostName().
 #
 # advertised.listeners=PLAINTEXT://your.host.name:9092
-{{ADVERTISED_LISTENERS}}
-{{LISTENERS}}
+{{SETUP_HELPER_ADVERTISED_LISTENERS}}
+{{SETUP_HELPER_LISTENERS}}
 
 {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 ############################# TLS Settings #############################
@@ -55,9 +55,9 @@ ssl.enabled.protocols=TLSv1.2
 
 # If Kerberos is NOT enabled, then SSL authentication can be turned on.
 {{^SECURITY_KERBEROS_ENABLED}}
-{{#SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION}}
+{{#SECURITY_SSL_AUTHENTICATION_ENABLED}}
 ssl.client.auth=required
-{{/SECURITY_SSL_AUTH_ENABLE_AUTHENTICATION}}
+{{/SECURITY_SSL_AUTHENTICATION_ENABLED}}
 {{/SECURITY_KERBEROS_ENABLED}}
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
@@ -70,7 +70,7 @@ sasl.kerberos.service.name={{SECURITY_KERBEROS_PRIMARY}}
 {{/SECURITY_KERBEROS_ENABLED}}
 
 ## Inter Broker Protocol
-{{SECURITY_INTER_BROKER_PROTOCOL}}
+{{SETUP_HELPER_SECURITY_INTER_BROKER_PROTOCOL}}
 
 # The number of threads handling network requests
 num.network.threads={{KAFKA_NUM_NETWORK_THREADS}}
@@ -87,10 +87,19 @@ socket.receive.buffer.bytes={{KAFKA_SOCKET_RECEIVE_BUFFER_BYTES}}
 # The maximum size of a request that the socket server will accept (protection against OOM)
 socket.request.max.bytes={{KAFKA_SOCKET_REQUEST_MAX_BYTES}}
 
+{{#SECURITY_AUTHORIZATION_ENABLED}}
+############################# Authorization Settings #############################
+authorizer.class.name=kafka.security.auth.SimpleAclAuthorizer
+super.users={{SETUP_HELPER_SUPER_USERS}}
+allow.everyone.if.no.acl.found={{SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND}}
+{{#SECURITY_SSL_AUTHENTICATION_ENABLED}}
+principal.builder.class=de.thmshmm.kafka.CustomPrincipalBuilder
+{{/SECURITY_SSL_AUTHENTICATION_ENABLED}}
+{{/SECURITY_AUTHORIZATION_ENABLED}}
 
 ############################# Log Basics #############################
 
-# A comma seperated list of directories under which to store log files
+# A comma separated list of directories under which to store log files
 log.dirs={{KAFKA_DISK_PATH}}/broker-{{POD_INSTANCE_INDEX}}
 
 # The default number of log partitions per topic. More partitions allow greater

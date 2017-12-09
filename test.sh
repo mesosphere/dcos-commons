@@ -19,6 +19,7 @@ pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
+DCOS_ENTERPRISE=true
 interactive=
 
 function usage()
@@ -113,6 +114,9 @@ case $key in
     ;;
     -s)
     security="strict"
+    ;;
+    -o|--open)
+    DCOS_ENTERPRISE=false
     ;;
     -p)
     ssh_path="$2"

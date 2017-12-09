@@ -2,6 +2,7 @@
 This module tests the interaction of Kafka with Zookeeper with authentication enabled
 """
 import logging
+import uuid
 import pytest
 
 import shakedown
@@ -118,7 +119,7 @@ def zookeeper_server(kerberos):
     }
 
     # TODO: Remove once kafka-zookeeper is available in the universe
-    zookeeper_stub = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts-ci.s3.amazonaws.com/autodelete7d/kafka-zookeeper/20171128-192118-JfgDpTht4Zubc3J4/stub-universe-kafka-zookeeper.json"
+    zookeeper_stub = "https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/20171128-113715-h2qHdoIXKgAEgPOy/stub-universe-kafka-zookeeper.json"
     stub_urls = sdk_repository.add_stub_universe_urls([zookeeper_stub, ])
 
     try:
@@ -233,13 +234,21 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
+@pytest.mark.skip(reason="INFINITY-2805")
 def test_client_can_read_and_write(kafka_client, kafka_server):
+    client_id = kafka_client["id"]
+
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
-    topicname = kafka_client["env"]["KAFKA_TOPIC"]
+    topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                    "topic create {}".format(topicname),
+                    "topic create {}".format(topic_name),
                     json=True)
-    test_utils.wait_for_topic(kafka_server, topicname)
 
-    auth.send_and_receive_message(kafka_client["id"])
+    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
+
+    message = str(uuid.uuid4())
+
+    assert ">>" in auth.write_to_topic("client", client_id, topic_name, message)
+
+    assert message in auth.read_from_topic("client", client_id, topic_name, 1)
