@@ -8,6 +8,7 @@ import sdk_install
 
 from tests import config
 from tests import test_utils
+from tests import topics
 
 
 LOG = logging.getLogger(__name__)
@@ -60,14 +61,22 @@ def test_topic_partition_count(kafka_server: dict):
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
+
 @pytest.mark.sanity
 def test_topic_offsets_increase_with_writes(kafka_server: dict):
     package_name = kafka_server["package_name"]
     service_name = kafka_server["service"]["name"]
 
+    def offset_is_valid(result) -> bool:
+        initial = result[0]
+        offsets = result[1]
+
+        return bool(topics.filter_empty_offsets(offsets, additional=initial))
+
+
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
-                    retry_on_result=lambda result_pair: result_pair[1] in result_pair[0])
+                    retry_on_result=offset_is_valid)
     def get_offset_change(topic_name, initial_offsets=[]):
         """
         Run:
@@ -82,7 +91,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     test_utils.create_topic(topic_name, service_name)
 
-    _, offset_info = get_offset_change(topic_name, [None, {}, {"0": ""}])
+    _, offset_info = get_offset_change(topic_name)
 
     # offset_info is a list of (partition index, offset) key-value pairs sum the
     # integer representations of the offsets
