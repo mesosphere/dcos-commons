@@ -8,10 +8,6 @@ enterprise: 'no'
 
 The DC/OS Cassandra Service must be deployed with at least 3 nodes.
 
-## Rack-Aware Placement
-
-Apache Cassandra's Rack-Aware Replication is not supported at this time.
-
 ## Security
 
 Apache Cassandra's native TLS, authentication, and authorization features are not supported at this time.

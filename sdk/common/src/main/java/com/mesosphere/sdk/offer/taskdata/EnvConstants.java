@@ -13,9 +13,6 @@ public class EnvConstants {
     /** Provides the Task/Pod index of the instance, starting at 0. */
     public static final String POD_INSTANCE_INDEX_TASKENV = "POD_INSTANCE_INDEX";
 
-    /** Prefix used for port environment variables which advertise reserved ports by their name. */
-    public static final String PORT_NAME_TASKENV_PREFIX = "PORT_";
-
     /** Provides the configured name of the framework/service. */
     public static final String FRAMEWORK_NAME_TASKENV = "FRAMEWORK_NAME";
     /** Provides the name of the pod/task within the service. */
