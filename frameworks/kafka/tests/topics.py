@@ -28,3 +28,15 @@ def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoi
     LOG.info("Running: %s", cmd)
     output = sdk_tasks.task_exec(task, cmd)
     LOG.info(output)
+
+
+def filter_empty_offsets(offsets: list, additional: list=[]) -> list:
+    ignored_offsets = [None, {}, {"0": ""}]
+    ignored_offsets.extend(additional)
+    LOG.info("Filtering %s from %s", ignored_offsets, offsets)
+
+    remaining = [o for o in offsets if o not in ignored_offsets]
+
+    LOG.info("Remaining offsets: %s", remaining)
+
+    return remaining
