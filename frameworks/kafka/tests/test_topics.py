@@ -111,7 +111,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
     post_write_offset = sum(map(lambda partition: sum(map(int, partition.values())), post_write_offset_info))
     LOG.info("Post-write offset=%s", post_write_offset)
 
-    assert post_write_offset - initial_offset == num_messages
+    assert post_write_offset > initial_offset
 
 
 @pytest.mark.sanity
