@@ -5,6 +5,7 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -32,6 +33,9 @@ public class Main {
     private static final String AUTH_TO_LOCAL = "AUTH_TO_LOCAL";
     private static final String DECODED_AUTH_TO_LOCAL = "DECODED_" + AUTH_TO_LOCAL;
     private static final String TASKCFG_ALL_AUTH_TO_LOCAL = TaskEnvRouter.TASKCFG_GLOBAL_ENV_PREFIX + AUTH_TO_LOCAL;
+    private static final String JOURNAL_POD_TYPE = "journal";
+    private static final String NAME_POD_TYPE = "name";
+    private static final String DATA_POD_TYPE = "data";
 
     static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
     static final String HDFS_SITE_XML = "hdfs-site.xml";
@@ -63,7 +67,8 @@ public class Main {
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
                         renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())));
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())))
+                .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()));
     }
 
     private static String renderTemplate(File configFile, String serviceName) throws Exception {
@@ -91,18 +96,15 @@ public class Main {
 
     private static ServiceSpec setPlacementRules(DefaultServiceSpec serviceSpec) throws Exception {
         // Journal nodes avoid themselves and Name nodes.
-        PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "journal"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("journal"), TaskTypeRule.avoid("name")))
+        PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, JOURNAL_POD_TYPE))
+                .placementRule(new AndRule(TaskTypeRule.avoid(JOURNAL_POD_TYPE), TaskTypeRule.avoid(NAME_POD_TYPE)))
                 .build();
 
-        // Name nodes avoid themselves and journal nodes.
-        PodSpec name = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "name"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("name"), TaskTypeRule.avoid("journal")))
-                .build();
+        PodSpec name = getNamePodSpec(serviceSpec);
 
         // Data nodes avoid themselves.
-        PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "data"))
-                .placementRule(TaskTypeRule.avoid("data"))
+        PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, DATA_POD_TYPE))
+                .placementRule(TaskTypeRule.avoid(DATA_POD_TYPE))
                 .build();
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
@@ -127,5 +129,24 @@ public class Main {
         byte[] hdfsUserAuthMappingsBytes = decoder.decode(base64Mappings);
         String authMappings = new String(hdfsUserAuthMappingsBytes, "UTF-8");
         return authMappings;
+    }
+
+    private static PodSpec getNamePodSpec(ServiceSpec serviceSpec) {
+        // Name nodes avoid themselves and journal nodes.
+        PlacementRule placementRule = new AndRule(
+                TaskTypeRule.avoid(NAME_POD_TYPE),
+                TaskTypeRule.avoid(JOURNAL_POD_TYPE)
+        );
+
+        if (getPodSpec(serviceSpec, NAME_POD_TYPE).getPlacementRule().isPresent()) {
+            placementRule = new AndRule(
+                    placementRule,
+                    getPodSpec(serviceSpec, NAME_POD_TYPE).getPlacementRule().get()
+            );
+        }
+
+        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, NAME_POD_TYPE))
+                .placementRule(placementRule)
+                .build();
     }
 }

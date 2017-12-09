@@ -38,7 +38,7 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
-    placement: {{JOURNAL_NODE_PLACEMENT}}
+    placement: "{{JOURNAL_NODE_PLACEMENT}}"
     tasks:
       bootstrap:
         goal: FINISHED
@@ -117,6 +117,7 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{ZONE_RESOLVER}}
     {{#KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -151,7 +152,7 @@ pods:
         ports:
           zkfc-port:
             port: {{TASKCFG_ALL_ZKFC_PORT}}
-    placement: {{NAME_NODE_PLACEMENT}}
+    placement: "{{NAME_NODE_PLACEMENT}}"
     tasks:
       node:
         goal: RUNNING
@@ -166,7 +167,12 @@ pods:
             export OTHER_NN_INDEX=0
           fi &&
           {{/KERBEROS_ENABLED}}
-          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
+          ./bootstrap &&
+          {{#NAME_NODE_PLACEMENT}}
+          mv zone-resolver.sh {{HDFS_VERSION}}/etc/hadoop/zone-resolver.sh &&
+          chmod u+x {{HDFS_VERSION}}/etc/hadoop/zone-resolver.sh &&
+          {{/NAME_NODE_PLACEMENT}}
+          ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
           cmd: >
@@ -360,7 +366,7 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
       {{/ENABLE_VIRTUAL_NETWORK}}
-    placement: {{DATA_NODE_PLACEMENT}}
+    placement: "{{DATA_NODE_PLACEMENT}}"
     tasks:
       node:
         goal: RUNNING
