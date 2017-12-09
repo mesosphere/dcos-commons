@@ -43,11 +43,17 @@ public class OrRule implements PlacementRule {
         }
 
         if (passingCount != 0) {
-            return EvaluationOutcome.pass(this, "%d of %d rules are passing:", passingCount, rules.size())
+            return EvaluationOutcome.pass(
+                    this,
+                    "%d of %d rules are passing:", passingCount, rules.size())
                     .addAllChildren(children)
                     .build();
         } else {
-            return EvaluationOutcome.fail(this, "%d of %d rules are passing:", passingCount, rules.size()).build();
+            return EvaluationOutcome.fail(
+                    this,
+                    "%d of %d rules are passing:", passingCount, rules.size())
+                    .addAllChildren(children)
+                    .build();
         }
     }
 

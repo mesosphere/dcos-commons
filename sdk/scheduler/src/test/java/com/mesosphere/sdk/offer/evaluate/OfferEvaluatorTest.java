@@ -813,6 +813,34 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(taskInfo)));
     }
 
+    @Test
+    public void testLogOutcomeSingleChild() {
+        EvaluationOutcome child = EvaluationOutcome.pass(this, "CHILD").build();
+        EvaluationOutcome parent = EvaluationOutcome
+                .pass(this, "PARENT")
+                .addChild(child)
+                .build();
+
+        StringBuilder builder = new StringBuilder();
+        OfferEvaluator.logOutcome(builder, parent, "");
+        String log = builder.toString();
+        Assert.assertEquals("  PASS(OfferEvaluatorTest): PARENT\n    PASS(OfferEvaluatorTest): CHILD\n", log);
+    }
+
+    @Test
+    public void testLogOutcomeMultiChild() {
+        EvaluationOutcome child = EvaluationOutcome.pass(this, "CHILD").build();
+        EvaluationOutcome parent = EvaluationOutcome
+                .pass(this, "PARENT")
+                .addAllChildren(Arrays.asList(child))
+                .build();
+
+        StringBuilder builder = new StringBuilder();
+        OfferEvaluator.logOutcome(builder, parent, "");
+        String log = builder.toString();
+        Assert.assertEquals("  PASS(OfferEvaluatorTest): PARENT\n    PASS(OfferEvaluatorTest): CHILD\n", log);
+    }
+
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
         OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
         for (OfferRecommendation recommendation : recommendations) {
