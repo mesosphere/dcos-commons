@@ -1,10 +1,5 @@
 {
   "assets": {
-    "container": {
-      "docker": {
-        "cassandra": "mesosphere/cassandra:1.0.26-3.0.10"
-      }
-    },
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "cassandra-jre-tar-gz": "{{jre-url}}",

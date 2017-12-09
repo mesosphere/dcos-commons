@@ -11,7 +11,6 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    image: {{CASSANDRA_DOCKER_IMAGE}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -133,15 +132,15 @@ pods:
         resource-set: sidecar-resources
       upload-s3:
         goal: FINISHED
-        cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
+        cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive; echo TODO
         resource-set: sidecar-resources
       upload-azure:
         goal: FINISHED
         cmd: >
-                az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
+                az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET; echo TODO
 
                 (cd container-path && tar cvhzf snapshot.tar.gz snapshot/) ;
-                az storage blob upload -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz
+                az storage blob upload -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz; echo TODO
         resource-set: sidecar-resources
       cleanup-snapshot:
         goal: FINISHED
@@ -154,14 +153,14 @@ pods:
         goal: FINISHED
         cmd: >
                 mkdir container-path/snapshot ;
-                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
+                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive; echo TODO
         resource-set: sidecar-resources
       fetch-azure:
         goal: FINISHED
         cmd: >
-                az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
+                az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET; echo TODO
 
-                az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ;
+                az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ; echo TODO
                 (cd container-path && tar xvzf snapshot.tar.gz)
 
                 rm container-path/snapshot.tar.gz
