@@ -4,6 +4,7 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,12 +122,33 @@ public class PlacementUtils {
         }
     }
 
+    public static boolean hasZone(Protos.Offer offer) {
+        if (!offer.hasDomain()) {
+            return false;
+        }
+
+        Protos.DomainInfo domainInfo = offer.getDomain();
+        if (!domainInfo.hasFaultDomain()) {
+            return false;
+        }
+
+        return domainInfo.getFaultDomain().hasZone();
+    }
+
     public static boolean placementRuleReferencesRegion(PodSpec podSpec) {
+        return placementRuleReferencesField(PlacementField.REGION, podSpec);
+    }
+
+    public static boolean placementRuleReferencesZone(PodSpec podSpec) {
+        return placementRuleReferencesField(PlacementField.ZONE, podSpec);
+    }
+
+    private static boolean placementRuleReferencesField(PlacementField field, PodSpec podSpec) {
         if (!podSpec.getPlacementRule().isPresent()) {
             return false;
         }
 
         return podSpec.getPlacementRule().get().getPlacementFields().stream()
-                .anyMatch(placementField -> placementField.equals(PlacementField.REGION));
+                .anyMatch(placementField -> placementField.equals(field));
     }
 }

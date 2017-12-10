@@ -85,14 +85,14 @@ def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
-def wait_for_topic(kafka: dict, topic_name: str):
+def wait_for_topic(package_name: str, service_name: str, topic_name: str):
     """
     Execute `dcos kafka topic describe` to wait for topic creation.
     """
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000)
     def describe(topic):
-        sdk_cmd.svc_cli(kafka["package_name"], kafka["service"]["name"],
+        sdk_cmd.svc_cli(package_name, service_name,
                         "topic describe {}".format(topic),
                         json=True)
 

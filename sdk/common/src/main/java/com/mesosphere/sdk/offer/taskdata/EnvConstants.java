@@ -32,9 +32,15 @@ public class EnvConstants {
      *  this hostname. For example, <SCHEDULER_API_HOSTNAME>/v1/state/files/notavirus.exe.txt */
     public static final String SCHEDULER_API_HOSTNAME_TASKENV = "SCHEDULER_API_HOSTNAME";
 
+    /** Provides the zone in which the task has been launched. */
+    public static final String ZONE_TASKENV = "ZONE";
+
     /** Provides the region in which the task has been launched. */
     public static final String REGION_TASKENV = "REGION";
 
-    /** Provides the zone in which the task has been launched. */
-    public static final String ZONE_TASKENV = "ZONE";
+    /** An environment variable indicating whether detection of zones should be required by base technology. */
+    public static final String PLACEMENT_REFERENCED_ZONE_ENV = "PLACEMENT_REFERENCED_ZONE";
+
+    /** An environment variable indicating whether detection of regions should be required by base technology. */
+    public static final String PLACEMENT_REFERENCED_REGION_ENV = "PLACEMENT_REFERENCED_REGION";
 }
