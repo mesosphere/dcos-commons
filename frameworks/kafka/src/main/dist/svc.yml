@@ -5,7 +5,7 @@ scheduler:
 pods:
   kafka:
     count: {{BROKER_COUNT}}
-    placement: {{PLACEMENT_CONSTRAINTS}}
+    placement: "{{PLACEMENT_CONSTRAINTS}}"
     uris:
       - {{KAFKA_URI}}
       - {{KAFKA_JAVA_URI}}

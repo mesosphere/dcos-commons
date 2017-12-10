@@ -22,7 +22,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{MASTER_NODE_PLACEMENT}}
+    placement: "{{MASTER_NODE_PLACEMENT}}"
     tasks:
       node:
         goal: RUNNING
@@ -89,7 +89,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{DATA_NODE_PLACEMENT}}
+    placement: "{{DATA_NODE_PLACEMENT}}"
     tasks:
       node:
         goal: RUNNING
@@ -154,7 +154,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{INGEST_NODE_PLACEMENT}}
+    placement: "{{INGEST_NODE_PLACEMENT}}"
     tasks:
       node:
         goal: RUNNING
@@ -219,7 +219,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{COORDINATOR_NODE_PLACEMENT}}
+    placement: "{{COORDINATOR_NODE_PLACEMENT}}"
     tasks:
       node:
         goal: RUNNING

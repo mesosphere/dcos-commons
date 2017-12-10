@@ -25,11 +25,6 @@
           "type": "string",
           "default": ""
         },
-        "detect_zones": {
-          "description": "Whether or not to configure nodes with zone information for Shard Allocation Awareness",
-          "type": "boolean",
-          "default": false
-        },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
           "type": "boolean",
