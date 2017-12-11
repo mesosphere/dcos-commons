@@ -117,6 +117,7 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{ZONE_RESOLVER}}
     {{#KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -166,7 +167,12 @@ pods:
             export OTHER_NN_INDEX=0
           fi &&
           {{/KERBEROS_ENABLED}}
-          ./bootstrap && ./{{HDFS_VERSION}}/bin/hdfs namenode
+          ./bootstrap &&
+          {{#NAME_NODE_PLACEMENT}}
+          mv zone-resolver.sh {{HDFS_VERSION}}/etc/hadoop/zone-resolver.sh &&
+          chmod u+x {{HDFS_VERSION}}/etc/hadoop/zone-resolver.sh &&
+          {{/NAME_NODE_PLACEMENT}}
+          ./{{HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
           cmd: >

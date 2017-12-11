@@ -222,6 +222,7 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
 @pytest.mark.dcos_min_version('1.10')
 @pytest.mark.ee_only
 @pytest.mark.sanity
+@pytest.mark.skip(reason="INFINITY-2805")
 def test_authz_acls_not_required(kafka_client, service_account, setup_principals):
     client_id = kafka_client["id"]
 

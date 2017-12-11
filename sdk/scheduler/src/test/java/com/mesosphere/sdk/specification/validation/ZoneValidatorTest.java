@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.cassandra.scheduler;
+package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
@@ -16,32 +16,36 @@ import java.util.*;
  */
 public class ZoneValidatorTest {
     private static final ZoneValidator validator = new ZoneValidator();
+    private static final String POD_TYPE = TestConstants.POD_TYPE;
+    private static final String TASK_NAME = TestConstants.TASK_NAME;
 
     @Test
     public void noOldConfig() {
-        Collection<ConfigValidationError> errors = validator.validate(Optional.empty(), null);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.empty(), null, POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test
     public void taskTypeMissingInOldSpec() {
-        TaskSpec oldTaskSpec = getTaskSpec(TestConstants.TASK_NAME, Collections.emptyMap());
+        TaskSpec oldTaskSpec = getTaskSpec(TASK_NAME, Collections.emptyMap());
         TaskSpec newTaskSpec = getTaskSpec(Collections.emptyMap());
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(newTaskSpec);
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void taskTypeMissingInNewSpec() {
         TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
-        TaskSpec newTaskSpec = getTaskSpec(TestConstants.TASK_NAME, Collections.emptyMap());
+        TaskSpec newTaskSpec = getTaskSpec(TASK_NAME + "-2", Collections.emptyMap());
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(newTaskSpec);
 
-        validator.validate(Optional.of(oldSpec), newSpec);
+        validator.validate(Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
     }
 
     @Test
@@ -51,7 +55,8 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec("true");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -60,7 +65,8 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec("");
         ServiceSpec newSpec = getServiceSpec("true");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -71,7 +77,8 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec("false");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -80,7 +87,8 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec("");
         ServiceSpec newSpec = getServiceSpec("false");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -89,7 +97,8 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec("true");
         ServiceSpec newSpec = getServiceSpec("false");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -98,7 +107,8 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec("false");
         ServiceSpec newSpec = getServiceSpec("true");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -107,61 +117,71 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec("true");
         ServiceSpec newSpec = getServiceSpec("true");
 
-        Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
+        Collection<ConfigValidationError> errors = validator.validate(
+                Optional.of(oldSpec), newSpec, POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test
     public void envNullToTrueShouldFail() {
-        Collection<ConfigValidationError> errors = validator.validateTransition(null, "true");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                null, "true", POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
     @Test
     public void envBlankToTrueShouldFail() {
-        Collection<ConfigValidationError> errors = validator.validateTransition("", "true");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                "", "true", POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
     @Test
     public void envNullToFalseShouldSucceed() {
-        Collection<ConfigValidationError> errors = validator.validateTransition(null, "false");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                null, "false", POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test
     public void envBlankToFalseShouldSucceed() {
-        Collection<ConfigValidationError> errors = validator.validateTransition("", "false");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                "", "false", POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test
     public void envTrueToFalseShouldFail() {
-        Collection<ConfigValidationError> errors = validator.validateTransition("true", "false");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                "true", "false", POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
     @Test
     public void envFalseToTrueShouldFail() {
-        Collection<ConfigValidationError> errors = validator.validateTransition("false", "true");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                "false", "true", POD_TYPE, TASK_NAME);
         Assert.assertEquals(1, errors.size());
     }
 
     @Test
     public void envTrueToTrueShouldSucceed() {
-        Collection<ConfigValidationError> errors = validator.validateTransition("true", "true");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                "true", "true", POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test
     public void envNullToNullShouldSucceed() {
-        Collection<ConfigValidationError> errors = validator.validateTransition(null, null);
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                null, null, POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
     @Test
     public void envFalseToFalseShouldSucceed() {
-        Collection<ConfigValidationError> errors = validator.validateTransition("false", "false");
+        Collection<ConfigValidationError> errors = validator.validateTransition(
+                "false", "false", POD_TYPE, TASK_NAME);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -191,12 +211,12 @@ public class ZoneValidatorTest {
     }
 
     private static TaskSpec getTaskSpec(Map<String, String> env) {
-        return getTaskSpec(ZoneValidator.TASK_NAME, env);
+        return getTaskSpec(TASK_NAME, env);
     }
 
     private static PodSpec getPodSpec(TaskSpec taskSpec) {
         return DefaultPodSpec.newBuilder("test-executor")
-                .type(ZoneValidator.POD_TYPE)
+                .type(POD_TYPE)
                 .count(1)
                 .user(TestConstants.SERVICE_USER)
                 .tasks(Arrays.asList(taskSpec))
@@ -204,7 +224,7 @@ public class ZoneValidatorTest {
     }
 
     private static ServiceSpec getServiceSpec(TaskSpec taskSpec) {
-       return getServiceSpec(getPodSpec(taskSpec));
+        return getServiceSpec(getPodSpec(taskSpec));
     }
 
     private static ServiceSpec getServiceSpec(PodSpec podSpec) {
