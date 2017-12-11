@@ -10,7 +10,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,7 +18,6 @@ import static org.mockito.Mockito.timeout;
 public class ProcessTaskTest {
     private static final String EXECUTOR_NAME = "TEST_EXECUTOR";
     private static final String TASK_NAME = "TEST_TASK";
-
 
     @Test
     public void testSimple() throws Exception {
@@ -39,10 +37,7 @@ public class ProcessTaskTest {
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
                 .build();
 
-        final ProcessTask processTask = ProcessTask.create(
-                mockExecutorDriver,
-                taskInfo,
-                false);
+        final ProcessTask processTask = ProcessTask.create(mockExecutorDriver, taskInfo);
 
         Assert.assertFalse(processTask.isAlive());
         final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -77,8 +72,7 @@ public class ProcessTaskTest {
         final FailingProcessTask failingProcessTask = new FailingProcessTask(
                 mockExecutorDriver,
                 taskInfo,
-                ProcessBuilderUtils.buildProcess(taskInfo.getCommand()),
-                false);
+                ProcessBuilderUtils.buildProcess(taskInfo.getCommand()));
         final ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(failingProcessTask);
 
@@ -103,10 +97,7 @@ public class ProcessTaskTest {
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
                 .build();
 
-        final ProcessTask processTask = ProcessTask.create(
-                mockExecutorDriver,
-                taskInfo,
-                true);
+        final ProcessTask processTask = ProcessTask.create(mockExecutorDriver, taskInfo);
 
 
         Assert.assertFalse(processTask.isAlive());
@@ -114,7 +105,7 @@ public class ProcessTaskTest {
         executorService.submit(processTask);
 
         // Wait for processTask to run
-        Mockito.verify(mockExecutorDriver, timeout(1000)).stop();
+        Mockito.verify(mockExecutorDriver, timeout(1000)).sendStatusUpdate(Mockito.any());
         Assert.assertFalse(processTask.isAlive());
     }
 
@@ -139,15 +130,13 @@ public class ProcessTaskTest {
         final FailingProcessTask processTask = new FailingProcessTask(
                 mockExecutorDriver,
                 taskInfo,
-                ProcessBuilderUtils.buildProcess(taskInfo.getCommand()),
-                true);
-
+                ProcessBuilderUtils.buildProcess(taskInfo.getCommand()));
 
         Assert.assertFalse(processTask.isAlive());
         final ExecutorService executorService = Executors.newCachedThreadPool();
         executorService.submit(processTask);
 
-        Mockito.verify(mockExecutorDriver, timeout(1000)).abort();
+        Mockito.verify(mockExecutorDriver, timeout(1000)).sendStatusUpdate(Mockito.any());
         Assert.assertFalse(processTask.isAlive());
     }
 
@@ -155,9 +144,8 @@ public class ProcessTaskTest {
         protected FailingProcessTask(
                 ExecutorDriver executorDriver,
                 Protos.TaskInfo taskInfo,
-                ProcessBuilder processBuilder,
-                boolean exitOnTermination) throws IOException {
-            super(executorDriver, taskInfo, processBuilder, exitOnTermination);
+                ProcessBuilder processBuilder) {
+            super(executorDriver, taskInfo, processBuilder);
         }
 
         @Override

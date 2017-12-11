@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CustomExecutorTest {
@@ -136,8 +135,11 @@ public class CustomExecutorTest {
     }
 
     private static CustomExecutor getTestExecutor() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        return new CustomExecutor(executorService, testExecutorTaskFactory);
+        return new CustomExecutor(Executors.newCachedThreadPool(), new ExecutorTaskFactory() {
+            @Override
+            public ExecutorTask createTask(Protos.TaskInfo task, ExecutorDriver driver) {
+                return new TestExecutorTask(task, driver);
+            }
+        });
     }
 }
