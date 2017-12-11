@@ -71,8 +71,8 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         initial = result[0]
         offsets = result[1]
 
+        LOG.info("Checking validity with initial=%s offsets=%s", initial, offsets)
         return bool(topics.filter_empty_offsets(offsets, additional=initial))
-
 
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
@@ -83,12 +83,14 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
             `dcos kafa topic offsets --time="-1"`
         until the output is not the initial output specified
         """
+        LOG.info("Getting offsets for %s", topic_name)
         offsets = sdk_cmd.svc_cli(package_name, service_name,
                                   'topic offsets --time="-1" {}'.format(topic_name), json=True)
+        LOG.info("offsets=%s", offsets)
         return initial_offsets, offsets
 
     topic_name = str(uuid.uuid4())
-
+    LOG.info("Creating topic: %s", topic_name)
     test_utils.create_topic(topic_name, service_name)
 
     _, offset_info = get_offset_change(topic_name)

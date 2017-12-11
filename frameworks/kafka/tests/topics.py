@@ -14,6 +14,7 @@ def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=
     _add_role_acls("producer", user, task, topic, zookeeper_endpoint, env_str)
     _add_role_acls("consumer --group=*", user, task, topic, zookeeper_endpoint, env_str)
 
+
 def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
     cmd = "bash -c \"{setup_env}kafka-acls \
         --topic {topic_name} \
