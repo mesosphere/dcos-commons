@@ -412,34 +412,26 @@ EOL\"""".format(cn=cn))
 
 
 def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
-    output = sdk_tasks.task_exec(task,
-        "bash -c \"echo {} | kafka-console-producer \
-        --topic {} \
-        --producer.config {} \
-        --broker-list \$KAFKA_BROKER_LIST\"".format(message, topic, write_client_properties(cn, task)))
-    log.info(output)
-    assert output[0] is 0
-    return " ".join(str(o) for o in output)
+    client_properties = write_client_properties(cn, task)
+    cmd = "bash -c \"echo {} | kafka-console-producer \
+            --topic {} \
+            --producer.config {} \
+            --broker-list \$KAFKA_BROKER_LIST\"".format(message,
+                                                        topic,
+                                                        client_properties)
+
+    return auth.write_to_topic(cn, task, topic, message, cmd=cmd)
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
-    output = sdk_tasks.task_exec(task,
-        "bash -c \"kafka-console-consumer \
-        --topic {} --from-beginning --max-messages {} \
-        --timeout-ms 10000 \
-        --consumer.config {} \
-        --bootstrap-server \$KAFKA_BROKER_LIST\"".format(topic, messages, write_client_properties(cn, task)))
-    log.info(output)
-    assert output[0] is 0
-    return " ".join(str(o) for o in output)
+    client_properties = write_client_properties(cn, task)
+    timeout_ms = 60000
+    cmd = "bash -c \"kafka-console-consumer \
+            --topic {} \
+            --consumer.config {} \
+            --bootstrap-server \$KAFKA_BROKER_LIST \
+            --from-beginning --max-messages {} \
+            --timeout-ms {} \
+            \"".format(topic, client_properties, messages, timeout_ms)
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
-    output = sdk_tasks.task_exec(task,
-        "bash -c \"kafka-console-consumer \
-        --topic {} --from-beginning --max-messages {} \
-        --timeout-ms 10000 \
-        --consumer.config {} \
-        --bootstrap-server \$KAFKA_BROKER_LIST\"".format(topic, messages, write_client_properties(cn, task)))
-    log.info(output)
-    assert output[0] is 0
-    return " ".join(str(o) for o in output)
+    return auth.read_from_topic(cn, task, topic, messages, cmd)

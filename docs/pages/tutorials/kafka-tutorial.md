@@ -57,7 +57,7 @@ scheduler:
 pods:
   kafka:
     count: {{NODE_COUNT}}
-    placement: {{NODE_PLACEMENT}}
+    placement: '{{{NODE_PLACEMENT}}}'
     uris:
       - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
     tasks:

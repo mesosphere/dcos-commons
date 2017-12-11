@@ -8,6 +8,7 @@ import sdk_install
 
 from tests import config
 from tests import test_utils
+from tests import topics
 
 
 LOG = logging.getLogger(__name__)
@@ -60,29 +61,41 @@ def test_topic_partition_count(kafka_server: dict):
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
+
 @pytest.mark.sanity
 def test_topic_offsets_increase_with_writes(kafka_server: dict):
     package_name = kafka_server["package_name"]
     service_name = kafka_server["service"]["name"]
 
+    def offset_is_valid(result) -> bool:
+        initial = result[0]
+        offsets = result[1]
+
+        LOG.info("Checking validity with initial=%s offsets=%s", initial, offsets)
+        has_elements = bool(topics.filter_empty_offsets(offsets, additional=initial))
+        # The return of this function triggers the restart.
+        return not has_elements
+
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
-                    retry_on_result=lambda result_pair: result_pair[1] in result_pair[0])
+                    retry_on_result=offset_is_valid)
     def get_offset_change(topic_name, initial_offsets=[]):
         """
         Run:
             `dcos kafa topic offsets --time="-1"`
         until the output is not the initial output specified
         """
+        LOG.info("Getting offsets for %s", topic_name)
         offsets = sdk_cmd.svc_cli(package_name, service_name,
                                   'topic offsets --time="-1" {}'.format(topic_name), json=True)
+        LOG.info("offsets=%s", offsets)
         return initial_offsets, offsets
 
     topic_name = str(uuid.uuid4())
-
+    LOG.info("Creating topic: %s", topic_name)
     test_utils.create_topic(topic_name, service_name)
 
-    _, offset_info = get_offset_change(topic_name, [None, {}, {"0": ""}])
+    _, offset_info = get_offset_change(topic_name)
 
     # offset_info is a list of (partition index, offset) key-value pairs sum the
     # integer representations of the offsets
@@ -102,7 +115,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
     post_write_offset = sum(map(lambda partition: sum(map(int, partition.values())), post_write_offset_info))
     LOG.info("Post-write offset=%s", post_write_offset)
 
-    assert post_write_offset - initial_offset == num_messages
+    assert post_write_offset > initial_offset
 
 
 @pytest.mark.sanity

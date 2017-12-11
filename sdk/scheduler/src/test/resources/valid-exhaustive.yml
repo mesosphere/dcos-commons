@@ -5,7 +5,7 @@ scheduler:
   zookeeper: non-default-zk:2181
 pods:
   meta-data:
-    placement: "hostname:UNIQUE"
+    placement: '[["hostname", "UNIQUE"]]'
     count: 2
     networks:
       dcos:
@@ -68,7 +68,7 @@ pods:
           - name: different-cert
             type: KEYSTORE
   data-store:
-    placement: "hostname:UNIQUE"
+    placement: '[["hostname", "UNIQUE"]]'
     count: 3
     networks:
       mesos-bridge:

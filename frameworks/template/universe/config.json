@@ -79,9 +79,9 @@
           },
           "placement_constraint": {
             "title": "Placement constraint",
-            "description": "Placement constraints for nodes. Example: (e.g., hostname:UNIQUE).",
+            "description": "Placement constraints for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
             "type": "string",
-            "default": "",
+            "default": "[]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }

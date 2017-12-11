@@ -14,6 +14,7 @@ def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=
     _add_role_acls("producer", user, task, topic, zookeeper_endpoint, env_str)
     _add_role_acls("consumer --group=*", user, task, topic, zookeeper_endpoint, env_str)
 
+
 def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
     cmd = "bash -c \"{setup_env}kafka-acls \
         --topic {topic_name} \
@@ -28,3 +29,15 @@ def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoi
     LOG.info("Running: %s", cmd)
     output = sdk_tasks.task_exec(task, cmd)
     LOG.info(output)
+
+
+def filter_empty_offsets(offsets: list, additional: list=[]) -> list:
+    ignored_offsets = [None, {}, {"0": ""}]
+    ignored_offsets.extend(additional)
+    LOG.info("Filtering %s from %s", ignored_offsets, offsets)
+
+    remaining = [o for o in offsets if o not in ignored_offsets]
+
+    LOG.info("Remaining offsets: %s", remaining)
+
+    return remaining

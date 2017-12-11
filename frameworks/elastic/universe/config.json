@@ -25,11 +25,6 @@
           "type": "string",
           "default": ""
         },
-        "detect_zones": {
-          "description": "Whether or not to configure nodes with zone information for Shard Allocation Awareness",
-          "type": "boolean",
-          "default": false
-        },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
           "type": "boolean",
@@ -126,9 +121,9 @@
           "default": 9300
         },
         "placement": {
-          "description": "Placement constraints for master nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for master nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -187,9 +182,9 @@
           "default": "ROOT"
         },
         "placement": {
-          "description": "Placement constraints for data nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for data nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -248,9 +243,9 @@
           "default": "ROOT"
         },
         "placement": {
-          "description": "Placement constraints for ingest nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for ingest nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -309,9 +304,9 @@
           "default": "ROOT"
         },
         "placement": {
-          "description": "Placement constraints for coordinator nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for coordinator nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }

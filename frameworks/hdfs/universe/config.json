@@ -148,9 +148,9 @@
           "default": "0"
         },
         "placement": {
-          "description": "Placement constraints for journal nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for journal nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -503,9 +503,9 @@
           "default": ""
         },
         "placement": {
-          "description": "Placement constraints for name nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for name nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -741,9 +741,9 @@
           "default": "12"
         },
         "placement": {
-          "description": "Placement constraints for data nodes (e.g., hostname:UNIQUE).",
+          "description": "Placement constraints for data nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "",
+          "default": "[]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
