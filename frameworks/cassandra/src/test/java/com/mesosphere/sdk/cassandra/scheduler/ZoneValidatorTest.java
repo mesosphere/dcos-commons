@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -37,17 +38,6 @@ public class ZoneValidatorTest {
     public void taskTypeMissingInNewSpec() {
         TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
         TaskSpec newTaskSpec = getTaskSpec(TestConstants.TASK_NAME, Collections.emptyMap());
-        ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
-        ServiceSpec newSpec = getServiceSpec(newTaskSpec);
-
-        validator.validate(Optional.of(oldSpec), newSpec);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void detectZonesMissingInNewSpec() {
-        TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
-        TaskSpec newTaskSpec = getTaskSpec(Collections.emptyMap());
-
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(newTaskSpec);
 
@@ -92,16 +82,6 @@ public class ZoneValidatorTest {
 
         Collection<ConfigValidationError> errors = validator.validate(Optional.of(oldSpec), newSpec);
         Assert.assertTrue(errors.isEmpty());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void emptyToUnexpectedShouldThrow() {
-        TaskSpec oldTaskSpec = getTaskSpec(Collections.emptyMap());
-
-        ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
-        ServiceSpec newSpec = getServiceSpec("foo");
-
-        validator.validate(Optional.of(oldSpec), newSpec);
     }
 
     @Test
@@ -173,9 +153,21 @@ public class ZoneValidatorTest {
         Assert.assertTrue(errors.isEmpty());
     }
 
+    @Test
+    public void envNullToNullShouldSucceed() {
+        Collection<ConfigValidationError> errors = validator.validateTransition(null, null);
+        Assert.assertTrue(errors.isEmpty());
+    }
+
+    @Test
+    public void envFalseToFalseShouldSucceed() {
+        Collection<ConfigValidationError> errors = validator.validateTransition("false", "false");
+        Assert.assertTrue(errors.isEmpty());
+    }
+
     private static ServiceSpec getServiceSpec(String detectZones) {
         Map<String, String> env = new HashMap<>();
-        env.put(ZoneValidator.DETECT_ZONES_ENV, detectZones);
+        env.put(EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV, detectZones);
         TaskSpec taskSpec = getTaskSpec(env);
         return getServiceSpec(taskSpec);
     }

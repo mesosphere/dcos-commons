@@ -53,10 +53,10 @@ def test_rack_not_found():
             'spec_file': 'examples/marathon_constraint.yml'
         },
         'hello': {
-            'placement': 'rack_id:LIKE:rack-foo-.*'
+            'placement': '[["rack_id", "LIKE", "rack-foo-.*"]]'
         },
         'world': {
-            'placement': 'rack_id:LIKE:rack-foo-.*'
+            'placement': '[["rack_id", "LIKE", "rack-foo-.*"]]'
         }
     }
 
@@ -101,10 +101,10 @@ def test_unique_zone_fails():
             'spec_file': 'examples/marathon_constraint.yml'
         },
         'hello': {
-            'placement': '@zone:UNIQUE'
+            'placement': '[["@zone", "UNIQUE"]]'
         },
         'world': {
-            'placement': '@zone:UNIQUE'
+            'placement': '[["@zone", "UNIQUE"]]'
         }
     }
 
@@ -119,10 +119,10 @@ def test_max_per_zone_fails():
             'spec_file': 'examples/marathon_constraint.yml'
         },
         'hello': {
-            'placement': '@zone:MAX_PER:1'
+            'placement': '[["@zone", "MAX_PER", "1"]]'
         },
         'world': {
-            'placement': '@zone:MAX_PER:1'
+            'placement': '[["@zone", "MAX_PER", "1"]]'
         }
     }
 
@@ -137,10 +137,10 @@ def test_max_per_zone_succeeds():
             'spec_file': 'examples/marathon_constraint.yml'
         },
         'hello': {
-            'placement': '@zone:MAX_PER:1'
+            'placement': '[["@zone", "MAX_PER", "1"]]'
         },
         'world': {
-            'placement': '@zone:MAX_PER:2'
+            'placement': '[["@zone", "MAX_PER", "2"]]'
         }
     }
 
@@ -155,10 +155,10 @@ def test_group_by_zone_succeeds():
             'spec_file': 'examples/marathon_constraint.yml'
         },
         'hello': {
-            'placement': '@zone:GROUP_BY:1'
+            'placement': '[["@zone", "GROUP_BY", "1"]]'
         },
         'world': {
-            'placement': '@zone:GROUP_BY:1'
+            'placement': '[["@zone", "GROUP_BY", "1"]]'
         }
     }
     succeed_placement(options)
@@ -172,10 +172,10 @@ def test_group_by_zone_fails():
             'spec_file': 'examples/marathon_constraint.yml'
         },
         'hello': {
-            'placement': '@zone:GROUP_BY:1'
+            'placement': '[["@zone", "GROUP_BY", "1"]]'
         },
         'world': {
-            'placement': '@zone:GROUP_BY:2'
+            'placement': '[["@zone", "GROUP_BY", "2"]]'
         }
     }
 
@@ -239,11 +239,11 @@ def test_hostname_unique():
         },
         "hello": {
             "count": config.get_num_private_agents(),
-            "placement": "hostname:UNIQUE"
+            "placement": '[["hostname", "UNIQUE"]]'
         },
         "world": {
             "count": config.get_num_private_agents(),
-            "placement": "hostname:UNIQUE"
+            "placement": '[["hostname", "UNIQUE"]]'
         }
     }
 
@@ -267,11 +267,11 @@ def test_max_per_hostname():
         },
         "hello": {
             "count": config.get_num_private_agents() * 2,
-            "placement": "hostname:MAX_PER:2"
+            "placement": '[["hostname", "MAX_PER", "2"]]'
         },
         "world": {
             "count": config.get_num_private_agents() * 3,
-            "placement": "hostname:MAX_PER:3"
+            "placement": '[["hostname", "MAX_PER", "3"]]'
         }
     }
 
@@ -290,11 +290,11 @@ def test_rr_by_hostname():
         },
         "hello": {
             "count": config.get_num_private_agents() * 2,
-            "placement": "hostname:GROUP_BY:{}".format(config.get_num_private_agents())
+            "placement": '[["hostname", "GROUP_BY", "{}"]]'.format(config.get_num_private_agents())
         },
         "world": {
             "count": config.get_num_private_agents() * 2,
-            "placement": "hostname:GROUP_BY:{}".format(config.get_num_private_agents())
+            "placement": '[["hostname", "GROUP_BY", "{}"]]'.format(config.get_num_private_agents())
         }
     }
 
@@ -314,7 +314,7 @@ def test_cluster():
         },
         "hello": {
             "count": config.get_num_private_agents(),
-            "placement": "hostname:CLUSTER:{}".format(some_agent)
+            "placement": '[["hostname", "CLUSTER", "{}"]]'.format(some_agent)
         },
         "world": {
             "count": 0
@@ -435,7 +435,7 @@ def setup_constraint_switch():
         "hello": {
             "count": 1,
             # First, we stick the pod to some_agent
-            "placement": 'hostname:LIKE:{}'.format(some_agent)
+            "placement": '[["hostname", "LIKE", "{}"]]'.format(some_agent)
         },
         "world": {
             "count": 0
@@ -447,7 +447,7 @@ def setup_constraint_switch():
 
     # Now, stick it to other_agent
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['HELLO_PLACEMENT'] = 'hostname:LIKE:{}'.format(other_agent)
+    marathon_config['env']['HELLO_PLACEMENT'] = '[["hostname", "LIKE", "{}"]]'.format(other_agent)
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     # Wait for the scheduler to be up and settled before advancing.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

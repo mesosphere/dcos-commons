@@ -38,7 +38,7 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
-    placement: {{JOURNAL_NODE_PLACEMENT}}
+    placement: '{{{JOURNAL_NODE_PLACEMENT}}}'
     tasks:
       bootstrap:
         goal: FINISHED
@@ -151,7 +151,7 @@ pods:
         ports:
           zkfc-port:
             port: {{TASKCFG_ALL_ZKFC_PORT}}
-    placement: {{NAME_NODE_PLACEMENT}}
+    placement: '{{{NAME_NODE_PLACEMENT}}}'
     tasks:
       node:
         goal: RUNNING
@@ -360,7 +360,7 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
       {{/ENABLE_VIRTUAL_NETWORK}}
-    placement: {{DATA_NODE_PLACEMENT}}
+    placement: '{{{DATA_NODE_PLACEMENT}}}'
     tasks:
       node:
         goal: RUNNING

@@ -96,7 +96,7 @@
           "placement": {
             "description": "Placement constraints for Hello pods",
             "type": "string",
-            "default": "hostname:UNIQUE",
+            "default": "[[\"hostname\", \"UNIQUE\"]]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }
@@ -152,7 +152,7 @@
           "placement": {
             "description": "Placement constraints for World pods",
             "type": "string",
-            "default": "hostname:UNIQUE",
+            "default": "[[\"hostname\", \"UNIQUE\"]]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }

@@ -11,16 +11,19 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.11')
-def test_detect_zones_disabled_by_default():
+def test_zones_not_referenced_in_placement_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
+                        config.DEFAULT_TASK_COUNT)
 
-    nodes_info = config.get_elasticsearch_nodes_info(service_name=config.SERVICE_NAME)
+    nodes_info = config.get_elasticsearch_nodes_info(
+        service_name=config.SERVICE_NAME)
 
     for node_uid, node in nodes_info["nodes"].items():
-        assert None == get_in(
-            ["settings", "cluster", "routing", "allocation", "awareness", "attributes"],
-            node)
+        assert None == get_in([
+            "settings", "cluster", "routing", "allocation", "awareness",
+            "attributes"
+        ], node)
         assert None == get_in(["attributes", "zone"], node)
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -28,20 +31,36 @@ def test_detect_zones_disabled_by_default():
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.11')
-def test_detect_zones_enabled():
+def test_zones_referenced_in_placement_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         config.DEFAULT_TASK_COUNT,
-        additional_options={"service": {"detect_zones": True}})
+        additional_options={
+            "master_nodes": {
+                "placement": "@zone:GROUP_BY"
+            },
+            "data_nodes": {
+                "placement": "@zone:GROUP_BY"
+            },
+            "ingest_nodes": {
+                "placement": "@zone:GROUP_BY"
+            },
+            "coordinator_nodes": {
+                "placement": "@zone:GROUP_BY"
+            }
+        })
 
-    nodes_info = config.get_elasticsearch_nodes_info(service_name=config.SERVICE_NAME)
+    nodes_info = config.get_elasticsearch_nodes_info(
+        service_name=config.SERVICE_NAME)
 
     for node_uid, node in nodes_info["nodes"].items():
-        assert "zone" == get_in(
-            ["settings", "cluster", "routing", "allocation", "awareness", "attributes"],
-            node)
-        assert sdk_fault_domain.is_valid_zone(get_in(["attributes", "zone"], node))
+        assert "zone" == get_in([
+            "settings", "cluster", "routing", "allocation", "awareness",
+            "attributes"
+        ], node)
+        assert sdk_fault_domain.is_valid_zone(
+            get_in(["attributes", "zone"], node))
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

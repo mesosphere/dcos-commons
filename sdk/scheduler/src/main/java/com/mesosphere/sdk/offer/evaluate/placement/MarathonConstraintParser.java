@@ -75,7 +75,7 @@ public class MarathonConstraintParser {
      *     content isn't valid or supported
      */
     public static PlacementRule parse(String podName, String marathonConstraints) throws IOException {
-        if (marathonConstraints == null || marathonConstraints.isEmpty()) {
+        if (marathonConstraints == null || marathonConstraints.isEmpty() || marathonConstraints.equals("[]")) {
             // nothing to enforce
             return new PassthroughRule();
         }
