@@ -1,7 +1,7 @@
 name: data-store
 pods:
   meta-data:
-    placement: "hostname:UNIQUE"
+    placement: '[["hostname", "UNIQUE"]]'
     count: 2
     resource-sets:
       meta-data-resources:
@@ -17,7 +17,7 @@ pods:
         cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
         resource-set: meta-data-resources
   meta-data:
-    placement: "hostname:UNIQUE"
+    placement: '[["hostname", "UNIQUE"]]'
     count: 3
     resource-sets:
       data-store-resources:

@@ -34,7 +34,7 @@
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
     "NODE_COUNT": "{{node.count}}",
-    "NODE_PLACEMENT": "{{node.placement_constraint}}",
+    "NODE_PLACEMENT": "{{{node.placement_constraint}}}",
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",

@@ -203,6 +203,11 @@ public class MarathonConstraintParserTest {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "").toString());
     }
 
+    @Test
+    public void testEmptyArrayConstraint() throws IOException {
+        assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "[]").toString());
+    }
+
     @Test(expected = IOException.class)
     public void testBadListConstraint() throws IOException {
         MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'MAX_PER', '2'")); // missing ']]'

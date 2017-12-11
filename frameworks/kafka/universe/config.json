@@ -31,9 +31,9 @@
             "default": ""
           },
           "placement_constraint": {
-            "description": "Placement constraints for broker nodes. (e.g., rack_id:LIKE:rack-foo-.*,rack_id:MAX_PER:2).",
+            "description": "Placement constraints for broker nodes. Example: [[\"rack_id\", \"LIKE\", \"rack-foo-.*\"], [\"rack_id\", \"MAX_PER\", \"2\"]]",
             "type": "string",
-            "default": "hostname:MAX_PER:1",
+            "default": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }
