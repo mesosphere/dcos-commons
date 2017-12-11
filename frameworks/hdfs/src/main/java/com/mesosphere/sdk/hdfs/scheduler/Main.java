@@ -101,11 +101,7 @@ public class Main {
                 .build();
 
         PodSpec name = getNamePodSpec(serviceSpec);
-
-        // Data nodes avoid themselves.
-        PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, DATA_POD_TYPE))
-                .placementRule(TaskTypeRule.avoid(DATA_POD_TYPE))
-                .build();
+        PodSpec data = getDataPodSpec(serviceSpec);
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
                 .pods(Arrays.asList(journal, name, data))
@@ -146,6 +142,22 @@ public class Main {
         }
 
         return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, NAME_POD_TYPE))
+                .placementRule(placementRule)
+                .build();
+    }
+
+    private static PodSpec getDataPodSpec(ServiceSpec serviceSpec) {
+        // Data nodes avoid themselves.
+        PlacementRule placementRule = TaskTypeRule.avoid(DATA_POD_TYPE);
+
+        if (getPodSpec(serviceSpec, DATA_POD_TYPE).getPlacementRule().isPresent()) {
+            placementRule = new AndRule(
+                    placementRule,
+                    getPodSpec(serviceSpec, DATA_POD_TYPE).getPlacementRule().get()
+            );
+        }
+
+        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, DATA_POD_TYPE))
                 .placementRule(placementRule)
                 .build();
     }
