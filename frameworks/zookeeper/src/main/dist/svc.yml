@@ -24,6 +24,12 @@ pods:
           client-port:
             port: {{TASKCFG_ALL_ZOOKEEPER_CLIENT_PORT}}
             advertise: true
+          leader-port:
+            port: {{TASKCFG_ALL_LEADER_PORT}}
+            advertise: true
+          leader-election-port:
+            port: {{TASKCFG_ALL_LEADER_ELECTION_PORT}}
+            advertise: true
         volume:
           path: "zookeeper-container"
           type: DOCKER
