@@ -171,6 +171,6 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    assert ">>" in auth.write_to_topic("client", client_id, topic_name, message)
+    assert auth.write_to_topic("client", client_id, topic_name, message)
 
     assert message in auth.read_from_topic("client", client_id, topic_name, 1)
