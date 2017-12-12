@@ -81,7 +81,7 @@
             "title": "Placement constraint",
             "description": "Placement constraints for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
             "type": "string",
-            "default": "[]",
+            "default": "[[\"hostname\", \"UNIQUE\"]]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }
