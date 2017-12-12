@@ -1330,7 +1330,7 @@ The placement rule above would apply the `GROUP_BY` operator to zones.
 
 ## Regions (beta)
 
-The SDK allows region-aware scheduling as a beta feature.  It may be enabled by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
+The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
 
 ```
 @region:IS:us-west-2
@@ -1950,7 +1950,7 @@ To be clear, the config templating provided by the `bootstrap` tool may be appli
 
 ### Task Environment
 
-Task configuration is generally exposed using environment variables. A number environment variables describing the task and/or cluster environment are provided automatically, while others may be manually specified by the developer.
+Task configuration is generally exposed using environment variables. A number of environment variables that describe the task and/or cluster environment are provided automatically, while the developer can manually specify others.
 
 #### Included Values
 
@@ -1958,7 +1958,7 @@ The following environment values are automatically injected into all tasks as a 
 
 * `TASK_NAME=hello-3-server`
 
-The name of the task, such as `hello-3-server`
+The name of the task, such as `hello-3-server`.
 
 * `<task-name>=true`
 
@@ -1986,7 +1986,7 @@ The TLD for VIPs advertised by the service. To address a given VIP, one could co
 
 * `SCHEDULER_API_HOSTNAME=api.folderservicename.marathon.l4lb.thisdcos.directory`
 
-The hostname where the Scheduler may be reached. Useful when tasks need to make API calls to a custom endpoint that's being run by the Scheduler.
+The hostname where the Scheduler can be reached. Useful when tasks need to make API calls to a custom endpoint that's being run by the Scheduler.
 
 #### Specifying Values
 
