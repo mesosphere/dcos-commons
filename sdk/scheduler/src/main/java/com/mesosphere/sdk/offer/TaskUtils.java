@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
 
@@ -577,9 +576,8 @@ public class TaskUtils {
      * @return A boolean indicating whether the task is in a zone.
      */
     public static boolean taskHasZone(TaskInfo taskInfo) {
-        Stream<Protos.Environment.Variable> envVars =
-                taskInfo.getCommand().getEnvironment().getVariablesList().stream();
-        return envVars.anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+                .anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
     }
 
     /**
@@ -588,10 +586,8 @@ public class TaskUtils {
      * @return A string indicating the zone the task is in.
      */
     public static String getTaskZone(TaskInfo taskInfo) {
-        Stream<Protos.Environment.Variable> envVars =
-                taskInfo.getCommand().getEnvironment().getVariablesList().stream();
-        return envVars.filter(
-                variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+            .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
     }
 
     /**
