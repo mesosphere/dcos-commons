@@ -217,7 +217,7 @@ def test_authz_acls_required(kafka_client, kafka_server):
 
     # Check that the unauthorized client can still not read or write from the topic.
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert auth.write_to_topic("unauthorized", client_id, topic_name, second_message)
+    assert not auth.write_to_topic("unauthorized", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     assert auth.is_not_authorized(auth.read_from_topic("unauthorized", client_id, topic_name, 1))
