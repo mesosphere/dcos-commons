@@ -14,9 +14,6 @@ from tests import config
 from tests import test_utils
 
 
-pytestmark = pytest.mark.skip(reason="INFINITY-2815")
-
-
 log = logging.getLogger(__name__)
 
 
@@ -79,8 +76,10 @@ def kafka_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
@@ -160,7 +159,7 @@ def kafka_client(kerberos, kafka_server):
 def test_client_can_read_and_write(kafka_client, kafka_server):
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    assert auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],

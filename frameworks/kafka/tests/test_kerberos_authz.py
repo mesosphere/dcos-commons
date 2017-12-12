@@ -83,8 +83,10 @@ def kafka_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
                 "authorization": {
@@ -169,7 +171,7 @@ def kafka_client(kerberos, kafka_server):
 def test_authz_acls_required(kafka_client, kafka_server):
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    assert auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authz.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
@@ -177,7 +179,6 @@ def test_authz_acls_required(kafka_client, kafka_server):
                     json=True)
 
     test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
-
 
     message = str(uuid.uuid4())
 

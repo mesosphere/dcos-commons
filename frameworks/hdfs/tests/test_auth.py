@@ -81,8 +81,10 @@ def kerberos(configure_security):
                 "security": {
                     "kerberos": {
                         "enabled": True,
-                        "kdc_host_name": kerberos_env.get_host(),
-                        "kdc_host_port": kerberos_env.get_port(),
+                        "kdc": {
+                            "hostname": kerberos_env.get_host(),
+                            "port": int(kerberos_env.get_port())
+                        },
                         "keytab_secret": kerberos_env.get_keytab_path(),
                         "realm": sdk_auth.REALM
                     }
@@ -101,6 +103,8 @@ def kerberos(configure_security):
             additional_options=service_kerberos_options,
             timeout_seconds=30*60)
 
+        config.check_healthy(service_name=config.SERVICE_NAME)
+
         yield kerberos_env
 
     finally:
@@ -109,11 +113,11 @@ def kerberos(configure_security):
             kerberos_env.cleanup()
 
 
-@pytest.fixture(autouse=True)
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.smoke
-def test_health_of_kerberized_hdfs():
+@pytest.mark.sanity
+def test_health_of_kerberized_hdfs(kerberos):
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
@@ -196,6 +200,6 @@ def test_users_have_appropriate_permissions(kerberized_hdfs_client):
     assert "put: Permission denied: user=bob" in stderr
 
     log.info("Bob tries to read from alice's directory: {}".format(read_access_cmd))
-    _, _, stderr  = sdk_tasks.task_exec(kerberized_hdfs_client, read_access_cmd)
+    _, _, stderr = sdk_tasks.task_exec(kerberized_hdfs_client, read_access_cmd)
     log.info("Bob can't read from alice's directory: {}".format(read_access_cmd))
     assert "cat: Permission denied: user=bob" in stderr

@@ -72,11 +72,11 @@ def _to_host(host_first, host_second, host_third, port):
     return host
 
 
-def resolve_hosts(task_id: str, hosts: list) -> bool:
+def resolve_hosts(task_id: str, hosts: list, bootstrap="bootstrap") -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
-    bootstrap_cmd = ['bootstrap',
+    bootstrap_cmd = [bootstrap,
                      '-print-env=false',
                      '-template=false',
                      '-install-certs=false',

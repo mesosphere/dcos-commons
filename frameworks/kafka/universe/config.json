@@ -87,22 +87,6 @@
               }
             ],
             "properties": {
-                "transport_encryption": {
-                  "type": "object",
-                  "description": "Transport encryption settings.",
-                  "properties": {
-                    "enabled": {
-                      "description": "Enable transport encryption (TLS).",
-                      "type": "boolean",
-                      "default": false
-                    },
-                    "allow_plaintext": {
-                      "description": "Allow plainttext alongside encrypted traffic. ",
-                      "type": "boolean",
-                      "default": false
-                    }
-                  }
-                },
                 "ssl_authentication": {
                   "type": "object",
                   "description": "SSL Authn/z configuration properties.",
@@ -128,15 +112,21 @@
                       "type": "boolean",
                       "default": false
                     },
-                    "kdc_host_name": {
-                      "type": "string",
-                      "description": "The name or address of a host running a KDC for the realm.",
-                      "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
-                    },
-                    "kdc_host_port": {
-                      "type": "integer",
-                      "description": "The port of the host running a KDC for that realm.",
-                      "default": 2500
+                    "kdc" : {
+                      "description": "KDC settings for Kerberos",
+                      "type": "object",
+                      "properties": {
+                        "hostname": {
+                          "type": "string",
+                          "description": "The name or address of a host running a KDC for the realm.",
+                          "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                        },
+                        "port": {
+                          "type": "integer",
+                          "description": "The port of the host running a KDC for that realm.",
+                          "default": 2500
+                        }
+                      }
                     },
                     "primary": {
                       "type": "string",
@@ -152,6 +142,22 @@
                       "type": "string",
                       "description": "The name of the DC/OS secret storing the keytab",
                       "default": "__dcos_base64__kafka_keytab"
+                    }
+                  }
+                },
+                "transport_encryption": {
+                  "type": "object",
+                  "description": "Transport encryption settings",
+                  "properties": {
+                    "enabled": {
+                      "description": "Enable transport encryption (TLS)",
+                      "type": "boolean",
+                      "default": false
+                    },
+                    "allow_plaintext": {
+                      "description": "Allow plaintext alongside encrypted traffic",
+                      "type": "boolean",
+                      "default": false
                     }
                   }
                 },
@@ -176,7 +182,7 @@
                     }
                   }
                 }
-            }
+             }
           }
         },
         "required": [
