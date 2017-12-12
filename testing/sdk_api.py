@@ -12,7 +12,7 @@ import shakedown
 log = logging.getLogger(__name__)
 
 
-def get(service_name, endpoint, **kwargs):
+def get(service_name, endpoint):
     '''
     :param endpoint: endpoint of the form /v1/...
     :type endpoint: str
