@@ -14,6 +14,10 @@ from tests import config
 from tests import topics
 from tests import test_utils
 
+
+pytestmark = pytest.mark.skip(reason="INFINITY-2815")
+
+
 log = logging.getLogger(__name__)
 
 

@@ -6,7 +6,6 @@ import json
 import time
 import shakedown
 
-import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
