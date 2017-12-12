@@ -1320,13 +1320,17 @@ REGION: us-west-2
 ZONE: us-west-2a
 ```
 
-Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
+Services may choose to use this information to enable rack awareness. Users may then configure [placement rules](#placement-rules) to ensure that their pods are appropriately placed within specific regions and zones, or distributed across those regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
 
 ```
 @zone:GROUP_BY:2
 ```
 
-The placement rule above would apply the `GROUP_BY` operator to zones. The SDK allows region-aware scheduling as a beta feature.  It may be enabled by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
+The placement rule above would apply the `GROUP_BY` operator to zones.
+
+## Regions (beta)
+
+The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
 
 ```
 @region:IS:us-west-2
@@ -1946,14 +1950,45 @@ To be clear, the config templating provided by the `bootstrap` tool may be appli
 
 ### Task Environment
 
-While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.  For example, a typical task would include the following key/value pairs in its environment:
+Task configuration is generally exposed using environment variables. A number of environment variables that describe the task and/or cluster environment are provided automatically, while the developer can manually specify others.
 
-```
-REGION: us-west-2
-ZONE: us-west-2a
-POD_INSTANCE_INDEX: 0
-TASK_NAME: hello-0-server
-```
+#### Included Values
+
+The following environment values are automatically injected into all tasks as a convenience. These typically provide some additional context about the container.
+
+* `TASK_NAME=hello-3-server`
+
+The name of the task, such as `hello-3-server`.
+
+* `<task-name>=true`
+
+The name of the task as the environment variable, with a value of `true`. Useful in mustache templating.
+
+* `POD_INSTANCE_INDEX=3`
+
+The index of the pod instance, starting at zero. For example a task named `hello-3-server` would have a `POD_INSTANCE_INDEX` of `3`.
+
+* `REGION=us-west-2` / `ZONE=us-west-2a`
+
+The Region and Zone of the machine running the task. For more information about these values, see [Regions and Zones](#regions-and-zones).
+
+* `FRAMEWORK_NAME=/folder/servicename`
+
+The name of the service as configured by the user. May contain slashes if the service is in a folder.
+
+* `FRAMEWORK_HOST=folderservicename.autoip.thisdcos.directory`
+
+The TLD for accessing tasks within the service. To address a given task, one could construct a hostname as `<taskname>.FRAMEWORK_HOST`. This varies according to the service name as configured by the user.
+
+* `FRAMEWORK_VIP_HOST=folderservicename.l4lb.thisdcos.directory`
+
+The TLD for VIPs advertised by the service. To address a given VIP, one could construct a hostname as `<vipname>.FRAMEWORK_VIP_HOST`. This varies according to the service name as configured by the user.
+
+* `SCHEDULER_API_HOSTNAME=api.folderservicename.marathon.l4lb.thisdcos.directory`
+
+The hostname where the Scheduler can be reached. Useful when tasks need to make API calls to a custom endpoint that's being run by the Scheduler.
+
+#### Specifying Values
 
 You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
