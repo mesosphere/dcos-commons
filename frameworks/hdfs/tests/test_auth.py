@@ -79,7 +79,7 @@ def kerberos(configure_security):
                         "enabled": True,
                         "kdc": {
                             "hostname": kerberos_env.get_host(),
-                            "port": kerberos_env.get_port()
+                            "port": int(kerberos_env.get_port())
                         },
                         "keytab_secret": kerberos_env.get_keytab_path(),
                         "realm": sdk_auth.REALM
