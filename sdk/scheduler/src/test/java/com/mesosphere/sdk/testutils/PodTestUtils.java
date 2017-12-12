@@ -51,7 +51,6 @@ public class PodTestUtils {
                 .build();
     }
 
-
     public static PodInstance getPodInstance(int index) {
         return new DefaultPodInstance(getPodSpec(), index);
     }

@@ -95,11 +95,7 @@ public class Main {
     }
 
     private static ServiceSpec setPlacementRules(DefaultServiceSpec serviceSpec) throws Exception {
-        // Journal nodes avoid themselves and Name nodes.
-        PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, JOURNAL_POD_TYPE))
-                .placementRule(new AndRule(TaskTypeRule.avoid(JOURNAL_POD_TYPE), TaskTypeRule.avoid(NAME_POD_TYPE)))
-                .build();
-
+        PodSpec journal = getJournalPodSpec(serviceSpec);
         PodSpec name = getNamePodSpec(serviceSpec);
         PodSpec data = getDataPodSpec(serviceSpec);
 
@@ -125,6 +121,23 @@ public class Main {
         byte[] hdfsUserAuthMappingsBytes = decoder.decode(base64Mappings);
         String authMappings = new String(hdfsUserAuthMappingsBytes, "UTF-8");
         return authMappings;
+    }
+
+    private static PodSpec getJournalPodSpec(ServiceSpec serviceSpec) {
+        // Journal nodes avoid themselves and Name nodes.
+        PlacementRule placementRule = new AndRule(
+                TaskTypeRule.avoid(JOURNAL_POD_TYPE), TaskTypeRule.avoid(NAME_POD_TYPE));
+
+        if (getPodSpec(serviceSpec, JOURNAL_POD_TYPE).getPlacementRule().isPresent()) {
+            placementRule = new AndRule(
+                    placementRule,
+                    getPodSpec(serviceSpec, JOURNAL_POD_TYPE).getPlacementRule().get()
+            );
+        }
+
+        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, JOURNAL_POD_TYPE))
+                .placementRule(placementRule)
+                .build();
     }
 
     private static PodSpec getNamePodSpec(ServiceSpec serviceSpec) {

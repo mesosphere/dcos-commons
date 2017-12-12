@@ -50,7 +50,8 @@ public class ZoneValidator {
         return validateTransition(oldEnv, newEnv, podType, taskName);
     }
 
-    static List<ConfigValidationError> validateTransition(String oldEnv, String newEnv, String podType, String taskName) {
+    static List<ConfigValidationError> validateTransition(
+            String oldEnv, String newEnv, String podType, String taskName) {
         boolean oldZones = Boolean.valueOf(oldEnv);
         boolean newZones = Boolean.valueOf(newEnv);
 

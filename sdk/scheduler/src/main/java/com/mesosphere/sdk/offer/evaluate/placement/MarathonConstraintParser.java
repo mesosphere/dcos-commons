@@ -80,7 +80,6 @@ public class MarathonConstraintParser {
             return new PassthroughRule();
         }
         List<List<String>> rows = splitConstraints(marathonConstraints);
-        System.out.println("Rows: " + rows);
         StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
         if (rows.size() == 1) {
             // skip AndRule:

@@ -346,10 +346,8 @@ public class StateResource {
         Map<String, String> tasksZones = new HashMap<>();
         for (String taskName : taskNames) {
             Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
-            if (taskInfoOptional.isPresent()) {
-                if (TaskUtils.taskHasZone(taskInfoOptional.get())) {
-                    tasksZones.put(taskName, TaskUtils.getTaskZone(taskInfoOptional.get()));
-                }
+            if (taskInfoOptional.isPresent() && TaskUtils.taskHasZone(taskInfoOptional.get())) {
+                tasksZones.put(taskName, TaskUtils.getTaskZone(taskInfoOptional.get()));
             }
         }
         return tasksZones;
