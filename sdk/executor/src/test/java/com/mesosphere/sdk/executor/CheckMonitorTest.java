@@ -55,6 +55,7 @@ public class CheckMonitorTest {
         final CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 healthCheck,
                 scheduledExecutorService,

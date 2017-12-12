@@ -12,8 +12,6 @@ import com.google.protobuf.TextFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
 
@@ -26,24 +24,21 @@ public class CustomExecutor implements Executor {
     private static final ScheduledExecutorService HEALTH_CHECK_THREAD_POOL =
             Executors.newScheduledThreadPool(HEALTH_CHECK_THREAD_POOL_SIZE);
 
-    private static final int RUNNING_TASK_POLL_INTERVAL_MS = 5000;
-
-    private final Object launchedTasksLock = new Object();
-    /**
-     * A mapping of all tasks which have ever been launched by this Executor.
-     * Tasks which have since exited will have {@link LaunchedTask#isDone()} == {@code true}.
-     */
-    private final Map<Protos.TaskID, LaunchedTask> launchedTasks = new HashMap<>();
     private final ExecutorService executorService;
     private final ExecutorTaskFactory executorTaskFactory;
+    private final LaunchedTaskStore launchedTaskStore;
 
-    private volatile Protos.SlaveInfo slaveInfo;
+    public CustomExecutor() {
+        this(Executors.newCachedThreadPool(), new DefaultExecutorTaskFactory(), new LaunchedTaskStore.ExitCallback());
+    }
 
     public CustomExecutor(
             final ExecutorService executorService,
-            ExecutorTaskFactory executorTaskFactory) {
+            ExecutorTaskFactory executorTaskFactory,
+            Runnable exitCallback) {
         this.executorService = executorService;
         this.executorTaskFactory = executorTaskFactory;
+        this.launchedTaskStore = new LaunchedTaskStore(exitCallback);
     }
 
     @Override
@@ -51,49 +46,14 @@ public class CustomExecutor implements Executor {
             ExecutorDriver driver,
             Protos.ExecutorInfo executorInfo,
             Protos.FrameworkInfo frameworkInfo,
-            Protos.SlaveInfo slaveInfo) {
+            Protos.SlaveInfo agentInfo) {
         LOGGER.info("Registered executor: {}", TextFormat.shortDebugString(executorInfo));
-        this.slaveInfo = slaveInfo;
-
-        executorService.submit(new TasksRunningMonitor());
-    }
-
-    /**
-     * Periodically checks that launched tasks are still running.
-     * If all tasks have exited (as indicated by {@link LaunchedTask#isDone()}, the executor process is destroyed.
-     */
-    private class TasksRunningMonitor implements Runnable {
-        @Override
-        public void run() {
-            while (true) {
-                synchronized (launchedTasksLock) {
-                    if (shouldExit()) {
-                        LOGGER.info("Executor exiting: All {} launched tasks have exited, nothing left to do.",
-                                launchedTasks.size());
-                        System.exit(0);
-                    }
-                }
-                try {
-                    Thread.sleep(RUNNING_TASK_POLL_INTERVAL_MS);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
-        }
-
-        private boolean shouldExit() {
-            if (launchedTasks.isEmpty()) {
-                return false; // no tasks have been launched yet.
-            }
-            long doneTasks = launchedTasks.values().stream().filter(lt -> lt.isDone()).count();
-            return doneTasks == launchedTasks.size();
-        }
+        executorService.submit(launchedTaskStore.getMonitor());
     }
 
     @Override
-    public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-        LOGGER.info("Re-registered on slave: {}", slaveInfo.getId().getValue());
-        this.slaveInfo = slaveInfo;
+    public void reregistered(ExecutorDriver driver, Protos.SlaveInfo agentInfo) {
+        LOGGER.info("Re-registered on agent: {}", agentInfo.getId().getValue());
     }
 
     @Override
@@ -112,9 +72,7 @@ public class CustomExecutor implements Executor {
             final ExecutorTask taskToExecute = executorTaskFactory.createTask(unpackedTaskInfo, driver);
 
             LaunchedTask launchedTask = new LaunchedTask(taskToExecute, executorService);
-            synchronized (launchedTasksLock) {
-                launchedTasks.put(unpackedTaskInfo.getTaskId(), launchedTask);
-            }
+            launchedTaskStore.put(unpackedTaskInfo.getTaskId(), launchedTask);
             scheduleHealthCheck(driver, unpackedTaskInfo, launchedTask);
             scheduleReadinessCheck(driver, unpackedTaskInfo, launchedTask);
         } catch (Throwable t) {
@@ -213,20 +171,7 @@ public class CustomExecutor implements Executor {
 
     @Override
     public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
-        try {
-            final LaunchedTask launchedTask;
-            synchronized (launchedTasks) {
-                launchedTask = launchedTasks.get(taskId);
-            }
-            if (launchedTask == null) {
-                LOGGER.error("Unable to kill unknown TaskID: {}", taskId.getValue());
-                return;
-            }
-            LOGGER.info("Stopping task as part of killTask: {}", taskId.getValue());
-            launchedTask.stop();
-        } catch (Throwable t) {
-            LOGGER.error(String.format("Error killing task %s", taskId.getValue()), t);
-        }
+        launchedTaskStore.kill(taskId);
     }
 
     @Override
@@ -237,27 +182,11 @@ public class CustomExecutor implements Executor {
     @Override
     public void shutdown(ExecutorDriver driver) {
         LOGGER.info("Shutting down now.");
-
-        // Shutdown all tasks
-        synchronized (launchedTasks) {
-            for (Map.Entry<Protos.TaskID, LaunchedTask> entry : launchedTasks.entrySet()) {
-                final Protos.TaskID taskId = entry.getKey();
-                try {
-                    LOGGER.info("Stopping task as part of executor shutdown: {}", taskId.getValue());
-                    entry.getValue().stop();
-                } catch (Throwable t) {
-                    LOGGER.error(String.format("Error stopping task %s", taskId.getValue()), t);
-                }
-            }
-        }
+        launchedTaskStore.killAll();
     }
 
     @Override
     public void error(ExecutorDriver driver, String message) {
         LOGGER.error("Received error: {}", message);
-    }
-
-    Optional<Protos.SlaveInfo> getSlaveInfo() {
-        return Optional.ofNullable(slaveInfo);
     }
 }

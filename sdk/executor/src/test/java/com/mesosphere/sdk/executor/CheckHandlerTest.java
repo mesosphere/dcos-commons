@@ -32,6 +32,7 @@ public class CheckHandlerTest {
 
     private ScheduledExecutorService scheduledExecutorService;
     @Mock private CheckHandler.ProcessRunner mockProcessRunner;
+    @Mock private LaunchedTask mockLaunchedTask;
     @Mock private ExecutorDriver executorDriver;
     @Captor private ArgumentCaptor<Protos.TaskStatus> taskStatusCaptor;
     private Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
@@ -64,6 +65,7 @@ public class CheckHandlerTest {
         CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -94,6 +96,7 @@ public class CheckHandlerTest {
         CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -124,6 +127,7 @@ public class CheckHandlerTest {
         CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -154,6 +158,7 @@ public class CheckHandlerTest {
         CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 getHealthCheck(maxConsecutiveFailures),
                 scheduledExecutorService,
@@ -183,6 +188,7 @@ public class CheckHandlerTest {
         CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 getHealthCheck(1),
                 scheduledExecutorService,
@@ -211,6 +217,7 @@ public class CheckHandlerTest {
         CheckHandler.create(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new CheckStats("test"),
@@ -228,6 +235,7 @@ public class CheckHandlerTest {
         CheckHandler.create(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new CheckStats("test"),
@@ -243,6 +251,7 @@ public class CheckHandlerTest {
         CheckHandler.create(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new CheckStats("test"),
@@ -260,6 +269,7 @@ public class CheckHandlerTest {
         CheckHandler.create(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 taskInfo.getHealthCheck(),
                 scheduledExecutorService,
                 new CheckStats("test"),
@@ -272,6 +282,7 @@ public class CheckHandlerTest {
         CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 getReadinessCheck(),
                 scheduledExecutorService,

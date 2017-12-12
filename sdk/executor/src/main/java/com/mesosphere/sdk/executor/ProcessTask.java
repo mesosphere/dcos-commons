@@ -66,21 +66,22 @@ public class ProcessTask implements ExecutorTask {
             LOGGER.info("With Environment: {}", processBuilder.environment());
 
             if (processBuilder.command().isEmpty()) {
-                final String errorMessage = "Empty command found for: " + taskInfo.getName();
                 TaskStatusUtils.sendStatus(
                         driver,
                         Protos.TaskState.TASK_FAILED,
                         taskInfo.getTaskId(),
                         taskInfo.getSlaveId(),
                         taskInfo.getExecutor().getExecutorId(),
-                        errorMessage,
+                        String.format("Empty command found for: %s", taskInfo.getName()),
                         false);
                 return;
             }
 
             this.process = processBuilder.start();
 
-            final String startMessage = "Launching Task: " + taskInfo.getName();
+            final String startMessage = String.format(
+                    "Launching Task: %s (%s)", taskInfo.getName(), taskInfo.getTaskId().getValue());
+            LOGGER.info(startMessage);
             TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_RUNNING,
@@ -91,7 +92,6 @@ public class ProcessTask implements ExecutorTask {
                     true);
             initialized.complete(true);
 
-            LOGGER.info(startMessage);
             waitUninterruptably(process);
             final int exitValue = process.exitValue();
             exit.complete(exitValue);
@@ -104,7 +104,7 @@ public class ProcessTask implements ExecutorTask {
             } else if (exitValue > 128) {
                 taskState = Protos.TaskState.TASK_KILLED;
                 // Fatal error: 128 + N (e.g. kill -9 results in 137 == 128+9)
-                exitValueStr = String.format("%d => 128+%d", exitValue, exitValue - 128);
+                exitValueStr = String.format("%d => killed(%d)", exitValue, exitValue - 128);
                 isHealthy = false;
             } else {
                 taskState = Protos.TaskState.TASK_FAILED;
@@ -112,7 +112,8 @@ public class ProcessTask implements ExecutorTask {
             }
 
             String exitMessage = String.format(
-                    "Task: %s (%s) exited with code: %s", taskInfo.getName(), taskInfo.getTaskId(), exitValueStr);
+                    "Task: %s (%s) exited with code: %s",
+                    taskInfo.getName(), taskInfo.getTaskId().getValue(), exitValueStr);
             TaskStatusUtils.sendStatus(
                     driver,
                     taskState,
@@ -124,7 +125,7 @@ public class ProcessTask implements ExecutorTask {
 
             LOGGER.info(exitMessage);
         } catch (Throwable e) {
-            LOGGER.error(String.format("Task: %s (%s) failed", taskInfo.getName(), taskInfo.getTaskId()), e);
+            LOGGER.error(String.format("Task: %s (%s) failed", taskInfo.getName(), taskInfo.getTaskId().getValue()), e);
             initialized.complete(false);
             exit.complete(1);
             TaskStatusUtils.sendStatus(
