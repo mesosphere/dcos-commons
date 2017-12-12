@@ -665,6 +665,7 @@ public class DefaultServiceSpecTest {
         capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
         when(capabilities.supportsCNINetworking()).thenReturn(true);
+        when(capabilities.supportsDomains()).thenReturn(true);
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);

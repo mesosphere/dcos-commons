@@ -106,6 +106,13 @@ public class Capabilities {
         return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
     }
 
+    public boolean supportsDomains() {
+        // A given DC/OS cluster may or may not have domain information available in Offers.  This information is
+        // dependent upon the cluster operator and is unknown to the scheduler.  However it is only possible that
+        // domain information be present in DC/OS 1.11+ clusters.
+        return hasOrExceedsVersion(1, 11);
+    }
+
     private boolean hasOrExceedsVersion(int major, int minor) {
         DcosVersion.Elements versionElements = dcosVersion.getElements();
         try {
