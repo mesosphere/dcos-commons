@@ -62,7 +62,7 @@ dynamic_snitch_badness_threshold: {{CASSANDRA_DYNAMIC_SNITCH_BADNESS_THRESHOLD}}
 unlogged_batch_across_partitions_warn_threshold: 10
 compaction_large_partition_warning_threshold_mb: 100
 request_scheduler: org.apache.cassandra.scheduler.NoScheduler
-{{#CASSANDRA_ENABLE_TLS}}
+{{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 server_encryption_options:
     internode_encryption: all
     keystore: node.keystore
@@ -71,21 +71,21 @@ server_encryption_options:
     truststore_password: notsecure
     protocol: TLSv1.2
     cipher_suites: [TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA]
-{{/CASSANDRA_ENABLE_TLS}}
-{{#CASSANDRA_ENABLE_TLS}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+{{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 client_encryption_options:
     enabled: true
-{{#CASSANDRA_ALLOW_PLAINTEXT}}
+{{#SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
     optional: true
-{{/CASSANDRA_ALLOW_PLAINTEXT}}
-{{^CASSANDRA_ALLOW_PLAINTEXT}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
+{{^SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
     optional: false
-{{/CASSANDRA_ALLOW_PLAINTEXT}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
     keystore: node.keystore
     keystore_password: notsecure
     protocol: TLSv1.2
     cipher_suites: [TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA]
-{{/CASSANDRA_ENABLE_TLS}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 inter_dc_tcp_nodelay: false
 tracetype_query_ttl: 86400
 tracetype_repair_ttl: 604800

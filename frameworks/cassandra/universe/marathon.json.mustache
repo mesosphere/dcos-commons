@@ -41,13 +41,13 @@
     {{/service.service_account_secret}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
-    {{#service.tls}}
-    "TASKCFG_ALL_CASSANDRA_ENABLE_TLS": "{{service.tls}}",
+    {{#service.security.transport_encryption.enabled}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
     "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.15/conf/cqlshrc",
-    {{#service.tls_allow_plaintext}}
-    "TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
-    {{/service.tls_allow_plaintext}}
-    {{/service.tls}}
+    {{#service.security.transport_encryption.allow_plaintext}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
+    {{/service.security.transport_encryption.allow_plaintext}}
+    {{/service.security.transport_encryption.enabled}}
 
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
     "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
