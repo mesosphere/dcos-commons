@@ -471,6 +471,10 @@
   <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">PLACEMENT_CONSTRAINT</code>: <code class="highlighter-rouge">string</code></li>
 </ul>
 
+<h2 id="rack-aware-placement">Rack-Aware Placement</h2>
+
+<p>Cassandra’s “rack”-based fault domain support may be enabled by specifying a placement constraint that uses the <code class="highlighter-rouge">@zone</code> key. For example, one could spread Cassandra nodes across a minimum of three different zones/racks by specifying the constraint <code class="highlighter-rouge">@zone:GROUP_BY:3</code>. When a placement constraint specifying <code class="highlighter-rouge">@zone</code> is used, Cassandra nodes will be automatically configured with <code class="highlighter-rouge">rack</code>s that match the names of the zones. If no placement constraint referencing <code class="highlighter-rouge">@zone</code> is configured, all nodes will be configured with a default rack of <code class="highlighter-rouge">rack1</code>.</p>
+
 <h1 id="virtual-networks">Virtual networks</h1>
 
 <p>Cassandra supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network) allowing each node to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:</p>

@@ -445,7 +445,10 @@
       <li><a href="#authorization-for-secrets" id="markdown-toc-authorization-for-secrets">Authorization for Secrets</a></li>
     </ul>
   </li>
-  <li><a href="#regions-and-zones" id="markdown-toc-regions-and-zones">Regions and Zones</a></li>
+  <li><a href="#regions-and-zones" id="markdown-toc-regions-and-zones">Regions and Zones</a>    <ul>
+      <li><a href="#regions-beta" id="markdown-toc-regions-beta">Regions (beta)</a></li>
+    </ul>
+  </li>
   <li><a href="#tls" id="markdown-toc-tls">TLS</a>    <ul>
       <li><a href="#provisioning" id="markdown-toc-provisioning">Provisioning</a>        <ul>
           <li><a href="#lifetime-of-secrets-containing-the-tls-artifacts" id="markdown-toc-lifetime-of-secrets-containing-the-tls-artifacts">Lifetime of secrets containing the TLS artifacts</a></li>
@@ -479,7 +482,11 @@
           <li><a href="#sidecar-plans" id="markdown-toc-sidecar-plans">Sidecar Plans</a></li>
           <li><a href="#uris" id="markdown-toc-uris">URIs</a></li>
           <li><a href="#configuration-templates" id="markdown-toc-configuration-templates">Configuration Templates</a></li>
-          <li><a href="#task-environment" id="markdown-toc-task-environment">Task Environment</a></li>
+          <li><a href="#task-environment" id="markdown-toc-task-environment">Task Environment</a>            <ul>
+              <li><a href="#included-values" id="markdown-toc-included-values">Included Values</a></li>
+              <li><a href="#specifying-values" id="markdown-toc-specifying-values">Specifying Values</a></li>
+            </ul>
+          </li>
           <li><a href="#task-bootstrap" id="markdown-toc-task-bootstrap">Task Bootstrap</a></li>
           <li><a href="#health-checks" id="markdown-toc-health-checks">Health Checks</a></li>
           <li><a href="#readiness-checks" id="markdown-toc-readiness-checks">Readiness Checks</a></li>
@@ -1920,13 +1927,17 @@ ZONE: us-west-2a
 </code></pre>
 </div>
 
-<p>Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. Apply placement constraints against regions and zones by referencing <code class="highlighter-rouge">@region</code> and <code class="highlighter-rouge">@zone</code> keys.  For example:</p>
+<p>Services may choose to use this information to enable rack awareness. Users may then configure <a href="#placement-rules">placement rules</a> to ensure that their pods are appropriately placed within specific regions and zones, or distributed across those regions and zones. Apply placement constraints against regions and zones by referencing <code class="highlighter-rouge">@region</code> and <code class="highlighter-rouge">@zone</code> keys.  For example:</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>@zone:GROUP_BY:2
 </code></pre>
 </div>
 
-<p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones. The SDK allows region-aware scheduling as a beta feature.  It may be enabled by setting the environment variable <code class="highlighter-rouge">ALLOW_REGION_AWARENESS</code> to <code class="highlighter-rouge">true</code>.  Once enabled, placement rules can be written that reference the <code class="highlighter-rouge">@region</code> key.</p>
+<p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones.</p>
+
+<h2 id="regions-beta">Regions (beta)</h2>
+
+<p>The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable <code class="highlighter-rouge">ALLOW_REGION_AWARENESS</code> to <code class="highlighter-rouge">true</code>.  Once enabled, placement rules can be written that reference the <code class="highlighter-rouge">@region</code> key.</p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>@region:IS:us-west-2
 </code></pre>
@@ -2557,14 +2568,61 @@ hello
 
 <h3 id="task-environment">Task Environment</h3>
 
-<p>While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.  For example, a typical task would include the following key/value pairs in its environment:</p>
+<p>Task configuration is generally exposed using environment variables. A number of environment variables that describe the task and/or cluster environment are provided automatically, while the developer can manually specify others.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>REGION: us-west-2
-ZONE: us-west-2a
-POD_INSTANCE_INDEX: 0
-TASK_NAME: hello-0-server
-</code></pre>
-</div>
+<h4 id="included-values">Included Values</h4>
+
+<p>The following environment values are automatically injected into all tasks as a convenience. These typically provide some additional context about the container.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">TASK_NAME=hello-3-server</code></li>
+</ul>
+
+<p>The name of the task, such as <code class="highlighter-rouge">hello-3-server</code>.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">&lt;task-name&gt;=true</code></li>
+</ul>
+
+<p>The name of the task as the environment variable, with a value of <code class="highlighter-rouge">true</code>. Useful in mustache templating.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">POD_INSTANCE_INDEX=3</code></li>
+</ul>
+
+<p>The index of the pod instance, starting at zero. For example a task named <code class="highlighter-rouge">hello-3-server</code> would have a <code class="highlighter-rouge">POD_INSTANCE_INDEX</code> of <code class="highlighter-rouge">3</code>.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">REGION=us-west-2</code> / <code class="highlighter-rouge">ZONE=us-west-2a</code></li>
+</ul>
+
+<p>The Region and Zone of the machine running the task. For more information about these values, see <a href="#regions-and-zones">Regions and Zones</a>.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">FRAMEWORK_NAME=/folder/servicename</code></li>
+</ul>
+
+<p>The name of the service as configured by the user. May contain slashes if the service is in a folder.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">FRAMEWORK_HOST=folderservicename.autoip.thisdcos.directory</code></li>
+</ul>
+
+<p>The TLD for accessing tasks within the service. To address a given task, one could construct a hostname as <code class="highlighter-rouge">&lt;taskname&gt;.FRAMEWORK_HOST</code>. This varies according to the service name as configured by the user.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">FRAMEWORK_VIP_HOST=folderservicename.l4lb.thisdcos.directory</code></li>
+</ul>
+
+<p>The TLD for VIPs advertised by the service. To address a given VIP, one could construct a hostname as <code class="highlighter-rouge">&lt;vipname&gt;.FRAMEWORK_VIP_HOST</code>. This varies according to the service name as configured by the user.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">SCHEDULER_API_HOSTNAME=api.folderservicename.marathon.l4lb.thisdcos.directory</code></li>
+</ul>
+
+<p>The hostname where the Scheduler can be reached. Useful when tasks need to make API calls to a custom endpoint that’s being run by the Scheduler.</p>
+
+<h4 id="specifying-values">Specifying Values</h4>
 
 <p>You can define the environment of a task in a few different ways. In the YML <code class="highlighter-rouge">ServiceSpec</code>, it can be defined in the following way.</p>
 
