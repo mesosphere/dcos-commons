@@ -154,5 +154,5 @@ def set_mesos_api_version(service_name, api_version, timeout=600):
     config = get_config(service_name)
     config['env']['MESOS_API_VERSION'] = api_version
     update_app(service_name, config, timeout=timeout)
-    # wait for scheduler to come back and successfully process some offers:
-    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 5, timeout_seconds=timeout)
+    # wait for scheduler to come back and successfully receive/process offers:
+    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 1, timeout_seconds=timeout)
