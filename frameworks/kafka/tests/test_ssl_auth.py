@@ -137,7 +137,7 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
 
         # Write to the topic
         log.info("Writing and reading: Writing to the topic, with authn")
-        assert ">>" in write_to_topic("kafka-tester", client_id, "tls.topic", message)
+        assert write_to_topic("kafka-tester", client_id, "tls.topic", message)
 
         log.info("Writing and reading: reading from the topic, with authn")
         # Read from the topic
@@ -192,13 +192,13 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
         authorized_message = str(uuid.uuid4())
 
         log.info("Writing and reading: Writing to the topic, as authorized user")
-        assert "Not authorized to access topics: [authz.test]" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        assert not write_to_topic("authorized", client_id, "authz.test", authorized_message)
 
         log.info("Writing and reading: Writing to the topic, as super user")
-        assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
+        assert write_to_topic("super", client_id, "authz.test", super_message)
 
         log.info("Writing and reading: Reading from the topic, as authorized user")
-        assert "Not authorized to access" in read_from_topic("authorized", client_id, "authz.test", 1)
+        assert auth.is_not_authorized(read_from_topic("authorized", client_id, "authz.test", 1))
 
         log.info("Writing and reading: Reading from the topic, as super user")
         read_result = read_from_topic("super", client_id, "authz.test", 1)
@@ -213,7 +213,7 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
         topics.add_acls("authorized", client_id, "authz.test", zookeeper_endpoint, env_str=None)
 
         log.info("Writing and reading: Writing and reading as authorized user")
-        assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        assert write_to_topic("authorized", client_id, "authz.test", authorized_message)
         assert authorized_message in read_from_topic("authorized", client_id, "authz.test", 2)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -268,13 +268,13 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
         unauthorized_message = str(uuid.uuid4())
 
         log.info("Writing and reading: Writing to the topic, as authorized user")
-        assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        assert write_to_topic("authorized", client_id, "authz.test", authorized_message)
 
         log.info("Writing and reading: Writing to the topic, as unauthorized user")
-        assert ">>" in write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
+        assert write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
 
         log.info("Writing and reading: Writing to the topic, as super user")
-        assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
+        assert write_to_topic("super", client_id, "authz.test", super_message)
 
         log.info("Writing and reading: Reading from the topic, as authorized user")
         assert authorized_message in read_from_topic("authorized", client_id, "authz.test", 3)
@@ -298,20 +298,20 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
         unauthorized_message = str(uuid.uuid4())
 
         log.info("Writing and reading: Writing to the topic, as authorized user")
-        assert ">>" in write_to_topic("authorized", client_id, "authz.test", authorized_message)
+        assert write_to_topic("authorized", client_id, "authz.test", authorized_message)
 
         log.info("Writing and reading: Writing to the topic, as unauthorized user")
-        assert "Not authorized to access" in write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
+        assert not write_to_topic("unauthorized", client_id, "authz.test", unauthorized_message)
 
         log.info("Writing and reading: Writing to the topic, as super user")
-        assert ">>" in write_to_topic("super", client_id, "authz.test", super_message)
+        assert write_to_topic("super", client_id, "authz.test", super_message)
 
         log.info("Writing and reading: Reading from the topic, as authorized user")
         read_result = read_from_topic("authorized", client_id, "authz.test", 5)
         assert authorized_message in read_result and unauthorized_message not in read_result
 
         log.info("Writing and reading: Reading from the topic, as unauthorized user")
-        assert "Not authorized to access" in read_from_topic("unauthorized", client_id, "authz.test", 1)
+        assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, "authz.test", 1))
 
         log.info("Writing and reading: Reading from the topic, as super user")
         read_result = read_from_topic("super", client_id, "authz.test", 5)
