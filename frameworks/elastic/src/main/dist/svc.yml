@@ -65,11 +65,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: TLS
-        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
   data:
     count: {{DATA_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -130,11 +130,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: TLS
-        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
   ingest:
     count: {{INGEST_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -195,11 +195,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: TLS
-        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
@@ -260,11 +260,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 10
-        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: TLS
-        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 plans:
   deploy:
     strategy: {{DEPLOY_STRATEGY}}
