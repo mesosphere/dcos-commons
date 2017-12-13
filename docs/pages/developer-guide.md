@@ -157,21 +157,21 @@ pods:
 
 * **Pods**: A pod is simply a set of tasks.
 
-* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
+    * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
-* **count**: The number of instances of the pod.
+        * **count**: The number of instances of the pod.
 
-* **tasks**: The list of tasks in the pod.
+        * **tasks**: The list of tasks in the pod.
 
-* **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
+        * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+            * **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
 
-* **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
+            * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
-* **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
+            * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
 
-* **memory**: This entry defines how much memory will be allocated to the task’s container.
+            * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
 For a full listing of available fields and what they mean, see the [YAML Reference](reference/yaml-reference.html).
 
@@ -2162,6 +2162,7 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+<a name="proxy-fallback"></a>
 ### Proxy Fallback
 
 Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).
