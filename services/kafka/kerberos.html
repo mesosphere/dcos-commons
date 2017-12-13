@@ -395,8 +395,10 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
         </span><span class="nt">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="nt">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
                 </span><span class="nt">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-                </span><span class="nt">"kdc_host_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
-                </span><span class="nt">"kdc_host_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
+                    </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="w">
+                </span><span class="p">},</span><span class="w">
                 </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__keytab"</span><span class="w">
             </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
@@ -443,8 +445,10 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
             </span><span class="nt">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
                 </span><span class="nt">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
                 </span><span class="nt">"enabled_for_zookeeper"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-                </span><span class="nt">"kdc_host_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
-                </span><span class="nt">"kdc_host_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
+                    </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="w">
+                </span><span class="p">},</span><span class="w">
                 </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__keytab"</span><span class="w">
             </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
