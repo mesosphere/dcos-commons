@@ -1,6 +1,8 @@
 import logging
+import retrying
 
 import sdk_cmd
+import sdk_hosts
 import sdk_tasks
 import shakedown
 from tests import config
@@ -43,6 +45,15 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
     broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=service_name)
 
 
+def wait_for_broker_dns(package_name: str, service_name: str):
+    brokers = sdk_cmd.svc_cli(package_name, service_name, "endpoint broker", json=True)
+    broker_dns = list(map(lambda x: x.split(':')[0], brokers["dns"]))
+
+    task_id = sdk_tasks.get_task_ids(service_name, service_name.strip("/").replace("/", "_"))
+
+    assert sdk_hosts.resolve_hosts(task_id[0], broker_dns)
+
+
 def create_topic(topic_name, service_name=config.SERVICE_NAME):
     # Get the list of topics that exist before we create a new topic
     topic_list_before = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic list', json=True)
@@ -72,6 +83,20 @@ def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(topic_name), json=True)
     assert len(topic_info) == 1
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
+
+
+def wait_for_topic(package_name: str, service_name: str, topic_name: str):
+    """
+    Execute `dcos kafka topic describe` to wait for topic creation.
+    """
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=60 * 1000)
+    def describe(topic):
+        sdk_cmd.svc_cli(package_name, service_name,
+                        "topic describe {}".format(topic),
+                        json=True)
+
+    describe(topic_name)
 
 
 def assert_topic_lists_are_equal_without_automatic_topics(expected, actual):

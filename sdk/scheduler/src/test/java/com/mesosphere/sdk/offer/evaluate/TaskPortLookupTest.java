@@ -39,33 +39,7 @@ public class TaskPortLookupTest {
     }
 
     @Test
-    public void testOldTaskByEnvKey() throws Exception {
-        Protos.TaskInfo.Builder testTaskBuilder = emptyTask.toBuilder();
-        testTaskBuilder.getCommandBuilder().getEnvironmentBuilder().addVariablesBuilder()
-                .setName("PORT_ENV_VAR")
-                .setValue("12345");
-
-        TaskPortLookup taskPortLookup = new TaskPortLookup(testTaskBuilder.build());
-        when(mockPortSpec.getPortName()).thenReturn("test-port");
-        when(mockPortSpec.getEnvKey()).thenReturn("PORT_ENV_VAR");
-        assertEquals(Long.valueOf(12345), taskPortLookup.getPriorPort(mockPortSpec).get());
-    }
-
-    @Test
-    public void testOldTaskByEnvDefault() throws Exception {
-        Protos.TaskInfo.Builder testTaskBuilder = emptyTask.toBuilder();
-        testTaskBuilder.getCommandBuilder().getEnvironmentBuilder().addVariablesBuilder()
-                .setName("PORT_ENV_VAR")
-                .setValue("12345");
-
-        TaskPortLookup taskPortLookup = new TaskPortLookup(testTaskBuilder.build());
-        when(mockPortSpec.getPortName()).thenReturn("env-var"); // defaults to PORT_ENV_VAR
-        when(mockPortSpec.getEnvKey()).thenReturn(null);
-        assertEquals(Long.valueOf(12345), taskPortLookup.getPriorPort(mockPortSpec).get());
-    }
-
-    @Test
-    public void testNewTaskByPort() throws Exception {
+    public void testTaskPort() throws Exception {
         Protos.TaskInfo.Builder testTaskBuilder = emptyTask.toBuilder();
         testTaskBuilder.getDiscoveryBuilder()
                 .setVisibility(Protos.DiscoveryInfo.Visibility.CLUSTER) // required by proto

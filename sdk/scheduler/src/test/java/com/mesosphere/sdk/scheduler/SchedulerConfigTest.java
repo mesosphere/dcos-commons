@@ -26,4 +26,19 @@ public class SchedulerConfigTest {
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         Assert.assertFalse(schedulerConfig.isUninstallEnabled());
     }
+
+    @Test
+    public void regionAwareness() {
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        Assert.assertFalse(schedulerConfig.isregionAwarenessEnabled());
+
+        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
+        Assert.assertFalse(schedulerConfig.isregionAwarenessEnabled());
+
+        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
+        Assert.assertFalse(schedulerConfig.isregionAwarenessEnabled());
+
+        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
+        Assert.assertTrue(schedulerConfig.isregionAwarenessEnabled());
+    }
 }

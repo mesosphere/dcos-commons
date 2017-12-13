@@ -120,7 +120,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             // only launch here if this key also has nothing on it.
             if (offerKeyCount == 0) {
                 return EvaluationOutcome.pass(
-                        this, "Other keys have zero usage, but so does key '%s'", offerKey).build();
+                        this, "Other keys have zero usage, and so does key '%s'", offerKey).build();
             } else {
                 return EvaluationOutcome.fail(
                         this, "Other keys have zero instances, but key '%s' has %d", offerKey, offerKeyCount)

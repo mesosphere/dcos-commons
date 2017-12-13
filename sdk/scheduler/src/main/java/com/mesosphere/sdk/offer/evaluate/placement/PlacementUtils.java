@@ -3,6 +3,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,17 +108,47 @@ public class PlacementUtils {
         return matchers;
     }
 
-    public static PlacementKey getField(String fieldName) {
+    public static PlacementField getField(String fieldName) {
         switch (fieldName) {
             case PlacementUtils.HOSTNAME_FIELD_LEGACY:
             case PlacementUtils.HOSTNAME_FIELD:
-                return PlacementKey.HOSTNAME;
+                return PlacementField.HOSTNAME;
             case PlacementUtils.REGION_FIELD:
-                return PlacementKey.REGION;
+                return PlacementField.REGION;
             case PlacementUtils.ZONE_FIELD:
-                return PlacementKey.ZONE;
+                return PlacementField.ZONE;
             default:
-                return PlacementKey.ATTRIBUTE;
+                return PlacementField.ATTRIBUTE;
         }
+    }
+
+    public static boolean hasZone(Protos.Offer offer) {
+        if (!offer.hasDomain()) {
+            return false;
+        }
+
+        Protos.DomainInfo domainInfo = offer.getDomain();
+        if (!domainInfo.hasFaultDomain()) {
+            return false;
+        }
+
+        return domainInfo.getFaultDomain().hasZone();
+    }
+
+    public static boolean placementRuleReferencesRegion(PodSpec podSpec) {
+        return placementRuleReferencesField(PlacementField.REGION, podSpec);
+    }
+
+    public static boolean placementRuleReferencesZone(PodSpec podSpec) {
+        return placementRuleReferencesField(PlacementField.ZONE, podSpec);
+    }
+
+    private static boolean placementRuleReferencesField(PlacementField field, PodSpec podSpec) {
+        if (!podSpec.getPlacementRule().isPresent()) {
+            return false;
+        }
+
+        return podSpec.getPlacementRule().get().getPlacementFields().stream()
+                .anyMatch(placementField -> placementField.equals(field));
     }
 }

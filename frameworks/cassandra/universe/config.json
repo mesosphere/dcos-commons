@@ -35,11 +35,6 @@
           "type": "string",
           "default": "datacenter1"
         },
-        "detect_zones": {
-          "description": "Whether to use Zones when available for Cassandra racks.  This value cannot be changed after initial deployment",
-          "type": "boolean",
-          "default": false
-        },
         "remote_seeds": {
           "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
           "type": "string",
@@ -120,8 +115,11 @@
         },
         "placement_constraint": {
           "type": "string",
-          "description": "The Marathon-style placement constraint string controlling node placement",
-          "default": "hostname:MAX_PER:1"
+          "description": "Placement constraints for nodes (e.g., [[\"hostname\", \"MAX_PER\", \"1\"]]).",
+          "default": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         },
         "heap": {
           "type": "object",

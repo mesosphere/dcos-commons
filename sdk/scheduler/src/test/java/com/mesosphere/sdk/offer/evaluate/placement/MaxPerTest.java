@@ -274,5 +274,10 @@ public class MaxPerTest {
                 return EvaluationOutcome.fail(this, "Offer is NOT acceptable").build();
             }
         }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
     }
 }

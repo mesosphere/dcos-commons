@@ -35,7 +35,7 @@
     "HELLO_GPUS": "{{hello.gpus}}",
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
-    "HELLO_PLACEMENT": "{{hello.placement}}",
+    "HELLO_PLACEMENT": "{{{hello.placement}}}",
     {{#hello.kill_grace_period}}
     "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
     {{/hello.kill_grace_period}}
@@ -43,7 +43,7 @@
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
     "WORLD_DISK": "{{world.disk}}",
-    "WORLD_PLACEMENT": "{{world.placement}}",
+    "WORLD_PLACEMENT": "{{{world.placement}}}",
     {{#world.kill_grace_period}}
     "WORLD_KILL_GRACE_PERIOD": "{{world.kill_grace_period}}",
     {{/world.kill_grace_period}}
@@ -82,7 +82,9 @@
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",
-    "TEST_BOOLEAN": "{{service.test_boolean}}"
+    "TEST_BOOLEAN": "{{service.test_boolean}}",
+    "CUSTOMIZE_DEPLOY_PLAN": "{{service.customize_plan}}",
+    "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}"
   },
   "uris": [
     "{{resource.assets.uris.bootstrap-zip}}",

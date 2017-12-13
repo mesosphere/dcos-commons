@@ -14,6 +14,7 @@ from retrying import retry
 from subprocess import run
 from tempfile import TemporaryDirectory
 
+import base64
 import dcos
 import json
 import logging
@@ -71,7 +72,7 @@ def _get_host_name(host_id: str) -> str:
     if raw_nodes:
         nodes = json.loads(raw_nodes)
         for node in nodes:
-            if node["id"] == host_id:
+            if "id" in node and node["id"] == host_id:
                 log.info("Host name is {host_name}".format(host_name=node["hostname"]))
                 return node["hostname"]
 
@@ -152,8 +153,16 @@ def kinit(task_id: str, keytab: str, principal:str):
     :param keytab: The keytab used by kinit to authenticate.
     :param principal: The name of the principal the user wants to authenticate as.
     """
-    kinit_cmd = "kinit -k -t {keytab} {principal}".format(keytab=keytab, principal=principal)
+    kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     sdk_tasks.task_exec(task_id, kinit_cmd)
+
+
+def kdestroy(task_id: str):
+    """
+    Performs a kdestroy command to erase an auth session for a principal.
+    :param task_id: The task in whose environment the kinit will run.
+    """
+    sdk_tasks.task_exec(task_id, "kdestroy")
 
 
 class KerberosEnvironment:
@@ -271,11 +280,17 @@ class KerberosEnvironment:
         log.info("Creating and uploading the keytab file to the secret store")
 
         try:
-            base64_encode_cmd = "base64 -w 0 {source} > {destination}".format(
-                source=os.path.join(self.temp_working_dir.name, self.keytab_file_name),
-                destination=os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
-            )
-            run(base64_encode_cmd, shell=True)
+            keytab_path = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
+            base64_encoded_keytab_path = os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
+            with open(keytab_path, "rb") as f:
+                keytab = f.read()
+
+            base64_encoding = base64.b64encode(keytab).decode("utf-8")
+            with open(base64_encoded_keytab_path, "w") as f:
+                f.write(base64_encoding)
+
+            log.info("Finished base64-encoding secret content.")
+
         except Exception as e:
             raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
 

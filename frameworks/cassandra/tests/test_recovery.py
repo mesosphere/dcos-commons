@@ -1,9 +1,11 @@
 import logging
+import tempfile
 import time
 
 import pytest
 import sdk_cmd as cmd
 import sdk_install
+import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
@@ -48,7 +50,7 @@ def test_node_replace_replaces_node():
 
     # Update the placement constraints so the new node doesn't end up on the same host
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['PLACEMENT_CONSTRAINT'] = 'hostname:UNLIKE:{}'.format(pod_host)
+    marathon_config['env']['PLACEMENT_CONSTRAINT'] = '[["hostname", "UNLIKE", "{}"]]'.format(pod_host)
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
 
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

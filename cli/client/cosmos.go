@@ -16,8 +16,6 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
-const cosmosURLConfigKey = "package.cosmos_url"
-
 // Cosmos error types
 const (
 	appIDChanged        = "AppIdChanged"
@@ -65,21 +63,22 @@ type cosmosErrorResponse struct {
 
 func createBadVersionError(data cosmosData) error {
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("Unable to update %s to requested version: \"%s\"\n", config.ServiceName, data.UpdateVersion))
+	writer := bufio.NewWriter(&buf)
+	fmt.Fprintf(writer, "Unable to update %s to requested version: \"%s\"\n", config.ServiceName, data.UpdateVersion)
 	if len(data.ValidVersions) > 0 {
-		validVersions := PrettyPrintSlice(data.ValidVersions)
-		buf.WriteString(fmt.Sprintf("Valid package versions are: %s", validVersions))
+		fmt.Fprintf(writer, "Valid package versions are: %s", PrettyPrintSlice(data.ValidVersions))
 	} else {
-		buf.WriteString("No valid package versions to update to.")
+		fmt.Fprint(writer, "No valid package versions to update to.")
 	}
+	writer.Flush()
 	return fmt.Errorf(buf.String())
 }
 
 func createJSONMismatchError(data cosmosData) error {
 	var buf bytes.Buffer
 	writer := bufio.NewWriter(&buf)
-	writer.WriteString("Unable to update %s to requested configuration: options JSON failed validation.")
-	writer.WriteString("\n\n")
+	fmt.Fprintf(writer, "Unable to update %s to requested configuration: options JSON failed validation.\n\n", config.ServiceName)
+
 	tWriter := tabwriter.NewWriter(writer, 0, 4, 1, ' ', 0)
 	fmt.Fprintf(tWriter, "Field\tError\t\n")
 	fmt.Fprintf(tWriter, "-----\t-----\t")
@@ -88,7 +87,7 @@ func createJSONMismatchError(data cosmosData) error {
 	}
 	tWriter.Flush()
 	writer.Flush()
-	return fmt.Errorf(buf.String(), config.ServiceName)
+	return fmt.Errorf(buf.String())
 }
 
 func createAppIDChangedError(data cosmosData) error {
@@ -135,10 +134,8 @@ func parseCosmosHTTPErrorResponse(response *http.Response, body []byte) error {
 func checkCosmosHTTPResponse(response *http.Response, body []byte) error {
 	switch {
 	case response.StatusCode == http.StatusNotFound:
-		if config.Verbose {
-			PrintMessage(createResponseError(response, body).Error())
-		}
-		return fmt.Errorf("dcos %s %s requires Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		PrintVerbose(createResponseError(response, body).Error())
+		return fmt.Errorf("This command requires Enterprise DC/OS 1.10 or newer.")
 	case response.StatusCode == http.StatusBadRequest:
 		return parseCosmosHTTPErrorResponse(response, body)
 	case response.StatusCode == http.StatusInternalServerError:
@@ -158,17 +155,12 @@ func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Requ
 }
 
 func createCosmosURL(urlPath string) *url.URL {
-	// Try to fetch the Cosmos URL from the system configuration
-	if len(config.CosmosURL) == 0 {
-		config.CosmosURL = OptionalCLIConfigValue(cosmosURLConfigKey)
+	cosmosURL := OptionalCLIConfigValue("package.cosmos_url")
+	if len(cosmosURL) > 0 {
+		// Use specified Cosmos URL: https://<cosmos_url>/service/describe
+		return CreateURL(cosmosURL, path.Join("service", urlPath), "")
+	} else {
+		// Use default Cosmos service path within DC/OS: https://<dcos_url>/cosmos/service/describe
+		return CreateURL(GetDCOSURL(), path.Join("cosmos", "service", urlPath), "")
 	}
-
-	// Use Cosmos URL if we have it specified
-	if len(config.CosmosURL) > 0 {
-		joinedURLPath := path.Join("service", urlPath) // e.g. https://<cosmos_url>/service/describe
-		return CreateURL(config.CosmosURL, joinedURLPath, "")
-	}
-	GetDCOSURL()
-	joinedURLPath := path.Join("cosmos", "service", urlPath) // e.g. https://<dcos_url>/cosmos/service/describe
-	return CreateURL(config.DcosURL, joinedURLPath, "")
 }

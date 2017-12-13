@@ -50,8 +50,14 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
+        return recordLaunchWithCompleteOfferedResources(podInstanceRequirement, Constants.ANY_ROLE, offeredResources);
+    }
+
+    protected List<Resource> recordLaunchWithCompleteOfferedResources(
+            PodInstanceRequirement podInstanceRequirement, String preReservedRole, Resource... offeredResources)
+            throws InvalidRequirementException, IOException {
         return recordLaunchWithOfferedResources(
-                OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources)),
+                OfferTestUtils.getCompleteOffer(Arrays.asList(offeredResources), preReservedRole),
                 podInstanceRequirement,
                 offeredResources);
     }

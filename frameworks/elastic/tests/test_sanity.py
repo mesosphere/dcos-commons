@@ -62,6 +62,25 @@ def test_service_health():
     assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
+@pytest.mark.recovery
+@pytest.mark.sanity
+def test_pod_replace_then_immediate_config_update():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    plugin_name = 'analysis-phonetic'
+
+    cfg = sdk_marathon.get_config(foldered_name)
+    cfg['env']['TASKCFG_ALL_ELASTICSEARCH_PLUGINS'] = plugin_name
+    cfg['env']['UPDATE_STRATEGY'] = 'parallel'
+
+    sdk_cmd.run_cli('beta-elastic --name={} pod replace data-0'.format(foldered_name))
+
+    # issue config update immediately
+    sdk_marathon.update_app(foldered_name, cfg)
+
+    # ensure all nodes, especially data-0, get launched with the updated config
+    config.check_plugin_installed(plugin_name, service_name=foldered_name)
+
+
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.mesos_v0
@@ -163,7 +182,7 @@ def test_custom_yaml_base64():
     base64_str = 'Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KIC' \
                  'AgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz'
 
-    config.update_app(foldered_name, {'TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64': base64_str}, current_expected_task_count)
+    config.update_app(foldered_name, {'CUSTOM_YAML_BLOCK_BASE64': base64_str}, current_expected_task_count)
     config.check_custom_elasticsearch_cluster_setting(service_name=foldered_name)
 
 

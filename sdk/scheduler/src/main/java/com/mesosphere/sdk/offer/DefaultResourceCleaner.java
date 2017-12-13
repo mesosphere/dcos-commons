@@ -74,7 +74,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     }
 
     /**
-     * Returns a list of all expected resources, which are extracted from all {@link Protos.TaskInfo}s
+     * Returns a list of all expected resources, which are extracted from all {@link org.apache.mesos.Protos.TaskInfo}s
      * produced by the provided {@link StateStore}.
      */
     private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {

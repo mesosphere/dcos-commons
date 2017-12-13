@@ -60,31 +60,23 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     Whether to allow this pod's `count` to be decreased by an operator in a configuration update. For safety reasons this defaults to `false`, but the service developer may set this field to `true` to explicitly allow scale-down on a per-pod basis.
 
-  * `container`
+  * `image`
 
-    This section contains additional options relating to the container environment to be used by the pod type.
+    The docker image to use for launching the pod, of the form `user/img:version`. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been [configured in the DC/OS cluster](https://github.com/dcos/examples/tree/master/1.8/registry) to work. To ensure a lack of flakiness, docker images are only executed by Mesos' [Universal Container Runtime](https://docs.mesosphere.com/1.9/deploying-services/containerizers/), never `dockerd`. If this is unspecified, then a sandboxed directory on the system root is used instead.
 
-    * `image-name`
+    You do not have to specify an image if the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
 
-      The docker image to use for launching the pod, of the form `user/img:version`. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been [configured in the DC/OS cluster](https://github.com/dcos/examples/tree/master/1.8/registry) to work. To ensure a lack of flakiness, docker images are only executed by Mesos' [Universal Container Runtime](https://docs.mesosphere.com/1.9/deploying-services/containerizers/), never `dockerd`. If this is unspecified, then a sandboxed directory on the system root is used instead.
+  * `rlimits`
 
-      `image-name` may be left empty when the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
+    This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
 
-    * `rlimits`
-
-      This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
-
-      ```
-      rlimits:
-        RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
-      ```
-
-  * `image`/`networks`/`rlimits`
-
-    These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)
+    ```
+    rlimits:
+      RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
+    ```
 
   * `secrets`
 
@@ -126,7 +118,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     A list of uris to be downloaded (and automatically unpacked) into the `$MESOS_SANDBOX` directory before launching instances of this pod. It is strongly recommended that all URIs be templated out and provided as scheduler environment variables. This allows field replacement in the case of running an offline cluster without internet connectivity.
 
-    If you're using a Docker image (specified in the `image-name` field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.
+    If you're using a Docker image (specified in the `image` field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.
 
     If you wish to use `configs` in your tasks, this needs to include a URI to download the `bootstrap` executable.
 

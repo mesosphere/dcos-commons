@@ -11,7 +11,6 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import sdk_tasks
 import shakedown
 from tests import config
 

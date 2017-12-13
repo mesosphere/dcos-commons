@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import org.apache.mesos.Protos;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -49,5 +51,10 @@ public class RoundRobinByRegionRule extends AbstractRoundRobinRule {
     public String toString() {
         return String.format("RoundRobinByRegionRule{region-count=%s, task-filter=%s}",
                 distinctKeyCount, taskFilter);
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.REGION);
     }
 }

@@ -51,12 +51,12 @@ public class MaxPerZoneRuleTest {
     public void getZoneOfferKeys() {
         MaxPerZoneRule rule = new MaxPerZoneRule(2);
         Protos.Offer offer = OfferTestUtils.getEmptyOfferBuilder()
-                .setDomain(TestConstants.DOMAIN_INFO)
+                .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
         Collection<String> keys = rule.getKeys(offer);
         Assert.assertEquals(1, keys.size());
         Assert.assertEquals(
-                TestConstants.DOMAIN_INFO.getFaultDomain().getZone().getName(),
+                TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone().getName(),
                 keys.stream().findFirst().get());
     }
 
@@ -72,13 +72,13 @@ public class MaxPerZoneRuleTest {
         Protos.TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setLabels(
                         new TaskLabelWriter(TestConstants.TASK_INFO)
-                                .setZone(TestConstants.DOMAIN_INFO.getFaultDomain().getZone())
+                                .setZone(TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone())
                                 .toProto())
                 .build();
         Collection<String> keys = rule.getKeys(taskInfo);
         Assert.assertEquals(1, keys.size());
         Assert.assertEquals(
-                TestConstants.DOMAIN_INFO.getFaultDomain().getZone().getName(),
+                TestConstants.LOCAL_DOMAIN_INFO.getFaultDomain().getZone().getName(),
                 keys.stream().findFirst().get());
     }
 }

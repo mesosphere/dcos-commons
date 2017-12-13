@@ -13,11 +13,10 @@ import java.util.LinkedHashMap;
  * Raw YAML pod.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RawPod implements RawContainerInfoProvider {
+public class RawPod {
 
     private final String placement;
     private final Integer count;
-    private final RawContainer container;
     private final String image;
     private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
     private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
@@ -35,7 +34,6 @@ public class RawPod implements RawContainerInfoProvider {
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
             @JsonProperty("placement") String placement,
             @JsonProperty("count") Integer count,
-            @JsonProperty("container") RawContainer container,
             @JsonProperty("image") String image,
             @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
             @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
@@ -49,7 +47,6 @@ public class RawPod implements RawContainerInfoProvider {
             @JsonProperty("allow-decommission") Boolean allowDecommission) {
         this.placement = placement;
         this.count = count;
-        this.container = container;
         this.image = image;
         this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
         this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
@@ -70,10 +67,6 @@ public class RawPod implements RawContainerInfoProvider {
 
     public Integer getCount() {
         return count;
-    }
-
-    public RawContainer getContainer() {
-        return container;
     }
 
     public String getImage() {

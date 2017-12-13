@@ -30,7 +30,7 @@
     "SERVICE_USER": "{{service.user}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "CASSANDRA_VERSION": "3.0.14",
+    "CASSANDRA_VERSION": "3.0.15",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.service_account_secret}}
@@ -43,13 +43,12 @@
 
     {{#service.tls}}
     "TASKCFG_ALL_CASSANDRA_ENABLE_TLS": "{{service.tls}}",
-    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.14/conf/cqlshrc",
+    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.15/conf/cqlshrc",
     {{#service.tls_allow_plaintext}}
     "TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
     {{/service.tls_allow_plaintext}}
     {{/service.tls}}
 
-    "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
     "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
     "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{cassandra.authorizer}}",
@@ -62,7 +61,7 @@
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
     "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
     "CASSANDRA_HEAP_GC": "{{nodes.heap.gc}}",
-    "PLACEMENT_CONSTRAINT": "{{nodes.placement_constraint}}",
+    "PLACEMENT_CONSTRAINT": "{{{nodes.placement_constraint}}}",
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",

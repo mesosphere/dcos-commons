@@ -49,7 +49,9 @@ public class MaxPerZoneRule extends MaxPerRule {
 
     @Override
     public EvaluationOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
-        if (isAcceptable(offer, podInstance, tasks)) {
+        if (!PlacementUtils.hasZone(offer)) {
+            return EvaluationOutcome.fail(this, "Offer does not contain a zone.").build();
+        } else if (isAcceptable(offer, podInstance, tasks)) {
             return EvaluationOutcome.pass(
                     this,
                     "Fewer than %d tasks matching filter '%s' are present on this host",
@@ -62,5 +64,10 @@ public class MaxPerZoneRule extends MaxPerRule {
                     max, getTaskFilter().toString())
                     .build();
         }
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ZONE);
     }
 }

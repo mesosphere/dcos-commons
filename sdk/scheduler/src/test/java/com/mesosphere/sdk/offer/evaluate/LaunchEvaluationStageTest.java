@@ -86,7 +86,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void regionAndZoneInjected() {
         offer = offer.toBuilder()
-                .setDomain(TestConstants.DOMAIN_INFO)
+                .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
         stage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
@@ -94,7 +94,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
         Map<String, String> env = EnvUtils.toMap(taskBuilder.getCommand().getEnvironment());
-        Assert.assertEquals(TestConstants.REGION, env.get(EnvConstants.REGION_TASKENV));
+        Assert.assertEquals(TestConstants.LOCAL_REGION, env.get(EnvConstants.REGION_TASKENV));
         Assert.assertEquals(TestConstants.ZONE, env.get(EnvConstants.ZONE_TASKENV));
     }
 

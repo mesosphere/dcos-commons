@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration>
     <property>
-        <name>fs.default.name</name>
+        <name>fs.defaultFS</name>
         <value>hdfs://hdfs</value>
     </property>
     <property>
@@ -48,90 +48,6 @@
         <name>hadoop.http.filter.initializers</name>
         <value>{{HADOOP_HTTP_FILTER_INITIALIZER}}</value>
     </property>
-    <property>
-        <name>hadoop.security.authorization</name>
-        <value>{{HADOOP_SECURITY_AUTHORIZATION}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.instrumentation.requires.admin</name>
-        <value>{{HADOOP_SECURITY_INSTRUMENTATION_REQUIRES_ADMIN}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.authentication</name>
-        <value>{{HADOOP_SECURITY_AUTHENTICATION}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.groups.cache.secs</name>
-        <value>{{HADOOP_SECURITY_GROUPS_CACHE_SECS}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.groups.negative-cache.secs</name>
-        <value>{{HADOOP_SECURITY_GROUPS_NEGATIVE_CACHE_SECS}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.groups.cache.warn.after.ms</name>
-        <value>{{HADOOP_SECURITY_GROUPS_CACHE_WARN_AFTER_MS}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.url</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_URL}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl.keystore</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL_KEYSTORE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl.keystore.password.file</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL_KEYSTORE_PASSWORD_FILE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.bind.user</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_BIND_USER}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.bind.password.file</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_PASSWORD_FILE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.base</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_BASE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.filter.user</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_FILTER_USER}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.filter.group</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_FILTER_GROUP}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.attr.member</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_ATTR_MEMBER}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.attr.group.name</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_ATTR_GROUP_NAME}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.directory.search.timeout</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_DIRECTORY_SEARCH_TIMEOUT}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.service.user.name.key</name>
-        <value>{{HADOOP_SECURITY_SERVICE_USER_NAME_KEY}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.uid.cache.secs</name>
-        <value>{{HADOOP_SECURITY_UID_CACHE_SECS}}</value>
-    </property>
     {{^KERBEROS_ENABLED}}
     <property>
         <name>hadoop.rpc.protection</name>
@@ -139,20 +55,8 @@
     </property>
     {{/KERBEROS_ENABLED}}
     <property>
-        <name>hadoop.security.saslproperties.resolver.class</name>
-        <value>{{HADOOP_SECURITY_SASLPROPERTIES_RESOLVER_CLASS}}</value>
-    </property>
-    <property>
         <name>hadoop.work.around.non.threadsafe.getpwuid</name>
         <value>{{HADOOP_WORK_AROUND_NON_THREADSAFE_GETPWUID}}</value>
-    </property>
-    <property>
-        <name>hadoop.kerberos.kinit.command</name>
-        <value>{{HADOOP_KERBEROS_KINIT_COMMAND}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.auth_to_local</name>
-        <value>{{HADOOP_SECURITY_AUTH_TO_LOCAL}}</value>
     </property>
     <property>
         <name>io.file.buffer.size</name>
@@ -160,10 +64,6 @@
     </property>
     <property>
         <name>io.bytes.per.checksum</name>
-        <value>{{IO_BYTES_PER_CHECKSUM}}</value>
-    </property>
-    <property>
-        <name></name>
         <value>{{IO_BYTES_PER_CHECKSUM}}</value>
     </property>
     <property>
@@ -391,10 +291,6 @@
         <value>{{IPC_SERVER_LISTEN_QUEUE_SIZE}}</value>
     </property>
     <property>
-        <name>hadoop.security.impersonation.provider.class</name>
-        <value>{{HADOOP_SECURITY_IMPERSONATION_PROVIDER_CLASS}}</value>
-    </property>
-    <property>
         <name>hadoop.rpc.socket.factory.class.default</name>
         <value>{{HADOOP_RPC_SOCKET_FACTORY_CLASS_DEFAULT}}</value>
     </property>
@@ -606,6 +502,10 @@
         <name>rpc.metrics.percentiles.intervals</name>
         <value>{{RPC_METRICS_PERCENTILES_INTERVALS}}</value>
     </property>
+    <property>
+        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
+        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
+    </property>
 
     {{#TLS_ENABLED}}
     <property>
@@ -637,8 +537,7 @@
     <property>
         <name>hadoop.security.auth_to_local</name>
         <value>
-          RULE:[2:$1@$0](.*)s/.*/{{TASK_USER}}/
-          RULE:[1:$1@$0](.*)s/.*/{{TASK_USER}}/
+            {{DECODED_AUTH_TO_LOCAL}}
         </value>
     </property>
 
@@ -652,19 +551,105 @@
     </property>
     <property>
         <name>hadoop.http.authentication.cookie.domain</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_COOKIE_DOMAIN}}</value>
-    </property>
-    <property>
-        <name>hadoop.http.authentication.simple.anonymous.allowed</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
+        <value>{{FRAMEWORK_HOST}}</value>
     </property>
     <property>
         <name>hadoop.http.authentication.kerberos.principal</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_PRINCIPAL}}</value>
+        <value>{{KERBEROS_PRIMARY_HTTP}}/{{FRAMEWORK_NAME}}.marathon.autoip.dcos.thisdcos.directory@{{KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>hadoop.http.authentication.kerberos.keytab</name>
-        <value>{{HADOOP_HTTP_AUTHENTICATION_KERBEROS_KEYTAB}}</value>
+        <value>hdfs.keytab</value>
+    </property>
+
+
+    <property>
+        <name>hadoop.kerberos.kinit.command</name>
+        <value>{{HADOOP_KERBEROS_KINIT_COMMAND}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.instrumentation.requires.admin</name>
+        <value>{{HADOOP_SECURITY_INSTRUMENTATION_REQUIRES_ADMIN}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.groups.cache.secs</name>
+        <value>{{HADOOP_SECURITY_GROUPS_CACHE_SECS}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.groups.negative-cache.secs</name>
+        <value>{{HADOOP_SECURITY_GROUPS_NEGATIVE_CACHE_SECS}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.groups.cache.warn.after.ms</name>
+        <value>{{HADOOP_SECURITY_GROUPS_CACHE_WARN_AFTER_MS}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.url</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_URL}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.ssl</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.ssl.keystore</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL_KEYSTORE}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.ssl.keystore.password.file</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL_KEYSTORE_PASSWORD_FILE}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.bind.user</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_BIND_USER}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.bind.password.file</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_PASSWORD_FILE}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.base</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_BASE}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.search.filter.user</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_FILTER_USER}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.search.filter.group</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_FILTER_GROUP}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.search.attr.member</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_ATTR_MEMBER}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.search.attr.group.name</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_ATTR_GROUP_NAME}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.group.mapping.ldap.directory.search.timeout</name>
+        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_DIRECTORY_SEARCH_TIMEOUT}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.service.user.name.key</name>
+        <value>{{HADOOP_SECURITY_SERVICE_USER_NAME_KEY}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.uid.cache.secs</name>
+        <value>{{HADOOP_SECURITY_UID_CACHE_SECS}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.saslproperties.resolver.class</name>
+        <value>{{HADOOP_SECURITY_SASLPROPERTIES_RESOLVER_CLASS}}</value>
+    </property>
+    <property>
+        <name>hadoop.security.impersonation.provider.class</name>
+        <value>{{HADOOP_SECURITY_IMPERSONATION_PROVIDER_CLASS}}</value>
     </property>
     {{/KERBEROS_ENABLED}}
 </configuration>
