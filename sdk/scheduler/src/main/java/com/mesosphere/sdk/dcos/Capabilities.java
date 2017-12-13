@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.dcos;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
+
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +16,19 @@ public class Capabilities {
     private static final Logger LOGGER = LoggerFactory.getLogger(Capabilities.class);
     private static final Object lock = new Object();
     private static Capabilities capabilities;
-    DcosCluster dcosCluster;
+
+    private final DcosVersion dcosVersion;
 
     public static Capabilities getInstance() {
         synchronized (lock) {
             if (capabilities == null) {
-                capabilities = new Capabilities(new DcosCluster());
+                try {
+                    DcosVersionClient client = new DcosVersionClient(new DcosHttpExecutor(new DcosHttpClientBuilder()));
+                    capabilities = new Capabilities(client.getDcosVersion());
+                } catch (IOException e) {
+                    LOGGER.error("Unable to fetch DC/OS version.", e);
+                    throw new IllegalStateException(e);
+                }
             }
 
             return capabilities;
@@ -32,8 +42,12 @@ public class Capabilities {
     }
 
     @VisibleForTesting
-    public Capabilities(DcosCluster dcosCluster) {
-        this.dcosCluster = dcosCluster;
+    public Capabilities(DcosVersion dcosVersion) {
+        this.dcosVersion = dcosVersion;
+    }
+
+    public DcosVersion getDcosVersion() {
+        return dcosVersion;
     }
 
     public boolean supportsDefaultExecutor() {
@@ -82,15 +96,17 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 10);
     }
 
-    private boolean hasOrExceedsVersion(int major, int minor) {
-        DcosVersion dcosVersion = null;
-        try {
-            dcosVersion = dcosCluster.getDcosVersion();
-        } catch (IOException e) {
-            LOGGER.error("Unable to fetch DC/OS version.");
-            throw new IllegalStateException(e);
-        }
+    public boolean supportsV1APIByDefault() {
+        // The Mesos V1 HTTP API with strict mode enabled is supported by DC/OS 1.11 upwards
+        return hasOrExceedsVersion(1, 11);
+    }
 
+    public boolean supportsRegionAwareness() {
+        // This feature is in BETA for 1.11, so requires explicit opt-in by end-users.
+        return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
+    }
+
+    private boolean hasOrExceedsVersion(int major, int minor) {
         DcosVersion.Elements versionElements = dcosVersion.getElements();
         try {
             if (versionElements.getFirstElement() > major) {

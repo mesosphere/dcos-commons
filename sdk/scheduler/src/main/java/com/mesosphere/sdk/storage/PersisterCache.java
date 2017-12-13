@@ -26,14 +26,13 @@ public class PersisterCache implements Persister {
 
     public PersisterCache(Persister persister) throws PersisterException {
         this.persister = persister;
-        refresh();
     }
 
     @Override
     public byte[] get(String path) throws PersisterException {
         rlock.lock();
         try {
-            return cache.get(path);
+            return getCache().get(path);
         } finally {
             rlock.unlock();
         }
@@ -43,7 +42,7 @@ public class PersisterCache implements Persister {
     public Collection<String> getChildren(String path) throws PersisterException {
         rlock.lock();
         try {
-            return cache.getChildren(path);
+            return getCache().getChildren(path);
         } finally {
             rlock.unlock();
         }
@@ -53,8 +52,19 @@ public class PersisterCache implements Persister {
     public void set(String path, byte[] bytes) throws PersisterException {
         rwlock.lock();
         try {
+            MemPersister cache = getCache();
             persister.set(path, bytes);
             cache.set(path, bytes);
+        } finally {
+            rwlock.unlock();
+        }
+    }
+
+    @Override
+    public Map<String, byte[]> getMany(Collection<String> paths) throws PersisterException {
+        rwlock.lock();
+        try {
+            return getCache().getMany(paths);
         } finally {
             rwlock.unlock();
         }
@@ -64,6 +74,7 @@ public class PersisterCache implements Persister {
     public void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException {
         rwlock.lock();
         try {
+            MemPersister cache = getCache();
             persister.setMany(pathBytesMap);
             cache.setMany(pathBytesMap);
         } finally {
@@ -72,12 +83,25 @@ public class PersisterCache implements Persister {
     }
 
     @Override
-    public void deleteAll(String path) throws PersisterException {
+    public void recursiveDeleteMany(Collection<String> paths) throws PersisterException {
         rwlock.lock();
         try {
-            persister.deleteAll(path);
+            MemPersister cache = getCache();
+            persister.recursiveDeleteMany(paths);
+            cache.recursiveDeleteMany(paths);
+        } finally {
+            rwlock.unlock();
+        }
+    }
+
+    @Override
+    public void recursiveDelete(String path) throws PersisterException {
+        rwlock.lock();
+        try {
+            MemPersister cache = getCache();
+            persister.recursiveDelete(path);
             try {
-                cache.deleteAll(path);
+                cache.recursiveDelete(path);
             } catch (PersisterException e) {
                 // We don't throw an exception here if our 'data' cache lacks the value. In theory 'persister' should've
                 // thrown in that case anyway -- so we're effectively replicating what the underlying persister does.
@@ -94,7 +118,9 @@ public class PersisterCache implements Persister {
         rwlock.lock();
         try {
             persister.close();
-            cache.close();
+            if (cache != null) {
+                cache.close();
+            }
         } finally {
             rwlock.unlock();
         }
@@ -109,13 +135,19 @@ public class PersisterCache implements Persister {
             if (cache != null) {
                 logger.info("Cache content before refresh:\n{}", cache.getDebugString());
             }
-
-            // We already have our own locking, so we can disable locking in the underlying cache:
-            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
-
-            logger.info("Cache content after refresh:\n{}", cache.getDebugString());
+            cache = null;
+            getCache(); // recreate cache
         } finally {
             rwlock.unlock();
         }
+    }
+
+    private MemPersister getCache() throws PersisterException {
+        if (cache == null) {
+            // We already have our own locking, so we can disable locking in the underlying MemPersister:
+            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
+            logger.info("Loaded data from persister:\n{}", cache.getDebugString());
+        }
+        return cache;
     }
 }

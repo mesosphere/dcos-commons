@@ -64,12 +64,12 @@
               "description": "The name of the service instance",
               "type": "string"
             },
-            "principal": {
+            "service_account": {
               "default": "",
               "description": "The principal for the service instance.",
               "type": "string"
             },
-            "secret_name": {
+            "service_account_secret": {
               "default": "",
               "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
               "type": "string"
@@ -149,7 +149,7 @@
       "assets": {
         "uris": {
           "executor-zip": "https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20170522-133112-gr22b2GiWh1IZPNr/executor.zip",
-          "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-8u131-linux-x64.tar.gz",
+          "jre-tar-gz": "https://downloads.mesosphere.com/java/jre-8u152-linux-x64.tar.gz",
           "libmesos-bundle-tar-gz": "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.9.0-rc2-1.2.0-rc2-1.tar.gz",
           "scheduler-zip": "https://infinity-artifacts.s3.amazonaws.com/autodelete7d/hello-world/20170522-133112-gr22b2GiWh1IZPNr/hello-world-scheduler.zip"
         }

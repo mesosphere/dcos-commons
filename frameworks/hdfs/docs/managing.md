@@ -1,7 +1,6 @@
 ---
 post_title: Managing
-menu_order: 50
-feature_maturity: preview
+menu_order: 60
 enterprise: 'no'
 ---
 
@@ -31,8 +30,8 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
   + You can install just the subcommand CLI by running `dcos package install --cli beta-hdfs`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli beta-hdfs
-    dcos package install --cli beta-hdfs
+    $ dcos package uninstall --cli beta-hdfs
+    $ dcos package install --cli beta-hdfs
     ```
 
 ### Preparing configuration
@@ -130,13 +129,13 @@ This configuration update strategy is analogous to the installation procedure ab
 
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
-```
+```bash
 $ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
 ```
 
 The response will look similar to this:
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -231,14 +230,14 @@ The response will look similar to this:
 
 If you want to interrupt a configuration update that is in progress, enter the `interrupt` command.
 
-```
+```bash
 $ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
 ```
 
 
 If you query the plan again, the response will look like this (notice `status: "Waiting"`):
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -335,13 +334,13 @@ If you query the plan again, the response will look like this (notice `status: "
 
 Enter the `continue` command to resume the update process.
 
-```
+```bash
 $ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
 ```
 
 After you execute the continue operation, the plan will look like this:
 
-```
+```json
 {
 	phases: [{
 		id: "77708b6f-52db-4361-a56f-4d2bd9d6bf09",
@@ -436,17 +435,17 @@ After you execute the continue operation, the plan will look like this:
 
 # Configuration Options
 
-The following describes the most commonly used features of Beta-HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring a HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
+The following describes the most commonly used features of HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
 
 ## Service Configuration
 
 The service configuration object contains properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
 
-```
+```json
 {
     "service": {
         "name": "hdfs",
-        "principal": "hdfs-principal",
+        "service_account": "hdfs-principal",
     }
 }
 ```
@@ -465,9 +464,9 @@ The service configuration object contains properties that MUST be specified duri
   </tr>
 
   <tr>
-    <td>principal</td>
+    <td>service_account</td>
     <td>string</td>
-    <td>The authentication principal for the HDFS cluster.</td>
+    <td>The service account for the HDFS cluster.</td>
   </tr>
 
 </table>
@@ -481,7 +480,7 @@ The service configuration object contains properties that MUST be specified duri
 The node configuration objects correspond to the configuration for nodes in the HDFS cluster. Node configuration MUST be specified during installation and MAY be modified during configuration updates. All of the properties except `disk` and `disk_type` MAY be modified during the configuration update process.
 
 Example node configuration:
-```
+```json
 	"journal_node": {
 		"cpus": 0.5,
 		"mem": 4096,
@@ -563,9 +562,6 @@ Example node configuration:
     <td>The number of nodes of that node type for the cluster. There are always exactly two name nodes, so the name_node object has no count property. Users may select either 3 or 5 journal nodes. The default value of 3 is sufficient for most deployments and should only be overridden after careful thought. At least 3 data nodes should be configured, but this value may be increased to meet the storage needs of the deployment.</td>
   </tr>
 </table>
-
-## Add a Data Node
-Increase the `DATA_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
 
 ### Node Info
 
@@ -1083,13 +1079,13 @@ Result:
 Similarly, the status for any node may also be queried.
 
 ```bash
-$ dcos beta-hdfs --name=<service-name> pod info <node-id>
+$ dcos beta-hdfs --name=<service-name> pod status <node-id>
 ```
 
 For example:
 
 ```bash
-$ dcos beta-hdfs pod info journal-0
+$ dcos beta-hdfs pod status journal-0
 ```
 
 ```json
@@ -1107,7 +1103,7 @@ $ dcos beta-hdfs pod info journal-0
 The HDFS file system network configuration, permissions, and compression is configured via the `hdfs` JSON object. Once these properties are set at installation time they can not be reconfigured.
 Example HDFS configuration:
 
-```
+```json
 {
     "hdfs": {
 		"name_node_rpc_port": 9001,
@@ -1316,3 +1312,60 @@ $ dcos beta-hdfs update force-restart service-phase service-0:[node]
 ```
 
 <!-- END DUPLICATE BLOCK -->
+
+# Replacing Journal Nodes
+The following section describes how to perform a `replace` of a Journal Node. This guide uses Journal Node 0 to
+refer to the unhealthy Journal Node as it's the replaced Journal Node.
+
+## Replace Command
+
+Replace the Journal Node via:
+```bash
+$ dcos beta-hdfs pod replace journal-0
+```
+
+## Detecting an unhealthy Journal Node after `replace`
+
+Once the replaced Journal Node is up and running, you should see the following in the `stderr` log:
+```
+org.apache.hadoop.hdfs.qjournal.protocol.JournalNotFormattedException: Journal Storage Directory
+```
+
+This indicates this Journal Node is unhealthy.
+
+## Determining a healthy Journal Node
+
+From the non-replaced Journal Nodes, confirm that a Journal Node is healthy:
+  - Inspect the `stderr` log and check for absence of errors.
+  - In `journal-data/hdfs/current`, check for:
+    - consecutive `edits_xxxxx-edits_xxxxx` files with timestamps between each differing by ~2 minutes.
+    - An `edits_inprogess_` file modified within the past 2 minutes.
+
+Once identified, make a note of which Journal Node is healthy.
+
+## Fixing the unhealthy Journal Node
+
+1. SSH into the sandbox of the unhealthy Journal Node via
+```bash
+$ dcos task exec -it journal-0 /bin/bash
+```
+
+2. In this sandbox, create the directory `journal-data/hdfs/current`:
+```bash
+$ mkdir -p journal-data/hdfs/current
+```
+
+3. From the healthy Journal Node identified previously, copy the contents of the `VERSION` file into `journal-data/hdfs/current/VERSION`.
+
+4. On the unhealthy Journal Node, create a file with the same path as the `VERSION` file on the healthy Journal Node:
+`journal-data/hdfs/current/VERSION`. Paste the copied contents into this file.
+
+5. Restart the unhealthy Journal Node via:
+```bash
+$ dcos beta-hdfs pod restart journal-0
+```
+
+6. Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the `stderr` log. You should see:
+```bash
+INFO namenode.FileJournalManager: Finalizing edits file
+```

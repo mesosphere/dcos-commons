@@ -1,0 +1,164 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "a368813c5e648fee92e5f6c30e3944ff9d5e8895",
+			"revisionTime": "2017-06-26T11:06:00Z"
+		},
+		{
+			"checksumSHA1": "KmjnydoAbofMieIWm+it5OWERaM=",
+			"path": "github.com/alecthomas/template",
+			"revision": "a0175ee3bccc567396460bf5acd36800cb10c49c",
+			"revisionTime": "2016-04-05T07:15:01Z"
+		},
+		{
+			"checksumSHA1": "3wt0pTXXeS+S93unwhGoLIyGX/Q=",
+			"path": "github.com/alecthomas/template/parse",
+			"revision": "a0175ee3bccc567396460bf5acd36800cb10c49c",
+			"revisionTime": "2016-04-05T07:15:01Z"
+		},
+		{
+			"checksumSHA1": "fCc3grA7vIxfBru7R3SqjcW+oLI=",
+			"path": "github.com/alecthomas/units",
+			"revision": "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a",
+			"revisionTime": "2015-10-22T06:55:26Z"
+		},
+		{
+			"checksumSHA1": "ulFwBsxjpyu+bk44+LKDl8AKQiA=",
+			"path": "github.com/aryann/difflib",
+			"revision": "e206f873d14a916d3d26c40ab667bca123f365a3",
+			"revisionTime": "2017-07-10T04:42:30Z"
+		},
+		{
+			"checksumSHA1": "Kh/msV2XTuYy0UB63hhoKcKfkyY=",
+			"path": "github.com/containernetworking/cni/pkg/invoke",
+			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
+			"revisionTime": "2017-09-18T16:34:26Z"
+		},
+		{
+			"path": "github.com/containernetworking/cni/pkg/ip",
+			"revision": ""
+		},
+		{
+			"path": "github.com/containernetworking/cni/pkg/ipam",
+			"revision": ""
+		},
+		{
+			"path": "github.com/containernetworking/cni/pkg/ns",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "KgoA/hK8xnDBSpFQqW5KXp6vhFo=",
+			"path": "github.com/containernetworking/cni/pkg/skel",
+			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
+			"revisionTime": "2017-09-18T16:34:26Z"
+		},
+		{
+			"checksumSHA1": "Sfdjk2zzDd0npAjZdULWjWoKVkQ=",
+			"path": "github.com/containernetworking/cni/pkg/types",
+			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
+			"revisionTime": "2017-09-18T16:34:26Z"
+		},
+		{
+			"checksumSHA1": "lmLYXYR/twmBu+6U678QNF+BQlQ=",
+			"path": "github.com/containernetworking/cni/pkg/types/020",
+			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
+			"revisionTime": "2017-09-18T16:34:26Z"
+		},
+		{
+			"checksumSHA1": "r6qX7lyz4pweijiXjWMcxvm4wQQ=",
+			"path": "github.com/containernetworking/cni/pkg/types/current",
+			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
+			"revisionTime": "2017-09-18T16:34:26Z"
+		},
+		{
+			"checksumSHA1": "Y9KLxL9fFDnFHaDGOUfDkcbyV0U=",
+			"path": "github.com/containernetworking/cni/pkg/version",
+			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
+			"revisionTime": "2017-09-18T16:34:26Z"
+		},
+		{
+			"checksumSHA1": "9s2sMrRoswjKgf8jn5pwPVp3rdM=",
+			"path": "github.com/dcos/dcos-cni",
+			"revision": "9fbcca53fabbd1d143b265cfd788c0455d421e05",
+			"revisionTime": "2017-09-14T16:05:16Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "BU+lI0p8Di+hQzRQ6D9deU5IEI4=",
+			"path": "github.com/gabrielhartmann/mustache",
+			"revision": "d20021ab1d8bed0152d0d305cc613839cc86b55f",
+			"revisionTime": "2017-11-16T21:26:17Z"
+		},
+		{
+			"checksumSHA1": "AIxWUvzOjHni8IwkElJw+b1IES8=",
+			"path": "github.com/nickbp/mustache",
+			"revision": "a219940dea5cbaf16473ee0d23386def39111593",
+			"revisionTime": "2017-01-19T01:18:40Z"
+		},
+		{
+			"checksumSHA1": "uEc9/1HbYGeK7wPStF6FmUlfzGE=",
+			"path": "github.com/nicksnyder/go-i18n/i18n",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "gDe7nlx3FyCVxLkARgl0VAntDRk=",
+			"path": "github.com/nicksnyder/go-i18n/i18n/bundle",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "+XOg99I1zdmBRUb04ZswvzQ2WS0=",
+			"path": "github.com/nicksnyder/go-i18n/i18n/language",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "WZOU406In2hs8FJOHWqV8PWkJKs=",
+			"path": "github.com/nicksnyder/go-i18n/i18n/translation",
+			"revision": "3e70a1a463008cea6726380c908b1a6a8bdf7b24",
+			"revisionTime": "2017-05-12T15:20:54Z"
+		},
+		{
+			"checksumSHA1": "zZg0J0MqvnqXVYo644QDvnUinrc=",
+			"path": "github.com/pelletier/go-toml",
+			"revision": "69d355db5304c0f7f809a2edc054553e7142f016",
+			"revisionTime": "2017-06-28T01:26:37Z"
+		},
+		{
+			"checksumSHA1": "DSXZnN+OjzFCR1qoAo49MAfaVgI=",
+			"path": "github.com/vishvananda/netlink",
+			"revision": "933b978eae8c18daa1077a0eb7186b689cd9f82d",
+			"revisionTime": "2017-09-02T20:36:53Z"
+		},
+		{
+			"checksumSHA1": "oNtzRasYc/H9quYOt/bNVP814OU=",
+			"path": "github.com/vishvananda/netlink/nl",
+			"revision": "933b978eae8c18daa1077a0eb7186b689cd9f82d",
+			"revisionTime": "2017-09-02T20:36:53Z"
+		},
+		{
+			"checksumSHA1": "YDN9yoXZ/KBWqILw9PCNtd/SRAI=",
+			"path": "github.com/vishvananda/netns",
+			"revision": "86bef332bfc3b59b7624a600bd53009ce91a9829",
+			"revisionTime": "2017-07-07T00:42:18Z"
+		},
+		{
+			"checksumSHA1": "Ee7T/R2MkaOUE2RG7umlQCrWmcc=",
+			"path": "gopkg.in/alecthomas/kingpin.v3-unstable",
+			"revision": "737cdbd3ff5e748fdf6525de68233d0c1f78e5a0",
+			"revisionTime": "2017-06-27T23:50:45Z"
+		},
+		{
+			"checksumSHA1": "KHOUE9QA14iPCFNIVs5X72MYdkA=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "3b4ad1db5b2a649883ff3782f5f9f6fb52be71af",
+			"revisionTime": "2017-07-13T20:15:20Z"
+		}
+	],
+	"rootPath": "github.com/mesosphere/dcos-commons/cli"
+}

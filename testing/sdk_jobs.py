@@ -1,8 +1,14 @@
-'''Utilities relating to creation and verification of Metronome jobs'''
+'''Utilities relating to creation and verification of Metronome jobs
 
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import json
 import logging
 import os
+import re
 import tempfile
 import traceback
 
@@ -27,11 +33,7 @@ def install_job(job_dict, tmp_dir=None):
     with open(out_filename, 'w') as f:
         f.write(job_str)
 
-    try:
-        _remove_job_by_name(job_name)
-    except:
-        log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
-            job_name, traceback.format_exc()))
+    _remove_job_by_name(job_name)
     sdk_cmd.run_cli('job add {}'.format(out_filename))
 
 
@@ -40,8 +42,12 @@ def remove_job(job_dict):
 
 
 def _remove_job_by_name(job_name):
-    # force bit ensures that fail-looping jobs (with restart.policy=ON_FAILURE) are consistently removed:
-    sdk_cmd.run_cli('job remove {} --stop-current-job-runs'.format(job_name), print_output=False)
+    try:
+        # --stop-current-job-runs ensures that fail-looping jobs (with restart.policy=ON_FAILURE) are consistently removed.
+        sdk_cmd.run_cli('job remove {} --stop-current-job-runs'.format(job_name), print_output=False)
+    except:
+        log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
+            job_name, traceback.format_exc()))
 
 
 class InstallJobContext(object):
@@ -66,26 +72,23 @@ class InstallJobContext(object):
 def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
-    sdk_cmd.run_cli('job run {}'.format(job_name))
+    # start job run, get run ID to be polled against:
+    run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
 
-    def wait_for_run_id():
-        runs = json.loads(sdk_cmd.run_cli('job show runs {} --json'.format(job_name)))
-        if len(runs) > 0:
-            return runs[0]['id']
-        return ''
-    run_id = shakedown.wait_for(wait_for_run_id, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
-
+    # wait for run to succeed, throw if run fails:
     def fun():
         # catch errors from CLI: ensure that the only error raised is our own:
         try:
-            runs = json.loads(sdk_cmd.run_cli(
-                'job history --show-failures --json {}'.format(job_name), print_output=False))
+            successful_runs = json.loads(sdk_cmd.run_cli(
+                'job history --json {}'.format(job_name), print_output=False))
+            failed_runs = json.loads(sdk_cmd.run_cli(
+                'job history --failures --json {}'.format(job_name), print_output=False))
         except:
             log.info(traceback.format_exc())
             return False
 
-        successful_ids = [r['id'] for r in runs['history']['successfulFinishedRuns']]
-        failed_ids = [r['id'] for r in runs['history']['failedFinishedRuns']]
+        successful_ids = [r['id'] for r in successful_runs]
+        failed_ids = [r['id'] for r in failed_runs]
 
         log.info('Job {} run history (waiting for successful {}): successful={} failed={}'.format(
             job_name, run_id, successful_ids, failed_ids))

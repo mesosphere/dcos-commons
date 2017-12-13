@@ -39,10 +39,11 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true));
+                                true,
+                                Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
         List<OfferRecommendation> recommendations = new ArrayList<>(outcome.getOfferRecommendations());
@@ -93,10 +94,11 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true));
+                                true,
+                                Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
     }

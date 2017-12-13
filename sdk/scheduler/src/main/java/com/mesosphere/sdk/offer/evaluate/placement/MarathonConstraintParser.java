@@ -13,14 +13,13 @@ import java.util.*;
 /**
  * Implements support for generating {@link PlacementRule}s from Marathon-style constraint strings.
  *
- * @see https://mesosphere.github.io/marathon/docs/constraints.html
+ * @see <a href="https://mesosphere.github.io/marathon/docs/constraints.html">Marathon Constraints</a>
  */
 public class MarathonConstraintParser {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MarathonConstraintParser.class);
     private static final char ESCAPE_CHAR = '\\';
 
-    private static final String HOSTNAME_FIELD = "hostname";
     private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
     static {
         SUPPORTED_OPERATORS.put("UNIQUE", new UniqueOperator());
@@ -29,6 +28,7 @@ public class MarathonConstraintParser {
         SUPPORTED_OPERATORS.put("LIKE", new LikeOperator());
         SUPPORTED_OPERATORS.put("UNLIKE", new UnlikeOperator());
         SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
+        SUPPORTED_OPERATORS.put("IS", new IsOperator());
     }
 
     private MarathonConstraintParser() {
@@ -75,7 +75,7 @@ public class MarathonConstraintParser {
      *     content isn't valid or supported
      */
     public static PlacementRule parse(String podName, String marathonConstraints) throws IOException {
-        if (marathonConstraints == null || marathonConstraints.isEmpty()) {
+        if (marathonConstraints == null || marathonConstraints.isEmpty() || marathonConstraints.equals("[]")) {
             // nothing to enforce
             return new PassthroughRule();
         }
@@ -209,8 +209,40 @@ public class MarathonConstraintParser {
      * across a filtered set of tasks.
      */
     private interface Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> parameter) throws IOException;
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> parameter) throws IOException;
+    }
+
+    /**
+     * {@code IS} tells Marathon to match the value of the key exactly.  For example the following constraint
+     * ensures that tasks only run on agents with the attribute "foo" equal to "bar": {@code [["foo", "IS", "bar"]]}
+     */
+    private static class IsOperator implements Operator {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
+            String parameter = validateRequiredParameter(operatorName, requiredParameter);
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ATTRIBUTE:
+                    return AttributeRuleFactory.getInstance().require(
+                            ExactMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown LIKE placement type encountered: %s", fieldName));
+            }
+        }
     }
 
     /**
@@ -219,17 +251,27 @@ public class MarathonConstraintParser {
      * on each host for some task type: {@code [["hostname", "UNIQUE"]]}
      */
     private static class UniqueOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> ignoredParameter) {
-            if (isHostname(fieldName)) {
-                return new MaxPerHostnameRule(1, taskFilter);
-            } else {
-                // Ensure that:
-                // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
-                // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
-                StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
-                return new AndRule(
-                        AttributeRule.require(matcher), new MaxPerAttributeRule(1, matcher, taskFilter));
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> ignoredParameter) {
+
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return new MaxPerHostnameRule(1, taskFilter);
+                case ZONE:
+                    return new MaxPerZoneRule(1, taskFilter);
+                case REGION:
+                    return new MaxPerRegionRule(1, taskFilter);
+                case ATTRIBUTE:
+                    StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
+                    return new AndRule(
+                            AttributeRuleFactory.getInstance().require(matcher),
+                            new MaxPerAttributeRule(1, matcher, taskFilter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown UNIQUE placement type encountered: %s", fieldName));
             }
         }
     }
@@ -243,13 +285,27 @@ public class MarathonConstraintParser {
      * hostname property: {@code [["hostname", "CLUSTER", "a.specific.node.com"]]}
      */
     private static class ClusterOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            if (isHostname(fieldName)) {
-                return HostnameRule.require(ExactMatcher.create(parameter));
-            } else {
-                return AttributeRule.require(ExactMatcher.createAttribute(fieldName, parameter));
+
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().require(ExactMatcher.create(parameter));
+                case ATTRIBUTE:
+                    return AttributeRuleFactory.getInstance().require(
+                            ExactMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown CLUSTER placement type encountered: %s", fieldName));
             }
         }
     }
@@ -273,8 +329,12 @@ public class MarathonConstraintParser {
      * attempt of comparing an incoming offer against the launched tasks.
      */
     private static class GroupByOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> parameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> parameter) throws IOException {
+
             final Optional<Integer> num;
             try {
                 num = Optional.ofNullable(parameter.isPresent() ?
@@ -284,10 +344,19 @@ public class MarathonConstraintParser {
                         "Unable to parse max parameter as integer for '%s' operation: %s",
                         operatorName, parameter), e);
             }
-            if (isHostname(fieldName)) {
-                return new RoundRobinByHostnameRule(num, taskFilter);
-            } else {
-                return new RoundRobinByAttributeRule(fieldName, num, taskFilter);
+
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return new RoundRobinByHostnameRule(num, taskFilter);
+                case ZONE:
+                    return new RoundRobinByZoneRule(num, taskFilter);
+                case REGION:
+                    return new RoundRobinByRegionRule(num, taskFilter);
+                case ATTRIBUTE:
+                    return new RoundRobinByAttributeRule(fieldName, num, taskFilter);
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown GROUP_BY placement type encountered: %s", fieldName));
             }
         }
     }
@@ -300,13 +369,26 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class LikeOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            if (isHostname(fieldName)) {
-                return HostnameRule.require(RegexMatcher.create(parameter));
-            } else {
-                return AttributeRule.require(RegexMatcher.createAttribute(fieldName, parameter));
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().require(RegexMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().require(RegexMatcher.create(parameter));
+                case ATTRIBUTE:
+                    return AttributeRuleFactory.getInstance().require(
+                            RegexMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown LIKE placement type encountered: %s", fieldName));
             }
         }
     }
@@ -318,13 +400,25 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class UnlikeOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            if (isHostname(fieldName)) {
-                return HostnameRule.avoid(RegexMatcher.create(parameter));
-            } else {
-                return AttributeRule.avoid(RegexMatcher.createAttribute(fieldName, parameter));
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
+                case ZONE:
+                    return ZoneRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
+                case REGION:
+                    return RegionRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
+                case ATTRIBUTE:
+                    return AttributeRuleFactory.getInstance().avoid(RegexMatcher.createAttribute(fieldName, parameter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown UNLIKE placement type encountered: %s", fieldName));
             }
         }
     }
@@ -337,8 +431,12 @@ public class MarathonConstraintParser {
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class MaxPerOperator implements Operator {
-        public PlacementRule run(StringMatcher taskFilter, String fieldName, String operatorName,
-                                 Optional<String> requiredParameter) throws IOException {
+        public PlacementRule run(
+                StringMatcher taskFilter,
+                String fieldName,
+                String operatorName,
+                Optional<String> requiredParameter) throws IOException {
+
             final int max;
             try {
                 max = Integer.parseInt(validateRequiredParameter(operatorName, requiredParameter));
@@ -347,21 +445,27 @@ public class MarathonConstraintParser {
                         "Unable to parse max parameter as integer for '%s' operation: %s",
                         operatorName, requiredParameter), e);
             }
-            if (isHostname(fieldName)) {
-                return new MaxPerHostnameRule(max, taskFilter);
-            } else {
-                // Ensure that:
-                // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
-                // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
-                StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
-                return new AndRule(
-                        AttributeRule.require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
+
+            switch (PlacementUtils.getField(fieldName)) {
+                case HOSTNAME:
+                    return new MaxPerHostnameRule(max, taskFilter);
+                case ZONE:
+                    return new MaxPerZoneRule(max, taskFilter);
+                case REGION:
+                    return new MaxPerRegionRule(max, taskFilter);
+                case ATTRIBUTE:
+                    // Ensure that:
+                    // - Task sticks to nodes with matching fieldName defined at all (AttributeRule)
+                    // - Task doesn't exceed one instance on those nodes (MaxPerAttributeRule)
+                    StringMatcher matcher = RegexMatcher.createAttribute(fieldName, ".*");
+                    return new AndRule(
+                            AttributeRuleFactory.getInstance()
+                                    .require(matcher), new MaxPerAttributeRule(max, matcher, taskFilter));
+                default:
+                    throw new UnsupportedOperationException(
+                            String.format("Unknown MAX_PER placement type encountered: %s", fieldName));
             }
         }
-    }
-
-    private static boolean isHostname(String fieldName) {
-        return HOSTNAME_FIELD.equalsIgnoreCase(fieldName);
     }
 
     private static String validateRequiredParameter(

@@ -2,7 +2,9 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -11,11 +13,12 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     private Protos.Value getPort(int port) {
         return Protos.Value.newBuilder()
@@ -33,10 +36,11 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                useDefaultExecutor);
+                useDefaultExecutor,
+                Collections.emptyMap());
     }
 
     private PodInstanceRequirement getPodInstanceRequirement(PortSpec... portSpecs) {
@@ -67,11 +71,12 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     }
 
     private DefaultPodInstance getPodInstance(String serviceSpecFileName) throws Exception {
-        DefaultServiceSpec serviceSpec = ServiceSpecTestUtils.getPodInstance(serviceSpecFileName, flags);
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(serviceSpecFileName).getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(serviceSpec.getPods().get(0))
-                .placementRule((offer, offerRequirement, taskInfos) ->
-                        EvaluationOutcome.pass(this, "pass for test").build())
+                .placementRule(TestPlacementUtils.PASS)
                 .build();
 
         serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)
@@ -424,5 +429,82 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             }
         }
         Assert.assertTrue(portInTaskEnv);
+    }
+
+    @Test
+    public void testDynamicPortNotStickyAfterReplacement() throws Exception {
+        // The initial dynamic port should be the min of the available range.
+        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10050);
+        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
+
+        PortSpec portSpec = new PortSpec(
+                getPort(0),
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL,
+                "PORT_TEST",
+                "TEST",
+                TestConstants.PORT_VISIBILITY,
+                Collections.emptyList());
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+                podInstanceRequirement,
+                TestConstants.SERVICE_NAME,
+                UUID.randomUUID(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                Collections.emptyList(),
+                TestConstants.FRAMEWORK_ID,
+                true,
+                Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(portSpec,
+                TestConstants.TASK_NAME,
+                Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(true, outcome.isPassing());
+
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
+        checkDiscoveryInfo(taskBuilder.getDiscovery(), "TEST", 10000);
+
+        // In a restart, we want port stickiness. It should fail if the original dynamic port is not
+        // available in the offer.
+        Protos.TaskInfo.Builder currentTaskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
+
+        podInfoBuilder = new PodInfoBuilder(
+                podInstanceRequirement,
+                TestConstants.SERVICE_NAME,
+                UUID.randomUUID(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                Collections.singleton(currentTaskBuilder.build()),
+                TestConstants.FRAMEWORK_ID,
+                true,
+                Collections.emptyMap());
+
+        // Omit 10,000 the expected port.
+        offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedPorts(10001, 10050));
+        mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(false, outcome.isPassing());
+
+        // In permanent replacement, the previous dynamic port should be discarded, so an offer
+        // without that port should be valid.
+        currentTaskBuilder.setLabels(new TaskLabelWriter(currentTaskBuilder).setPermanentlyFailed().toProto());
+
+        podInfoBuilder = new PodInfoBuilder(
+                podInstanceRequirement,
+                TestConstants.SERVICE_NAME,
+                UUID.randomUUID(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                Collections.singleton(currentTaskBuilder.build()),
+                TestConstants.FRAMEWORK_ID,
+                true,
+                Collections.emptyMap());
+
+        mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(true, outcome.isPassing());
     }
 }

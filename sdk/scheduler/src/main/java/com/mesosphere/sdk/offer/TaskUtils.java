@@ -10,6 +10,7 @@ import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
@@ -68,7 +69,7 @@ public class TaskUtils {
      * @return A list of the appropriate task names.
      */
     public static List<String> getTaskNames(PodInstance podInstance, Collection<String> tasksToLaunch) {
-        LOGGER.info("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
+        LOGGER.debug("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
         return podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
@@ -76,18 +77,13 @@ public class TaskUtils {
     }
 
     /**
-     * Returns all the {@link TaskSpec} that have TLS configuration.
-     *
-     * @param serviceSpec A ServiceSpec defining service.
-     * @return A list of the task specs.
+     * Returns whether any tasks within the provided {@link ServiceSpec} have transport encryption specs defined.
      */
-    public static List<TaskSpec> getTasksWithTLS(ServiceSpec serviceSpec) {
+    public static boolean hasTasksWithTLS(ServiceSpec serviceSpec) {
         List<TaskSpec> tasks = new ArrayList<>();
         serviceSpec.getPods().forEach(pod -> tasks.addAll(pod.getTasks()));
 
-        return tasks.stream()
-                .filter(taskSpec -> !taskSpec.getTransportEncryption().isEmpty())
-                .collect(Collectors.toList());
+        return tasks.stream().anyMatch(taskSpec -> !taskSpec.getTransportEncryption().isEmpty());
     }
 
     /**
@@ -235,6 +231,14 @@ public class TaskUtils {
             return true;
         }
 
+        int oldTaskKillGracePeriodSeconds = oldTaskSpec.getTaskKillGracePeriodSeconds();
+        int newTaskKillGracePeriodSeconds = newTaskSpec.getTaskKillGracePeriodSeconds();
+        if (oldTaskKillGracePeriodSeconds != newTaskKillGracePeriodSeconds) {
+            LOGGER.debug("TaskKillGracePeriodSeconds '{}' and '{}' are different.",
+                    oldTaskKillGracePeriodSeconds, newTaskKillGracePeriodSeconds);
+            return true;
+        }
+
         return false;
     }
 
@@ -316,62 +320,122 @@ public class TaskUtils {
         }
     }
 
+    public static Optional<TaskSpec> getTaskSpec(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
+            throws TaskException {
+        return getTaskSpec(getPodInstance(configStore, taskInfo), taskInfo.getName());
+    }
+
     public static Optional<TaskSpec> getTaskSpec(PodInstance podInstance, String taskName) {
         return podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskName))
                 .findFirst();
     }
 
+    public static Optional<TaskSpec> getTaskSpec(ServiceSpec serviceSpec, String podType, String taskName) {
+        for (PodSpec podSpec : serviceSpec.getPods()) {
+            if (!podSpec.getType().equals(podType)) {
+                continue;
+            }
+            for (TaskSpec taskSpec : podSpec.getTasks()) {
+                if (taskSpec.getName().equals(taskName)) {
+                    return Optional.of(taskSpec);
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Given a list of all tasks and failed tasks, returns a list of tasks (via returned
+     * {@link PodInstanceRequirement#getTasksToLaunch()}) that should be relaunched.
+     *
+     * @param failedTasks tasks marked as needing recovery
+     * @param allLaunchedTasks all launched tasks in the service
+     * @return list of pods, each with contained named tasks to be relaunched
+     */
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
-            Collection<TaskInfo> allTasks) throws TaskException {
+            Collection<TaskInfo> allLaunchedTasks) {
 
-        Set<PodInstance> pods = new HashSet<>();
-
+        // Mapping of pods, to failed tasks within those pods.
+        // Arbitrary consistent ordering: by pod instance name (e.g. "otherpodtype-0","podtype-0","podtype-1")
+        Map<PodInstance, Collection<TaskSpec>> podsToFailedTasks =
+                new TreeMap<>(Comparator.comparing(PodInstance::getName));
         for (TaskInfo taskInfo : failedTasks) {
             try {
-                pods.add(getPodInstance(configStore, taskInfo));
+                PodInstance podInstance = getPodInstance(configStore, taskInfo);
+                Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo.getName());
+                if (!taskSpec.isPresent()) {
+                    LOGGER.error("No TaskSpec found for failed task: {}", taskInfo.getName());
+                    continue;
+                }
+                Collection<TaskSpec> failedTaskSpecs = podsToFailedTasks.get(podInstance);
+                if (failedTaskSpecs == null) {
+                    failedTaskSpecs = new ArrayList<>();
+                    podsToFailedTasks.put(podInstance, failedTaskSpecs);
+                }
+                failedTaskSpecs.add(taskSpec.get());
             } catch (TaskException e) {
-                LOGGER.error("Failed to get pod instance for TaskInfo: {} with exception: {}", taskInfo, e);
+                LOGGER.error(String.format("Failed to get pod instance for task: %s", taskInfo.getName()), e);
             }
         }
+        if (podsToFailedTasks.isEmpty()) {
+            // short circuit
+            return Collections.emptyList();
+        }
 
-        List<String> allTaskNames = allTasks.stream()
+        Set<String> allLaunchedTaskNames = allLaunchedTasks.stream()
                 .map(taskInfo -> taskInfo.getName())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
-
-        for (PodInstance podInstance : pods) {
-            List<String> tasksToLaunch = new ArrayList<>();
-            for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-                String fullTaskName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
-                if (taskSpec.getGoal() == GoalState.RUNNING && allTaskNames.contains(fullTaskName)) {
-                    tasksToLaunch.add(taskSpec.getName());
-                }
+        for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+            boolean anyFailedTasksAreEssential = entry.getValue().stream().anyMatch(taskSpec -> taskSpec.isEssential());
+            Collection<TaskSpec> taskSpecsToLaunch;
+            if (anyFailedTasksAreEssential) {
+                // One or more of the failed tasks in this pod are marked as 'essential'.
+                // Relaunch all applicable tasks in the pod.
+                taskSpecsToLaunch = entry.getKey().getPod().getTasks();
+            } else {
+                // None of the failed tasks in this pod are 'essential'.
+                // Only recover the failed task(s), leave others in the pod as-is.
+                taskSpecsToLaunch = entry.getValue();
             }
 
-            podInstanceRequirements.add(PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
+            // Additional filtering:
+            // - Only relaunch tasks that have a RUNNING goal state. Don't worry about FINISHED tasks.
+            // - Don't relaunch tasks that haven't been launched yet (as indicated by presence in allLaunchedTasks)
+            taskSpecsToLaunch = taskSpecsToLaunch.stream()
+                    .filter(taskSpec -> taskSpec.getGoal() == GoalState.RUNNING &&
+                            allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
+                    .collect(Collectors.toList());
+
+            LOGGER.info("Tasks to relaunch in pod {}: {}", entry.getKey().getName(), taskSpecsToLaunch.stream()
+                    .map(taskSpec -> String.format(
+                            "%s=%s", taskSpec.getName(), taskSpec.isEssential() ? "essential" : "nonessential"))
+                    .collect(Collectors.toList()));
+            podInstanceRequirements.add(PodInstanceRequirement.newBuilder(
+                    entry.getKey(),
+                    taskSpecsToLaunch.stream()
+                            .map(taskSpec -> taskSpec.getName())
+                            .collect(Collectors.toList()))
+                    .build());
         }
 
         return podInstanceRequirements;
     }
 
-    public static PodInstance getPodInstance(
-            ConfigStore<ServiceSpec> configStore,
-            TaskInfo taskInfo) throws TaskException {
-
-        PodSpec podSpec = getPodSpec(configStore, taskInfo);
-        int index = new TaskLabelReader(taskInfo).getIndex();
-
-        return new DefaultPodInstance(podSpec, index);
+    public static PodInstance getPodInstance(ConfigStore<ServiceSpec> configStore, TaskInfo taskInfo)
+            throws TaskException {
+        return getPodInstance(getPodSpec(configStore, taskInfo), taskInfo);
     }
 
-    private static PodSpec getPodSpec(
-            ConfigStore<ServiceSpec> configStore,
-            TaskInfo taskInfo) throws TaskException {
+    public static PodInstance getPodInstance(PodSpec podSpec, TaskInfo taskInfo) throws TaskException {
+        return new DefaultPodInstance(podSpec, new TaskLabelReader(taskInfo).getIndex());
+    }
 
+    private static PodSpec getPodSpec(ConfigStore<ServiceSpec> configStore, TaskInfo taskInfo) throws TaskException {
         UUID configId = new TaskLabelReader(taskInfo).getTargetConfiguration();
         ServiceSpec serviceSpec;
 
@@ -383,7 +447,7 @@ public class TaskUtils {
                     configId, taskInfo.getName()), e);
         }
 
-        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        Optional<PodSpec> podSpecOptional = getPodSpec(serviceSpec, taskInfo);
         if (!podSpecOptional.isPresent()) {
             throw new TaskException(String.format(
                     "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));

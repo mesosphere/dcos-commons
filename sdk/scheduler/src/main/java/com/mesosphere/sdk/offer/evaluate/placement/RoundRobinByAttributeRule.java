@@ -5,12 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -58,7 +58,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getValue(Offer offer) {
+    protected String getKey(Offer offer) {
         for (Attribute attribute : offer.getAttributesList()) {
             if (attribute.getName().equalsIgnoreCase(attributeName)) {
                 return AttributeStringUtils.valueString(attribute);
@@ -68,7 +68,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getValue(TaskInfo task) {
+    protected String getKey(TaskInfo task) {
         for (String taskAttributeString : new TaskLabelReader(task).getOfferAttributeStrings()) {
             AttributeStringUtils.NameValue taskAttributeNameValue =
                     AttributeStringUtils.split(taskAttributeString);
@@ -86,27 +86,17 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
 
     @JsonProperty("value-count")
     private Optional<Integer> getAttributeValueCount() {
-        return distinctValueCount;
-    }
-
-    @JsonProperty("task-filter")
-    private StringMatcher getTaskFilter() {
-        return taskFilter;
+        return distinctKeyCount;
     }
 
     @Override
     public String toString() {
         return String.format("RoundRobinByAttributeRule{attribute=%s, attribute-count=%s, task-filter=%s}",
-                attributeName, distinctValueCount, taskFilter);
+                attributeName, distinctKeyCount, taskFilter);
     }
 
     @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ATTRIBUTE);
     }
 }

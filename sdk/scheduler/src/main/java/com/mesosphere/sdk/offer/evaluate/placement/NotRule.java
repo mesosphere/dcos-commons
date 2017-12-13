@@ -34,6 +34,11 @@ public class NotRule implements PlacementRule {
         }
     }
 
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return rule.getPlacementFields();
+    }
+
     @JsonProperty("rule")
     private PlacementRule getRule() {
         return rule;

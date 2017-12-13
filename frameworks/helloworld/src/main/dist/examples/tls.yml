@@ -101,6 +101,43 @@ pods:
           - name: server
             type: TLS
 
+  # Multiple tasks with separate TLS in the same pod for testing TLS footprint definition
+  multi:
+    count: 1
+    uris:
+      - {{JAVA_URI}}
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      first:
+        goal: RUNNING
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+
+                ls -lah && cat secure-tls-pod-first.crt && cat keystore-first.keystore && sleep $SLEEP_DURATION
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        transport-encryption:
+          - name: secure-tls-pod-first
+            type: TLS
+          - name: keystore-first
+            type: KEYSTORE
+      second:
+        goal: RUNNING
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+                ls -lah && cat secure-tls-pod-second.crt && cat keystore-second.keystore && sleep $SLEEP_DURATION
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        transport-encryption:
+          - name: secure-tls-pod-second
+            type: TLS
+          - name: keystore-second
+            type: KEYSTORE
+
 plans:
   deploy:
     strategy: parallel
@@ -117,3 +154,8 @@ plans:
       discovery:
         strategy: parallel
         pod: discovery
+      multi:
+        strategy: serial
+        pod: multi
+        steps:
+          - 0: [[first], [second]]

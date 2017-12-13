@@ -2,14 +2,13 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.SchedulerDriver;
@@ -19,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -37,7 +37,7 @@ public class DefaultPlanSchedulerTest {
             .build());
     private static final List<OfferID> ACCEPTED_IDS =
             Arrays.asList(OfferID.newBuilder().setValue("offer").build());
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     @Mock private OfferAccepter mockOfferAccepter;
     @Mock private OfferEvaluator mockOfferEvaluator;
@@ -58,8 +58,7 @@ public class DefaultPlanSchedulerTest {
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec =
-                DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
@@ -93,7 +92,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoRecommendations() throws InvalidRequirementException {
+    public void testEvaluateNoRecommendations() throws InvalidRequirementException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
@@ -105,7 +104,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException {
+    public void testEvaluateNoAcceptedOffers() throws InvalidRequirementException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
@@ -118,7 +117,7 @@ public class DefaultPlanSchedulerTest {
     }
 
     @Test
-    public void testEvaluateAcceptedOffers() throws InvalidRequirementException {
+    public void testEvaluateAcceptedOffers() throws InvalidRequirementException, IOException {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);

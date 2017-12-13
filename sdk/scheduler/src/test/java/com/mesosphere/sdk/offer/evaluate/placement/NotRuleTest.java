@@ -5,8 +5,8 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.TestPodFactory;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class NotRuleTest {
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = new NotRule(HostnameRule.requireExact("foo", "bar"));
+        rule = new NotRule(HostnameRuleFactory.getInstance().require(PlacementUtils.toExactMatchers("foo", "bar")));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }

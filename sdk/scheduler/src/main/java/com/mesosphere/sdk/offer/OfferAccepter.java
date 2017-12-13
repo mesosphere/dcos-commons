@@ -1,8 +1,6 @@
 package com.mesosphere.sdk.offer;
 
-import com.google.inject.Inject;
 import com.google.protobuf.TextFormat;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -11,42 +9,35 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The OfferAccepter extracts the Mesos Operations encapsulated by the OfferRecommendation and accepts Offers with those
  * Operations.
  */
 public class OfferAccepter {
-    private static final Logger logger = LoggerFactory.getLogger(OfferAccepter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfferAccepter.class);
+    private static final Filters FILTERS = Filters.newBuilder().setRefuseSeconds(1).build();
 
-    private Collection<OperationRecorder> recorders;
-
-    public OfferAccepter(OperationRecorder recorder) {
-        this(Arrays.asList(recorder));
-    }
+    private final Collection<OperationRecorder> recorders = new ArrayList<>();
 
     public OfferAccepter(List<OperationRecorder> recorders) {
-        this.recorders = recorders;
+        this.recorders.addAll(recorders);
     }
 
-    @Inject
-    public OfferAccepter(Set<OperationRecorder> recorders) {
-        this.recorders = recorders;
+    /**
+     * Adds a recorder for accepted operations.
+     *
+     * @return {@code this}
+     */
+    public OfferAccepter addRecorder(OperationRecorder recorder) {
+        this.recorders.add(recorder);
+        return this;
     }
 
     public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
-        return accept(driver, recommendations, getFilters());
-    }
-
-    public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations, Filters filters) {
         if (CollectionUtils.isEmpty(recommendations)) {
-            logger.warn("No recommendations, nothing to do");
+            LOGGER.warn("No recommendations, nothing to do");
             return new ArrayList<>();
         }
 
@@ -58,14 +49,14 @@ public class OfferAccepter {
         try {
             record(recommendations);
         } catch (Exception ex) {
-            logger.error("Failed to record Operations so not launching Task", ex);
+            LOGGER.error("Failed to record Operations so not launching Task", ex);
             return new ArrayList<>();
         }
 
         if (CollectionUtils.isNotEmpty(operations)) {
-            driver.acceptOffers(offerIds, operations, filters);
+            driver.acceptOffers(offerIds, operations, FILTERS);
         } else {
-            logger.warn("No Operations to perform.");
+            LOGGER.warn("No Operations to perform.");
         }
 
         return offerIds;
@@ -85,7 +76,7 @@ public class OfferAccepter {
         for (OfferRecommendation recommendation : recommendations) {
             if (recommendation instanceof LaunchOfferRecommendation &&
                     !((LaunchOfferRecommendation) recommendation).shouldLaunch()) {
-                logger.info("Skipping launch of transient Operation: {}",
+                LOGGER.info("Skipping launch of transient Operation: {}",
                         TextFormat.shortDebugString(recommendation.getOperation()));
             } else {
                 operations.add(recommendation.getOperation());
@@ -106,13 +97,9 @@ public class OfferAccepter {
     }
 
     private static void logOperations(List<Operation> operations) {
-        logger.info("Performing {} operations:", operations.size());
+        LOGGER.info("Performing {} operations:", operations.size());
         for (Operation op : operations) {
-            logger.info("  {}", TextFormat.shortDebugString(op));
+            LOGGER.info("  {}", TextFormat.shortDebugString(op));
         }
-    }
-
-    private static Filters getFilters() {
-        return Filters.newBuilder().setRefuseSeconds(1).build();
     }
 }

@@ -1,9 +1,17 @@
+'''
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_security IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import logging
 import os
 from typing import List, Tuple
 
 import requests
 import shakedown
+import sdk_cmd
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -32,15 +40,12 @@ def grant(dcosurl: str, headers: dict, user: str, acl: str, description: str, ac
 
 def revoke(dcosurl: str, headers: dict, user: str, acl: str, description: str, action: str="create") -> None:
     # TODO(kwood): INFINITY-2065 - implement security cleanup
-    # log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
-    pass
+    log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
 
 
 def get_dcos_credentials() -> Tuple[str, dict]:
-    dcosurl, err, rc = shakedown.run_dcos_command('config show core.dcos_url')
-    assert not rc, "Cannot get core.dcos_url: {}".format(err)
-    token, err, rc = shakedown.run_dcos_command('config show core.dcos_acs_token')
-    assert not rc, "Cannot get dcos_acs_token: {}".format(err)
+    dcosurl = sdk_cmd.run_cli('config show core.dcos_url', print_output=False)
+    token = sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'token={}'.format(token.strip()),
@@ -54,14 +59,16 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
         {
             'user': service_account_name,
             'acl': "dcos:mesos:master:framework:role:{}".format(role),
-            'description': "Register with the Mesos master with role={}".format(role),
+            'description': "Service {} may register with the Mesos master with role={}".format(
+                service_account_name, role),
         },
 
         ## task execution permissions
         {
             'user': service_account_name,
             'acl': "dcos:mesos:master:task:user:{}".format(linux_user),
-            'description': "Execute Mesos tasks as user={}".format(linux_user)
+            'description': "Service {} may execute Mesos tasks as user={}".format(
+                service_account_name, linux_user)
         },
 
         # XXX 1.10 curerrently requires this mesos:agent permission as well as
@@ -70,36 +77,22 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
         {
             'user': service_account_name,
             'acl': "dcos:mesos:agent:task:user:{}".format(linux_user),
-            'description': "Execute Mesos tasks as user={}".format(linux_user)
-        },
-
-        # In order for the Spark Dispatcher to register with Mesos as
-        # root, we must launch the dispatcher task as root.  The other
-        # frameworks are launched as nobody, but then register as
-        # service.user, which defaults to root
-        {
-            'user': 'dcos_marathon',
-            'acl': "dcos:mesos:master:task:user:root",
-            'description': "Execute Mesos tasks as user=root"
-        },
-
-        # XXX see above
-        {
-            'user': 'dcos_marathon',
-            'acl': "dcos:mesos:agent:task:user:root",
-            'description': "Execute Mesos tasks as user=root"
+            'description': "Service {} may execute Mesos tasks as user={}".format(
+                service_account_name, linux_user)
         },
 
         ## resource permissions
         {
             'user': service_account_name,
             'acl': "dcos:mesos:master:reservation:role:{}".format(role),
-            'description': "Reserve Mesos resources with role={}".format(role)
+            'description': "Service {} may reserve Mesos resources with role={}".format(
+                service_account_name, role)
         },
         {
             'user': service_account_name,
             'acl': "dcos:mesos:master:reservation:principal:{}".format(service_account_name),
-            'description': "Reserve Mesos resources with principal={}".format(service_account_name),
+            'description': "Service {} may reserve Mesos resources with principal={}".format(
+                service_account_name, service_account_name),
             'action': "delete",
         },
 
@@ -107,12 +100,14 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
         {
             'user': service_account_name,
             'acl': "dcos:mesos:master:volume:role:{}".format(role),
-            'description': "Create Mesos volumes with role={}".format(role)
+            'description': "Service {} may create Mesos volumes with role={}".format(
+                service_account_name, role)
         },
         {
             'user': service_account_name,
             'acl': "dcos:mesos:master:volume:principal:{}".format(service_account_name),
-            'description': "Create Mesos volumes with principal={}".format(service_account_name),
+            'description': "Service {} may create Mesos volumes with principal={}".format(
+                service_account_name, service_account_name),
             'action': "delete",
         }]
 
@@ -128,72 +123,70 @@ def grant_permissions(linux_user: str, role_name: str, service_account_name: str
 
 def revoke_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
     dcosurl, headers = get_dcos_credentials()
-    # log.info("Revoking permissions to {account}".format(account=service_account_name))
+    # log.info("Revoking permissions to {account}".format(account=service_account_nae))
     permissions = get_permissions(service_account_name, role_name, linux_user)
     for permission in permissions:
         revoke(dcosurl, headers, **permission)
     # log.info("Permission cleanup completed for {account}".format(account=service_account_name))
 
 
-def create_service_account(service_account_name: str, secret_name: str) -> None:
+def create_service_account(service_account_name: str, service_account_secret: str) -> None:
     log.info('Creating service account for account={account} secret={secret}'.format(
         account=service_account_name,
-        secret=secret_name))
+        secret=service_account_secret))
 
     log.info('Install cli necessary for security')
-    out, err, rc = shakedown.run_dcos_command('package install dcos-enterprise-cli --package-version=1.0.7')
-    assert not rc, 'Failed to install dcos-enterprise cli extension: {err}'.format(err=err)
+    sdk_cmd.run_cli('package install dcos-enterprise-cli --yes')
+
+    log.info('Remove any existing service account and/or secret')
+    delete_service_account(service_account_name, service_account_secret)
 
     log.info('Create keypair')
-    out, err, rc = shakedown.run_dcos_command('security org service-accounts keypair private-key.pem public-key.pem')
-    assert not rc, 'Failed to create keypair for testing service account: {err}'.format(err=err)
+    sdk_cmd.run_cli('security org service-accounts keypair private-key.pem public-key.pem')
 
     log.info('Create service account')
-    out, err, rc = shakedown.run_dcos_command(
-        'security org service-accounts delete "{account}"'.format(account=service_account_name))
-    out, err, rc = shakedown.run_dcos_command(
-        'security org service-accounts create -p public-key.pem -d "My service account" "{account}"'.format(
+    sdk_cmd.run_cli(
+        'security org service-accounts create -p public-key.pem -d "Service account for integration tests" "{account}"'.format(
             account=service_account_name))
-    assert not rc, 'Failed to create service account "{account}": {err}'.format(
-            account=service_account_name, err=err)
 
     log.info('Create secret')
-    out, err, rc = shakedown.run_dcos_command('security secrets delete "{secret}"'.format(secret=secret_name))
-    out, err, rc = shakedown.run_dcos_command(
+    sdk_cmd.run_cli(
         'security secrets create-sa-secret --strict private-key.pem "{account}" "{secret}"'.format(
-            account=service_account_name, secret=secret_name))
-    assert not rc, 'Failed to create secret "{secret}" for service account "{account}": {err}'.format(
-            account=service_account_name,
-            secret=secret_name,
-            err=err)
+            account=service_account_name, secret=service_account_secret))
 
     log.info('Service account created for account={account} secret={secret}'.format(
         account=service_account_name,
-        secret=secret_name))
+        secret=service_account_secret))
 
 
-def delete_service_account(service_account_name: str, secret_name: str) -> None:
+def delete_service_account(service_account_name: str, service_account_secret: str) -> None:
     """
-    Deletes service account and secret with private key that belongs to the
-    service account.
+    Deletes service account with private key that belongs to the service account.
     """
-    out, err, rc = shakedown.run_dcos_command(
-        "security org service-accounts delete {name}".format(name=service_account_name))
-    out, err, rc = shakedown.run_dcos_command(
-        "security secrets delete {secret_name}".format(secret_name=secret_name))
+    # ignore any failures:
+    shakedown.run_dcos_command("security org service-accounts delete {name}".format(name=service_account_name))
 
     # Files generated by service-accounts keypair command should get removed
-    keypair_files = ['private-key.pem', 'public-key.pem']
-    for keypair_file in keypair_files:
+    for keypair_file in ['private-key.pem', 'public-key.pem']:
         try:
             os.unlink(keypair_file)
         except OSError:
             pass
 
+    delete_secret(secret=service_account_secret)
+
+
+def delete_secret(secret: str) -> None:
+    """
+    Deletes a given secret.
+    """
+    # ignore any failures:
+    shakedown.run_dcos_command("security secrets delete {}".format(secret))
+
 
 def setup_security(framework_name: str) -> None:
     log.info('Setting up strict-mode security')
-    create_service_account(service_account_name='service-acct', secret_name='secret')
+    create_service_account(service_account_name='service-acct', service_account_secret='secret')
     grant_permissions(
         linux_user='nobody',
         role_name='{}-role'.format(framework_name),
@@ -201,16 +194,6 @@ def setup_security(framework_name: str) -> None:
     )
     grant_permissions(
         linux_user='nobody',
-        role_name='test__integration__{}-role'.format(framework_name),
-        service_account_name='service-acct'
-    )
-    grant_permissions(
-        linux_user='root',
-        role_name='{}-role'.format(framework_name),
-        service_account_name='service-acct'
-    )
-    grant_permissions(
-        linux_user='root',
         role_name='test__integration__{}-role'.format(framework_name),
         service_account_name='service-acct'
     )
@@ -218,19 +201,19 @@ def setup_security(framework_name: str) -> None:
 
 
 def cleanup_security(framework_name: str) -> None:
-    # log.info('Cleaning up strict-mode security')
+    log.info('Cleaning up strict-mode security')
     revoke_permissions(
-        linux_user='root',
-        role_name='test__integration__{}-role'.format(framework_name),
-        service_account_name='service-acct'
-    )
-    revoke_permissions(
-        linux_user='root',
+        linux_user='nobody',
         role_name='{}-role'.format(framework_name),
         service_account_name='service-acct'
     )
-    delete_service_account(service_account_name='service-acct', secret_name='secret')
-    # log.info('Finished cleaning up strict-mode security')
+    revoke_permissions(
+        linux_user='nobody',
+        role_name='test__integration__{}-role'.format(framework_name),
+        service_account_name='service-acct'
+    )
+    delete_service_account('service-acct', 'secret')
+    log.info('Finished cleaning up strict-mode security')
 
 
 def security_session(framework_name: str) -> None:
@@ -243,10 +226,10 @@ def security_session(framework_name: str) -> None:
         yield from sdk_security.security_session(framework_name)
     """
     try:
-        security_mode = os.environ.get('SECURITY')
-        if security_mode == 'strict':
+        is_strict = sdk_utils.is_strict_mode()
+        if is_strict:
             setup_security(framework_name)
         yield
     finally:
-        if security_mode == 'strict':
+        if is_strict:
             cleanup_security(framework_name)

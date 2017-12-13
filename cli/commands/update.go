@@ -29,7 +29,6 @@ func reportErrorAndExit(err error, responseBytes []byte) {
 }
 
 func describe() {
-	// TODO: figure out KingPin's error handling
 	requestContent, err := json.Marshal(describeRequest{config.ServiceName})
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -46,20 +45,19 @@ func describe() {
 		client.PrintJSONBytes(resolvedOptionsBytes)
 	} else {
 		client.PrintMessage("Package configuration is not available for service %s.", config.ServiceName)
-		client.PrintMessage("dcos %s %s is only available for packages installed with Enterprise DC/OS 1.10 or newer.", config.ModuleName, config.Command)
+		client.PrintMessage("This command is only available for packages installed with Enterprise DC/OS 1.10 or newer.")
 	}
 }
 
 func (cmd *describeHandler) handleDescribe(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	describe()
 	return nil
 }
 
-// HandleDescribe adds the describe subcommand to the passed in kingpin.Application.
-func HandleDescribe(app *kingpin.Application) {
+// HandleDescribeSection adds the describe subcommand to the passed in kingpin.Application.
+func HandleDescribeSection(app *kingpin.Application) {
 	cmd := &describeHandler{}
-	app.Command("describe", "View the package configuration for this DC/OS service").Action(cmd.handleDescribe)
+	app.Command("describe", "View the configuration for this service").Action(cmd.handleDescribe)
 }
 
 type updateHandler struct {
@@ -67,6 +65,7 @@ type updateHandler struct {
 	OptionsFile    string
 	PackageVersion string
 	ViewStatus     bool
+	Replace        bool
 }
 
 type updateRequest struct {
@@ -77,7 +76,6 @@ type updateRequest struct {
 }
 
 func printPackageVersions() {
-	// TODO: figure out KingPin's error handling
 	requestContent, _ := json.Marshal(describeRequest{config.ServiceName})
 	responseBytes, err := client.HTTPCosmosPostJSON("describe", string(requestContent))
 	if err != nil {
@@ -109,7 +107,6 @@ func printPackageVersions() {
 }
 
 func (cmd *updateHandler) ViewPackageVersions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	printPackageVersions()
 	return nil
 }
@@ -130,9 +127,8 @@ func parseUpdateResponse(responseBytes []byte) (string, error) {
 	return string(responseJSON["marathonDeploymentId"].(string)), nil
 }
 
-func doUpdate(optionsFile, packageVersion string) {
-	// TODO: figure out KingPin's error handling
-	request := updateRequest{AppID: config.ServiceName, Replace: false}
+func doUpdate(optionsFile, packageVersion string, replace bool) {
+	request := updateRequest{AppID: config.ServiceName, Replace: replace}
 	if len(packageVersion) == 0 && len(optionsFile) == 0 {
 		client.PrintMessage("Either --options and/or --package-version must be specified. See --help.")
 		return
@@ -143,12 +139,12 @@ func doUpdate(optionsFile, packageVersion string) {
 	if len(optionsFile) > 0 {
 		fileBytes, err := ioutil.ReadFile(optionsFile)
 		if err != nil {
-			client.PrintMessage("Failed to load specified options file %s: %s", optionsFile, err)
+			client.PrintMessageAndExit("Failed to load specified options file %s: %s", optionsFile, err)
 			return
 		}
 		optionsJSON, err := client.UnmarshalJSON(fileBytes)
 		if err != nil {
-			client.PrintMessage("Failed to parse JSON in specified options file %s: %s", optionsFile, err)
+			client.PrintMessageAndExit("Failed to parse JSON in specified options file %s: %s\nContent (%d bytes): %s", optionsFile, err, len(fileBytes), string(fileBytes))
 			return
 		}
 		request.OptionsJSON = optionsJSON
@@ -157,6 +153,7 @@ func doUpdate(optionsFile, packageVersion string) {
 	responseBytes, err := client.HTTPCosmosPostJSON("update", string(requestContent))
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
+		return
 	}
 	_, err = client.UnmarshalJSON(responseBytes)
 	checkError(err, responseBytes)
@@ -164,8 +161,7 @@ func doUpdate(optionsFile, packageVersion string) {
 }
 
 func (cmd *updateHandler) UpdateConfiguration(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
-	doUpdate(cmd.OptionsFile, cmd.PackageVersion)
+	doUpdate(cmd.OptionsFile, cmd.PackageVersion, cmd.Replace)
 	return nil
 }
 
@@ -177,6 +173,7 @@ func HandleUpdateSection(app *kingpin.Application) {
 	start := update.Command("start", "Launches an update operation").Action(cmd.UpdateConfiguration)
 	start.Flag("options", "Path to a JSON file that contains customized package installation options").StringVar(&cmd.OptionsFile)
 	start.Flag("package-version", "The desired package version").StringVar(&cmd.PackageVersion)
+	start.Flag("replace", "Replace the existing configuration in whole. Otherwise, the existing configuration and options are merged.").BoolVar(&cmd.Replace)
 
 	planCmd := &planHandler{}
 
@@ -196,4 +193,6 @@ func HandleUpdateSection(app *kingpin.Application) {
 
 	status := update.Command("status", "View status of a running update").Alias("show").Action(planCmd.handleStatus)
 	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&planCmd.RawJSON)
+	// ensure plan name is passed
+	status.Flag("plan", "Name of the plan to launch").Default("deploy").Hidden().StringVar(&planCmd.PlanName)
 }

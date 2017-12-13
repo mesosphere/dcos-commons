@@ -62,7 +62,7 @@ public class ResponseUtils {
     /**
      * Returns a 200 OK response containing the provided JSON {@link String}.
      *
-     * Resources which call this directly should extend {@link PrettyJsonResource}.
+     * Resources which call this directly should extend {@link com.mesosphere.sdk.api.types.PrettyJsonResource}.
      */
     public static Response jsonResponseBean(Object entity, Response.Status status) {
         return Response.status(status).entity(entity).type(MediaType.APPLICATION_JSON_TYPE).build();
@@ -76,7 +76,7 @@ public class ResponseUtils {
     }
 
     /**
-     * Returns a response containing the provided plaintext {@link String} with the 
+     * Returns a response containing the provided plaintext {@link String} with the
      * provided status {@link Response.Status}.
      */
     public static Response plainResponse(String plaintext, Response.Status status) {
@@ -85,7 +85,7 @@ public class ResponseUtils {
 
 
     /**
-     * Returns a response containing the provided plaintext {@link String} with the 
+     * Returns a response containing the provided plaintext {@link String} with the
      * provided statusCode.
      */
     public static Response plainResponse(String plaintext, int statusCode) {
@@ -105,5 +105,4 @@ public class ResponseUtils {
     public static Response alreadyReportedResponse() {
         return plainResponse("Command has already been reported or completed", 208);
     }
-
 }

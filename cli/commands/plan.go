@@ -11,9 +11,12 @@ import (
 	"net/http"
 
 	"github.com/mesosphere/dcos-commons/cli/client"
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
+
+const UNKNOWN_VALUE = "<UNKNOWN>"
+
+var errPlanStatus417 = errors.New("plan endpoint returned HTTP status code 417")
 
 type planHandler struct {
 	PlanName   string
@@ -55,7 +58,11 @@ func (cmd *planHandler) getPlanName() string {
 	if len(cmd.PlanName) > 0 {
 		return cmd.PlanName
 	}
-	return "deploy"
+	// there is no (and should not be) a case where the plan name is requested here where it is not needed.
+	// this invariant should be guarded by CLI validators, but since other commands, such as `update` route
+	// through the `plan` command, counting on such a guard is error prone, so underlying guard applied here.
+	client.PrintMessageAndExit("Must specify a plan name, e.g. 'deploy'")
+	return ""
 }
 
 type plansResponse struct {
@@ -87,6 +94,8 @@ func checkPlansResponse(response *http.Response, body []byte) error {
 		}
 	case response.StatusCode == http.StatusAlreadyReported:
 		return errors.New("Cannot execute command. Command has already been issued or the plan has completed.")
+	case response.StatusCode == http.StatusExpectationFailed:
+		return errPlanStatus417
 	}
 	return nil
 }
@@ -117,7 +126,6 @@ func forceComplete(planName, phase, step string) {
 }
 
 func (cmd *planHandler) handleForceComplete(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	forceComplete(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
@@ -149,13 +157,11 @@ func restart(planName, phase, step string) {
 }
 
 func (cmd *planHandler) handleForceRestart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	restart(cmd.getPlanName(), cmd.Phase, cmd.Step)
 	return nil
 }
 
 func (cmd *planHandler) handleList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	responseBytes, err := client.HTTPServiceGet("v1/plans")
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -180,7 +186,6 @@ func pause(planName, phase string) error {
 }
 
 func (cmd *planHandler) handlePause(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	err := pause(cmd.getPlanName(), cmd.Phase)
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -204,7 +209,6 @@ func resume(planName, phase string) error {
 }
 
 func (cmd *planHandler) handleResume(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	err := resume(cmd.getPlanName(), cmd.Phase)
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
@@ -213,7 +217,6 @@ func (cmd *planHandler) handleResume(a *kingpin.Application, e *kingpin.ParseEle
 }
 
 func (cmd *planHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	payload := "{}"
 	if len(cmd.Parameters) > 0 {
 		parameterPayload, err := getPlanParameterPayload(cmd.Parameters)
@@ -223,7 +226,7 @@ func (cmd *planHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElem
 		payload = parameterPayload
 	}
 	client.SetCustomResponseCheck(checkPlansResponse)
-	responseBytes, err := client.HTTPServicePostData(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload, "application/json")
+	responseBytes, err := client.HTTPServicePostJSON(fmt.Sprintf("v1/plans/%s/start", cmd.PlanName), payload)
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
@@ -234,24 +237,23 @@ func (cmd *planHandler) handleStart(a *kingpin.Application, e *kingpin.ParseElem
 func printStatus(planName string, rawJSON bool) {
 	client.SetCustomResponseCheck(checkPlansResponse)
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/plans/%s", planName))
-	if err != nil {
+
+	if err != nil && err != errPlanStatus417 {
 		client.PrintMessageAndExit(err.Error())
 	}
 	if rawJSON {
 		client.PrintJSONBytes(responseBytes)
 	} else {
-		client.PrintMessage(toStatusTree(planName, responseBytes))
+		client.PrintMessage(toPlanStatusTree(planName, responseBytes))
 	}
 }
 
 func (cmd *planHandler) handleStatus(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	printStatus(cmd.getPlanName(), cmd.RawJSON)
 	return nil
 }
 
 func (cmd *planHandler) handleStop(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	config.Command = c.SelectedCommand.FullCommand()
 	client.SetCustomResponseCheck(checkPlansResponse)
 	responseBytes, err := client.HTTPServicePost(fmt.Sprintf("v1/plans/%s/stop", cmd.PlanName))
 	if err != nil {
@@ -267,59 +269,63 @@ func HandlePlanSection(app *kingpin.Application) {
 	cmd := &planHandler{}
 	plan := app.Command("plan", "Query service plans")
 
-	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase").Alias("force").Action(cmd.handleForceComplete)
-	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
-	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
-	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
+	plan.Command("list", "Show all plans for this service").Action(cmd.handleList)
 
-	forceRestart := plan.Command("force-restart", "Restart a deploy plan, or specific step in the provided phase").Alias("restart").Action(cmd.handleForceRestart)
+	status := plan.Command("status", "Display the status of the plan with the provided plan name").Alias("show").Action(cmd.handleStatus)
+	status.Arg("plan", "Name of the plan to show").Required().StringVar(&cmd.PlanName)
+	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
+
+	start := plan.Command("start", "Start the plan with the provided name and any optional plan arguments").Action(cmd.handleStart)
+	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
+	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
+
+	stop := plan.Command("stop", "Stop the running plan with the provided name").Action(cmd.handleStop)
+	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
+
+	pause := plan.Command("pause", "Pause the plan, or a specific phase in that plan with the provided phase name (or UUID)").Alias("interrupt").Action(cmd.handlePause)
+	pause.Arg("plan", "Name of the plan to pause").Required().StringVar(&cmd.PlanName)
+	pause.Arg("phase", "Name or UUID of a specific phase to pause").StringVar(&cmd.Phase)
+
+	resume := plan.Command("resume", "Resume the plan, or a specific phase in that plan with the provided phase name (or UUID)").Alias("continue").Action(cmd.handleResume)
+	resume.Arg("plan", "Name of the plan to resume").Required().StringVar(&cmd.PlanName)
+	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
+
+	forceRestart := plan.Command("force-restart", "Restart the plan with the provided name, or a specific phase in the plan with the provided name, or a specific step in a phase of the plan with the provided step name.").Alias("restart").Action(cmd.handleForceRestart)
 	forceRestart.Arg("plan", "Name of the plan to restart").Required().StringVar(&cmd.PlanName)
 	forceRestart.Arg("phase", "Name or UUID of the phase containing the provided step").StringVar(&cmd.Phase) // TODO optional
 	forceRestart.Arg("step", "Name or UUID of step to be restarted").StringVar(&cmd.Step)
 
-	plan.Command("list", "Show all plans for this service").Action(cmd.handleList)
-
-	pause := plan.Command("pause", "Pause the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("interrupt").Action(cmd.handlePause)
-	pause.Arg("plan", "Name of the plan to pause").StringVar(&cmd.PlanName)
-	pause.Arg("phase", "Name or UUID of a specific phase to pause").StringVar(&cmd.Phase)
-
-	resume := plan.Command("resume", "Resume the deploy plan, or the plan with the provided name, or a specific phase in that plan with the provided name or UUID").Alias("continue").Action(cmd.handleResume)
-	resume.Arg("plan", "Name of the plan to resume").StringVar(&cmd.PlanName)
-	resume.Arg("phase", "Name or UUID of a specific phase to continue").StringVar(&cmd.Phase)
-
-	start := plan.Command("start", "Start the plan with the provided name, with optional envvars to supply to task").Action(cmd.handleStart)
-	start.Arg("plan", "Name of the plan to start").Required().StringVar(&cmd.PlanName)
-	start.Flag("params", "Envvar definition in VAR=value form; can be repeated for multiple variables").Short('p').StringsVar(&cmd.Parameters)
-
-	status := plan.Command("status", "Display the deploy plan or the plan with the provided name").Alias("show").Action(cmd.handleStatus)
-	status.Arg("plan", "Name of the plan to show").StringVar(&cmd.PlanName)
-	status.Flag("json", "Show raw JSON response instead of user-friendly tree").BoolVar(&cmd.RawJSON)
-
-	stop := plan.Command("stop", "Stop the plan with the provided name").Action(cmd.handleStop)
-	stop.Arg("plan", "Name of the plan to stop").Required().StringVar(&cmd.PlanName)
+	forceComplete := plan.Command("force-complete", "Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due to observed failure or known required manual preparation that was not performed").Alias("force").Action(cmd.handleForceComplete)
+	forceComplete.Arg("plan", "Name of the plan to force complete").Required().StringVar(&cmd.PlanName)
+	forceComplete.Arg("phase", "Name or UUID of the phase containing the provided step").Required().StringVar(&cmd.Phase)
+	forceComplete.Arg("step", "Name or UUID of step to be restarted").Required().StringVar(&cmd.Step)
 }
 
-func toStatusTree(planName string, planJSONBytes []byte) string {
-	optionsJSON, err := client.UnmarshalJSON(planJSONBytes)
+func toPlanStatusTree(planName string, planJSONBytes []byte) string {
+	planJSON, err := client.UnmarshalJSON(planJSONBytes)
 	if err != nil {
 		client.PrintMessageAndExit(fmt.Sprintf("Failed to parse JSON in plan response: %s", err))
 	}
 	var buf bytes.Buffer
 
-	planStatus, ok := optionsJSON["status"]
+	planStatus, ok := planJSON["status"]
 	if !ok {
-		planStatus = "<UNKNOWN>"
+		planStatus = UNKNOWN_VALUE
 	}
-	buf.WriteString(fmt.Sprintf("%s (%s)\n", planName, planStatus))
+	planStrategy, ok := planJSON["strategy"]
+	if !ok {
+		planStrategy = UNKNOWN_VALUE
+	}
+	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
 
-	phases, ok := optionsJSON["phases"].([]interface{})
+	rawPhases, ok := planJSON["phases"].([]interface{})
 	if ok {
-		for i, rawPhase := range phases {
-			appendPhase(&buf, rawPhase, i == len(phases)-1)
+		for i, rawPhase := range rawPhases {
+			appendPhase(&buf, rawPhase, i == len(rawPhases)-1)
 		}
 	}
 
-	errors, ok := optionsJSON["errors"].([]interface{})
+	errors, ok := planJSON["errors"].([]interface{})
 	if ok && len(errors) > 0 {
 		buf.WriteString("\nErrors:\n")
 		for _, error := range errors {
@@ -327,18 +333,18 @@ func toStatusTree(planName string, planJSONBytes []byte) string {
 		}
 	}
 
-	// Trim extra newline from end:
-	buf.Truncate(buf.Len() - 1)
-
-	return buf.String()
+	return strings.TrimRight(buf.String(), "\n")
 }
 
 func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 	var phasePrefix string
+	var stepPrefix string
 	if lastPhase {
 		phasePrefix = "└─ "
+		stepPrefix = "   "
 	} else {
 		phasePrefix = "├─ "
+		stepPrefix = "│  "
 	}
 
 	phase, ok := rawPhase.(map[string]interface{})
@@ -346,49 +352,55 @@ func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 		return
 	}
 
-	buf.WriteString(elementString(phasePrefix, phase))
+	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, phaseString(phase)))
 
-	steps, ok := phase["steps"].([]interface{})
+	rawSteps, ok := phase["steps"].([]interface{})
 	if !ok {
 		return
 	}
-	for i, rawStep := range steps {
-		appendStep(buf, rawStep, lastPhase, i == len(steps)-1)
+	for i, rawStep := range rawSteps {
+		appendStep(buf, rawStep, stepPrefix, i == len(rawSteps)-1)
 	}
 }
 
-func appendStep(buf *bytes.Buffer, rawStep interface{}, lastPhase bool, lastStep bool) {
-	var stepPrefix string
-	if lastPhase {
-		if lastStep {
-			stepPrefix = "   └─ "
-		} else {
-			stepPrefix = "   ├─ "
-		}
-	} else {
-		if lastStep {
-			stepPrefix = "│  └─ "
-		} else {
-			stepPrefix = "│  ├─ "
-		}
-	}
-
+func appendStep(buf *bytes.Buffer, rawStep interface{}, prefix string, lastStep bool) {
 	step, ok := rawStep.(map[string]interface{})
 	if !ok {
 		return
 	}
 
-	buf.WriteString(elementString(stepPrefix, step))
+	if lastStep {
+		prefix += "└─ "
+	} else {
+		prefix += "├─ "
+	}
+	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, stepString(step)))
 }
 
-func elementString(prefix string, element map[string]interface{}) string {
-	elementName, ok := element["name"]
+func phaseString(phase map[string]interface{}) string {
+	phaseName, ok := phase["name"]
 	if !ok {
-		elementName = "<UNKNOWN>"
+		phaseName = UNKNOWN_VALUE
 	}
-	elementStatus, ok := element["status"]
+	phaseStrategy, ok := phase["strategy"]
 	if !ok {
-		elementStatus = "<UNKNOWN>"
+		phaseStrategy = UNKNOWN_VALUE
 	}
-	return fmt.Sprintf("%s%s (%s)\n", prefix, elementName, elementStatus)
+	phaseStatus, ok := phase["status"]
+	if !ok {
+		phaseStatus = UNKNOWN_VALUE
+	}
+	return fmt.Sprintf("%s (%s strategy) (%s)", phaseName, phaseStrategy, phaseStatus)
+}
+
+func stepString(step map[string]interface{}) string {
+	stepName, ok := step["name"]
+	if !ok {
+		stepName = UNKNOWN_VALUE
+	}
+	stepStatus, ok := step["status"]
+	if !ok {
+		stepStatus = UNKNOWN_VALUE
+	}
+	return fmt.Sprintf("%s (%s)", stepName, stepStatus)
 }

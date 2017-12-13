@@ -1,0 +1,44 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
+    tasks:
+      server-a:
+        goal: RUNNING
+        cmd: env && echo server-a >> hello-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      server-b:
+        goal: RUNNING
+        cmd: env && echo server-b >> hello-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello:
+        pod: hello
+        steps:
+        {{#TEST_BOOLEAN}}
+          - default: [[server-a], [server-b]]
+        {{/TEST_BOOLEAN}}
+        {{^TEST_BOOLEAN}}
+          - default: [[server-b]]
+        {{/TEST_BOOLEAN}}

@@ -1,5 +1,14 @@
-'''Utilities relating to interaction with Marathon'''
+'''Utilities relating to interaction with Marathon
+
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import logging
+import json
+import os
+import tempfile
 
 import shakedown
 
@@ -26,7 +35,55 @@ def get_config(app_name):
     return config
 
 
-def update_app(app_name, config, timeout=600):
+def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
+    """
+    Installs a marathon app using the path to an app definition.
+
+    Args:
+        app_def_path: Path to app definition
+
+    Returns:
+        (bool, str) tuple: Boolean indicates success of install attempt. String indicates
+        error message if install attempt failed.
+    """
+    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
+        cmd="marathon app add ", file_path=app_def_path
+    ))
+    if "Created deployment" not in output:
+        return 1, output
+
+    log.info("Waiting for app to be running...")
+    shakedown.wait_for_task("marathon", app_name)
+    return 0, ""
+
+
+def install_app(app_definition: dict) -> (bool, str):
+    """
+    Installs a marathon app using the given `app_definition`.
+
+    Args:
+        app_definition: The definition of the app to pass to marathon.
+
+    Returns:
+        (bool, str) tuple: Boolean indicates success of install attempt. String indicates
+        error message if install attempt failed.
+    """
+    app_name = app_definition["id"]
+
+    with tempfile.TemporaryDirectory() as d:
+        app_def_file = "{}.json".format(app_name)
+        log.info("Launching {} marathon app".format(app_name))
+
+        app_def_path = os.path.join(d, app_def_file)
+
+        log.info("Writing app definition to %s", app_def_path)
+        with open(app_def_path, "w") as f:
+            json.dump(app_definition, f)
+
+        return install_app_from_file(app_name, app_def_path)
+
+
+def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
     if "env" in config:
         log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):
@@ -35,8 +92,9 @@ def update_app(app_name, config, timeout=600):
 
     assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
 
-    log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
-    shakedown.deployment_wait(app_id=app_name, timeout=timeout)
+    if wait_for_completed_deployment:
+        log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
+        shakedown.deployment_wait(app_id=app_name, timeout=timeout)
 
 
 def destroy_app(app_name):

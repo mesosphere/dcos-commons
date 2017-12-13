@@ -4,42 +4,45 @@ import com.google.common.base.Joiner;
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
 import com.mesosphere.sdk.config.validate.TaskEnvCannotChange;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.specification.DefaultService;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
 
 /**
- * Cassandra Service.
+ * Main entry point for the Scheduler.
  */
 public class Main {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) throws Exception {
-        new DefaultService(createSchedulerBuilder(new File(args[0]))).run();
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected one file argument, got: " + Arrays.toString(args));
+        }
+        SchedulerRunner
+                .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))
+                .run();
     }
 
-    private static DefaultScheduler.Builder createSchedulerBuilder(File pathToYamlSpecification)
-            throws Exception {
-        SchedulerFlags schedulerFlags = SchedulerFlags.fromEnv();
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(pathToYamlSpecification).build();
+    private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName());
         return DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerFlags)
+                DefaultServiceSpec
+                        .newGenerator(rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
                         .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
                         .build(),
-                schedulerFlags)
+                schedulerConfig)
                 // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
                 // we need to allow the case where they may have previously been unset:
                 .setCustomConfigValidators(Arrays.asList(
+                        new ZoneValidator(),
                         new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_DATA_CENTER",
-                                TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET),
-                        new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_RACK",
                                 TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)
                 .setCustomResources(getResources(localSeeds))

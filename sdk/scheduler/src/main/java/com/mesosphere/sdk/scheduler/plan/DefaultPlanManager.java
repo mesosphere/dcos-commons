@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.scheduler.ChainedObserver;
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -9,16 +8,26 @@ import java.util.*;
  * Provides the default implementation of a {@link PlanManager}.
  * Encapsulates the plan and a strategy for executing that plan.
  */
-public class DefaultPlanManager extends ChainedObserver implements PlanManager {
+public class DefaultPlanManager implements PlanManager {
     private final Plan plan;
 
-    public DefaultPlanManager(final Plan plan) {
-        // All plans begin in an interrupted state.  The deploy plan will
-        // be automatically proceeded when appropriate.  Other plans are
-        // sidecar plans and should be externally proceeded.
+    /**
+     * Creates a new plan manager for the provided {@link Plan}, which will not be set to an interrupted state.
+     */
+    public static DefaultPlanManager createProceeding(Plan plan) {
+        return new DefaultPlanManager(plan);
+    }
+
+    /**
+     * Creates a new plan manager for the provided {@link Plan}, which will be set to an interrupted state.
+     */
+    public static DefaultPlanManager createInterrupted(Plan plan) {
         plan.interrupt();
+        return new DefaultPlanManager(plan);
+    }
+
+    private DefaultPlanManager(final Plan plan) {
         this.plan = plan;
-        this.plan.subscribe(this);
     }
 
     @Override
@@ -38,19 +47,6 @@ public class DefaultPlanManager extends ChainedObserver implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        Set<PodInstanceRequirement> dirtyAssets = new HashSet<>();
-        final List<? extends Phase> phases = plan.getChildren();
-        for (Phase phase : phases) {
-            final List<? extends Step> steps = phase.getChildren();
-            for (Step step : steps) {
-                if (step.isAssetDirty()) {
-                    Optional<PodInstanceRequirement> dirtyAsset = step.getAsset();
-                    if (dirtyAsset.isPresent()) {
-                        dirtyAssets.add(dirtyAsset.get());
-                    }
-                }
-            }
-        }
-        return dirtyAssets;
+        return PlanUtils.getDirtyAssets(plan);
     }
 }

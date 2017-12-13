@@ -3,8 +3,12 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A PodInstanceRequirement encapsulates a {@link PodInstance} and the names of tasks that should be launched in it.
@@ -53,7 +57,7 @@ public class PodInstanceRequirement {
      * pod.
      */
     public Map<String, String> getEnvironment() {
-        return environment == null ? Collections.emptyMap() : environment;
+        return environment;
     }
 
     public RecoveryType getRecoveryType() {
@@ -66,7 +70,7 @@ public class PodInstanceRequirement {
 
     @Override
     public String toString() {
-        return getName();
+        return String.format("%s(%s)", getName(), recoveryType);
     }
 
     /**
@@ -88,12 +92,22 @@ public class PodInstanceRequirement {
         return podConflicts && anyTaskConflicts;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @Override
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
+    }
+
     /**
      * {@link PodInstanceRequirement} builder static inner class.
      */
     public static final class Builder {
-        private PodInstance podInstance;
-        private Collection<String> tasksToLaunch;
+        private final PodInstance podInstance;
+        private final Collection<String> tasksToLaunch;
         private Map<String, String> environment = new HashMap<>();
         private RecoveryType recoveryType = RecoveryType.NONE;
 
@@ -106,16 +120,6 @@ public class PodInstanceRequirement {
         private Builder(PodInstance podInstance, Collection<String> tasksToLaunch) {
             this.podInstance = podInstance;
             this.tasksToLaunch = tasksToLaunch;
-        }
-
-        public Builder podInstance(PodInstance podInstance) {
-            this.podInstance = podInstance;
-            return this;
-        }
-
-        public Builder tasksToLaunch(Collection<String> tasksToLaunch) {
-            this.tasksToLaunch = tasksToLaunch;
-            return this;
         }
 
         public Builder environment(Map<String, String> environment) {

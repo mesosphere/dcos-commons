@@ -108,6 +108,29 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
+    public void testIsOperator() throws IOException {
+        String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['foo', 'IS', 'bar']]")).toString();
+        assertEquals("AttributeRule{matcher=ExactMatcher{str='foo:bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['foo', 'IS', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "foo:IS:bar").toString());
+
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['@region', 'IS', 'bar']]")).toString();
+        assertEquals("RegionRule{matcher=ExactMatcher{str='bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['@region', 'IS', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "@region:IS:bar").toString());
+
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['@zone', 'IS', 'bar']]")).toString();
+        assertEquals("ZoneRule{matcher=ExactMatcher{str='bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['@zone', 'IS', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "@zone:IS:bar").toString());
+
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['@hostname', 'IS', 'bar']]")).toString();
+        assertEquals("HostnameRule{matcher=ExactMatcher{str='bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['@hostname', 'IS', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "@hostname:IS:bar").toString());
+    }
+
+    @Test
     public void testUnlikeOperator() throws IOException {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'UNLIKE', 'rack-[7-9]']]")).toString();
@@ -178,6 +201,11 @@ public class MarathonConstraintParserTest {
     @Test
     public void testEmptyConstraint() throws IOException {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "").toString());
+    }
+
+    @Test
+    public void testEmptyArrayConstraint() throws IOException {
+        assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "[]").toString());
     }
 
     @Test(expected = IOException.class)

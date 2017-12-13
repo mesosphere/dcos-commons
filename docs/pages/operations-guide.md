@@ -160,10 +160,14 @@ Mesos will periodically notify subscribed Schedulers of resources in the cluster
 Schedulers written using the SDK perform the following operations as Offers are received from Mesos:
 
 1. __Task Reconciliation__: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
-1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger nodes, or reduce the requirements of the service.
+1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger machines to the cluster, or reduce the requirements of the service.
 1. __Resource Cleanup__: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn't know about it anymore. At this point, the Scheduler will automatically clean up those resources.
 
 SDK Schedulers will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task's reservation, and then launching the task against those resources once more.
+
+## Pods
+
+A Task generally maps to a single process within the service. A Pod is a collection of colocated Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, most maintenance operations against the service are at [Pod granularity](#pod-operations) rather than Task granularity.
 
 ## Plans
 
@@ -274,88 +278,28 @@ Agent 3: X B
 
 Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services will support customizing this setting when it is relevant, while others may assume one or the other.
 
-## Pods vs Tasks
+## Virtual networks
 
-A Task generally maps to a process. A Pod is a collection of Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, [restart](#restart-a-pod) and [replace](#replace-a-pod) operations are at Pod granularity rather than Task granularity.
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by using the `networks` keyword in your YAML definition. Refer to [Developers Guide](developer-guide.md) for more information about how to define virtual networks in your service.
 
-## Overlay networks
-
-The SDK allows pods to join the `dcos` overlay network. You can specify that a pod should join the overlay by adding the following to your service spec YAML:
-
-```yaml
-pods:
-  pod-on-overlay:
-    count: {{COUNT}}
-    # join the 'dcos' overlay network
-    networks:
-      dcos:
-    tasks:
-      ...
-  pod-on-host:
-    count: {{COUNT}}
-    tasks:
-      ...
-```
-
-When a pod is on the `dcos` overlay network:
+When a pod is on a virtual network such as the `dcos`:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
-
-Specifying that pods join the `dcos` overlay network has the following indirect effects:
-  * The `ports` resource requirements in the service spec will be ignored as resource requirements, as each pod has their own dedicated IP namespace.
-    * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the overlay network.
-  * A caveat of this is that the SDK does not allow the configuation of a pod to change from the overlay network to the host network or vice-versa.
+  * You can also pass labels while invoking CNI plugins. Refer to [Developers Guide](developer.md) for more information about adding CNI labels.
 
 ## Secrets
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-**Note:** The SDK supports secrets in Enterprise DC/OS 1.10 onwards (not in Enterprise DC/OS 1.9). [Learn more about the secrets store](https://docs.mesosphere.com/1.9/security/secrets/).
+The content of a secret is copied and made available within the pod. The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to [Developer Guide](developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 
-The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. The content of a secret is copied and made available within the pod. 
+**Note:** Secrets are available only in Enterprise DC/OS 1.10 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.10/security/secrets/).
 
-You can reference the secret as a file if your service needs to read secrets from files mounted in the container. Referencing a file-based secret can be particularly useful for:
-* Kerberos keytabs or other credential files.
-* SSL certificates.
-* Configuration files with sensitive data.
-
-For the following example, a file with path `data/somePath/Secret_FilePath1` relative to the sandbox will be created. Also, the value of the environment variable `Secret_Environment_Key1` will be set to the content of this secret. Secrets are referenced with a path, i.e. `secret-svc/SecretPath1`, as shown below.
-
-```yaml
-name: secret-svc/instance1
-pods:
-  pod-with-secret:
-    count: {{COUNT}}
-    # add secret file to pod's sandbox
-    secrets:
-      secret_name1:
-        secret: secret-svc/Secret_Path1
-        env-key: Secret_Environment_Key
-        file: data/somePath/Secret_FilePath1
-      secret_name2:
-        secret: secret-svc/instance1/Secret_Path2
-        file: data/somePath/Secret_FilePath2
-      secret_name3:
-        secret: secret-svc/Secret_Path3
-        env-key: Secret_Environment_Key2
-    tasks:
-      ....
-```
-
-All tasks defined in the pod will have access to secret data. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
-
-`env-key` or `file` can be left empty. The secret file is a tmpfs file; it disappears when the executor exits. The secret content is copied securely by Mesos if it is referenced in the pod definition as shown above. You can make a secret available as an environment variable, as a file in the sandbox, or you can use both.
-
-**Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
 ### Authorization for Secrets
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
-
-For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
- 
-On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
 
 | Secret                               | Service ID                          | Can service access secret? |
@@ -372,33 +316,32 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 | `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/dev3`        | Yes                        |
 | `secret-svc/instance1/Secret_Path2`  | `/secret-svc/instance1/someDir/dev3`| Yes                        |
 
-  
 
-**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox. 
 
-Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
-  * Supported: `etc/keys/Secret_FilePath1`
-  * Not supported: `/etc/keys/Secret_FilePath1`
-  
-```yaml
-name: secret-svc/instance2
-pods:
-  pod-with-image:
-    count: {{COUNT}}
-    container:
-      image-name: ubuntu:14.04
-    user: nobody
-    secrets:
-      secret_name4:
-        secret: secret-svc/Secret_Path1
-        env-key: Secret_Environment_Key
-        file: etc/keys/Secret_FilePath1
-      secret_name5:
-        secret: secret-svc/instance1/Secret_Path2
-        file: data/keys/keyset/Secret_FilePath2
-    tasks:
-      ....
+**Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
+
+### Binary Secrets
+
+You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. Your file must be Base64-encoded as specified in RFC 4648.
+
+You can use standard `base64` command line utility. The following example uses the BSD `base64` command.
 ```
+$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
+```
+
+The `base64` command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping with the `-w 0` argument. Here is a sample base64 command in Linux.
+```
+$  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded
+```
+
+Prefix the secret name with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
+
+```
+$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
+```
+
+When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to the [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
+only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
 
 
 ## Placement Constraints
@@ -411,6 +354,12 @@ hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 ```
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
+
+### Regions and Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
+
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
 ### Updating placement constraints
 
@@ -441,6 +390,36 @@ Given the above configuration, let's assume `10.0.10.8` is being decommissioned 
 1. Wait for `data-1` to be up and healthy before continuing with any other replacement operations.
 
 The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You'll need to consult the documentation for the service in question, but in theory they should all understand the same set of [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html).
+
+## Integration with DC/OS access controls
+
+In DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/kafka` and `production/kafka`.
+
+Steps:
+
+1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
+1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
+   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
+
+   ```
+   dcos:adminrouter:service:marathon full
+   dcos:service:marathon:marathon:services:/testing full
+   dcos:adminrouter:ops:mesos full
+   dcos:adminrouter:ops:slave full
+   ```
+1. Install a service (in this example, Kafka) into a folder called `test`. Go to **Catalog**, then search for **beta-kafka**.
+1. Click **CONFIGURE** and change the service name to `/testing/kafka`, then deploy.
+
+   The slashes in your service name are interpreted as folders. You are deploying Kafka in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+
+**Important:**
+- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
+- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
+
+### Interacting with your foldered service
+
+- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/kafka/v1/endpoints`.
 
 # Common operations
 
@@ -566,9 +545,19 @@ $ dcos package install --cli dse --package-version="1.1.6-5.0.7"
 $ dcos dse update start --package-version="1.1.6-5.0.7"
 ```
 
-If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration) below):
+If you are missing mandatory configuration parameters, the `update` command will return an error.
+
+To supply missing configuration values or to override configuration values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration) below):
 ```bash
 $ dcos dse update start --options=options.json --package-version="1.1.6-5.0.7"
+```
+
+The default behavior on update is to merge ‘Default’, ‘Stored’ and ‘Provided’ configurations, in that order, and then
+validate against the schema. In some situations, such as when a schema option has been removed, the default behavior
+might result in an invalid configuration. You can work around this with `--replace=true` which, when specified,
+will override the ‘Stored’ options with the ‘Provided’ options.
+```bash
+$ dcos dse update start --options=options.json --replace=true --package-verion="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
@@ -587,7 +576,7 @@ $ dcos dse describe > options.json
 
 Make any configuration changes to this `options.json` file.
 
-If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
+If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
 
 <strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
@@ -716,7 +705,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 [<img src="img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](img/ops-guide-edit-scheduler.png)
 
-1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service:
+1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service. See [finding the correct environment variable](#finding-the-correct-environment-variable) for more information on determining the correct value to be updated.
 
 1. After you click `Change and deploy`, the following will happen:
    - Marathon will restart the Scheduler so that it picks up our change.
@@ -750,11 +739,9 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
 
 The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task `N+1` is only redeployed after task `N` appears to be healthy and ready after being relaunched with the new configuration. Some services may have defined a custom `update` plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom `update` plan was defined, is to use the `deploy` plan.
 
-### Add a node
+#### Finding the correct environment variable
 
-Adding a task node to the service is just another type of configuration change. In this case, we're looking for a specific config value in the package's `config.json`, and then mapping that configuration value to the relevant environment variable in the Scheduler. In the case of the above `dse` service, we need to increase the Scheduler's `DSE_NODE_POD_COUNT` from `3` (the default) to `4`. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.
-
-### Finding the correct environment variable
+While DC/OS Enterprise 1.10+ supports changing the configuration using the option schema directly, DC/OS Open and versions 1.9 and earlier require mapping those options to the environment variables that are passed to the Scheduler.
 
 The correct environment variable for a given setting can vary depending on the service. For instance, some services have multiple types of nodes, each with separate count settings. If you want to increase the number of nodes, it would take some detective work to find the correct environment variable.
 
@@ -788,7 +775,54 @@ To see where this setting is passed when the Scheduler is first launched, we can
 
 This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).
 
-## Restart a pod
+## Uninstall
+
+The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:
+
+### DC/OS 1.10 and newer
+
+If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
+
+1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+
+```bash
+dcos package uninstall --app-id=kafka-dev confluent-kafka
+```
+
+### Older versions
+
+If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:
+
+1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
+1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
+
+For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+
+```bash
+$ MY_SERVICE_NAME=kafka-dev
+$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
+    -r $MY_SERVICE_NAME-role \
+    -p $MY_SERVICE_NAME-principal \
+    -z dcos-service-$MY_SERVICE_NAME"
+```
+
+## Pod operations
+
+Most operations for maintaining a service will involve interacting with and manipulating its [Pods](#pods).
+
+### Add or Remove a pod
+
+Adding or removing pod instances within the service is treated as a configuration change, not a command.
+
+In this case, we're increasing a pod count value, as provided by the service's configuration schema. In the case of the above `dse` service, we need to increase the configured `dsenode.count` from `3` (the default) to `4`. After the change, the Scheduler will deploy a new DSE node instance without changing the preexisting nodes.
+
+For safety reasons, pod instances cannot be removed after they have been deployed by default. However, some services may allow some pods to be removed in cases where doing so is not a problem. To remove pod instances, you would simply decrease the count value, and then instances exceeding that count will be removed automatically in reverse order. For example, if you decreased `dsenode.count` from `4` to `2` and this was allowed by the DSE service, you would see `dsenode-3` be removed followed by `dsenode-2`, leaving only `dsenode-0` and `dsenode-1` still running. If the DSE service doesn't allow the number of instances to be decreased, the Scheduler would instead reject the decrease and show a validation error in its [deploy Plan](#status).
+
+### Restart a pod
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
@@ -797,7 +831,7 @@ Restarting a pod can be done either via the CLI or via the underlying Scheduler 
 Via the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse pod list
+$ dcos datastax-dse --name=mydse pod list
 [
   "dse-0",
   "dse-1",
@@ -805,7 +839,7 @@ $ dcos beta-dse --name=dse pod list
   "opscenter-0",
   "studio-0"
 ]
-$ dcos beta-dse --name=dse pod restart dse-1
+$ dcos datastax-dse --name=mydse pod restart dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -838,7 +872,7 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 All tasks within the pod are restarted as a unit. The response lists the names of the two tasks that were members of the pod.
 
-## Replace a pod
+### Replace a pod
 
 Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if an agent machine has gone down and is never coming back, or if an agent is about to undergo downtime.
 
@@ -847,7 +881,7 @@ Pod replacement is not currently done automatically by the SDK, as making the co
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
 ```bash
-$ dcos beta-dse --name=dse pod replace dse-1
+$ dcos datastax-dse --name=mydse pod replace dse-1
 {
   "pod": "dse-1",
   "tasks": [
@@ -868,37 +902,151 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 }
 ```
 
-## Uninstall
+### Pause a pod
 
-### DC/OS 1.10
+Pausing a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed.
 
-If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
+For example:
+- A pod which crashes immediately upon starting may need additional work to be performed.
+- Some services may _require_ that certain repair operations be performed manually when the task itself isn't running.
+Being able to put the pod in an offline but accessible state makes it easier to resolve these situations.
 
-1. Uninstall the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
+After the pod has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.
 
-For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+Here is an example session where an `index-1` pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the `index-1` pod, then uses `task exec` to repair the index. Following this, the operator starts the pod and it resumes normal operation:
 
 ```bash
-dcos package uninstall --app-id=kafka-dev confluent-kafka
+$ dcos myservice debug pod pause index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+
+$ dcos myservice pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (COMPLETE)
+│  │  └─ index-0-node (COMPLETE)
+│  └─ index-1
+│     ├─ index-1-agent (PAUSING)
+│     └─ index-1-node (PAUSING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-node (COMPLETE)
+   └─ data-1
+      └─ data-1-node (COMPLETE)
+
+... repeat "pod status" until index-1 tasks are PAUSED ...
+
+$ dcos task exec --interactive --tty index-1-node /bin/bash
+index-1-node$ ./repair-index && exit
+
+$ dcos myservice debug pod resume index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+
+$ dcos myservice pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (RUNNING)
+│  │  └─ index-0-node (RUNNING)
+│  └─ index-1
+│     ├─ index-1-agent (STARTING)
+│     └─ index-1-node (STARTING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-node (RUNNING)
+   └─ data-1
+      └─ data-1-node (RUNNING)
+
+... repeat "pod status" until index-1 tasks are RUNNING ...
 ```
 
-### Older versions
+In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos myservice debug pod pause index-1 -t agent` will pause only the `agent` task within the `index-1` pod.
 
-If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:
+## Plan Operations
 
-1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
-   For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
+This lists available commands for viewing and manipulating the [Plans](#plans) used by the Scheduler to perform work against the underlying service.
 
-For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
+### List
+Show all plans for this service.
 
 ```bash
-$ MY_SERVICE_NAME=kafka-dev
-$ dcos package uninstall --app-id=$MY_SERVICE_NAME confluent-kafka`.
-$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py \
-    -r $MY_SERVICE_NAME-role \
-    -p $MY_SERVICE_NAME-principal \
-    -z dcos-service-$MY_SERVICE_NAME"
+dcos kakfa plan list
+```
+
+### Status
+Display the status of the plan with the provided plan name.
+
+```bash
+dcos kafka plan status deploy
+```
+
+**Note:** The `--json` flag, though not default, is helpful in extracting phase UUIDs. Using the UUID instead of name for a
+phase is a more ensures that the request, ie to pause or force-complete, is exactly the phase intended.
+
+### Start
+Start the plan with the provided name and any optional plan arguments.
+
+```bash
+dcos kafka plan start deploy
+```
+
+### Stop
+Stop the running plan with the provided name.
+
+```bash
+dcos kafka plan stop deploy
+```
+
+Plan Pause differs from Plan Stop in the following ways:
+* Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
+* Pause updates the underlying Phase/Step state. Stop not only updates the underlying state, but also restarts the plan.
+
+### Pause
+Pause the plan, or a specific phase in that plan with the provided phase name (or UUID).
+
+```bash
+dcos kafka plan pause deploy 97e70976-505f-4689-abd2-6286c4499091
+```
+
+**NOTE:** The UUID above is an example. Use the Plan Status command with the `--json` flag to extract a valid UUID.
+
+Plan Pause differs from Plan Stop in the following ways:
+* Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
+* Pause updates the underlying Phase/Step state. Stop not only updated the underlying state, but also restarts the plan.
+
+### Resume
+Resume the plan, or a specific phase in that plan, with the provided phase name (or UUID).
+
+```bash
+dcos kafka plan resume deploy 97e70976-505f-4689-abd2-6286c4499091
+```
+
+### Force-Restart
+Restart the plan with the provided name, or a specific phase in the plan, with the provided nam, or a specific step in a
+phase of the plan with the provided step name.
+
+```bash
+dcos kafka plan force-restart deploy
+```
+
+### Force-Complete
+Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due
+to observed failure or due to known required manual preparation that was not performed.
+
+```bash
+dcos kafka plan force-complete deploy
 ```
 
 # Diagnostic Tools
@@ -987,6 +1135,111 @@ $ dcos task log broker-0              # get recent stdout logs from two 'broker-
 $ dcos task log broker-0__75          # get recent stdout logs from the 'broker-0' instance on 10.0.3.27
 $ dcos task log --follow broker-0__75 # 'tail -f' the stdout logs from that broker instance
 $ dcos task log broker-0__75 stderr   # get recent stderr logs from that broker instance
+```
+
+## Metrics
+
+### DC/OS >= 1.11
+The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
+
+The JSON representation of the metrics is available at the `/v1/metrics` endpoint`.
+
+###### JSON
+```json
+{
+	"version": "3.1.3",
+	"gauges": {},
+	"counters": {
+		"declines.long": {
+			"count": 15
+		},
+		"offers.processed": {
+			"count": 18
+		},
+		"offers.received": {
+			"count": 18
+		},
+		"operation.create": {
+			"count": 5
+		},
+		"operation.launch_group": {
+			"count": 3
+		},
+		"operation.reserve": {
+			"count": 20
+		},
+		"revives": {
+			"count": 3
+		},
+		"task_status.task_running": {
+			"count": 6
+		}
+	},
+	"histograms": {},
+	"meters": {},
+	"timers": {
+		"offers.process": {
+			"count": 10,
+			"max": 0.684745927,
+			"mean": 0.15145255818999337,
+			"min": 5.367950000000001E-4,
+			"p50": 0.0035879090000000002,
+			"p75": 0.40317217800000005,
+			"p95": 0.684745927,
+			"p98": 0.684745927,
+			"p99": 0.684745927,
+			"p999": 0.684745927,
+			"stddev": 0.24017017290826104,
+			"m15_rate": 0.5944843686231079,
+			"m1_rate": 0.5250565015924039,
+			"m5_rate": 0.583689104996544,
+			"mean_rate": 0.3809369986002824,
+			"duration_units": "seconds",
+			"rate_units": "calls/second"
+		}
+	}
+}
+```
+
+The Prometheus representation of the metrics is available at the `/v1/metrics/prometheus` endpoint.
+###### Prometheus
+```
+# HELP declines_long Generated from Dropwizard metric import (metric=declines.long, type=com.codahale.metrics.Counter)
+# TYPE declines_long gauge
+declines_long 20.0
+# HELP offers_processed Generated from Dropwizard metric import (metric=offers.processed, type=com.codahale.metrics.Counter)
+# TYPE offers_processed gauge
+offers_processed 24.0
+# HELP offers_received Generated from Dropwizard metric import (metric=offers.received, type=com.codahale.metrics.Counter)
+# TYPE offers_received gauge
+offers_received 24.0
+# HELP operation_create Generated from Dropwizard metric import (metric=operation.create, type=com.codahale.metrics.Counter)
+# TYPE operation_create gauge
+operation_create 5.0
+# HELP operation_launch_group Generated from Dropwizard metric import (metric=operation.launch_group, type=com.codahale.metrics.Counter)
+# TYPE operation_launch_group gauge
+operation_launch_group 4.0
+# HELP operation_reserve Generated from Dropwizard metric import (metric=operation.reserve, type=com.codahale.metrics.Counter)
+# TYPE operation_reserve gauge
+operation_reserve 20.0
+# HELP revives Generated from Dropwizard metric import (metric=revives, type=com.codahale.metrics.Counter)
+# TYPE revives gauge
+revives 4.0
+# HELP task_status_task_finished Generated from Dropwizard metric import (metric=task_status.task_finished, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_finished gauge
+task_status_task_finished 1.0
+# HELP task_status_task_running Generated from Dropwizard metric import (metric=task_status.task_running, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_running gauge
+task_status_task_running 8.0
+# HELP offers_process Generated from Dropwizard metric import (metric=offers.process, type=com.codahale.metrics.Timer)
+# TYPE offers_process summary
+offers_process{quantile="0.5",} 2.0609500000000002E-4
+offers_process{quantile="0.75",} 2.2853200000000001E-4
+offers_process{quantile="0.95",} 0.005792643
+offers_process{quantile="0.98",} 0.005792643
+offers_process{quantile="0.99",} 0.111950848
+offers_process{quantile="0.999",} 0.396119612
+offers_process_count 244.0
 ```
 
 ## Running commands within containers
@@ -1101,7 +1354,7 @@ These endpoints may also be conveniently accessed using the SDK CLI after instal
 For example, let's get a list of pods using the CLI, and then via the HTTP API:
 
 ```bash
-$ dcos beta-dse --name=dse pod list
+$ dcos datastax-dse --name=mydse pod list
 [
   "dse-0",
   "dse-1",
@@ -1122,7 +1375,7 @@ $ curl -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" <dco
 The `-v` (or `--verbose`) argument allows you to view and diagnose the underlying requests made by the CLI:
 
 ```bash
-$ dcos beta-dse --name=dse -v pod list
+$ dcos datastax-dse --name=mydse -v pod list
 2017/04/25 15:03:43 Running DC/OS CLI command: dcos config show core.dcos_url
 2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
 2017/04/25 15:03:44 Running DC/OS CLI command: dcos config show core.dcos_acs_token
@@ -1262,7 +1515,7 @@ You can sometimes get into valid situations where a deployment is being blocked 
 In this case, we can use `plan` commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:
 
 ```bash
-$ dcos cassandra plan show deploy
+$ dcos cassandra plan status deploy
 {
   "phases": [
     {
@@ -1291,7 +1544,7 @@ $ dcos plan force deploy cassandra-phase node-394:[node]
 After forcing the `node-394:[node]` step, we can then see that the Plan shows it in a `COMPLETE` state, and that the Plan is proceeding with `node-395`:
 
 ```
-$ dcos cassandra plan show deploy
+$ dcos cassandra plan status deploy
 {
   "phases": [
     {
@@ -1325,7 +1578,7 @@ $ dcos plan restart deploy cassandra-phase node-394:[node]
 Now, we see that the step is again marked as `PENDING` as the Scheduler again attempts to redeploy that node:
 
 ```
-$ dcos cassandra plan show deploy
+$ dcos cassandra plan status deploy
 {
   "phases": [
     {

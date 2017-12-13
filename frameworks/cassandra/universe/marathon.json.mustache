@@ -3,8 +3,8 @@
   "cpus": 1.0,
   "mem": 1024,
   "instances": 1,
-  "user":"{{service.user}}",
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" &&  ./cassandra-scheduler/bin/cassandra ./cassandra-scheduler/svc.yml",
+  "user": "{{service.user}}",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=false && ./cassandra-scheduler/bin/cassandra ./cassandra-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_COMMONS_UNINSTALL": "true",
@@ -14,27 +14,40 @@
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
   },
-  {{#service.secret_name}}
+  {{#service.service_account_secret}}
   "secrets": {
     "serviceCredential": {
-      "source": "{{service.secret_name}}"
+      "source": "{{service.service_account_secret}}"
     }
   },
-  {{/service.secret_name}}
+  {{/service.service_account_secret}}
   "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "SERVICE_NAME": "{{service.name}}",
     "SERVICE_USER": "{{service.user}}",
-    "SERVICE_PRINCIPAL": "{{service.principal}}",
+    "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "CASSANDRA_VERSION": "3.0.13",
+    "CASSANDRA_VERSION": "3.0.15",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
-    {{#service.secret_name}}
+    {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
-    {{/service.secret_name}}
+    "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
+    {{/service.service_account_secret}}
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
+
+    {{#service.tls}}
+    "TASKCFG_ALL_CASSANDRA_ENABLE_TLS": "{{service.tls}}",
+    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.15/conf/cqlshrc",
+    {{#service.tls_allow_plaintext}}
+    "TASKCFG_ALL_CASSANDRA_ALLOW_PLAINTEXT": "{{service.tls_allow_plaintext}}",
+    {{/service.tls_allow_plaintext}}
+    {{/service.tls}}
 
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
     "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
@@ -48,12 +61,12 @@
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
     "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
     "CASSANDRA_HEAP_GC": "{{nodes.heap.gc}}",
-    "PLACEMENT_CONSTRAINT": "{{nodes.placement_constraint}}",
-    {{#service.virtual_networks}}
+    "PLACEMENT_CONSTRAINT": "{{{nodes.placement_constraint}}}",
+    {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
-    "VIRTUAL_NETWORK_NAME": "{{nodes.virtual_network}}",
-    "CNI_PLUGIN_LABELS": "{{nodes.cni_plugin_labels}}",
-    {{/service.virtual_networks}}
+    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
+    {{/service.virtual_network_enabled}}
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",
@@ -130,24 +143,21 @@
     "TASKCFG_ALL_CASSANDRA_PHI_CONVICT_THRESHOLD": "{{cassandra.phi_convict_threshold}}",
     "TASKCFG_ALL_CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED": "{{cassandra.buffer_pool_use_heap_if_exhausted}}",
     "TASKCFG_ALL_CASSANDRA_DISK_OPTIMIZATION_STRATEGY": "{{cassandra.disk_optimization_strategy}}",
-    "TASKCFG_ALL_CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS": "{{cassandra.streaming_socket_timeout_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_MAX_VALUE_SIZE_IN_MB": "{{cassandra.max_value_size_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_OTC_COALESCING_STRATEGY": "{{cassandra.otc_coalescing_strategy}}",
     "TASKCFG_ALL_REMOTE_SEEDS": "{{service.remote_seeds}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
-    "S3CLI_URI": "{{resource.assets.uris.s3cli-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
     "CASSANDRA_URI": "{{resource.assets.uris.cassandra-tar-gz}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "CASSANDRA_DOCKER_IMAGE": "{{resource.assets.container.docker.cassandra}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "TASKCFG_ALL_CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
-    "TASKCFG_ALL_CASSANDRA_LOCATION_RACK": "{{service.rack}}",
-    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
-    "CONFIG_TEMPLATE_PATH": "cassandra-scheduler"
+    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}"
   },
   "uris": [
+    "{{resource.assets.uris.bootstrap-zip}}",
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"

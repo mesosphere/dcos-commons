@@ -1,8 +1,7 @@
 ---
 post_title: Overview
-menu_order: 00
+menu_order: 10
 post_excerpt: ""
-feature_maturity: preview
 enterprise: 'no'
 ---
 
@@ -16,4 +15,3 @@ For more information on Apache Cassandra, see the Apache Cassandra [documentatio
 *   Simple horizontal scaling of Cassandra nodes
 *   Straightforward backup and restore of data out of the box
 *   Multi-datacenter replication support
-*   Rack-aware scheduling with placement constraints

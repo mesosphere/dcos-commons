@@ -11,17 +11,20 @@ import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 /**
  * Default implementation of a {@link TaskEnvRouter} which handles forwarding environment variables from two sources:
  * <ul>
- * <li>Scheduler's system environment: searches for environment variables that start with {@code "TASKCFG_<TASKTYPE>_"}
- * and/or {@code "TASKCFG_ALL_"}, and returns appropriate {@link ConfigNamespace}s for task types based on that
- * environment.</li>
- * <li>Manually-provided values: The service developer may provide custom values which will then be forwarded to tasks
- * as needed.</li>
+ * <li>
+ * Scheduler's system environment: searches for environment variables that start with {@code "TASKCFG_<TASKTYPE>_"}
+ * and/or {@code "TASKCFG_ALL_"}, and returns appropriate Maps for task types based on that environment.
+ * </li>
+ * <li>
+ * Manually-provided values: The service developer may provide custom values which will then be forwarded to tasks as
+ * needed.
+ * </li>
  * </ul>
  */
 public class TaskEnvRouter {
 
     private static final String TASKCFG_PREFIX = "TASKCFG_";
-    private static final String TASKCFG_GLOBAL_ENV_PREFIX = TASKCFG_PREFIX + "ALL_";
+    public static final String TASKCFG_GLOBAL_ENV_PREFIX = TASKCFG_PREFIX + "ALL_";
 
     // First priority: Scheduler TASKCFG_* environment
     private final Map<String, String> envConfig;

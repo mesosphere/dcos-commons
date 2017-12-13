@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
 type responseCheck func(response *http.Response, body []byte) error
@@ -27,26 +29,40 @@ func CheckHTTPResponse(response *http.Response) ([]byte, error) {
 		return nil, fmt.Errorf("Failed to read response data from %s %s query: %s",
 			response.Request.Method, response.Request.URL, err)
 	}
+	if response.ContentLength > 0 {
+		PrintVerbose("Response (%d byte payload): %s\n%s", response.ContentLength, response.Status, body)
+	} else {
+		PrintVerbose("Response: %s", response.Status)
+	}
 	if customCheck != nil {
 		err := customCheck(response, body)
 		if err != nil {
 			return body, err
 		}
 	}
-	err = defaultResponseCheck(response)
+	err = defaultResponseCheck(response, body)
 	return body, err
 }
 
-func defaultResponseCheck(response *http.Response) error {
+func defaultResponseCheck(response *http.Response, body []byte) error {
 	switch {
 	case response.StatusCode == http.StatusUnauthorized:
 		errorString := `Got 401 Unauthorized response from %s
-"- Bad auth token? Run 'dcos auth login' to log in.`
+- Bad auth token? Run 'dcos auth login' to log in`
 		return fmt.Errorf(errorString, response.Request.URL)
-	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway || response.StatusCode == http.StatusNotFound:
-		return createServiceNameError()
+	case response.StatusCode == http.StatusNotFound:
+		errorString := `Got 404 Not Found response from %s:
+- The service scheduler may have been unable to find an item that was specified in your request.
+- The DC/OS cluster may have been unable to find a service named "%s". Specify a service name with '--name=<name>', or with 'dcos config set %s.service_name <name>'.`
+		return fmt.Errorf(errorString, response.Request.URL, config.ServiceName, config.ModuleName)
+	case response.StatusCode == http.StatusInternalServerError || response.StatusCode == http.StatusBadGateway:
+		errorString := `Could not reach the service scheduler with name '%s'.
+Possible causes:
+- Did you provide the correct service name? Specify a service name with '--name=<name>', or with 'dcos config set %s.service_name <name>'.
+- Was the service recently installed or updated? It may still be initializing, wait a bit and try again.`
+		return fmt.Errorf(errorString, config.ServiceName, config.ModuleName)
 	case response.StatusCode < 200 || response.StatusCode >= 300:
-		return createResponseError(response)
+		return createResponseError(response, body)
 	}
 	return nil
 }
@@ -58,6 +74,16 @@ func getResponseBytes(response *http.Response) ([]byte, error) {
 		return nil, err
 	}
 	return responseBytes, nil
+}
+
+func createResponseError(response *http.Response, body []byte) error {
+	if len(body) > 0 {
+		return fmt.Errorf("HTTP %s Query for %s failed: %s\nResponse: %s",
+			response.Request.Method, response.Request.URL, response.Status, string(body))
+	} else {
+		return fmt.Errorf("HTTP %s Query for %s failed: %s",
+			response.Request.Method, response.Request.URL, response.Status)
+	}
 }
 
 // UnmarshalJSON unmarshals a []byte of JSON into a map[string]interface{}

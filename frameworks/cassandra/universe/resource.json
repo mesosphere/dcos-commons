@@ -10,7 +10,7 @@
       "cassandra-jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
-      "cassandra-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-3.0.13-bin-dcos.tar.gz",
+      "cassandra-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-3.0.15-bin-dcos.tar.gz",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }
@@ -24,38 +24,23 @@
     "binaries": {
       "darwin": {
         "x86-64": {
-          "contentHash": [
-            {
-              "algo": "sha256",
-              "value": "{{sha256:dcos-cassandra-darwin}}"
-            }
-          ],
+          "contentHash": [ { "algo": "sha256", "value": "{{sha256:dcos-service-cli-darwin}}" } ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-cassandra-darwin"
+          "url": "{{artifact-dir}}/dcos-service-cli-darwin"
         }
       },
       "linux": {
         "x86-64": {
-          "contentHash": [
-            {
-              "algo": "sha256",
-              "value": "{{sha256:dcos-cassandra-linux}}"
-            }
-          ],
+          "contentHash": [ { "algo": "sha256", "value": "{{sha256:dcos-service-cli-linux}}" } ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-cassandra-linux"
+          "url": "{{artifact-dir}}/dcos-service-cli-linux"
         }
       },
       "windows": {
         "x86-64": {
-          "contentHash": [
-            {
-              "algo": "sha256",
-              "value": "{{sha256:dcos-cassandra.exe}}"
-            }
-          ],
+          "contentHash": [ { "algo": "sha256", "value": "{{sha256:dcos-service-cli.exe}}" } ],
           "kind": "executable",
-          "url": "{{artifact-dir}}/dcos-cassandra.exe"
+          "url": "{{artifact-dir}}/dcos-service-cli.exe"
         }
       }
     }

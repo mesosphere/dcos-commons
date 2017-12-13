@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 
@@ -33,7 +34,9 @@ public class PlanUtils {
      * elements are not complete, it has operations.
      */
     public static boolean hasOperations(Plan plan) {
-        return !allHaveStatus(Status.COMPLETE, plan.getChildren()) && !plan.isInterrupted();
+        boolean complete = allHaveStatus(Status.COMPLETE, plan.getChildren());
+        boolean interrupted = plan.isInterrupted();
+        return !complete && !interrupted;
     }
 
     /**
@@ -51,5 +54,30 @@ public class PlanUtils {
         return planManagers.stream()
                 .filter(planManager -> !planManager.getPlan().isInterrupted())
                 .collect(Collectors.toList());
+    }
+
+    public static Set<String> getLaunchableTasks(Collection<Plan> plans) {
+        return plans.stream()
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(podInstanceRequirement ->
+                        TaskUtils.getTaskNames(
+                                podInstanceRequirement.getPodInstance(),
+                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
+    }
+
+    public static Set<PodInstanceRequirement> getDirtyAssets(Plan plan) {
+        if (plan == null) {
+            return Collections.emptySet();
+        }
+
+        return plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.isAssetDirty() && step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .collect(Collectors.toSet());
     }
 }

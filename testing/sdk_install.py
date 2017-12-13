@@ -1,5 +1,10 @@
-'''Utilities relating to installing services'''
+'''Utilities relating to installing services
 
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import collections
 import logging
 
@@ -11,6 +16,7 @@ import time
 from retrying import retry
 
 import sdk_api
+import sdk_cmd
 import sdk_plan
 import sdk_utils
 
@@ -22,8 +28,8 @@ TIMEOUT_SECONDS = 15 * 60
 @retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
 def retried_shakedown_install(
         package_name,
-        package_version,
         service_name,
+        package_version,
         merged_options,
         timeout_seconds,
         expected_running_tasks):
@@ -39,14 +45,12 @@ def retried_shakedown_install(
 
 def install(
         package_name,
+        service_name,
         expected_running_tasks,
-        service_name=None,
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
-        wait_scheduler_idle=True):
-    if not service_name:
-        service_name = package_name
+        wait_for_deployment=True):
     start = time.time()
     merged_options = get_package_options(additional_options)
 
@@ -56,58 +60,49 @@ def install(
     # 1. Install package, wait for tasks, wait for marathon deployment
     retried_shakedown_install(
         package_name,
-        package_version,
         service_name,
+        package_version,
         merged_options,
         timeout_seconds,
         expected_running_tasks)
 
     # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
-    if wait_scheduler_idle:
+    if wait_for_deployment:
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via FINISHED tasks, without actually completing deployment
         log.info("Waiting for {}/{} to finish deployment plan...".format(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
-        # given the above wait for plan completion, here we just wait up to 5 minutes
-        log.info("Waiting for {}/{} to be suppressed...".format(
-            package_name, service_name))
-        shakedown.wait_for(
-            lambda: sdk_api.is_suppressed(service_name),
-            noisy=True,
-            timeout_seconds=5 * 60)
-
     log.info('Installed {}/{} after {}'.format(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
 @retry(stop_max_attempt_number=5, wait_fixed=5000, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
-def uninstall(service_name,
-              package_name=None,
-              role=None,
-              principal=None,
-              zk=None):
-    _uninstall(service_name,
-               package_name,
-               role,
-               principal,
-               zk)
+def uninstall(
+        package_name,
+        service_name,
+        role=None,
+        service_account=None,
+        zk=None):
+    _uninstall(
+        package_name,
+        service_name,
+        role,
+        service_account,
+        zk)
 
 
 def _uninstall(
+        package_name,
         service_name,
-        package_name=None,
         role=None,
-        principal=None,
+        service_account=None,
         zk=None):
     start = time.time()
 
-    if package_name is None:
-        package_name = service_name
-
-    if shakedown.dcos_version_less_than("1.10"):
+    if sdk_utils.dcos_version_less_than("1.10"):
         log.info('Uninstalling/janitoring {}'.format(service_name))
         try:
             shakedown.uninstall_package_and_wait(
@@ -125,19 +120,18 @@ def _uninstall(
         deslashed_service_name = service_name.lstrip('/').replace('/', '__')
         if role is None:
             role = deslashed_service_name + '-role'
-        if principal is None:
-            principal = service_name + '-principal'
+        if service_account is None:
+            service_account = service_name + '-principal'
         if zk is None:
             zk = 'dcos-service-' + deslashed_service_name
         janitor_cmd = ('docker run mesosphere/janitor /janitor.py '
-                       '-r {role} -p {principal} -z {zk} --auth_token={auth}')
+                       '-r {role} -p {service_account} -z {zk} --auth_token={auth}')
         shakedown.run_command_on_master(
             janitor_cmd.format(
                 role=role,
-                principal=principal,
+                service_account=service_account,
                 zk=zk,
-                auth=shakedown.run_dcos_command(
-                    'config show core.dcos_acs_token')[0].strip()))
+                auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()))
 
         finish = time.time()
 
@@ -184,21 +178,23 @@ def _uninstall(
 
 def get_package_options(additional_options={}):
     # expected SECURITY values: 'permissive', 'strict', 'disabled'
-    if os.environ.get('SECURITY', '') == 'strict':
+    if sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
-        # see also: tools/setup_permissions.sh and tools/create_service_account.sh
-        return _merge_dictionaries(additional_options, {
+        # see also: sdk_security.py
+        return merge_dictionaries({
             'service': {
+                'service_account': 'service-acct',
                 'principal': 'service-acct',
+                'service_account_secret': 'secret',
                 'secret_name': 'secret',
                 'mesos_api_version': 'V0'
             }
-        })
+        }, additional_options)
     else:
         return additional_options
 
 
-def _merge_dictionaries(dict1, dict2):
+def merge_dictionaries(dict1, dict2):
     if (not isinstance(dict2, dict)):
         return dict1
     ret = {}
@@ -207,7 +203,7 @@ def _merge_dictionaries(dict1, dict2):
     for k, v in dict2.items():
         if (k in dict1 and isinstance(dict1[k], dict)
                 and isinstance(dict2[k], collections.Mapping)):
-            ret[k] = _merge_dictionaries(dict1[k], dict2[k])
+            ret[k] = merge_dictionaries(dict1[k], dict2[k])
         else:
             ret[k] = dict2[k]
     return ret

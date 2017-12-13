@@ -10,13 +10,13 @@
           "type": "string",
           "default": "cassandra"
         },
-        "secret_name": {
+        "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
           "default": ""
         },
-        "principal": {
-          "description": "The principal for the service instance.",
+        "service_account": {
+          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
           "type": "string",
           "default": ""
         },
@@ -28,17 +28,12 @@
         "mesos_api_version" : {
           "description":"Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type":"string",
-          "default":"V0"
+          "default":"V1"
         },
         "data_center": {
           "description": "The name of the data center this cluster is running in",
           "type": "string",
           "default": "datacenter1"
-        },
-        "rack": {
-          "description": "The name of the rack this cluster is running on",
-          "type": "string",
-          "default": "rack1"
         },
         "remote_seeds": {
           "description": "A comma-separated list of seed nodes from other clusters in a multi-datacenter deployment",
@@ -51,8 +46,28 @@
           "enum": ["serial", "parallel"],
           "default": "serial"
         },
-        "virtual_networks": {
-          "description": "Enable DC/OS Virtual Networking",
+        "virtual_network_enabled": {
+          "description": "Enable virtual networking",
+          "type": "boolean",
+          "default": false
+        },
+        "virtual_network_name": {
+          "description": "The name of the virtual network to join",
+          "type": "string",
+          "default": "dcos"
+        },
+        "virtual_network_plugin_labels": {
+          "description": "Labels to pass to the virtual network plugin. Comma-separated key:value pairs. For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+          "type": "string",
+          "default": ""
+        },
+        "tls": {
+          "description": "Enable TLS support (requires Enterprise DC/OS running in permissive or strict security mode).",
+          "type": "boolean",
+          "default": false
+        },
+        "tls_allow_plaintext": {
+          "description": "Allow clients to connect over a non-encrypted connections.",
           "type": "boolean",
           "default": false
         },
@@ -75,7 +90,8 @@
         "count": {
           "type": "integer",
           "description": "The number of Cassandra nodes in the cluster.",
-          "default": 3
+          "default": 3,
+          "minimum": 3
         },
         "cpus": {
           "type": "number",
@@ -99,18 +115,11 @@
         },
         "placement_constraint": {
           "type": "string",
-          "description": "The Marathon-style placement constraint string controlling node placement",
-          "default": "hostname:MAX_PER:1"
-        },
-        "virtual_network": {
-          "description": "Name of virtual network to join",
-          "type": "string",
-          "default": "dcos"
-        },
-        "cni_plugin_labels": {
-          "description": "Labels to pass to CNI plugin. Comma-seperated key:value pairs. For example [k_0:v_0,k_1:v_1,...,k_n:v_n]",
-          "type": "string",
-          "default": ""
+          "description": "Placement constraints for nodes (e.g., [[\"hostname\", \"MAX_PER\", \"1\"]]).",
+          "default": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         },
         "heap": {
           "type": "object",
@@ -284,7 +293,7 @@
         },
         "start_rpc": {
           "type": "boolean",
-          "description": "If true Thrift RPC is enable. This is deprecated by may be necessary for legacy applications.",
+          "description": "If true Thrift RPC is enabled. This is deprecated but may be necessary for legacy applications.",
           "default": false
         },
         "rpc_port": {

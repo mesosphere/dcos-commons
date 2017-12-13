@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.api.types;
 
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -35,12 +36,11 @@ public class PlanInfoTest {
 
         UUID step0Id = UUID.randomUUID();
         when(mockStep0.getId()).thenReturn(step0Id);
-        when(mockStep0.isPending()).thenReturn(true);
         String step0Name = "step-0";
         when(mockStep0.getName()).thenReturn(step0Name);
         String step0Message = "hi";
         when(mockStep0.getMessage()).thenReturn(step0Message);
-        when(mockStep0.getStatus()).thenReturn(Status.PENDING);
+        when(mockStep0.getDisplayStatus()).thenReturn("PENDING");
 
         UUID step1Id = UUID.randomUUID();
         when(mockStep1.getId()).thenReturn(step1Id);
@@ -49,7 +49,7 @@ public class PlanInfoTest {
         when(mockStep1.getName()).thenReturn(step1Name);
         String step1Message = "hey";
         when(mockStep1.getMessage()).thenReturn(step1Message);
-        when(mockStep1.getStatus()).thenReturn(Status.ERROR);
+        when(mockStep1.getDisplayStatus()).thenReturn("ERROR");
 
         // phase calls within PhaseInfo.forPhase(), against phase 0 and phase 1
 
@@ -59,6 +59,7 @@ public class PlanInfoTest {
         when(mockPhase0.getName()).thenReturn(phase0Name);
         Status phase0Status = Status.PENDING;
         when(mockPhase0.getStatus()).thenReturn(phase0Status);
+        when(mockPhase0.getStrategy()).thenReturn(new SerialStrategy<>());
         // must use thenAnswer instead of thenReturn to work around java typing of "? extends Step"
         when(mockPhase0.getChildren()).thenReturn(Arrays.asList(mockStep0, mockStep1));
 
@@ -68,6 +69,7 @@ public class PlanInfoTest {
         when(mockPhase1.getName()).thenReturn(phase1Name);
         Status phase1Status = Status.COMPLETE;
         when(mockPhase1.getStatus()).thenReturn(phase1Status);
+        when(mockPhase1.getStrategy()).thenReturn(new SerialStrategy<>());
         when(mockPhase1.getChildren()).thenReturn(new ArrayList<>());
 
         when(mockPlan.getChildren()).thenReturn(Arrays.asList(mockPhase0, mockPhase1));
@@ -76,6 +78,7 @@ public class PlanInfoTest {
         when(mockPlan.getErrors()).thenReturn(stageErrors);
 
         when(mockPlan.getStatus()).thenReturn(Status.WAITING);
+        when(mockPlan.getStrategy()).thenReturn(new SerialStrategy<>());
 
         PlanInfo planInfo = PlanInfo.forPlan(mockPlan);
 
@@ -93,13 +96,13 @@ public class PlanInfoTest {
         assertEquals(step0Id.toString(), stepInfo.getId());
         assertEquals(step0Message, stepInfo.getMessage());
         assertEquals(step0Name, stepInfo.getName());
-        assertEquals(Status.PENDING, stepInfo.getStatus());
+        assertEquals("PENDING", stepInfo.getStatus());
 
         stepInfo = phaseInfo.getSteps().get(1);
         assertEquals(step1Id.toString(), stepInfo.getId());
         assertEquals(step1Message, stepInfo.getMessage());
         assertEquals(step1Name, stepInfo.getName());
-        assertEquals(Status.ERROR, stepInfo.getStatus());
+        assertEquals("ERROR", stepInfo.getStatus());
 
         // phase 1 + 0 steps
         phaseInfo = planInfo.getPhases().get(1);

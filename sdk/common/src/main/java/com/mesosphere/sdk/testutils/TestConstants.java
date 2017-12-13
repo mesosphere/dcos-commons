@@ -88,4 +88,19 @@ public class TestConstants {
                     .setTaskId(TASK_ID)
                     .setState(Protos.TaskState.TASK_RUNNING)
                     .build();
+
+    public static final String ZONE = "zone";
+    public static final String LOCAL_REGION = "local";
+    public static final String REMOTE_REGION = "remote";
+
+    public static final Protos.DomainInfo LOCAL_DOMAIN_INFO = getDomainInfo(LOCAL_REGION);
+    public static final Protos.DomainInfo REMOTE_DOMAIN_INFO = getDomainInfo(REMOTE_REGION);
+
+    private static final Protos.DomainInfo getDomainInfo(String region) {
+        return Protos.DomainInfo.newBuilder()
+                .setFaultDomain(Protos.DomainInfo.FaultDomain.newBuilder()
+                        .setZone(Protos.DomainInfo.FaultDomain.ZoneInfo.newBuilder().setName(TestConstants.ZONE))
+                        .setRegion(Protos.DomainInfo.FaultDomain.RegionInfo.newBuilder().setName(region)))
+                .build();
+    }
 }

@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluatorTestBase;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -32,8 +31,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
     public static void beforeAll() throws Exception {
         ClassLoader classLoader = PersistentLaunchRecorderTest.class.getClassLoader();
         File file = new File(classLoader.getResource("shared-resource-set.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Before
@@ -44,16 +42,17 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
 
     @Test(expected=TaskException.class)
     public void testUpdateResourcesMissingTypeLabel() throws TaskException {
-        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(baseTaskInfo);
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(
+                persistentLaunchRecorder.getPodInstance(baseTaskInfo).get(),
+                baseTaskInfo);
     }
 
     @Test
     public void testUpdateResourcesNoHarmForAcceptableTaskInfo() throws TaskException {
-        Protos.TaskInfo.Builder builder = baseTaskInfo.toBuilder();
-        builder.setLabels(new TaskLabelWriter(builder)
-                .setType(TestConstants.TASK_TYPE)
-                .toProto());
-        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(builder.build());
+        Protos.TaskInfo withLabel = baseTaskInfo.toBuilder()
+                .setLabels(new TaskLabelWriter(baseTaskInfo).setType(TestConstants.TASK_TYPE).toProto())
+                .build();
+        Assert.assertFalse(persistentLaunchRecorder.getPodInstance(withLabel).isPresent());
     }
 
     @Test
@@ -77,7 +76,9 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
         stateStore.storeTasks(Arrays.asList(taskInfo));
         Assert.assertEquals(1, stateStore.fetchTaskNames().size());
 
-        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(taskInfo);
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(
+                persistentLaunchRecorder.getPodInstance(taskInfo).get(),
+                taskInfo);
         Assert.assertEquals(1, stateStore.fetchTaskNames().size());
         Assert.assertEquals(targetResource, stateStore.fetchTask(taskName).get().getResources(0));
     }
@@ -123,7 +124,9 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
                 stateStore.fetchTask(initTaskName).get().getResources(0).equals(
                 stateStore.fetchTask(serverTaskName).get().getResources(0)));
 
-        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(serverTaskInfo);
+        persistentLaunchRecorder.updateTaskResourcesWithinResourceSet(
+                persistentLaunchRecorder.getPodInstance(serverTaskInfo).get(),
+                serverTaskInfo);
         Assert.assertEquals(2, stateStore.fetchTaskNames().size());
         Assert.assertEquals(targetResource, stateStore.fetchTask(initTaskName).get().getResources(0));
         Assert.assertEquals(targetResource, stateStore.fetchTask(serverTaskName).get().getResources(0));

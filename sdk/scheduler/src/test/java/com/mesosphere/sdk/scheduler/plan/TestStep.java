@@ -23,6 +23,12 @@ public class TestStep extends AbstractStep {
         this.podInstanceRequirement = podInstanceRequirement;
     }
 
+    public TestStep(UUID id, String name, PodInstanceRequirement podInstanceRequirement) {
+        super(name, Status.PENDING);
+        this.id = id;
+        this.podInstanceRequirement = podInstanceRequirement;
+    }
+
     @Override
     public Optional<PodInstanceRequirement> start() {
         setStatus(Status.PREPARED);
@@ -44,18 +50,13 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> getAsset() {
-        return Optional.ofNullable(podInstanceRequirement);
-    }
-
-    @Override
     public void update(Protos.TaskStatus status) {
         // Left intentionally empty
     }
 
     @Override
-    public String getMessage() {
-        return "test-message";
+    public String getDisplayStatus() {
+        return getStatus().toString();
     }
 
     @Override

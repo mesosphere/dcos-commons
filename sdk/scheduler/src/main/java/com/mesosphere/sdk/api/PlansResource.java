@@ -4,16 +4,32 @@ import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.api.ResponseUtils.*;
@@ -27,14 +43,21 @@ public class PlansResource extends PrettyJsonResource {
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final Collection<PlanManager> planManagers;
 
-    public PlansResource(final PlanCoordinator planCoordinator) {
-        this.planManagers = planCoordinator.getPlanManagers();
-    }
+    private final Collection<PlanManager> planManagers = new ArrayList<>();
+    private final Object planManagersLock = new Object();
 
-    public PlansResource(Collection<PlanManager> planManagers) {
-        this.planManagers = planManagers;
+    /**
+     * Assigns the list of plans to be managed via this endpoint.
+     *
+     * @return this
+     */
+    public PlansResource setPlanManagers(Collection<PlanManager> planManagers) {
+        synchronized (planManagersLock) {
+            this.planManagers.clear();
+            this.planManagers.addAll(planManagers);
+        }
+        return this;
     }
 
     /**
@@ -53,14 +76,18 @@ public class PlansResource extends PrettyJsonResource {
     @Path("/plans/{planName}")
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-            return jsonResponseBean(
-                    PlanInfo.forPlan(plan),
-                    plan.isComplete() ? Response.Status.OK : Response.Status.ACCEPTED);
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return elementNotFoundResponse();
         }
+
+        Plan plan = planManagerOptional.get().getPlan();
+        Response.Status response = Response.Status.ACCEPTED;
+        if (plan.hasErrors()) {
+            response = Response.Status.EXPECTATION_FAILED;
+        } else if (plan.isComplete()) {
+            response = Response.Status.OK;
+        }
+        return jsonResponseBean(PlanInfo.forPlan(plan), response);
     }
 
     /**
@@ -86,7 +113,13 @@ public class PlansResource extends PrettyJsonResource {
             }
 
             plan.proceed();
-            return jsonOkResponse(getCommandResult("start"));
+
+            logger.info("Started plan {} with parameters {} by user request", planName, parameters);
+
+            return jsonOkResponse(getCommandResult(String.format("%s %s with parameters: %s",
+                    "start",
+                    planName,
+                    parameters.toString())));
         } else {
             return elementNotFoundResponse();
         }
@@ -95,19 +128,20 @@ public class PlansResource extends PrettyJsonResource {
     /**
      * Idempotently stops a plan.  If a plan is in progress, it is interrupted and the plan is reset such that all
      * elements are pending.  If a plan is already stopped, it has no effect.
+     *
+     * @see #interruptCommand(String, String) for the distinctions between Stop and Interrupt actions.
      */
     @POST
     @Path("/plans/{planName}/stop")
     public Response stopPlan(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-            plan.interrupt();
-            plan.restart();
-            return jsonOkResponse(getCommandResult("stop"));
-        } else {
+        if (!planManagerOptional.isPresent()) {
             return elementNotFoundResponse();
         }
+        Plan plan = planManagerOptional.get().getPlan();
+        plan.interrupt();
+        plan.restart();
+        return jsonOkResponse(getCommandResult("stop"));
     }
 
     @POST
@@ -127,20 +161,20 @@ public class PlansResource extends PrettyJsonResource {
             }
 
             boolean allInProgress = phases.stream()
-                    .filter(phz -> phz.isInProgress())
-                    .count()  == phases.size();
-            
+                    .filter(phz -> phz.isRunning())
+                    .count() == phases.size();
+
             boolean allComplete = phases.stream()
-                .filter(phz -> phz.isComplete()).count() == phases.size();
+                    .filter(phz -> phz.isComplete()).count() == phases.size();
 
             if (allInProgress || allComplete) {
                 return alreadyReportedResponse();
-            } 
+            }
 
             phases.forEach(ParentElement::proceed);
         } else {
             Plan plan = planManagerOptional.get().getPlan();
-            if (plan.isInProgress() || plan.isComplete()) {
+            if (plan.isRunning() || plan.isComplete()) {
                 return alreadyReportedResponse();
             }
             plan.proceed();
@@ -149,6 +183,20 @@ public class PlansResource extends PrettyJsonResource {
         return jsonOkResponse(getCommandResult("continue"));
     }
 
+    /**
+     * Interrupts (Pauses) a plan or if specified a phase within a plan.  If a plan/phase is in progress, it
+     * is interrupted and the plan/phase is reset such that it is pending.  If the plan/phase is already in
+     * a non-interruptable state (interrupted or complete), the response will indicate as such.
+     *
+     * An interrupted Phase is not immediately halted, but sets the interrupted bit to ensure that subsequent
+     * requests to process will not proceed. @see Interruptible .
+     *
+     * Interrupt differs from stop in the following ways:
+     * A) Interrupt can be issued for a specific phase or for all phases within a plan.  Stop can only be
+     *    issued for a plan.
+     * B) Interrupt updates the underlying Phase/Step state. Stop not only updates the underlying state, but
+     *    also restarts the Plan.
+     */
     @POST
     @Path("/plans/{planName}/interrupt")
     public Response interruptCommand(
@@ -160,17 +208,17 @@ public class PlansResource extends PrettyJsonResource {
         }
 
         if (phase != null) {
-            List<Phase> phases = getPhases(planManagerOptional.get(), phase);   
+            List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
                 return elementNotFoundResponse();
             }
 
             boolean allInterrupted = phases.stream()
-                .filter(phz -> phz.isInterrupted()).count() == phases.size();
-            
+                    .filter(phz -> phz.isInterrupted()).count() == phases.size();
+
             boolean allComplete = phases.stream()
-                .filter(phz -> phz.isComplete()).count() == phases.size();
-            
+                    .filter(phz -> phz.isComplete()).count() == phases.size();
+
             if (allInterrupted || allComplete) {
                 return alreadyReportedResponse();
             }
@@ -329,15 +377,22 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     private List<String> getPlanNames() {
-        return planManagers.stream()
-                .map(planManager -> planManager.getPlan().getName())
-                .collect(Collectors.toList());
+        synchronized (planManagersLock) {
+            return planManagers.stream()
+                    .map(planManager -> planManager.getPlan().getName())
+                    .collect(Collectors.toList());
+        }
     }
 
     private Optional<PlanManager> getPlanManager(String planName) {
-        return planManagers.stream()
-                .filter(planManager -> planManager.getPlan().getName().equals(planName))
-                .findFirst();
+        synchronized (planManagersLock) {
+            if (planManagers.isEmpty()) {
+                logger.error("Plan managers haven't been initialized yet. Unable to retrieve plan {}", planName);
+            }
+            return planManagers.stream()
+                    .filter(planManager -> planManager.getPlan().getName().equals(planName))
+                    .findFirst();
+        }
     }
 
     private static Response invalidParameterResponse(String message) {

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
-import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
@@ -85,6 +84,11 @@ public class CanaryStrategy implements Strategy<Step> {
     }
 
     @Override
+    public String getName() {
+        return strategy.getName() + "-canary";
+    }
+
+    @Override
     public void interrupt() {
         Step canaryStep = getNextCanaryStep();
         if (canaryStep != null) {
@@ -132,8 +136,6 @@ public class CanaryStrategy implements Strategy<Step> {
 
     /**
      * This class generates Strategy objects of the appropriate type.
-     *
-     * @param <C> is the type of {@link Element}s to which the Strategy applies.
      */
     public static class Generator implements StrategyGenerator<Step> {
 

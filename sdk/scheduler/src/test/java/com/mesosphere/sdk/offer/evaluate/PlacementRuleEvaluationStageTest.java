@@ -25,7 +25,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
     @Test
     public void testOfferPassesPlacementRule() throws Exception {
         String agent = "test-agent";
-        Protos.Resource offered = ResourceTestUtils.getUnreservedCpu(1.0);
+        Protos.Resource offered = ResourceTestUtils.getUnreservedCpus(1.0);
         PlacementRule rule = AgentRule.require(agent);
         Protos.Offer offer = offerWithAgent(agent, offered);
 
@@ -48,10 +48,11 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true));
+                        true,
+                        Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
         Assert.assertEquals(3, mesosResourcePool.getUnreservedMergedPool().size());
@@ -62,7 +63,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
     @Test
     public void testOfferFailsPlacementRule() throws Exception {
         String agent = "test-agent";
-        Protos.Resource offered = ResourceTestUtils.getUnreservedCpu(1.0);
+        Protos.Resource offered = ResourceTestUtils.getUnreservedCpus(1.0);
         PlacementRule rule = AgentRule.require(agent);
         Protos.Offer offer = offerWithAgent("other-agent", offered);
 
@@ -84,10 +85,11 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true));
+                        true,
+                        Collections.emptyMap()));
 
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(3, mesosResourcePool.getUnreservedMergedPool().size());

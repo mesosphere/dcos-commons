@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ public class CuratorLocker {
     private final String zookeeperConnection;
 
     private CuratorFramework curatorClient;
-    private InterProcessMutex curatorMutex;
+    private InterProcessSemaphoreMutex curatorMutex;
 
     public CuratorLocker(ServiceSpec serviceSpec) {
         this.serviceName = serviceSpec.getName();
@@ -47,19 +47,23 @@ public class CuratorLocker {
         curatorClient.start();
 
         final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
-        InterProcessMutex curatorMutex = new InterProcessMutex(curatorClient, lockPath);
+        InterProcessSemaphoreMutex curatorMutex = new InterProcessSemaphoreMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);
         final String failureLogMsg = String.format("Failed to acquire ZK lock on %s. " +
                 "Duplicate service named '%s', or recently restarted instance of '%s'?",
                 lockPath, serviceName, serviceName);
         try {
-            for (int i = 0; i < LOCK_ATTEMPTS; ++i) {
+            // Start at 1 for pretty display of "1/3" through "3/3":
+            for (int attempt = 1; attempt < LOCK_ATTEMPTS + 1; ++attempt) {
                 if (curatorMutex.acquire(10, getWaitTimeUnit())) {
+                    LOGGER.info("{}/{} Lock acquired.", attempt, LOCK_ATTEMPTS);
                     this.curatorMutex = curatorMutex;
-                    return; // success!
+                    return;
                 }
-                LOGGER.error("{}/{} {} Retrying lock...", i + 1, LOCK_ATTEMPTS, failureLogMsg);
+                if (attempt < LOCK_ATTEMPTS) {
+                    LOGGER.error("{}/{} {} Retrying lock...", attempt, LOCK_ATTEMPTS, failureLogMsg);
+                }
             }
             LOGGER.error(failureLogMsg + " Restarting scheduler process to try again.");
         } catch (Exception ex) {

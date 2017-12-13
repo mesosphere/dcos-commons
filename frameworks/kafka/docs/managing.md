@@ -1,15 +1,14 @@
 ---
 post_title: Managing
-menu_order: 50
-feature_maturity: preview
+menu_order: 60
 enterprise: 'no'
 ---
 # Updating Configuration
 You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying DC/OS Kafka Service itself.
 
-After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `_NODEPOD_-0`, then `_NODEPOD_-1`, and so on.
+After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `kafka-0`, then `kafka-1`, and so on.
 
-Nodes are configured with a "Readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
+Nodes are configured with a "readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
 
 Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](#limitations).
 
@@ -30,8 +29,8 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
   + You can install just the subcommand CLI by running `dcos package install --cli beta-kafka`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli beta-kafka
-    dcos package install --cli beta-kafka
+    $ dcos package uninstall --cli beta-kafka
+    $ dcos package install --cli beta-kafka
     ```
 
 ### Preparing configuration
@@ -46,7 +45,7 @@ Make any configuration changes to this `options.json` file.
 
 If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
 
-<strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
+**Note:** You must specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
 #### Recreating `options.json` (optional)
 
@@ -78,7 +77,7 @@ $ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
 
 Now that you have these files, we'll attempt to recreate the `options.json`.
 
-1. Use JQ and `diff` to compare the two:
+1. Use `jq` and `diff` to compare the two:
 ```bash
 $ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
 ```
@@ -107,19 +106,15 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 <!-- END DUPLICATE BLOCK -->
 
 To make configuration changes via scheduler environment updates, perform the following steps:
-1. Visit <dcos-url> to access the DC/OS web interface.
-1. Navigate to `Services` and click on the service to be configured (default _`PKGNAME`_).
+1. Visit `<dcos-url>` to access the DC/OS web interface.
+1. Navigate to `Services` and click on the service to be configured (default `beta-kafka`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config beta-kafka` in the CLI, or browse the _SERVICE NAME_ install dialog in the DC/OS web interface.
-
-# Add a Broker
-
-Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other configuration update.
+To see a full listing of available options, run `dcos package describe --config beta-kafka` in the CLI, or browse the Kafka install dialog in the DC/OS web interface.
 
 # Upgrade Software
 
@@ -129,16 +124,57 @@ Increase the `BROKER_COUNT` value via the DC/OS web interface as in any other co
 
 1.  Optional: Create a JSON options file with any custom configuration, such as a non-default `DEPLOY_STRATEGY`. <!--I'm getting this JSON from the app definition in the UI. The all caps looks a little odd, though -->
 
-        {
-            "env": {
-                "DEPLOY_STRATEGY": "parallel-canary"
-            }
-        }
+```json
+{
+  "env": {
+    "DEPLOY_STRATEGY": "parallel-canary"
+    }
+}
+```
 
 
 1.  Install the latest version of Kafka:
 
-        $ dcos package install kafka -—options=options.json
+```bash
+$ dcos package install beta-kafka -—options=options.json
+```
+
+# Graceful Shutdown
+## Extend the Kill Grace Period
+
+Increase the `brokers.kill_grace_period` value via the DC/OS CLI, i.e.,  to `60`
+seconds. This example assumes that the Kafka service instance is named `kafka`.
+
+During the configuration update, each of the Kafka broker tasks are restarted. During
+the shutdown portion of the task restart, the previous configuration value for
+`brokers.kill_grace_period` is in effect. Following the shutdown, each broker
+task is launched with the new effective configuration value. Take care to monitor
+the amount of time Kafka brokers take to cleanly shutdown. Find the relevant log
+entries in the [Configure](configure.md) section.
+
+Create an options file `kafka-options.json` with the following content:
+
+```json
+{
+  "brokers": {
+    "kill_grace_period": 60
+  }
+}
+```
+
+Issue the following command:
+
+```bash
+$ dcos beta-kafka --name=/kafka update --options=kafka-options.json
+```
+
+## Restart a Broker with Grace
+
+A graceful (or clean) shutdown takes longer than an ungraceful shutdown, but the next startup will be much quicker. This is because the complex reconciliation activities that would have been required are not necessary after graceful shutdown.
+
+## Replace a Broker with Grace
+
+The grace period must also be respected when a broker is shut down before replacement. While it is not ideal that a broker must respect the grace period even if it is going to lose persistent state, this behavior will be improved in future versions of the SDK. Broker replacement generally requires complex and time-consuming reconciliation activities at startup if there was not a graceful shutdown, so the respect of the grace kill period still provides value in most situations. We recommend setting the kill grace period only sufficiently long enough to allow graceful shutdown. Monitor the Kafka broker clean shutdown times in the broker logs to keep this value tuned to the scale of data flowing through the Kafka service.
 
 # Upgrading Service Version
 
@@ -158,16 +194,17 @@ $ dcos beta-kafka update package-versions
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
-```bash
-$ dcos package uninstall --cli beta-kafka
-$ dcos package install --cli beta-kafka --package-version="1.1.6-5.0.7"
-```
+   ```bash
+   $ dcos package uninstall --cli beta-kafka
+   $ dcos package install --cli beta-kafka --package-version="1.1.6-5.0.7"
+   ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Kafka Service to version `1.1.6-5.0.7`:
-```bash
-$ dcos beta-kafka update start --package-version="1.1.6-5.0.7"
-```
+   ```bash
+   $ dcos beta-kafka update start --package-version="1.1.6-5.0.7"
+   ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
+
 ```bash
 $ dcos beta-kafka update start --options=options.json --package-version="1.1.6-5.0.7"
 ```

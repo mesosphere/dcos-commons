@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"testing"
 
@@ -62,13 +63,14 @@ func (suite *PlanTestSuite) SetupSuite() {
 func (suite *PlanTestSuite) SetupTest() {
 	// set up test server
 	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
-	config.DcosURL = suite.server.URL
+	os.Setenv("DCOS_URL", suite.server.URL)
 }
 
 func (suite *PlanTestSuite) TearDownTest() {
 	suite.capturedOutput.Reset()
 	suite.server.Close()
 }
+
 func TestPlanTestSuite(t *testing.T) {
 	suite.Run(t, new(PlanTestSuite))
 }
@@ -188,7 +190,6 @@ func (suite *PlanTestSuite) TestForceRestart() {
 func (suite *PlanTestSuite) TestPause() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/interrupt.json")
 	suite.responseStatus = http.StatusOK
-	config.Command = "plan pause"
 
 	pause("deploy", "hello")
 	expectedOutput := "\"deploy\" plan has been paused.\n"
@@ -198,7 +199,6 @@ func (suite *PlanTestSuite) TestPause() {
 func (suite *PlanTestSuite) TestPauseBadName() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan pause"
 
 	err := pause("bad-name", "")
 
@@ -209,7 +209,6 @@ func (suite *PlanTestSuite) TestPauseBadName() {
 func (suite *PlanTestSuite) TestPauseBadPhase() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan pause"
 
 	err := pause("deploy", "bad-phase")
 
@@ -220,7 +219,6 @@ func (suite *PlanTestSuite) TestPauseBadPhase() {
 func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan pause"
 
 	err := pause("deploy", "hello")
 
@@ -231,7 +229,6 @@ func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
 func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan pause"
 
 	err := pause("deploy", "hello")
 
@@ -242,7 +239,6 @@ func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
 func (suite *PlanTestSuite) TestResume() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/continue.json")
 	suite.responseStatus = http.StatusOK
-	config.Command = "plan resume"
 
 	resume("deploy", "hello")
 
@@ -253,7 +249,6 @@ func (suite *PlanTestSuite) TestResume() {
 func (suite *PlanTestSuite) TestResumeBadPlan() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan resume"
 
 	err := resume("bad-name", "")
 
@@ -264,7 +259,6 @@ func (suite *PlanTestSuite) TestResumeBadPlan() {
 func (suite *PlanTestSuite) TestResumeBadPhase() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/not-found.txt")
 	suite.responseStatus = http.StatusNotFound
-	config.Command = "plan resume"
 
 	err := resume("deploy", "bad-phase")
 
@@ -275,7 +269,6 @@ func (suite *PlanTestSuite) TestResumeBadPhase() {
 func (suite *PlanTestSuite) TestResumeInProgress() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan resume"
 
 	err := resume("deploy", "hello")
 
@@ -286,7 +279,6 @@ func (suite *PlanTestSuite) TestResumeInProgress() {
 func (suite *PlanTestSuite) TestResumeAlreadyCompleted() {
 	suite.responseBody = suite.loadFile("testdata/responses/scheduler/already-reported.txt")
 	suite.responseStatus = http.StatusAlreadyReported
-	config.Command = "plan resume"
 
 	err := resume("deploy", "hello")
 
@@ -315,19 +307,21 @@ func (suite *PlanTestSuite) TestStatusTreeSinglePhase() {
       "name" : "kafka-2:[broker]",
       "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [994b5ff2-ed1d-4fb2-b2a7-327e8e159ad9]' has status: 'PENDING'."
     } ],
-    "status" : "IN_PROGRESS"
+    "status" : "IN_PROGRESS",
+    "strategy" : "serial"
   } ],
   "errors" : [ ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
 
-	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+└─ Deployment (serial strategy) (IN_PROGRESS)
    ├─ kafka-0:[broker] (COMPLETE)
    ├─ kafka-1:[broker] (PENDING)
    └─ kafka-2:[broker] (PENDING)`
 
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -355,11 +349,12 @@ func (suite *PlanTestSuite) TestStatusTreeSinglePhaseWithErrors() {
     "status" : "IN_PROGRESS"
   } ],
   "errors" : [ "foo", "bar", "baz" ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
 
-	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+└─ Deployment (<UNKNOWN> strategy) (IN_PROGRESS)
    ├─ kafka-0:[broker] (COMPLETE)
    ├─ kafka-1:[broker] (PENDING)
    └─ kafka-2:[broker] (PENDING)
@@ -369,7 +364,7 @@ Errors:
 - bar
 - baz`
 
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -394,7 +389,8 @@ func (suite *PlanTestSuite) TestStatusTreeMultiPhase() {
       "name" : "kafka-2:[broker]",
       "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [994b5ff2-ed1d-4fb2-b2a7-327e8e159ad9]' has status: 'PENDING'."
     } ],
-    "status" : "IN_PROGRESS"
+    "status" : "IN_PROGRESS",
+    "strategy" : "serial"
   }, {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Reindexing",
@@ -414,29 +410,31 @@ func (suite *PlanTestSuite) TestStatusTreeMultiPhase() {
       "name" : "kafka-2:[reindex]",
       "message" : "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[reindex] [994b5ff2-ed1d-4fb2-b2a7-327e8e159ad9]' has status: 'PENDING'."
     } ],
-    "status" : "PENDING"
+    "status" : "PENDING",
+    "strategy" : "parallel"
   } ],
   "errors" : [ ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
 
-	expectedOutput := `deploy (IN_PROGRESS)
-├─ Deployment (IN_PROGRESS)
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+├─ Deployment (serial strategy) (IN_PROGRESS)
 │  ├─ kafka-0:[broker] (COMPLETE)
 │  ├─ kafka-1:[broker] (IN_PROGRESS)
 │  └─ kafka-2:[broker] (PENDING)
-└─ Reindexing (PENDING)
+└─ Reindexing (parallel strategy) (PENDING)
    ├─ kafka-0:[reindex] (PENDING)
    ├─ kafka-1:[reindex] (PENDING)
    └─ kafka-2:[reindex] (PENDING)`
 
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
 func (suite *PlanTestSuite) TestStatusTreeEmptyJson() {
-	expectedOutput := "deploy (<UNKNOWN>)"
-	result := toStatusTree("deploy", []byte("{ }"))
+	expectedOutput := "deploy (<UNKNOWN> strategy) (<UNKNOWN>)"
+	result := toPlanStatusTree("deploy", []byte("{ }"))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -444,10 +442,11 @@ func (suite *PlanTestSuite) TestStatusTreeNoPhases() {
 	inputJSON := `{
   "phases" : [ ],
   "errors" : [ ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
-	expectedOutput := "deploy (IN_PROGRESS)"
-	result := toStatusTree("deploy", []byte(inputJSON))
+	expectedOutput := "deploy (serial strategy) (IN_PROGRESS)"
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -455,11 +454,12 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyPhase() {
 	inputJSON := `{
   "phases" : [ { } ],
   "errors" : [ ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
-	expectedOutput := `deploy (IN_PROGRESS)
-└─ <UNKNOWN> (<UNKNOWN>)`
-	result := toStatusTree("deploy", []byte(inputJSON))
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+└─ <UNKNOWN> (<UNKNOWN> strategy) (<UNKNOWN>)`
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -469,14 +469,16 @@ func (suite *PlanTestSuite) TestStatusTreeNoSteps() {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
     "steps" : [ ],
-    "status" : "IN_PROGRESS"
+    "status" : "IN_PROGRESS",
+    "strategy" : "serial"
   } ],
   "errors" : [ ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
-	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)`
-	result := toStatusTree("deploy", []byte(inputJSON))
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+└─ Deployment (serial strategy) (IN_PROGRESS)`
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -486,15 +488,17 @@ func (suite *PlanTestSuite) TestStatusTreeEmptyStep() {
     "id" : "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
     "name" : "Deployment",
     "steps" : [ { } ],
-    "status" : "IN_PROGRESS"
+    "status" : "IN_PROGRESS",
+    "strategy" : "serial"
   } ],
   "errors" : [ ],
-  "status" : "IN_PROGRESS"
+  "status" : "IN_PROGRESS",
+  "strategy" : "serial"
 }`
-	expectedOutput := `deploy (IN_PROGRESS)
-└─ Deployment (IN_PROGRESS)
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+└─ Deployment (serial strategy) (IN_PROGRESS)
    └─ <UNKNOWN> (<UNKNOWN>)`
-	result := toStatusTree("deploy", []byte(inputJSON))
+	result := toPlanStatusTree("deploy", []byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -513,6 +517,48 @@ func (suite *PlanTestSuite) TestPrintStatusTree() {
 	printStatus("deploy", false)
 
 	// assert CLI output is what we expect
-	expectedOutput := suite.loadFile("testdata/output/deploy-tree-twophase.txt")
+	expectedOutput := `deploy (serial strategy) (IN_PROGRESS)
+├─ Deployment (serial strategy) (IN_PROGRESS)
+│  ├─ kafka-0:[broker] (COMPLETE)
+│  ├─ kafka-1:[broker] (IN_PROGRESS)
+│  └─ kafka-2:[broker] (PENDING)
+└─ Reindexing (parallel strategy) (PENDING)
+   ├─ kafka-0:[reindex] (PENDING)
+   ├─ kafka-1:[reindex] (PENDING)
+   └─ kafka-2:[reindex] (PENDING)
+`
+	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+}
+
+// TestPrintStatusWithError tests that the plan command handled plans that
+// return 417 when one of the phases has an error that is not registered.
+func (suite *PlanTestSuite) TestPrintStatusWithError() {
+	suite.responseBody = []byte(`{
+  "phases" : [ {
+    "id" : "b35c149a-1fa2-447a-9c22-d42cc7129de4",
+    "name" : "node-deploy",
+    "steps" : [ {
+      "id" : "1a71141b-392d-4c72-924d-82b3d4cd922a",
+      "status" : "COMPLETE",
+      "name" : "node-0:[server]",
+      "message" : ""
+    } ],
+    "status" : "COMPLETE",
+    "strategy" : "parallel"
+  } ],
+  "errors" : [ "deploy error" ],
+  "status" : "ERROR"
+}`)
+	suite.responseStatus = http.StatusExpectationFailed
+
+	printStatus("deploy", false)
+
+	expectedOutput := `deploy (<UNKNOWN> strategy) (ERROR)
+└─ node-deploy (parallel strategy) (COMPLETE)
+   └─ node-0:[server] (COMPLETE)
+
+Errors:
+- deploy error
+`
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }

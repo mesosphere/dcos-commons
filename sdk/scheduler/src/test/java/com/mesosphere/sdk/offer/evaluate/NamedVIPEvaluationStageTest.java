@@ -233,10 +233,11 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPodInstanceRequirement(taskPort, networks),
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
-                OfferRequirementTestUtils.getTestSchedulerFlags(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
-                true);
+                true,
+                Collections.emptyMap());
     }
 
     private static void assertIsOverlayLabel(Protos.Label label) {

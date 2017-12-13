@@ -4,19 +4,18 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.ArtifactResource;
 import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.InvalidRequirementException;
-import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.util.RLimit;
+import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -49,10 +48,11 @@ public class PodInfoBuilder {
             PodInstanceRequirement podInstanceRequirement,
             String serviceName,
             UUID targetConfigId,
-            SchedulerFlags schedulerFlags,
+            SchedulerConfig schedulerConfig,
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
-            boolean useDefaultExecutor) throws InvalidRequirementException {
+            boolean useDefaultExecutor,
+            Map<TaskSpec, GoalStateOverride> overrideMap) throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         this.useDefaultExecutor = useDefaultExecutor;
 
@@ -65,7 +65,8 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
-                    schedulerFlags);
+                    schedulerConfig,
+                    overrideMap.get(taskSpec));
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
             // as we're only looking at tasks within a given pod
             this.taskBuilders.put(taskSpec.getName(), taskInfoBuilder);
@@ -79,7 +80,7 @@ public class PodInfoBuilder {
         }
 
         this.executorBuilder = getExecutorInfoBuilder(
-                serviceName, podInstance, frameworkID, targetConfigId, schedulerFlags);
+                serviceName, podInstance, frameworkID, targetConfigId, schedulerConfig);
 
         this.podInstance = podInstance;
         this.portsByTask = new HashMap<>();
@@ -87,7 +88,12 @@ public class PodInfoBuilder {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
             // TaskInfo name.
-            portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
+
+            // If the pod was replaced, discard any previously used ports. We want dynamic ports
+            // to re-roll.
+            if (!FailureUtils.isPermanentlyFailed(currentTask)) {
+                portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
+            }
         }
 
         for (Protos.TaskInfo.Builder taskBuilder : taskBuilders.values()) {
@@ -203,7 +209,12 @@ public class PodInfoBuilder {
             Map<String, String> environment,
             String serviceName,
             UUID targetConfigurationId,
-            SchedulerFlags schedulerFlags) throws InvalidRequirementException {
+            SchedulerConfig schedulerConfig,
+            GoalStateOverride override) throws InvalidRequirementException {
+        if (override == null) {
+            override = GoalStateOverride.NONE;
+        }
+
         PodSpec podSpec = podInstance.getPod();
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
                 .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
@@ -219,10 +230,16 @@ public class PodInfoBuilder {
                 .toProto());
 
         if (taskSpec.getCommand().isPresent()) {
-            CommandSpec commandSpec = taskSpec.getCommand().get();
             Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder();
-            commandBuilder.setValue(commandSpec.getValue())
-                    .setEnvironment(getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
+            commandBuilder.setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+
+            if (override.equals(GoalStateOverride.PAUSED)) {
+                LOGGER.info("Overriding task command: {}", override);
+                commandBuilder.setValue(schedulerConfig.getPauseOverrideCmd());
+            } else {
+                commandBuilder.setValue(taskSpec.getCommand().get().getValue());
+            }
+
             setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
 
@@ -230,6 +247,11 @@ public class PodInfoBuilder {
                 // Any URIs defined in PodSpec itself.
                 for (URI uri : podSpec.getUris()) {
                     commandBuilder.addUrisBuilder().setValue(uri.toString());
+                }
+
+                // Always add the bootstrap URI as the paused command depends on it
+                if (override.equals(GoalStateOverride.PAUSED)) {
+                    commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
                 }
 
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
@@ -274,8 +296,9 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
-        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
-        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, taskSpec.getCommand().get());
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override);
+        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override);
+        setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
     }
@@ -285,12 +308,12 @@ public class PodInfoBuilder {
             PodInstance podInstance,
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
-            SchedulerFlags schedulerFlags) throws IllegalStateException {
+            SchedulerConfig schedulerConfig) throws IllegalStateException {
         PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
-        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerFlags.getDcosSpaceLabelValue());
+        AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerConfig.getDcosSpace());
 
         if (useDefaultExecutor) {
             executorInfoBuilder.setType(Protos.ExecutorInfo.Type.DEFAULT)
@@ -310,8 +333,8 @@ public class PodInfoBuilder {
             }
 
             // Required URIs from the scheduler environment:
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getLibmesosURI());
-            executorCommandBuilder.addUrisBuilder().setValue(schedulerFlags.getJavaURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getLibmesosURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getJavaURI());
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {
@@ -351,14 +374,21 @@ public class PodInfoBuilder {
         return executorInfoBuilder;
     }
 
-    private static Protos.Environment getTaskEnvironment(
-            String serviceName, PodInstance podInstance, TaskSpec taskSpec, CommandSpec commandSpec) {
+    /**
+     * Generates a Task environment containing the configured environment values from the {@link CommandSpec}, along
+     * with a set of default environment variables that all SDK tasks get for free.
+     */
+    @VisibleForTesting
+    public static Map<String, String> getTaskEnvironment(
+            String serviceName, PodInstance podInstance, TaskSpec taskSpec) {
         Map<String, String> environmentMap = new TreeMap<>();
 
         // Task envvars from either of the following sources:
         // - ServiceSpec (provided by developer)
         // - TASKCFG_<podname>_* (provided by user, handled when parsing YAML, potentially overrides ServiceSpec)
-        environmentMap.putAll(commandSpec.getEnvironment());
+        if (taskSpec.getCommand().isPresent()) {
+            environmentMap.putAll(taskSpec.getCommand().get().getEnvironment());
+        }
 
         // Default envvars for use by executors/developers:
         // Unline the envvars added in getExecutorEnvironment(), these are specific to individual tasks and currently
@@ -368,15 +398,29 @@ public class PodInfoBuilder {
         environmentMap.put(EnvConstants.POD_INSTANCE_INDEX_TASKENV, String.valueOf(podInstance.getIndex()));
         // Inject Framework Name (raw, not safe for use in hostnames)
         environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
-        // Inject Framework host domain (with hostname-safe framework name)
+        // Inject Framework pod host domain (with hostname-safe framework name)
         environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
+        // Inject Framework VIP domain (with hostname-safe framework name)
+        environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, EndpointUtils.toVipDomain(serviceName));
+        // Inject Scheduler API hostname (with hostname-safe scheduler name)
+        environmentMap.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV,
+                EndpointUtils.toSchedulerApiVipHostname(serviceName));
 
         // Inject TASK_NAME as KEY:VALUE
         environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
         // Inject TASK_NAME as KEY for conditional mustache templating
         environmentMap.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
 
-        return EnvUtils.toProto(environmentMap);
+        // Inject PLACEMENT_REFERENCED_REGION
+        environmentMap.put(
+                EnvConstants.PLACEMENT_REFERENCED_REGION_ENV,
+                String.valueOf(PlacementUtils.placementRuleReferencesRegion(podInstance.getPod())));
+        // Inject PLACEMENT_REFERENCED_ZONE
+        environmentMap.put(
+                EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV,
+                String.valueOf(PlacementUtils.placementRuleReferencesZone(podInstance.getPod())));
+
+        return environmentMap;
     }
 
     private static void setBootstrapConfigFileEnv(Protos.CommandInfo.Builder commandInfoBuilder, TaskSpec taskSpec) {
@@ -419,9 +463,14 @@ public class PodInfoBuilder {
             String serviceName,
             PodInstance podInstance,
             TaskSpec taskSpec,
-            CommandSpec commandSpec) {
+            GoalStateOverride override) {
         if (!taskSpec.getHealthCheck().isPresent()) {
             LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
+            return;
+        }
+
+        if (override.equals(GoalStateOverride.PAUSED)) {
+            LOGGER.info("Removing health check for PAUSED task: {}", taskSpec.getName());
             return;
         }
 
@@ -438,12 +487,22 @@ public class PodInfoBuilder {
             healthCheckBuilder.setType(Protos.HealthCheck.Type.COMMAND);
         }
 
-        Protos.CommandInfo.Builder healthCheckCommandBuilder = healthCheckBuilder.getCommandBuilder()
-                .setValue(healthCheckSpec.getCommand());
-        if (taskSpec.getCommand().isPresent()) {
-            healthCheckCommandBuilder.setEnvironment(
-                    getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
+        healthCheckBuilder.getCommandBuilder()
+                .setValue(healthCheckSpec.getCommand())
+                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+    }
+
+    private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
+        if (override.equals(GoalStateOverride.PAUSED)) {
+            return Optional.of(
+                    new DefaultReadinessCheckSpec(
+                            GoalStateOverride.PAUSE_READINESS_COMMAND,
+                            0,
+                            Constants.SHORT_DECLINE_SECONDS,
+                            Constants.SHORT_DECLINE_SECONDS));
         }
+
+        return taskSpec.getReadinessCheck();
     }
 
     private void setReadinessCheck(
@@ -451,45 +510,61 @@ public class PodInfoBuilder {
             String serviceName,
             PodInstance podInstance,
             TaskSpec taskSpec,
-            CommandSpec commandSpec) {
-        if (!taskSpec.getReadinessCheck().isPresent()) {
+            GoalStateOverride override) {
+
+        Optional<ReadinessCheckSpec> readinessCheckSpecOptional = getReadinessCheck(taskSpec, override);
+        if (!readinessCheckSpecOptional.isPresent()) {
             LOGGER.debug("No readiness check defined for taskSpec: {}", taskSpec.getName());
             return;
         }
 
-        ReadinessCheckSpec readinessCheckSpec = taskSpec.getReadinessCheck().get();
+        ReadinessCheckSpec readinessCheckSpec = readinessCheckSpecOptional.get();
 
-        Protos.CommandInfo.Builder readinessCheckCommandBuilder;
         if (useDefaultExecutor) {
+            // Default executors supports the newer TaskInfo.check field:
             Protos.CheckInfo.Builder builder = taskInfoBuilder.getCheckBuilder()
                     .setType(Protos.CheckInfo.Type.COMMAND)
                     .setDelaySeconds(readinessCheckSpec.getDelay())
                     .setIntervalSeconds(readinessCheckSpec.getInterval())
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
-
-            readinessCheckCommandBuilder = builder.getCommandBuilder().getCommandBuilder();
-            readinessCheckCommandBuilder.setValue(readinessCheckSpec.getCommand());
-            if (taskSpec.getCommand().isPresent()) {
-                readinessCheckCommandBuilder.setEnvironment(
-                        getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
-            }
+            builder.getCommandBuilder().getCommandBuilder()
+                    .setValue(readinessCheckSpec.getCommand())
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
         } else {
+            // Custom executor implies older Mesos where TaskInfo.check doesn't exist yet. Fall back to label hack:
             Protos.HealthCheck.Builder builder = Protos.HealthCheck.newBuilder()
                     .setDelaySeconds(readinessCheckSpec.getDelay())
                     .setIntervalSeconds(readinessCheckSpec.getInterval())
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
-
-            readinessCheckCommandBuilder = builder.getCommandBuilder();
-            readinessCheckCommandBuilder.setValue(readinessCheckSpec.getCommand());
-            if (taskSpec.getCommand().isPresent()) {
-                readinessCheckCommandBuilder.setEnvironment(
-                        getTaskEnvironment(serviceName, podInstance, taskSpec, commandSpec));
-            }
-
+            builder.getCommandBuilder()
+                    .setValue(readinessCheckSpec.getCommand())
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
             taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                     .setReadinessCheck(builder.build())
                     .toProto());
         }
+    }
+
+    private static void setTaskKillGracePeriod(
+            Protos.TaskInfo.Builder taskInfoBuilder,
+            TaskSpec taskSpec) throws InvalidRequirementException {
+        Integer taskKillGracePeriodSeconds = taskSpec.getTaskKillGracePeriodSeconds();
+        if (taskKillGracePeriodSeconds == null) {
+            taskKillGracePeriodSeconds = 0;
+        } else if (taskKillGracePeriodSeconds < 0) {
+            throw new InvalidRequirementException(String.format(
+                        "kill-grace-period must be zero or a positive integer, received: %d",
+                        taskKillGracePeriodSeconds));
+        }
+        long taskKillGracePeriodNanoseconds = 1000000000L * taskKillGracePeriodSeconds;
+        Protos.DurationInfo taskKillGracePeriodDuration = Protos.DurationInfo.newBuilder()
+            .setNanoseconds(taskKillGracePeriodNanoseconds)
+            .build();
+
+        Protos.KillPolicy.Builder killPolicyBuilder = Protos.KillPolicy.newBuilder()
+            .setGracePeriod(taskKillGracePeriodDuration);
+
+        taskInfoBuilder.setKillPolicy(killPolicyBuilder.build());
     }
 
     private static String getConfigTemplateDownloadPath(ConfigFileSpec config) {
@@ -512,6 +587,10 @@ public class PodInfoBuilder {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
+
+        if (isTaskContainer) {
+            containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
+        }
 
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
@@ -572,10 +651,10 @@ public class PodInfoBuilder {
         return netInfoBuilder.build();
     }
 
-    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimit> rlimits) {
+    private static Protos.RLimitInfo getRLimitInfo(Collection<RLimitSpec> rlimits) {
         Protos.RLimitInfo.Builder rLimitInfoBuilder = Protos.RLimitInfo.newBuilder();
 
-        for (RLimit rLimit : rlimits) {
+        for (RLimitSpec rLimit : rlimits) {
             Optional<Long> soft = rLimit.getSoft();
             Optional<Long> hard = rLimit.getHard();
             Protos.RLimitInfo.RLimit.Builder rLimitsBuilder = Protos.RLimitInfo.RLimit.newBuilder()

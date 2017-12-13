@@ -1,4 +1,11 @@
-'''Utilities relating to interaction with service plans'''
+'''Utilities relating to interaction with service plans
+
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
+
 import logging
 
 import dcos
@@ -12,6 +19,10 @@ log = logging.getLogger(__name__)
 
 def get_deployment_plan(service_name):
     return get_plan(service_name, "deploy")
+
+
+def get_recovery_plan(service_name):
+    return get_plan(service_name, "recovery")
 
 
 def get_plan(service_name, plan):
@@ -116,6 +127,11 @@ def wait_for_step_status(service_name, plan_name, phase_name, step_name, status,
         else:
             return False
     return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
+
+
+def recovery_plan_is_empty(service_name):
+    plan = get_recovery_plan(service_name)
+    return len(plan['phases']) == 0 and len(plan['errors']) == 0 and plan['status'] == 'COMPLETE'
 
 
 def get_phase(plan, name):

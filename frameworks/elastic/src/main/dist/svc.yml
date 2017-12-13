@@ -7,15 +7,14 @@ pods:
     count: 3
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_MASTER}}:
-        labels: {{CNI_PLUGIN_LABELS_MASTER}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
       - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
-      - {{ELASTICSEARCH_JAVA_URI}}
       - {{XPACK_URI}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
@@ -23,7 +22,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{MASTER_NODE_PLACEMENT}}
+    placement: '{{{MASTER_NODE_PLACEMENT}}}'
     tasks:
       node:
         goal: RUNNING
@@ -48,8 +47,9 @@ pods:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh &&  ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
+          DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
           DATA_ENABLED: false
@@ -58,26 +58,24 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
+          cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
           delay: 0
           timeout: 10
+        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: TLS
+        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
   data:
     count: {{DATA_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_DATA}}:
-        labels: {{CNI_PLUGIN_LABELS_DATA}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -91,7 +89,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{DATA_NODE_PLACEMENT}}
+    placement: '{{{DATA_NODE_PLACEMENT}}}'
     tasks:
       node:
         goal: RUNNING
@@ -116,36 +114,33 @@ pods:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          MASTER_ENABLED: false
           DATA_ENABLED: true
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
+          cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
           delay: 0
           timeout: 10
+        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: TLS
+        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
   ingest:
     count: {{INGEST_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_INGEST}}:
-        labels: {{CNI_PLUGIN_LABELS_INGEST}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -159,7 +154,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{INGEST_NODE_PLACEMENT}}
+    placement: '{{{INGEST_NODE_PLACEMENT}}}'
     tasks:
       node:
         goal: RUNNING
@@ -184,36 +179,33 @@ pods:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
+          cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
           delay: 0
           timeout: 10
+        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: TLS
+        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
   coordinator:
     count: {{COORDINATOR_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
-      {{VIRTUAL_NETWORK_NAME_COORDINATOR}}:
-        labels: {{CNI_PLUGIN_LABELS_COORDINATOR}}
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     uris:
       - {{BOOTSTRAP_URI}}
@@ -227,7 +219,7 @@ pods:
       RLIMIT_NOFILE:
         soft: 128000
         hard: 128000
-    placement: {{COORDINATOR_NODE_PLACEMENT}}
+    placement: '{{{COORDINATOR_NODE_PLACEMENT}}}'
     tasks:
       node:
         goal: RUNNING
@@ -252,30 +244,27 @@ pods:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
-          MASTER_ENABLED: false
           DATA_ENABLED: false
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
         configs:
           elasticsearch:
-            template: "{{CONFIG_TEMPLATE_PATH}}/elasticsearch.yml"
-            dest: "elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml"
-        health-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
-          grace-period: 180
-          interval: 1
-          max-consecutive-failures: 5
-          delay: 0
-          timeout: 10
+            template: elasticsearch.yml
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
-          cmd: "curl -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} localhost:$PORT_HTTP"
+          cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
           delay: 0
           timeout: 10
+        {{#TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: TLS
+        {{/TASKCFG_ALL_ELASTIC_ENABLE_TLS}}
 plans:
   deploy:
     strategy: {{DEPLOY_STRATEGY}}
@@ -291,4 +280,19 @@ plans:
         pod: ingest
       coordinator-deploy:
         strategy: {{DEPLOY_STRATEGY}}
+        pod: coordinator
+  update:
+    strategy: {{UPDATE_STRATEGY}}
+    phases:
+      master-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: master
+      data-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: data
+      ingest-update:
+        strategy: {{UPDATE_STRATEGY}}
+        pod: ingest
+      coordinator-update:
+        strategy: {{UPDATE_STRATEGY}}
         pod: coordinator

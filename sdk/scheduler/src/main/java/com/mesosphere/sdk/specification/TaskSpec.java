@@ -17,6 +17,9 @@ public interface TaskSpec {
     @JsonProperty("goal")
     GoalState getGoal();
 
+    @JsonProperty("essential")
+    Boolean isEssential();
+
     @JsonProperty("resource-set")
     ResourceSet getResourceSet();
 
@@ -35,9 +38,11 @@ public interface TaskSpec {
     @JsonProperty("discovery-spec")
     Optional<DiscoverySpec> getDiscovery();
 
+    @JsonProperty("kill-grace-period")
+    Integer getTaskKillGracePeriodSeconds();
+
     @JsonProperty("transport-encryption")
     Collection<TransportEncryptionSpec> getTransportEncryption();
-
 
     static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
         return getInstanceName(podInstance, taskSpec.getName());

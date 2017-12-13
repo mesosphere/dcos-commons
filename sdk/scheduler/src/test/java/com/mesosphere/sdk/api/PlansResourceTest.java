@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.PlanInfo;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,10 +17,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
+import static com.mesosphere.sdk.api.ResponseUtils.alreadyReportedResponse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-import static com.mesosphere.sdk.api.ResponseUtils.*;
 
 public class PlansResourceTest {
     @Mock private Plan mockPlan;
@@ -26,7 +28,6 @@ public class PlansResourceTest {
     @Mock private Phase mockPhase;
     @Mock private Strategy<Step> mockPhaseStrategy;
     @Mock private Step mockStep;
-    @Mock private PlanScheduler planScheduler;
 
     private static final UUID stepId = UUID.randomUUID();
     private static final String stepName = "step-name";
@@ -56,8 +57,8 @@ public class PlansResourceTest {
         when(mockPlan.getStrategy()).thenReturn(mockPlanStrategy);
         when(mockPlan.getName()).thenReturn(planName);
 
-        resource = new PlansResource(
-                new DefaultPlanCoordinator(Arrays.asList(new DefaultPlanManager(mockPlan)), planScheduler));
+        resource = new PlansResource();
+        resource.setPlanManagers(Arrays.asList(DefaultPlanManager.createInterrupted(mockPlan)));
         verify(mockPlan).interrupt(); // invoked by DefaultPlanManager
     }
 
@@ -74,6 +75,23 @@ public class PlansResourceTest {
         when(mockPlan.isComplete()).thenReturn(true);
         Response response = resource.getPlanInfo(planName);
         assertEquals(200, response.getStatus());
+        assertTrue(response.getEntity() instanceof PlanInfo);
+    }
+
+    @Test
+    public void testFullInfoError() {
+        when(mockPlan.hasErrors()).thenReturn(true);
+        Response response = resource.getPlanInfo(planName);
+        assertEquals(417, response.getStatus());
+        assertTrue(response.getEntity() instanceof PlanInfo);
+    }
+
+    @Test
+    public void testFullInfoErrorEvenIfComplete() {
+        when(mockPlan.isComplete()).thenReturn(true);
+        when(mockPlan.hasErrors()).thenReturn(true);
+        Response response = resource.getPlanInfo(planName);
+        assertEquals(417, response.getStatus());
         assertTrue(response.getEntity() instanceof PlanInfo);
     }
 
@@ -123,9 +141,9 @@ public class PlansResourceTest {
     public void testContinueAlreadyInProgress() {
         StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
 
-        when(mockPlan.isInProgress()).thenReturn(true);
-        when(mockPhase.isInProgress()).thenReturn(true);
-        when(mockStep.isInProgress()).thenReturn(true);
+        when(mockPlan.isRunning()).thenReturn(true);
+        when(mockPhase.isRunning()).thenReturn(true);
+        when(mockStep.isRunning()).thenReturn(true);
 
         Response response = resource.continueCommand(planName, null);
         assertTrue(response.getStatusInfo().equals(expectedStatus));
@@ -182,7 +200,7 @@ public class PlansResourceTest {
 
         when(mockPlan.isInterrupted()).thenReturn(true);
         when(mockPhase.isInterrupted()).thenReturn(false);
-        
+
         Response response = resource.interruptCommand(planName, null);
         assertTrue(response.getStatusInfo().equals(expectedStatus));
 
@@ -197,7 +215,7 @@ public class PlansResourceTest {
         StatusType expectedStatus = alreadyReportedResponse().getStatusInfo();
 
         when(mockPlan.isComplete()).thenReturn(true);
-        
+
         Response response = resource.interruptCommand(planName, null);
         assertTrue(response.getStatusInfo().equals(expectedStatus));
 

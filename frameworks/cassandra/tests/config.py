@@ -1,36 +1,71 @@
 """ Utilties specific to Cassandra tests """
 
 import os
+import logging
+import traceback
 
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
 import sdk_utils
 
+log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'cassandra'
+PACKAGE_NAME = 'beta-cassandra'
+
+SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or 'cassandra'
+
 DEFAULT_TASK_COUNT = 3
-FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(PACKAGE_NAME)
 DEFAULT_CASSANDRA_TIMEOUT = 600
+# Soak artifact scripts may override the service name to test
 
-DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(PACKAGE_NAME, 'node-0-server'))
-FOLDERED_NODE_ADDRESS = sdk_hosts.autoip_host(FOLDERED_SERVICE_NAME, 'node-0-server')
+DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 
-def _get_test_job(name, cmd, restart_policy='NEVER'):
+def _get_test_job(name, cmd, restart_policy='ON_FAILURE'):
     return {
-        'description': 'Integration test job: ' + name,
+        'description': '{} with restart policy {}'.format(name, restart_policy),
         'id': 'test.cassandra.' + name,
         'run': {
             'cmd': cmd,
-            'docker': { 'image': 'cassandra:3.0.13' },
+            'docker': {'image': 'cassandra:3.0.13'},
             'cpus': 1,
             'mem': 512,
             'user': 'nobody',
-            'restart': { 'policy': restart_policy }
+            'restart': {'policy': restart_policy}
         }
     }
+
+
+def get_foldered_service_name():
+    return sdk_utils.get_foldered_name(SERVICE_NAME)
+
+
+def get_foldered_node_address():
+    return sdk_hosts.autoip_host(get_foldered_service_name(), 'node-0-server')
+
+
+def get_replicate_system_traces_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_traces WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_replicate_job('replicate-system-traces', cql, node_address, node_port)
+
+
+def get_replicate_system_auth_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_auth WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_replicate_job('replicate-system-auth', cql, node_address, node_port)
+
+
+def get_replicate_system_distributed_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_replicate_job('replicate-system-distributed', cql, node_address, node_port)
+
+
+def _get_replicate_job(name, cql, node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    cql = "alter keyspace system_traces WITH replication = {'class': 'SimpleStrategy', 'replication_factor':3};"
+    return _get_test_job(
+        'replicate-system-traces',
+        'cqlsh --cqlversion=3.4.0 -e "{}" {} {}'.format(cql, node_address, node_port))
 
 
 def get_delete_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
@@ -78,6 +113,25 @@ def get_write_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE
         'cqlsh --cqlversion=3.4.0 -e "{}" {} {}'.format(cql, node_address, node_port))
 
 
+def get_all_jobs(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+    write_data_job = get_write_data_job(node_address)
+    verify_data_job = get_verify_data_job(node_address)
+    delete_data_job = get_delete_data_job(node_address)
+    verify_deletion_job = get_verify_deletion_job(node_address)
+    replicate_system_traces_job = get_replicate_system_traces_job()
+    replicate_system_auth_job = get_replicate_system_auth_job()
+    replicate_system_distributed_job = get_replicate_system_distributed_job()
+
+    return [
+        write_data_job,
+        verify_data_job,
+        delete_data_job,
+        verify_deletion_job,
+        replicate_system_traces_job,
+        replicate_system_auth_job,
+        replicate_system_distributed_job]
+
+
 def run_backup_and_restore(
         service_name,
         backup_plan,
@@ -88,6 +142,15 @@ def run_backup_and_restore(
     verify_data_job = get_verify_data_job(node_address=job_node_address)
     delete_data_job = get_delete_data_job(node_address=job_node_address)
     verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
+
+
+    # Ensure the keyspaces we will use aren't present.
+    try:
+        jobs.run_job(delete_data_job)
+    except:
+        log.info("Error during delete (normal if no stale data).")
+        tb = traceback.format_exc()
+        log.info(tb)
 
     # Write data to Cassandra with a metronome job, then verify it was written
     # Note: Write job will fail if data already exists

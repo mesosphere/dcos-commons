@@ -32,6 +32,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.
 
+  * `user`
+
+    The system user to run the service's scheduler and pods as, with default `root` if unspecified. Availability of usernames depends on the cluster. In DC/OS Enterprise, if the security mode is set to strict, the service account used by the service must have permissions to launch tasks as the assigned user.
+
 * `pods`
 
   This section contains a listing of all pod types managed by the service.
@@ -50,33 +54,29 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `count`
 
-    The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating.
+    The number of pods of this type to be deployed. This may either be hardcoded or exposed to end users via mustache templating. This value may always be increased after the service has been deployed, but it can only be decreased if `allow-decommission` is `true`.
 
-  * `container`
+  * `allow-decommission`
 
-    This section contains additional options relating to the container environment to be used by the pod type.
+    Whether to allow this pod's `count` to be decreased by an operator in a configuration update. For safety reasons this defaults to `false`, but the service developer may set this field to `true` to explicitly allow scale-down on a per-pod basis.
 
-    * `image-name`
+  * `image`
 
-      The docker image to use for launching the pod, of the form `user/img:version`. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been [configured in the DC/OS cluster](https://github.com/dcos/examples/tree/master/1.8/registry) to work. To ensure a lack of flakiness, docker images are only executed by Mesos' [Universal Container Runtime](https://docs.mesosphere.com/1.9/deploying-services/containerizers/), never `dockerd`. If this is unspecified, then a sandboxed directory on the system root is used instead.
+    The docker image to use for launching the pod, of the form `user/img:version`. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been [configured in the DC/OS cluster](https://github.com/dcos/examples/tree/master/1.8/registry) to work. To ensure a lack of flakiness, docker images are only executed by Mesos' [Universal Container Runtime](https://docs.mesosphere.com/1.9/deploying-services/containerizers/), never `dockerd`. If this is unspecified, then a sandboxed directory on the system root is used instead.
 
-      `image-name` may be left empty when the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
+    You do not have to specify an image if the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
 
-    * `rlimits`
+  * `rlimits`
 
-      This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
+    This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
 
-      ```
-      rlimits:
-        RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
-      ```
-
-  * `image`/`networks`/`rlimits`
-
-    These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)
+    ```
+    rlimits:
+      RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
+    ```
 
   * `secrets`
 
@@ -97,19 +97,19 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `networks`
 
-    Allows the pod to join any number of virtual networks on the DC/OS cluster, however the only supported virtual network at present is the `dcos` overlay network. To have the pod join the overlay add the following to its YAML specification:
+    Allows the pod to join any number of virtual networks on the DC/OS cluster. One kind of virtual network that is supported at present is the `dcos` overlay network. To have the pod join a virtual network (the `dcos` overlay network in this case) add the following to its YAML specification:
 
     ```
     networks:
       dcos:
     ```
 
-    Pods on overlay networks have the following effects:
+    Pods on virtual networks have the following effects:
 
     <div class="noyaml"><ul>
-    <li>The pod receives its own IP address from the subnet of the overlay belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
+    <li>The pod receives its own IP address from the subnet of the virtual network belonging to the agent where the pod is deployed. The IP can be retrieved using the DNS <code>&lt;task_name>.&lt;framework_name>.autoip.dcos.thisdcos.directory</code>. This DNS will also work for pods on the native host network.</li>
     <li>The <code>ports</code> resource requirements will be ignored (i.e. the agent does not need to have these ports available) because the pod has its own IP address.</li>
-    <li>Once the pod is on the overlay, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
+    <li>Once the pod is on a virtual network, you cannot move it to the host network. This is disallowed because the ports may not be available on the agent that has the rest of the task's reserved resources.</li>
     </ul></div>
 
     For more information see the [DC/OS Virtual Network documentation](https://docs.mesosphere.com/1.9/networking/virtual-networks/#virtual-network-service-dns).
@@ -118,13 +118,21 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     A list of uris to be downloaded (and automatically unpacked) into the `$MESOS_SANDBOX` directory before launching instances of this pod. It is strongly recommended that all URIs be templated out and provided as scheduler environment variables. This allows field replacement in the case of running an offline cluster without internet connectivity.
 
-    If you're using a Docker image (specified in the `image-name` field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.
+    If you're using a Docker image (specified in the `image` field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.
 
     If you wish to use `configs` in your tasks, this needs to include a URI to download the `bootstrap` executable.
 
   * `volume`/`volumes`
 
     One or more persistent volumes to be mounted into the pod environment. These behave the same as volumes on a task or resource set, but are guaranteed to be shared between tasks in a pod. Although volumes defined on a task currently behave the same way, individual tasks will not be able to access volumes defined by another task in the future.
+
+  * `pre-reserved-role`
+
+    Ensures that this pod only consumes resources against a role which has already been statically assigned within the cluster. This is mainly useful for placing pods within a predefined quota, or otherwise assigning them a specific set of resources. For example, DC/OS clusters have a convention of using the `slave_public` role for machines which are not firewalled. Pods which have their `pre-reserved-role` set to `slave_public` will be placed on those machines so that they are visible outside the cluster.
+
+  * `share-pid-namespace`
+
+    Whether the tasks within this pod should share the same process id namespace (`true`), or whether pid namespaces should be distinct for every task in the pod (`false`). Default is `false`.
 
   * `tasks`
 
@@ -137,6 +145,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
       <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
       </ul></div>
+
+    * `essential`
+
+      Marks this task as either "Essential", where relaunching this task results in relaunching all `RUNNING` tasks in the pod instance, or "Non-essential", where relaunching it does not affect other `RUNNING` tasks in the pod instance. By default this value is `true`, such that if this task needs to be relaunched, then all other tasks sharing the same pod instance are relaunched alongside it. This is only a factor in cases where a given pod has multiple `RUNNING` tasks defined.
 
     * `cmd`
 
@@ -152,7 +164,9 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       <div class="noyaml"><ul>
       <li><code>TASK_NAME</code>: The name of the task, of the form <code>&lt;pod>-&lt;#>-&lt;task></code>. For example: <code>mypod-0-node</code>.</li>
       <li><code>FRAMEWORK_NAME</code>: The name of the service.</li>
-      <li><code>FRAMEWORK_HOST</code>: The host domain of the service. For example, the full hostname for the task would be [TASK_NAME].[FRAMEWORK_HOST].</li>
+      <li><code>FRAMEWORK_HOST</code>: The host domain for pods on the service. For example, the full hostname for a task would be <code>[TASK_NAME].[FRAMEWORK_HOST]</code>.</li>
+      <li><code>FRAMEWORK_VIP_HOST</code>: The host domain for VIPs on the service. For example, the full hostname for a VIP would be <code>[VIP_NAME].[FRAMEWORK_VIP_HOST]</code>.</li>
+      <li><code>SCHEDULER_API_HOSTNAME</code>: The hostname for the Scheduler HTTP API. For example, an endpoint on the scheduler would be <code>http://[SCHEDULER_API_HOSTNAME]/myendpoint</code>.</li>
       <li><code>POD_INSTANCE_INDEX</code>: The index of the pod instance, starting at 0 for the first instance.</li>
       <li><code>&lt;TASK_NAME>=true</code>: The task name as the envvar name, with <code>true</code> as the value.</li>
       </ul></div>
@@ -372,10 +386,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         This can be set either to `TLS` for PEM encoded private key file, certificate and CA bundle or `KEYSTORE` for certificate and private key to be delivered in a separate keystore file and CA bundle in other truststore file.
 
       For detailed information see the [SDK Developer Guide](developer-guide.html#tls).
-
-  * `user`
-
-    The system user to run this pod as. The available users depend on the administrator's cluster. If clusters are using DC/OS Security enabled, this may need to be set to `nobody`.
 
 * `plans`
 

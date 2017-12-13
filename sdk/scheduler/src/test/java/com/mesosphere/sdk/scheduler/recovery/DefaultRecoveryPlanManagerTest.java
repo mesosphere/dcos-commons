@@ -6,13 +6,12 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
-import com.mesosphere.sdk.specification.*;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -51,10 +50,10 @@ import static org.mockito.Mockito.*;
  * </ul>
  */
 public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     private static final List<Resource> resources = Arrays.asList(
-            ResourceTestUtils.getUnreservedCpu(TestPodFactory.CPU),
+            ResourceTestUtils.getUnreservedCpus(TestPodFactory.CPU),
             ResourceTestUtils.getUnreservedMem(TestPodFactory.MEM));
 
     private TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resources);
@@ -68,6 +67,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private TestingFailureMonitor failureMonitor;
     private TestingLaunchConstrainer launchConstrainer;
     private PlanCoordinator planCoordinator;
+    private DefaultPlanScheduler planScheduler;
     private PlanManager mockDeployManager;
     private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
@@ -79,7 +79,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private static List<Offer> getOffers(double cpus, double mem) {
         return OfferTestUtils.getCompleteOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpu(cpus),
+                        ResourceTestUtils.getUnreservedCpus(cpus),
                         ResourceTestUtils.getUnreservedMem(mem)));
     }
 
@@ -97,7 +97,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         stateStore = new StateStore(persister);
 
         File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
-        serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(recoverySpecFile).build(), flags).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(recoverySpecFile, SCHEDULER_CONFIG).build();
 
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID configTarget = configStore.store(serviceSpec);
@@ -116,36 +116,41 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         recoveryManager = spy(new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
+                new HashSet<>(Arrays.asList(taskInfo.getName())),
                 launchConstrainer,
                 failureMonitor));
         schedulerDriver = mock(SchedulerDriver.class);
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        final DefaultPlanScheduler planScheduler = new DefaultPlanScheduler(
+        planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
                         stateStore,
                         serviceSpec.getName(),
                         configTarget,
-                        OfferRequirementTestUtils.getTestSchedulerFlags(),
+                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
                 stateStore,
-                new DefaultTaskKiller(taskFailureListener, schedulerDriver));
-        planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager),
-                planScheduler);
+                new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver));
+        planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager));
     }
 
     @Test
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedTryConstrainedlaunch() throws Exception {
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
+        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_FAILED);
 
         launchConstrainer.setCanLaunch(false);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
+        Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         assertEquals(0, acceptedOffers.size());
         // Verify launchConstrainer was used
@@ -153,7 +158,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            planCoordinator.processOffers(schedulerDriver, getOffers());
+            planScheduler.resourceOffers(schedulerDriver, getOffers(), planCoordinator.getCandidates());
             //verify the UI
             assertNotNull(recoveryManager.getPlan());
             assertNotNull(recoveryManager.getPlan().getChildren());
@@ -175,7 +180,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 Protos.TaskState.TASK_FAILED);
 
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
@@ -183,7 +188,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         recoveryManager.update(status);
 
         // no dirty
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, offers);
+        Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
         assertEquals(1, acceptedOffers.size());
 
         // Verify launchConstrainer was checked before launch
@@ -203,14 +211,17 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(step.getName()).thenReturn("different-name");
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn((Collection) Arrays.asList(step));
 
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, offers);
+        Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         assertEquals(1, acceptedOffers.size());
         reset(mockDeployManager);
@@ -218,21 +229,27 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
     @Test
     public void stoppedTaskTransitionsToFailed() throws Exception {
-        final List<TaskInfo> infos = Collections.singletonList(FailureUtils.markFailed(taskInfo));
+        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.withFailedFlag(taskInfo));
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(infos.get(0));
         launchConstrainer.setCanLaunch(false);
         stateStore.storeTasks(infos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        planCoordinator.processOffers(schedulerDriver, getOffers());
+        planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         // Verify that the UI remains stable
         for (int i = 0; i < 10; i++) {
-            planCoordinator.processOffers(schedulerDriver, getOffers());
+            planScheduler.resourceOffers(
+                    schedulerDriver,
+                    getOffers(),
+                    planCoordinator.getCandidates());
 
             // verify the transition to stopped
             assertNotNull(recoveryManager.getPlan());
@@ -255,14 +272,15 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(taskInfo);
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
 
         recoveryManager.update(status);
-        final Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(
+        final Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
                 schedulerDriver,
-                getOffers());
+                getOffers(),
+                planCoordinator.getCandidates());
 
         // Verify we launched the task
         assertEquals(1, acceptedOffers.size());
@@ -295,11 +313,15 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(taskInfo);
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
+        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        final Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, insufficientOffers);
+        final Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                insufficientOffers,
+                planCoordinator.getCandidates());
 
         assertEquals(0, acceptedOffers.size());
         // Verify we transitioned the task to failed
@@ -319,7 +341,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     @Test
     public void permanentlyFailedTasksAreRescheduled() throws Exception {
         // Prepare permanently failed task with some reserved resources
-        final TaskInfo failedTaskInfo = FailureUtils.markFailed(taskInfo);
+        final TaskInfo failedTaskInfo = TaskTestUtils.withFailedFlag(taskInfo);
         final List<TaskInfo> infos = Collections.singletonList(failedTaskInfo);
         final List<Offer> offers = getOffers();
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
@@ -329,13 +351,16 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         failureMonitor.setFailedList(failedTaskInfo);
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(infos);
-        stateStore.storeStatus(status);
+        stateStore.storeStatus(taskInfo.getName(), status);
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any(), any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
-        Collection<Protos.OfferID> acceptedOffers = planCoordinator.processOffers(schedulerDriver, getOffers());
+        final Collection<Protos.OfferID> acceptedOffers = planScheduler.resourceOffers(
+                schedulerDriver,
+                getOffers(),
+                planCoordinator.getCandidates());
 
         assertEquals(1, acceptedOffers.size());
 
@@ -367,18 +392,18 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(runningStatus);
+        stateStore.storeStatus(taskInfo.getName(), runningStatus);
         recoveryManager.update(runningStatus);
         assertEquals(0, recoveryManager.getPlan().getChildren().size());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
     }
@@ -398,75 +423,27 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(runningStatus);
+        stateStore.storeStatus(taskInfo.getName(), runningStatus);
         recoveryManager.update(runningStatus);
         assertEquals(0, recoveryManager.getPlan().getChildren().size());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(runningStatus);
+        stateStore.storeStatus(taskInfo.getName(), runningStatus);
         recoveryManager.update(runningStatus);
         recoveryManager.getCandidates(Collections.emptyList());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
 
         // TASK_FAILED
-        stateStore.storeStatus(failedStatus);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
         recoveryManager.update(failedStatus);
         assertEquals(1, recoveryManager.getPlan().getChildren().get(0).getChildren().size());
         assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).isPending());
-    }
-
-    @Test
-    public void testClearCompletedPermanentFailureStep() {
-        String taskName0 = TestConstants.TASK_NAME + 0;
-        TaskSpec taskSpec0 =
-                TestPodFactory.getTaskSpec(
-                        taskName0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
-        TaskSpec taskSpec1 =
-                TestPodFactory.getTaskSpec(
-                        TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder("")
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-
-        TaskInfo taskInfo0 = TaskInfo.newBuilder()
-                .setName(TaskSpec.getInstanceName(podInstance, taskSpec0))
-                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .build();
-        TaskInfo taskInfo1 = TaskInfo.newBuilder()
-                .setName(TaskSpec.getInstanceName(podInstance, taskSpec1))
-                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setSlaveId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .build();
-        stateStore.storeTasks(Arrays.asList(taskInfo0, taskInfo1));
-
-        FailureUtils.markFailed(podInstance, stateStore);
-        assertTrue(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
-
-        // PodInstanceRequirement addresses only 1 Task in the Pod, but the whole pod should be cleared
-        // of its permanent failure mark
-        PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(taskName0))
-                        .recoveryType(RecoveryType.PERMANENT)
-                        .build();
-        Step step = new DefaultRecoveryStep(
-                podInstance.getName(),
-                Status.COMPLETE,
-                podInstanceRequirement,
-                new UnconstrainedLaunchConstrainer(),
-                stateStore);
-
-        recoveryManager.update(step);
-        assertFalse(FailureUtils.isLabeledAsFailed(podInstance, stateStore));
     }
 }

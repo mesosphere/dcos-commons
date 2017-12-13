@@ -84,7 +84,7 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
         if (now.after(taskExpiredTime)) {
             try {
                 PodInstance podInstance = TaskUtils.getPodInstance(configStore, terminatedTask);
-                FailureUtils.markFailed(podInstance, stateStore);
+                FailureUtils.setPermanentlyFailed(stateStore, podInstance);
             } catch (TaskException e) {
                 log.error("Failed to get pod instance to mark as failed.", e);
             }

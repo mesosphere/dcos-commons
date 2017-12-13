@@ -5,11 +5,11 @@ scheduler:
 pods:
   template:
     count: {{NODE_COUNT}}
-    placement: {{NODE_PLACEMENT}}
+    placement: '{{{NODE_PLACEMENT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS}}
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
       node:

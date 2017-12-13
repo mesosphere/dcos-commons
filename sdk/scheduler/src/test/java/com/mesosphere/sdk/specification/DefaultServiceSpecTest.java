@@ -1,52 +1,52 @@
 package com.mesosphere.sdk.specification;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.collect.Iterables;
+import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import org.apache.mesos.Protos;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
-import com.mesosphere.sdk.specification.util.RLimit;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.OfferRequirementTestUtils;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
 public class DefaultServiceSpecTest {
-    private static final SchedulerFlags flags = OfferRequirementTestUtils.getTestSchedulerFlags();
-    @Mock private YAMLToInternalMappers.FileReader mockFileReader;
-    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
-    @Mock private StateStore mockStateStore;
-    @Mock private Capabilities capabilities;
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
+    @Mock
+    private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
+    @Mock
+    private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock
+    private StateStore mockStateStore;
+    @Mock
+    private Capabilities capabilities;
 
     @Before
     public void beforeEach() {
@@ -54,17 +54,17 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    @SuppressFBWarnings(value="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
+    @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     public void validExhaustive() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
 
-        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
-        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
-        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+        when(configTemplateReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(configTemplateReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(configTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
-                .setFileReader(mockFileReader)
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
+                .setConfigTemplateReader(configTemplateReader)
                 .build();
         Assert.assertNotNull(serviceSpec);
     }
@@ -73,7 +73,7 @@ public class DefaultServiceSpecTest {
     public void validMinimal() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
     }
 
@@ -81,9 +81,9 @@ public class DefaultServiceSpecTest {
     public void validSimple() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-simple.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue(DefaultService.serviceSpecRequestsGpuResources(serviceSpec) ==
+        Assert.assertTrue(PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec) ==
                 DcosConstants.DEFAULT_GPU_POLICY);
         validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
@@ -92,10 +92,10 @@ public class DefaultServiceSpecTest {
     public void validGpuResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
-        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
-        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
+        Assert.assertTrue("Expected serviceSpec to request support GPUs",
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
         validateServiceSpec("valid-gpu-resource.yml", true);
     }
 
@@ -103,17 +103,17 @@ public class DefaultServiceSpecTest {
     public void validGpuResourceSet() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
-        Boolean obs = DefaultService.serviceSpecRequestsGpuResources(serviceSpec);
-        Assert.assertTrue(String.format("Expected serviceSpec to request support GPUs got %s", obs), obs);
+        Assert.assertTrue("Expected serviceSpec to request support GPUs",
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
     }
 
     @Test
     public void validPortResourceEnvKey() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
@@ -143,7 +143,7 @@ public class DefaultServiceSpecTest {
     public void validPortResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
                 .getResources()
@@ -166,7 +166,7 @@ public class DefaultServiceSpecTest {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             File file = new File(classLoader.getResource("invalid-duplicate-ports.yml").getFile());
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains("Task has multiple ports with value 8080"));
@@ -178,7 +178,7 @@ public class DefaultServiceSpecTest {
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             File file = new File(classLoader.getResource("invalid-duplicate-port-names.yml").getFile());
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains(
@@ -190,8 +190,7 @@ public class DefaultServiceSpecTest {
     public void validReadinessCheck() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("readiness-check.yml").getFile());
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         Assert.assertNotNull(serviceSpec);
 
@@ -224,7 +223,7 @@ public class DefaultServiceSpecTest {
                 .numberOfPortMappings() == 2);
 
         // Check that the raw service spec was correctly translated into the ServiceSpec
-        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, flags).build();
+        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, SCHEDULER_CONFIG, file.getParentFile()).build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertTrue(serviceSpec.getPods().size() == 3);
         // check the first pod
@@ -246,9 +245,47 @@ public class DefaultServiceSpecTest {
         networkSpec = Iterables.get(podSpec.getNetworks(), 0);
         Assert.assertTrue(String.format("%s", networkSpec.getPortMappings()),
                 networkSpec.getPortMappings().size() == 2);
-        Assert.assertTrue(networkSpec.getPortMappings().get(4040)== 8080);
+        Assert.assertTrue(networkSpec.getPortMappings().get(4040) == 8080);
         Assert.assertTrue(networkSpec.getPortMappings().get(4041) == 8081);
         validateServiceSpec("valid-automatic-cni-port-forwarding.yml", DcosConstants.DEFAULT_GPU_POLICY);
+    }
+
+    @Test
+    public void validTaskKillGracePeriodSeconds() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-task-kill-grace-period-seconds.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        Assert.assertNotEquals(15, DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT);
+        int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
+        Assert.assertEquals(15, taskKillGracePeriodSeconds);
+    }
+
+    @Test
+    public void validTaskKillGracePeriodSecondsReasonableDefault() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        int taskKillGracePeriodSeconds = getTaskKillGracePeriodSeconds(serviceSpec);
+        Assert.assertEquals(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT, taskKillGracePeriodSeconds);
+    }
+
+    @Test
+    public void invalidTaskKillGracePeriodSeconds() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-kill-grace-period-seconds.yml").getFile());
+        try {
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+            Assert.fail("Expected exception");
+        } catch (ConstraintViolationException e) {
+            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
+            Assert.assertTrue(constraintViolations.size() > 0);
+        }
+    }
+
+    private int getTaskKillGracePeriodSeconds(DefaultServiceSpec serviceSpec) {
+        return serviceSpec.getPods().get(0).getTasks().get(0).getTaskKillGracePeriodSeconds();
     }
 
     @Test
@@ -256,7 +293,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-pod-name.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -270,7 +307,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-dns.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage().contains("Tasks in different pods cannot share DNS names"));
@@ -282,7 +319,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-duplicate-count.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -296,7 +333,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-volume-and-volumes.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (IllegalArgumentException e) {
             Assert.assertTrue(e.getMessage(), e.getMessage().contains("Both 'volume' and 'volumes'"));
@@ -307,7 +344,7 @@ public class DefaultServiceSpecTest {
     public void invalidConfigFile() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-config-file.yml").getFile());
-        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -315,11 +352,13 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
-        DefaultScheduler.newBuilder(DefaultServiceSpec.newGenerator(rawSpec, flags).build(), flags, new MemPersister())
-            .setConfigStore(mockConfigStore)
-            .setStateStore(mockStateStore)
-            .setPlansFrom(rawSpec)
-            .build();
+        when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "prior config not found"));
+        DefaultScheduler.newBuilder(
+                DefaultServiceSpec.newGenerator(rawSpec, SCHEDULER_CONFIG, file.getParentFile()).build(), SCHEDULER_CONFIG, new MemPersister())
+                .setConfigStore(mockConfigStore)
+                .setStateStore(mockStateStore)
+                .setPlansFrom(rawSpec)
+                .build();
     }
 
     @Test
@@ -327,13 +366,13 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
 
-        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
-        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
-        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+        when(configTemplateReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(configTemplateReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(configTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         DefaultServiceSpec defaultServiceSpec =
-                DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
-                        .setFileReader(mockFileReader)
+                DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
+                        .setConfigTemplateReader(configTemplateReader)
                         .build();
         try {
             List<PodSpec> pods = defaultServiceSpec.getPods();
@@ -353,7 +392,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-name.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -366,30 +405,30 @@ public class DefaultServiceSpecTest {
     public void cantDefineContainerSettingsBothPlaces() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-duplicate-container-definition.yml").getFile());
-        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test
     public void validImage() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-image.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
-    @Test
-    public void validImageLegacy() throws Exception {
+    @Test(expected = ConstraintViolationException.class)
+    public void invalidImageNull() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-image-legacy.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
+        File file = new File(classLoader.getResource("invalid-image-null.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Assert.assertEquals(null, defaultServiceSpec.getPods().get(0).getImage());
     }
 
     @Test
     public void validNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-network.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         PodSpec podSpec = defaultServiceSpec.getPods().get(0);
         Assert.assertEquals("dcos", Iterables.get(podSpec.getNetworks(), 0)
                 .getName());
@@ -411,7 +450,7 @@ public class DefaultServiceSpecTest {
     public void validPortMappingNetworkRespectsPortResources() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-automatic-cni-port-forwarding.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertEquals("mesos-bridge", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0)
                 .getName());
         // check that the port resources are ignored
@@ -433,13 +472,6 @@ public class DefaultServiceSpecTest {
         }
     }
 
-    @Test
-    public void validNetworksLegacy() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-network-legacy.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-        Assert.assertEquals("dcos", Iterables.get(defaultServiceSpec.getPods().get(0).getNetworks(), 0).getName());
-    }
 
     @Test(expected = IllegalArgumentException.class)
     public void invalidNetworks() throws Exception {
@@ -447,7 +479,7 @@ public class DefaultServiceSpecTest {
         // this service spec contains specifies an overlay network that doesn't support port mapping, but contains
         // port mapping requests
         File file = new File(classLoader.getResource("invalid-network.yml").getFile());
-        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test
@@ -455,7 +487,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             File file = new File(classLoader.getResource("invalid-scalar-cpu-resource.yml").getFile());
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -468,7 +500,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             File file = new File(classLoader.getResource("invalid-scalar-mem-resource.yml").getFile());
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -481,7 +513,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         try {
             File file = new File(classLoader.getResource("invalid-scalar-disk-resource.yml").getFile());
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -489,18 +521,11 @@ public class DefaultServiceSpecTest {
         }
     }
 
-    @Test(expected = RLimit.InvalidRLimitException.class)
+    @Test(expected = RLimitSpec.InvalidRLimitException.class)
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
-        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
-    }
-
-    @Test(expected = RLimit.InvalidRLimitException.class)
-    public void invalidRLimitNameLegacy() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-rlimit-legacy-name.yml").getFile());
-        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test
@@ -508,13 +533,13 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
 
-        when(mockFileReader.read("config-one.conf.mustache")).thenReturn("hello");
-        when(mockFileReader.read("config-two.xml.mustache")).thenReturn("hey");
-        when(mockFileReader.read("config-three.conf.mustache")).thenReturn("hi");
+        when(configTemplateReader.read("config-one.conf.mustache")).thenReturn("hello");
+        when(configTemplateReader.read("config-two.xml.mustache")).thenReturn("hey");
+        when(configTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
 
         DefaultServiceSpec defaultServiceSpec =
-                DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags)
-                        .setFileReader(mockFileReader)
+                DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
+                        .setConfigTemplateReader(configTemplateReader)
                         .build();
         try {
             List<PodSpec> pods = defaultServiceSpec.getPods();
@@ -535,7 +560,7 @@ public class DefaultServiceSpecTest {
     public void vipPortNameCollision() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-vip-port-name-collision.yml").getFile());
-        DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test
@@ -543,7 +568,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (ConstraintViolationException e) {
             Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
@@ -556,7 +581,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-resource-set-name.yml").getFile());
         try {
-            DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
             Assert.fail("Expected exception");
         } catch (JsonMappingException e) {
             Assert.assertTrue(e.getCause().toString(), e.getCause() instanceof JsonParseException);
@@ -570,7 +595,7 @@ public class DefaultServiceSpecTest {
     public void defaultZKConnection() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals(DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING, serviceSpec.getZookeeperConnection());
@@ -580,7 +605,7 @@ public class DefaultServiceSpecTest {
     public void customZKConnection() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-customzk.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
@@ -591,7 +616,7 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
 
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
     }
 
@@ -616,10 +641,23 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, Arrays.asList(podSpec)));
     }
 
+    @Test
+    public void getUserWithNullPodSpecListReturnsDefaultUser() {
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, null));
+    }
+
+    @Test
+    public void getListOfNullPodSpecsReturnsDefaultUser() {
+        final List<PodSpec> listOfNull = new ArrayList<>();
+        listOfNull.add(null);
+        Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, listOfNull));
+    }
+
+
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(RawServiceSpec.newBuilder(file).build(), flags).build();
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
         capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
@@ -627,7 +665,7 @@ public class DefaultServiceSpecTest {
 
         Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, flags, new MemPersister())
+        DefaultScheduler.newBuilder(serviceSpec, SCHEDULER_CONFIG, new MemPersister())
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .build();

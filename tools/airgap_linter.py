@@ -20,11 +20,12 @@ def extract_uris(file_name):
     matcher = re.compile(".*https?:\/\/([^\/\?]*)", re.IGNORECASE)
     matches = []
     for line in lines:
+        line = line.strip()
         # Do not grab comments
         if line.startswith("*") or line.startswith("#") or line.startswith("//"):
             continue
         # Do not grab "id" lines
-        if "\"id\":" in line:
+        if '"id":' in line:
             continue
 
         match = matcher.match(line)
@@ -39,9 +40,13 @@ def validate_uris_in(file_name):
 
     bad_uri = False
     for uri in uris:
-        # A FQDN is a valid internal FQDN if it contains .dcos or ends with .mesos.
-        if not (".dcos" in uri or uri.endswith(".mesos")):
-            print("Found a bad URI:", uri, "in:", file_name)
+        # A FQDN is a valid cluster internal FQDN if it:
+        #   - contains .mesos:<####>
+        #   - contains .thisdcos
+        #   - contains $MESOS_CONTAINER_IP
+        if not (".thisdcos" in uri or ".mesos:" in uri or "$MESOS_CONTAINER_IP" in uri):
+            print("Found a bad URI:", uri, "in:", file_name,
+                  "Export URIs to resource.json to allow packaging for airgapped clusters.")
             bad_uri = True
 
     return not bad_uri
@@ -73,22 +78,24 @@ def validate_all_uris(framework_directory):
 
 
 def validate_images(framework_directory):
-    svc_yml = os.path.join(framework_directory, "src", "main", "dist", "svc.yml")
+    files = get_files_to_check_for_uris(framework_directory)
 
-    with open(svc_yml, "r") as file:
-        lines = file.readlines()
+    for file in files:
+        with open(file, "r") as file:
+            lines = file.readlines()
 
-    bad_image = False
-    for line in lines:
-        line = line.strip()
-        if "image:" in line:
-            image_matcher = re.compile("image:\s?(.*)$", re.IGNORECASE)
-            match = image_matcher.match(line)
-            image_path = match.group(1)
-            env_var_matcher = re.compile("\{\{[A-Z0-9_]*\}\}")
-            if not env_var_matcher.match(image_path):
-                print("Bad image found in svc.yml. It is a direct reference instead of a templated reference:", image_path)
-                bad_image = True
+        bad_image = False
+        for line in lines:
+            line = line.strip()
+            if "image:" in line:
+                image_matcher = re.compile("image:\s?(.*)$", re.IGNORECASE)
+                match = image_matcher.match(line)
+                image_path = match.group(1)
+                env_var_matcher = re.compile("\{\{[A-Z0-9_]*\}\}")
+                if not env_var_matcher.match(image_path):
+                    print("""Bad image found in {}. It is a direct reference instead of a templated reference: {}
+                    Export images to resource.json to allow packaging for airgapped clusters.""".format(file, image_path))
+                    bad_image = True
 
     return not bad_image
 
@@ -124,7 +131,7 @@ def main(argv):
         print("Airgap check FAILED. This framework will NOT work in an airgap. Fix the detected issues.")
         sys.exit(1)
 
-    print("Airgap check complete. This framework will _probably_ work in an airgap, but for the love of everything test that.")
+    print("Airgap check complete. This framework will probably work in an airgapped cluster, but for the love of everything test that.")
     sys.exit(0)
 
 

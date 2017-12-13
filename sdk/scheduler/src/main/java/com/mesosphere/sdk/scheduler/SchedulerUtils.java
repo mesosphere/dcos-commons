@@ -1,10 +1,15 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
-import org.apache.commons.lang3.StringUtils;
-
+import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.PersisterUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class provides utilities common to the construction and operation of Mesos Schedulers.
@@ -93,7 +98,7 @@ public class SchedulerUtils {
     /**
      * Returns the configured {@code hostname:port} to use for state storage at the scheduler.
      */
-    public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
+    public static String getZkHost(RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig) {
         // If the svc.yml explicitly provided a zk host:port, use that
         if (rawServiceSpec.getScheduler() != null
                 && !StringUtils.isEmpty(rawServiceSpec.getScheduler().getZookeeper())) {
@@ -121,6 +126,21 @@ public class SchedulerUtils {
      */
     @SuppressWarnings("DM_EXIT")
     public static void hardExit(SchedulerErrorCode errorCode) {
+        String message = String.format("Scheduler exiting immediately with code: %d", errorCode.getValue());
+        System.err.println(message);
+        System.out.println(message);
         System.exit(errorCode.getValue());
+    }
+
+    static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans = plans.stream().filter(Plan::isDeployPlan).collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            throw new IllegalStateException(String.format("Found multiple deploy plans: %s", deployPlans));
+        }
     }
 }

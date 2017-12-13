@@ -11,7 +11,7 @@ import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
-import com.mesosphere.sdk.scheduler.SchedulerFlags;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -29,6 +29,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -89,9 +90,12 @@ public class DefaultServiceSpec implements ServiceSpec {
             return user;
         }
 
-        Optional<PodSpec> podSpecOptional = podSpecs.stream()
-                .filter(podSpec -> podSpec.getUser() != null && podSpec.getUser().isPresent())
-                .findFirst();
+        Optional<PodSpec> podSpecOptional = Optional.empty();
+        if (podSpecs != null) {
+            podSpecOptional = podSpecs.stream()
+                    .filter(podSpec -> podSpec != null && podSpec.getUser() != null && podSpec.getUser().isPresent())
+                    .findFirst();
+        }
 
         if (podSpecOptional.isPresent()) {
             return podSpecOptional.get().getUser().get();
@@ -112,15 +116,43 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.user);
     }
 
-
-    public static Generator newGenerator(RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags) {
-        return newGenerator(rawServiceSpec, schedulerFlags, new TaskEnvRouter());
+    /**
+     * Returns a new generator with the provided configuration.
+     *
+     * @param rawServiceSpec The object model representation of a Service Specification YAML file
+     * @param schedulerConfig Scheduler configuration containing operator-facing knobs
+     * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
+     *     directory as the Service Specification YAML file
+     */
+    public static Generator newGenerator(
+            RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir) {
+        return new Generator(rawServiceSpec, schedulerConfig, new TaskEnvRouter(), configTemplateDir);
     }
 
+    /**
+     * Used by unit tests.
+     */
+    @VisibleForTesting
+    public static Generator newGenerator(File rawServiceSpecFile, SchedulerConfig schedulerConfig) throws Exception {
+        return new Generator(
+                RawServiceSpec.newBuilder(rawServiceSpecFile).build(),
+                schedulerConfig,
+                new TaskEnvRouter(),
+                rawServiceSpecFile.getParentFile()); // assume that any configs are in the same directory as the spec
+    }
+
+    /**
+     * Used by unit tests.
+     */
     @VisibleForTesting
     public static Generator newGenerator(
-            RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, TaskEnvRouter taskEnvRouter) {
-        return new Generator(rawServiceSpec, schedulerFlags, taskEnvRouter);
+            RawServiceSpec rawServiceSpec,
+            SchedulerConfig schedulerConfig,
+            Map<String, String> schedulerEnvironment,
+            File configTemplateDir)
+                    throws Exception {
+        return new Generator(
+                rawServiceSpec, schedulerConfig, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
     }
 
     public static Builder newBuilder() {
@@ -286,18 +318,25 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultVolumeSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
+                IsLocalRegionRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
+                MaxPerRegionRule.class,
+                MaxPerZoneRule.class,
                 NamedVIPSpec.class,
                 NotRule.class,
                 OrRule.class,
                 PassthroughRule.class,
                 PortSpec.class,
                 RegexMatcher.class,
+                RegionRule.class,
                 RoundRobinByAttributeRule.class,
                 RoundRobinByHostnameRule.class,
+                RoundRobinByRegionRule.class,
+                RoundRobinByZoneRule.class,
                 TaskTypeLabelConverter.class,
                 TaskTypeRule.class,
+                ZoneRule.class,
                 DefaultSecretSpec.class);
 
         private final ObjectMapper objectMapper;
@@ -339,16 +378,19 @@ public class DefaultServiceSpec implements ServiceSpec {
     public static class Generator {
 
         private final RawServiceSpec rawServiceSpec;
-        private final SchedulerFlags schedulerFlags;
+        private final SchedulerConfig schedulerConfig;
         private final TaskEnvRouter taskEnvRouter;
-        private YAMLToInternalMappers.FileReader fileReader;
+        private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
 
         private Generator(
-                RawServiceSpec rawServiceSpec, SchedulerFlags schedulerFlags, TaskEnvRouter taskEnvRouter) {
+                RawServiceSpec rawServiceSpec,
+                SchedulerConfig schedulerConfig,
+                TaskEnvRouter taskEnvRouter,
+                File configTemplateDir) {
             this.rawServiceSpec = rawServiceSpec;
-            this.schedulerFlags = schedulerFlags;
+            this.schedulerConfig = schedulerConfig;
             this.taskEnvRouter = taskEnvRouter;
-            this.fileReader = new YAMLToInternalMappers.FileReader();
+            this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
         }
 
         /**
@@ -372,23 +414,24 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Assigns a custom {@link YAMLToInternalMappers.FileReader} implementation for reading config file templates.
-         * This is exposed to support mockery in tests.
+         * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
+         * templates.  This is exposed to support mocking in tests.
          */
         @VisibleForTesting
-        public Generator setFileReader(YAMLToInternalMappers.FileReader fileReader) {
-            this.fileReader = fileReader;
+        public Generator setConfigTemplateReader(YAMLToInternalMappers.ConfigTemplateReader configTemplateReader) {
+            this.configTemplateReader = configTemplateReader;
             return this;
         }
 
         public DefaultServiceSpec build() throws Exception {
-            return YAMLToInternalMappers.convertServiceSpec(rawServiceSpec, schedulerFlags, taskEnvRouter, fileReader);
+            return YAMLToInternalMappers.convertServiceSpec(
+                    rawServiceSpec, schedulerConfig, taskEnvRouter, configTemplateReader);
         }
     }
 
 
     /**
-     * {@code DefaultServiceSpec} builder static inner class.
+     * {@link DefaultServiceSpec} builder static inner class.
      */
     public static final class Builder {
         private String name;

@@ -5,7 +5,7 @@ scheduler:
 pods:
   kafka:
     count: {{BROKER_COUNT}}
-    placement: {{PLACEMENT_CONSTRAINTS}}
+    placement: '{{{PLACEMENT_CONSTRAINTS}}}'
     uris:
       - {{KAFKA_URI}}
       - {{KAFKA_JAVA_URI}}
@@ -14,16 +14,26 @@ pods:
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
+      - {{SETUP_HELPER_URI}}
+      - {{ZOOKEEPER_CLIENT_URI}}
+      - {{CUSTOM_KAFKA_PRINCIPAL_URI}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS}}
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+    secrets:
+      keytab:
+        secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
+        file: kafka.keytab
+    {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
     tasks:
       broker:
         cpus: {{BROKER_CPUS}}
         memory: {{BROKER_MEM}}
         ports:
+          {{^TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           broker:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
@@ -31,6 +41,25 @@ pods:
             vip:
               prefix: broker
               port: 9092
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
+          broker:
+            port: {{BROKER_PORT}}
+            env-key: KAFKA_BROKER_PORT
+            advertise: true
+            vip:
+              prefix: broker
+              port: 9092
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
+          broker-tls:
+            port: {{BROKER_PORT_TLS}}
+            env-key: KAFKA_BROKER_PORT_TLS
+            advertise: true
+            vip:
+              prefix: broker-tls
+              port: 9093
+          {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         volume:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
@@ -39,45 +68,78 @@ pods:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"
         goal: RUNNING
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
-          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/ &&
-          ./bootstrap -resolve=false &&
-          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
+        cmd: |
+          # Exit on any error.
+          set -e
+
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS"
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+
+          # setup-helper determines the correct listeners and security.inter.broker.protocol.
+          ./setup-helper
+          export SETUP_HELPER_ADVERTISED_LISTENERS=`cat advertised.listeners`
+          export SETUP_HELPER_LISTENERS=`cat listeners`
+          export SETUP_HELPER_SECURITY_INTER_BROKER_PROTOCOL=`cat security.inter.broker.protocol`
+          export SETUP_HELPER_SUPER_USERS=`cat super.users`
+
+          ./bootstrap -resolve=false
+
+          # NOTE: We add some custom statsd libraries for statsd metrics as well
+          # as a custom zookeeper library to support our own ZK running
+          # kerberized. The custom zk library does not do DNS reverse resolution
+          # of the ZK hostnames.
+          #
+          # Additionally, we include a custom principal builder
+          mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          mv -v kafka-custom-principal-builder* $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+
+          # Start kafka.
+          exec $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/bin/kafka-server-start.sh \
+               $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
         configs:
           server-properties:
-            template: "{{CONFIG_TEMPLATE_PATH}}/server.properties.mustache"
-            dest: "{{KAFKA_VERSION_PATH}}/config/server.properties"
+            template: server.properties.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/server.properties
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          kafka-server-jaas:
+            template: kafka_server_jaas.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf
+          krb5-conf:
+            template: krb5.conf.mustache
+            dest: {{KAFKA_VERSION_PATH}}/config/krb5.conf
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
         readiness-check:
           cmd: |
-            # since the server is just started, the starting and started log lines
-            # should be present in the server.log file, independent of whether or
-            # not the server.log file is being logrotated.
-            # 
-            # Example log lines follow:
-            ## starting:
-            # [2017-06-14 22:20:54,260] INFO starting (kafka.server.KafkaServer)
-            ## started:
-            # [2017-06-14 22:20:55,464] INFO [Kafka Server 1], started (kafka.server.KafkaServer)
+            # The broker has started when it logs a specific "started" log line. An example is below:
+            # [2017-06-14 22:20:55,464] INFO [KafkaServer id=1] started (kafka.server.KafkaServer)
+            kafka_server_log_files={{KAFKA_VERSION_PATH}}/logs/server.log*
 
-            kafka_dir=$(ls -d kafka_* |head -n 1)
-            kafka_server_log_file=${kafka_dir}/logs/server.log
-            starting_date_s=$(awk '/.*starting.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
-            starting_date=$(date -d $starting_date_s +%s)
-            started_date_s=$(awk '/.*started.*\(kafka.server.KafkaServer\)/{gsub("[[]", "", $1);gsub("[]]", "", $2); print $1"T"$2}' $kafka_server_log_file |tail -n 1)
-            started_date=$(date -d $started_date_s +%s)
-            [ ! -z $started_date_s ] && \
-                [ ! -z $starting_date_s ] && \
-                [ $starting_date -le $started_date ]
-            is_ready=$?
-            exit $is_ready
+            echo "Checking for started log line in $kafka_server_log_files."
+            grep -q "INFO \[KafkaServer id=$POD_INSTANCE_INDEX\] started (kafka.server.KafkaServer)" $kafka_server_log_files
+            if [ $? -eq 0 ] ; then
+              echo "Found started log line."
+            else
+              echo "started log line not found. Exiting."
+              exit 1
+            fi
+            echo "Required log line found. Broker is ready."
+            exit 0
           interval: 5
           delay: 0
           timeout: 10
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+        transport-encryption:
+          - name: broker
+            type: KEYSTORE
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+        kill-grace-period: {{BROKER_KILL_GRACE_PERIOD}}
 plans:
   deploy:
     strategy: serial
     phases:
-      Deployment:
+      broker:
         strategy: {{DEPLOY_STRATEGY}}
         pod: kafka

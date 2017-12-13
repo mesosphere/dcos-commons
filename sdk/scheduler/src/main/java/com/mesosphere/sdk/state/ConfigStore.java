@@ -10,13 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
- *
+ * <p>
  * <p>The ZNode structure in Zookeeper is as follows:
  * <br>rootPath/
  * <br>&nbsp;-> ConfigTarget (contains UUID)
@@ -43,6 +41,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
     private final ConfigurationFactory<T> factory;
     private final Persister persister;
+    private final Map<UUID, T> cache = new HashMap<>();
 
     /**
      * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data.
@@ -79,6 +78,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
                     "Failed to store configuration to path '%s': %s", path, config));
         }
 
+        cache.put(id, config);
         return id;
     }
 
@@ -92,7 +92,12 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      *                              config is missing
      */
     public T fetch(UUID id) throws ConfigStoreException {
+        if (cache.containsKey(id)) {
+            return cache.get(id);
+        }
+
         String path = getConfigPath(id);
+        logger.info("Fetching configuration with ID={} from {}", id, path);
         byte[] data;
         try {
             data = persister.get(path);
@@ -105,7 +110,10 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
                         "Failed to retrieve configuration '%s' from path '%s'", id, path));
             }
         }
-        return factory.parse(data);
+
+        T config = factory.parse(data);
+        cache.put(id, config);
+        return config;
     }
 
     /**
@@ -118,7 +126,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
     public void clear(UUID id) throws ConfigStoreException {
         String path = getConfigPath(id);
         try {
-            persister.deleteAll(path);
+            persister.recursiveDelete(path);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Configuration should not result in an exception.
@@ -129,6 +137,8 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
                         "Failed to delete configuration '%s' at path '%s'", id, path));
             }
         }
+
+        cache.remove(id);
     }
 
     /**
@@ -192,10 +202,6 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
             throw new ConfigStoreException(Reason.SERIALIZATION_ERROR, String.format(
                     "Failed to parse '%s' as a UUID", uuidStr));
         }
-    }
-
-    public void close() {
-        persister.close();
     }
 
     private static String getConfigPath(UUID id) {

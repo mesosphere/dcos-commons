@@ -96,7 +96,7 @@ public class DefaultResourceSpec implements ResourceSpec {
     @Override
     public String toString() {
         return String.format(
-                "name: %s, value: %s, role: %s, preReservedRole: %s, principal: %s",
+                "name: %s, value: %s, role: %s, pre-reserved-role: %s, principal: %s",
                 getName(),
                 TextFormat.shortDebugString(getValue()),
                 getRole(),

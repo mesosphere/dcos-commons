@@ -5,11 +5,11 @@ scheduler:
 pods:
   node:
     count: {{NODES}}
-    placement: "{{PLACEMENT_CONSTRAINT}}"
+    placement: '{{{PLACEMENT_CONSTRAINT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS}}
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     image: {{CASSANDRA_DOCKER_IMAGE}}
     volume:
@@ -32,14 +32,14 @@ pods:
             port: {{TASKCFG_ALL_CASSANDRA_STORAGE_PORT}}
           ssl:
             port: {{TASKCFG_ALL_CASSANDRA_SSL_STORAGE_PORT}}
-          node:
+          native-client:
             port: {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
             advertise: true
-            vip:
-              prefix: node
-              port: 9042
-          rpc:
+          {{#TASKCFG_ALL_CASSANDRA_START_RPC}}
+          thrift-client:
             port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
+            advertise: true
+          {{/TASKCFG_ALL_CASSANDRA_START_RPC}}
       sidecar-resources:
         cpus: 1
         memory: 1024
@@ -47,10 +47,11 @@ pods:
       server:
         goal: RUNNING
         resource-set: server-resources
-        cmd: >
-                ./bootstrap
+        cmd: |
+                set -e
 
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                ./bootstrap
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -60,27 +61,33 @@ pods:
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra.yaml
+            template: cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
           jvm:
-            template: {{CONFIG_TEMPLATE_PATH}}/jvm_{{CASSANDRA_HEAP_GC}}.options
+            template: jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
           metrics:
-            template: {{CONFIG_TEMPLATE_PATH}}/metrics-reporter-config.yaml
+            template: metrics-reporter-config.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
           rack:
-            template: {{CONFIG_TEMPLATE_PATH}}/cassandra-rackdc.properties
+            template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
           s3:
-            template: {{CONFIG_TEMPLATE_PATH}}/s3config.json
+            template: s3config.json
             dest: s3config.json
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-                export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                export TASK_IP=$(./bootstrap --get-task-ip) &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: KEYSTORE
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
       repair:
         goal: FINISHED
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
@@ -92,9 +99,23 @@ pods:
       backup-schema:
         goal: FINISHED
         cmd: >
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                ./bootstrap --resolve=false
+
+                export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
                 mkdir container-path/snapshot ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        configs:
+          cqlshrc:
+            template: cqlshrc
+            dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        transport-encryption:
+          - name: cqlsh
+            type: TLS
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
       snapshot:
         goal: FINISHED
         cmd: >
@@ -147,20 +168,85 @@ pods:
         resource-set: sidecar-resources
       restore-schema:
         goal: FINISHED
-        cmd: ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
+        cmd: >
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                ./bootstrap --resolve=false
+
+                export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        configs:
+          cqlshrc:
+            template: cqlshrc
+            dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        transport-encryption:
+          - name: cqlsh
+            type: TLS
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
       restore-snapshot:
         goal: FINISHED
         cmd: >
+                ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
-                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader -f apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml -d ${LOCAL_SEEDS} -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
+                {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                            --keystore node.keystore \
+                            --keystore-password notsecure \
+                            --truststore node.truststore \
+                            --truststore-password notsecure \
+                            --ssl-protocol TLSv1.2 \
+                            --ssl-ciphers TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA \
+                {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                            -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
+                            -d ${LOCAL_SEEDS} \
+                            -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                        result=$?
+                        if [ $result != 0 ]
+                        then
+                            echo sstableloader failed with exit code $result
+                            exit $result
+                        fi
                     done
                 done
 
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
+        configs:
+          cassandra:
+            template: cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        transport-encryption:
+          - name: node
+            type: KEYSTORE
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+      init_system_keyspaces:
+        goal: FINISHED
+        cmd: >
+                {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
+                {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                ./bootstrap --resolve=false &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        resource-set: sidecar-resources
+        configs:
+          cassandra:
+            template: cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+          cqlshrc:
+            template: cqlshrc
+            dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        transport-encryption:
+          - name: cqlsh
+            type: TLS
+        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
 plans:
   deploy:
     strategy: serial
@@ -169,6 +255,7 @@ plans:
         strategy: serial
         pod: node
         steps:
+          - 0: [[server], [init_system_keyspaces]]
           - default: [[server]]
   replace:
     strategy: serial
