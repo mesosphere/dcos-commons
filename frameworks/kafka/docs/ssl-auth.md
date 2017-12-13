@@ -69,8 +69,12 @@ vi /tmp/options.json
     "service_account": "service-acct",
     "service_account_secret": "secret",
     "security": {
-      "tls": true,
-      "tls_enable_authn": true
+      "transport_encryption": {
+        "enabled": true
+      },
+      "ssl_authentication": {
+        "enabled": true
+      }
     }
   }
 }
@@ -144,9 +148,9 @@ keytool -import \
 ```bash
 cat >/tmp/client.properties << EOL
 security.protocol = SSL
-ssl.truststore.location = /tmp/truststore.jks 
+ssl.truststore.location = /tmp/truststore.jks
 ssl.truststore.password = changeit
-ssl.keystore.location = /tmp/keystore.jks 
+ssl.keystore.location = /tmp/keystore.jks
 ssl.keystore.password = changeit
 EOL
 ```

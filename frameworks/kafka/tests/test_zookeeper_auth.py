@@ -153,8 +153,10 @@ def kafka_server(kerberos, zookeeper_server):
                 "kerberos": {
                     "enabled": True,
                     "enabled_for_zookeeper": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }

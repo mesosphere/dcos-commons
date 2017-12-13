@@ -3,5 +3,5 @@ default_realm = {{SECURITY_KERBEROS_REALM}}
 
 [realms]
   {{SECURITY_KERBEROS_REALM}} = {
-    kdc = {{KDC_HOST_NAME}}:{{KDC_HOST_PORT}}
+    kdc = {{SECURITY_KERBEROS_KDC_HOSTNAME}}:{{SECURITY_KERBEROS_KDC_PORT}}
   }
