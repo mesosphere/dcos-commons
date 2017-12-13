@@ -12,9 +12,6 @@ import sdk_utils
 from tests import config
 
 
-pytestmark = pytest.mark.skip(reason="INFINITY-2815")
-
-
 log = logging.getLogger(__name__)
 
 
