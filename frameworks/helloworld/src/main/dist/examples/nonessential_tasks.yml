@@ -1,0 +1,23 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      agent:
+        goal: RUNNING
+        essential: false
+        cmd: "echo agent >> output && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

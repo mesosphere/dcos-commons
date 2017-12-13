@@ -5,7 +5,7 @@ scheduler:
 pods:
   template:
     count: {{NODE_COUNT}}
-    placement: {{NODE_PLACEMENT}}
+    placement: '{{{NODE_PLACEMENT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:

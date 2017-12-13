@@ -31,12 +31,12 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
 
         // It accepts the offer with the correct resource ids:
-        ticks.add(Send.offerBuilder("template").setResourcesFromPod(0).build());
+        ticks.add(Send.offerBuilder("template").setPodIndexToReoffer(0).build());
         ticks.add(Expect.launchedTasks("template-0-node"));
         ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_RUNNING).build());
 
         // With the pod now running, the scheduler now ignores the same resources if they're reoffered:
-        ticks.add(Send.offerBuilder("template").setResourcesFromPod(0).build());
+        ticks.add(Send.offerBuilder("template").setPodIndexToReoffer(0).build());
         ticks.add(Expect.declinedLastOffer());
 
         ticks.add(Expect.allPlansComplete());

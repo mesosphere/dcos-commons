@@ -17,6 +17,9 @@ public interface TaskSpec {
     @JsonProperty("goal")
     GoalState getGoal();
 
+    @JsonProperty("essential")
+    Boolean isEssential();
+
     @JsonProperty("resource-set")
     ResourceSet getResourceSet();
 
