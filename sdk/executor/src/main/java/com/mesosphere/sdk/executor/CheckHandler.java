@@ -164,14 +164,16 @@ public class CheckHandler {
         public void run() {
             if (launchedTask.isDone()) {
                 // The task has exited (and emitted a TaskStatus about itself). Stop pending health checks against it.
-                throw new CheckRuntimeException(
-                        String.format("%s check ended, task process has exited: %s", checkType, taskInfo.getName()),
-                        healthCheckStats);
+                String message = String.format("Disabling %s check for task '%s': task process has exited",
+                        checkType, taskInfo.getName());
+                LOGGER.info(message);
+                throw new CheckRuntimeException(message, healthCheckStats);
             }
 
             Protos.CommandInfo commandInfo = healthCheck.getCommand();
             try {
-                LOGGER.info("Running {} check process: {}", checkType, commandInfo.getValue());
+                LOGGER.info("Running {} check process for task {}: {}",
+                        checkType, taskInfo.getName(), commandInfo.getValue());
                 int exitValue = processRunner.run(
                         ProcessBuilderUtils.buildProcess(commandInfo), healthCheck.getTimeoutSeconds());
 

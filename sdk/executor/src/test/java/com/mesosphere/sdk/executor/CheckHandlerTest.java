@@ -208,6 +208,34 @@ public class CheckHandlerTest {
         verify(mockProcessRunner, atLeast((int)consecutiveSuccesses)).run(any(), eq(TIMEOUT_S));
     }
 
+    @Test
+    public void testProcessExited() throws Exception {
+        CheckStats healthCheckStats = new CheckStats("test");
+        when(mockLaunchedTask.isDone()).thenReturn(true);
+        CheckHandler healthCheckHandler = new CheckHandler(
+                executorDriver,
+                taskInfo,
+                mockLaunchedTask,
+                mockProcessRunner,
+                getHealthCheck(1),
+                scheduledExecutorService,
+                healthCheckStats,
+                "test");
+
+        healthCheckHandler.start();
+
+        // sleep a bit to ensure check was triggered:
+        Thread.sleep(500);
+
+        // no stats to report, as check was never run:
+        Assert.assertEquals(0, healthCheckStats.getTotalSuccesses());
+        Assert.assertEquals(0, healthCheckStats.getConsecutiveSuccesses());
+        Assert.assertEquals(0, healthCheckStats.getTotalFailures());
+        Assert.assertEquals(0, healthCheckStats.getConsecutiveFailures());
+
+        verifyZeroInteractions(mockProcessRunner);
+    }
+
     @Test(expected=CheckHandler.CheckValidationException.class)
     public void testFailHasHealthCheckValidation() throws CheckHandler.CheckValidationException {
         Protos.TaskInfo taskInfo = getTask().toBuilder()

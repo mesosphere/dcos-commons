@@ -5,8 +5,6 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Future;
-
 public class TestExecutorTask implements ExecutorTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestExecutorTask.class);
     private static final long SLEEP_MILLIS = 100;
@@ -37,7 +35,7 @@ public class TestExecutorTask implements ExecutorTask {
     }
 
     @Override
-    public void stop(Future<?> future) {
+    public void stop() {
 
     }
 }

@@ -53,15 +53,9 @@ public class ProcessTask implements ExecutorTask {
         return Duration.ofNanos(gracePeriod.getNanoseconds());
     }
 
-    protected void preStart() {
-        // NOOP
-    }
-
     @Override
     public void run() {
         try {
-            preStart();
-
             LOGGER.info("Executing command: {}", processBuilder.command());
             LOGGER.info("With Environment: {}", processBuilder.environment());
 
@@ -140,7 +134,7 @@ public class ProcessTask implements ExecutorTask {
     }
 
     @Override
-    public void stop(Future<?> future) {
+    public void stop() {
         if ((process != null) &&
                 (!terminate(this.taskKillGracePeriod))) {
             kill();

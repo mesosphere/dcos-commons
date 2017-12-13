@@ -19,7 +19,7 @@ public class LaunchedTask {
     }
 
     public void stop() {
-        executorTask.stop(future);
+        executorTask.stop();
     }
 
     public boolean isDone() {

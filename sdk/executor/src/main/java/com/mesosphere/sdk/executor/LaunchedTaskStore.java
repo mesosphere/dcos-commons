@@ -7,6 +7,8 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Storage of tasks that are being run by this executor.
  */
@@ -15,6 +17,7 @@ public class LaunchedTaskStore {
     private static final int RUNNING_TASK_POLL_INTERVAL_MS = 5000;
 
     private final Runnable monitor;
+    private final int exitPollIntervalMs;
 
     private final Object launchedTasksLock = new Object();
     /**
@@ -24,7 +27,13 @@ public class LaunchedTaskStore {
     private final Map<Protos.TaskID, LaunchedTask> launchedTasks = new HashMap<>();
 
     public LaunchedTaskStore(Runnable exitCallback) {
+        this(exitCallback, RUNNING_TASK_POLL_INTERVAL_MS);
+    }
+
+    @VisibleForTesting
+    LaunchedTaskStore(Runnable exitCallback, int exitPollIntervalMs) {
         this.monitor = new TasksRunningMonitor(exitCallback);
+        this.exitPollIntervalMs = exitPollIntervalMs;
     }
 
     /**
@@ -97,7 +106,7 @@ public class LaunchedTaskStore {
             while (true) {
                 exitIfAllDone();
                 try {
-                    Thread.sleep(RUNNING_TASK_POLL_INTERVAL_MS);
+                    Thread.sleep(exitPollIntervalMs);
                 } catch (InterruptedException e) {
                     // ignore
                 }
@@ -114,11 +123,11 @@ public class LaunchedTaskStore {
                 }
                 long doneTasks = launchedTasks.values().stream().filter(lt -> lt.isDone()).count();
                 if (doneTasks == launchedTasks.size()) {
-                    LOGGER.info("Executor exiting: All {} launched tasks have exited, nothing left to do.",
+                    LOGGER.info("Shutting down executor: All {} launched tasks have exited, nothing left to do.",
                             launchedTasks.size());
                     exitCallback.run();
                 } else {
-                    LOGGER.debug("{} of {} launched tasks have exited", doneTasks, launchedTasks.size());
+                    LOGGER.error("{} of {} launched tasks have exited", doneTasks, launchedTasks.size());
                 }
             }
         }
