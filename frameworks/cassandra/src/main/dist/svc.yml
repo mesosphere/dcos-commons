@@ -83,11 +83,11 @@ pods:
           interval: 5
           delay: 0
           timeout: 60
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: KEYSTORE
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
         goal: FINISHED
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
@@ -99,15 +99,15 @@ pods:
       backup-schema:
         goal: FINISHED
         cmd: >
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 mkdir container-path/snapshot ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
           cqlshrc:
             template: cqlshrc
@@ -115,7 +115,7 @@ pods:
         transport-encryption:
           - name: cqlsh
             type: TLS
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       snapshot:
         goal: FINISHED
         cmd: >
@@ -169,14 +169,14 @@ pods:
       restore-schema:
         goal: FINISHED
         cmd: >
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
         resource-set: sidecar-resources
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
           cqlshrc:
             template: cqlshrc
@@ -184,7 +184,7 @@ pods:
         transport-encryption:
           - name: cqlsh
             type: TLS
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       restore-snapshot:
         goal: FINISHED
         cmd: >
@@ -193,14 +193,14 @@ pods:
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
-                {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                             --keystore node.keystore \
                             --keystore-password notsecure \
                             --truststore node.truststore \
                             --truststore-password notsecure \
                             --ssl-protocol TLSv1.2 \
                             --ssl-ciphers TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA \
-                {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
                             -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
@@ -219,17 +219,17 @@ pods:
           cassandra:
             template: cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: KEYSTORE
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       init_system_keyspaces:
         goal: FINISHED
         cmd: >
-                {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
-                {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
@@ -242,11 +242,11 @@ pods:
           cqlshrc:
             template: cqlshrc
             dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: cqlsh
             type: TLS
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 plans:
   deploy:
     strategy: serial
