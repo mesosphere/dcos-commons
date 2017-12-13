@@ -127,7 +127,7 @@ public class LaunchedTaskStore {
                             launchedTasks.size());
                     exitCallback.run();
                 } else {
-                    LOGGER.error("{} of {} launched tasks have exited", doneTasks, launchedTasks.size());
+                    LOGGER.debug("{} of {} launched tasks have exited", doneTasks, launchedTasks.size());
                 }
             }
         }

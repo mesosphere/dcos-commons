@@ -104,13 +104,21 @@ public class SendOffer implements Send {
                             .map(podSpec -> podSpec.getType())
                             .collect(Collectors.toList())));
         }
+        PodSpec podSpec = matchingSpec.get();
 
         Protos.Offer.Builder offerBuilder = Protos.Offer.newBuilder()
                 .setFrameworkId(TestConstants.FRAMEWORK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setHostname(hostname);
         offerBuilder.getIdBuilder().setValue(UUID.randomUUID().toString());
-        for (TaskSpec taskSpec : matchingSpec.get().getTasks()) {
+
+        // Include pod/executor-level volumes:
+        for (VolumeSpec volumeSpec : podSpec.getVolumes()) {
+            offerBuilder.addResources(toUnreservedResource(volumeSpec));
+        }
+
+        // Include task-level resources (note: resources are not merged, e.g. 1.5cpu+1.0 cpu instead of 2.5cpu):
+        for (TaskSpec taskSpec : podSpec.getTasks()) {
             if (podToReuse.isPresent()) {
                 // Copy resources from prior pod launch:
                 for (Protos.TaskInfo task : state.getLastLaunchedPod(podToReuse.get())) {
