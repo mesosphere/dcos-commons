@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -161,43 +161,53 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#essential-java.lang.Boolean-">essential</a></span>(java.lang.Boolean&nbsp;essential)</code>
+<div class="block">Sets the <code>essential</code> bit and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#goalState-com.mesosphere.sdk.specification.GoalState-">goalState</a></span>(<a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState)</code>
 <div class="block">Sets the <code>goalState</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#healthCheckSpec-com.mesosphere.sdk.specification.HealthCheckSpec-">healthCheckSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification">HealthCheckSpec</a>&nbsp;healthCheckSpec)</code>
 <div class="block">Sets the <code>healthCheckSpec</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#name-java.lang.String-">name</a></span>(java.lang.String&nbsp;name)</code>
 <div class="block">Sets the <code>name</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#readinessCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-">readinessCheckSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a>&nbsp;readinessCheckSpec)</code>
 <div class="block">Sets the <code>readinessChecksSpec</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#resourceSet-com.mesosphere.sdk.specification.ResourceSet-">resourceSet</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>&nbsp;resourceSet)</code>&nbsp;</td>
-</tr>
 <tr id="i9" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#resourceSet-com.mesosphere.sdk.specification.ResourceSet-">resourceSet</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>&nbsp;resourceSet)</code>
+<div class="block">Sets the <code>resourceSet</code> and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#setTransportEncryption-java.util.Collection-">setTransportEncryption</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;&nbsp;transportEncryption)</code>
 <div class="block">Sets the <code>transportEncryption</code> and returns a reference to this Builder so that methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#taskKillGracePeriodSeconds-java.lang.Integer-">taskKillGracePeriodSeconds</a></span>(java.lang.Integer&nbsp;taskKillGracePeriodSeconds)</code>
 <div class="block">Sets the <code>taskKillGracePeriodSeconds</code> and returns a reference to this Builder so that methods
@@ -259,6 +269,23 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="essential-java.lang.Boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>essential</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a>&nbsp;essential(java.lang.Boolean&nbsp;essential)</pre>
+<div class="block">Sets the <code>essential</code> bit and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>essential</code> - whether relaunching this task relaunches all tasks in the pod</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a reference to this Builder</dd>
+</dl>
+</li>
+</ul>
 <a name="resourceSet-com.mesosphere.sdk.specification.ResourceSet-">
 <!--   -->
 </a>
@@ -266,6 +293,14 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>resourceSet</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a>&nbsp;resourceSet(<a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>&nbsp;resourceSet)</pre>
+<div class="block">Sets the <code>resourceSet</code> and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>resourceSet</code> - the <code>resourceSet</code> to set</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a reference to this Builder</dd>
+</dl>
 </li>
 </ul>
 <a name="commandSpec-com.mesosphere.sdk.specification.CommandSpec-">
