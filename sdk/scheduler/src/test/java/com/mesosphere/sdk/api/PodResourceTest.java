@@ -49,7 +49,7 @@ public class PodResourceTest {
     private static final TaskStatus POD_0_STATUS_A;
     private static final TaskStatus POD_0_STATUS_B;
     private static final TaskStatus POD_0_STATUS_C;
-    // test-1: one RUNNING task, one FINISH task:
+    // test-1: one RUNNING task, one FINISHED task:
     private static final TaskInfo POD_1_TASK_A;
     private static final TaskInfo POD_1_TASK_B;
     private static final TaskStatus POD_1_STATUS_A;

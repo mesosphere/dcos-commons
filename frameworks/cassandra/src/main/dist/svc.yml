@@ -225,7 +225,7 @@ pods:
             type: KEYSTORE
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       init_system_keyspaces:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
