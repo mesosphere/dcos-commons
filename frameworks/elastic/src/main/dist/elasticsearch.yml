@@ -40,7 +40,7 @@ node.master: false
 node.data: {{DATA_ENABLED}}
 node.ingest: {{INGEST_ENABLED}}
 
-{{#ELASTIC_ENABLE_TLS}}
+{{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#ssl-tls-settings
 xpack.security.enabled: true
 xpack.ssl.key: {{MESOS_SANDBOX}}/node.key
@@ -52,7 +52,7 @@ xpack.security.transport.ssl.enabled: true
 # Client encryption
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
-{{/ELASTIC_ENABLE_TLS}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
 {{#SCRIPT_ALLOWED_CONTEXTS}}
 script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}

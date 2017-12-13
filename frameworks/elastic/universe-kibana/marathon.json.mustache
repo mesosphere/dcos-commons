@@ -16,9 +16,9 @@
     "FRAMEWORK_USER": "{{service.user}}",
     "XPACK_ENABLED": "{{kibana.xpack_enabled}}",
     "ELASTICSEARCH_URL": "{{kibana.elasticsearch_url}}",
-    {{#service.tls}}
+    {{#service.security.transport_encryption.enabled}}
     "KIBANA_ELASTICSEARCH_TLS": "{{kibana.elasticsearch_tls}}",
-    {{/service.tls}}
+    {{/service.security.transport_encryption.enabled}}
     "KIBANA_USER": "{{kibana.user}}",
     "KIBANA_PASSWORD": "{{kibana.password}}"
   },
