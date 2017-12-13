@@ -81,8 +81,10 @@ def kerberos(configure_security):
                 "security": {
                     "kerberos": {
                         "enabled": True,
-                        "kdc_host_name": kerberos_env.get_host(),
-                        "kdc_host_port": kerberos_env.get_port(),
+                        "kdc": {
+                            "hostname": kerberos_env.get_host(),
+                            "port": int(kerberos_env.get_port())
+                        },
                         "keytab_secret": kerberos_env.get_keytab_path(),
                         "realm": sdk_auth.REALM
                     }
@@ -196,6 +198,6 @@ def test_users_have_appropriate_permissions(kerberized_hdfs_client):
     assert "put: Permission denied: user=bob" in stderr
 
     log.info("Bob tries to read from alice's directory: {}".format(read_access_cmd))
-    _, _, stderr  = sdk_tasks.task_exec(kerberized_hdfs_client, read_access_cmd)
+    _, _, stderr = sdk_tasks.task_exec(kerberized_hdfs_client, read_access_cmd)
     log.info("Bob can't read from alice's directory: {}".format(read_access_cmd))
     assert "cat: Permission denied: user=bob" in stderr
