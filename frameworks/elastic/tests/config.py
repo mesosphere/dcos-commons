@@ -257,7 +257,7 @@ def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
 @as_json
 def graph_api(index_name, query, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/_graph/explore' -d '{}'".format(_curl_api(service_name, "POST"), index_name, json.dumps(query)))
+        "{}/{}/_xpack/_graph/_explore' -d '{}'".format(_curl_api(service_name, "POST"), index_name, json.dumps(query)))
     return output
 
 
