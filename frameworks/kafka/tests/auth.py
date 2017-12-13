@@ -124,7 +124,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
         if "UNKNOWN_TOPIC_OR_PARTITION" in stderr:
             LOG.error("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
             return True
-        if "LEADER_NOT_AVAILABLE" in stderr:
+        if "LEADER_NOT_AVAILABLE" in stderr and "ERROR Error when sending message" in stderr:
             LOG.error("Write failed due to stderr: LEADER_NOT_AVAILABLE")
             return True
 
