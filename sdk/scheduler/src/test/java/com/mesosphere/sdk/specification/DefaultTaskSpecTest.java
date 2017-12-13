@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 /**
- * This class tests DefaultTaskSpec.
+ * This class tests {@link DefaultTaskSpec}.
  */
 public class DefaultTaskSpecTest {
     @Test
@@ -17,6 +17,7 @@ public class DefaultTaskSpecTest {
         DefaultTaskSpec original = new DefaultTaskSpec(
                 "task",
                 GoalState.RUNNING,
+                false,
                 new DefaultResourceSet(
                         "rs-id",
                         Arrays.asList(

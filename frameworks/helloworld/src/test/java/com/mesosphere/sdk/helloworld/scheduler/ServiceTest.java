@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -48,6 +50,133 @@ public class ServiceTest {
     @Test
     public void testDefaultDeployment() throws Exception {
         runDefaultDeployment();
+    }
+
+    /**
+     * Checks that if an unessential task in a pod fails, that the other task in the same pod is unaffected.
+     */
+    @Test
+    public void testNonEssentialTaskFailure() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+
+        // No more hellos to launch:
+        ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
+        ticks.add(Expect.declinedLastOffer());
+        ticks.add(Expect.allPlansComplete());
+
+        // When non-essential "agent" task fails, only agent task is relaunched, server task is unaffected:
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_FAILED).build());
+
+        // Turn the crank with an arbitrary offer so that the failure is processed.
+        // This also tests that the task is still tied to its prior location by checking that the offer is declined.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.declinedLastOffer());
+        // Neither task should be killed: server should be unaffected, and agent is already in a terminal state
+        ticks.add(Expect.taskNotKilled("hello-0-agent"));
+        ticks.add(Expect.taskNotKilled("hello-0-server"));
+
+        // Send the matching offer to relaunch ONLY the agent against:
+        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
+        ticks.add(Expect.launchedTasks("hello-0-agent"));
+
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+
+        ticks.add(Expect.allPlansComplete());
+
+        // Matching ExecutorInfo == same pod:
+        ticks.add(new ExpectTasksShareExecutor("hello-0-server", "hello-0-agent"));
+
+        new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
+    }
+
+    /**
+     * Checks that if an essential task in a pod fails, that all tasks in the pod are relaunched.
+     */
+    @Test
+    public void testEssentialTaskFailure() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+
+        // No more hellos to launch:
+        ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
+        ticks.add(Expect.declinedLastOffer());
+        ticks.add(Expect.allPlansComplete());
+
+        // When essential "server" task fails, both server+agent are relaunched:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+
+        // Turn the crank with an arbitrary offer so that the failure is processed.
+        // This also tests that the task is still tied to its prior location by checking that the offer is declined.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.declinedLastOffer());
+        // Only the agent task is killed: server is already in a terminal state
+        ticks.add(Expect.taskKilled("hello-0-agent"));
+        ticks.add(Expect.taskNotKilled("hello-0-server"));
+
+        // Send the matching offer to relaunch both the server and agent:
+        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
+        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+
+        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        ticks.add(Expect.allPlansComplete());
+
+        // Matching ExecutorInfo == same pod:
+        ticks.add(new ExpectTasksShareExecutor("hello-0-server", "hello-0-agent"));
+
+        new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
+    }
+
+    /**
+     * Verifies that a set of two or more tasks all share the same ExecutorInfo (i.e. the same pod).
+     */
+    private static class ExpectTasksShareExecutor implements Expect {
+
+        private final List<String> taskNames;
+
+        private ExpectTasksShareExecutor(String... taskNames) {
+            this.taskNames = Arrays.asList(taskNames);
+        }
+
+        @Override
+        public String getDescription() {
+            return String.format("Tasks share the same executor: %s", taskNames);
+        }
+
+        @Override
+        public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+            Set<Protos.ExecutorInfo> executors = taskNames.stream()
+                    .map(name -> state.getLastLaunchedTask(name).getExecutor())
+                    .collect(Collectors.toSet());
+            Assert.assertEquals(String.format(
+                    "Expected tasks to share a single matching executor, but had: %s",
+                    executors.stream().map(e -> TextFormat.shortDebugString(e)).collect(Collectors.toList())),
+                    1, executors.size());
+        }
     }
 
     /**
@@ -133,15 +262,15 @@ public class ServiceTest {
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 5, 0, 1), new StepCount("world-0", 6, 0, 0))));
-        ticks.add(Expect.killedTask("world-1-server"));
+        ticks.add(Expect.taskKilled("world-1-server"));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
-        ticks.add(Send.offerBuilder("world").setResourcesFromPod(0).build());
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 4, 1, 1), new StepCount("world-0", 6, 0, 0))));
 
         // Offer world-1 resources and check that world-1 resources are wiped:
-        ticks.add(Send.offerBuilder("world").setResourcesFromPod(1).build());
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
         ticks.add(Expect.unreservedTasks("world-1-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 1, 0, 5), new StepCount("world-0", 6, 0, 0))));
@@ -157,10 +286,10 @@ public class ServiceTest {
 
         // Now let's proceed with decommissioning world-0. This time a single offer with the correct resources results
         // in both killing/flagging the task, and clearing its resources:
-        ticks.add(Send.offerBuilder("world").setResourcesFromPod(0).build());
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 1, 0, 5))));
-        ticks.add(Expect.killedTask("world-0-server"));
+        ticks.add(Expect.taskKilled("world-0-server"));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
         // Turn the crank once again to erase the world-0 stub:
