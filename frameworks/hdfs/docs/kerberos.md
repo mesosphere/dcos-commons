@@ -34,7 +34,7 @@ hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 HTTP/hdfs.marathon.autoip.dcos.thisdcos.directory@LOCAL
 ```
-This cluster has 3 data nodes, though the correct number of principles should be added up to N data nodes.
+This cluster has 3 data nodes, though the correct number of principals should be added up to N data nodes.
 (assuming a default service name of `hdfs`)
 
 ## Create the keytab secret
