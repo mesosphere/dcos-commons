@@ -672,30 +672,39 @@ now, you must manually run the janitor script as shown above.</p>
   </li>
   <li>
     <p><strong>Pods</strong>: A pod is simply a set of tasks.</p>
-  </li>
-  <li>
-    <p><strong>hello-world-pod</strong>: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is <code class="highlighter-rouge">hello-world-pod</code>.</p>
-  </li>
-  <li>
-    <p><strong>count</strong>: The number of instances of the pod.</p>
-  </li>
-  <li>
-    <p><strong>tasks</strong>: The list of tasks in the pod.</p>
-  </li>
-  <li>
-    <p><strong>hello-world-task</strong>: In this example, the single pod definition is composed of a single task. The name of this task is “hello-world-task”.</p>
-  </li>
-  <li>
-    <p><strong>goal</strong>: Every task must have a goal state. There are two possible goal states: <code class="highlighter-rouge">RUNNING</code> and <code class="highlighter-rouge">FINISHED</code>. <code class="highlighter-rouge">RUNNING</code> indicates that a task should always be running, so if it exits, it should be restarted. <code class="highlighter-rouge">FINISHED</code> indicates that if a task finishes successfully it does not need to be restarted.</p>
-  </li>
-  <li>
-    <p><strong>cmd</strong>: The command to run to start a task. Here, the task will print “hello world” to stdout and sleep for 1000 seconds. Because its goal state is <code class="highlighter-rouge">RUNNING</code>, it will be started again upon exit.</p>
-  </li>
-  <li>
-    <p><strong>cpus</strong>: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate <a href="http://mesos.apache.org/documentation/latest/containerizer/">see the Mesos documentation here</a>.</p>
-  </li>
-  <li>
-    <p><strong>memory</strong>: This entry defines how much memory will be allocated to the task’s container.</p>
+
+    <ul>
+      <li>
+        <p><strong>hello-world-pod</strong>: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is <code class="highlighter-rouge">hello-world-pod</code>.</p>
+
+        <ul>
+          <li>
+            <p><strong>count</strong>: The number of instances of the pod.</p>
+          </li>
+          <li>
+            <p><strong>tasks</strong>: The list of tasks in the pod.</p>
+          </li>
+          <li>
+            <p><strong>hello-world-task</strong>: In this example, the single pod definition is composed of a single task. The name of this task is “hello-world-task”.</p>
+
+            <ul>
+              <li>
+                <p><strong>goal</strong>: Every task must have a goal state. There are two possible goal states: <code class="highlighter-rouge">RUNNING</code> and <code class="highlighter-rouge">FINISHED</code>. <code class="highlighter-rouge">RUNNING</code> indicates that a task should always be running, so if it exits, it should be restarted. <code class="highlighter-rouge">FINISHED</code> indicates that if a task finishes successfully it does not need to be restarted.</p>
+              </li>
+              <li>
+                <p><strong>cmd</strong>: The command to run to start a task. Here, the task will print “hello world” to stdout and sleep for 1000 seconds. Because its goal state is <code class="highlighter-rouge">RUNNING</code>, it will be started again upon exit.</p>
+              </li>
+              <li>
+                <p><strong>cpus</strong>: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate <a href="http://mesos.apache.org/documentation/latest/containerizer/">see the Mesos documentation here</a>.</p>
+              </li>
+              <li>
+                <p><strong>memory</strong>: This entry defines how much memory will be allocated to the task’s container.</p>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
   </li>
 </ul>
 
@@ -2806,6 +2815,7 @@ hello
 
 <p>The path is relative to the sandbox path if not preceded by a leading “/”. The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is <a href="http://mesos.apache.org/documentation/latest/multiple-disk/">documented here</a>. The PATH type is not currently supported.</p>
 
+<p><a name="proxy-fallback"></a></p>
 <h3 id="proxy-fallback">Proxy Fallback</h3>
 
 <p>Applications may not work properly behind adminrouter. In that case, one may use <a href="https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f">Repoxy</a>.</p>
