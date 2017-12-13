@@ -161,7 +161,7 @@
         "placement": {
           "description": "Placement constraints for journal nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -516,7 +516,7 @@
         "placement": {
           "description": "Placement constraints for name nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -754,7 +754,7 @@
         "placement": {
           "description": "Placement constraints for data nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
