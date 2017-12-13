@@ -1,0 +1,100 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  couchdb:
+    count: {{NODE_COUNT}}
+    placement: {{NODE_PLACEMENT}}
+    uris:
+      - {{SCHEDULER_URI}}
+    user: {{FRAMEWORK_USER}}
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    image: {{COUCHDB_DOCKER_IMAGE}}
+    resource-sets:
+      node-resources:
+        cpus: {{COUCHDB_CPUS}}
+        memory: {{COUCHDB_MEM_MB}}
+        ports:
+          cluster-port:
+            port: {{COUCHDB_PORT}}
+            advertise: true
+          node-local-port:
+            port: {{COUCHDB_NODE_PORT}}
+            advertise: true
+        volume:
+          path: "couchdb-container"
+          type: DOCKER
+          docker_volume_driver: pxd
+          docker_volume_name: {{{COUCHDB_DOCKER_VOLUME_NAME}}}
+          docker_driver_options: {{{COUCHDB_DOCKER_DRIVER_OPTIONS}}}
+          size: {{COUCHDB_DISK_MB}}
+      sidecar-resources:
+        cpus: 0.1
+        memory: 512
+    tasks:
+      install:
+        goal: RUNNING
+        resource-set: node-resources
+        cmd: >
+          chown -R couchdb:couchdb /opt/couchdb &&
+          chown -R couchdb:couchdb $MESOS_SANDBOX/couchdb-container &&
+          chmod -R 0770 $MESOS_SANDBOX/couchdb-container &&
+          chmod 664 /opt/couchdb/etc/*.ini &&
+          chmod 664 /opt/couchdb/etc/local.d/*.ini &&
+          chmod 775 /opt/couchdb/etc/*.d &&
+          if [ -z "{{COUCHDB_COOKIE}}" ]; then
+              echo "-name couchdb@$TASK_NAME.$FRAMEWORK_HOST" >> /opt/couchdb/etc/vm.args
+          else
+              echo "-name couchdb@$TASK_NAME.$FRAMEWORK_HOST -setcookie '{{COUCHDB_COOKIE}}'" >> /opt/couchdb/etc/vm.args
+          fi &&
+          printf "[couchdb]\ndatabase_dir = $MESOS_SANDBOX/couchdb-container\n" >> /opt/couchdb/etc/local.d/container.ini &&
+          printf "view_index_dir = $MESOS_SANDBOX/couchdb-container\n" >> /opt/couchdb/etc/local.d/container.ini &&
+          if [ "{{COUCHDB_USER}}" ] && [ "{{COUCHDB_PASSWORD}}" ] && [ -z "{{COUCHDB_HASHED_PASSWORD}}" ]; then
+              printf "[admins]\n{{COUCHDB_USER}} = {{COUCHDB_PASSWORD}}\n" >> /opt/couchdb/etc/local.d/container.ini
+          fi &&
+          if [ "{{COUCHDB_USER}}" ] && [ "{{COUCHDB_HASHED_PASSWORD}}" ]; then
+              printf "[admins]\n{{COUCHDB_USER}} = {{COUCHDB_HASHED_PASSWORD}}\n" >> /opt/couchdb/etc/local.d/container.ini
+          fi &&
+          if [ "{{COUCHDB_SECRET}}" ]; then
+              printf "[couch_httpd_auth]\nsecret = {{COUCHDB_SECRET}}\n" >> /opt/couchdb/etc/local.d/container.ini
+          fi &&
+          chown -R couchdb:couchdb /opt/couchdb &&
+          LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH gosu couchdb /opt/couchdb/bin/couchdb
+        readiness-check:
+          cmd: >
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH curl http://{{COUCHDB_USER}}:{{COUCHDB_PASSWORD}}@$TASK_NAME.$FRAMEWORK_HOST:{{COUCHDB_PORT}}
+          delay: 30
+          interval: 10
+          timeout: 120
+      bootstrap:
+        goal: ONCE
+        resource-set: sidecar-resources
+        cmd: >
+          export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH &&
+          curl -X PUT http://{{COUCHDB_USER}}:{{COUCHDB_PASSWORD}}@couchdb-$POD_INSTANCE_INDEX-install.$FRAMEWORK_HOST:{{COUCHDB_PORT}}/_users &&
+          curl -X PUT http://{{COUCHDB_USER}}:{{COUCHDB_PASSWORD}}@couchdb-$POD_INSTANCE_INDEX-install.$FRAMEWORK_HOST:{{COUCHDB_PORT}}/_replicator &&
+          curl -X PUT http://{{COUCHDB_USER}}:{{COUCHDB_PASSWORD}}@couchdb-$POD_INSTANCE_INDEX-install.$FRAMEWORK_HOST:{{COUCHDB_PORT}}/_global_changes
+      join:
+        goal: ONCE
+        resource-set: sidecar-resources
+        cmd: >
+          export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH &&
+          curl -X POST -H "Content-Type: application/json" http://{{COUCHDB_USER}}:{{COUCHDB_PASSWORD}}@couchdb-$POD_INSTANCE_INDEX-install.$FRAMEWORK_HOST:{{COUCHDB_PORT}}/_cluster_setup -d '{"action": "enable_cluster", "bind_address":"0.0.0.0", "username": "{{COUCHDB_USER}}", "password":"{{COUCHDB_PASSWORD}}", "port": {{COUCHDB_PORT}}, "node_count": "{{NODE_COUNT}}", "remote_node": "'"couchdb-0-install.${FRAMEWORK_HOST}"'", "remote_current_user": "{{COUCHDB_USER}}", "remote_current_password": "{{COUCHDB_PASSWORD}}" }' &&
+          curl -X POST -H "Content-Type: application/json" http://{{COUCHDB_USER}}:{{COUCHDB_PASSWORD}}@couchdb-$POD_INSTANCE_INDEX-install.$FRAMEWORK_HOST:{{COUCHDB_PORT}}/_cluster_setup -d '{"action": "add_node", "host": "'"couchdb-0-install.${FRAMEWORK_HOST}"'", "port": "{{COUCHDB_PORT}}", "username": "{{COUCHDB_USER}}", "password":"{{COUCHDB_PASSWORD}}"}'
+
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      node-deploy:
+        strategy: serial
+        pod: couchdb
+        steps:
+          - 0: [[install], [bootstrap]]
+          - default: [[install], [join]]
