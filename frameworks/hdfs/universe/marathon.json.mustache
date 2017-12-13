@@ -72,13 +72,13 @@
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
 
-    {{#service.security.tls.enabled}}
-    "TLS_ENABLED": "{{service.security.tls.enabled}}",
-    "TASKCFG_ALL_TLS_ENABLED": "{{service.security.tls.enabled}}",
+    {{#service.security.transport_encryption.enabled}}
+    "SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
     "TASKCFG_ALL_NAME_NODE_HTTPS_PORT":"{{hdfs.name_node_https_port}}",
     "TASKCFG_ALL_JOURNAL_NODE_HTTPS_PORT":"{{hdfs.journal_node_https_port}}",
     "TASKCFG_ALL_DATA_NODE_HTTPS_PORT":"{{hdfs.data_node_https_port}}",
-    {{/service.security.tls.enabled}}
+    {{/service.security.transport_encryption.enabled}}
 
     {{#journal_node.enable_readiness_check}}
     "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
@@ -90,14 +90,14 @@
     "DATA_NODE_PLACEMENT": "{{{data_node.placement}}}",
 
     {{#service.security.kerberos.enabled}}
-    "KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
-    "TASKCFG_ALL_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
-    "TASKCFG_ALL_KDC_HOST_NAME": "{{service.security.kerberos.kdc_host_name}}",
-    "TASKCFG_ALL_KDC_HOST_PORT": "{{service.security.kerberos.kdc_host_port}}",
-    "KEYTAB_SECRET_PATH": "{{service.security.kerberos.keytab_secret}}",
-    "TASKCFG_ALL_KERBEROS_PRIMARY": "hdfs",
-    "TASKCFG_ALL_KERBEROS_PRIMARY_HTTP": "HTTP",
-    "TASKCFG_ALL_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
+    "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",
+    "SECURITY_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY": "hdfs",
+    "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY_HTTP": "HTTP",
+    "TASKCFG_ALL_SECURITY_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_KDC_HOSTNAME": "{{service.security.kerberos.kdc.hostname}}",
+    "TASKCFG_ALL_SECURITY_KERBEROS_KDC_PORT": "{{service.security.kerberos.kdc.port}}",
     {{/service.security.kerberos.enabled}}
     "TASKCFG_ALL_TASK_USER": "{{service.user}}",
     "TASKCFG_ALL_HADOOP_HDFS_CONFIGURATION_VERSION": "{{hdfs.hadoop_hdfs_configuration_version}}",

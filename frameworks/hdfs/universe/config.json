@@ -67,17 +67,6 @@
           "description": "HDFS security settings.",
           "type": "object",
           "properties": {
-            "tls": {
-              "type": "object",
-              "description": "TLS configuration properties.",
-              "properties": {
-                "enabled": {
-                  "description": "Enable TLS support.",
-                  "type": "boolean",
-                  "default": false
-                }
-              }
-            },
             "kerberos": {
               "type": "object",
               "description": "Kerberos configuration properties.",
@@ -87,25 +76,47 @@
                   "type": "boolean",
                   "default": false
                 },
-                "kdc_host_name": {
-                  "type": "string",
-                  "description": "The name or address of a host running a KDC for the realm.",
-                  "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
-                },
-                "kdc_host_port": {
-                  "type": "string",
-                  "description": "The port of the host running a KDC for that realm.",
-                  "default": "2500"
-                },
-                "keytab_secret": {
-                  "type": "string",
-                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
-                  "default": "__dcos_base64__hdfs_keytab"
+                "kdc" : {
+                  "description": "KDC settings for Kerberos",
+                  "type": "object",
+                  "properties": {
+                    "hostname": {
+                      "type": "string",
+                      "description": "The name or address of a host running a KDC for the realm.",
+                      "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                    },
+                    "port": {
+                      "type": "integer",
+                      "description": "The port of the host running a KDC for that realm.",
+                      "default": 2500
+                    }
+                  }
                 },
                 "realm": {
                   "type": "string",
                   "description": "The Kerberos realm used to render the principal of HDFS tasks.",
                   "default": "LOCAL"
+                },
+                "keytab_secret": {
+                  "type": "string",
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
+                  "default": "__dcos_base64__hdfs_keytab"
+                }
+              }
+            },
+            "transport_encryption": {
+              "type": "object",
+              "description": "Transport encryption settings",
+              "properties": {
+                "enabled": {
+                  "description": "Enable transport encryption (TLS)",
+                  "type": "boolean",
+                  "default": false
+                },
+                "allow_plaintext": {
+                  "description": "Allow plaintext alongside encrypted traffic",
+                  "type": "boolean",
+                  "default": false
                 }
               }
             }

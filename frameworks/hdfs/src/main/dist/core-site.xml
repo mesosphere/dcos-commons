@@ -48,12 +48,12 @@
         <name>hadoop.http.filter.initializers</name>
         <value>{{HADOOP_HTTP_FILTER_INITIALIZER}}</value>
     </property>
-    {{^KERBEROS_ENABLED}}
+    {{^SECURITY_KERBEROS_ENABLED}}
     <property>
         <name>hadoop.rpc.protection</name>
         <value>{{HADOOP_RPC_PROTECTION}}</value>
     </property>
-    {{/KERBEROS_ENABLED}}
+    {{/SECURITY_KERBEROS_ENABLED}}
     <property>
         <name>hadoop.work.around.non.threadsafe.getpwuid</name>
         <value>{{HADOOP_WORK_AROUND_NON_THREADSAFE_GETPWUID}}</value>
@@ -507,7 +507,7 @@
         <value>{{HADOOP_HTTP_AUTHENTICATION_SIMPLE_ANONYMOUS_ALLOWED}}</value>
     </property>
 
-    {{#TLS_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>hadoop.ssl.enabled.protocols</name>
         <value>TLSv1.2</value>
@@ -516,11 +516,11 @@
         <name>hadoop.ssl.hostname.verifier</name>
         <value>ALLOW_ALL</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#KERBEROS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+    {{#SECURITY_KERBEROS_ENABLED}}
     <property> <!-- The ZKFC nodes use this property to verify they are connecting to the namenode with the expected principal. -->
         <name>hadoop.security.service.user.name.key.pattern</name>
-        <value>{{KERBEROS_PRIMARY}}/*@{{KERBEROS_REALM}}</value>
+        <value>{{SECURITY_KERBEROS_PRIMARY}}/*@{{SECURITY_KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>hadoop.security.authentication</name>
@@ -651,5 +651,5 @@
         <name>hadoop.security.impersonation.provider.class</name>
         <value>{{HADOOP_SECURITY_IMPERSONATION_PROVIDER_CLASS}}</value>
     </property>
-    {{/KERBEROS_ENABLED}}
+    {{/SECURITY_KERBEROS_ENABLED}}
 </configuration>
