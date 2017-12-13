@@ -6,6 +6,8 @@ enterprise: 'yes'
 
 # Setting up Apache Hadoop Distributed File System (HDFS) with Kerberos
 
+The utility tool `kinit` needs to be installed on the agents and be accessible from within the tasks' containers in order for the system to deploy correctly.
+
 ## Create principals
 
 In order to run Apache HDFS with Kerberos security enabled, a principal needs to be added for every service component in the cluster. The following principals are required (although the realm can be modified):
@@ -32,6 +34,7 @@ hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 HTTP/hdfs.marathon.autoip.dcos.thisdcos.directory@LOCAL
 ```
+This cluster has 3 data nodes, though the correct number of principles should be added up to N data nodes.
 (assuming a default service name of `hdfs`)
 
 ## Create the keytab secret
@@ -72,6 +75,3 @@ The kerberized Apache HDFS service is then deployed by running:
 ```bash
 $ dcos package install hdfs --options=kerberos-options.json
 ```
-
-Note: The utility tool `kinit` needs to be installed on the agents and be accessible from within the tasks' containers in order for the system to deploy correctly.
-
