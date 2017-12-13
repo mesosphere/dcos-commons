@@ -20,7 +20,7 @@ def configure_package(configure_security):
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         sdk_install.uninstall(config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
         sdk_upgrade.test_upgrade(
-            "beta-{}".format(config.PACKAGE_NAME),
+            config.PACKAGE_NAME,
             config.PACKAGE_NAME,
             config.DEFAULT_TASK_COUNT,
             service_name=config.get_foldered_service_name(),

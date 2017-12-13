@@ -35,7 +35,7 @@ def configure_package(configure_security):
                 additional_options={"service": { "name": FOLDERED_SERVICE_NAME } })
         else:
             sdk_upgrade.test_upgrade(
-                "beta-{}".format(config.PACKAGE_NAME),
+                config.PACKAGE_NAME,
                 config.PACKAGE_NAME,
                 config.DEFAULT_BROKER_COUNT,
                 service_name=FOLDERED_SERVICE_NAME,
