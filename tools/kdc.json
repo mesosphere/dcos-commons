@@ -20,10 +20,6 @@
     {
       "port": 2500,
       "name": "kdc"
-    },
-    {
-      "port": 8000,
-      "name": "http"
     }
   ],
   "requirePorts": true
