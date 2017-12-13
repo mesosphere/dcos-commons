@@ -115,6 +115,37 @@ def soak_upgrade_downgrade(
         wait_for_deployment)
 
 
+# (1) Checks if a newer version of this framework is available by comparing:
+#     - The default version available for the package.
+#     - The installed version.
+# (2) If so, upgrades to new version.
+def soak_upgrade_if_newer_version_available(
+        to_package_name,
+        from_package_name,
+        service_name,
+        running_task_count,
+        install_options={},
+        timeout_seconds=25*60):
+    default_version_available = _get_pkg_version(to_package_name)
+    log.info('Default version of {} available: {}'.format(to_package_name, default_version_available))
+    installed_version = _get_installed_version(service_name)
+    log.info('Installed version of {}: {}'.format(service_name, installed_version))
+
+    if default_version_available != installed_version:
+        # CLI needed for CLI upgrade path
+        cmd.run_cli("package install --cli {} --yes".format(to_package_name))
+        log.info('Upgrading to version: {} => {} {}'.format(from_package_name, to_package_name,
+                                                            default_version_available))
+        _upgrade_or_downgrade(
+            from_package_name,
+            to_package_name,
+            default_version_available,
+            service_name,
+            running_task_count,
+            install_options,
+            timeout_seconds)
+
+
 def _get_universe_url():
     repositories = json.loads(sdk_cmd.run_cli('package repo list --json'))['repositories']
     for repo in repositories:
@@ -205,6 +236,11 @@ def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
         sdk_cmd.run_cli('package describe {}'.format(package_name), print_output=False)).group(1)
+
+
+def _get_installed_version(service_name):
+    config = marathon.get_config(service_name)
+    return config['labels']['DCOS_PACKAGE_VERSION']
 
 
 # Default repo is the one at index=0.
