@@ -1,3 +1,4 @@
+import json
 import logging
 import retrying
 
@@ -49,9 +50,19 @@ def wait_for_broker_dns(package_name: str, service_name: str):
     brokers = sdk_cmd.svc_cli(package_name, service_name, "endpoint broker", json=True)
     broker_dns = list(map(lambda x: x.split(':')[0], brokers["dns"]))
 
-    task_id = sdk_tasks.get_task_ids(service_name, service_name.strip("/").replace("/", "_"))
+    def get_scheduler_task_id(service_name: str) -> str:
+        raw_tasks = sdk_cmd.run_cli("task --json", )
+        if raw_tasks:
+            tasks = json.loads(raw_tasks)
+            for task in tasks:
+                if task["name"] == service_name:
+                    return task["id"]
 
-    assert sdk_hosts.resolve_hosts(task_id[0], broker_dns)
+    scheduler_task_id = get_scheduler_task_id(service_name)
+    log.info("Scheduler task ID: %s", scheduler_task_id)
+    log.info("Waiting for brokers: %s", broker_dns)
+
+    assert sdk_hosts.resolve_hosts(scheduler_task_id, broker_dns)
 
 
 def create_topic(topic_name, service_name=config.SERVICE_NAME):
