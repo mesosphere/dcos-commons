@@ -29,8 +29,8 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
   + You can install just the subcommand CLI by running `dcos package install --cli beta-kafka`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    $ dcos package uninstall --cli beta-kafka
-    $ dcos package install --cli beta-kafka
+    $ dcos package uninstall beta-kafka --cli
+    $ dcos package install beta-kafka --cli
     ```
 
 ### Preparing configuration
@@ -195,8 +195,8 @@ $ dcos beta-kafka update package-versions
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
    ```bash
-   $ dcos package uninstall --cli beta-kafka
-   $ dcos package install --cli beta-kafka --package-version="1.1.6-5.0.7"
+   $ dcos package uninstall beta-kafka --cli
+   $ dcos package install beta-kafka --cli --package-version="1.1.6-5.0.7"
    ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Kafka Service to version `1.1.6-5.0.7`:
    ```bash

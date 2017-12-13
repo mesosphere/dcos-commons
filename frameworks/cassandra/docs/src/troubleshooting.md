@@ -1,5 +1,6 @@
 ---
 post_title: Troubleshooting
+nav_title: Troubleshooting
 menu_order: 90
 post_excerpt: ""
 enterprise: 'no'
@@ -23,6 +24,6 @@ To view logs for a given node, perform the following steps:
 You can also access the logs via the Mesos UI:
 1. Visit <dcos-url>/mesos to view the Mesos UI.
 1. Click the `Frameworks` tab in the upper left to get a list of services running in the cluster.
-1. Navigate into the correct framework for your needs. The scheduler runs under `marathon` with a task name matching the service name (default `beta-cassandra`). Service nodes run under a framework whose name matches the service name (default `beta-cassandra`).
+1. Navigate into the correct framework for your needs. The scheduler runs under `marathon` with a task name matching the service name (default `$packagename`). Service nodes run under a framework whose name matches the service name (default `$packagename`).
 1. You should now see two lists of tasks. `Active Tasks` are tasks currently running, and `Completed Tasks` are tasks that have exited. Click the `Sandbox` link for the task you wish to examine.
 1. The `Sandbox` view will list files named `stdout` and `stderr`. Click the file names to view the files in the browser, or click `Download` to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.

@@ -81,7 +81,7 @@ $ cat hdfs1.json
 $ dcos package install beta-hdfs --options=hdfs1.json
 ```
 
-Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
+Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos beta-hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
 
 <!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
