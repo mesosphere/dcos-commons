@@ -147,7 +147,6 @@ def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
     assert stdout == config.TEST_CONTENT_SMALL
 
 
-
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.auth
