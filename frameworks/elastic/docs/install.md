@@ -81,7 +81,7 @@ Steps:
    Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
    ```
-   dcos:adminrouter:service:marathon full				
+   dcos:adminrouter:service:marathon full
    dcos:service:marathon:marathon:services:/testing full
    dcos:adminrouter:ops:mesos full
    dcos:adminrouter:ops:slave full
@@ -127,7 +127,11 @@ Sample JSON options file named `elastic-tls.json`:
   "service": {
     "service_account_secret": "elastic",
     "service_account": "elastic",
-    "tls": true
+    "security": {
+        "transport_encryption": {
+            "enabled": true
+        }
+    }
   },
   "elasticsearch": {
     "xpack_enabled": true
@@ -267,7 +271,7 @@ These are the general steps to follow:
 - Service name: This needs to be unique for each instance of the service that is running. It is also used as your cluster name.
 - Service user: This must be a non-root user that already exists on each agent. The default user is `nobody`.
 - X-Pack is not installed by default, but you can enable it. X-Pack comes with a 30-day trial license.
-- Health check credentials: If you have X-Pack enabled, the health check will use these credentials for authorization. We recommend you create a specific Elastic user/password for this with minimal capabilities rather than using the default superuser `elastic`.  
+- Health check credentials: If you have X-Pack enabled, the health check will use these credentials for authorization. We recommend you create a specific Elastic user/password for this with minimal capabilities rather than using the default superuser `elastic`.
 - Plugins: You can specify other plugins via a comma-separated list of plugin names (e.g., “analysis-icu”) or plugin URIs.
 - CPU/RAM/Disk/Heap: These will be specific to your DC/OS cluster and your Elasticsearch use cases. Please refer to Elastic’s guidelines for configuration.
 - Node counts: At least 1 data node is required for the cluster to operate at all. You do not need to use a coordinator node. Learn about Elasticsearch node types [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html). There is no maximum for node counts.

@@ -11,7 +11,7 @@ from tests import config, test_utils
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.11')
-def test_detect_zones_disabled_by_default():
+def test_zones_not_referenced_in_placement_constraints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -45,7 +45,7 @@ def test_detect_zones_disabled_by_default():
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.11')
-def test_detect_zones_enabled():
+def test_zones_referenced_in_placement_constraints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -56,7 +56,7 @@ def test_detect_zones_enabled():
         additional_options={
             "service": {
                 "name": foldered_name,
-                "detect_zones": True
+                "placement_constraint": "@zone:GROUP_BY"
             }
         })
 

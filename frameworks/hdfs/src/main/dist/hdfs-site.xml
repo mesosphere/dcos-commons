@@ -21,12 +21,12 @@
         <name>dfs.cluster.administrators</name>
         <value>{{ADMINISTRATORS}}</value>
     </property>
-    {{#TLS_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.http.policy</name>
         <value>HTTPS_ONLY</value>
     </property>
-    {{/TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <!-- namenode -->
     <property>
         <name>dfs.namenode.logging.level</name>
@@ -302,18 +302,18 @@
         <name>dfs.namenode.rpc-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
     </property>
-    {{^TLS_ENABLED}}
+    {{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.namenode.http-address.hdfs.name-0-node</name>
         <value>name-0-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.namenode.https-address.hdfs.name-0-node</name>
         <value>name-0-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTPS_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-0-node</name>
         <value>0.0.0.0</value>
@@ -329,18 +329,18 @@
         <name>dfs.namenode.rpc-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
     </property>
-    {{^TLS_ENABLED}}
+    {{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.namenode.http-address.hdfs.name-1-node</name>
         <value>name-1-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTP_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.namenode.https-address.hdfs.name-1-node</name>
         <value>name-1-node.{{FRAMEWORK_HOST}}:{{NAME_NODE_HTTPS_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.namenode.http-bind-host.hdfs.name-1-node</name>
         <value>0.0.0.0</value>
@@ -356,18 +356,18 @@
         <name>dfs.journalnode.rpc-address</name>
         <value>0.0.0.0:{{JOURNAL_NODE_RPC_PORT}}</value>
     </property>
-    {{^TLS_ENABLED}}
+    {{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.journalnode.http-address</name>
         <value>0.0.0.0:{{JOURNAL_NODE_HTTP_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.journalnode.https-address</name>
         <value>0.0.0.0:{{JOURNAL_NODE_HTTPS_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.journalnode.edits.dir</name>
         <value>{{MESOS_SANDBOX}}/journal-data</value>
@@ -378,18 +378,18 @@
         <name>dfs.datanode.address</name>
         <value>0.0.0.0:{{DATA_NODE_RPC_PORT}}</value>
     </property>
-    {{^TLS_ENABLED}}
+    {{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.datanode.http.address</name>
         <value>0.0.0.0:{{DATA_NODE_HTTP_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
-    {{#TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+    {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.datanode.https.address</name>
         <value>0.0.0.0:{{DATA_NODE_HTTPS_PORT}}</value>
     </property>
-    {{/TLS_ENABLED}}
+    {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
     <property>
         <name>dfs.datanode.ipc.address</name>
         <value>0.0.0.0:{{DATA_NODE_IPC_PORT}}</value>
@@ -826,7 +826,7 @@
     {{/KERBEROS_ENABLED}}
 
 
-    {{#KERBEROS_ENABLED}}
+    {{#SECURITY_KERBEROS_ENABLED}}
         <property>
             <name>dfs.permissions.enabled</name>
             <value>true</value>
@@ -880,11 +880,11 @@
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.secondary.namenode.keytab.file</name>
@@ -912,11 +912,11 @@
         </property>
         <property>
             <name>dfs.namenode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-zkfc.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY}}/name-{{POD_INSTANCE_INDEX}}-zkfc.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.namenode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-zkfc.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/name-{{POD_INSTANCE_INDEX}}-zkfc.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         {{/ZKFC}}
 
@@ -928,11 +928,11 @@
         </property>
         <property>
             <name>dfs.journalnode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.journalnode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/journal-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         {{/JOURNALNODE}}
 
@@ -944,12 +944,12 @@
         </property>
         <property>
             <name>dfs.datanode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY}}/data-{{POD_INSTANCE_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.datanode.data.dir.perm</name>
             <value>700</value>
         </property>
         {{/DATANODE}}
-    {{/KERBEROS_ENABLED}}
+    {{/SECURITY_KERBEROS_ENABLED}}
 </configuration>

@@ -5,7 +5,7 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    placement: "{{HELLO_PLACEMENT}}"
+    placement: '{{{HELLO_PLACEMENT}}}'
     tasks:
       server:
         goal: RUNNING
@@ -28,7 +28,7 @@ pods:
   world:
     count: {{WORLD_COUNT}}
     allow-decommission: true
-    placement: "{{WORLD_PLACEMENT}}"
+    placement: '{{{WORLD_PLACEMENT}}}'
     tasks:
       server:
         goal: RUNNING

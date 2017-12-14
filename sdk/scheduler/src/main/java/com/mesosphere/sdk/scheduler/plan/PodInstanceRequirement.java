@@ -70,7 +70,7 @@ public class PodInstanceRequirement {
 
     @Override
     public String toString() {
-        return String.format("%s[%s]", getName(), recoveryType);
+        return String.format("%s(%s)", getName(), recoveryType);
     }
 
     /**

@@ -18,7 +18,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `web-url`
 
-  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Proxylite](developer-guide.html#proxy) in your service so that the scheduler API endpoints are still available.
+  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](developer-guide.html#proxy-fallback) in your service so that the scheduler API endpoints are still available.
 
 * `scheduler`
 
@@ -145,6 +145,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
       <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
       </ul></div>
+
+    * `essential`
+
+      Marks this task as either "Essential", where relaunching this task results in relaunching all `RUNNING` tasks in the pod instance, or "Non-essential", where relaunching it does not affect other `RUNNING` tasks in the pod instance. By default this value is `true`, such that if this task needs to be relaunched, then all other tasks sharing the same pod instance are relaunched alongside it. This is only a factor in cases where a given pod has multiple `RUNNING` tasks defined.
 
     * `cmd`
 

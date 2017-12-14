@@ -157,21 +157,21 @@ pods:
 
 * **Pods**: A pod is simply a set of tasks.
 
-* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
+    * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
-* **count**: The number of instances of the pod.
+        * **count**: The number of instances of the pod.
 
-* **tasks**: The list of tasks in the pod.
+        * **tasks**: The list of tasks in the pod.
 
-* **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
+        * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+            * **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
 
-* **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
+            * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
-* **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
+            * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
 
-* **memory**: This entry defines how much memory will be allocated to the task’s container.
+            * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
 For a full listing of available fields and what they mean, see the [YAML Reference](reference/yaml-reference.html).
 
@@ -1320,13 +1320,17 @@ REGION: us-west-2
 ZONE: us-west-2a
 ```
 
-Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
+Services may choose to use this information to enable rack awareness. Users may then configure [placement rules](#placement-rules) to ensure that their pods are appropriately placed within specific regions and zones, or distributed across those regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
 
 ```
 @zone:GROUP_BY:2
 ```
 
-The placement rule above would apply the `GROUP_BY` operator to zones. The SDK allows region-aware scheduling as a beta feature.  It may be enabled by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
+The placement rule above would apply the `GROUP_BY` operator to zones.
+
+## Regions (beta)
+
+The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
 
 ```
 @region:IS:us-west-2
@@ -1647,7 +1651,7 @@ name: "hello-world"
 pods:
   hello:
     count: 3
-    placement: {{HELLO_PLACEMENT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
     tasks:
       server:
         goal: RUNNING
@@ -1946,14 +1950,45 @@ To be clear, the config templating provided by the `bootstrap` tool may be appli
 
 ### Task Environment
 
-While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.  For example, a typical task would include the following key/value pairs in its environment:
+Task configuration is generally exposed using environment variables. A number of environment variables that describe the task and/or cluster environment are provided automatically, while the developer can manually specify others.
 
-```
-REGION: us-west-2
-ZONE: us-west-2a
-POD_INSTANCE_INDEX: 0
-TASK_NAME: hello-0-server
-```
+#### Included Values
+
+The following environment values are automatically injected into all tasks as a convenience. These typically provide some additional context about the container.
+
+* `TASK_NAME=hello-3-server`
+
+The name of the task, such as `hello-3-server`.
+
+* `<task-name>=true`
+
+The name of the task as the environment variable, with a value of `true`. Useful in mustache templating.
+
+* `POD_INSTANCE_INDEX=3`
+
+The index of the pod instance, starting at zero. For example a task named `hello-3-server` would have a `POD_INSTANCE_INDEX` of `3`.
+
+* `REGION=us-west-2` / `ZONE=us-west-2a`
+
+The Region and Zone of the machine running the task. For more information about these values, see [Regions and Zones](#regions-and-zones).
+
+* `FRAMEWORK_NAME=/folder/servicename`
+
+The name of the service as configured by the user. May contain slashes if the service is in a folder.
+
+* `FRAMEWORK_HOST=folderservicename.autoip.thisdcos.directory`
+
+The TLD for accessing tasks within the service. To address a given task, one could construct a hostname as `<taskname>.FRAMEWORK_HOST`. This varies according to the service name as configured by the user.
+
+* `FRAMEWORK_VIP_HOST=folderservicename.l4lb.thisdcos.directory`
+
+The TLD for VIPs advertised by the service. To address a given VIP, one could construct a hostname as `<vipname>.FRAMEWORK_VIP_HOST`. This varies according to the service name as configured by the user.
+
+* `SCHEDULER_API_HOSTNAME=api.folderservicename.marathon.l4lb.thisdcos.directory`
+
+The hostname where the Scheduler can be reached. Useful when tasks need to make API calls to a custom endpoint that's being run by the Scheduler.
+
+#### Specifying Values
 
 You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
@@ -2127,6 +2162,7 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+<a name="proxy-fallback"></a>
 ### Proxy Fallback
 
 Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).

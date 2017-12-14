@@ -194,12 +194,12 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 failedTasks,
                 allLaunchedTasks);
         if (!failedPods.isEmpty()) {
-            logger.info("All failed pods: {}", getPodNames(failedPods));
+            logger.info("All failed tasks: {}", getPodNames(failedPods));
         }
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))
                 .collect(Collectors.toList());
-        logger.info("Found pods needing recovery: " + getPodNames(failedPods));
+        logger.info("Found tasks needing recovery: " + getPodNames(failedPods));
 
         List<PodInstanceRequirement> inProgressRecoveries = getPlan().getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
@@ -213,7 +213,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, inProgressRecoveries))
                 .collect(Collectors.toList());
-        logger.info("New pods needing recovery: " + getPodNames(failedPods));
+        logger.info("New tasks needing recovery: " + getPodNames(failedPods));
 
         List<PodInstanceRequirement> recoveryRequirements = new ArrayList<>();
         for (PodInstanceRequirement failedPod : failedPods) {
@@ -268,10 +268,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
 
-        logger.info("Failed tasks in pod: {}, permanent[{}], transient[{}]",
-                failedPodName,
-                permanentlyFailedTasks,
-                transientlyFailedTasks);
+        logger.info("Failed tasks in pod: {}, permanent{}, transient{}",
+                failedPodName, permanentlyFailedTasks, transientlyFailedTasks);
     }
 
     Step createStep(PodInstanceRequirement podInstanceRequirement) {
@@ -296,8 +294,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     private static List<String> getPodNames(Collection<PodInstanceRequirement> podInstanceRequirements) {
         return podInstanceRequirements.stream()
-                .map(podInstanceRequirement -> podInstanceRequirement.getPodInstance())
-                .map(podInstance -> podInstance.getName())
+                .map(podInstanceRequirement -> String.format("%s:%s",
+                        podInstanceRequirement.getPodInstance().getName(), podInstanceRequirement.getTasksToLaunch()))
                 .collect(Collectors.toList());
     }
 

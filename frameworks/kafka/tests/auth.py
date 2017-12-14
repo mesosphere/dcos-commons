@@ -23,7 +23,7 @@ def wait_for_brokers(client: str, brokers: list):
 
 
 def is_not_authorized(output: str) -> bool:
-    return "Not authorized to access topics: [authz.test]" in output
+    return "AuthorizationException: Not authorized to access" in output
 
 
 def write_client_properties(primary: str, task: str) -> str:
@@ -124,7 +124,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
         if "UNKNOWN_TOPIC_OR_PARTITION" in stderr:
             LOG.error("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
             return True
-        if "LEADER_NOT_AVAILABLE" in stderr:
+        if "LEADER_NOT_AVAILABLE" in stderr and "ERROR Error when sending message" in stderr:
             LOG.error("Write failed due to stderr: LEADER_NOT_AVAILABLE")
             return True
 
@@ -142,10 +142,13 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
 
         return rc, stdout, stderr
 
-    output = write_wrapper()
+    rc, stdout, stderr = write_wrapper()
 
-    assert output[0] is 0
-    return " ".join(str(o) for o in output)
+    rc_success = rc is 0
+    stdout_success = ">>" in stdout
+    stderr_success = not is_not_authorized(stderr)
+
+    return rc_success and stdout_success and stderr_success
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:

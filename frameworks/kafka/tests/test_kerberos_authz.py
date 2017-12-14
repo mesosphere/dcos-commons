@@ -14,6 +14,7 @@ from tests import config
 from tests import topics
 from tests import test_utils
 
+
 log = logging.getLogger(__name__)
 
 
@@ -79,8 +80,10 @@ def kafka_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
                 "authorization": {
@@ -174,14 +177,13 @@ def test_authz_acls_required(kafka_client, kafka_server):
 
     test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
 
-
     message = str(uuid.uuid4())
 
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert auth.is_not_authorized(auth.write_to_topic("authorized", client_id, topic_name, message))
+    assert not auth.write_to_topic("authorized", client_id, topic_name, message)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert ">>" in auth.write_to_topic("super", client_id, topic_name, message)
+    assert auth.write_to_topic("super", client_id, topic_name, message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     assert auth.is_not_authorized(auth.read_from_topic("authorized", client_id, topic_name, 1))
@@ -200,10 +202,10 @@ def test_authz_acls_required(kafka_client, kafka_server):
     # Send a second message which should not be authorized
     second_message = str(uuid.uuid4())
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert ">>" in auth.write_to_topic("authorized", client_id, topic_name, second_message)
+    assert auth.write_to_topic("authorized", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert ">>" in auth.write_to_topic("super", client_id, topic_name, second_message)
+    assert auth.write_to_topic("super", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     topic_output = auth.read_from_topic("authorized", client_id, topic_name, 3)
@@ -217,7 +219,7 @@ def test_authz_acls_required(kafka_client, kafka_server):
 
     # Check that the unauthorized client can still not read or write from the topic.
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert auth.is_not_authorized(auth.write_to_topic("unauthorized", client_id, topic_name, second_message))
+    assert not auth.write_to_topic("unauthorized", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     assert auth.is_not_authorized(auth.read_from_topic("unauthorized", client_id, topic_name, 1))

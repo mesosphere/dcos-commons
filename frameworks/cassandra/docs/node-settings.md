@@ -81,7 +81,7 @@ To configure the disk type:
 
 ## Disk Scheduler
 
-It is [recommended](http://docs.datastax.com/en/landing_page/doc/landing_page/recommendedSettings.html#recommendedSettings__optimizing-ssds) that you pre-configure your storage hosts to use the deadline IO scheduler in production environments.  
+It is [recommended](http://docs.datastax.com/en/landing_page/doc/landing_page/recommendedSettings.html#recommendedSettings__optimizing-ssds) that you pre-configure your storage hosts to use the deadline IO scheduler in production environments.
 
 # Placement Constraints
 
@@ -89,6 +89,10 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 
 *   **In DC/OS CLI options.json**: `placement_constraint`: string (default: `""`)
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
+
+## Rack-Aware Placement
+
+Cassandra's "rack"-based fault domain support may be enabled by specifying a placement constraint that uses the `@zone` key. For example, one could spread Cassandra nodes across a minimum of three different zones/racks by specifying the constraint `@zone:GROUP_BY:3`. When a placement constraint specifying `@zone` is used, Cassandra nodes will be automatically configured with `rack`s that match the names of the zones. If no placement constraint referencing `@zone` is configured, all nodes will be configured with a default rack of `rack1`.
 
 # Virtual networks
 

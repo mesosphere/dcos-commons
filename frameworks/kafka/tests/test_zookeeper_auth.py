@@ -153,8 +153,10 @@ def kafka_server(kerberos, zookeeper_server):
                 "kerberos": {
                     "enabled": True,
                     "enabled_for_zookeeper": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
@@ -248,6 +250,6 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    assert ">>" in auth.write_to_topic("client", client_id, topic_name, message)
+    assert auth.write_to_topic("client", client_id, topic_name, message)
 
     assert message in auth.read_from_topic("client", client_id, topic_name, 1)

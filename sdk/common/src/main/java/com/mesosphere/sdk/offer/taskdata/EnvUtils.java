@@ -78,15 +78,4 @@ public class EnvUtils {
     public static String toEnvName(String str) {
         return ENVVAR_INVALID_CHARS.matcher(str.toUpperCase()).replaceAll("_");
     }
-
-    /**
-     * Returns a environment variable-style rendering of the specified port.
-     */
-    static String getPortEnvName(String portName, Optional<String> customEnvKey) {
-        String draftEnvName = customEnvKey.isPresent()
-                ? customEnvKey.get() // use custom name as-is
-                : EnvConstants.PORT_NAME_TASKENV_PREFIX + portName; // PORT_[name]
-        // Envvar should be uppercased with invalid characters replaced with underscores:
-        return toEnvName(draftEnvName);
-    }
 }

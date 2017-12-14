@@ -323,13 +323,28 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             return true;
         }
 
-        // When evaluating whether a pod should be updated, some PodSpec changes are immaterial:
-        //   1. Count: Extant pods do not care if they will have more fellows
-        //   2. Placement Rules: Extant pods should not (immediately) move around due to placement changes
-        // As such, ignore these values when checking for changes:
-        podSpec1 = DefaultPodSpec.newBuilder(podSpec1).count(0).placementRule(null).build();
-        podSpec2 = DefaultPodSpec.newBuilder(podSpec2).count(0).placementRule(null).build();
-        return podSpec1.equals(podSpec2);
+        return filterIrrelevantFieldsForUpdateComparison(podSpec1)
+                .equals(filterIrrelevantFieldsForUpdateComparison(podSpec2));
+    }
+
+    /**
+     * When evaluating whether a pod should be updated, some PodSpec changes are immaterial:
+     * <ol>
+     * <li>Count: Extant pods do not care if they will have more fellows</li>
+     * <li>Placement Rules: Extant pods should not (immediately) move around due to placement changes</li>
+     * <li>Allow decommission: Does not affect the pods themselves, only how we treat them</li>
+     * </ol>
+     * As such, ignore these fields when checking for differences.
+     *
+     * @return a new {@link PodSpec} with irrelevant parameters filtered out
+     */
+    private static PodSpec filterIrrelevantFieldsForUpdateComparison(PodSpec podSpec) {
+        // Set arbitrary values. We just want the two spec copies to be equivalent where these fields are concerned:
+        return DefaultPodSpec.newBuilder(podSpec)
+                .count(0)
+                .placementRule(null)
+                .allowDecommission(false)
+                .build();
     }
 
     /**

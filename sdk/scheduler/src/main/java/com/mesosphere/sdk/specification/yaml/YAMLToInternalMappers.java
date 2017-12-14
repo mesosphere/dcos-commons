@@ -359,6 +359,7 @@ public class YAMLToInternalMappers {
                 .configFiles(configFiles)
                 .discoverySpec(discoverySpec)
                 .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
+                .essential(rawTask.isEssential())
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)
                 .name(taskName)
