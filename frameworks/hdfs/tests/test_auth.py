@@ -13,6 +13,8 @@ from tests import config
 
 
 log = logging.getLogger(__name__)
+foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+foldered_dns_name = sdk_utils.get_foldered_dns_name(config.SERVICE_NAME)
 
 
 def get_principals() -> list:
@@ -22,7 +24,7 @@ def get_principals() -> list:
     """
     primaries = ["hdfs", "HTTP"]
     fqdn = "{service_name}.{host_suffix}".format(
-        service_name=config.SERVICE_NAME, host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+        service_name=foldered_dns_name, host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
     instances = [
         "name-0-node",
         "name-0-zkfc",
@@ -47,8 +49,8 @@ def get_principals() -> list:
         )
     principals.extend(config.CLIENT_PRINCIPALS.values())
 
-    scheduler_dns_name = "api.{service_name}.marathon.l4lb.thisdcos.directory".format(config.SERVICE_NAME)
-    principals.append(scheduler_dns_name)
+    service_principal = "HTTP/api.{}.marathon.l4lb.thisdcos.directory".format(foldered_dns_name)
+    principals.append(service_principal)
     return principals
 
 
@@ -78,6 +80,7 @@ def kerberos(configure_security):
         kerberos_env.finalize()
         service_kerberos_options = {
             "service": {
+                "name": foldered_name,
                 "security": {
                     "kerberos": {
                         "enabled": True,
@@ -98,7 +101,7 @@ def kerberos(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            foldered_name,
             config.DEFAULT_TASK_COUNT,
             additional_options=service_kerberos_options,
             timeout_seconds=30*60)
@@ -106,7 +109,7 @@ def kerberos(configure_security):
         yield kerberos_env
 
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         if kerberos_env:
             kerberos_env.cleanup()
 
@@ -116,7 +119,7 @@ def kerberos(configure_security):
 @sdk_utils.dcos_ee_only
 @pytest.mark.smoke
 def test_health_of_kerberized_hdfs():
-    config.check_healthy(service_name=config.SERVICE_NAME)
+    config.check_healthy(service_name=foldered_name)
 
 
 @pytest.fixture(scope="module", autouse=True)
