@@ -46,6 +46,12 @@ Given a service name of `hdfs-demo`, the principal for a name node becomes:
 hdfs/name-0-node.hdfs-demo.autoip.dcos.thisdcos.directory@LOCAL
 ```
 
+Also note that if the service name is foldered, such as `myfolder/hdfs`, then the FQDN in the instance of the principal
+becomes `myfolderhdfs`. For example:
+```
+hdfs/name-0-node.myfolderhdfs.autoip.dcos.thisdcos.directory@LOCAL
+```
+
 ## Create the keytab secret
 
 Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for **all** the HDFS principals has been created as a file `keytab`, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the `security` command):
