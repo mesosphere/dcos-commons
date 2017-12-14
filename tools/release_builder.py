@@ -26,6 +26,49 @@ universe_converter_url_prefix = 'https://universe-converter.mesosphere.com/trans
 
 class UniverseReleaseBuilder(object):
 
+    @staticmethod
+    def get_package_name(stub_universe_url: str) -> str:
+
+        package_name = os.environ.get('PACKAGE_NAME', '')
+
+        logger.info("Read PACKAGE_NAME=%s", package_name)
+
+        if not package_name:
+            logger.info("Getting package name from stub universe URL")
+            name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
+            if not name_match:
+                raise Exception('Unable to extract package name from stub universe URL. ' +
+                                'Expected filename of form \'stub-universe-[pkgname].zip\' or \'stub-universe-[pkgname].json\'')
+
+            package_name = name_match.group(1)
+            logger.info("Got package name %s from stub universe URL")
+
+    @staticmethod
+    def apply_beta_prefix(package_name: str, is_beta: bool) -> str:
+        stripped_name = package_name.lstrip('beta-')
+        if is_beta:
+            logger.info('Applying beta- prefix to %s', stripped_name)
+            return 'beta-{}'.format(stripped_name)
+
+        logger.info('Using non-beta package name %s', stripped_name)
+        return stripped_name
+
+    @staticmethod
+    def apply_beta_version(package_version: str, is_beta: bool) -> str:
+        stripped_version = package_version.rstrip('-beta')
+
+        if is_beta:
+            logger.info('Applying -beta sufix to %s', stripped_version)
+            return '{}-beta'.format(stripped_version)
+        else:
+            # complain if version has '-beta' suffix but BETA mode was disabled:
+            if package_version.endswith('-beta'):
+                raise Exception(
+                    'Requested package version {} ends with "-beta", but BETA mode is disabled. '
+                    'Either remove the "-beta" suffix, or enable BETA mode.'.format(package_version))
+
+        return stripped_version
+
     def __init__(
             self,
             package_version,
@@ -42,39 +85,8 @@ class UniverseReleaseBuilder(object):
         self._release_universe_repo=os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
         self._release_branch=os.environ.get('RELEASE_BRANCH', 'version-3.x')
 
-        name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
-        if not name_match:
-            raise Exception('Unable to extract package name from stub universe URL. ' +
-                            'Expected filename of form \'stub-universe-[pkgname].zip\' or \'stub-universe-[pkgname].json\'')
-
-        self._stub_universe_pkg_name = name_match.group(1)
-        # update package name to reflect beta status (e.g. release 'beta-foo' as non-beta 'foo'):
-        if self._beta_release:
-            if self._stub_universe_pkg_name.startswith('beta-'):
-                self._pkg_name = self._stub_universe_pkg_name
-            else:
-                self._pkg_name = 'beta-' + self._stub_universe_pkg_name
-        else:
-            if self._stub_universe_pkg_name.startswith('beta-'):
-                self._pkg_name = self._stub_universe_pkg_name[len('beta-'):]
-            else:
-                self._pkg_name = self._stub_universe_pkg_name
-
-        # update package version to reflect beta status
-        if self._beta_release:
-            if package_version.endswith('-beta'):
-                self._pkg_version = package_version
-            else:
-                # helpfully add a '-beta' since the user likely just forgot:
-                self._pkg_version = package_version + '-beta'
-        else:
-            # complain if version has '-beta' suffix but BETA mode was disabled:
-            if package_version.endswith('-beta'):
-                raise Exception(
-                    'Requested package version {} ends with "-beta", but BETA mode is disabled. '
-                    'Either remove the "-beta" suffix, or enable BETA mode.'.format(package_version))
-            else:
-                self._pkg_version = package_version
+        self._pkg_name = self.apply_beta_prefix(self.get_package_name(stub_universe_url), self._beta_release)
+        self._pkg_version = self.apply_beta_version(package_version, self._beta_release)
 
         if stub_universe_url.startswith(universe_converter_url_prefix):
             # universe converter will return an HTTP 400 error because we aren't a DC/OS cluster. get the raw file instead.
@@ -84,11 +96,9 @@ class UniverseReleaseBuilder(object):
 
         if not release_dir_path:
             # determine release artifact directory based on (adjusted) package name
-            artifact_package_name = self._pkg_name
-            if artifact_package_name.startswith('beta-'):
-                # assets for beta-foo should always be uploaded to a 'foo' directory (with a '-beta' version)
-                artifact_package_name = artifact_package_name[len('beta-'):]
-            release_dir_path = artifact_package_name + '/assets'
+            # assets for beta-foo should always be uploaded to a 'foo' directory (with a '-beta' version)
+            release_dir_path = self._pkg_name.lstrip('beta-') + '/assets'
+            logger.info("Uploading assets for %s to %s", self._pkg_name, release_dir_path)
 
         # automatically include source universe URL in commit description:
         if commit_desc:
@@ -117,7 +127,6 @@ Package name:    {}
 Package version: {}
 Artifact output: {}
 ###'''.format(self._stub_universe_url, self._pkg_name, self._pkg_version, self._release_artifact_http_dir))
-
 
     def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
         if self._dry_run:
