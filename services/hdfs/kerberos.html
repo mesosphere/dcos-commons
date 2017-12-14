@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Template: Quick Start</title>
+<title>HDFS: Kerberos</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/gh-basic.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -366,54 +366,79 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Template: Quick Start</h1>
+<h1>HDFS: Kerberos</h1>
 <div id="content">
-<h1 id="prerequisite">Prerequisite</h1>
+<h1 id="setting-up-apache-hadoop-distributed-file-system-hdfs-with-kerberos">Setting up Apache Hadoop Distributed File System (HDFS) with Kerberos</h1>
 
-<ul>
-  <li><a href="https://docs.mesosphere.com/latest/administration/installing/">DC/OS installed on your cluster</a>.</li>
-</ul>
+<p>The utility tool <code class="highlighter-rouge">kinit</code> needs to be installed on the agents and be accessible from within the tasks’ containers in order for the system to deploy correctly.</p>
 
-<h1 id="steps">Steps</h1>
+<h2 id="create-principals">Create principals</h2>
 
-<ol>
-  <li>
-    <p>If you are using open source DC/OS, install <em>SERVICENAME</em> cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.</p>
-
-    <div class="language-shell highlighter-rouge"><pre class="highlight"><code> dcos package install _PKGNAME_
+<p>In order to run Apache HDFS with Kerberos security enabled, a principal needs to be added for every service component in the cluster. The following principals are required (although the realm can be modified):</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/name-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/data-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/data-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/data-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/data-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/hdfs.marathon.autoip.dcos.thisdcos.directory@LOCAL
 </code></pre>
-    </div>
+</div>
+<p>This cluster has 3 data nodes, though the correct number of principals should be added up to N data nodes.
+(assuming a default service name of <code class="highlighter-rouge">hdfs</code>)</p>
 
-    <p>Alternatively, you can install <em>SERVICENAME</em> from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
-  </li>
-  <li>
-    <p>The service will now deploy with a default configuration. You can monitor its deployment via the Services tab of the DC/OS web interface.</p>
-  </li>
-  <li>Connect a client to <em>SERVICENAME</em>.
-    <div class="language-shell highlighter-rouge"><pre class="highlight"><code> dcos _PKGNAME_ endpoints
- <span class="o">[</span>
-     <span class="s2">"_LIST_"</span>,
-     <span class="s2">"_OF_"</span>,
-     <span class="s2">"_ENDPOINTS_
- ]
+<h2 id="create-the-keytab-secret">Create the keytab secret</h2>
 
- dcos _PKGNAME_ endpoints _ENDPOINT_
- {
-     "</span>address<span class="s2">": ["</span>10.0.3.156:_PORT_<span class="s2">", "</span>10.0.3.84:_PORT_<span class="s2">"],
-     "</span>dns<span class="s2">": ["</span>_POD_-0._PKGNAME_.mesos:_PORT_<span class="s2">", "</span>_POD_-1._PKGNAME_.mesos:_PORT_<span class="s2">"]
- }
+<p>Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for <strong>all</strong> the HDFS principals has been created as a file <code class="highlighter-rouge">keytab</code>, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the <code class="highlighter-rouge">security</code> command):</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w keytab &gt; keytab.base64
+<span class="gp">$ </span>dcos security secrets create  __dcos_base64__keytab --value-file keytab.base64
+</code></pre>
+</div>
+
+<p>The name of the secret created (<code class="highlighter-rouge">__dcos_base64__keytab</code>) can be changed, as long as the <code class="highlighter-rouge">__dcos__base64__</code> prefix is maintained.</p>
+
+<h2 id="deploy-kerberized-hdfs">Deploy kerberized HDFS</h2>
+
+<p>Create the following <code class="highlighter-rouge">kerberos-options.json</code> file:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
+                    </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"LOCAL"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__keytab"</span><span class="w">
+
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
 </span></code></pre>
-    </div>
-  </li>
-  <li><em>PROVIDE A SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATA, READ DATA).</em></li>
-</ol>
+</div>
+<p>Note the specification of the secret name as created in the previous step.</p>
 
-<h1 id="see-also">See Also</h1>
-
-<ul>
-  <li><a href="https://docs.mesosphere.com/service-docs/&lt;Template&gt;/connecting-clients/">Connecting clients</a>.</li>
-</ul>
-
+<p>The kerberized Apache HDFS service is then deployed by running:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install hdfs --options<span class="o">=</span>kerberos-options.json
+</code></pre>
+</div>
 
 </div>
 </div>
