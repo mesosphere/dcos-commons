@@ -131,6 +131,7 @@ def kerberized_hdfs_client(kerberos):
         client_app_def["secrets"]["hdfs_keytab"]["source"] = kerberos.get_keytab_path()
         client_app_def["env"]["REALM"] = kerberos.get_realm()
         client_app_def["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
+        client_app_def["env"]["HDFS_SERVICE_NAME"] = foldered_dns_name
         sdk_marathon.install_app(client_app_def)
         yield client_app_def["id"]
 
