@@ -39,7 +39,7 @@ This cluster has 3 data nodes, though the correct number of principals should be
 
 Note that the service name is part of the instance in the principal. The template of a principal with `hdfs` primary is:
 ```
-hdfs/<pod-type>-<pod-index>-<task-type>.<service-name>autoip.dcos.thisdcos.directory@<REALM>
+hdfs/<pod-type>-<pod-index>-<task-type>.<service-name>.autoip.dcos.thisdcos.directory@<REALM>
 ```
 Given a service name of `hdfs-demo`, the principal for a name node becomes:
 ```
