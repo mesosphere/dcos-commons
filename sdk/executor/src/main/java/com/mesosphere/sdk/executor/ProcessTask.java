@@ -24,48 +24,24 @@ public class ProcessTask implements ExecutorTask {
             new CompletableFuture<>();
     private volatile Process process;
 
-    private boolean exitOnTermination;
-
     private static final Duration noGracePeriod = Duration.ZERO;
     private final Duration taskKillGracePeriod;
 
     public static ProcessTask create(ExecutorDriver executorDriver, Protos.TaskInfo taskInfo) {
-        return create(executorDriver, taskInfo, true);
-    }
-
-    public static ProcessTask create(
-            ExecutorDriver executorDriver,
-            Protos.TaskInfo taskInfo,
-            boolean exitOnTermination) {
-        return create(
-                executorDriver, taskInfo, ProcessBuilderUtils.buildProcess(taskInfo.getCommand()), exitOnTermination);
-    }
-
-    public static ProcessTask create(
-            ExecutorDriver executorDriver,
-            Protos.TaskInfo taskInfo,
-            ProcessBuilder processBuilder,
-            boolean exitOnTermination) {
-        return new ProcessTask(executorDriver, taskInfo, processBuilder, exitOnTermination);
-    }
-
-    public ProcessBuilder getProcessBuilder() {
-        return processBuilder;
+        return new ProcessTask(executorDriver, taskInfo, ProcessBuilderUtils.buildProcess(taskInfo.getCommand()));
     }
 
     protected ProcessTask(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
-            ProcessBuilder processBuilder,
-            boolean exitOnTermination) {
+            ProcessBuilder processBuilder) {
         this.driver = executorDriver;
         this.taskInfo = taskInfo;
         this.processBuilder = processBuilder;
-        this.exitOnTermination = exitOnTermination;
         this.taskKillGracePeriod = getTaskKillGracePeriod(taskInfo);
     }
 
-    private Duration getTaskKillGracePeriod(Protos.TaskInfo taskInfo) {
+    private static Duration getTaskKillGracePeriod(Protos.TaskInfo taskInfo) {
         if (!taskInfo.hasKillPolicy()) {
             return noGracePeriod;
         }
@@ -77,34 +53,29 @@ public class ProcessTask implements ExecutorTask {
         return Duration.ofNanos(gracePeriod.getNanoseconds());
     }
 
-    public void preStart() {
-        // NOOP
-    }
-
     @Override
     public void run() {
         try {
-            preStart();
-
             LOGGER.info("Executing command: {}", processBuilder.command());
             LOGGER.info("With Environment: {}", processBuilder.environment());
 
             if (processBuilder.command().isEmpty()) {
-                final String errorMessage = "Empty command found for: " + taskInfo.getName();
                 TaskStatusUtils.sendStatus(
                         driver,
                         Protos.TaskState.TASK_FAILED,
                         taskInfo.getTaskId(),
                         taskInfo.getSlaveId(),
                         taskInfo.getExecutor().getExecutorId(),
-                        errorMessage,
+                        String.format("Empty command found for: %s", taskInfo.getName()),
                         false);
                 return;
             }
 
             this.process = processBuilder.start();
 
-            final String startMessage = "Launching Task: " + taskInfo.getName();
+            final String startMessage = String.format(
+                    "Launching Task: %s (%s)", taskInfo.getName(), taskInfo.getTaskId().getValue());
+            LOGGER.info(startMessage);
             TaskStatusUtils.sendStatus(
                     driver,
                     Protos.TaskState.TASK_RUNNING,
@@ -115,27 +86,28 @@ public class ProcessTask implements ExecutorTask {
                     true);
             initialized.complete(true);
 
-            LOGGER.info(startMessage);
             waitUninterruptably(process);
             final int exitValue = process.exitValue();
-            String exitMessage = String.format("Task: %s exited with code: %s", taskInfo.getTaskId(), exitValue);
             exit.complete(exitValue);
             Protos.TaskState taskState;
 
             boolean isHealthy = true;
+            String exitValueStr = String.valueOf(exitValue);
             if (exitValue == 0) {
                 taskState = Protos.TaskState.TASK_FINISHED;
-                exitMessage += exitValue;
             } else if (exitValue > 128) {
                 taskState = Protos.TaskState.TASK_KILLED;
-                exitMessage += (exitValue - 128);
+                // Fatal error: 128 + N (e.g. kill -9 results in 137 == 128+9)
+                exitValueStr = String.format("%d => killed(%d)", exitValue, exitValue - 128);
                 isHealthy = false;
             } else {
                 taskState = Protos.TaskState.TASK_FAILED;
-                exitMessage += exitValue;
                 isHealthy = false;
             }
 
+            String exitMessage = String.format(
+                    "Task: %s (%s) exited with code: %s",
+                    taskInfo.getName(), taskInfo.getTaskId().getValue(), exitValueStr);
             TaskStatusUtils.sendStatus(
                     driver,
                     taskState,
@@ -146,13 +118,8 @@ public class ProcessTask implements ExecutorTask {
                     isHealthy);
 
             LOGGER.info(exitMessage);
-            if (exitOnTermination) {
-                LOGGER.info("Executor is exiting with code {} because exitOnTermination: {}",
-                        exitValue, exitOnTermination);
-                System.exit(exitValue);
-            }
         } catch (Throwable e) {
-            LOGGER.error("Process task failed.", e);
+            LOGGER.error(String.format("Task: %s (%s) failed", taskInfo.getName(), taskInfo.getTaskId().getValue()), e);
             initialized.complete(false);
             exit.complete(1);
             TaskStatusUtils.sendStatus(
@@ -163,46 +130,30 @@ public class ProcessTask implements ExecutorTask {
                     taskInfo.getExecutor().getExecutorId(),
                     e.getMessage(),
                     false);
-            if (exitOnTermination) {
-                driver.abort();
-            }
         }
     }
 
     @Override
-    public void stop(Future<?> future) {
+    public void stop() {
         if ((process != null) &&
                 (!terminate(this.taskKillGracePeriod))) {
             kill();
         }
     }
 
-    protected static void waitUninterruptably(final Process process) {
+    private static void waitUninterruptably(final Process process) {
         while (true) {
             try {
                 process.waitFor();
                 return;
             } catch (InterruptedException ex) {
+                // don't log anything: this loop is run throughout the task's lifecycle
             }
         }
     }
 
-    protected boolean isAlive() {
+    boolean isAlive() {
         return process != null && process.isAlive();
-    }
-
-    protected void sigTerm() {
-        if (isAlive()) {
-            LOGGER.info("Sending SIGTERM, awaiting a grace period of {}ms", this.taskKillGracePeriod.toMillis());
-            process.destroy();
-        }
-    }
-
-    protected void sigKill() {
-        if (isAlive()) {
-            LOGGER.info("Sending SIGKILL");
-            process.destroyForcibly();
-        }
     }
 
     private boolean waitInit() {
@@ -210,59 +161,53 @@ public class ProcessTask implements ExecutorTask {
             try {
                 return initialized.get();
             } catch (InterruptedException | ExecutionException e) {
-                LOGGER.warn("Not yet initialized.", e);
+                LOGGER.warn(String.format("Resuming wait for process to initialize: %s (%s)",
+                        taskInfo.getName(), taskInfo.getTaskId().getValue()), e);
             }
         }
     }
 
-    public boolean terminate(Duration timeout) {
+    private boolean terminate(Duration timeout) {
         if (timeout == null || timeout.toMillis() == 0L) {
+            LOGGER.info("Skipping SIGTERM for process: {} ({})",
+                    taskInfo.getName(), taskInfo.getTaskId().getValue());
             return false;
         }
 
-        LOGGER.info("Terminating process: task = {}", taskInfo);
-        LOGGER.info("Terminating process");
         if (waitInit() && isAlive()) {
-            sigTerm();
+            LOGGER.info("Sending SIGTERM to process: {} ({}), waiting {}ms",
+                    taskInfo.getName(), taskInfo.getTaskId().getValue(), timeout.toMillis());
+            process.destroy();
         }
-        boolean isExited = waitExit(timeout);
-        if (isExited) {
-            LOGGER.info("Terminated process: task = {}", taskInfo.getTaskId());
-        } else {
-            LOGGER.warn("Failed to terminate process: task = {}", taskInfo.getTaskId());
-        }
-        return isExited;
-    }
-
-    public int kill() {
-        LOGGER.info("Killing process task = {}", taskInfo.getTaskId());
-        LOGGER.info("Killing process: name = {}", taskInfo.getName());
-        if (waitInit() && isAlive()) {
-            sigKill();
-        }
-        int exitCode = waitExit();
-        return exitCode;
-    }
-
-    private int waitExit() {
         while (true) {
             try {
-                return exit.get();
+                exit.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
+                LOGGER.info("Process has exited following SIGTERM: {} ({})",
+                        taskInfo.getName(), taskInfo.getTaskId().getValue());
+                return true;
             } catch (InterruptedException | ExecutionException e) {
-                LOGGER.warn("Not exited yet.", e);
+                LOGGER.warn(String.format("Resuming wait for process to exit following SIGTERM: %s (%s)",
+                        taskInfo.getName(), taskInfo.getTaskId().getValue()), e);
+            } catch (TimeoutException e) {
+                LOGGER.warn("Process did not exit in {}ms following SIGTERM: {} ({})",
+                        timeout.toMillis(), taskInfo.getName(), taskInfo.getTaskId().getValue());
+                return false;
             }
         }
     }
 
-    private boolean waitExit(final Duration timeout) {
+    private void kill() {
+        if (waitInit() && isAlive()) {
+            LOGGER.info("Sending SIGKILL to process: {} ({})", taskInfo.getName(), taskInfo.getTaskId().getValue());
+            process.destroyForcibly();
+        }
         while (true) {
             try {
-                exit.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
-                return true;
+                exit.get();
+                return;
             } catch (InterruptedException | ExecutionException e) {
-                LOGGER.warn("Not exited yet and timeout didn't expire.", e);
-            } catch (TimeoutException e) {
-                return false;
+                LOGGER.warn(String.format("Resuming wait for process to exit following SIGKILL: %s (%s)",
+                        taskInfo.getName(), taskInfo.getTaskId().getValue()), e);
             }
         }
     }

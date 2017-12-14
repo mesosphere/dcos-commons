@@ -34,14 +34,12 @@ public class CheckMonitorTest {
 
     @Mock private CheckHandler.ProcessRunner mockProcessRunner;
     @Mock private LaunchedTask mockLaunchedTask;
-    @Mock private ExecutorTask mockExecutorTask;
     @Mock private ExecutorDriver executorDriver;
     private Protos.TaskInfo taskInfo = Protos.TaskInfo.getDefaultInstance();
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(mockLaunchedTask.getExecutorTask()).thenReturn(mockExecutorTask);
     }
 
     @Test
@@ -57,6 +55,7 @@ public class CheckMonitorTest {
         final CheckHandler healthCheckHandler = new CheckHandler(
                 executorDriver,
                 taskInfo,
+                mockLaunchedTask,
                 mockProcessRunner,
                 healthCheck,
                 scheduledExecutorService,
