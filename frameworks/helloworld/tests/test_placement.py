@@ -25,6 +25,25 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+def _escape_placement_for_1_9(options: dict) -> dict:
+    # 1.9 requires `\"` to be escped to `\\\"`
+    # when submitting placement constraints
+    log.info(options)
+    if not sdk_utils.dcos_version_less_than("1.10"):
+        log.info("DC/OS version > 1.10")
+        return options
+
+    def escape_section_placement(section: str, options: dict) -> dict:
+        if section in options and "placement" in options[section]:
+            options[section]["placement"] = options[section]["placement"].replace("\"", "\\\"")
+            log.info("Escaping %s", section)
+
+        log.info(options)
+        return options
+
+    return escape_section_placement("hello", escape_section_placement("world", options))
+
+
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_region_zone_injection():
@@ -48,17 +67,17 @@ def fault_domain_vars_are_present(pod_instance):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_rack_not_found():
-    options = {
-        'service': {
-            'spec_file': 'examples/marathon_constraint.yml'
+    options = _escape_placement_for_1_9({
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
         },
-        'hello': {
-            'placement': '[["rack_id", "LIKE", "rack-foo-.*"]]'
+        "hello": {
+            "placement": "[[\"rack_id\", \"LIKE\", \"rack-foo-.*\"]]"
         },
-        'world': {
-            'placement': '[["rack_id", "LIKE", "rack-foo-.*"]]'
+        "world": {
+            "placement": "[[\"rack_id\", \"LIKE\", \"rack-foo-.*\"]]"
         }
-    }
+    })
 
     # scheduler should fail to deploy, don't wait for it to complete:
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
@@ -96,17 +115,17 @@ def test_rack_not_found():
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_unique_zone_fails():
-    options = {
-        'service': {
-            'spec_file': 'examples/marathon_constraint.yml'
+    options = _escape_placement_for_1_9({
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
         },
-        'hello': {
-            'placement': '[["@zone", "UNIQUE"]]'
+        "hello": {
+            "placement": "[[\"@zone\", \"UNIQUE\"]]"
         },
-        'world': {
-            'placement': '[["@zone", "UNIQUE"]]'
+        "world": {
+            "placement": "[[\"@zone\", \"UNIQUE\"]]"
         }
-    }
+    })
 
     fail_placement(options)
 
@@ -114,17 +133,17 @@ def test_unique_zone_fails():
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_max_per_zone_fails():
-    options = {
-        'service': {
-            'spec_file': 'examples/marathon_constraint.yml'
+    options = _escape_placement_for_1_9({
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
         },
-        'hello': {
-            'placement': '[["@zone", "MAX_PER", "1"]]'
+        "hello": {
+            "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
         },
-        'world': {
-            'placement': '[["@zone", "MAX_PER", "1"]]'
+        "world": {
+            "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
         }
-    }
+    })
 
     fail_placement(options)
 
@@ -132,17 +151,17 @@ def test_max_per_zone_fails():
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_max_per_zone_succeeds():
-    options = {
-        'service': {
-            'spec_file': 'examples/marathon_constraint.yml'
+    options = _escape_placement_for_1_9({
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
         },
-        'hello': {
-            'placement': '[["@zone", "MAX_PER", "1"]]'
+        "hello": {
+            "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
         },
-        'world': {
-            'placement': '[["@zone", "MAX_PER", "2"]]'
+        "world": {
+            "placement": "[[\"@zone\", \"MAX_PER\", \"2\"]]"
         }
-    }
+    })
 
     succeed_placement(options)
 
@@ -150,34 +169,34 @@ def test_max_per_zone_succeeds():
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_group_by_zone_succeeds():
-    options = {
-        'service': {
-            'spec_file': 'examples/marathon_constraint.yml'
+    options = _escape_placement_for_1_9({
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
         },
-        'hello': {
-            'placement': '[["@zone", "GROUP_BY", "1"]]'
+        "hello": {
+            "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
         },
-        'world': {
-            'placement': '[["@zone", "GROUP_BY", "1"]]'
+        "world": {
+            "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
         }
-    }
+    })
     succeed_placement(options)
 
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
 def test_group_by_zone_fails():
-    options = {
-        'service': {
-            'spec_file': 'examples/marathon_constraint.yml'
+    options = _escape_placement_for_1_9({
+        "service": {
+            "spec_file": "examples/marathon_constraint.yml"
         },
-        'hello': {
-            'placement': '[["@zone", "GROUP_BY", "1"]]'
+        "hello": {
+            "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
         },
-        'world': {
-            'placement': '[["@zone", "GROUP_BY", "2"]]'
+        "world": {
+            "placement": "[[\"@zone\", \"GROUP_BY\", \"2\"]]"
         }
-    }
+    })
 
     fail_placement(options)
 
@@ -233,19 +252,19 @@ def fail_placement(options):
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_hostname_unique():
-    options = {
+    options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
             "count": config.get_num_private_agents(),
-            "placement": '[["hostname", "UNIQUE"]]'
+            "placement": "[[\"hostname\", \"UNIQUE\"]]"
         },
         "world": {
             "count": config.get_num_private_agents(),
-            "placement": '[["hostname", "UNIQUE"]]'
+            "placement": "[[\"hostname\", \"UNIQUE\"]]"
         }
-    }
+    })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
         config.get_num_private_agents() * 2, additional_options=options)
@@ -261,19 +280,19 @@ def test_hostname_unique():
 @pytest.mark.recovery
 def test_max_per_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    options = {
+    options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
             "count": config.get_num_private_agents() * 2,
-            "placement": '[["hostname", "MAX_PER", "2"]]'
+            "placement": "[[\"hostname\", \"MAX_PER\", \"2\"]]"
         },
         "world": {
             "count": config.get_num_private_agents() * 3,
-            "placement": '[["hostname", "MAX_PER", "3"]]'
+            "placement": "[[\"hostname\", \"MAX_PER\", \"3\"]]"
         }
-    }
+    })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
         config.get_num_private_agents() * 5, additional_options=options)
@@ -284,19 +303,19 @@ def test_max_per_hostname():
 @pytest.mark.recovery
 def test_rr_by_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    options = {
+    options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
             "count": config.get_num_private_agents() * 2,
-            "placement": '[["hostname", "GROUP_BY", "{}"]]'.format(config.get_num_private_agents())
+            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(config.get_num_private_agents())
         },
         "world": {
             "count": config.get_num_private_agents() * 2,
-            "placement": '[["hostname", "GROUP_BY", "{}"]]'.format(config.get_num_private_agents())
+            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(config.get_num_private_agents())
         }
-    }
+    })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
         config.get_num_private_agents() * 4, additional_options=options)
@@ -308,18 +327,18 @@ def test_rr_by_hostname():
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     some_agent = shakedown.get_private_agents().pop()
-    options = {
+    options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
             "count": config.get_num_private_agents(),
-            "placement": '[["hostname", "CLUSTER", "{}"]]'.format(some_agent)
+            "placement": "[[\"hostname\", \"CLUSTER\", \"{}\"]]".format(some_agent)
         },
         "world": {
             "count": 0
         }
-    }
+    })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
         config.get_num_private_agents(), additional_options=options)
@@ -428,26 +447,29 @@ def setup_constraint_switch():
     other_agent = agents[1]
     log.info('Agents: %s %s', some_agent, other_agent)
     assert some_agent != other_agent
-    options = {
+    options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
         },
         "hello": {
             "count": 1,
             # First, we stick the pod to some_agent
-            "placement": '[["hostname", "LIKE", "{}"]]'.format(some_agent)
+            "placement": "[[\"hostname\", \"LIKE\", \"{}\"]]".format(some_agent)
         },
         "world": {
             "count": 0
         }
-    }
+    })
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
     sdk_tasks.check_running(config.SERVICE_NAME, 1)
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
 
     # Now, stick it to other_agent
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['HELLO_PLACEMENT'] = '[["hostname", "LIKE", "{}"]]'.format(other_agent)
+    if sdk_utils.dcos_version_less_than("1.10"):
+        marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".replace("\"", "\\\"").format(other_agent)
+    else:
+        marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".format(other_agent)
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     # Wait for the scheduler to be up and settled before advancing.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
