@@ -6,6 +6,7 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_plan
 import sdk_tasks
 import sdk_utils
 import shakedown
