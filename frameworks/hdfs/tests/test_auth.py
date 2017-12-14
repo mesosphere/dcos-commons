@@ -46,6 +46,9 @@ def get_principals() -> list:
             )
         )
     principals.extend(config.CLIENT_PRINCIPALS.values())
+
+    scheduler_dns_name = "api.{service_name}.marathon.l4lb.thisdcos.directory".format(config.SERVICE_NAME)
+    principals.append(scheduler_dns_name)
     return principals
 
 
