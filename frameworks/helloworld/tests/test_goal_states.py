@@ -7,7 +7,6 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_upgrade
 import sdk_utils
 import shakedown
 from tests import config
@@ -21,7 +20,7 @@ def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        sdk_upgrade.test_upgrade(
+        sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
