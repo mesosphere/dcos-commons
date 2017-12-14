@@ -43,7 +43,7 @@ def test_once_task_does_not_restart_on_config_update():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
-    sdk_plan.wait_for_completed_deployment(service_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
     task_name = 'hello-0-once'
     hello_once_id = sdk_tasks.get_completed_task_id(task_name)
     assert hello_once_id is not None
