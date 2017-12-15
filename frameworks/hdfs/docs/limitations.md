@@ -32,4 +32,4 @@ Each service task has some number of environment variables, which are used to co
 
 ## Zones
 
-When the service is deployed with some zone configuration (or lack thereof), it cannot be upgraded/downgraded to another zone configuration.
+DC/OS Zones allow the service to implement rack-awareness. When the service is deployed with some zone configuration (or lack thereof), it cannot be upgraded/downgraded to another zone configuration.
