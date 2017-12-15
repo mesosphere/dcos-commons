@@ -118,10 +118,6 @@ def zookeeper_server(kerberos):
         }
     }
 
-    # TODO: Remove once kafka-zookeeper is available in the universe
-    zookeeper_stub = "https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/20171128-113715-h2qHdoIXKgAEgPOy/stub-universe-kafka-zookeeper.json"
-    stub_urls = sdk_repository.add_stub_universe_urls([zookeeper_stub, ])
-
     try:
         sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
         sdk_install.install(
@@ -135,7 +131,6 @@ def zookeeper_server(kerberos):
 
     finally:
         sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
-        sdk_repository.remove_universe_repos(stub_urls)
 
 
 @pytest.fixture(scope='module', autouse=True)
