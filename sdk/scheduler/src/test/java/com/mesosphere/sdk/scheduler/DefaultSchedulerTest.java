@@ -674,7 +674,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(
                 SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper), GoalState.FINISHED);
         Assert.assertEquals(
-                SerializationUtils.fromString("\"FINISH\"", GoalState.class, objectMapper), GoalState.FINISHED);
+                SerializationUtils.fromString("\"FINISH\"", GoalState.class, objectMapper), GoalState.UNKNOWN);
     }
 
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
