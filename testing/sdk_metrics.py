@@ -12,13 +12,59 @@ import logging
 
 import shakedown
 
+import sdk_api
 import sdk_cmd
 
 log = logging.getLogger(__name__)
 
 
+def get_scheduler_metrics(service_name, timeout_seconds=15*60):
+    """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
+    Returned data will match the content of /service/<svc_name>/v1/metrics.
+    """
+    def fn():
+        output = sdk_api.get(service_name, '/v1/metrics')
+        try:
+            return output.json()
+        except:
+            return False
+    return shakedown.wait_for(fn, timeout_seconds)
+
+
+def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
+    """Waits for and returns the specified counter value from the scheduler"""
+    def check_for_value():
+        try:
+            sched_metrics = get_scheduler_metrics(service_name)
+            if 'counters' not in sched_metrics:
+                log.info("No counters present for service {}. Types were: {}".format(
+                    service_name, sched_metrics.keys()))
+                return None
+            sched_counters = sched_metrics['counters']
+            if counter_name not in sched_counters:
+                log.info("No counter named '{}' was found for service {}. Counters were: {}".format(
+                    counter_name, service_name, sched_counters.keys()))
+                return None
+            value = sched_counters[counter_name]['count']
+            log.info("{} metric counter: {}={}".format(service_name, counter_name, value))
+            return value
+        except Exception as e:
+            log.error("Caught exception trying to get metrics: {}".format(e))
+            return None
+    return shakedown.wait_for(check_for_value, timeout_seconds)
+
+
+def wait_for_scheduler_counter_value(service_name, counter_name, min_value, timeout_seconds=15*60):
+    """Waits for the specified counter value to be reached by the scheduler
+    For example, check that `offers.processed` is equal or greater to 1."""
+    def check_for_value():
+        value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
+        return value >= min_value
+    shakedown.wait_for(check_for_value, timeout_seconds)
+
+
 def get_metrics(package_name, service_name, task_name):
-    """Return a list of metrics datapoints.
+    """Return a list of DC/OS metrics datapoints.
 
     Keyword arguments:
     package_name -- the name of the package the service is using
@@ -97,7 +143,7 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
 
 
 def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics_exist):
-    """Checks that the service is emitting the expected metrics.
+    """Checks that the service is emitting the expected values into DC/OS Metrics.
     The assumption is that if the expected metrics are being emitted then so
     are the rest of the metrics.
 
