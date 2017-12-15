@@ -373,7 +373,7 @@
 <h2 id="prerequisites"><a name="install-enterprise"></a>Prerequisites</h2>
 
 <ul>
-  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/service-docs/kafka/kafka-auth/">need to provision a service account</a> before installing Kafka. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/services/kafka/kafka-auth/">need to provision a service account</a> before installing Kafka. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
     <ul>
       <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
       <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
@@ -458,7 +458,7 @@ dcos package install beta-kafka --cli
 
 <p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
 
-<p>See <a href="https://docs.mesosphere.com/service-docs/kafka/configure/#configuration-options">Configuration Options</a> for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.</p>
+<p>See <a href="https://docs.mesosphere.com/services/kafka/configure/#configuration-options">Configuration Options</a> for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.</p>
 
 <h1 id="multiple-kafka-cluster-installation">Multiple Kafka cluster installation</h1>
 
@@ -531,7 +531,7 @@ dcos package install beta-kafka --cli
   <li>Create a file named <code class="highlighter-rouge">options.json</code> with the following contents.</li>
 </ol>
 
-<p><strong>Note:</strong> If you are using the <a href="https://docs.mesosphere.com/service-docs/kafka-zookeeper">DC/OS Apache ZooKeeper service</a>, use the DNS addresses provided by the <code class="highlighter-rouge">dcos kafka-zookeeper endpoints clientport</code> command as the value of <code class="highlighter-rouge">kafka_zookeeper_uri</code>.</p>
+<p><strong>Note:</strong> If you are using the <a href="https://docs.mesosphere.com/services/kafka-zookeeper">DC/OS Apache ZooKeeper service</a>, use the DNS addresses provided by the <code class="highlighter-rouge">dcos kafka-zookeeper endpoints clientport</code> command as the value of <code class="highlighter-rouge">kafka_zookeeper_uri</code>.</p>
 
 <div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="nt">"kafka"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">

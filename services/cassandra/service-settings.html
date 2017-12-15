@@ -421,7 +421,7 @@
 
 <p>The Cassandra service can be launched with TLS encryption. Enabling TLS will use TLS connections for inter-node communication between all the Cassandra nodes. Cassandra will be still available on the same configured client port (default: <code class="highlighter-rouge">9042</code>).</p>
 
-<p>Enabling TLS is possible only in <code class="highlighter-rouge">permissive</code> and <code class="highlighter-rouge">strict</code> cluster security modes. Both modes require a <a href="https://docs.mesosphere.com/service-docs/cassandra/cass-auth/">service account</a>. Additionally, a service account must have the <code class="highlighter-rouge">dcos:superuser</code> permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.</p>
+<p>Enabling TLS is possible only in <code class="highlighter-rouge">permissive</code> and <code class="highlighter-rouge">strict</code> cluster security modes. Both modes require a <a href="https://docs.mesosphere.com/services/cassandra/cass-auth/">service account</a>. Additionally, a service account must have the <code class="highlighter-rouge">dcos:superuser</code> permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.</p>
 
 <ul>
   <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">service.security.transport_encryption.enabled</code>: boolean (default: <code class="highlighter-rouge">false</code>)</li>
