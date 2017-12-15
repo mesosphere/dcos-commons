@@ -399,15 +399,14 @@ public class DefaultServiceSpec implements ServiceSpec {
                     JsonParser p, DeserializationContext ctxt) throws IOException, JsonParseException {
                 String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
-                if (value.equals("FINISHED") || value.equals("ONCE") || value.equals("FINISH")) {
+                if (value.equals("FINISHED") || value.equals("ONCE")) {
                     return GoalState.FINISHED;
                 } else if (value.equals("RUNNING")) {
                     return GoalState.RUNNING;
-                } else if (value.equals("UNKNOWN")) {
+                } else {
+                    logger.warn("Found unknown goal state in config store: {}", value);
                     return GoalState.UNKNOWN;
                 }
-
-                throw new JsonParseException(String.format("Unknown goal state: %s", value), p.getCurrentLocation());
             }
         }
     }
