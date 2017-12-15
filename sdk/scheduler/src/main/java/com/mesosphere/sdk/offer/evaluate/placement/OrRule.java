@@ -1,17 +1,18 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Wrapper for one or more another rules which returns the OR/union of those rules.
@@ -42,12 +43,25 @@ public class OrRule implements PlacementRule {
         }
 
         if (passingCount != 0) {
-            return EvaluationOutcome.pass(this, "%d of %d rules are passing:", passingCount, rules.size())
+            return EvaluationOutcome.pass(
+                    this,
+                    "%d of %d rules are passing:", passingCount, rules.size())
                     .addAllChildren(children)
                     .build();
         } else {
-            return EvaluationOutcome.fail(this, "%d of %d rules are passing:", passingCount, rules.size()).build();
+            return EvaluationOutcome.fail(
+                    this,
+                    "%d of %d rules are passing:", passingCount, rules.size())
+                    .addAllChildren(children)
+                    .build();
         }
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return rules.stream()
+                .flatMap(rule -> rule.getPlacementFields().stream())
+                .collect(Collectors.toList());
     }
 
     @JsonProperty("rules")

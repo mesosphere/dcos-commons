@@ -167,7 +167,8 @@ public class MesosResourcePool {
     public Optional<MesosResource> consumeReservableMerged(String name, Value desiredValue, String preReservedRole) {
         Map<String, Value> pool = reservableMergedPoolByRole.get(preReservedRole);
         if (pool == null) {
-            logger.info("No unreserved resources available in role: {}", preReservedRole);
+            logger.info("No unreserved resources available for role '{}'. Reservable roles are: {}",
+                    preReservedRole, reservableMergedPoolByRole.keySet());
             return Optional.empty();
         }
 
@@ -189,10 +190,11 @@ public class MesosResourcePool {
             return Optional.of(new MesosResource(builder.build()));
         } else {
             if (availableValue == null) {
-                logger.info("Offer lacks any unreserved resources named {}", name);
+                logger.info("Offer lacks any unreserved {} resources for role {}", name, preReservedRole);
             } else {
-                logger.info("Offered quantity of {} is insufficient: desired {}, offered {}",
+                logger.info("Offered quantity of {} for role {} is insufficient: desired {}, offered {}",
                         name,
+                        preReservedRole,
                         TextFormat.shortDebugString(desiredValue),
                         TextFormat.shortDebugString(availableValue));
             }

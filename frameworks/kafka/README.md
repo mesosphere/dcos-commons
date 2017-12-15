@@ -146,7 +146,7 @@ Kafka supports deployment on virtual networks on DC/OS (including the `dcos` ove
     }
 }
 ```
-As per the [limitations](https://docs.mesosphere.com/service-docs/kafka/v1.1.19.1-0.10.1.0/limitations/) once the service is deployed on a virtual network, it cannot be updated to use the host network.
+As per the [limitations](https://docs.mesosphere.com/services/kafka/v1.1.19.1-0.10.1.0/limitations/) once the service is deployed on a virtual network, it cannot be updated to use the host network.
 
 ### Storage Volumes
 

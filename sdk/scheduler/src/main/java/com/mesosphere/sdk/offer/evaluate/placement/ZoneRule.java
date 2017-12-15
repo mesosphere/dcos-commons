@@ -31,7 +31,9 @@ public class ZoneRule extends StringMatcherRule {
 
     @Override
     public EvaluationOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
-        if (isAcceptable(offer, podInstance, tasks)) {
+        if (!PlacementUtils.hasZone(offer)) {
+            return EvaluationOutcome.fail(this, "Offer does not contain a zone.").build();
+        } else if (isAcceptable(offer, podInstance, tasks)) {
             return EvaluationOutcome.pass(
                     this,
                     "Offer zone matches pattern: '%s'",
@@ -41,5 +43,10 @@ public class ZoneRule extends StringMatcherRule {
             return EvaluationOutcome.fail(this, "Offer zone didn't match pattern: '%s'", getMatcher().toString())
                     .build();
         }
+    }
+
+    @Override
+    public Collection<PlacementField> getPlacementFields() {
+        return Arrays.asList(PlacementField.ZONE);
     }
 }

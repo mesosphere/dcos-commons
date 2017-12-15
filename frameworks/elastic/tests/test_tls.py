@@ -38,7 +38,11 @@ def elastic_service_tls(service_account):
             "service": {
                 "service_account_secret": service_account,
                 "service_account": service_account,
-                "tls": True,
+                "security": {
+                    "transport_encryption": {
+                        "enabled": True
+                    }
+                }
             },
             "elasticsearch": {
                 "xpack_enabled": True,

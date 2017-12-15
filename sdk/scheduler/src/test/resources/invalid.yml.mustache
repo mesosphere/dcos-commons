@@ -6,7 +6,7 @@ replacement-failure-policy:
   min-replace-delay-ms: -1
 pods:
   meta-data:
-    placement: "avoid-type: meta-data"
+    placement: '[["avoid-type", "meta-data"]]'
     count: 2
     resource-sets:
       - id: meta-data-resources
@@ -39,7 +39,7 @@ pods:
             delay: 0
             timeout: 10
   data-store:
-    placement: "avoid-type: data-store"
+    placement: '[["avoid-type", "data-store"]]'
     count: 3
     resource-sets:
       - id: data-store-resources

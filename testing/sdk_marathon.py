@@ -7,10 +7,13 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import json
+import os
+import tempfile
 
 import shakedown
 
 import sdk_cmd
+import sdk_metrics
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +58,6 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
     return 0, ""
 
 
-
 def install_app(app_definition: dict) -> (bool, str):
     """
     Installs a marathon app using the given `app_definition`.
@@ -68,14 +70,18 @@ def install_app(app_definition: dict) -> (bool, str):
         error message if install attempt failed.
     """
     app_name = app_definition["id"]
-    app_def_file = "{}.json".format(app_name)
 
-    log.info("Launching {} marathon app".format(app_name))
+    with tempfile.TemporaryDirectory() as d:
+        app_def_file = "{}.json".format(app_name)
+        log.info("Launching {} marathon app".format(app_name))
 
-    with open(app_def_file, "w") as f:
-        json.dump(app_definition, f)
+        app_def_path = os.path.join(d, app_def_file)
 
-    return install_app_from_file(app_name, app_def_file)
+        log.info("Writing app definition to %s", app_def_path)
+        with open(app_def_path, "w") as f:
+            json.dump(app_definition, f)
+
+        return install_app_from_file(app_name, app_def_path)
 
 
 def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
@@ -112,9 +118,9 @@ def api_url_with_param(basename, path_param):
     return '{}/{}'.format(api_url(basename), path_param)
 
 
-def get_scheduler_host(package_name):
+def get_scheduler_host(service_name):
     # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
-    task_name_elems = package_name.lstrip('/').split('/')
+    task_name_elems = service_name.lstrip('/').split('/')
     task_name_elems.reverse()
     app_name = '.'.join(task_name_elems)
     ips = shakedown.get_service_ips('marathon', app_name)
@@ -124,16 +130,29 @@ def get_scheduler_host(package_name):
     return ips.pop()
 
 
-def bump_cpu_count_config(package_name, key_name, delta=0.1):
-    config = get_config(package_name)
+def bump_cpu_count_config(service_name, key_name, delta=0.1):
+    config = get_config(service_name)
     updated_cpus = float(config['env'][key_name]) + delta
     config['env'][key_name] = str(updated_cpus)
-    update_app(package_name, config)
+    update_app(service_name, config)
     return updated_cpus
 
 
-def bump_task_count_config(package_name, key_name, delta=1):
-    config = get_config(package_name)
+def bump_task_count_config(service_name, key_name, delta=1):
+    config = get_config(service_name)
     updated_node_count = int(config['env'][key_name]) + delta
     config['env'][key_name] = str(updated_node_count)
-    update_app(package_name, config)
+    update_app(service_name, config)
+
+
+def get_mesos_api_version(service_name):
+    return get_config(service_name)['env']['MESOS_API_VERSION']
+
+
+def set_mesos_api_version(service_name, api_version, timeout=600):
+    '''Sets the mesos API version to the provided value, and then verifies that the scheduler comes back successfully'''
+    config = get_config(service_name)
+    config['env']['MESOS_API_VERSION'] = api_version
+    update_app(service_name, config, timeout=timeout)
+    # wait for scheduler to come back and successfully receive/process offers:
+    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 1, timeout_seconds=timeout)

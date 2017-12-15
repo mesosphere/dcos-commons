@@ -145,12 +145,17 @@ public class SchedulerConfig {
     /**
      * Environment variables for configuring Mesos API version.
      */
-    private static String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
+    private static final String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
     /**
      * Environment variables for configuring goal state override behavior.
      */
     private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
+
+    /**
+     * Environment variable for allowing region awareness.
+     */
+    private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
 
     /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -330,6 +335,10 @@ public class SchedulerConfig {
      */
     public String getPauseOverrideCmd() {
         return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
+    }
+
+    public boolean isregionAwarenessEnabled() {
+        return Boolean.valueOf(envStore.getOptional(ALLOW_REGION_AWARENESS_ENV, "false"));
     }
 
     /**

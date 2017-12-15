@@ -4,6 +4,21 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+## Version 3.0.0-3.0.15-beta
+
+## NOTICE
+
+This is a beta release of the DC/OS Cassandra framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### New features
+- Support for the automated provisioning of TLS artifacts to secure Cassandra communication.
+- Automatic configuration of the system tables on initial deployment.
+- Support for `Zone` placement constraints in DC/OS 1.11 (beta versions of DC/OS 1.11 coming soon).
+
+### Updates
+- Major improvements to the stability and performance of service orchestration.
+- The service now uses Cassandra v3.0.15.
+
 ## Version 1.0.32-3.0.14-beta
 
 ### Improvements

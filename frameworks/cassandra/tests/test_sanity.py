@@ -5,6 +5,7 @@ import sdk_cmd as cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
+import sdk_marathon
 import sdk_metrics
 import sdk_plan
 import sdk_tasks
@@ -54,29 +55,11 @@ def test_service_health():
 @pytest.mark.smoke
 @pytest.mark.mesos_v0
 def test_mesos_v0_api():
-    try:
-        foldered_name = config.get_foldered_service_name()
-        # Install Cassandra using the v0 api.
-        # Then, clean up afterwards.
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            config.get_foldered_service_name(),
-            config.DEFAULT_TASK_COUNT,
-            additional_options={
-                "service": {"name": foldered_name, "mesos_api_version": "V0"}
-            }
-        )
-        sdk_tasks.check_running(foldered_name, config.DEFAULT_TASK_COUNT)
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
-        # reinstall the v1 version for the following tests
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name}})
+    service_name = config.get_foldered_service_name()
+    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
+    if prior_api_version is not "V0":
+        sdk_marathon.set_mesos_api_version(service_name, "V0")
+        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
 
 
 @pytest.mark.sanity

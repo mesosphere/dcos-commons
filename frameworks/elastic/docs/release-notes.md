@@ -4,6 +4,20 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+## Version 3.0.0-5.6.4-beta
+
+## NOTICE
+
+This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### New features
+- Support for the automated provisioning of TLS artifacts to secure Elastic communication (requires X-Pack).
+- Support for `Zone` placement constraints in DC/OS 1.11 (beta versions of DC/OS 1.11 coming soon).
+
+### Updates
+- Major improvements to the stability and performance of service orchestration.
+- The service now uses Elastic v5.6.4.
+
 ## Version 2.1.0-5.6.2
 
 ### New Features

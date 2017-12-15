@@ -142,13 +142,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testIncreaseReservationScalar() throws Exception {
-        // Launch for the first time.
+        // Launch for the first time with 2.0 cpus offered, 1.0 cpus required.
         String resourceId = getFirstResourceId(
                 recordLaunchWithCompleteOfferedResources(
                         PodInstanceRequirementTestUtils.getCpuRequirement(1.0),
                         ResourceTestUtils.getUnreservedCpus(2.0)));
 
-        // Launch again with more resources.
+        // Launch again with 1.0 cpus reserved, 1.0 cpus unreserved, and 2.0 cpus required.
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
         Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
         Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
@@ -191,6 +191,53 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         } finally {
             context.reset();
         }
+    }
+
+    @Test
+    public void testIncreasePreReservedReservationScalar() throws Exception {
+        final String preReservedRole = "slave_public";
+
+        // Launch for the first time with 2.0 cpus offered, 1.0 cpus required.
+        String resourceId = getFirstResourceId(
+                recordLaunchWithCompleteOfferedResources(
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0, preReservedRole),
+                        preReservedRole,
+                        ResourceTestUtils.getUnreservedCpus(2.0, preReservedRole)));
+
+        // Launch again with 1.0 cpus reserved, 1.0 cpus unreserved, and 2.0 cpus required.
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirementTestUtils.getCpuRequirement(2.0, preReservedRole);
+        Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0, preReservedRole);
+
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
+                stateStore.fetchTasks().iterator().next().getExecutor());
+        expectedResources.addAll(Arrays.asList(offeredResource, unreservedResource));
+
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
+        Assert.assertEquals(2, recommendations.size());
+
+        // Validate RESERVE Operation
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
+
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
+        Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
+        validateRole(reserveResource);
+        Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
+        Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
+        Assert.assertEquals(resourceId, getResourceId(reserveResource));
+
+        // Validate LAUNCH Operation
+        Operation launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Assert.assertEquals(resourceId, getResourceId(launchResource));
+        Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
     }
 
     @Test
@@ -764,6 +811,34 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(
                 taskConfig,
                 evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(taskInfo)));
+    }
+
+    @Test
+    public void testLogOutcomeSingleChild() {
+        EvaluationOutcome child = EvaluationOutcome.pass(this, "CHILD").build();
+        EvaluationOutcome parent = EvaluationOutcome
+                .pass(this, "PARENT")
+                .addChild(child)
+                .build();
+
+        StringBuilder builder = new StringBuilder();
+        OfferEvaluator.logOutcome(builder, parent, "");
+        String log = builder.toString();
+        Assert.assertEquals("  PASS(OfferEvaluatorTest): PARENT\n    PASS(OfferEvaluatorTest): CHILD\n", log);
+    }
+
+    @Test
+    public void testLogOutcomeMultiChild() {
+        EvaluationOutcome child = EvaluationOutcome.pass(this, "CHILD").build();
+        EvaluationOutcome parent = EvaluationOutcome
+                .pass(this, "PARENT")
+                .addAllChildren(Arrays.asList(child))
+                .build();
+
+        StringBuilder builder = new StringBuilder();
+        OfferEvaluator.logOutcome(builder, parent, "");
+        String log = builder.toString();
+        Assert.assertEquals("  PASS(OfferEvaluatorTest): PARENT\n    PASS(OfferEvaluatorTest): CHILD\n", log);
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {

@@ -133,11 +133,11 @@ public class AuxLabelAccess {
     }
 
     /**
-     * Returns a copy of the provided {@link Labels} instance with the provided label added to the list.
+     * Returns a copy of the provided {@link Protos.Labels} instance with the provided label added to the list.
      * If the provided label key already exists, it is updated with the new value.
      *
-     * This should only be used for custom label locations. If you're editing {@link TaskInfo} labels you should use
-     * {@code TaskLabelWriter}.
+     * This should only be used for custom label locations. If you're editing {@link Protos.TaskInfo} labels you should
+     * use {@code TaskLabelWriter}.
      */
     private static Protos.Labels withLabel(Protos.Labels labels, String key, String value) {
         Map<String, String> map = LabelUtils.toMap(labels);

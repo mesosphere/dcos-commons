@@ -120,7 +120,8 @@ public class TaskLabelWriter {
     /**
      * Sets a {@link Label} indicating the target configuration.
      *
-     * @param targetConfigurationId ID referencing a particular Configuration in the {@link ConfigStore}
+     * @param targetConfigurationId ID referencing a particular Configuration in the
+     *                              {@link com.mesosphere.sdk.state.ConfigStore}
      */
     public TaskLabelWriter setTargetConfiguration(UUID targetConfigurationId) {
         writer.put(LabelConstants.TARGET_CONFIGURATION_LABEL, targetConfigurationId.toString());

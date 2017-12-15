@@ -67,7 +67,7 @@ This command launches a new Kibana application with the default name `kibana` an
   ```
   http://<dcos_url>/service/kibana/login
   ```
-  and log in with `elastic`/`changeme`. [More information on installing X-Pack](https://docs.mesosphere.com/service-docs/elastic/v2.0.0-5.5.1/elastic-x-pack/).
+  and log in with `elastic`/`changeme`. [More information on installing X-Pack](https://docs.mesosphere.com/services/elastic/v2.0.0-5.5.1/elastic-x-pack/).
   
   Otherwise go to
   ```
