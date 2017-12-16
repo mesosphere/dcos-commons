@@ -369,6 +369,11 @@ public class DefaultServiceSpec implements ServiceSpec {
             referenceTerminalGoalState = getReferenceTerminalGoalState(serviceSpec);
         }
 
+        @VisibleForTesting
+        public GoalStateDeserializer getGoalStateDeserializer() {
+            return new GoalStateDeserializer();
+        }
+
         @Override
         public ServiceSpec parse(byte[] bytes) throws ConfigStoreException {
             try {
