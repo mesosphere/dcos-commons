@@ -127,17 +127,7 @@ public class Main {
         // Journal nodes avoid themselves and Name nodes.
         PlacementRule placementRule = new AndRule(
                 TaskTypeRule.avoid(JOURNAL_POD_TYPE), TaskTypeRule.avoid(NAME_POD_TYPE));
-
-        if (getPodSpec(serviceSpec, JOURNAL_POD_TYPE).getPlacementRule().isPresent()) {
-            placementRule = new AndRule(
-                    placementRule,
-                    getPodSpec(serviceSpec, JOURNAL_POD_TYPE).getPlacementRule().get()
-            );
-        }
-
-        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, JOURNAL_POD_TYPE))
-                .placementRule(placementRule)
-                .build();
+        return getPodPlacementRule(serviceSpec, JOURNAL_POD_TYPE, placementRule);
     }
 
     private static PodSpec getNamePodSpec(ServiceSpec serviceSpec) {
@@ -146,32 +136,26 @@ public class Main {
                 TaskTypeRule.avoid(NAME_POD_TYPE),
                 TaskTypeRule.avoid(JOURNAL_POD_TYPE)
         );
-
-        if (getPodSpec(serviceSpec, NAME_POD_TYPE).getPlacementRule().isPresent()) {
-            placementRule = new AndRule(
-                    placementRule,
-                    getPodSpec(serviceSpec, NAME_POD_TYPE).getPlacementRule().get()
-            );
-        }
-
-        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, NAME_POD_TYPE))
-                .placementRule(placementRule)
-                .build();
+        return getPodPlacementRule(serviceSpec, NAME_POD_TYPE, placementRule);
     }
 
     private static PodSpec getDataPodSpec(ServiceSpec serviceSpec) {
         // Data nodes avoid themselves.
         PlacementRule placementRule = TaskTypeRule.avoid(DATA_POD_TYPE);
+        return getPodPlacementRule(serviceSpec, DATA_POD_TYPE, placementRule);
+    }
 
-        if (getPodSpec(serviceSpec, DATA_POD_TYPE).getPlacementRule().isPresent()) {
+    private static PodSpec getPodPlacementRule(ServiceSpec serviceSpec, String podType, PlacementRule placementRule) {
+        if (getPodSpec(serviceSpec, podType).getPlacementRule().isPresent()) {
             placementRule = new AndRule(
                     placementRule,
-                    getPodSpec(serviceSpec, DATA_POD_TYPE).getPlacementRule().get()
+                    getPodSpec(serviceSpec, podType).getPlacementRule().get()
             );
         }
 
-        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, DATA_POD_TYPE))
+        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, podType))
                 .placementRule(placementRule)
                 .build();
+
     }
 }
