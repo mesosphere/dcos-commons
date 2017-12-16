@@ -32,20 +32,18 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
     }
 
     private DependencyStrategyHelper<C> getDependencyStrategyHelper(Collection<C> elements) {
-        if (dependencyStrategyHelper == null) {
-            dependencyStrategyHelper = new DependencyStrategyHelper<>(elements);
-            List<C> planElements = elements.stream()
-                    .filter(el -> !el.isComplete())
-                    .collect(Collectors.toList());
-            Collections.reverse(planElements);
+        dependencyStrategyHelper = new DependencyStrategyHelper<>(elements);
+        List<C> planElements = elements.stream()
+                .filter(el -> !el.isComplete())
+                .collect(Collectors.toList());
+        Collections.reverse(planElements);
 
-            for (int i = 1; i < planElements.size(); i++) {
-                C previous = planElements.get(i - 1);
+        for (int i = 1; i < planElements.size(); i++) {
+            C previous = planElements.get(i - 1);
 
-                for (int currIndex = i; currIndex < planElements.size(); currIndex++) {
-                    C current = planElements.get(currIndex);
-                    dependencyStrategyHelper.addDependency(previous, current);
-                }
+            for (int currIndex = i; currIndex < planElements.size(); currIndex++) {
+                C current = planElements.get(currIndex);
+                dependencyStrategyHelper.addDependency(previous, current);
             }
         }
 
