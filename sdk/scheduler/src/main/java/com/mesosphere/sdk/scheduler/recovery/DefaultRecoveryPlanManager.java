@@ -176,6 +176,31 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         return FailureUtils.isPermanentlyFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
     }
 
+    private boolean failureStateHasChanged(PodInstanceRequirement podInstanceRequirement) {
+        RecoveryType original = podInstanceRequirement.getRecoveryType();
+
+        Collection<Protos.TaskInfo> taskInfos =
+                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance());
+        RecoveryType current = getRecoveryType(taskInfos);
+
+        return !original.equals(current);
+    }
+
+    /**
+     * A set of Tasks must have a uniform recovery type.  Either they have all failed permanently or they have all
+     * failed transiently.  If this constraint is violated then the Recovery type is {@link RecoveryType#NONE}.
+     */
+    private RecoveryType getRecoveryType(Collection<Protos.TaskInfo> taskInfos) {
+        // PodInstanceRequirements must have a uniform recovery type (PERMANENT OR TRANSIENT).
+        if (taskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
+            return RecoveryType.PERMANENT;
+        } else if (taskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
+            return RecoveryType.TRANSIENT;
+        } else {
+            return RecoveryType.NONE;
+        }
+    }
+
     private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
 
@@ -207,6 +232,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 .map(step -> step.getPodInstanceRequirement())
                 .filter(requirement -> requirement.isPresent())
                 .map(requirement -> requirement.get())
+                .filter(requirement -> !failureStateHasChanged(requirement))
                 .collect(Collectors.toList());
         logger.info("Found recoveries already in progress: " + getPodNames(inProgressRecoveries));
 
@@ -226,26 +252,19 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
             logFailedPod(failedPod.getPodInstance().getName(), failedPodTaskInfos);
 
-            // Pods are atomic, even when considering their status as having either permanently or transiently failed.
-            // In order for a Pod to be considered permanently failed, all its constituent tasks must have permanently
-            // failed.  Otherwise, we will continue to recover from task failures, in place.
-            PodInstanceRequirement podInstanceRequirement = null;
-            if (failedPodTaskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
-                logger.info("Recovering permanently failed pod: '{}'", failedPod);
-                podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
-                        .recoveryType(RecoveryType.PERMANENT)
-                        .build();
-            } else if (failedPodTaskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
-                logger.info("Recovering transiently failed pod: '{}'", failedPod);
-                podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
-                        .recoveryType(RecoveryType.TRANSIENT)
-                        .build();
-            } else {
+            RecoveryType recoveryType = getRecoveryType(failedPodTaskInfos);
+            if (RecoveryType.NONE.equals(recoveryType)) {
                 logger.error(
-                        "Tasks within pod: {} have failed in transient and permanent states and cannot be processed.",
-                        failedPod.getName());
+                        "Cannot recover tasks within pod: '{}' due to have recovery type: '{}'.",
+                        failedPod.getName(),
+                        recoveryType.name());
                 continue;
             }
+
+            logger.info("Recovering {} failed pod: '{}'", recoveryType.name(), failedPod);
+            PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement.newBuilder(failedPod)
+                    .recoveryType(recoveryType)
+                    .build();
 
             if (PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets)) {
                 logger.info("Pod: {} has been dirtied by another plan, cannot recover at this time.", failedPod);

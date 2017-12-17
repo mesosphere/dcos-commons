@@ -162,7 +162,7 @@ public class OfferEvaluator {
 
         final String description;
         final boolean shouldGetNewRequirement;
-        if (isPermanentlyFailed(podInstanceRequirement)) {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noLaunchedTasksExist) {
@@ -195,22 +195,6 @@ public class OfferEvaluator {
         }
 
         return evaluationPipeline;
-    }
-
-    /**
-     * Returns whether the pod has permanently failed in its previous run, in which case it should be relaunched from
-     * scratch.
-     */
-    private boolean isPermanentlyFailed(PodInstanceRequirement podInstanceRequirement) {
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-            return true;
-        }
-
-        Collection<Protos.TaskInfo> taskInfos =
-                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance());
-        // If there are no taskinfos, then label the pod as "new" rather than "failed" in logs:
-        return !taskInfos.isEmpty() &&
-                taskInfos.stream().allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
     }
 
     private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
