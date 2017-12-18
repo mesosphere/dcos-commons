@@ -165,7 +165,7 @@ pods:
 
         * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-            * **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+* **goal**: Every task must have a goal state. There are three possible goal states: `RUNNING`, `FINISH` and `ONCE`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISH` indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. `ONCE` indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod's lifetime.
 
             * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
@@ -322,7 +322,7 @@ pods:
           type: ROOT
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         cmd: "./init"
         resource-set: hello-resources
       main:
@@ -980,7 +980,7 @@ pods:
           size: 50
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         resource-set: pod-resources
         cmd: "echo init >> hello-container-path/output && sleep 1000"
         discovery:
@@ -1746,7 +1746,7 @@ pods:
           size: 50
     tasks:
       initialize:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo initialize >> hello-container-path/output"
         resource-set: hello-resources
       server:
@@ -1779,7 +1779,7 @@ pods:
           size: 50
     tasks:
       initialize:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo initialize >> hello-container-path/output"
         resource-set: hello-resources
       server:
@@ -1823,7 +1823,7 @@ pods:
         env:
           SLEEP_DURATION: 1000
       sidecar:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo $PLAN_PARAMETER1 $PLAN_PARAMETER2 >> output"
         resource-set: sidecar-resources
 plans:

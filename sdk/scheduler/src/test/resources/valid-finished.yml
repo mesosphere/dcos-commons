@@ -1,0 +1,10 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    tasks:
+      meta-data-task:
+        goal: FINISHED
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512
