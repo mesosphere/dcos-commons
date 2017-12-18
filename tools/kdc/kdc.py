@@ -9,7 +9,7 @@ of the KDC will be aptly named `kdc`.
 In order to run the script from the `dcos-commons` repo root, the `PYTHONPATH` environment
 variable must also be set:
 ```bash
-$ PYTHONPATH=testing ./tools/kdc.py SUBCOMMAND
+$ PYTHONPATH=testing ./tools/kdc/kdc.py SUBCOMMAND
 ```
 
 ## Deploying KDC
@@ -28,10 +28,10 @@ client@LOCAL
 
 Running this utility as follows:
 ```bash
-$ PYTHONPATH=testing ./tools/kdc.py deploy kafka-principals.txt
+$ PYTHONPATH=testing ./tools/kdc/kdc.py deploy kafka-principals.txt
 ```
 will perform the following actions:
-1. Deploys a KDC Marathon application named `kdc` as defined in `tools/kdc.json`
+1. Deploys a KDC Marathon application named `kdc` as defined in `tools/kdc/kdc.json`
 2. Adds the principals in `kafka-principals.txt` to the KDC store
 3. Saves the generated keytab as the DC/OS secret `__dcos_base64___keytab`
 
@@ -41,7 +41,7 @@ This tool can be used to remove an existing KDC deployment.
 
 Running this utility as follows:
 ```bash
-$ PYTHONPATH=testing ./tools/kdc.py
+$ PYTHONPATH=testing ./tools/kdc/kdc.py
 ```
 will perform the following actions:
 1. Remove the KDC Marathoin application named `kdc`
