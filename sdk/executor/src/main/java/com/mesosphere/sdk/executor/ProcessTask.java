@@ -5,7 +5,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.offer.ProcessBuilderUtils;
+import com.mesosphere.sdk.offer.taskdata.ProcessBuilderUtils;
 
 import java.time.Duration;
 import java.util.concurrent.*;
