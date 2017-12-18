@@ -200,7 +200,9 @@ public class OfferEvaluator {
     private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
         for (Protos.TaskInfo taskInfo : taskInfos) {
             Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
-            if (taskStatus.isPresent() && taskStatus.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
+            if (taskStatus.isPresent() &&
+                    taskStatus.get().getState().equals(Protos.TaskState.TASK_RUNNING) &&
+                    !FailureUtils.isPermanentlyFailed(taskInfo)) {
                 logger.info("Using existing executor: {}", taskInfo.getExecutor().getExecutorId().getValue());
                 return Optional.of(taskInfo.getExecutor());
             }
