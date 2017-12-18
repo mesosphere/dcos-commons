@@ -42,27 +42,11 @@ def test_install():
 @pytest.mark.smoke
 @pytest.mark.mesos_v0
 def test_mesos_v0_api():
-    try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        # Install Hello World using the v0 api.
-        # Then, clean up afterwards.
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
-        )
-        config.check_running(foldered_name)
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
-        # reinstall the v1 version for the following tests
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name}})
+    service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
+    if prior_api_version is not "V0":
+        sdk_marathon.set_mesos_api_version(service_name, "V0")
+        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
 
 
 @pytest.mark.sanity

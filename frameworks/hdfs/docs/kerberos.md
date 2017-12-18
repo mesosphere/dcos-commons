@@ -37,6 +37,15 @@ HTTP/hdfs.marathon.autoip.dcos.thisdcos.directory@LOCAL
 This cluster has 3 data nodes, though the correct number of principals should be added up to N data nodes.
 (assuming a default service name of `hdfs`)
 
+Note that the service name is part of the instance in the principal. The template of a principal with `hdfs` primary is:
+```
+hdfs/<pod-type>-<pod-index>-<task-type>.<service-name>.autoip.dcos.thisdcos.directory@<REALM>
+```
+Given a service name of `hdfs-demo`, the principal for a name node becomes:
+```
+hdfs/name-0-node.hdfs-demo.autoip.dcos.thisdcos.directory@LOCAL
+```
+
 ## Create the keytab secret
 
 Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for **all** the HDFS principals has been created as a file `keytab`, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the `security` command):

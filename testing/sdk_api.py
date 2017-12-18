@@ -19,10 +19,22 @@ def get(service_name, endpoint):
     :returns: JSON response from the provided scheduler API endpoint
     :rtype: Response
     '''
+
+    # Some of our APIs (cough looking at you plans)
+    # will return a meaningful 417.
+    def is_success(status_code):
+        return (200 <= status_code < 300) or status_code == 417
+
+
     response = dcos.http.get("{}{}".format(
         shakedown.dcos_service_url(service_name),
-        endpoint))
-    response.raise_for_status()
+        endpoint),
+        is_success=is_success)
+
+    # 417 == plan error
+    if response.status_code != 417:
+        response.raise_for_status()
+
     return response
 
 

@@ -48,7 +48,7 @@ The Cassandra service can be run on a virtual network such as the DC/OS overlay 
 
 The Cassandra service can be launched with TLS encryption. Enabling TLS will use TLS connections for inter-node communication between all the Cassandra nodes. Cassandra will be still available on the same configured client port (default: `9042`).
 
-Enabling TLS is possible only in `permissive` and `strict` cluster security modes. Both modes require a [service account](https://docs.mesosphere.com/service-docs/cassandra/cass-auth/). Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.
+Enabling TLS is possible only in `permissive` and `strict` cluster security modes. Both modes require a [service account](https://docs.mesosphere.com/services/cassandra/cass-auth/). Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.
 
 *   **In DC/OS CLI options.json**: `service.security.transport_encryption.enabled`: boolean (default: `false`)
 *   **DC/OS web interface**: `TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED`: `boolean`

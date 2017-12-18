@@ -33,6 +33,7 @@ public class CheckHandler {
     public static CheckHandler create(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
+            LaunchedTask launchedTask,
             Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
             CheckStats healthCheckStats,
@@ -41,6 +42,7 @@ public class CheckHandler {
         return new CheckHandler(
                 executorDriver,
                 taskInfo,
+                launchedTask,
                 new ProcessRunner(),
                 healthCheck,
                 scheduledExecutorService,
@@ -55,6 +57,7 @@ public class CheckHandler {
     CheckHandler(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
+            LaunchedTask launchedTask,
             ProcessRunner processRunner,
             Protos.HealthCheck healthCheck,
             ScheduledExecutorService scheduledExecutorService,
@@ -67,6 +70,7 @@ public class CheckHandler {
         this.healthCheckRunner = new CheckRunner(
                 executorDriver,
                 taskInfo,
+                launchedTask,
                 processRunner,
                 healthCheck,
                 healthCheckStats,
@@ -133,6 +137,7 @@ public class CheckHandler {
 
         private final ExecutorDriver executorDriver;
         private final Protos.TaskInfo taskInfo;
+        private final LaunchedTask launchedTask;
         private final ProcessRunner processRunner;
         private final Protos.HealthCheck healthCheck;
         private final CheckStats healthCheckStats;
@@ -141,12 +146,14 @@ public class CheckHandler {
         private CheckRunner(
                 ExecutorDriver executorDriver,
                 Protos.TaskInfo taskInfo,
+                LaunchedTask launchedTask,
                 ProcessRunner processRunner,
                 Protos.HealthCheck healthCheck,
                 CheckStats healthCheckStats,
                 String checkType) {
             this.executorDriver = executorDriver;
             this.taskInfo = taskInfo;
+            this.launchedTask = launchedTask;
             this.processRunner = processRunner;
             this.healthCheck = healthCheck;
             this.healthCheckStats = healthCheckStats;
@@ -155,9 +162,18 @@ public class CheckHandler {
 
         @Override
         public void run() {
+            if (launchedTask.isDone()) {
+                // The task has exited (and emitted a TaskStatus about itself). Stop pending health checks against it.
+                String message = String.format("Disabling %s check for task '%s': task process has exited",
+                        checkType, taskInfo.getName());
+                LOGGER.info(message);
+                throw new CheckRuntimeException(message, healthCheckStats);
+            }
+
             Protos.CommandInfo commandInfo = healthCheck.getCommand();
             try {
-                LOGGER.info("Running {} check process: {}", checkType, commandInfo.getValue());
+                LOGGER.info("Running {} check process for task {}: {}",
+                        checkType, taskInfo.getName(), commandInfo.getValue());
                 int exitValue = processRunner.run(
                         ProcessBuilderUtils.buildProcess(commandInfo), healthCheck.getTimeoutSeconds());
 
