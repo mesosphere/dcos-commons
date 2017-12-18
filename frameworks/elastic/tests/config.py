@@ -9,6 +9,7 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
+from sdk_utils import get_in
 
 log = logging.getLogger(__name__)
 
@@ -303,3 +304,13 @@ def _master_zero_http_port(service_name):
     port = dns[0].split(':')[-1]
     log.info("Extracted {} as port for {}".format(port, dns[0]))
     return port
+
+
+def is_statsd_enabled(service_name=SERVICE_NAME):
+    nodes = get_elasticsearch_nodes_info(service_name)["nodes"]
+    # Only true if statsd is installed on all nodes.
+    return all(
+        any(
+            plugin.get("name") == "statsd"
+            for plugin in get_in([node_uid, "plugins"], nodes, []))
+        for node_uid in nodes)
