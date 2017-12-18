@@ -16,8 +16,11 @@ path.logs: "container-path/logs"
 http.port: {{PORT_HTTP}}
 transport.tcp.port: {{PORT_TRANSPORT}}
 bootstrap.memory_lock: false
+
+{{#STATSD_ENABLED}}
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
+{{/STATSD_ENABLED}}
 
 {{#PLACEMENT_REFERENCED_ZONE}}
 {{#ZONE}}
