@@ -375,19 +375,19 @@
 <h4 id="manually">Manually</h4>
 <ol>
   <li>Generate a private key
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>openssl genrsa -out priv.key 2048
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>openssl genrsa -out priv.key 2048
 </code></pre>
     </div>
   </li>
   <li>Generate a CSR. Note: The <code class="highlighter-rouge">principal</code> of the TLS cert is the values of the CSR (e.g. CN=host1.example.com,OU=,O=Confluent,L=London,ST=London,C=GB)
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>openssl req -new -sha256 -key priv.key -out request.csr
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>openssl req -new -sha256 -key priv.key -out request.csr
 </code></pre>
     </div>
   </li>
   <li>Make a request to the DC/OS CA
 ```bash
 #Request
-curl -X POST \
+$ curl -X POST \
   -H “Authorization: token=$(dcos config show core.dcos_acs_token)” \
   http://bwood-8zp-elasticl-1tcip3im8ushp-1069834978.us-west-2.elb.amazonaws.com/ca/api/v2/sign \
   -d ‘{“certificate_request”: “<json-encoded-value-of-request.csr>"}'</json-encoded-value-of-request.csr></li>
@@ -400,13 +400,13 @@ curl -X POST \
 #### Using the Enterprise CLI
 1. Install the DC/OS Enterprise CLI
 ```bash
-dcos package install dcos-enterprise-cli --yes
+$ dcos package install dcos-enterprise-cli --yes
 </code></pre>
 </div>
 <ol>
   <li>Create a signed certificate
 ```bash
-dcos security cluster ca newcert –cn test –host test
+$ dcos security cluster ca newcert –cn test –host test
 certificate: ‘<Cert>'
 certificate_request: '<CSR>'
 private_key: '<Private Key=""> '</Private></CSR></Cert></li>
@@ -418,25 +418,26 @@ private_key: '<Private Key=""> '</Private></CSR></Cert></li>
 1. Create a DC/OS Service Account
 ```bash
 # Install the enterprise CLI
-dcos package install dcos-enterprise-cli --yes
+$ dcos package install dcos-enterprise-cli --yes
 
 # Create a service account
-dcos security org service-accounts keypair priv.pem pub.pem
-dcos security org service-accounts create -p pub.pem -d "testing" service-acct
+$ dcos security org service-accounts keypair priv.pem pub.pem
+$ dcos security org service-accounts create -p pub.pem -d "testing" service-acct
 
 # Set the service account secret
-dcos security secrets create-sa-secret priv.pem service-acct secret
+$ dcos security secrets create-sa-secret priv.pem service-acct secret
 
 # Grant it superuser permissions (required for TLS currently)
-dcos security org users grant service-acct dcos:superuser full
+$ dcos security org users grant service-acct dcos:superuser full
 </code></pre>
 </div>
 <ol>
-  <li>Install the kafka package
+  <li>Install the Kafka package
 ```bash
-vi /tmp/options.json
+$ vi /tmp/options.json
 {
   “service”: {
+ “name”: “kafka”,
  “service_account”: “service-acct”,
  “service_account_secret”: “secret”,
  “security”: {
@@ -451,12 +452,12 @@ vi /tmp/options.json
 }</li>
 </ol>
 
-<p>dcos package install beta-kafka –options=/tmp/options.json</p>
+<p>$ dcos package install beta-kafka –options=/tmp/options.json</p>
 <div class="highlighter-rouge"><pre class="highlight"><code>
 ### Connect a client
 0. Get the VIP from the endpoints API
 ```bash
-dcos beta-kafka --name=kafka endpoints broker-tls
+$ dcos beta-kafka --name=kafka endpoints broker-tls
 
 {
   "address": [
@@ -475,7 +476,7 @@ dcos beta-kafka --name=kafka endpoints broker-tls
 </div>
 <ol>
   <li>SSH to the leader
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>dcos node ssh --master-proxy --leader
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos node ssh --master-proxy --leader
 </code></pre>
     </div>
   </li>
@@ -487,7 +488,7 @@ dcos beta-kafka --name=kafka endpoints broker-tls
   </li>
   <li>Convert the pub/priv keypair to a PKCS12 key
 ```bash
-openssl pkcs12 -export -in pub.crt -inkey priv.key \
+$ openssl pkcs12 -export -in pub.crt -inkey priv.key \
             -out keypair.p12 -name keypair \
             -CAfile ca-bundle.crt -caname root</li>
 </ol>
@@ -495,7 +496,7 @@ openssl pkcs12 -export -in pub.crt -inkey priv.key \
 <h1 id="when-prompted-set-the-password-to-export">When prompted, set the password to “export”</h1>
 <div class="highlighter-rouge"><pre class="highlight"><code>5. Run the kafka docker image
 ```bash
-docker run --rm -ti \
+$ docker run --rm -ti \
     -v /home/core:/tmp \
     -w /opt/kafka/bin \
     wurstmeister/kafka \
@@ -504,7 +505,7 @@ docker run --rm -ti \
 </div>
 <ol>
   <li>Create the keystore
-    <div class="language-bash highlighter-rouge"><pre class="highlight"><code>keytool -importkeystore <span class="se">\</span>
+    <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>keytool -importkeystore <span class="se">\</span>
      -deststorepass changeit -destkeypass changeit -destkeystore /tmp/keystore.jks <span class="se">\</span>
      -srckeystore /tmp/keypair.p12 -srcstoretype PKCS12 -srcstorepass <span class="nb">export</span> <span class="se">\</span>
      -alias keypair
@@ -513,7 +514,7 @@ docker run --rm -ti \
   </li>
   <li>Create the truststore
 ```bash
-keytool -import \
+$ keytool -import \
   -trustcacerts \
   -alias root \
   -file /tmp/ca-bundle.crt \
@@ -524,7 +525,7 @@ keytool -import \
 <h1 id="youll-be-prompted-to-trust-a-cert-just-say-yes-">You’ll be prompted to trust a cert. Just say yes :)</h1>
 <div class="highlighter-rouge"><pre class="highlight"><code>8. Write the client config
 ```bash
-cat &gt;/tmp/client.properties &lt;&lt; EOL
+$ cat &gt;/tmp/client.properties &lt;&lt; EOL
 security.protocol = SSL
 ssl.truststore.location = /tmp/truststore.jks
 ssl.truststore.password = changeit
@@ -538,7 +539,7 @@ EOL
   <li>Start the consumer in one terminal, and the producer in another
 ```bash
     <h1 id="terminal-session-1">Terminal session 1</h1>
-    <p>./kafka-console-producer.sh \
+    <p>$ ./kafka-console-producer.sh \
   –broker-list broker-tls.kafka.l4lb.thisdcos.directory:9093 \
   –topic test \
   –producer.config /tmp/client.properties</p>
@@ -546,7 +547,7 @@ EOL
 </ol>
 
 <h1 id="terminal-session-2">Terminal session 2</h1>
-<p>./kafka-console-consumer.sh \
+<p>$ ./kafka-console-consumer.sh \
   –bootstrap-server broker-tls.kafka.l4lb.thisdcos.directory:9093 \
   –topic test \
   –consumer.config /tmp/client.properties
