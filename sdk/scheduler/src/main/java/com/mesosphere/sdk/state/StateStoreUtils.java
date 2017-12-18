@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -89,9 +90,10 @@ public class StateStoreUtils {
                 throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
             }
 
-            if (TaskUtils.needsRecovery(taskSpec.get(), status)) {
-                LOGGER.info("Task: '{}' needs recovery with status: {}.",
-                        taskSpec.get().getName(), TextFormat.shortDebugString(status));
+            boolean isPermanentlyFailed = FailureUtils.isPermanentlyFailed(info);
+            if (TaskUtils.needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
+                LOGGER.info("Task: '{}' needs recovery with status: {} and is permanently failed: {}.",
+                        taskSpec.get().getName(), TextFormat.shortDebugString(status), isPermanentlyFailed);
                 results.add(info);
             }
         }
