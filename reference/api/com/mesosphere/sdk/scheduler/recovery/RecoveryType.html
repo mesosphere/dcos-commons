@@ -226,8 +226,8 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>TRANSIENT</h4>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery">RecoveryType</a> TRANSIENT</pre>
-<div class="block">Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=FINISHED, or 'pod restart' cmd),
- relaunch the task in-place without modifying its persistent volumes.</div>
+<div class="block">Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=ONCE or FINISH, or
+ 'pod restart' cmd), relaunch the task in-place without modifying its persistent volumes.</div>
 </li>
 </ul>
 <a name="PERMANENT">
