@@ -6,6 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import logging
+import shakedown
 
 import sdk_tasks
 
@@ -49,6 +50,10 @@ def vip_host(service_name, vip_name, port=-1):
         _safe_name(service_name),
         VIP_HOST_SUFFIX,
         port)
+
+
+def kill_host(ip):
+    return shakedown.run_command_on_agent(ip, 'sudo shutdown -h +1')
 
 
 def _safe_name(name):
