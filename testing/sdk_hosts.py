@@ -5,10 +5,14 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import json
 import logging
+import os
 import shakedown
 
 import sdk_tasks
+
+from dcos_test_utils import ssh_client
 
 LOG = logging.getLogger(__name__)
 
@@ -52,8 +56,35 @@ def vip_host(service_name, vip_name, port=-1):
         port)
 
 
+def _get_ssh_user():
+    ssh_user = os.getenv('TEST_SSH_USER')
+    if not ssh_user:
+        if not os.path.exists('cluster_info.json'):
+            raise('Must either have cluster_info.json in working dir or TEST_SSH_USER set in env')
+        with open('cluster_info.json', 'r') as f:
+            info_json = json.load(f)
+        ssh_user = info_json['ssh_user']
+    return ssh_user
+
+
+def _get_ssh_key():
+    ssh_key_path = os.getenv('TEST_SSH_KEY_PATH')
+    if not ssh_key_path:
+        if not os.path.exists('cluster_info.json'):
+            raise('Must either have cluster_info.json in working dir or TEST_SSH_SSH_KEY_PATH set in env')
+        with open('cluster_info.json', 'r') as f:
+            info_json = json.load(f)
+            return info_json['ssh_private_key']
+    else:
+        with open(ssh_key_path, 'r') as f:
+            return f.read().strip()
+
+
 def kill_host(ip):
-    return shakedown.run_command_on_agent(ip, 'sudo shutdown -h +1')
+    user = _get_ssh_user()
+    key = _get_ssh_key()
+    ssh = ssh_client.SshClient(user, key)
+    ssh.command(['sudo', 'shutdown', '-h', '+1'])
 
 
 def _safe_name(name):
