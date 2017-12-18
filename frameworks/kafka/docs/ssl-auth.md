@@ -11,16 +11,16 @@ enterprise: 'yes'
 #### Manually
 1. Generate a private key
 ```bash
-openssl genrsa -out priv.key 2048
+$ openssl genrsa -out priv.key 2048
 ```
 2. Generate a CSR. Note: The `principal` of the TLS cert is the values of the CSR (e.g. CN=host1.example.com,OU=,O=Confluent,L=London,ST=London,C=GB)
 ```bash
-openssl req -new -sha256 -key priv.key -out request.csr
+$ openssl req -new -sha256 -key priv.key -out request.csr
 ```
 3. Make a request to the DC/OS CA
 ```bash
 #Request
-curl -X POST \
+$ curl -X POST \
   -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
   http://bwood-8zp-elasticl-1tcip3im8ushp-1069834978.us-west-2.elb.amazonaws.com/ca/api/v2/sign \
   -d '{"certificate_request": "<json-encoded-value-of-request.csr>"}'
@@ -33,11 +33,11 @@ curl -X POST \
 #### Using the Enterprise CLI
 1. Install the DC/OS Enterprise CLI
 ```bash
-dcos package install dcos-enterprise-cli --yes
+$ dcos package install dcos-enterprise-cli --yes
 ```
 2. Create a signed certificate
 ```bash
-dcos security cluster ca newcert --cn test --host test
+$ dcos security cluster ca newcert --cn test --host test
 certificate: '<Cert>'
 certificate_request: '<CSR>'
 private_key: '<Private Key> '
@@ -49,23 +49,24 @@ private_key: '<Private Key> '
 1. Create a DC/OS Service Account
 ```bash
 # Install the enterprise CLI
-dcos package install dcos-enterprise-cli --yes
+$ dcos package install dcos-enterprise-cli --yes
 
 # Create a service account
-dcos security org service-accounts keypair priv.pem pub.pem
-dcos security org service-accounts create -p pub.pem -d "testing" service-acct
+$ dcos security org service-accounts keypair priv.pem pub.pem
+$ dcos security org service-accounts create -p pub.pem -d "testing" service-acct
 
 # Set the service account secret
-dcos security secrets create-sa-secret priv.pem service-acct secret
+$ dcos security secrets create-sa-secret priv.pem service-acct secret
 
 # Grant it superuser permissions (required for TLS currently)
-dcos security org users grant service-acct dcos:superuser full
+$ dcos security org users grant service-acct dcos:superuser full
 ```
-2. Install the kafka package
+2. Install the Kafka package
 ```bash
-vi /tmp/options.json
+$ vi /tmp/options.json
 {
   "service": {
+    "name": "kafka",
     "service_account": "service-acct",
     "service_account_secret": "secret",
     "security": {
@@ -79,13 +80,13 @@ vi /tmp/options.json
   }
 }
 
-dcos package install beta-kafka --options=/tmp/options.json
+$ dcos package install beta-kafka --options=/tmp/options.json
 ```
 
 ### Connect a client
 0. Get the VIP from the endpoints API
 ```bash
-dcos beta-kafka --name=kafka endpoints broker-tls
+$ dcos beta-kafka --name=kafka endpoints broker-tls
 
 {
   "address": [
@@ -103,7 +104,7 @@ dcos beta-kafka --name=kafka endpoints broker-tls
 ```
 1. SSH to the leader
 ```bash
-dcos node ssh --master-proxy --leader
+$ dcos node ssh --master-proxy --leader
 ```
 2. Copy over the content of pub.crt and priv.key via copy/paste
 3. Copy the ca bundle to the working directory
@@ -112,7 +113,7 @@ cp /run/dcos/pki/CA/ca-bundle.crt .
 ```
 4. Convert the pub/priv keypair to a PKCS12 key
 ```bash
-openssl pkcs12 -export -in pub.crt -inkey priv.key \
+$ openssl pkcs12 -export -in pub.crt -inkey priv.key \
                -out keypair.p12 -name keypair \
                -CAfile ca-bundle.crt -caname root
 
@@ -120,7 +121,7 @@ openssl pkcs12 -export -in pub.crt -inkey priv.key \
 ```
 5. Run the kafka docker image
 ```bash
-docker run --rm -ti \
+$ docker run --rm -ti \
     -v /home/core:/tmp \
     -w /opt/kafka/bin \
     wurstmeister/kafka \
@@ -128,14 +129,14 @@ docker run --rm -ti \
 ```
 6. Create the keystore
 ```bash
-keytool -importkeystore \
+$ keytool -importkeystore \
         -deststorepass changeit -destkeypass changeit -destkeystore /tmp/keystore.jks \
         -srckeystore /tmp/keypair.p12 -srcstoretype PKCS12 -srcstorepass export \
         -alias keypair
 ```
 7. Create the truststore
 ```bash
-keytool -import \
+$ keytool -import \
   -trustcacerts \
   -alias root \
   -file /tmp/ca-bundle.crt \
@@ -146,7 +147,7 @@ keytool -import \
 ```
 8. Write the client config
 ```bash
-cat >/tmp/client.properties << EOL
+$ cat >/tmp/client.properties << EOL
 security.protocol = SSL
 ssl.truststore.location = /tmp/truststore.jks
 ssl.truststore.password = changeit
@@ -158,13 +159,13 @@ EOL
 10. Start the consumer in one terminal, and the producer in another
 ```bash
 # Terminal session 1
-./kafka-console-producer.sh \
+$ ./kafka-console-producer.sh \
   --broker-list broker-tls.kafka.l4lb.thisdcos.directory:9093 \
   --topic test \
   --producer.config /tmp/client.properties
 
 # Terminal session 2
-./kafka-console-consumer.sh \
+$ ./kafka-console-consumer.sh \
   --bootstrap-server broker-tls.kafka.l4lb.thisdcos.directory:9093 \
   --topic test \
   --consumer.config /tmp/client.properties
