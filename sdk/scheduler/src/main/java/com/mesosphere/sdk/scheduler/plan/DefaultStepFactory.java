@@ -123,7 +123,7 @@ public class DefaultStepFactory implements StepFactory {
 
         if (hasReachedGoal) {
             GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
-            if (goalState.equals(GoalState.FINISHED)) {
+            if (goalState.equals(GoalState.ONCE)) {
                 LOGGER.info("Automatically on target configuration due to having reached {} goal.", goalState);
                 isOnTarget = true;
             }
@@ -162,7 +162,7 @@ public class DefaultStepFactory implements StepFactory {
                 default:
                     return false;
             }
-        } else if (goalState.equals(GoalState.FINISHED)) {
+        } else if (goalState.equals(GoalState.ONCE) || goalState.equals(GoalState.FINISH)) {
             switch (status.get().getState()) {
                 case TASK_FINISHED:
                     return true;

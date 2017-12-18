@@ -88,7 +88,7 @@ class ToxicSidecarCheck:
 def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
     # 2. Restart the scheduler.
-    # 3. Verify that its recovery plan is empty, as a failed FINISHED task should
+    # 3. Verify that its recovery plan is empty, as a failed ONCE task should
     # never trigger recovery
     recovery_plan = sdk_plan.get_plan(config.SERVICE_NAME, 'recovery')
     assert(len(recovery_plan['phases']) == 0)

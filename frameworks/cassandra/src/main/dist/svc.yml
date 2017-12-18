@@ -89,15 +89,15 @@ pods:
             type: KEYSTORE
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
-        goal: FINISHED
+        goal: ONCE
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       cleanup:
-        goal: FINISHED
+        goal: ONCE
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       backup-schema:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
@@ -117,7 +117,7 @@ pods:
             type: TLS
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       snapshot:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
@@ -132,11 +132,11 @@ pods:
                 done
         resource-set: sidecar-resources
       upload-s3:
-        goal: FINISHED
+        goal: ONCE
         cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
       upload-azure:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
@@ -144,20 +144,20 @@ pods:
                 az storage blob upload -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz
         resource-set: sidecar-resources
       cleanup-snapshot:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
       fetch-s3:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 mkdir container-path/snapshot ;
                 aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
         resource-set: sidecar-resources
       fetch-azure:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
@@ -167,7 +167,7 @@ pods:
                 rm container-path/snapshot.tar.gz
         resource-set: sidecar-resources
       restore-schema:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
@@ -186,7 +186,7 @@ pods:
             type: TLS
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       restore-snapshot:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
@@ -225,7 +225,7 @@ pods:
             type: KEYSTORE
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       init_system_keyspaces:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;

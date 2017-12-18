@@ -442,7 +442,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedCpus(3.0),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
 
-        // Launch Task with FINISHED goal state, for first time.
+        // Launch Task with ONCE goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(sufficientOffer));
@@ -512,7 +512,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedCpus(3.0),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
 
-        // Launch Task with FINISHED goal state, for first time.
+        // Launch Task with ONCE goal state, for first time.
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(sufficientOffer));

@@ -19,19 +19,19 @@ pods:
         env:
           SLEEP_DURATION: "100"
       format:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo format >> name-data/output"
         resource-set: name-resources
         env:
           SLEEP_DURATION: "100"
       bootstrap:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo bootstrap >> name-data/output"
         resource-set: name-resources
         env:
           SLEEP_DURATION: "100"
       backup:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo >> name-data/output"
         resource-set: sidecar-resources
         env:
