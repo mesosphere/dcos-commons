@@ -33,6 +33,22 @@ def test_soak_upgrade_downgrade():
         config.DEFAULT_TASK_COUNT)
 
 
+@pytest.mark.soak_pod_pause
+def test_pod_pause():
+    # get agent id for each hello pod
+    # check plan complete, tasks running
+    # pause all hello pods
+    # wait on all pod relaunches
+    # check same agents, check command
+    # check paused state
+    # resume all pods
+    # wait on all pod relaunches
+    # check same agents, check command
+    # check COMPLETE status returns
+    # check pod 11 RUNNINg/COMPLETE
+    pass
+
+
 @pytest.mark.soak_secrets_update
 @pytest.mark.dcos_min_version('1.10')
 def test_soak_secrets_update():
