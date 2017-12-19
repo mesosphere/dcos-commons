@@ -484,13 +484,15 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         String cpuResourceId = ResourceTestUtils.getResourceId(cpuResource);
         String diskResourceId = ResourceTestUtils.getResourceId(diskResource);
         String persistenceId = ResourceTestUtils.getPersistenceId(diskResource);
-        Collection<Resource> expectedResources = getExpectedExecutorResources(
-                stateStore.fetchTasks().iterator().next().getExecutor());
+        ExecutorInfo executorInfo = stateStore.fetchTasks().iterator().next().getExecutor();
+        Collection<Resource> expectedResources = getExpectedExecutorResources(executorInfo);
         expectedResources.addAll(Arrays.asList(
                 ResourceTestUtils.getReservedCpus(1.0, cpuResourceId),
                 ResourceTestUtils.getReservedRootVolume(50.0, diskResourceId, persistenceId)));
 
-        Offer offer = OfferTestUtils.getOffer(expectedResources);
+        Offer offer = OfferTestUtils.getOffer(expectedResources).toBuilder()
+                .addExecutorIds(executorInfo.getExecutorId())
+                .build();
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
         // Providing the expected reserved resources should result in a LAUNCH operation.
         Assert.assertEquals(1, recommendations.size());

@@ -17,7 +17,12 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+        options = {
+            "service": {
+                "user": "root"
+            }
+        }
+        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT, additional_options=options)
 
         yield  # let the test session execute
     finally:
@@ -308,10 +313,10 @@ def test_config_update_then_zk_killed():
 def test_permanent_replace_wait_for_task_lost():
     # Kill hello-0's host
     hello_0_host = sdk_hosts.system_host(config.SERVICE_NAME, 'hello-0')
-    status, stdout = sdk_hosts.kill_host(hello_0_host)
-    log.info('shutdown agent {}: [{}] {}'.format(hello_0_host, status, stdout))
+    rc, stdout = sdk_tasks.task_exec('hello-0-server', 'shutdown -h +1', return_stderr_in_stdout=True)
+    log.info('shutdown agent {}: [{}] {}'.format(hello_0_host, rc, stdout))
 
-    assert status is True
+    assert rc == 0
 
     # Wait for failure to be detected and recovery plan to become incomplete
     sdk_plan.wait_for_in_progress_recovery(config.SERVICE_NAME)
