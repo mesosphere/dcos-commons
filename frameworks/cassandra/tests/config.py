@@ -113,7 +113,7 @@ def run_backup_and_restore(
 
     # Ensure the keyspaces we will use aren't present.
     try:
-        jobs.run_job(delete_data_job)
+        sdk_jobs.run_job(delete_data_job)
     except:
         log.info("Error during delete (normal if no stale data).")
         tb = traceback.format_exc()
