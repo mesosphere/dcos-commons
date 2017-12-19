@@ -24,7 +24,7 @@ def configure_package(configure_security):
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
-            1,
+            4,
             additional_options={ "service": { "spec_file": "examples/overlay.yml" } })
 
         yield # let the test session execute
