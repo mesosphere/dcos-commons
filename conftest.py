@@ -6,7 +6,10 @@ E.G. py.test frameworks/<your-frameworks>/tests
 """
 import logging
 import os
+import os.path
+import shutil
 import subprocess
+import sys
 
 import pytest
 import requests
@@ -17,9 +20,13 @@ log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 log_levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'EXCEPTION')
 assert log_level in log_levels, \
     '{} is not a valid log level. Use one of: {}'.format(log_level, ', '.join(log_levels))
+# write everything to stdout due to the following circumstances:
+# - shakedown uses print() aka stdout
+# - teamcity splits out stdout vs stderr into separate outputs, we'd want them combined
 logging.basicConfig(
     format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
-    level=log_level)
+    level=log_level,
+    stream=sys.stdout)
 
 # reduce excessive DEBUG/INFO noise produced by some underlying libraries:
 for noise_source in [
@@ -35,7 +42,7 @@ log = logging.getLogger(__name__)
 prior_task_ids = set([])
 
 
-def get_task_ids(user: str=None):
+def get_task_ids():
     """ This function uses dcos task WITHOUT the JSON options because
     that can return the wrong user for schedulers
     """
@@ -44,8 +51,7 @@ def get_task_ids(user: str=None):
         task = task_str.split()
         if len(task) < 5:
             continue
-        if not user or task[2] == user:
-            yield task[4]
+        yield task[4]
 
 
 def get_task_files_for_id(task_id: str):
@@ -94,12 +100,18 @@ def pytest_runtest_makereport(item, call):
         log.info('Test {} failed in {} phase. Dumping mesos state, and stdout/stderr logs for {} tasks: {}'.format(
             item.name, rep.when, len(new_task_ids), new_task_ids))
 
+        # delete any preexisting log directory from a prior run of this test,
+        # to avoid overlapping mixed logs from two different tests
+        test_log_dir = get_test_log_dir_path(item)
+        if os.path.exists(test_log_dir):
+            shutil.rmtree(test_log_dir)
+
         try:
-            get_task_logs_on_failure(item.name, new_task_ids)
+            get_task_logs_on_failure(item, new_task_ids)
         except Exception:
             log.exception('Task log collection failed!')
         try:
-            get_mesos_state_on_failure(item.name)
+            get_mesos_state_on_failure(item)
         except Exception:
             log.exception('Mesos state collection failed!')
 
@@ -119,6 +131,24 @@ def pytest_runtest_setup(item):
             pytest.skip(message)
 
 
+def get_test_log_dir_path(item: pytest.Item):
+    # full item.listchain() is e.g.:
+    # - ['build', 'frameworks/template/tests/test_sanity.py', 'test_install']
+    # - ['build', 'tests/test_sanity.py', 'test_install']
+    # we want to turn both cases into: logs/test_sanity_py/test_install
+    parent_name = item.parent.name.split('/')[-1].replace('.','_')
+    return os.path.join('logs', parent_name, item.name)
+
+
+def get_test_log_artifact_path(item: pytest.Item, artifact_name: str):
+    '''Given the pytest item and an artifact_name,
+    Returns the path to write an artifact with that name.'''
+    output_dir = get_test_log_dir_path(item)
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
+    return os.path.join(output_dir, artifact_name)
+
+
 def get_rotating_task_log_lines(task_id: str, known_task_files: set, task_file: str):
     rotated_filenames = [task_file, ]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
@@ -132,28 +162,22 @@ def get_rotating_task_log_lines(task_id: str, known_task_files: set, task_file: 
         yield filename, lines
 
 
-def get_task_logs_on_failure(test_name: str, task_ids: list):
+def get_task_logs_on_failure(item: pytest.Item, task_ids: list):
     for task_id in task_ids:
         # get list of available files:
         known_task_files = get_task_files_for_id(task_id)
         for task_file in ('stderr', 'stdout'):
             for log_filename, log_lines in get_rotating_task_log_lines(task_id, known_task_files, task_file):
-                log_name = '{}_{}_{}.log'.format(test_name, task_id, log_filename)
-                with open(log_name, 'w') as f:
+                with open(get_test_log_artifact_path(item, '{}.{}'.format(task_id, log_filename)), 'w') as f:
                     f.write(log_lines)
 
 
-def get_mesos_state_on_failure(test_name: str):
+def get_mesos_state_on_failure(item: pytest.Item):
     dcosurl, headers = sdk_security.get_dcos_credentials()
-    state_json_endpoint = '{}/mesos/state.json'.format(dcosurl)
-    r = requests.get(state_json_endpoint, headers=headers, verify=False)
-    if r.status_code == 200:
-        log_name = '{}_state.json'.format(test_name)
-        with open(log_name, 'w') as f:
-            f.write(r.text)
-    slaves_endpoint = '{}/mesos/slaves'.format(dcosurl)
-    r = requests.get(slaves_endpoint, headers=headers, verify=False)
-    if r.status_code == 200:
-        log_name = '{}_slaves.json'.format(test_name)
-        with open(log_name, 'w') as f:
-            f.write(r.text)
+    for name in ['state.json', 'slaves']:
+        r = requests.get('{}/mesos/{}'.format(dcosurl, name), headers=headers, verify=False)
+        if r.status_code == 200:
+            if name.endswith('.json'):
+                name = name[:-len('.json')] # avoid duplicate '.json'
+            with open(get_test_log_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:
+                f.write(r.text)
