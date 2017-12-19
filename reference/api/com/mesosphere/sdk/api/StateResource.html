@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":9};
+var methods = {"i0":9,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -229,18 +229,37 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getTaskIPsToZones-java.lang.String-java.lang.String-">getTaskIPsToZones</a></span>(java.lang.String&nbsp;podType,
+                 java.lang.String&nbsp;ip)</code>
+<div class="block">Returns the Zone information for a given pod type and an IP address.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getTaskNamesToZones--">getTaskNamesToZones</a></span>()</code>
+<div class="block">Returns the Zone information for all of the tasks of the service.</div>
+</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getTaskNameToZone-java.lang.String-">getTaskNameToZone</a></span>(java.lang.String&nbsp;taskName)</code>
+<div class="block">Returns the Zone information for a given task.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#putFile-java.io.InputStream-FormDataContentDisposition-">putFile</a></span>(java.io.InputStream&nbsp;uploadedInputStream,
        FormDataContentDisposition&nbsp;fileDetails)</code>
 <div class="block">Endpoint for uploading arbitrary files of size up to 1024 Bytes.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#refreshCache--">refreshCache</a></span>()</code>
 <div class="block">Refreshes the state store cache to reflect current data on ZK.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>protected static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#storeFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">storeFile</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
          java.lang.String&nbsp;fileName,
@@ -434,6 +453,37 @@ extends java.lang.Object</pre>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>response indicating result of put operation.</dd>
 </dl>
+</li>
+</ul>
+<a name="getTaskNamesToZones--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskNamesToZones</h4>
+<pre>public&nbsp;Response&nbsp;getTaskNamesToZones()</pre>
+<div class="block">Returns the Zone information for all of the tasks of the service.</div>
+</li>
+</ul>
+<a name="getTaskNameToZone-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskNameToZone</h4>
+<pre>public&nbsp;Response&nbsp;getTaskNameToZone(java.lang.String&nbsp;taskName)</pre>
+<div class="block">Returns the Zone information for a given task.</div>
+</li>
+</ul>
+<a name="getTaskIPsToZones-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskIPsToZones</h4>
+<pre>public&nbsp;Response&nbsp;getTaskIPsToZones(java.lang.String&nbsp;podType,
+                                  java.lang.String&nbsp;ip)</pre>
+<div class="block">Returns the Zone information for a given pod type and an IP address.</div>
 </li>
 </ul>
 <a name="getProperty-java.lang.String-">
