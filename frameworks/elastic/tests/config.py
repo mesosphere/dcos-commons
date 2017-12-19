@@ -300,7 +300,7 @@ def _curl_api(service_name, method, role="master", https=False):
     protocol = 'https://' if https else 'http://'
     host = protocol + sdk_hosts.autoip_host(
         service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("/opt/mesosphere/bin/curl -X{} -s -u elastic:changeme '" + host).format(method)
+    return ("/opt/mesosphere/bin/curl -X{} -u elastic:changeme -H 'Content-type: application/json' '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):
