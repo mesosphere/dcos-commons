@@ -54,7 +54,7 @@ def install(
     start = time.time()
     merged_options = get_package_options(additional_options)
 
-    log.info('Installing {}/{} with options={} version={}'.format(
+    log.info('Installing {}:{} with options={} version={}'.format(
         package_name, service_name, merged_options, package_version))
 
     # 1. Install package, wait for tasks, wait for marathon deployment

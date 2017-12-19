@@ -48,8 +48,12 @@ def get_task_ids(user: str=None):
             yield task[4]
 
 
+def get_task_files_for_id(task_id: str):
+    return set(subprocess.check_output(['dcos', 'task', 'ls', task_id, '--all']).decode().split())
+
+
 def get_task_logs_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000):
-    log.info("Fetching '{}' from task '{}'".format(task_file, task_id))
+    log.info("Fetching {} from {}".format(task_file, task_id))
     result = subprocess.run(
         ['dcos', 'task', 'log', task_id, '--all', '--lines', str(lines), task_file],
         stdout=subprocess.PIPE,
@@ -87,7 +91,7 @@ def pytest_runtest_makereport(item, call):
     if rep.failed:
         # fetch logs of only those tasks that were created during the test
 
-        log.error('Test {} failed in {} phase. Dumping mesos state, and stdout/stderr logs for {} tasks: {}'.format(
+        log.info('Test {} failed in {} phase. Dumping mesos state, and stdout/stderr logs for {} tasks: {}'.format(
             item.name, rep.when, len(new_task_ids), new_task_ids))
 
         try:
@@ -115,20 +119,25 @@ def pytest_runtest_setup(item):
             pytest.skip(message)
 
 
-def get_rotating_task_log_lines(task_id: str, task_file: str):
+def get_rotating_task_log_lines(task_id: str, known_task_files: set, task_file: str):
     rotated_filenames = [task_file, ]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
     for filename in rotated_filenames:
+        if not filename in known_task_files:
+            return # hit an index that doesn't exist, exit early
         lines = get_task_logs_for_id(task_id, filename)
         if not lines:
+            log.error('Unable to fetch content of {} from task {}, giving up'.format(filename, task_id))
             return
         yield filename, lines
 
 
 def get_task_logs_on_failure(test_name: str, task_ids: list):
     for task_id in task_ids:
+        # get list of available files:
+        known_task_files = get_task_files_for_id(task_id)
         for task_file in ('stderr', 'stdout'):
-            for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
+            for log_filename, log_lines in get_rotating_task_log_lines(task_id, known_task_files, task_file):
                 log_name = '{}_{}_{}.log'.format(test_name, task_id, log_filename)
                 with open(log_name, 'w') as f:
                     f.write(log_lines)
