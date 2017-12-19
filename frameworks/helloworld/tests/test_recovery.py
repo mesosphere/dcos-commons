@@ -1,13 +1,17 @@
+import logging
+
 import pytest
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
+import sdk_plan
 import sdk_tasks
 import sdk_utils
 import shakedown
 from tests import config
 
+log = logging.getLogger(__name__)
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -298,3 +302,19 @@ def test_config_update_then_zk_killed():
     sdk_tasks.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
     config.check_running()
+
+
+@pytest.mark.sanity
+def test_permanent_replace_wait_for_task_lost():
+    # Kill hello-0's host
+    hello_0_host = sdk_hosts.system_host(config.SERVICE_NAME, 'hello-0')
+    status, stdout = sdk_hosts.kill_host(hello_0_host)
+    log.info('shutdown agent {}: [{}] {}'.format(hello_0_host, status, stdout))
+
+    assert status is True
+
+    # Wait for failure to be detected and recovery plan to become incomplete
+    sdk_plan.wait_for_in_progress_recovery(config.SERVICE_NAME)
+
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0', json=True)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
