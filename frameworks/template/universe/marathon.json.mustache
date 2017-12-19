@@ -69,16 +69,7 @@
   "healthChecks": [
     {
       "protocol": "HTTP",
-      "path": "/v1/plans/deploy",
-      "gracePeriodSeconds": 900,
-      "intervalSeconds": 30,
-      "portIndex": 0,
-      "timeoutSeconds": 30,
-      "maxConsecutiveFailures": 0
-    },
-    {
-      "protocol": "HTTP",
-      "path": "/v1/plans/recovery",
+      "path": "/v1/health",
       "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,
