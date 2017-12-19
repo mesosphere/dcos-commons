@@ -226,7 +226,6 @@ public class OfferEvaluator {
                 return true;
             default:
                 return false;
-
         }
     }
 

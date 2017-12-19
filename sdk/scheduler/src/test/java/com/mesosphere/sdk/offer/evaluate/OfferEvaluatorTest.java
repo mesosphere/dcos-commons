@@ -5,31 +5,24 @@ import com.mesosphere.sdk.dcos.ResourceRefinementCapabilityContext;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.junit.Assert;
-import org.junit.Test; import org.mockito.Mock;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
@@ -571,6 +564,42 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @Test
+    public void testTransientToPermanentFailure() throws Exception {
+        ServiceSpec serviceSpec = getServiceSpec("resource-set-seq.yml");
+
+        PodSpec podSpec = serviceSpec.getPods().get(0);
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build();
+
+        Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
+                ResourceTestUtils.getUnreservedCpus(3.0),
+                ResourceTestUtils.getUnreservedDisk(500.0)));
+
+        // Launch Task with RUNNING goal state, for first time.
+        List<OfferRecommendation> recommendations = evaluator.evaluate(
+                podInstanceRequirement,
+                Arrays.asList(sufficientOffer));
+
+        Assert.assertEquals(recommendations.toString(), 9, recommendations.size());
+        recordOperations(recommendations);
+
+        // Fail the task due to a lost Agent
+        TaskInfo taskInfo = stateStore.fetchTask(TaskUtils.getTaskNames(podInstance).get(0)).get();
+        final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
+                taskInfo.getTaskId(),
+                Protos.TaskState.TASK_LOST);
+        stateStore.storeStatus(taskInfo.getName(), failedStatus);
+
+        // Mark the pod instance as permanently failed.
+        FailureUtils.setPermanentlyFailed(stateStore, podInstance);
+        recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(sufficientOffer));
+
+        // A new deployment replaces the prior one above.
+        Assert.assertEquals(recommendations.toString(), 9, recommendations.size());
+    }
+
+    @Test
     public void testReplaceDeployStep() throws Exception {
         ServiceSpec serviceSpec = getServiceSpec("valid-minimal-volume.yml");
 
@@ -595,7 +624,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         recordOperations(recommendations);
 
         deploymentStep.updateOfferStatus(recommendations);
-        Assert.assertEquals(Status.STARTING, deploymentStep.getStatus());
+        Assert.assertEquals(com.mesosphere.sdk.scheduler.plan.Status.STARTING, deploymentStep.getStatus());
 
         // Simulate an initial failure to deploy.  Perhaps the CREATE operation failed
         deploymentStep.update(
@@ -604,7 +633,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .setState(TaskState.TASK_ERROR)
                         .build());
 
-        Assert.assertEquals(Status.PENDING, deploymentStep.getStatus());
+        Assert.assertEquals(com.mesosphere.sdk.scheduler.plan.Status.PENDING, deploymentStep.getStatus());
         FailureUtils.setPermanentlyFailed(stateStore, deploymentStep.getPodInstanceRequirement().get().getPodInstance());
 
         Assert.assertTrue(FailureUtils.isPermanentlyFailed(stateStore.fetchTask(taskInfo.getName()).get()));

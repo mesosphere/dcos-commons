@@ -255,7 +255,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
             RecoveryType recoveryType = getRecoveryType(failedPodTaskInfos);
             if (RecoveryType.NONE.equals(recoveryType)) {
                 logger.error(
-                        "Cannot recover tasks within pod: '{}' due to have recovery type: '{}'.",
+                        "Cannot recover tasks within pod: '{}' due to having recovery type: '{}'.",
                         failedPod.getName(),
                         recoveryType.name());
                 continue;
