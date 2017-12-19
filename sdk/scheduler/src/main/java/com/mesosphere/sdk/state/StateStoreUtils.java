@@ -5,11 +5,11 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +90,9 @@ public class StateStoreUtils {
                 throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
             }
 
-            boolean isPermanentlyFailed = FailureUtils.isPermanentlyFailed(info);
+            boolean isPermanentlyFailed =
+                    FailureUtils.isPermanentlyFailed(info) && taskSpec.get().getGoal() != GoalState.FINISHED;
+
             if (TaskUtils.needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
                 LOGGER.info("Task: '{}' needs recovery with status: {} and is permanently failed: {}.",
                         taskSpec.get().getName(), TextFormat.shortDebugString(status), isPermanentlyFailed);
