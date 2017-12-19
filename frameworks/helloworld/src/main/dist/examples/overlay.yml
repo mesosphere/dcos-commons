@@ -104,7 +104,7 @@ pods:
       dcos:
     tasks:
       check-comm:
-        goal: FINISHED
+        goal: ONCE
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         cmd: |

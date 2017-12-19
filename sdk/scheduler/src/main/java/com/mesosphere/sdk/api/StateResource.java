@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.api;
 
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
@@ -23,10 +24,7 @@ import javax.ws.rs.core.Response;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -171,6 +169,59 @@ public class StateResource {
     }
 
     /**
+     * Returns the Zone information for all of the tasks of the service.
+     */
+    @Path("/zone/tasks")
+    @GET
+    public Response getTaskNamesToZones() {
+        try {
+            return ResponseUtils.jsonOkResponse(new JSONObject(getTasksZones(stateStore)));
+        } catch (StateStoreException ex) {
+            logger.error("Failed to fetch the zone information for the service's tasks: ", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Returns the Zone information for a given task.
+     */
+    @Path("/zone/tasks/{taskName}")
+    @GET
+    public Response getTaskNameToZone(@PathParam("taskName") String taskName) {
+        try {
+            Map<String, String> tasksZones = getTasksZones(stateStore);
+            if (tasksZones.containsKey(taskName)) {
+                return ResponseUtils.plainOkResponse(tasksZones.get(taskName));
+            } else {
+                logger.error("No zone exists for the specified task");
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        } catch (StateStoreException ex) {
+            logger.error("Failed to fetch the zone information for the service's task: ", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Returns the Zone information for a given pod type and an IP address.
+     */
+    @Path("/zone/{podType}/{ip}")
+    @GET
+    public Response getTaskIPsToZones(@PathParam("podType") String podType, @PathParam("ip") String ip) {
+        try {
+            String zone = getZoneFromTaskNameAndIP(stateStore, podType, ip);
+            if (zone.isEmpty()) {
+                logger.error("Failed to find a zone for pod type = %s, ip address = %s", podType, ip);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            return ResponseUtils.plainOkResponse(zone);
+        } catch (StateStoreException ex) {
+            logger.error("Failed to fetch the zone information for the service's task: ", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
      * Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
      * exist or the data couldn't be read.
      */
@@ -283,5 +334,48 @@ public class StateResource {
                 .filter(key -> key.startsWith(FILE_NAME_PREFIX))
                 .map(file_name -> file_name.replaceFirst(FILE_NAME_PREFIX, ""))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Constructs a map of task names to zones indicating in what zone the respective task name is in.
+     * @param stateStore The state store to get task infos from.
+     * @return Returns the map of task names to zones.
+     */
+    private static Map<String, String> getTasksZones(StateStore stateStore) {
+        Collection<String> taskNames = stateStore.fetchTaskNames();
+        Map<String, String> tasksZones = new HashMap<>();
+        for (String taskName : taskNames) {
+            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
+            if (taskInfoOptional.isPresent() && TaskUtils.taskHasZone(taskInfoOptional.get())) {
+                tasksZones.put(taskName, TaskUtils.getTaskZone(taskInfoOptional.get()));
+            }
+        }
+        return tasksZones;
+    }
+
+    /**
+     * Gets the zone of a pod given its pod type and the IP address of the pod.
+     * @param stateStore The {@link StateStore} from which to get task info and task status from.
+     * @param podType The type of the pod to get zone information for.
+     * @param ipAddress The IP address of the pod to get zone information for.
+     * @return A string indicating the zone of the pod.
+     */
+    private static String getZoneFromTaskNameAndIP(StateStore stateStore, String podType, String ipAddress) {
+        Collection<String> taskNames = stateStore.fetchTaskNames();
+        for (String taskName : taskNames) {
+            if (!taskName.startsWith(podType)) {
+                continue;
+            }
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskName);
+            Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
+            if (!taskStatusOptional.isPresent() || !taskInfoOptional.isPresent()) {
+                return "";
+            }
+            String taskIPAddress = TaskUtils.getTaskIPAddress(taskStatusOptional.get());
+            if (TaskUtils.taskHasZone(taskInfoOptional.get()) && taskIPAddress.equals(ipAddress)) {
+                return TaskUtils.getTaskZone(taskInfoOptional.get());
+            }
+        }
+        return "";
     }
 }

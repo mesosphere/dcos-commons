@@ -420,8 +420,8 @@ public class TaskUtilsTest {
                     .build());
         }
         // should be ignored for recovery purposes:
-        podBuilder.addTask(buildTaskTemplate("finished")
-                .goalState(GoalState.FINISHED)
+        podBuilder.addTask(buildTaskTemplate("once")
+                .goalState(GoalState.ONCE)
                 .build());
 
         ServiceSpec serviceSpec = DefaultServiceSpec.newBuilder()

@@ -2,7 +2,10 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Iterables;
+import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
@@ -669,5 +672,47 @@ public class DefaultServiceSpecTest {
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .build();
+    }
+
+    @Test
+    public void testGoalStateDeserializesOldValues() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
+                ((DefaultServiceSpec.ConfigFactory) serviceSpec.getConfigurationFactory(serviceSpec))
+                        .getGoalStateDeserializer();
+
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(GoalState.class, goalStateDeserializer);
+        objectMapper.registerModule(module);
+
+        Assert.assertEquals(
+                GoalState.ONCE, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
+        Assert.assertEquals(
+                GoalState.ONCE, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
+    }
+
+    @Test
+    public void testGoalStateDeserializesNewValues() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-finished.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
+                ((DefaultServiceSpec.ConfigFactory) serviceSpec.getConfigurationFactory(serviceSpec))
+                        .getGoalStateDeserializer();
+
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(GoalState.class, goalStateDeserializer);
+        objectMapper.registerModule(module);
+
+        Assert.assertEquals(
+                GoalState.FINISHED, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
+        Assert.assertEquals(
+                GoalState.FINISHED, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
     }
 }

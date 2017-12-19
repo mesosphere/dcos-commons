@@ -113,7 +113,7 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorldMoreTasks() {
           {
             "name": "world-1-sidecar",
             "id": "world-1-sidecar__3791c51d-de84-47de-9c03-9245541085cc",
-            "status": "FINISHED"
+            "status": "ONCE"
           }]
         }
       ],
@@ -133,7 +133,7 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorldMoreTasks() {
    │  └─ world-0-sidecar (PAUSED)
    └─ world-1
       ├─ world-1-server (RUNNING)
-      └─ world-1-sidecar (FINISHED)`
+      └─ world-1-sidecar (ONCE)`
 
 	result := toServiceTree([]byte(inputJSON))
 	assert.Equal(suite.T(), expectedOutput, result)

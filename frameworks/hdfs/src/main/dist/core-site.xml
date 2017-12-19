@@ -302,26 +302,20 @@
         <name>hadoop.socks.server</name>
         <value>{{HADOOP_SOCKS_SERVER}}</value>
     </property>
+    {{#PLACEMENT_REFERENCED_ZONE}}
     <property>
         <name>net.topology.node.switch.mapping.impl</name>
-        <value>{{NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL}}</value>
-    </property>
-    <property>
-        <name>net.topology.impl</name>
-        <value>{{NET_TOPOLOGY_IMPL}}</value>
+        <value>org.apache.hadoop.net.ScriptBasedMapping</value>
     </property>
     <property>
         <name>net.topology.script.file.name</name>
-        <value>{{NET_TOPOLOGY_SCRIPT_FILE_NAME}}</value>
+        <value>{{HDFS_VERSION}}/etc/hadoop/zone-resolver.sh</value>
     </property>
     <property>
         <name>net.topology.script.number.args</name>
-        <value>{{NET_TOPOLOGY_SCRIPT_NUMBER_ARGS}}</value>
+        <value>1</value>
     </property>
-    <property>
-        <name>net.topology.table.file.name</name>
-        <value>{{NET_TOPOLOGY_TABLE_FILE_NAME}}</value>
-    </property>
+    {{/PLACEMENT_REFERENCED_ZONE}}
     <property>
         <name>file.stream-buffer-size</name>
         <value>{{FILE_STREAM_BUFFER_SIZE}}</value>

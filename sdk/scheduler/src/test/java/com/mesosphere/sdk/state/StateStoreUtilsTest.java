@@ -410,7 +410,7 @@ public class StateStoreUtilsTest {
         return taskBuilder.build();
     }
 
-    private static Protos.TaskStatus newTaskStatus(final Protos.TaskInfo taskInfo, final Protos.TaskState taskState) {
+    public static Protos.TaskStatus newTaskStatus(final Protos.TaskInfo taskInfo, final Protos.TaskState taskState) {
         return newTaskStatus(taskInfo.getTaskId(), taskState);
     }
 
@@ -434,4 +434,11 @@ public class StateStoreUtilsTest {
         return configStore;
     }
 
+    public static Protos.TaskInfo createTask(String taskName) {
+        return Protos.TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonIdUtils.toTaskId(taskName))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue("ignored")) // proto field required
+                .build();
+    }
 }

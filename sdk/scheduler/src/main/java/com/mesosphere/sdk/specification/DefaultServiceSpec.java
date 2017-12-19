@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -279,7 +280,7 @@ public class DefaultServiceSpec implements ServiceSpec {
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
-        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister);
+        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister, serviceSpec);
 
         ServiceSpec loopbackSpecification;
         try {
@@ -346,11 +347,12 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultSecretSpec.class);
 
         private final ObjectMapper objectMapper;
+        private final GoalState referenceTerminalGoalState;
 
         /**
          * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
          */
-        private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes, ServiceSpec serviceSpec) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
@@ -363,6 +365,13 @@ public class DefaultServiceSpec implements ServiceSpec {
             SimpleModule module = new SimpleModule();
             module.addDeserializer(GoalState.class, new GoalStateDeserializer());
             objectMapper.registerModule(module);
+
+            referenceTerminalGoalState = getReferenceTerminalGoalState(serviceSpec);
+        }
+
+        @VisibleForTesting
+        public GoalStateDeserializer getGoalStateDeserializer() {
+            return new GoalStateDeserializer();
         }
 
         @Override
@@ -376,6 +385,18 @@ public class DefaultServiceSpec implements ServiceSpec {
             }
         }
 
+        private GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
+            Collection<TaskSpec> serviceTasks =
+                    serviceSpec.getPods().stream().flatMap(p -> p.getTasks().stream()).collect(Collectors.toList());
+            for (TaskSpec taskSpec : serviceTasks) {
+                if (taskSpec.getGoal().equals(GoalState.FINISHED)) {
+                    return GoalState.FINISHED;
+                }
+            }
+
+            return GoalState.ONCE;
+        }
+
         @VisibleForTesting
         public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
             return defaultRegisteredSubtypes;
@@ -384,7 +405,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.
          */
-        public static class GoalStateDeserializer extends StdDeserializer<GoalState> {
+        public class GoalStateDeserializer extends StdDeserializer<GoalState> {
 
             public GoalStateDeserializer() {
                 this(null);
@@ -400,7 +421,9 @@ public class DefaultServiceSpec implements ServiceSpec {
                 String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
                 if (value.equals("FINISHED") || value.equals("ONCE")) {
-                    return GoalState.FINISHED;
+                    return referenceTerminalGoalState;
+                } else if (value.equals("FINISH")) {
+                    return GoalState.FINISH;
                 } else if (value.equals("RUNNING")) {
                     return GoalState.RUNNING;
                 } else {

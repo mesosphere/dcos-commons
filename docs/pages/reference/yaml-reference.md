@@ -140,10 +140,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `goal`
 
-      The goal state of the task. Must be either `RUNNING` or `FINISHED`:
+      The goal state of the task. Must be either `RUNNING`, `FINISH` or `ONCE`:
       <div class="noyaml"><ul>
       <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
-      <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
+      <li><code>FINISH</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it is rerun.</li>
+      <li><code>ONCE</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it will not be rerun.</li>
       </ul></div>
 
     * `essential`
