@@ -16,8 +16,11 @@ path.logs: "container-path/logs"
 http.port: {{PORT_HTTP}}
 transport.tcp.port: {{PORT_TRANSPORT}}
 bootstrap.memory_lock: false
+
+{{#STATSD_ENABLED}}
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
+{{/STATSD_ENABLED}}
 
 {{#PLACEMENT_REFERENCED_ZONE}}
 {{#ZONE}}
@@ -92,7 +95,6 @@ http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
 http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
 http.pipelining: {{HTTP_PIPELINING}}
 http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
-http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 {{#THREAD_POOL_SEARCH_SIZE}}
 thread_pool.search.size: {{THREAD_POOL_SEARCH_SIZE}}
 {{/THREAD_POOL_SEARCH_SIZE}}

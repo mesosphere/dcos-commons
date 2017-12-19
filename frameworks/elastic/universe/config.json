@@ -346,6 +346,11 @@
           "type": "boolean",
           "default": false
         },
+        "statsd_enabled": {
+          "description": "Whether or not to enable the StatsD plugin that pushes Elasticsearch-related metrics to the DC/OS metrics component",
+          "type": "boolean",
+          "default": false
+        },
         "plugins": {
           "description": "Comma-separated list of plugins to install",
           "type": "string",
@@ -504,11 +509,6 @@
           "description": "The maximum number of events to be queued up in memory before a HTTP connection is closed, defaults to 10000.",
           "type": "integer",
           "default":  10000
-        },
-        "http_content_type_required": {
-          "description": "Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
-          "type": "boolean",
-          "default": false
         },
         "thread_pool_search_size": {
           "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicity set.",

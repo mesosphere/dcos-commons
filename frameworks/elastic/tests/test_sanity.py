@@ -130,27 +130,27 @@ def test_indexing(default_populated_index):
 @pytest.mark.metrics
 @pytest.mark.dcos_min_version('1.9')
 def test_metrics():
-    expected_metrics = [
-        "node.data-0-node.fs.total.total_in_bytes",
-        "node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
-        "node.data-0-node.jvm.threads.count"
-    ]
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    if config.is_statsd_enabled(foldered_name):
+        expected_metrics = [
+            "node.data-0-node.fs.total.total_in_bytes",
+            "node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
+            "node.data-0-node.jvm.threads.count"
+        ]
 
-    def expected_metrics_exist(emitted_metrics):
-        # Elastic metrics are also dynamic and based on the service name# For eg:
-        # elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
-        # To prevent this from breaking we drop the service name from the metric name
-        # => data-0-node.thread_pool.listener.completed
-        metric_names = ['.'.join(metric_name.split('.')[2:]) for metric_name in emitted_metrics]
-        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+        def expected_metrics_exist(emitted_metrics):
+            # Elastic metrics are also dynamic and based on the service name# For eg:
+            # elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
+            # To prevent this from breaking we drop the service name from the metric name
+            # => data-0-node.thread_pool.listener.completed
+            metric_names = ['.'.join(metric_name.split('.')[2:]) for metric_name in emitted_metrics]
+            return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
 
-    sdk_metrics.wait_for_service_metrics(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "data-0-node",
-        config.DEFAULT_ELASTIC_TIMEOUT,
-        expected_metrics_exist
-    )
+        sdk_metrics.wait_for_service_metrics(
+            config.PACKAGE_NAME, foldered_name, "data-0-node",
+            config.DEFAULT_ELASTIC_TIMEOUT, expected_metrics_exist)
+    else:
+        log.info("Skipping metrics test because statsd plugin isn't installed")
 
 
 @pytest.mark.sanity

@@ -9,6 +9,7 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
+from sdk_utils import get_in
 
 log = logging.getLogger(__name__)
 
@@ -289,7 +290,7 @@ def _curl_api(service_name, method, role="master", https=False):
     protocol = 'https://' if https else 'http://'
     host = protocol + sdk_hosts.autoip_host(
         service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("/opt/mesosphere/bin/curl -X{} -s -u elastic:changeme '" + host).format(method)
+    return ("/opt/mesosphere/bin/curl -X{} -u elastic:changeme -H 'Content-Type: application/json' '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):
@@ -303,3 +304,13 @@ def _master_zero_http_port(service_name):
     port = dns[0].split(':')[-1]
     log.info("Extracted {} as port for {}".format(port, dns[0]))
     return port
+
+
+def is_statsd_enabled(service_name=SERVICE_NAME):
+    nodes = get_elasticsearch_nodes_info(service_name)["nodes"]
+    # Only true if statsd is installed on all nodes.
+    return all(
+        any(
+            plugin.get("name") == "statsd"
+            for plugin in get_in([node_uid, "plugins"], nodes, []))
+        for node_uid in nodes)
