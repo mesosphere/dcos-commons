@@ -2,6 +2,8 @@ import pytest
 import sdk_plan
 import sdk_repository
 import sdk_security
+import sdk_utils
+
 
 # allow overriding these names via envvars, for confluent tests:
 PACKAGE_NAME = sdk_utils.get_package_name("beta-kafka")
