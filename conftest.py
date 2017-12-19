@@ -14,24 +14,32 @@ import sdk_security
 import sdk_utils
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
-
 log_levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'EXCEPTION')
-
-assert log_level in log_levels, '{} is not a valid log level. ' \
-    'Use one of: {}'.format(log_level, ', '.join(log_levels))
-
+assert log_level in log_levels, \
+    '{} is not a valid log level. Use one of: {}'.format(log_level, ', '.join(log_levels))
 logging.basicConfig(
     format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
     level=log_level)
 
+# reduce excessive DEBUG/INFO noise produced by some underlying libraries:
+for noise_source in [
+        'dcos.http',
+        'dcos.marathon',
+        'dcos.util',
+        'paramiko.transport',
+        'urllib3.connectionpool']:
+    logging.getLogger(noise_source).setLevel('WARNING')
+
 log = logging.getLogger(__name__)
+
+prior_task_ids = set([])
 
 
 def get_task_ids(user: str=None):
     """ This function uses dcos task WITHOUT the JSON options because
     that can return the wrong user for schedulers
     """
-    tasks = subprocess.check_output(['dcos', 'task']).decode().split('\n')
+    tasks = subprocess.check_output(['dcos', 'task', '--all']).decode().split('\n')
     for task_str in tasks[1:]:  # First line is the header line
         task = task_str.split()
         if len(task) < 5:
@@ -41,8 +49,9 @@ def get_task_ids(user: str=None):
 
 
 def get_task_logs_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000):
+    log.info("Fetching '{}' from task '{}'".format(task_file, task_id))
     result = subprocess.run(
-        ['dcos', 'task', 'log', task_id, '--lines', str(lines), task_file],
+        ['dcos', 'task', 'log', task_id, '--all', '--lines', str(lines), task_file],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -68,12 +77,21 @@ def pytest_runtest_makereport(item, call):
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
 
+    # Update the list of task ids that have been seen, regardless of this test's outcome.
+    global prior_task_ids
+    new_task_ids = [id for id in get_task_ids() if id not in prior_task_ids]
+    prior_task_ids = prior_task_ids.union(new_task_ids)
+
     # Handle failures. Must be done here and not in a fixture in order to
     # properly handle post-yield fixture teardown failures.
     if rep.failed:
-        log.error('Test {} failed in {} phase, dumping state'.format(item.name, rep.when))
+        # fetch logs of only those tasks that were created during the test
+
+        log.error('Test {} failed in {} phase. Dumping mesos state, and stdout/stderr logs for {} tasks: {}'.format(
+            item.name, rep.when, len(new_task_ids), new_task_ids))
+
         try:
-            get_task_logs_on_failure(item.name)
+            get_task_logs_on_failure(item.name, new_task_ids)
         except Exception:
             log.exception('Task log collection failed!')
         try:
@@ -83,6 +101,10 @@ def pytest_runtest_makereport(item, call):
 
 
 def pytest_runtest_setup(item):
+    # Initialize the list of task ids to include any entries unrelated to this run.
+    global prior_task_ids
+    prior_task_ids = prior_task_ids.union(get_task_ids())
+
     min_version_mark = item.get_marker('dcos_min_version')
     if min_version_mark:
         min_version = min_version_mark.args[0]
@@ -103,8 +125,8 @@ def get_rotating_task_log_lines(task_id: str, task_file: str):
         yield filename, lines
 
 
-def get_task_logs_on_failure(test_name: str):
-    for task_id in get_task_ids():
+def get_task_logs_on_failure(test_name: str, task_ids: list):
+    for task_id in task_ids:
         for task_file in ('stderr', 'stdout'):
             for log_filename, log_lines in get_rotating_task_log_lines(task_id, task_file):
                 log_name = '{}_{}_{}.log'.format(test_name, task_id, log_filename)

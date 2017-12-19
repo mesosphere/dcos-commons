@@ -7,9 +7,11 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 '''
 
 import logging
+import json
 
 import dcos
 import sdk_api
+import sdk_utils
 import shakedown
 
 TIMEOUT_SECONDS = 15 * 60
@@ -23,6 +25,16 @@ def get_deployment_plan(service_name):
 
 def get_recovery_plan(service_name):
     return get_plan(service_name, "recovery")
+
+
+def list_plans(service_name):
+    def fn():
+        output = sdk_api.get(service_name, '/v1/plans')
+        try:
+            return output.json()
+        except:
+            return False
+    return shakedown.wait_for(fn)
 
 
 def get_plan(service_name, plan):
@@ -175,3 +187,24 @@ def plan_string(plan_name, plan):
     if plan.get('errors', []):
         plan_str += '\n- errors: {}'.format(', '.join(plan['errors']))
     return plan_str
+
+
+def log_plans_if_failed(framework_name, request):
+    """If the test had failed, writes the plan state to a log file.
+
+    This should generally be used as a fixture in a framework's conftest.py:
+
+    @pytest.fixture(autouse=True)
+    def get_plans_on_failure(request):
+        yield from sdk_plan.log_plans_if_failed(framework_name, request)
+    """
+    yield
+    if sdk_utils.is_test_failure(request):
+        for plan_name in list_plans(framework_name):
+            plan = get_plan(framework_name, plan_name)
+            if not plan:
+                log.error('Unable to fetch {} plan for {}'.format(framework_name, plan_name))
+                continue
+            plan_filename = '{}_{}_plan.log'.format(request.node.name, plan_name)
+            with open(plan_filename, 'w') as f:
+                f.write(json.dumps(plan, indent=2))
