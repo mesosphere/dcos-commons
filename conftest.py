@@ -102,7 +102,7 @@ def pytest_runtest_makereport(item, call):
 
         # delete any preexisting log directory from a prior run of this test,
         # to avoid overlapping mixed logs from two different tests
-        test_log_dir = get_test_log_dir_path(item)
+        test_log_dir = sdk_utils.get_test_log_directory(item)
         if os.path.exists(test_log_dir):
             shutil.rmtree(test_log_dir)
 
@@ -131,19 +131,10 @@ def pytest_runtest_setup(item):
             pytest.skip(message)
 
 
-def get_test_log_dir_path(item: pytest.Item):
-    # full item.listchain() is e.g.:
-    # - ['build', 'frameworks/template/tests/test_sanity.py', 'test_install']
-    # - ['build', 'tests/test_sanity.py', 'test_install']
-    # we want to turn both cases into: logs/test_sanity_py/test_install
-    parent_name = item.parent.name.split('/')[-1].replace('.','_')
-    return os.path.join('logs', parent_name, item.name)
-
-
-def get_test_log_artifact_path(item: pytest.Item, artifact_name: str):
+def setup_artifact_path(item: pytest.Item, artifact_name: str):
     '''Given the pytest item and an artifact_name,
     Returns the path to write an artifact with that name.'''
-    output_dir = get_test_log_dir_path(item)
+    output_dir = sdk_utils.get_test_log_directory(item)
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
     return os.path.join(output_dir, artifact_name)
@@ -168,7 +159,7 @@ def get_task_logs_on_failure(item: pytest.Item, task_ids: list):
         known_task_files = get_task_files_for_id(task_id)
         for task_file in ('stderr', 'stdout'):
             for log_filename, log_lines in get_rotating_task_log_lines(task_id, known_task_files, task_file):
-                with open(get_test_log_artifact_path(item, '{}.{}'.format(task_id, log_filename)), 'w') as f:
+                with open(setup_artifact_path(item, '{}.{}'.format(task_id, log_filename)), 'w') as f:
                     f.write(log_lines)
 
 
@@ -179,5 +170,5 @@ def get_mesos_state_on_failure(item: pytest.Item):
         if r.status_code == 200:
             if name.endswith('.json'):
                 name = name[:-len('.json')] # avoid duplicate '.json'
-            with open(get_test_log_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:
+            with open(setup_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:
                 f.write(r.text)

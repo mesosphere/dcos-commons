@@ -56,6 +56,15 @@ def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
 
+def get_test_log_directory(pytest_node):
+    # full item.listchain() is e.g.:
+    # - ['build', 'frameworks/template/tests/test_sanity.py', 'test_install']
+    # - ['build', 'tests/test_sanity.py', 'test_install']
+    # we want to turn both cases into: 'logs/test_sanity_py/test_install'
+    parent_name = pytest_node.parent.name.split('/')[-1].replace('.','_')
+    return os.path.join('logs', parent_name, pytest_node.name)
+
+
 def is_test_failure(pytest_request):
     '''Determine if the test run failed using the request object from pytest.
     The reports being evaluated are set in conftest.py:pytest_runtest_makereport()

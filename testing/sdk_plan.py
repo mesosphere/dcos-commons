@@ -6,8 +6,9 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 
-import logging
 import json
+import logging
+import os.path
 
 import dcos
 import sdk_api
@@ -205,6 +206,8 @@ def log_plans_if_failed(framework_name, request):
             if not plan:
                 log.error('Unable to fetch {} plan for {}'.format(framework_name, plan_name))
                 continue
-            plan_filename = '{}_{}_plan.log'.format(request.node.name, plan_name)
-            with open(plan_filename, 'w') as f:
+            out_path = os.path.join(
+                sdk_utils.get_test_log_directory(request.node),
+                '{}_plan.txt'.format(plan_name))
+            with open(out_path, 'w') as f:
                 f.write(json.dumps(plan, indent=2))
