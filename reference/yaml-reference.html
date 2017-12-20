@@ -542,11 +542,95 @@ If Secret content is changed, relevant pod needs to be restarted, so it can upda
             <p><code class="highlighter-rouge">goal</code></p>
 
             <p>The goal state of the task. Must be either <code class="highlighter-rouge">RUNNING</code>, <code class="highlighter-rouge">FINISH</code> or <code class="highlighter-rouge">ONCE</code>:</p>
-            <div class="noyaml"><ul>
-<li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
-<li><code>FINISH</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it is rerun.</li>
-<li><code>ONCE</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it will not be rerun.</li>
-</ul></div>
+            <ul>
+              <li><code class="highlighter-rouge">RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically. To demonstrate, let’s assume a running instance the <code class="highlighter-rouge">hello-world</code> service on your DC/OS cluster. We’ll be updating the configuration of the <code class="highlighter-rouge">hello-0</code> pod and verifying that the <code class="highlighter-rouge">hello-0-server</code> task with goal state <code class="highlighter-rouge">RUNNING</code> is restarted and stays running. First, we verify that the deploy plan has completed:
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hello-world plan show deploy
+deploy (COMPLETE)
+├─ hello (COMPLETE)
+│  └─ hello-0:[server] (COMPLETE)
+...
+</code></pre>
+                </div>
+                <p>Now we take note of the ID of the <code class="highlighter-rouge">hello-0-server</code> task:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos task
+NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+hello-0-server  10.0.3.117  nobody    R    hello-0-server__46cf0925-9287-486b-83d7-7ffc43523671  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+...
+</code></pre>
+                </div>
+                <p>Next, we update the amount of CPU being used by the <code class="highlighter-rouge">server</code> task in the <code class="highlighter-rouge">hello</code> pod type:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ echo '{"hello": {"cpus": 0.2}}' &gt; options.json
+$ dcos hello-world update start --options=options.json
+</code></pre>
+                </div>
+                <p>After waiting for the update to complete and all tasks to be relaunched, we check the list of running tasks once again to verify that the <code class="highlighter-rouge">hello-0-server</code> step is complete, that the task was restarted (which we’ll determine by verifying that it has a different task ID) and that it’s still running:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos hello-world plan show deploy
+deploy (COMPLETE)
+├─ hello (COMPLETE)
+│  └─ hello-0:[server] (COMPLETE)
+...
+$ dcos task
+NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+hello-0-server  10.0.3.117  nobody    R    hello-0-server__3007283c-837d-48e1-aa0b-d60baead6f4e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+</code></pre>
+                </div>
+              </li>
+              <li><code class="highlighter-rouge">FINISH</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it is rerun. To demonstrate, let’s assume that we’ve now launched hello-world with the <code class="highlighter-rouge">finish_state.yml</code> specfile, like so:
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ echo '{"service": {"spec_file": "examples/finish_state.yml"}}' &gt; options.json
+$ dcos package install --yes hello-world --options=options.json
+</code></pre>
+                </div>
+                <p>Once again, we wait for the deploy plan to complete, as above, and take note of the ID of the <code class="highlighter-rouge">world-0-finish</code> task (this time using the <code class="highlighter-rouge">--completed</code> flag, since the task has run to completion):</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos task --completed
+NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+...
+world-0-finish  10.0.0.232  nobody    F    world-0-server__955a28c2-d5bc-4ce4-a4e9-b9603784382e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S3  us-west-2  us-west-2c
+...
+</code></pre>
+                </div>
+                <p>Now we update the amount of CPU being used by the <code class="highlighter-rouge">finish</code> task in the <code class="highlighter-rouge">world</code> pod type:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ echo '{"world": {"cpus": 0.2}}' &gt; options.json
+$ dcos hello-world update start --options=options.json
+</code></pre>
+                </div>
+                <p>After waiting for the update to complete, we check the task list again and this time see two completed entries for <code class="highlighter-rouge">world-0-finish</code>, showing that the configuration update has caused it to run to completion again:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos task --completed
+NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+...
+world-0-finish  10.0.0.232  nobody    F    world-0-finish__955a28c2-d5bc-4ce4-a4e9-b9603784382e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S3  us-west-2  us-west-2c
+world-0-finish  10.0.3.117  nobody    F    world-0-finish__bd03efc2-26a0-4e36-a332-38159492557e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+...
+</code></pre>
+                </div>
+              </li>
+              <li><code class="highlighter-rouge">ONCE</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it will not be rerun. To demonstrate, let’s assume that this time we’ve launched hello-world with the <code class="highlighter-rouge">discovery.yml</code> specfile, like so:&lt;/li&gt;
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ echo '{"service": {"spec_file": "examples/discovery.yml"}}' &gt; options.json
+$ dcos package install --yes hello-world --options=options.json
+</code></pre>
+                </div>
+                <p>Again we wait for the deploy plan to complete and take note of the ID of the <code class="highlighter-rouge">hello-0-once</code> task, using the <code class="highlighter-rouge">--completed</code> flag since that task has run to completion:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos task --completed
+NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+...
+hello-0-once  10.0.3.117  nobody    F    hello-0-once__8f167b23-48c8-4ea9-8559-4cf95a3703ae  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+...
+</code></pre>
+                </div>
+                <p>Now we update the amount of CPU being used by both tasks in the <code class="highlighter-rouge">hello</code> pod type:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ echo '{"hello": {"cpus": 0.2}}' &gt; options.json
+$ dcos hello-world update start --options=options.json
+</code></pre>
+                </div>
+                <p>After waiting for deployment to complete, we check the task list and find that <code class="highlighter-rouge">hello-0-once</code> only appears one time, indicating that the configuration update did not cause it to rerun:</p>
+                <div class="highlighter-rouge"><pre class="highlight"><code>$ dcos task --completed
+NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+...
+hello-0-once  10.0.3.117  nobody    F    hello-0-once__8f167b23-48c8-4ea9-8559-4cf95a3703ae  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+...
+</code></pre>
+                </div>
+              </li>
+            </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">essential</code></p>
