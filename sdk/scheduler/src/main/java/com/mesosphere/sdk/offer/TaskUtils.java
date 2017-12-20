@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -567,5 +568,39 @@ public class TaskUtils {
                     .build());
         }
         return clearedResources;
+    }
+
+    /**
+     * Determines if a task is launched in any zones.
+     * @param taskInfo The {@link TaskInfo} to get zone information from.
+     * @return A boolean indicating whether the task is in a zone.
+     */
+    public static boolean taskHasZone(TaskInfo taskInfo) {
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+                .anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
+    }
+
+    /**
+     * Gets the zone of a task.
+     * @param taskInfo The {@link TaskInfo} to get zone information from.
+     * @return A string indicating the zone the task is in.
+     */
+    public static String getTaskZone(TaskInfo taskInfo) {
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+            .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
+    }
+
+    /**
+     * Gets the IP address associated with the task.
+     * @param taskStatus the {@link TaskStatus} to get the IP address from.
+     * @return A String indicating the IP address associated with the task.
+     */
+    public static String getTaskIPAddress(TaskStatus taskStatus) throws IllegalStateException {
+        List<Protos.NetworkInfo> networkInfo = taskStatus.getContainerStatus().getNetworkInfosList();
+        if (networkInfo.isEmpty()) {
+            throw new IllegalStateException(
+                    String.format("No network info can be found for the task info: %s", taskStatus.toString()));
+        }
+        return networkInfo.stream().findFirst().get().getIpAddresses(0).getIpAddress();
     }
 }
