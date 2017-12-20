@@ -75,7 +75,6 @@ def test_endpoints():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.nick
 def test_repair_cleanup_plans_complete():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 

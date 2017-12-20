@@ -76,7 +76,6 @@ def cassandra_service_tls(service_account):
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
-@pytest.mark.nick
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
@@ -86,7 +85,7 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     with sdk_jobs.InstallJobContext([
             config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle),
             config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle),
-            config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle)]):
+            config.get_delete_data_retry_job(dcos_ca_bundle=dcos_ca_bundle)]):
 
         sdk_jobs.run_job(config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle))
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
@@ -107,7 +106,7 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
         sdk_plan.start_plan(config.SERVICE_NAME, 'backup-s3', parameters=plan_parameters)
         sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'backup-s3')
 
-        sdk_jobs.run_job(config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
+        sdk_jobs.run_job(config.get_delete_data_retry_job(dcos_ca_bundle=dcos_ca_bundle))
 
         # Run backup plan, uploading snapshots and schema to the cloudddd
         sdk_plan.start_plan(config.SERVICE_NAME, 'restore-s3', parameters=plan_parameters)
@@ -115,7 +114,7 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
 
     with sdk_jobs.InstallJobContext([
             config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle),
-            config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle)]):
+            config.get_delete_data_retry_job(dcos_ca_bundle=dcos_ca_bundle)]):
 
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
-        sdk_jobs.run_job(config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
+        sdk_jobs.run_job(config.get_delete_data_retry_job(dcos_ca_bundle=dcos_ca_bundle))
