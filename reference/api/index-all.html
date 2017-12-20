@@ -389,14 +389,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html#Builder-java.lang.String-Protos.TaskState-">Builder(String, Protos.TaskState)</a></span> - Constructor for class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus.Builder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html#buildProcess-Protos.CommandInfo-">buildProcess(Protos.CommandInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer">ProcessBuilderUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/ProcessBuilderUtils.html#buildProcess-Protos.CommandInfo-">buildProcess(Protos.CommandInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer.taskdata">ProcessBuilderUtils</a></dt>
 <dd>
 <div class="block">Returns a <code>ProcessBuilder</code> instance which has been initialized with the provided
  <code>Protos.CommandInfo</code>'s command and environment.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html#buildProcess-java.lang.String-java.util.Map-">buildProcess(String, Map&lt;String, String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer">ProcessBuilderUtils</a></dt>
-<dd>
-<div class="block">Returns a <code>ProcessBuilder</code> instance which has been initialized with the provided command and environment.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/GroupedTasks.html#byPodTypeAndIndex">byPodTypeAndIndex</a></span> - Variable in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a></dt>
 <dd>
@@ -2509,6 +2505,13 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html#getHard--">getHard()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html" title="class in com.mesosphere.sdk.specification.yaml">RawRLimit</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/HealthResource.html#getHealth--">getHealth()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api">HealthResource</a></dt>
+<dd>
+<div class="block">Returns the health of the service as a response code:
+ 417 Expectation failed: Errors in plan(s)
+ 202 Accepted: Incomplete plan(s)
+ 200 OK: All plans complete/no errors</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#getHealthCheck--">getHealthCheck()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getHealthCheck--">getHealthCheck()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
@@ -4074,6 +4077,12 @@
 <dd>
 <div class="block">HealthCheck specification.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">HealthResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dd>
+<div class="block">A read-only API for checking whether the service is healthy.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/HealthResource.html#HealthResource--">HealthResource()</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api">HealthResource</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#HOST_PORT">HOST_PORT</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#HOSTNAME">HOSTNAME</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
@@ -5469,7 +5478,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.html#PROCESS_OFFERS">PROCESS_OFFERS</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/offer/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ProcessBuilderUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
+<dt><a href="com/mesosphere/sdk/offer/taskdata/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">ProcessBuilderUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a></dt>
 <dd>
 <div class="block">Utilities relating to construction of <code>ProcessBuilder</code>s.</div>
 </dd>
@@ -6392,6 +6401,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setGracePeriodSecs-int-">setGracePeriodSecs(int)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/HealthResource.html#setHealthyPlanManagers-java.util.Collection-">setHealthyPlanManagers(Collection&lt;PlanManager&gt;)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api">HealthResource</a></dt>
+<dd>
+<div class="block">Assigns the list of plans to be checked for completion when deciding whether the service is healthy.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setHostname-Offer-">setHostname(Offer)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Stores the agent hostname from the provided <code>Offer</code>.</div>
