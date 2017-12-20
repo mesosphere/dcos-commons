@@ -2,8 +2,8 @@ package com.mesosphere.sdk.executor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.ProcessBuilderUtils;
 import com.mesosphere.sdk.offer.taskdata.ExecutorTaskLabelWriter;
+import com.mesosphere.sdk.offer.taskdata.ProcessBuilderUtils;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;

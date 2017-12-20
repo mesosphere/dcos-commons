@@ -77,9 +77,8 @@ public class TaskPackingUtils {
             try {
                 pkgExecutorInfo = ExecutorInfo.parseFrom(taskInfo.getData());
             } catch (InvalidProtocolBufferException e) {
-                // This TaskInfo has a data field, but it doesn't parse as an ExecutorInfo. Not a packed TaskInfo?
-                // TODO(nickbp): This try/catch should be removed once CuratorStateStore is no longer speculatively
-                //               unpacking all TaskInfos.
+                // In practice this shouldn't happen. This TaskInfo has a data field, but it doesn't parse as an
+                // ExecutorInfo. Let's assume this means that the TaskInfo isn't packed and return it as-is.
                 return taskInfo;
             }
 
