@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.api.types.PlanInfo;
+import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -15,6 +17,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,7 +82,11 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                     .flatMap(phase -> phase.getChildren().stream())
                     .map(step -> step.getName())
                     .collect(Collectors.toList());
-            logger.info("Recovery plan set to: {}", stepNames);
+            try {
+                logger.info("Recovery plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
+            } catch (IOException e) {
+                logger.error("Failed to serialize plan to JSON. Recovery plan set to: {}", stepNames);
+            }
         }
     }
 
