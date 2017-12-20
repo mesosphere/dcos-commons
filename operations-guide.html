@@ -1036,7 +1036,10 @@ only as a file such that it will be autoatically decoded and made available as a
 
 <h3 id="regions-and-zones">Regions and Zones</h3>
 
-<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint <code class="highlighter-rouge">@zone:GROUP_BY:3</code>.</p>
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
+</code></pre>
+</div>
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
 
