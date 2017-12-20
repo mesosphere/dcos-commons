@@ -1,4 +1,5 @@
 import pytest
+import sdk_fault_domain
 import sdk_install
 from tests import config
 
@@ -35,4 +36,7 @@ def test_detect_racks():
     print_topology_cmd = "./bin/hdfs dfsadmin -printTopology"
     _, output = config.run_hdfs_command(config.SERVICE_NAME, print_topology_cmd)
 
-    assert "Rack: /us-west" in output
+    # expecting e.g. "Rack: /aws/us-west-2b\n"
+    assert output.startswith('Rack: /')
+    output = output[len('Rack: /'):]
+    assert sdk_fault_domain.is_valid_zone(output.strip())
