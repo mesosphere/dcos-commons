@@ -59,7 +59,8 @@ def as_json(fn):
             value = fn(*args, **kwargs)
             return json.loads(value)
         except (TypeError, json.JSONDecodeError, ValueError):
-            log.info("Failed to parse value returned by \"{}\" as JSON. Value: {}".format(fn.__name__, value))
+            log.info("Failed to parse value returned by \"{}\" as JSON, returning None".format(fn.__name__))
+            log.info("Value: {}".format(value))
             return None
 
     return wrapper
@@ -181,8 +182,9 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     if is_enabled:
         assert response["failures"] == []
     else:
-        # The _graph endpoint doesn't even exist without X-Pack installed
-        assert response["status"] == 400
+        # The graph endpoint doesn't exist without X-Pack installed. In that case Elasticsearch returns a plain text
+        # response (non-JSON) which when parsed by our @as_json decorator turns into a None.
+        assert response == None
 
 
 def enable_xpack(service_name=SERVICE_NAME):
