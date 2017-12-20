@@ -75,6 +75,7 @@ def test_endpoints():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@pytest.mark.nick
 def test_repair_cleanup_plans_complete():
     parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
 
@@ -87,7 +88,7 @@ def test_repair_cleanup_plans_complete():
                     node_address=config.get_foldered_node_address())
             ],
             after_jobs=[
-                config.get_delete_data_job(
+                config.get_delete_data_retry_job(
                     node_address=config.get_foldered_node_address()),
                 config.get_verify_deletion_job(
                     node_address=config.get_foldered_node_address())

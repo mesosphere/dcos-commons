@@ -76,6 +76,7 @@ def test_backup_and_restore_to_azure():
 
 
 @pytest.mark.aws
+@pytest.mark.nick
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3():
     key_id = os.getenv('AWS_ACCESS_KEY_ID')
