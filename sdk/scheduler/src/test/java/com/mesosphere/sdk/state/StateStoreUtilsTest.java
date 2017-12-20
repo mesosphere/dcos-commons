@@ -342,7 +342,7 @@ public class StateStoreUtilsTest {
         ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
 
         // Create task info
-        Protos.TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
 
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));

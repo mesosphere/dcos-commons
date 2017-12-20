@@ -90,12 +90,22 @@ public class StateStoreUtils {
                 throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
             }
 
-            boolean isPermanentlyFailed =
-                    FailureUtils.isPermanentlyFailed(info) && taskSpec.get().getGoal() != GoalState.FINISHED;
+            boolean markedFailed = FailureUtils.isPermanentlyFailed(info);
+            boolean isPermanentlyFailed = markedFailed && taskSpec.get().getGoal() == GoalState.RUNNING;
 
             if (TaskUtils.needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
-                LOGGER.info("Task: '{}' needs recovery with status: {} and is permanently failed: {}.",
-                        taskSpec.get().getName(), TextFormat.shortDebugString(status), isPermanentlyFailed);
+
+                LOGGER.info(
+                        "Task: '{}' needs recovery " +
+                                "with status: {}, " +
+                                "marked failed: {}, " +
+                                "goal state: {}, " +
+                                "permanently failed: {}.",
+                        taskSpec.get().getName(),
+                        TextFormat.shortDebugString(status),
+                        markedFailed,
+                        taskSpec.get().getGoal().name(),
+                        isPermanentlyFailed);
                 results.add(info);
             }
         }
