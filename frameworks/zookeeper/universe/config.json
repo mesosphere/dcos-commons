@@ -76,7 +76,7 @@
             "title": "CPU count",
             "description": "Number of cpu shares allocated to the Zookeeper process",
             "type": "number",
-            "default": 0.2
+            "default": 0.5
           },
           "mem": {
             "title": "Memory size (MB)",
@@ -108,7 +108,8 @@
           "count",
           "cpus",
           "mem",
-          "disk"
+          "disk",
+          "portworx_volume_name"
         ]
       },
       "zookeeper": {
