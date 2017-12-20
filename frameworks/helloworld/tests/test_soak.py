@@ -356,6 +356,29 @@ def test_multiple_pod_pause():
         assert phase['steps'][0]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][0]['status'] == 'PAUSED'
 
+    # verify that the 11th hello pod is unaffacted
+    jsonobj = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-10 --json', json=True
+    )
+    assert len(jsonobj['tasks']) == 2
+    assert jsonobj['tasks'][0]['name'] == 'hello-10-server'
+    assert jsonobj['tasks'][0]['status'] == 'RUNNING'
+    phase = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+    )['phases'][10]
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][0]['name'] == 'hello-10:[server]'
+    assert phase['steps'][0]['status'] == 'COMPLETE'
+
+    assert jsonobj['tasks'][1]['name'] == 'hello-10-companion'
+    assert jsonobj['tasks'][1]['status'] == 'RUNNING'
+    assert phase['name'] == 'hello'
+    assert phase['status'] == 'COMPLETE'
+    assert phase['steps'][1]['name'] == 'hello-10:[companion]'
+    assert phase['steps'][1]['status'] == 'COMPLETE'
+
+
     # get paused task ids
     paused_pod_task_ids = []
     for i in range(10):
