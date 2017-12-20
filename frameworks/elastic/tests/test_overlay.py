@@ -1,4 +1,5 @@
 import pytest
+import retrying
 import sdk_install
 import sdk_networks
 import sdk_tasks
@@ -48,6 +49,10 @@ def test_service_health():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version('1.9')
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=config.DEFAULT_ELASTIC_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
 def test_indexing(default_populated_index):
     def fun():
         indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
@@ -56,8 +61,6 @@ def test_indexing(default_populated_index):
         doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
         observed_name = doc["_source"]["name"]
         return observed_name == "Loren"
-
-    return shakedown.wait_for(fun, timeout_seconds=config.DEFAULT_ELASTIC_TIMEOUT)
 
 
 @pytest.mark.sanity
