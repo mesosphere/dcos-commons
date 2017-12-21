@@ -186,11 +186,26 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     private boolean failureStateHasChanged(PodInstanceRequirement podInstanceRequirement) {
         RecoveryType original = podInstanceRequirement.getRecoveryType();
 
+        Collection<String> taskInfoNames =
+                TaskUtils.getTaskNames(
+                        podInstanceRequirement.getPodInstance(),
+                        podInstanceRequirement.getTasksToLaunch());
         Collection<Protos.TaskInfo> taskInfos =
-                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance());
+                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance()).stream()
+                .filter(taskInfo -> taskInfoNames.contains(taskInfo.getName()))
+                .collect(Collectors.toList());
+
         RecoveryType current = getRecoveryType(taskInfos);
 
-        return !original.equals(current);
+        boolean recoveryStateHasChanged = !original.equals(current);
+        if (recoveryStateHasChanged) {
+            logger.info("Pod: {} recovery state has changed from: {} to: {}",
+                    getPodNames(Arrays.asList(podInstanceRequirement)),
+                    original,
+                    current);
+        }
+
+        return recoveryStateHasChanged;
     }
 
     /**
@@ -204,6 +219,11 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         } else if (taskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
             return RecoveryType.TRANSIENT;
         } else {
+            for (Protos.TaskInfo taskInfo : taskInfos) {
+                RecoveryType recoveryType =
+                        isTaskPermanentlyFailed(taskInfo) ? RecoveryType.PERMANENT : RecoveryType.TRANSIENT;
+                logger.info("Task: {} has recovery type: {}", taskInfo.getName(), recoveryType);
+            }
             return RecoveryType.NONE;
         }
     }
