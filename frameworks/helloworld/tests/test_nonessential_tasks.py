@@ -31,7 +31,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.nick
 @pytest.mark.sanity
 def test_kill_essential():
     '''kill the essential task, verify that both tasks are relaunched against a matching executor'''
@@ -51,7 +50,6 @@ def test_kill_essential():
     verify_shared_executor('hello-0', delete_files=False) # leave files as-is for the next test
 
 
-@pytest.mark.nick
 @pytest.mark.sanity
 def test_kill_nonessential():
     '''kill the nonessential task, verify that the nonessential task is relaunched against the same executor as before'''

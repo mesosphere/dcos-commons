@@ -11,13 +11,13 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    image: {{CASSANDRA_DOCKER_IMAGE}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
       size: {{CASSANDRA_DISK_MB}}
     uris:
       - {{CASSANDRA_JAVA_URI}}
+      - {{CASSANDRA_PYTHON_URI}}
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
@@ -99,6 +99,7 @@ pods:
       backup-schema:
         goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
@@ -133,11 +134,14 @@ pods:
         resource-set: sidecar-resources
       upload-s3:
         goal: ONCE
-        cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
+        cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
       upload-azure:
         goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 (cd container-path && tar cvhzf snapshot.tar.gz snapshot/) ;
@@ -153,12 +157,14 @@ pods:
       fetch-s3:
         goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 mkdir container-path/snapshot ;
                 aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
         resource-set: sidecar-resources
       fetch-azure:
         goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ;
@@ -169,6 +175,7 @@ pods:
       restore-schema:
         goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
@@ -227,6 +234,8 @@ pods:
       init_system_keyspaces:
         goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                echo Using $(python --version 2>&1) in $(which python) ;
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
                 {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
