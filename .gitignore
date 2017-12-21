@@ -23,6 +23,7 @@ tools/elastic
 tools/helloworld
 tools/template
 /test_*.json
+/logs/
 *.log
 *.pem
 

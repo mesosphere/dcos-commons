@@ -82,7 +82,7 @@ def get_json_output(cmd, print_output=True):
     _, stdout, stderr = run_raw_cli(cmd, print_output)
 
     if stderr:
-        log.warn("stderr for command '%s' is non-empty: %s", cmd, stderr)
+        log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
 
     try:
         json_stdout = jsonlib.loads(stdout)
