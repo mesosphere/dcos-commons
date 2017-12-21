@@ -39,6 +39,9 @@ for noise_source in [
 
 log = logging.getLogger(__name__)
 
+# limit the number of tasks that we fetch logs from:
+# 4s (time per download) * 2 (stdout + stderr) * 50 (limit) = 6m40s to download logs (or more with stdout.1/.2/...)
+task_id_limit = 50
 prior_task_ids = set([])
 
 
@@ -95,8 +98,12 @@ def pytest_runtest_makereport(item, call):
     # Handle failures. Must be done here and not in a fixture in order to
     # properly handle post-yield fixture teardown failures.
     if rep.failed:
-        # fetch logs of only those tasks that were created during the test
-
+        # fetch logs of only those tasks that were created during the test.
+        # enforce limit on how many tasks we will fetch logs from, to avoid unbounded log fetching.
+        if len(new_task_ids) > task_id_limit:
+            log.warning('{} new tasks to fetch logs from. Pruning to {} tasks to avoid fetching logs forever: {}'.format(
+                len(new_task_ids), task_id_limit, new_task_ids))
+            del new_task_ids[task_id_limit:]
         log.info('Test {} failed in {} phase. Dumping mesos state, and stdout/stderr logs for {} tasks: {}'.format(
             item.name, rep.when, len(new_task_ids), new_task_ids))
 
