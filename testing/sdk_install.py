@@ -77,8 +77,9 @@ def install(
                      package_name, service_name)
         else:
             log.info("Waiting for %s/%s to be suppressed...", package_name, service_name)
+            is_suppressed = lambda: sdk_api.is_suppressed(service_name)
             shakedown.wait_for(
-                lambda: sdk_api.is_suppressed(service_name),
+                is_suppressed,
                 noisy=True,
                 timeout_seconds=5 * 60)
 
