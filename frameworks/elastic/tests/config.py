@@ -24,8 +24,8 @@ DEFAULT_TASK_COUNT = 6
 #         * count for a specific type, ie 3
 #         * count by type, ie [{'ingest':1},{'data':3},...]
 
-DEFAULT_ELASTIC_TIMEOUT = 30 * 60
-DEFAULT_KIBANA_TIMEOUT = 30 * 60
+DEFAULT_ELASTIC_TIMEOUT = 60 * 60
+DEFAULT_KIBANA_TIMEOUT = 60 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
