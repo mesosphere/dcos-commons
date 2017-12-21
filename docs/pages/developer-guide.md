@@ -1323,7 +1323,7 @@ ZONE: us-west-2a
 Services may choose to use this information to enable rack awareness. Users may then configure [placement rules](#placement-rules) to ensure that their pods are appropriately placed within specific regions and zones, or distributed across those regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
 
 ```
-@zone:GROUP_BY:2
+[["@zone", "GROUP_BY", "2"]]
 ```
 
 The placement rule above would apply the `GROUP_BY` operator to zones.
@@ -1333,7 +1333,7 @@ The placement rule above would apply the `GROUP_BY` operator to zones.
 The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
 
 ```
-@region:IS:us-west-2
+[["@region", "IS", "us-west-2"]]
 ```
 
 Any placement rules that do *not* reference the `@region` key require placement in the local region.

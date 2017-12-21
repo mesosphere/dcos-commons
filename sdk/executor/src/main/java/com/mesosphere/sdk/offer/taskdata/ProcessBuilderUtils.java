@@ -1,10 +1,8 @@
-package com.mesosphere.sdk.offer;
+package com.mesosphere.sdk.offer.taskdata;
 
 import java.util.Map;
 
 import org.apache.mesos.Protos;
-
-import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 
 /**
  * Utilities relating to construction of {@link ProcessBuilder}s.
@@ -25,7 +23,7 @@ public class ProcessBuilderUtils {
     /**
      * Returns a {@link ProcessBuilder} instance which has been initialized with the provided command and environment.
      */
-    public static ProcessBuilder buildProcess(String cmd, Map<String, String> env) {
+    private static ProcessBuilder buildProcess(String cmd, Map<String, String> env) {
         ProcessBuilder builder = new ProcessBuilder("/bin/bash", "-c", cmd).inheritIO();
         builder.environment().putAll(env);
         return builder;
