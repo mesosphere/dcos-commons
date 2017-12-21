@@ -54,7 +54,7 @@ def install(
     start = time.time()
     merged_options = get_package_options(additional_options)
 
-    log.info('Installing {}/{} with options={} version={}'.format(
+    log.info('Installing {}:{} with options={} version={}'.format(
         package_name, service_name, merged_options, package_version))
 
     # 1. Install package, wait for tasks, wait for marathon deployment
@@ -70,7 +70,7 @@ def install(
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
     if wait_for_deployment:
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
-        # total task count via ONCE tasks, without actually completing deployment
+        # total task count via FINISHED tasks, without actually completing deployment
         log.info("Waiting for {}/{} to finish deployment plan...".format(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
@@ -151,16 +151,15 @@ def _uninstall(
             shakedown.deployment_wait(TIMEOUT_SECONDS, marathon_app_id)
 
             # wait for service to be gone according to marathon
+            client = shakedown.marathon.create_client()
             def marathon_dropped_service():
-                client = shakedown.marathon.create_client()
-                app_list = client.get_apps()
-                app_ids = [app['id'] for app in app_list]
+                app_ids = [app['id'] for app in client.get_apps()]
                 log.info('Marathon apps: {}'.format(app_ids))
                 matching_app_ids = [
                     app_id for app_id in app_ids if app_id == marathon_app_id
                 ]
                 if len(matching_app_ids) > 1:
-                    log.info('Found multiple apps with id {}'.format(
+                    log.warning('Found multiple apps with id {}'.format(
                         marathon_app_id))
                 return len(matching_app_ids) == 0
             log.info('Waiting for no {} Marathon app'.format(marathon_app_id))

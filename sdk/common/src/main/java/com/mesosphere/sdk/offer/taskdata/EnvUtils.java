@@ -9,8 +9,6 @@ import org.apache.mesos.Protos.Environment;
 
 /**
  * Utilities relating to environment variable manipulation.
- *
- * TODO(nickbp): Make most of this package-private as refactoring of env handling progresses.
  */
 public class EnvUtils {
 

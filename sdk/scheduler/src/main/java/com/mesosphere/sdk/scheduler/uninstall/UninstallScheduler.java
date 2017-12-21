@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.api.HealthResource;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.*;
@@ -56,8 +57,9 @@ public class UninstallScheduler extends AbstractScheduler {
         uninstallPlanBuilder = new UninstallPlanBuilder(
                 serviceSpec, stateStore, configStore, schedulerConfig, customSecretsClientForTests);
         uninstallPlanManager = DefaultPlanManager.createProceeding(uninstallPlanBuilder.getPlan());
-        resources = Collections.singletonList(new PlansResource()
-                .setPlanManagers(Collections.singletonList(uninstallPlanManager)));
+        resources = Arrays.<Object>asList(
+                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
+                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
     }
 
     @Override

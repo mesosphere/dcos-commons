@@ -38,7 +38,6 @@ def test_install():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_once_task_does_not_restart_on_config_update():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
@@ -56,7 +55,6 @@ def test_once_task_does_not_restart_on_config_update():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_finish_task_restarts_on_config_update():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)

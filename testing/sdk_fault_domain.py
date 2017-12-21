@@ -29,17 +29,23 @@ AWS_REGIONS = [
 ]
 
 # TODO: use cloud provider library APIs to get list of zones.
-AWS_ZONE_SUFFIXES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+# a through h
+AWS_ZONE_SUFFIXES = [chr(i) for i in range(ord('a'), ord('h')+1)]
 
 
+# expect e.g. "aws/us-west-2" or "ca-central-1"
 def is_valid_aws_region(region: str):
+    if region.startswith('aws/'):
+        # trim leading 'aws/' if present
+        region = region[len('aws/'):]
     return region in AWS_REGIONS
 
 
+# expect e.g. "aws/us-west-2c" or "ca-central-1h"
 def is_valid_aws_zone(zone: str):
-    region = zone[:-1]
-    zone_suffix = zone.lstrip(region)
-    return is_valid_region(region) and zone_suffix in AWS_ZONE_SUFFIXES
+    region = zone[:-1] # all except last character
+    zone_suffix = zone[-1:] # last character
+    return is_valid_aws_region(region) and zone_suffix in AWS_ZONE_SUFFIXES
 
 
 # TODO: handle multiple cloud providers.
@@ -49,4 +55,5 @@ def is_valid_region(region: str):
 
 # TODO: handle multiple cloud providers.
 def is_valid_zone(zone: str):
+    # e.g. "aws/us-west-2c"
     return is_valid_aws_zone(zone)

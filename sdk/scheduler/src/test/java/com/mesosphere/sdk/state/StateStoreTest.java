@@ -4,7 +4,6 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterUtils;
@@ -209,24 +208,6 @@ public class StateStoreTest {
         assertTrue(store.fetchTaskNames().isEmpty());
         assertTrue(store.fetchTasks().isEmpty());
         assertTrue(store.fetchStatuses().isEmpty());
-    }
-
-    // TODO(nickbp): Remove this test once CuratorStateStore no longer speculatively unpacks all stored TaskInfos
-    @Test
-    public void testStorePackedTask() throws Exception {
-        Protos.TaskInfo.Builder origInfoBuilder = StateStoreUtilsTest.createTask("foo").toBuilder();
-        origInfoBuilder.getExecutorBuilder().getExecutorIdBuilder().setValue("hi");
-        Protos.TaskInfo origInfo = origInfoBuilder.build();
-
-        Protos.TaskInfo packedInfo = TaskPackingUtils.pack(origInfo);
-        assertFalse(packedInfo.hasCommand());
-        assertTrue(packedInfo.hasExecutor());
-        assertTrue(packedInfo.hasData());
-        store.storeTasks(Arrays.asList(packedInfo));
-
-        // result shold be unpacked automatically:
-        Protos.TaskInfo retrievedInfo = store.fetchTask("foo").get();
-        assertEquals(origInfo, retrievedInfo);
     }
 
     // status
