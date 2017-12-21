@@ -5,17 +5,17 @@ set -e
 usage() {
     # This script is generally called by an upstream 'build.sh'. This describes the commands that are meant to be user facing.
     # Direct callers of build_framework.sh (i.e. framework developers) should see below...
-    echo "Syntax: build.sh [-h|--help] [aws|local] [--cli-only]"
+    echo "Syntax: build.sh [-h|--help] [aws|local]"
 }
 
 # SYNTAX FOR AUTHORS OF BUILD.SH:
-#   build_framework.sh <framework-name> </abs/path/framework> [aws|local] [--cli-only] [--artifact 'path1' --artifact 'path2' ...]
+#   build_framework.sh <framework-name> </abs/path/framework> [aws|local] [--artifact 'path1' --artifact 'path2' ...]
 # Optional envvars:
 #   REPO_ROOT_DIR: path to root of source repository (default: parent directory of this file)
 #   REPO_NAME: name of the source repository (default: directory name of REPO_ROOT_DIR)
 #   BOOTSTRAP_DIR: path to bootstrap tool, or "disable" to disable bootstrap build (default: <REPO_ROOT_DIR>/sdk/bootstrap)
 #   EXECUTOR_DIR: path to the executor directory, or "disable" to disable executor build (default: <REPO_ROOT_DIR>/sdk/executor)
-#   CLI_DIR: path to the CLI directory, or "disable" to disable CLI build (default: </absolute/framework/path>/cli/)
+#   CLI_DIR: path to the CLI directory, or "disable" to disable CLI build (default: <REPO_ROOT_DIR>/sdk/cli)
 #   UNIVERSE_DIR: path to universe packaging (default: </absolute/framework/path>/universe/)
 
 
@@ -33,7 +33,6 @@ shift
 echo "Building $FRAMEWORK_NAME in $FRAMEWORK_DIR:"
 
 # optional args:
-cli_only=
 custom_artifacts=
 publish_method="no"
 while [ $# -gt 0 ]; do
@@ -41,9 +40,6 @@ while [ $# -gt 0 ]; do
         --help|-h|-\?)
             usage
             exit
-            ;;
-        --cli-only)
-            cli_only="true"
             ;;
         --artifact)
             # allow append across args:
@@ -77,24 +73,8 @@ export REPO_NAME=$(basename $REPO_ROOT_DIR) # default to name of REPO_ROOT_DIR
 # optional customizable names/paths:
 BOOTSTRAP_DIR=${BOOTSTRAP_DIR:=${REPO_ROOT_DIR}/sdk/bootstrap}
 EXECUTOR_DIR=${EXECUTOR_DIR:=${REPO_ROOT_DIR}/sdk/executor}
-CLI_DIR=${CLI_DIR:=$(ls -d ${FRAMEWORK_DIR}/cli/dcos-*)}
+CLI_DIR=${CLI_DIR:=${REPO_ROOT_DIR}/sdk/cli}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe}
-
-
-# Used below in-order, but here for cli-only
-build_cli() {
-    # CLI (Go):
-    # /home/user/dcos-commons/frameworks/project/cli/dcos-project => frameworks/project/cli/dcos-project
-    REPO_CLI_RELATIVE_PATH="$(echo $CLI_DIR | cut -c $((2 + ${#REPO_ROOT_DIR}))-)"
-    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-service-cli-linux linux
-    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-service-cli-darwin darwin
-    $TOOLS_DIR/build_go_exe.sh $REPO_CLI_RELATIVE_PATH/ dcos-service-cli.exe windows
-}
-
-if [ x"$cli_only" = xtrue ]; then
-    build_cli
-    exit
-fi
 
 DISABLED_VALUE="disable"
 
@@ -120,8 +100,7 @@ echo "---"
 
 
 # Verify airgap (except for hello world)
-if [ $FRAMEWORK_NAME != "hello-world" ];
-then
+if [ $FRAMEWORK_NAME != "hello-world" ]; then
     ${TOOLS_DIR}/airgap_linter.py ${FRAMEWORK_DIR}
 fi
 
@@ -142,7 +121,8 @@ fi
 
 CLI_ARTIFACTS=""
 if [ "$CLI_DIR" != $DISABLED_VALUE ]; then
-    build_cli
+    # CLI (Go):
+    ${CLI_DIR}/build.sh
     CLI_ARTIFACTS="${CLI_DIR}/dcos-service-cli-linux ${CLI_DIR}/dcos-service-cli-darwin ${CLI_DIR}/dcos-service-cli.exe"
 fi
 

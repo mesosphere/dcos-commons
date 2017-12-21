@@ -9,8 +9,8 @@ syntax() {
     echo "- REPO_ROOT_DIR: Path to root of repository"
     echo "- REPO_NAME: Name of repository"
     echo "Optional envvars:"
-    echo "- GOPATH_REPO_ORG: Path within GOPATH/src/ under which REPO_NAME resides. GOPATH/src/<GOPATH_REPO_ORG>/<REPO_NAME>/... (default: github.com/mesosphere)"
-    echo "- CLI_BUILD_SKIP_UPX: If non-empty, disables UPX compression of binaries"
+    echo "- GOPATH_REPO_ORG: Path within GOPATH/src/ under which REPO_NAME resides. GOPATH/src/<GOPATH_REPO_ORG>/<REPO_NAME>/... (default: 'github.com/mesosphere')"
+    echo "- SKIP_UPX: If non-empty, disables UPX compression of binaries"
 }
 
 if [ $# -lt 2 ]; then
@@ -27,8 +27,8 @@ if [ -z "$RELATIVE_EXE_DIR" -o -z "$EXE_FILENAME" -o -z "$PLATFORM" ]; then
 fi
 echo "Building $EXE_FILENAME for $PLATFORM in $RELATIVE_EXE_DIR"
 
-if [ -z "$GOPATH" -o -z "$(which go)" ]; then
-    echo "Missing GOPATH environment variable or 'go' executable. Please configure a Go build environment."
+if [ -z "$(which go)" ]; then
+    echo "Missing 'go' executable. Please download Go 1.8+ from golang.org, and add 'go' to your PATH."
     syntax
     exit 1
 fi
@@ -44,7 +44,7 @@ GO_VERSION=$(go version | awk '{print $3}')
 # Note, UPX only works on binaries produced by Go 1.7+. However, we require Go 1.8+
 UPX_BINARY="$(which upx || which upx-ucl || echo '')"
 # For dev iteration; upx takes a long time; can set env var
-if [ -n "$CLI_BUILD_SKIP_UPX" ]; then
+if [ -n "$SKIP_UPX" ]; then
     UPX_BINARY=
 fi
 case "$GO_VERSION" in
@@ -60,8 +60,13 @@ case "$GO_VERSION" in
         ;;
 esac
 
+# create a fake gopath structure within the repo at ${REPO}/.gopath/
+export GOPATH=${REPO_ROOT_DIR}/.gopath
+
 GOPATH_REPO_ORG=${ORG_PATH:=github.com/mesosphere}
-GOPATH_REPO_ORG_DIR="$GOPATH/src/$GOPATH_REPO_ORG"
+# ex: /.gopath/src/github.com/mesosphere
+GOPATH_REPO_ORG_DIR=${GOPATH}/src/${GOPATH_REPO_ORG}
+# ex: /.gopath/src/github.com/mesosphere/dcos-commons/sdk/cli
 GOPATH_EXE_DIR="$GOPATH_REPO_ORG_DIR/$REPO_NAME/$RELATIVE_EXE_DIR"
 
 # Add symlink from GOPATH which points into the repository directory, if necessary:
@@ -74,18 +79,15 @@ if [ ! -h "$SYMLINK_LOCATION" -o "$(readlink $SYMLINK_LOCATION)" != "$REPO_ROOT_
     ln -s "$REPO_ROOT_DIR" $REPO_NAME
 fi
 
-# Add symlink from GOPATH for the vendor deps that aren't under our repo org
-for external_vendor in github.com/containernetworking github.com/dcos github.com/vishvanada; do
-    if [ ! -h $GOPATH/src/$external_vendor ]; then
-        ln -s $REPO_ROOT_DIR/govendor/$external_vendor/ $GOPATH/src/$external_vendor
-    fi
-done
-
 # Run 'go test'/'go build' from within GOPATH:
 cd $GOPATH_EXE_DIR
 
-# run unit tests
-go test -v
+# Run unit tests, if any '_test.go' files exist:
+if [ -n "$(find . -iname '*_test.go')" ]; then
+    go test -v
+else
+    echo "$EXE_FILENAME: No unit tests found in $GOPATH_EXE_DIR"
+fi
 
 # optimization: build a native version of the executable and check if the sha1 matches a
 # previous native build. if the sha1 matches, then we can skip the rebuild.

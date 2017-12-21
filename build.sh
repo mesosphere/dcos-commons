@@ -50,9 +50,8 @@ if [ ! -e $GOPATH/src ]; then
     ln -s $REPO_ROOT_DIR/govendor $GOPATH/src
 fi
 
-# Verify golang-based projects: SDK CLI (exercised via helloworld, our model service)
-# and SDK bootstrap, run unit tests
-for golang_sub_project in cli sdk/bootstrap; do
+# Verify golang-based projects with unit tests: CLI library and bootstrap
+for golang_sub_project in cli/ sdk/bootstrap/; do
     pushd $golang_sub_project
     go test -v ./...
     popd
