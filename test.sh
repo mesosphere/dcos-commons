@@ -208,5 +208,5 @@ docker run --rm \
     -w /build \
     -t \
     -i \
-    mesosphere/dcos-commons:latest \
+    mesosphere/dcos-commons:uninstall_fix \
     $DOCKER_COMMAND
