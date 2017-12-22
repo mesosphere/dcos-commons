@@ -108,10 +108,8 @@ def _uninstall(
             shakedown.uninstall_package_and_wait(
                 package_name, service_name=service_name)
         except (dcos.errors.DCOSException, ValueError) as e:
-            log.info('Got exception when uninstalling package, ' +
-                          'continuing with janitor anyway: {}'.format(e))
-            if 'marathon' in str(e):
-                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
+            log.info('Got exception when uninstalling package: {}'.format(e))
+            if 'is not installed' not in str(e):
                 raise
 
         janitor_start = time.time()
@@ -166,10 +164,8 @@ def _uninstall(
             shakedown.time_wait(marathon_dropped_service, timeout_seconds=TIMEOUT_SECONDS)
 
         except (dcos.errors.DCOSException, ValueError) as e:
-            log.info(
-                'Got exception when uninstalling package: {}'.format(e))
-            if 'marathon' in str(e):
-                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
+            log.info('Got exception when uninstalling package: {}'.format(e))
+            if 'is not installed' not in str(e):
                 raise
         finally:
             sdk_utils.list_reserved_resources()
