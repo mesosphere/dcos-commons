@@ -31,7 +31,7 @@ public class HealthResource {
     }
 
     /**
-     * Returns the health of the service as a response code:
+     * Returns the health of the service as a response code.
      * <ul><li>417 Expectation failed: Errors in plan(s)</li>
      * <li>202 Accepted: Incomplete plan(s)</li>
      * <li>200 OK: All plans complete/no errors</li></ul>
