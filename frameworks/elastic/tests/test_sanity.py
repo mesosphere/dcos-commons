@@ -74,6 +74,7 @@ def test_indexing(default_populated_index):
     assert indices_stats["_all"]["primaries"]["docs"]["count"] == 1
     doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1, service_name=FOLDERED_SERVICE_NAME)
     assert doc["_source"]["name"] == "Loren"
+    assert doc["_source"]["name"] == "Loren"
 
 
 @pytest.mark.sanity
