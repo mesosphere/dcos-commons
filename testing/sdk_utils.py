@@ -86,7 +86,8 @@ def get_test_log_directory(pytest_node):
     # - ['build', 'frameworks/template/tests/test_sanity.py', 'test_install']
     # - ['build', 'tests/test_sanity.py', 'test_install']
     # we want to turn both cases into: 'logs/test_sanity_py/test_install'
-    if test_index >= 0:
+    global test_index
+    if test_index > 0:
         # test_index is defined: get name like "05__test_placement_rules"
         test_name = '{:02d}__{}'.format(test_index, pytest_node.name)
     else:

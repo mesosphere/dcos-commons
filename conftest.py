@@ -192,7 +192,7 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
     return os.path.join(output_dir, artifact_name)
 
 
-def get_task_files_for_id(task_id: str):
+def get_task_files_for_id(task_id: str) -> set:
     try:
         return set(subprocess.check_output(['dcos', 'task', 'ls', task_id, '--all']).decode().split())
     except:
@@ -200,7 +200,7 @@ def get_task_files_for_id(task_id: str):
         return set()
 
 
-def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000):
+def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000) -> str:
     log.info('Fetching {} from {}'.format(task_file, task_id))
     result = subprocess.run(
         ['dcos', 'task', 'log', task_id, '--all', '--lines', str(lines), task_file],
@@ -211,7 +211,7 @@ def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=10000
         errmessage = result.stderr.decode()
         if not errmessage.startswith('No files exist. Exiting.'):
             log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, errmessage))
-        return None
+        return ''
     return result.stdout.decode()
 
 
