@@ -75,24 +75,40 @@ def install(
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
-        wait_for_deployment=True):
+        wait_for_deployment=True,
+        insert_strict_options=True):
     start = time.time()
 
     # If the package is already installed at this point, fail immediately.
     if sdk_marathon.app_exists(service_name):
         raise dcos.errors.DCOSException('Service is already installed: {}'.format(service_name))
 
+    if insert_strict_options and sdk_utils.is_strict_mode():
+        # strict mode requires correct principal and secret to perform install.
+        # see also: sdk_security.py
+        options = merge_dictionaries({
+            'service': {
+                'service_account': 'service-acct',
+                'principal': 'service-acct',
+                'service_account_secret': 'secret',
+                'secret_name': 'secret'
+            }
+        }, additional_options)
+    else:
+        options = additional_options
+
     # 1. Install package, wait for tasks, wait for marathon deployment
     _retried_install_impl(
         package_name,
         service_name,
         expected_running_tasks,
-        get_package_options(additional_options),
+        options,
         package_version,
         timeout_seconds)
 
     # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)
-    # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete state.
+    # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete
+    # state, or if the thing being installed doesn't have a deployment plan (e.g. standalone app)
     if wait_for_deployment:
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via FINISHED tasks, without actually completing deployment
@@ -198,23 +214,6 @@ def _uninstall(
                 raise
         finally:
             sdk_utils.list_reserved_resources()
-
-
-def get_package_options(additional_options={}):
-    # expected SECURITY values: 'permissive', 'strict', 'disabled'
-    if sdk_utils.is_strict_mode():
-        # strict mode requires correct principal and secret to perform install.
-        # see also: sdk_security.py
-        return merge_dictionaries({
-            'service': {
-                'service_account': 'service-acct',
-                'principal': 'service-acct',
-                'service_account_secret': 'secret',
-                'secret_name': 'secret'
-            }
-        }, additional_options)
-    else:
-        return additional_options
 
 
 def merge_dictionaries(dict1, dict2):
