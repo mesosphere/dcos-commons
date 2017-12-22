@@ -51,7 +51,7 @@ def _retried_install_impl(
     if sdk_marathon.app_exists(service_name):
         log.info('Marathon app={} exists, skipping package install call'.format(service_name))
     else:
-        package_manager.install_app(pkg, options, service_name)
+        package_manager.install_app(pkg, options)
 
     # Install CLI while package starts to install
     if pkg.cli_definition():
