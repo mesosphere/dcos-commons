@@ -15,6 +15,7 @@ import pytest
 import requests
 import sdk_security
 import sdk_utils
+import teamcity
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 log_levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'EXCEPTION')
@@ -130,7 +131,9 @@ def pytest_runtest_makereport(item, call):
 def pytest_runtest_teardown(item):
     '''Hook to run after every test.'''
     # Inject footer at end of test, may be followed by additional teardown.
-    print('''
+    # Don't do this when running in teamcity, where it's redundant.
+    if not teamcity.is_running_under_teamcity():
+        print('''
 ==========
 ======= END: {}::{}
 =========='''.format(sdk_utils.get_test_suite_name(item), item.name))
@@ -139,7 +142,9 @@ def pytest_runtest_teardown(item):
 def pytest_runtest_setup(item):
     '''Hook to run before every test.'''
     # Inject header at start of test, following automatic "path/to/test_file.py::test_name":
-    print('''
+    # Don't do this when running in teamcity, where it's redundant.
+    if not teamcity.is_running_under_teamcity():
+        print('''
 ==========
 ======= START: {}::{}
 =========='''.format(sdk_utils.get_test_suite_name(item), item.name))
@@ -161,7 +166,7 @@ def pytest_runtest_setup(item):
         # 3 Remove any prior logs for the test suite.
         test_log_dir = sdk_utils.get_test_suite_log_directory(item)
         if os.path.exists(test_log_dir):
-            log.info('Deleting existing test suite directory: {}/'.format(test_log_dir))
+            log.info('Deleting existing test suite logs: {}/'.format(test_log_dir))
             shutil.rmtree(test_log_dir)
 
     # Increment the test index (to 1, if this is a new suite), and pass the value to sdk_utils for use internally.
@@ -188,7 +193,11 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
 
 
 def get_task_files_for_id(task_id: str):
-    return set(subprocess.check_output(['dcos', 'task', 'ls', task_id, '--all']).decode().split())
+    try:
+        return set(subprocess.check_output(['dcos', 'task', 'ls', task_id, '--all']).decode().split())
+    except:
+        log.exception('Failed to get list of files for task: {}'.format(task_id))
+        return set()
 
 
 def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000):

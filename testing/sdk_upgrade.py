@@ -196,7 +196,7 @@ def _upgrade_or_downgrade(
 
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via ONCE tasks, without actually completing deployment
-        log.info("Waiting for {}/{} to finish deployment plan...".format(
+        log.info("Waiting for package={} service={} to finish deployment plan...".format(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
