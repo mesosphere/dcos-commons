@@ -9,6 +9,7 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import os.path
+import traceback
 
 import dcos
 import sdk_api
@@ -16,36 +17,37 @@ import sdk_utils
 import shakedown
 
 TIMEOUT_SECONDS = 15 * 60
+SHORT_TIMEOUT_SECONDS = 30
 
 log = logging.getLogger(__name__)
 
 
-def get_deployment_plan(service_name):
-    return get_plan(service_name, "deploy")
+def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    return get_plan(service_name, "deploy", timeout_seconds)
 
 
-def get_recovery_plan(service_name):
-    return get_plan(service_name, "recovery")
+def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    return get_plan(service_name, "recovery", timeout_seconds)
 
 
-def list_plans(service_name):
+def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS):
     def fn():
         output = sdk_api.get(service_name, '/v1/plans')
         try:
             return output.json()
         except:
             return False
-    return shakedown.wait_for(fn)
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
-def get_plan(service_name, plan):
+def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS):
     def fn():
         output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
         try:
             return output.json()
         except:
             return False
-    return shakedown.wait_for(fn)
+    return shakedown.wait_for(fn, noisy=True, timeout_seconds=timeout_seconds)
 
 
 def start_plan(service_name, plan, parameters=None):
@@ -106,7 +108,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         statuses = status
 
     def fn():
-        plan = get_plan(service_name, plan_name)
+        plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         log.info('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
         if plan and plan['status'] in statuses:
@@ -118,7 +120,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
     def fn():
-        plan = get_plan(service_name, plan_name)
+        plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         phase = get_phase(plan, phase_name)
         log.info('Waiting for {}.{} phase to have {} status:\n{}'.format(
             plan_name, phase_name, status, plan_string(plan_name, plan)))
@@ -131,7 +133,7 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
 
 def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
     def fn():
-        plan = get_plan(service_name, plan_name)
+        plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         step = get_step(get_phase(plan, phase_name), step_name)
         log.info('Waiting for {}.{}.{} step to have {} status:\n{}'.format(
             plan_name, phase_name, step_name, status, plan_string(plan_name, plan)))
@@ -201,13 +203,22 @@ def log_plans_if_failed(framework_name, request):
     """
     yield
     if sdk_utils.is_test_failure(request):
-        for plan_name in list_plans(framework_name):
-            plan = get_plan(framework_name, plan_name)
-            if not plan:
-                log.error('Unable to fetch {} plan for {}'.format(framework_name, plan_name))
-                continue
-            out_path = os.path.join(
-                sdk_utils.get_test_log_directory(request.node),
-                '{}_plan.txt'.format(plan_name))
-            with open(out_path, 'w') as f:
-                f.write(json.dumps(plan, indent=2))
+        try:
+            log.info('Fetching plans from {}...'.format(framework_name))
+            plan_names = list_plans(framework_name, 5)
+            log.info('Plans for {}: {}'.format(framework_name, plan_names))
+            for plan_name in plan_names:
+                log.info('Fetching {} plan: {}'.format(framework_name, plan_name))
+                plan = get_plan(framework_name, plan_name, 5)
+                if not plan:
+                    log.error('Unable to fetch {} plan for {}'.format(framework_name, plan_name))
+                    continue
+                out_path = os.path.join(
+                    sdk_utils.get_test_log_directory(request.node),
+                    '{}_plan.txt'.format(plan_name))
+                out_content = json.dumps(plan, indent=2)
+                log.info('=> Writing {} ({} bytes)'.format(out_path, len(out_content)))
+                with open(out_path, 'w') as f:
+                    f.write(out_content)
+        except:
+            log.error('Exception when getting plan dump following a failed test: {}'.format(traceback.format_exc()))
