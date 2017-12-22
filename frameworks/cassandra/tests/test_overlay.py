@@ -67,7 +67,7 @@ def test_functionality():
                 config.get_verify_data_job()
             ],
             after_jobs=[
-                config.get_delete_data_job(),
+                config.get_delete_data_retry_job(),
                 config.get_verify_deletion_job()
             ]):
 
