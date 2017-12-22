@@ -70,7 +70,7 @@ def get_test_suite_name(pytest_node):
     '''Returns the test suite name to use for a given test.'''
     # frameworks/template/tests/test_sanity.py => test_sanity_py
     # tests/test_sanity.py => test_sanity_py
-    return pytest_node.parent.name.split('/')[-1].replace('.','_')
+    return os.path.basename(pytest_node.parent.name).replace('.','_')
 
 
 def get_test_suite_log_directory(pytest_node):
