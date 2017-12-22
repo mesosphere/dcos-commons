@@ -14,9 +14,9 @@ import re
 import shutil
 import sys
 import tempfile
-import universe
 import urllib.request
 import zipfile
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -480,17 +480,6 @@ Artifact output: {}
         package_json['name'] = self._pkg_name
         # Update package's version to reflect the user's input
         package_json['version'] = self._pkg_version
-        # Update package's upgradesFrom/downgradesTo to reflect any package name changes
-        # due to enabling or disabling a beta bit.
-        if self._stub_universe_pkg_name != self._pkg_name:
-            last_release = universe.PackageManager().get_latest(self._pkg_name)
-            if last_release is None:
-                # nothing to upgrade from
-                package_json['upgradesFrom'] = []
-                package_json['downgradesTo'] = []
-            else:
-                package_json['upgradesFrom'] = [last_release.get_version()]
-                package_json['downgradesTo'] = [last_release.get_version()]
 
         logger.info('Updated package.json:')
         logger.info('\n'.join(difflib.ndiff(
