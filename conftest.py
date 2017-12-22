@@ -15,6 +15,7 @@ import pytest
 import requests
 import sdk_security
 import sdk_utils
+import teamcity
 
 log_level = os.getenv('TEST_LOG_LEVEL', 'INFO').upper()
 log_levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'EXCEPTION')
@@ -130,7 +131,9 @@ def pytest_runtest_makereport(item, call):
 def pytest_runtest_teardown(item):
     '''Hook to run after every test.'''
     # Inject footer at end of test, may be followed by additional teardown.
-    print('''
+    # Don't do this when running in teamcity, where it's redundant.
+    if not teamcity.is_running_under_teamcity():
+        print('''
 ==========
 ======= END: {}::{}
 =========='''.format(sdk_utils.get_test_suite_name(item), item.name))
@@ -139,7 +142,9 @@ def pytest_runtest_teardown(item):
 def pytest_runtest_setup(item):
     '''Hook to run before every test.'''
     # Inject header at start of test, following automatic "path/to/test_file.py::test_name":
-    print('''
+    # Don't do this when running in teamcity, where it's redundant.
+    if not teamcity.is_running_under_teamcity():
+        print('''
 ==========
 ======= START: {}::{}
 =========='''.format(sdk_utils.get_test_suite_name(item), item.name))
