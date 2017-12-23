@@ -82,6 +82,14 @@ public class DefaultReconciler implements Reconciler {
             // PHASE 3: implicit reconciliation has been triggered, we're done
             return;
         }
+
+        /**
+         * NOTE: It is important not to hold a lock when making calls to {@link driver}.  The driver
+         * holds a lock internally when making calls to the Scheduler.  If both the scheduler and driver
+         * follow the pattern of acquiring a lock and making a remote call then deadlocks occur.  To avoid
+         * this we unilaterally enforce that we do not hold any locks while making calls to {@link driver}.
+         */
+        Collection<TaskStatus> tasksToReconcile = Collections.emptyList();
         synchronized (unreconciled) {
             if (!unreconciled.isEmpty()) {
                 final long nowMs = getCurrentTimeMillis();
@@ -93,28 +101,34 @@ public class DefaultReconciler implements Reconciler {
                     long newBackoff = backOffMs * MULTIPLIER;
                     backOffMs = Math.min(newBackoff > 0 ? newBackoff : 0, MAX_BACKOFF_MS);
 
-                    LOGGER.info("Triggering explicit reconciliation of {} remaining tasks, next "
-                            + "explicit reconciliation in {}ms or later",
-                            unreconciled.size(), backOffMs);
                     // pass a COPY of the list, in case driver is doing anything with it..:
-                    driver.reconcileTasks(ImmutableList.copyOf(unreconciled.values()));
+                    tasksToReconcile = ImmutableList.copyOf(unreconciled.values());
                 } else {
                     // timer has not expired yet, do nothing for this call
                     LOGGER.info("Too soon since last explicit reconciliation trigger. Waiting at "
                             + "least {}ms before next explicit reconciliation ({} remaining tasks)",
                             lastRequestTimeMs + backOffMs - nowMs, unreconciled.size());
+                    return;
                 }
-            } else {
-                // PHASE 2: no unreconciled tasks remain, trigger a single implicit reconciliation,
-                // where we get the list of all tasks currently known to Mesos.
-                LOGGER.info("Triggering implicit final reconciliation of all tasks");
-                driver.reconcileTasks(Collections.emptyList());
-
-                // reset the timer values in case we're started again in the future
-                resetTimerValues();
-                isImplicitReconciliationTriggered.set(true); // enter PHASE 3/complete
             }
         }
+
+        if (tasksToReconcile.isEmpty()) {
+            // PHASE 2: no unreconciled tasks remain, trigger a single implicit reconciliation,
+            // where we get the list of all tasks currently known to Mesos.
+            LOGGER.info("Triggering implicit final reconciliation of all tasks");
+
+            // reset the timer values in case we're started again in the future
+            resetTimerValues();
+            isImplicitReconciliationTriggered.set(true); // enter PHASE 3/complete
+
+        } else {
+            LOGGER.info("Triggering explicit reconciliation of {} remaining tasks, next "
+                            + "explicit reconciliation in {}ms or later",
+                    unreconciled.size(), backOffMs);
+        }
+
+        driver.reconcileTasks(tasksToReconcile);
     }
 
     @Override

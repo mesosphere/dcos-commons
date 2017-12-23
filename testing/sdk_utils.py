@@ -12,8 +12,11 @@ import dcos
 import shakedown
 import pytest
 import os
+import os.path
 
 log = logging.getLogger(__name__)
+# The index to use when constructing the test log directory.
+test_index = -1
 
 
 def get_package_name(default: str) -> str:
@@ -56,13 +59,41 @@ def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
 
+def set_test_index(index):
+    '''Assigns the index to use for a test within a given test suite.
+    Should start at 1 for the first test in the suite.'''
+    global test_index
+    test_index = index
+
+
+def get_test_suite_name(pytest_node):
+    '''Returns the test suite name to use for a given test.'''
+    # frameworks/template/tests/test_sanity.py => test_sanity_py
+    # tests/test_sanity.py => test_sanity_py
+    return os.path.basename(pytest_node.parent.name).replace('.','_')
+
+
+def get_test_suite_log_directory(pytest_node):
+    '''Returns the parent directory for the logs across a suite of tests.
+    For individual tests within this directory, see get_test_log_directory().'''
+    return os.path.join('logs', get_test_suite_name(pytest_node))
+
+
 def get_test_log_directory(pytest_node):
+    '''Returns the directory for the logs of a single test.
+    For the parent test suite directory, see get_test_suite_log_directory().'''
     # full item.listchain() is e.g.:
     # - ['build', 'frameworks/template/tests/test_sanity.py', 'test_install']
     # - ['build', 'tests/test_sanity.py', 'test_install']
     # we want to turn both cases into: 'logs/test_sanity_py/test_install'
-    parent_name = pytest_node.parent.name.split('/')[-1].replace('.','_')
-    return os.path.join('logs', parent_name, pytest_node.name)
+    global test_index
+    if test_index > 0:
+        # test_index is defined: get name like "05__test_placement_rules"
+        test_name = '{:02d}__{}'.format(test_index, pytest_node.name)
+    else:
+        # test_index is not defined: fall back to just "test_placement_rules"
+        test_name = pytest_node.name
+    return os.path.join(get_test_suite_log_directory(pytest_node), test_name)
 
 
 def is_test_failure(pytest_request):

@@ -119,7 +119,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         # forgive the language a bit, but len('remained') == len('launched'),
         # and similar for the rest of the label for task ids in the log line,
         # so makes for easier reading
-        log.info('Waiting for tasks{} to have updated ids:\n- Old tasks (remained): {}\n- New tasks (launched): {}'.format(
+        log.info('Waiting for tasks{} to have updated ids:\n- Old tasks (remaining): {}\n- New tasks (launched): {}'.format(
             prefix_clause,
             old_remaining_set,
             newly_launched_set))
