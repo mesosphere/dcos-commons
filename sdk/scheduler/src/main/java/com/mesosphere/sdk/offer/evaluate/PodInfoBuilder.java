@@ -335,6 +335,7 @@ public class PodInfoBuilder {
             // Required URIs from the scheduler environment:
             executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getLibmesosURI());
             executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getJavaURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getBootstrapURI());
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {

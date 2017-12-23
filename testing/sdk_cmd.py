@@ -87,8 +87,7 @@ def get_json_output(cmd, print_output=True):
     try:
         json_stdout = jsonlib.loads(stdout)
     except Exception as e:
-        log.error("Error converting stdout=%s to json", stdout)
-        log.error(e)
+        log.warning("Error converting stdout to json:\n%s", stdout)
         raise e
 
     return json_stdout

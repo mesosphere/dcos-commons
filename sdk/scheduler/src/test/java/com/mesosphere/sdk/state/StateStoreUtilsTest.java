@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.empty;
@@ -334,6 +335,32 @@ public class StateStoreUtilsTest {
 
         assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
                 is(empty()));
+    }
+
+    @Test
+    public void testPermanentlyFailedTaskNeedsRecovery() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        // Set status as RUNNING
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_RUNNING);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        // Mark task as permanently failed
+        taskInfo = taskInfo.toBuilder()
+                .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
+                .build();
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+
+        // Even though the TaskStatus is RUNNING, it can now be recovered since it has been marked as
+        // permanently failed.
+        assertThat(StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore),
+                is(ImmutableList.of(taskInfo)));
     }
 
     @Test
