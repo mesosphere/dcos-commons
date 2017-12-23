@@ -28,7 +28,7 @@ def test_backup_and_restore():
     with sdk_jobs.InstallJobContext([
             config.get_write_data_job(),
             config.get_verify_data_job(),
-            config.get_delete_data_retry_job(),
+            config.get_delete_data_job(),
             config.get_verify_deletion_job()]):
         config.run_backup_and_restore(
             config.SERVICE_NAME,
@@ -61,7 +61,7 @@ def test_cassandra_migration():
 
     backup_write_data_job = config.get_write_data_job(backup_node_address, backup_node_port)
     backup_verify_data_job = config.get_verify_data_job(backup_node_address, backup_node_port)
-    backup_delete_data_job = config.get_delete_data_retry_job(backup_node_address, backup_node_port)
+    backup_delete_data_job = config.get_delete_data_job(backup_node_address, backup_node_port)
     backup_verify_deletion_job = config.get_verify_deletion_job(backup_node_address, backup_node_port)
 
     plan_parameters = {
@@ -106,7 +106,7 @@ def test_cassandra_migration():
 
     restore_write_data_job = config.get_write_data_job(restore_node_address, restore_node_port)
     restore_verify_data_job = config.get_verify_data_job(restore_node_address, restore_node_port)
-    restore_delete_data_job = config.get_delete_data_retry_job(restore_node_address, restore_node_port)
+    restore_delete_data_job = config.get_delete_data_job(restore_node_address, restore_node_port)
     restore_verify_deletion_job = config.get_verify_deletion_job(restore_node_address, restore_node_port)
 
     restore_install_job_context = sdk_jobs.InstallJobContext(
