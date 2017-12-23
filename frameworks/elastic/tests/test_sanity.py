@@ -178,10 +178,17 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.verify_commercial_api_status(False, service_name=foldered_name)
 
     log.info("\n***** Test kibana with X-Pack disabled...")
-    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
-        "kibana": {"elasticsearch_url": "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)}})
-    shakedown.deployment_wait(
-        app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
+    elasticsearch_url = "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)
+    sdk_install.install(
+        config.KIBANA_PACKAGE_NAME,
+        config.KIBANA_PACKAGE_NAME,
+        0,
+        { "kibana": {
+            "elasticsearch_url": elasticsearch_url
+        }},
+        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        wait_for_deployment=False,
+        insert_strict_options=False)
     config.check_kibana_adminrouter_integration(
         "service/{}/".format(config.KIBANA_PACKAGE_NAME))
     log.info("Uninstall kibana with X-Pack disabled")
@@ -201,14 +208,19 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         service_name=foldered_name)
 
     log.info("\n***** Test kibana with X-Pack enabled...")
-    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
-        "kibana": {
-            "elasticsearch_url": "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200),
+    log.info("\n***** Installing Kibana w/X-Pack can exceed default 15 minutes for Marathon "
+             "deployment to complete due to a configured HTTP health check. (typical: 12 minutes)")
+    sdk_install.install(
+        config.KIBANA_PACKAGE_NAME,
+        config.KIBANA_PACKAGE_NAME,
+        0,
+        { "kibana": {
+            "elasticsearch_url": elasticsearch_url,
             "xpack_enabled": True
-        }})
-    log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
-    log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
-    shakedown.deployment_wait(app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
+        }},
+        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        wait_for_deployment=False,
+        insert_strict_options=False)
     config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
     log.info("\n***** Uninstall kibana with X-Pack enabled")
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)

@@ -93,10 +93,10 @@ def _cqlsh(query, node_address, node_port):
 
 def get_delete_data_once_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
     cql = ' '.join([
-        'TRUNCATE testspace1.testtable1;',
-        'TRUNCATE testspace2.testtable2;',
-        'DROP KEYSPACE testspace1;',
-        'DROP KEYSPACE testspace2;'])
+        'DROP TABLE IF EXISTS testspace1.testtable1;',
+        'DROP TABLE IF EXISTS testspace2.testtable2;',
+        'DROP KEYSPACE IF EXISTS testspace1;',
+        'DROP KEYSPACE IF EXISTS testspace2;'])
     return _get_test_job(
         'delete-data-once',
         [_cqlsh(cql, node_address, node_port)],
@@ -108,10 +108,10 @@ def get_delete_data_once_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAUL
 
 def get_delete_data_retry_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
     cql = ' '.join([
-        'TRUNCATE testspace1.testtable1;',
-        'TRUNCATE testspace2.testtable2;',
-        'DROP KEYSPACE testspace1;',
-        'DROP KEYSPACE testspace2;'])
+        'DROP TABLE IF EXISTS testspace1.testtable1;',
+        'DROP TABLE IF EXISTS testspace2.testtable2;',
+        'DROP KEYSPACE IF EXISTS testspace1;',
+        'DROP KEYSPACE IF EXISTS testspace2;'])
     return _get_test_job(
         'delete-data-retry',
         [_cqlsh(cql, node_address, node_port)],
