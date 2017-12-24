@@ -8,9 +8,7 @@ import sdk_jobs
 import sdk_marathon
 import sdk_metrics
 import sdk_plan
-import sdk_tasks
 import sdk_upgrade
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -87,7 +85,7 @@ def test_repair_cleanup_plans_complete():
                     node_address=config.get_foldered_node_address())
             ],
             after_jobs=[
-                config.get_delete_data_retry_job(
+                config.get_delete_data_job(
                     node_address=config.get_foldered_node_address()),
                 config.get_verify_deletion_job(
                     node_address=config.get_foldered_node_address())
