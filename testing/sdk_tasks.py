@@ -150,8 +150,6 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
 
 
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    exit_status = 0
-
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds*1000,
@@ -169,10 +167,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         return exit_status
 
     # might not be able to connect to the agent on first try so we repeat until we can
-    exit_status = fn()
-
-    if exit_status != 0:
-        raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))
+    fn()
 
 
 def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
