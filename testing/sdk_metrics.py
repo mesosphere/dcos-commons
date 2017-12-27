@@ -29,10 +29,8 @@ def get_scheduler_metrics(service_name, timeout_seconds=15*60):
         retry_on_result=lambda res: not res)
     def fn():
         output = sdk_api.get(service_name, '/v1/metrics')
-        try:
-            return output.json()
-        except:
-            return False
+        output.raise_for_status()
+        return output.json()
     return fn()
 
 

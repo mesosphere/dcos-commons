@@ -169,7 +169,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         return exit_status
 
     # might not be able to connect to the agent on first try so we repeat until we can
-    fn()
+    exit_status = fn()
 
     if exit_status != 0:
         raise RuntimeError('Failed to kill task with pattern "{}", exit status: {}'.format(pattern, exit_status))

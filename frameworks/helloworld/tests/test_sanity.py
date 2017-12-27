@@ -259,7 +259,7 @@ def test_state_refresh_disable_cache():
     def check_cache_refresh():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
 
-    check_cache_refresh()
+    stdout = check_cache_refresh()
     assert "Received cmd: refresh" in stdout
 
 

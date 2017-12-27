@@ -33,16 +33,16 @@ def app_exists(app_name):
         return False
 
 
-@retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=TIMEOUT_SECONDS*1000,
-    retry_on_result=lambda res: not res)
-def get_config(app_name):
+def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
-    response = _get_config_once(app_name)
-    if not response:
-        return False
-    config = response.json()['app']
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout*1000,
+        retry_on_result=lambda res: not res)
+    def wait_for_response():
+        return _get_config_once(app_name)
+
+    config = wait_for_response().json()['app']
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to

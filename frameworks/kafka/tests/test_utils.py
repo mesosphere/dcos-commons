@@ -15,9 +15,8 @@ log = logging.getLogger(__name__)
     stop_max_delay=120*1000,
     retry_on_result=lambda res: not res)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
-    if len(sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)) == count:
-        return True
-    return False
+    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)
+    return len(brokers) == count
 
 
 def restart_broker_pods(service_name=config.SERVICE_NAME):

@@ -23,30 +23,36 @@ SHORT_TIMEOUT_SECONDS = 30
 log = logging.getLogger(__name__)
 
 
-def get_deployment_plan(service_name):
-    return get_plan(service_name, "deploy")
+def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    return get_plan(service_name, "deploy", timeout_seconds)
 
 
-def get_recovery_plan(service_name):
-    return get_plan(service_name, "recovery")
+def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    return get_plan(service_name, "recovery", timeout_seconds)
 
 
-@retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=TIMEOUT_SECONDS*1000,
-    retry_on_result=lambda res: not res)
-def list_plans(service_name):
-    output = sdk_api.get(service_name, '/v1/plans')
-    return output.json()
+def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def wait_for_plans():
+        output = sdk_api.get(service_name, '/v1/plans')
+        return output.json()
+
+    return wait_for_plans()
 
 
-@retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=TIMEOUT_SECONDS*1000,
-    retry_on_result=lambda res: not res)
-def get_plan(service_name, plan):
-    output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
-    return output.json()
+def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS):
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def wait_for_plan():
+        output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
+        return output.json()
+
+    return wait_for_plan()
 
 
 def start_plan(service_name, plan, parameters=None):
