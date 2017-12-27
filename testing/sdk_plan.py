@@ -23,12 +23,12 @@ SHORT_TIMEOUT_SECONDS = 30
 log = logging.getLogger(__name__)
 
 
-def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "deploy", timeout_seconds)
+def get_deployment_plan(service_name):
+    return get_plan(service_name, "deploy")
 
 
-def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "recovery", timeout_seconds)
+def get_recovery_plan(service_name):
+    return get_plan(service_name, "recovery")
 
 
 @retrying.retry(
