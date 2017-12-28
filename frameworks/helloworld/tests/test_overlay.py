@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+import retrying
 
 import sdk_api
 import sdk_cmd
@@ -11,7 +12,6 @@ import sdk_plan
 import sdk_utils
 import shakedown
 from dcos.http import DCOSHTTPException
-from shakedown.dcos.spinner import TimeoutExpired
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ def test_overlay_network():
     try:
         sdk_plan.wait_for_in_progress_recovery(config.SERVICE_NAME, timeout_seconds=60)
         sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=60)
-    except TimeoutExpired:
+    except retrying.RetryError:
         pass
 
     # test that the tasks are all up, which tests the overlay DNS

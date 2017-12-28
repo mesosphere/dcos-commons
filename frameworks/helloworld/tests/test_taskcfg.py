@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+import retrying
 import sdk_install
 import sdk_marathon
 import shakedown
@@ -35,7 +36,12 @@ def test_deploy():
 
     # we can get brief blips of TASK_RUNNING but they shouldnt last more than 2-3s:
     consecutive_task_running = 0
-    def fn():
+
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=1000*wait_time,
+        retry_on_result=lambda res: not res)
+    def wait():
         nonlocal consecutive_task_running
         svc_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
         states = [t['state'] for t in svc_tasks]
@@ -48,8 +54,8 @@ def test_deploy():
         return False
 
     try:
-        shakedown.wait_for(lambda: fn(), timeout_seconds=wait_time)
-    except shakedown.TimeoutExpired:
+        wait()
+    except retrying.RetryError:
         log.info('Timeout reached as expected')
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
