@@ -595,6 +595,8 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a> - package com.mesosphere.sdk.offer.evaluate.security</dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a> - package com.mesosphere.sdk.offer.history</dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a> - package com.mesosphere.sdk.offer.taskdata</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/queue/package-summary.html">com.mesosphere.sdk.queue</a> - package com.mesosphere.sdk.queue</dt>
@@ -1753,6 +1755,8 @@
 <dd>
 <div class="block">Verifies that a certain event had occurred, optionally updating the provided <a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing"><code>ClusterState</code></a> with a result.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#EXPLANATION_FIELD">EXPLANATION_FIELD</a></span> - Static variable in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
 </dl>
 <a name="I:F">
 <!--   -->
@@ -2841,6 +2845,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/MesosResourcePool.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a></dt>
@@ -2859,6 +2865,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getOfferAttributeStrings--">getOfferAttributeStrings()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelReader</a></dt>
 <dd>
 <div class="block">Returns the string representations of any <code>Offer</code> <code>Attribute</code>s which were embedded in the task.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/OfferOutcomeResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api">OfferOutcomeResource</a></dt>
+<dd>
+<div class="block">Renders the current set of offer outcomes as an HTML table.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#getOfferRecommendations--">getOfferRecommendations()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></dt>
 <dd>&nbsp;</dd>
@@ -2893,6 +2903,8 @@
 <dd>
 <div class="block">Returns the requested label value, or throws an exception if the value was not found.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getOutcomeDetails--">getOutcomeDetails()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getPackageBuildTimeMs--">getPackageBuildTimeMs()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>
 <div class="block">Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.</div>
@@ -3075,6 +3087,8 @@
 <div class="block">Returns the definition of the pod instance to be created.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html#getPodInstance-Protos.TaskInfo-">getPodInstance(Protos.TaskInfo)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getPodInstanceName--">getPodInstanceName()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></dt>
 <dd>&nbsp;</dd>
@@ -3694,6 +3708,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html#getTimeout--">getTimeout()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html" title="class in com.mesosphere.sdk.specification.yaml">RawReadinessCheck</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getTimestamp--">getTimestamp()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html#getToken--">getToken()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/CachedTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">CachedTokenProvider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html#getToken--">getToken()</a></span> - Method in class com.mesosphere.sdk.dcos.auth.<a href="com/mesosphere/sdk/dcos/auth/ConstantTokenProvider.html" title="class in com.mesosphere.sdk.dcos.auth">ConstantTokenProvider</a></dt>
@@ -4094,6 +4110,14 @@
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">HostnameRuleFactory</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
 <div class="block">This class generates <a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>HostnameRule</code></a>s.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#htmlOkResponse-java.lang.String-">htmlOkResponse(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dd>
+<div class="block">Returns a 200 OK response containing the provided html .</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#htmlResponse-java.lang.String-Response.Status-">htmlResponse(String, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dd>
+<div class="block">Returns a response containing the provided html  with the provided status .</div>
 </dd>
 </dl>
 <a name="I:I">
@@ -4982,6 +5006,8 @@
 <dd>
 <div class="block">Storage of the original Offer's attributes (in a string representation), for use in placement constraints.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OFFER_FIELD">OFFER_FIELD</a></span> - Static variable in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_HOSTNAME_LABEL">OFFER_HOSTNAME_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Storage of the original Offer's hostname, for use in placement constraints.</div>
@@ -5019,7 +5045,27 @@
 <dd>
 <div class="block">The OfferEvaluator processes <code>Protos.Offer</code>s and produces <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerConfig-boolean-">OfferEvaluator(StateStore, String, UUID, SchedulerConfig, boolean)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerConfig-boolean-">OfferEvaluator(StateStore, OfferOutcomeTracker, String, UUID, SchedulerConfig, boolean)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcome</span></a> - Class in <a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a></dt>
+<dd>
+<div class="block">Encapsulates the outcome of an offer evaluation in OfferEvaluator</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#OfferOutcome-java.lang.String-boolean-Protos.Offer-java.lang.String-">OfferOutcome(String, boolean, Protos.Offer, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">OfferOutcomeResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dd>
+<div class="block">A read-only API for accessing the most recently processed offers.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/OfferOutcomeResource.html#OfferOutcomeResource-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-">OfferOutcomeResource(OfferOutcomeTracker)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api">OfferOutcomeResource</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcomeTracker</span></a> - Class in <a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a></dt>
+<dd>
+<div class="block">Tracks the outcome of offers as they are evaluated against a PodInstanceRequirement.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OfferOutcomeTracker--">OfferOutcomeTracker()</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OfferOutcomeTracker-int-">OfferOutcomeTracker(int)</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue"><span class="typeNameLink">OfferQueue</span></a> - Class in <a href="com/mesosphere/sdk/queue/package-summary.html">com.mesosphere.sdk.queue</a></dt>
 <dd>
@@ -5057,6 +5103,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/OrRule.html#OrRule-java.util.Collection-">OrRule(Collection&lt;PlacementRule&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/OrRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">OrRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/OrRule.html#OrRule-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule...-">OrRule(PlacementRule...)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/OrRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">OrRule</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OUTCOME_FIELD">OUTCOME_FIELD</a></span> - Static variable in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OUTCOMES_FIELD">OUTCOMES_FIELD</a></span> - Static variable in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#OVERLAY_DYNAMIC_PORT_RANGE_END">OVERLAY_DYNAMIC_PORT_RANGE_END</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
@@ -5123,6 +5173,8 @@
 <dd>
 <div class="block">Returns a new passing outcome object with the provided descriptive reason.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#pass--">pass()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">PassthroughRule</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
 <div class="block">A no-op rule which allows all offers.</div>
@@ -5317,6 +5369,8 @@
 <dd>
 <div class="block">Provides the Task/Pod index of the instance, starting at 0.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#POD_INSTANCE_NAME_FIELD">POD_INSTANCE_NAME_FIELD</a></span> - Static variable in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#POD_TYPE">POD_TYPE</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">PodInfoBuilder</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
@@ -7174,6 +7228,8 @@
 <dd>
 <div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#TIMESTAMP_FIELD">TIMESTAMP_FIELD</a></span> - Static variable in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">TLSArtifact</span></a> - Enum in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
 <dd>
 <div class="block">The definition of a pregenerated TLS or Keystore secret.</div>
@@ -7269,6 +7325,10 @@
 <dd>
 <div class="block">Converts the unique <code>Protos.ExecutorID</code> into a Framework defined executor name.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#toHtml--">toHtml()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#toJson--">toJson()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html#toJsonString-java.lang.String-byte:A-">toJsonString(String, byte[])</a></span> - Method in interface com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types">PropertyDeserializer</a></dt>
 <dd>
 <div class="block">Returns a valid JSON representation for the data in <code>value</code> for display to an end user.</div>
@@ -7511,6 +7571,10 @@
 <dd>
 <div class="block">Returns a JSON representation of the provided value, or an empty string if conversion fails.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#track-com.mesosphere.sdk.offer.history.OfferOutcome-">track(OfferOutcome)</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#track-com.mesosphere.sdk.offer.history.OfferOutcome...-">track(OfferOutcome...)</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#TRANSIENT_FLAG_LABEL">TRANSIENT_FLAG_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Identifies a 'task' which isn't actually launched, but is instead created to fill reserved resources.</div>
