@@ -47,7 +47,7 @@ class UninstallPlanBuilder {
 
     private final List<Step> taskKillSteps;
     private final List<Step> resourceSteps;
-    private final Optional<DeregisterStep> deregisterStep;
+    private final DeregisterStep deregisterStep;
     private final Plan plan;
 
     private TaskKiller taskKiller;
@@ -57,6 +57,7 @@ class UninstallPlanBuilder {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
+            SchedulerDriver driver,
             Optional<SecretsClient> customSecretsClientForTests) {
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
@@ -67,7 +68,6 @@ class UninstallPlanBuilder {
             // Fill values with stubs, and use an empty COMPLETE plan:
             taskKillSteps = Collections.emptyList();
             resourceSteps = Collections.emptyList();
-            deregisterStep = Optional.empty();
             plan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
             return;
         }
@@ -141,10 +141,9 @@ class UninstallPlanBuilder {
 
         // Finally, we unregister the framework from Mesos.
         // We don't have access to the SchedulerDriver yet. That will be set via setSchedulerDriver() below.
-        deregisterStep = Optional.of(new DeregisterStep(stateStore));
         phases.add(new DefaultPhase(
                 DEREGISTER_PHASE,
-                Collections.singletonList(deregisterStep.get()),
+                Collections.singletonList(deregisterStep),
                 new SerialStrategy<>(),
                 Collections.emptyList()));
 

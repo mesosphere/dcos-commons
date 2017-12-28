@@ -28,10 +28,12 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
 
-    private final UninstallPlanBuilder uninstallPlanBuilder;
-    private final PlanManager uninstallPlanManager;
-    private final Collection<Object> resources;
+    private final ServiceSpec serviceSpec;
+    private final Optional<SecretsClient> secretsClient;
 
+    private UninstallPlanBuilder uninstallPlanBuilder;
+    private PlanManager uninstallPlanManager;
+    private Collection<Object> resources = Collections.emptyList();
     private OfferAccepter offerAccepter;
 
     /**
@@ -54,12 +56,8 @@ public class UninstallScheduler extends AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(stateStore, configStore, schedulerConfig);
-        uninstallPlanBuilder = new UninstallPlanBuilder(
-                serviceSpec, stateStore, configStore, schedulerConfig, customSecretsClientForTests);
-        uninstallPlanManager = DefaultPlanManager.createProceeding(uninstallPlanBuilder.getPlan());
-        resources = Arrays.<Object>asList(
-                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
-                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
+        this.serviceSpec = serviceSpec;
+        this.secretsClient = customSecretsClientForTests;
     }
 
     @Override
@@ -81,11 +79,11 @@ public class UninstallScheduler extends AbstractScheduler {
     protected PlanCoordinator initialize(SchedulerDriver driver) throws InterruptedException {
         LOGGER.info("Initializing...");
 
-        // NOTE: We wait until this point to perform any work using configStore/stateStore.
-        // We specifically avoid writing any data to ZK before registered() has been called.
-
-        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep in the Plan.
-        uninstallPlanBuilder.registered(driver);
+        uninstallPlanBuilder = new UninstallPlanBuilder(
+                serviceSpec, stateStore, configStore, schedulerConfig, driver, secretsClient);
+        uninstallPlanManager = DefaultPlanManager.createProceeding(uninstallPlanBuilder.getPlan());
+        resources = Collections.singletonList(new PlansResource()
+                .setPlanManagers(Collections.singletonList(uninstallPlanManager)));
         offerAccepter = new OfferAccepter(Collections.singletonList(
                 new UninstallRecorder(stateStore, uninstallPlanBuilder.getResourceSteps())));
 
