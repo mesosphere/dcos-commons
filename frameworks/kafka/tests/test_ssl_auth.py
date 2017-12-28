@@ -1,13 +1,10 @@
-import logging
-import pytest
-import subprocess
-import uuid
 import json
-import time
-import shakedown
+import logging
+import uuid
+
+import pytest
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_tasks
@@ -18,6 +15,7 @@ from tests import config
 from tests import auth
 from tests import topics
 from tests import test_utils
+
 
 log = logging.getLogger(__name__)
 
