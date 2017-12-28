@@ -33,4 +33,4 @@ DC/OS Kafka provides the following features:
 *   [DC/OS Spark][2]
 
  [1]: http://kafka.apache.org/documentation.html
- [2]: https://docs.mesosphere.com/service-docs/spark/
+ [2]: https://docs.mesosphere.com/services/spark/

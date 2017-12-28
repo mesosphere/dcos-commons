@@ -2,27 +2,20 @@ package com.mesosphere.sdk.executor;
 
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CustomExecutorTest {
     private static final String TASK_TYPE = "TASK_TYPE";
     private static final String TEST = "TEST";
 
-    @Rule
-    public final ExpectedSystemExit exit = ExpectedSystemExit.none();
-
-    @Mock
-    ExecutorDriver mockExecutorDriver;
+    @Mock ExecutorDriver mockExecutorDriver;
+    @Mock Runnable mockExitCallback;
 
     private CustomExecutor customExecutor;
 
@@ -85,9 +78,6 @@ public class CustomExecutorTest {
 
         customExecutor.registered(mockExecutorDriver, executorInfo, null, oldSlaveInfo);
 
-        Assert.assertTrue(customExecutor.getSlaveInfo().isPresent());
-        Assert.assertTrue(customExecutor.getSlaveInfo().get().equals(oldSlaveInfo));
-
         final Protos.SlaveInfo newSlaveInfo = Protos.SlaveInfo
                 .newBuilder()
                 .setId(Protos.SlaveID.newBuilder().setValue(UUID.randomUUID().toString()))
@@ -95,8 +85,6 @@ public class CustomExecutorTest {
                 .build();
 
         customExecutor.reregistered(mockExecutorDriver, newSlaveInfo);
-        Assert.assertTrue(customExecutor.getSlaveInfo().isPresent());
-        Assert.assertTrue(customExecutor.getSlaveInfo().get().equals(newSlaveInfo));
     }
 
     @Test
@@ -135,9 +123,15 @@ public class CustomExecutorTest {
                 .build();
     }
 
-    private static CustomExecutor getTestExecutor() {
-        final ExecutorService executorService = Executors.newCachedThreadPool();
-        final TestExecutorTaskFactory testExecutorTaskFactory = new TestExecutorTaskFactory();
-        return new CustomExecutor(executorService, testExecutorTaskFactory);
+    private CustomExecutor getTestExecutor() {
+        return new CustomExecutor(
+                Executors.newCachedThreadPool(),
+                new ExecutorTaskFactory() {
+                    @Override
+                    public ExecutorTask createTask(Protos.TaskInfo task, ExecutorDriver driver) {
+                        return new TestExecutorTask(task, driver);
+                    }
+                },
+                mockExitCallback);
     }
 }

@@ -65,11 +65,11 @@ public class ServiceTest {
 
         // Verify that service launches 1 hello pod.
         ticks.add(Send.offerBuilder("hello").build());
-        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+        ticks.add(Expect.launchedTasks("hello-0-essential", "hello-0-nonessential"));
 
         // Running, no readiness check is applicable:
-        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
-        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
 
         // No more hellos to launch:
         ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
@@ -77,26 +77,26 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         // When non-essential "agent" task fails, only agent task is relaunched, server task is unaffected:
-        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_FAILED).build());
+        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_FAILED).build());
 
         // Turn the crank with an arbitrary offer so that the failure is processed.
         // This also tests that the task is still tied to its prior location by checking that the offer is declined.
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
         // Neither task should be killed: server should be unaffected, and agent is already in a terminal state
-        ticks.add(Expect.taskNotKilled("hello-0-agent"));
-        ticks.add(Expect.taskNotKilled("hello-0-server"));
+        ticks.add(Expect.taskNotKilled("hello-0-nonessential"));
+        ticks.add(Expect.taskNotKilled("hello-0-essential"));
 
         // Send the matching offer to relaunch ONLY the agent against:
         ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
-        ticks.add(Expect.launchedTasks("hello-0-agent"));
+        ticks.add(Expect.launchedTasks("hello-0-nonessential"));
 
-        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
 
         ticks.add(Expect.allPlansComplete());
 
         // Matching ExecutorInfo == same pod:
-        ticks.add(new ExpectTasksShareExecutor("hello-0-server", "hello-0-agent"));
+        ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
 
         new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
     }
@@ -114,11 +114,11 @@ public class ServiceTest {
 
         // Verify that service launches 1 hello pod.
         ticks.add(Send.offerBuilder("hello").build());
-        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+        ticks.add(Expect.launchedTasks("hello-0-essential", "hello-0-nonessential"));
 
         // Running, no readiness check is applicable:
-        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
-        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
 
         // No more hellos to launch:
         ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
@@ -126,27 +126,27 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         // When essential "server" task fails, both server+agent are relaunched:
-        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_FAILED).build());
 
         // Turn the crank with an arbitrary offer so that the failure is processed.
         // This also tests that the task is still tied to its prior location by checking that the offer is declined.
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
         // Only the agent task is killed: server is already in a terminal state
-        ticks.add(Expect.taskKilled("hello-0-agent"));
-        ticks.add(Expect.taskNotKilled("hello-0-server"));
+        ticks.add(Expect.taskKilled("hello-0-nonessential"));
+        ticks.add(Expect.taskNotKilled("hello-0-essential"));
 
         // Send the matching offer to relaunch both the server and agent:
         ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
-        ticks.add(Expect.launchedTasks("hello-0-server", "hello-0-agent"));
+        ticks.add(Expect.launchedTasks("hello-0-essential", "hello-0-nonessential"));
 
-        ticks.add(Send.taskStatus("hello-0-agent", Protos.TaskState.TASK_RUNNING).build());
-        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_RUNNING).build());
 
         ticks.add(Expect.allPlansComplete());
 
         // Matching ExecutorInfo == same pod:
-        ticks.add(new ExpectTasksShareExecutor("hello-0-server", "hello-0-agent"));
+        ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
 
         new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
     }

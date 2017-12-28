@@ -81,4 +81,4 @@ enterprise: 'no'
 
 See also [Connecting clients][1].
 
- [1]: https://docs.mesosphere.com/service-docs/kafka/connecting-clients/
+ [1]: https://docs.mesosphere.com/services/kafka/connecting-clients/

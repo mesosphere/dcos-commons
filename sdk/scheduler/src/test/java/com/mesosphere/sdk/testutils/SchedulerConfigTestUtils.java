@@ -17,6 +17,7 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
         when(schedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
         when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
+        when(schedulerConfig.getBootstrapURI()).thenReturn("test-bootstrap-uri");
         when(schedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
         when(schedulerConfig.getDcosSpace()).thenReturn("/");
         when(schedulerConfig.getSecretsNamespace(TestConstants.SERVICE_NAME)).thenReturn(TestConstants.SERVICE_NAME);

@@ -466,10 +466,7 @@ def setup_constraint_switch():
 
     # Now, stick it to other_agent
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    if sdk_utils.dcos_version_less_than("1.10"):
-        marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".replace("\"", "\\\"").format(other_agent)
-    else:
-        marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".format(other_agent)
+    marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".format(other_agent)
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     # Wait for the scheduler to be up and settled before advancing.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

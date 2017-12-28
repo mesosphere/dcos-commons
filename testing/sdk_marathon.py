@@ -13,15 +13,28 @@ import tempfile
 import shakedown
 
 import sdk_cmd
+import sdk_metrics
+
+TIMEOUT_SECONDS = 15 * 60
 
 log = logging.getLogger(__name__)
 
 
-def get_config(app_name):
+def _get_config_once(app_name):
+    return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
+
+
+def app_exists(app_name):
+    try:
+        _get_config_once(app_name)
+        return True
+    except:
+        return False
+
+
+def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
-    def fn():
-        return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
-    config = shakedown.wait_for(lambda: fn()).json()['app']
+    config = shakedown.wait_for(lambda: _get_config_once(app_name), noisy=True, timeout_seconds=timeout).json()['app']
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
@@ -83,7 +96,7 @@ def install_app(app_definition: dict) -> (bool, str):
         return install_app_from_file(app_name, app_def_path)
 
 
-def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
+def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True):
     if "env" in config:
         log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):
@@ -117,9 +130,9 @@ def api_url_with_param(basename, path_param):
     return '{}/{}'.format(api_url(basename), path_param)
 
 
-def get_scheduler_host(package_name):
+def get_scheduler_host(service_name):
     # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
-    task_name_elems = package_name.lstrip('/').split('/')
+    task_name_elems = service_name.lstrip('/').split('/')
     task_name_elems.reverse()
     app_name = '.'.join(task_name_elems)
     ips = shakedown.get_service_ips('marathon', app_name)
@@ -129,16 +142,29 @@ def get_scheduler_host(package_name):
     return ips.pop()
 
 
-def bump_cpu_count_config(package_name, key_name, delta=0.1):
-    config = get_config(package_name)
+def bump_cpu_count_config(service_name, key_name, delta=0.1):
+    config = get_config(service_name)
     updated_cpus = float(config['env'][key_name]) + delta
     config['env'][key_name] = str(updated_cpus)
-    update_app(package_name, config)
+    update_app(service_name, config)
     return updated_cpus
 
 
-def bump_task_count_config(package_name, key_name, delta=1):
-    config = get_config(package_name)
+def bump_task_count_config(service_name, key_name, delta=1):
+    config = get_config(service_name)
     updated_node_count = int(config['env'][key_name]) + delta
     config['env'][key_name] = str(updated_node_count)
-    update_app(package_name, config)
+    update_app(service_name, config)
+
+
+def get_mesos_api_version(service_name):
+    return get_config(service_name)['env']['MESOS_API_VERSION']
+
+
+def set_mesos_api_version(service_name, api_version, timeout=600):
+    '''Sets the mesos API version to the provided value, and then verifies that the scheduler comes back successfully'''
+    config = get_config(service_name)
+    config['env']['MESOS_API_VERSION'] = api_version
+    update_app(service_name, config, timeout=timeout)
+    # wait for scheduler to come back and successfully receive/process offers:
+    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 1, timeout_seconds=timeout)

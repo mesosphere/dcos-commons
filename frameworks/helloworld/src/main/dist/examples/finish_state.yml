@@ -1,0 +1,49 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: 2
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: 1000
+  world:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo $TASK_NAME && sleep $SLEEP_DURATION"
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: 1000
+      finish:
+        goal: FINISH
+        cmd: "echo $TASK_NAME"
+        cpus: {{WORLD_CPUS}}
+        memory: 256
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[server]]
+      world-server-deploy:
+        strategy: parallel
+        pod: world
+        steps:
+          - default: [[server]]
+      world-finish-deploy:
+        strategy: parallel
+        pod: world
+        steps:
+          - default: [[finish]]

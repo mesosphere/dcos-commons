@@ -1,7 +1,6 @@
-package com.mesosphere.sdk.cassandra.scheduler;
+package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
-import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -16,26 +15,27 @@ import java.util.*;
  * 2. true  --> true
  * 3. false --> false
  */
-public class ZoneValidator implements ConfigValidator<ServiceSpec> {
-    static final String POD_TYPE = "node";
-    static final String TASK_NAME = "server";
+public class ZoneValidator {
 
-    @Override
-    public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
+    public static Collection<ConfigValidationError> validate(
+            Optional<ServiceSpec> oldConfig,
+            ServiceSpec newConfig,
+            String podType,
+            String taskName) {
         if (!oldConfig.isPresent()) {
             return Collections.emptyList();
         }
 
-        Optional<TaskSpec> oldTask = TaskUtils.getTaskSpec(oldConfig.get(), POD_TYPE, TASK_NAME);
+        Optional<TaskSpec> oldTask = TaskUtils.getTaskSpec(oldConfig.get(), podType, taskName);
         if (!oldTask.isPresent()) {
             // Maybe the pod or task was renamed? Lets avoid enforcing whether those are rename- able and assume it's OK
             return Collections.emptyList();
         }
 
-        Optional<TaskSpec> newTask = TaskUtils.getTaskSpec(newConfig, POD_TYPE, TASK_NAME);
+        Optional<TaskSpec> newTask = TaskUtils.getTaskSpec(newConfig, podType, taskName);
         if (!newTask.isPresent()) {
             throw new IllegalArgumentException(String.format("Unable to find requested pod=%s, task=%s in config: %s",
-                    POD_TYPE, TASK_NAME, newConfig));
+                    podType, taskName, newConfig));
         }
 
         String oldEnv = oldTask.get()
@@ -47,15 +47,16 @@ public class ZoneValidator implements ConfigValidator<ServiceSpec> {
                 .getEnvironment()
                 .get(EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV);
 
-        return validateTransition(oldEnv, newEnv);
+        return validateTransition(oldEnv, newEnv, podType, taskName);
     }
 
-    List<ConfigValidationError> validateTransition(String oldEnv, String newEnv) {
+    static List<ConfigValidationError> validateTransition(
+            String oldEnv, String newEnv, String podType, String taskName) {
         boolean oldZones = Boolean.valueOf(oldEnv);
         boolean newZones = Boolean.valueOf(newEnv);
 
         ConfigValidationError error = ConfigValidationError.transitionError(
-                String.format("%s.%s.env.%s", POD_TYPE, TASK_NAME, EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV),
+                String.format("%s.%s.env.%s", podType, taskName, EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV),
                 oldEnv, newEnv,
                 String.format(
                         "Env value %s cannot change from %s to %s",

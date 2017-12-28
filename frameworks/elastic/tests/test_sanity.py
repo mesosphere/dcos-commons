@@ -85,27 +85,11 @@ def test_pod_replace_then_immediate_config_update():
 @pytest.mark.smoke
 @pytest.mark.mesos_v0
 def test_mesos_v0_api():
-    try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        # Install Elastic using the v0 api.
-        # Then, clean up afterwards.
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            current_expected_task_count,
-            additional_options={"service": {"name": foldered_name, "mesos_api_version": "V0"}}
-        )
-        sdk_tasks.check_running(foldered_name, current_expected_task_count)
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
-        # reinstall the v1 version for the following tests
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name}})
+    service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
+    if prior_api_version is not "V0":
+        sdk_marathon.set_mesos_api_version(service_name, "V0")
+        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
 
 
 @pytest.mark.sanity
@@ -194,10 +178,17 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.verify_commercial_api_status(False, service_name=foldered_name)
 
     log.info("\n***** Test kibana with X-Pack disabled...")
-    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
-        "kibana": {"elasticsearch_url": "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)}})
-    shakedown.deployment_wait(
-        app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
+    elasticsearch_url = "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)
+    sdk_install.install(
+        config.KIBANA_PACKAGE_NAME,
+        config.KIBANA_PACKAGE_NAME,
+        0,
+        { "kibana": {
+            "elasticsearch_url": elasticsearch_url
+        }},
+        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        wait_for_deployment=False,
+        insert_strict_options=False)
     config.check_kibana_adminrouter_integration(
         "service/{}/".format(config.KIBANA_PACKAGE_NAME))
     log.info("Uninstall kibana with X-Pack disabled")
@@ -217,14 +208,19 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         service_name=foldered_name)
 
     log.info("\n***** Test kibana with X-Pack enabled...")
-    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
-        "kibana": {
-            "elasticsearch_url": "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200),
+    log.info("\n***** Installing Kibana w/X-Pack can exceed default 15 minutes for Marathon "
+             "deployment to complete due to a configured HTTP health check. (typical: 12 minutes)")
+    sdk_install.install(
+        config.KIBANA_PACKAGE_NAME,
+        config.KIBANA_PACKAGE_NAME,
+        0,
+        { "kibana": {
+            "elasticsearch_url": elasticsearch_url,
             "xpack_enabled": True
-        }})
-    log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
-    log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
-    shakedown.deployment_wait(app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
+        }},
+        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        wait_for_deployment=False,
+        insert_strict_options=False)
     config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
     log.info("\n***** Uninstall kibana with X-Pack enabled")
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)

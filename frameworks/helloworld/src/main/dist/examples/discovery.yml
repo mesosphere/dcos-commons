@@ -11,7 +11,7 @@ pods:
         memory: 256
     tasks:
       once:
-        goal: FINISHED
+        goal: ONCE
         cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
         resource-set: hello-resources
         discovery:

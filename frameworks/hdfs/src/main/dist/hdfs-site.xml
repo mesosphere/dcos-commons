@@ -818,12 +818,12 @@
         <value>{{PERMISSIONS_SUPERUSERGROUP}}</value>
     </property>
 
-    {{^KERBEROS_ENABLED}}
+    {{^SECURITY_KERBEROS_ENABLED}}
     <property>
         <name>dfs.permissions.enabled</name>
         <value>{{PERMISSIONS_ENABLED}}</value>
     </property>
-    {{/KERBEROS_ENABLED}}
+    {{/SECURITY_KERBEROS_ENABLED}}
 
 
     {{#SECURITY_KERBEROS_ENABLED}}
@@ -892,15 +892,15 @@
         </property>
         <property>
             <name>dfs.secondary.namenode.kerberos.principal</name>
-            <value>{{KERBEROS_PRIMARY}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.secondary.namenode.kerberos.http.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         <property>
             <name>dfs.secondary.namenode.kerberos.internal.spnego.principal</name>
-            <value>{{KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{KERBEROS_REALM}}</value>
+            <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/name-{{OTHER_NN_INDEX}}-node.{{FRAMEWORK_HOST}}@{{SECURITY_KERBEROS_REALM}}</value>
         </property>
         {{/NAMENODE}}
 
