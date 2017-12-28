@@ -21,6 +21,11 @@ from tests import test_utils
 
 log = logging.getLogger(__name__)
 
+
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                reason='Feature only supported in DC/OS EE')
+
+
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
