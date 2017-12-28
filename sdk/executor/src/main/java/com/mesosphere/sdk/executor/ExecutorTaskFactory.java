@@ -3,8 +3,6 @@ package com.mesosphere.sdk.executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 
-import java.io.IOException;
-
 /**
  * {@code ExecutorTaskFactory}'s implementations are responsible for creating {@code ExecutorTask} objects.
  */
@@ -17,6 +15,5 @@ public interface ExecutorTaskFactory {
      * @param driver The ExecutorDriver provided by Mesos.
      * @return An {@link ExecutorTask} which can be executed.
      */
-    ExecutorTask createTask(final Protos.TaskInfo taskInfo, final ExecutorDriver driver)
-            throws ExecutorTaskException, IOException;
+    ExecutorTask createTask(final Protos.TaskInfo taskInfo, final ExecutorDriver driver);
 }

@@ -165,7 +165,7 @@ pods:
 
         * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-            * **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+* **goal**: Every task must have a goal state. There are three possible goal states: `RUNNING`, `FINISH` and `ONCE`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISH` indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. `ONCE` indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod's lifetime.
 
             * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
@@ -322,7 +322,7 @@ pods:
           type: ROOT
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         cmd: "./init"
         resource-set: hello-resources
       main:
@@ -980,7 +980,7 @@ pods:
           size: 50
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         resource-set: pod-resources
         cmd: "echo init >> hello-container-path/output && sleep 1000"
         discovery:
@@ -1265,7 +1265,7 @@ SDK-based example service using DC/OS secrets.
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
+For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-svc/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
 
 On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
@@ -1323,7 +1323,7 @@ ZONE: us-west-2a
 Services may choose to use this information to enable rack awareness. Users may then configure [placement rules](#placement-rules) to ensure that their pods are appropriately placed within specific regions and zones, or distributed across those regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
 
 ```
-@zone:GROUP_BY:2
+[["@zone", "GROUP_BY", "2"]]
 ```
 
 The placement rule above would apply the `GROUP_BY` operator to zones.
@@ -1333,7 +1333,7 @@ The placement rule above would apply the `GROUP_BY` operator to zones.
 The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
 
 ```
-@region:IS:us-west-2
+[["@region", "IS", "us-west-2"]]
 ```
 
 Any placement rules that do *not* reference the `@region` key require placement in the local region.
@@ -1746,7 +1746,7 @@ pods:
           size: 50
     tasks:
       initialize:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo initialize >> hello-container-path/output"
         resource-set: hello-resources
       server:
@@ -1779,7 +1779,7 @@ pods:
           size: 50
     tasks:
       initialize:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo initialize >> hello-container-path/output"
         resource-set: hello-resources
       server:
@@ -1823,7 +1823,7 @@ pods:
         env:
           SLEEP_DURATION: 1000
       sidecar:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo $PLAN_PARAMETER1 $PLAN_PARAMETER2 >> output"
         resource-set: sidecar-resources
 plans:

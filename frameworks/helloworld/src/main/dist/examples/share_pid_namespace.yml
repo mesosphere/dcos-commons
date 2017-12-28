@@ -28,7 +28,7 @@ pods:
         env:
           SLEEP_DURATION: 10000
       once:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
               [ "$(readlink /proc/self/ns/pid)" == "$(tail -n 1 hello-container-path/output)" ]
         resource-set: sidecar-resources

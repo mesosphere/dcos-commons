@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -385,6 +386,14 @@ public class TaskUtils {
             return Collections.emptyList();
         }
 
+        // Log failed pod map
+        for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+            List<String> taskNames = entry.getValue().stream()
+                    .map(taskSpec -> taskSpec.getName())
+                    .collect(Collectors.toList());
+            LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
+        }
+
         Set<String> allLaunchedTaskNames = allLaunchedTasks.stream()
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toSet());
@@ -410,6 +419,11 @@ public class TaskUtils {
                     .filter(taskSpec -> taskSpec.getGoal() == GoalState.RUNNING &&
                             allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
                     .collect(Collectors.toList());
+
+            if (taskSpecsToLaunch.isEmpty()) {
+                LOGGER.info("No tasks to recover for pod: {}", entry.getKey().getName());
+                continue;
+            }
 
             LOGGER.info("Tasks to relaunch in pod {}: {}", entry.getKey().getName(), taskSpecsToLaunch.stream()
                     .map(taskSpec -> String.format(
@@ -517,7 +531,7 @@ public class TaskUtils {
         // Tasks with a goal state of finished should never leave the purview of their original
         // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
         // which reached their goal state of RUNNING and then later failed.
-        if (taskSpec.getGoal() == GoalState.FINISHED) {
+        if (taskSpec.getGoal().equals(GoalState.ONCE) || taskSpec.getGoal().equals(GoalState.FINISH)) {
             return false;
         } else {
             return isRecoveryNeeded(taskStatus);
@@ -567,5 +581,39 @@ public class TaskUtils {
                     .build());
         }
         return clearedResources;
+    }
+
+    /**
+     * Determines if a task is launched in any zones.
+     * @param taskInfo The {@link TaskInfo} to get zone information from.
+     * @return A boolean indicating whether the task is in a zone.
+     */
+    public static boolean taskHasZone(TaskInfo taskInfo) {
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+                .anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
+    }
+
+    /**
+     * Gets the zone of a task.
+     * @param taskInfo The {@link TaskInfo} to get zone information from.
+     * @return A string indicating the zone the task is in.
+     */
+    public static String getTaskZone(TaskInfo taskInfo) {
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+            .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
+    }
+
+    /**
+     * Gets the IP address associated with the task.
+     * @param taskStatus the {@link TaskStatus} to get the IP address from.
+     * @return A String indicating the IP address associated with the task.
+     */
+    public static String getTaskIPAddress(TaskStatus taskStatus) throws IllegalStateException {
+        List<Protos.NetworkInfo> networkInfo = taskStatus.getContainerStatus().getNetworkInfosList();
+        if (networkInfo.isEmpty()) {
+            throw new IllegalStateException(
+                    String.format("No network info can be found for the task info: %s", taskStatus.toString()));
+        }
+        return networkInfo.stream().findFirst().get().getIpAddresses(0).getIpAddress();
     }
 }

@@ -7,7 +7,7 @@ pods:
         cpus: 1.0
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         cmd: "./init"
         resource-set: shared-resources
       server:

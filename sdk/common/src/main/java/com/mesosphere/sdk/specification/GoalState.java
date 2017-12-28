@@ -15,7 +15,18 @@ public enum GoalState {
     RUNNING,
 
     /**
+     * Running only once over the lifetime of a service. Should not be run again for the duration of this install. (Will
+     * be deprecated in favor of ONCE in future releases, which shares the same semantics.
+     */
+    FINISHED,
+
+    /**
      * Running and then exiting successfully. Should not be restarted upon a successful exit.
      */
-    FINISHED
+    FINISH,
+
+    /**
+     * Running only once over the lifetime of a service. Should not be run again for the duration of this install.
+     */
+    ONCE
 }

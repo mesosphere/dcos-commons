@@ -110,7 +110,7 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Sets a label on a TaskInfo indicating the Task's {@link GoalState}, e.g. RUNNING or FINISHED.
+     * Sets a label on a TaskInfo indicating the Task's {@link GoalState}, e.g. RUNNING, FINISH or ONCE.
      */
     public TaskLabelWriter setGoalState(GoalState goalState) {
         writer.put(LabelConstants.GOAL_STATE_LABEL, goalState.name());

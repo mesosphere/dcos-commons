@@ -26,19 +26,19 @@ pods:
           # will always have an empty recovery plan.
           SLEEP_DURATION: 10000
       once:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo 'I run only once' >> hello-container-path/output"
         resource-set: sidecar-resources
       sidecar:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo 'sidecar' >> hello-container-path/output"
         resource-set: sidecar-resources
       sidecar-parameterized:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo $PLAN_PARAMETER >> hello-container-path/output && grep parameterized < hello-container-path/output"
         resource-set: sidecar-resources
       sidecar-toxic:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
           ls -al ;
           echo "I'm addicted to you / Don't you know that you're toxic?" > hello-container-path/toxic-output ;

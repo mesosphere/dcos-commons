@@ -13,9 +13,13 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = sdk_install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
         # don't wait for install to complete successfully:
-        shakedown.install_package(config.PACKAGE_NAME, options_json=options)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            0,
+            { "service": { "spec_file": "examples/taskcfg.yml" } },
+            wait_for_deployment=False)
 
         yield # let the test session execute
     finally:

@@ -32,6 +32,7 @@ def service_account():
 
 @pytest.fixture(scope='module')
 def kafka_service_tls(service_account):
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     config.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,

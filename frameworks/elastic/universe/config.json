@@ -140,7 +140,7 @@
         "placement": {
           "description": "Placement constraints for master nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -201,7 +201,7 @@
         "placement": {
           "description": "Placement constraints for data nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -262,7 +262,7 @@
         "placement": {
           "description": "Placement constraints for ingest nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
@@ -323,7 +323,7 @@
         "placement": {
           "description": "Placement constraints for coordinator nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
-          "default": "[]",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }
