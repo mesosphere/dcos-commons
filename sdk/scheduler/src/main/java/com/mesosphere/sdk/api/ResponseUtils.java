@@ -105,4 +105,18 @@ public class ResponseUtils {
     public static Response alreadyReportedResponse() {
         return plainResponse("Command has already been reported or completed", 208);
     }
+
+    /**
+     * Returns a 200 OK response containing the provided html {@Link String}.
+     */
+    public static Response htmlOkResponse(String html) {
+        return htmlResponse(html, Response.Status.OK);
+    }
+
+    /**
+     * Returns a response containing the provided html {@Link String} with the provided status {@Link Response.Status}.
+     */
+    public static Response htmlResponse(String html, Response.Status status) {
+        return Response.status(status).entity(html).type(MediaType.TEXT_HTML).build();
+    }
 }
