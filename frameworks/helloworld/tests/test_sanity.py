@@ -3,6 +3,7 @@ import re
 
 import dcos.marathon
 import pytest
+import retrying
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -230,13 +231,17 @@ def test_state_refresh_disable_cache():
     config.check_running(foldered_name)
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=120*1000,
+        retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
         output = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
         if "failed: 409 Conflict" in output:
             return True
         return False
 
-    shakedown.wait_for(lambda: check_cache_refresh_fails_409conflict(), timeout_seconds=120.)
+    check_cache_refresh_fails_409conflict()
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     del marathon_config['env']['DISABLE_STATE_CACHE']
@@ -247,10 +252,14 @@ def test_state_refresh_disable_cache():
     shakedown.deployment_wait()  # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=120*1000,
+        retry_on_result=lambda res: not res)
     def check_cache_refresh():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
 
-    stdout = shakedown.wait_for(lambda: check_cache_refresh(), timeout_seconds=120.)
+    stdout = check_cache_refresh()
     assert "Received cmd: refresh" in stdout
 
 
@@ -281,12 +290,15 @@ def test_lock():
     shakedown.deployment_wait()
     marathon_client.update_app(foldered_name, {"instances": 2})
 
-    # Wait for second scheduler to fail
-    def fn():
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=120*1000,
+        retry_on_result=lambda res: not res)
+    def wait_for_second_scheduler_to_fail():
         timestamp = marathon_client.get_app(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
 
-    shakedown.wait_for(lambda: fn())
+    wait_for_second_scheduler_to_fail()
 
     # Verify ZK is unchanged
     zk_config_new = shakedown.get_zk_node_data(zk_path)

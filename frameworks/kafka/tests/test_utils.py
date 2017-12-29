@@ -5,22 +5,18 @@ import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_tasks
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: not res)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
-    def fun():
-        try:
-            if len(sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)) == count:
-                return True
-        except:
-            pass
-        return False
-
-    shakedown.wait_for(fun)
+    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)
+    return len(brokers) == count
 
 
 def restart_broker_pods(service_name=config.SERVICE_NAME):

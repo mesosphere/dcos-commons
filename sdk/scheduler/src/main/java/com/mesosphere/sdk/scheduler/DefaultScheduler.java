@@ -7,6 +7,7 @@ import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -54,6 +55,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
+
+    private final OfferOutcomeTracker offerOutcomeTracker;
 
     /**
      * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
@@ -113,6 +116,9 @@ public class DefaultScheduler extends AbstractScheduler {
         this.podResource = new PodResource(stateStore, serviceSpec.getName());
         this.resources.add(this.podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
+
+        this.offerOutcomeTracker = new OfferOutcomeTracker();
+        this.resources.add(new OfferOutcomeResource(offerOutcomeTracker));
     }
 
     @Override
@@ -135,6 +141,7 @@ public class DefaultScheduler extends AbstractScheduler {
                         offerAccepter,
                         new OfferEvaluator(
                                 stateStore,
+                                offerOutcomeTracker,
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
                                 schedulerConfig,

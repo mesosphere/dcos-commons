@@ -13,6 +13,7 @@ import tempfile
 import traceback
 
 import shakedown
+import retrying
 
 import sdk_cmd
 
@@ -76,7 +77,12 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
 
     # wait for run to succeed, throw if run fails:
-    def fun():
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res,
+        retry_on_exception=lambda ex: False)
+    def wait():
         # catch errors from CLI: ensure that the only error raised is our own:
         try:
             successful_runs = json.loads(sdk_cmd.run_cli(
@@ -96,7 +102,8 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
         if raise_on_failure and run_id in failed_ids:
             raise Exception('Job {} with id {} has failed, exiting early'.format(job_name, run_id))
         return run_id in successful_ids
-    shakedown.wait_for(fun, noisy=True, timeout_seconds=timeout_seconds, ignore_exceptions=False)
+
+    wait()
 
     return run_id
 
