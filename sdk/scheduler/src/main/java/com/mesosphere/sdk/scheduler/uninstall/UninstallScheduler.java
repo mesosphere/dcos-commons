@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.HealthResource;
 import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.api.types.PlanInfo;
