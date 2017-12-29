@@ -20,9 +20,9 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
 public class UninstallRecorder implements OperationRecorder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
-    private final Collection<Step> resourceSteps;
+    private final Collection<ResourceCleanupStep> resourceSteps;
 
-    UninstallRecorder(StateStore stateStore, Collection<Step> resourceSteps) {
+    UninstallRecorder(StateStore stateStore, Collection<ResourceCleanupStep> resourceSteps) {
         this.stateStore = stateStore;
         this.resourceSteps = resourceSteps;
     }
