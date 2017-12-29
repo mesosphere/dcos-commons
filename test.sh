@@ -7,6 +7,15 @@
 # 4. If I pass `all` instead of a fw name, it will run all frameworks
 # 5. test.sh should validate i have the AWS keys, and a CLUSTER_URL set, but it need not verify the azure keys / security / etc
 
+# Requirements:
+#
+# 1. A valid AWS credentials file. For example, one constructed using `maws`: https://github.com/mesosphere/maws#installation
+#   1. Install maws
+#   2. Run `maws list` to be redirected to browser for login.
+#   3. Run `maws login ACCOUNT_NAME` for one of the listed accounts.
+#   4. Check the the `~/.aws/credentials` file has been created
+
+
 # Exit immediately on errors
 set -e
 
