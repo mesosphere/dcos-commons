@@ -15,6 +15,16 @@
 #   3. Run `maws login ACCOUNT_NAME` for one of the listed accounts.
 #   4. Check the the `~/.aws/credentials` file has been created
 
+# Assuming that you have `maws` installed and are logged in to one of your profiles.
+# The Kafka build and tests can be started as normal:
+#
+# `CLUSTER_URL=https://my_cluster ./test.sh kafka`
+#
+# Note that if your have mulitple AWS profiles, it is required to specify a profile using the `--aws-profile` command
+# line option:
+#
+# `CLUSTER_URL=https://my_cluster ./test.sh --aws-profile 273854932432_Mesosphere-PowerUser kafka`
+
 
 # Exit immediately on errors
 set -e
@@ -35,7 +45,7 @@ interactive=
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name> [-i|--interactive] [--aws|-a PATH] [--aws-profile PROFILE]"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
