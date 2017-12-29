@@ -7,34 +7,6 @@
 # 4. If I pass `all` instead of a fw name, it will run all frameworks
 # 5. test.sh should validate i have the AWS keys, and a CLUSTER_URL set, but it need not verify the azure keys / security / etc
 
-# Requirements:
-#
-# 1. A valid AWS credentials file. For example, one constructed using `maws`: https://github.com/mesosphere/maws#installation
-#   1. Install maws
-#   2. Run `maws list` to be redirected to browser for login.
-#   3. Run `maws login ACCOUNT_NAME` for one of the listed accounts.
-#   4. Check the the `~/.aws/credentials` file has been created
-
-# Assuming that you have `maws` installed and are logged in to one of your profiles:
-
-# ```
-# $ maws login 273854932432_Mesosphere-PowerUser
-# ```
-
-# The Kafka build and tests can be started as normal:
-
-# ```
-# $ CLUSTER_URL=https://my_cluster ./test.sh kafka
-# ```
-
-# Note that if your have mulitple AWS profiles, it is required to specify a profile using the `--aws-profile` command
-# line option:
-
-# ```
-# $ CLUSTER_URL=https://my_cluster ./test.sh --aws-profile 273854932432_Mesosphere-PowerUser kafka
-# ```
-
-
 # Exit immediately on errors
 set -e
 
