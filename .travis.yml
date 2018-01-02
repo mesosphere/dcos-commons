@@ -14,6 +14,8 @@ script:
       frameworks/elastic/build.sh aws;
       frameworks/hdfs/build.sh aws;
       frameworks/kafka/build.sh aws;
+      frameworks/zookeeper/build.sh aws;
+      frameworks/couchdb/build.sh aws;
       frameworks/portworx/build.sh aws;
     fi
 notifications:
