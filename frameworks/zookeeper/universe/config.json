@@ -70,7 +70,7 @@
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
-            "default": "hostname:UNIQUE"
+            "default": ""
           },
           "cpus": {
             "title": "CPU count",
