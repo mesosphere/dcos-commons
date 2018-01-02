@@ -19,12 +19,14 @@ pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
+aws_credentials_path="${HOME}/.aws"
+aws_profile="default"
 DCOS_ENTERPRISE=true
 interactive=
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name> [-i|--interactive]"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
@@ -34,9 +36,9 @@ function usage()
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "--interactive start a docker container in interactive mode"
     echo "Cluster must be created and \$CLUSTER_URL set"
-    echo "AWS credentials must exist in the variables:"
-    echo "      \$AWS_ACCESS_KEY_ID"
-    echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
+    echo "--aws|a PATH where aws credentials file can be found [default ${aws_credentials_path}]"
+    echo "        (AWS credentials must exist in this file)"
     echo "Azure tests will run if these variables are set:"
     echo "      \$AZURE_CLIENT_ID"
     echo "      \$AZURE_CLIENT_SECRET"
@@ -55,32 +57,6 @@ function usage()
 if [ "$#" -eq "0" -o x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     usage
     exit 1
-fi
-
-
-if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
-    CREDENTIALS_FILE="$HOME/.aws/credentials"
-
-    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
-    if [ $( echo "$PROFILES" | wc -l ) != "1" ]; then
-        echo "Only single profile credentials files are supported"
-        echo "Found:"
-        echo "$PROFILES"
-        exit 1
-    fi
-
-    if  [ -f "$CREDENTIALS_FILE" ]; then
-        echo "Checking $CREDENTIALS_FILE"
-        SED_ARGS='s/^.*=\s*//g'
-        AWS_ACCESS_KEY_ID=$( grep -oE "^aws_access_key_id\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
-        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID// /}
-        AWS_SECRET_ACCESS_KEY=$( grep -oE "^aws_secret_access_key\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
-        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY// /}
-    fi
-    if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
-        echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
-        exit 1
-    fi
 fi
 
 
@@ -125,6 +101,14 @@ case $key in
     -i|--interactive)
     interactive="true"
     ;;
+    -a|--aws)
+    aws_credentials_path="$2"
+    shift # past argument
+    ;;
+    --aws-profile)
+    aws_profile="$2"
+    shift
+    ;;
     -*)
     usage
     exit 1
@@ -140,6 +124,31 @@ done
 if [ ! -f "$ssh_path" ]; then
     echo "The specified CCM key ($ssh_path) does not exist or is not a file"
     exit 1
+fi
+
+
+if [ ! -f "${aws_credentials_path}/credentials" ]; then
+    echo "The required AWS credentials file ${aws_credentials_path}/credentials was not found"
+    echo "Try running 'maws' to log in"
+    exit 1
+else
+    CREDENTIALS_FILE=${aws_credentials_path}/credentials
+    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
+    if [ $( echo "$PROFILES" | grep [${aws_profile}]) != "[${aws_profile}]" ]; then
+        echo "The specified profile (${aws_profile}) was not found in the file $CREDENTIALS_FILE"
+
+        if [ $( echo "$PROFILES" | wc -l ) == "1" ]; then
+            PROFILES="${PROFILES/#[/}"
+            aws_profile="${PROFILES/%]/}"
+            echo "Using single profile: ${aws_profile}"
+        else
+            echo "Found:"
+            echo "$PROFILES"
+            echo ""
+            echo "Specify the correct profile using the --aws-profile command line option"
+            exit 1
+        fi
+    fi
 fi
 
 echo "interactive=$interactive"
@@ -192,8 +201,8 @@ fi
 
 
 docker run --rm \
-    -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
-    -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+    -v ${aws_credentials_path}:/root/.aws:ro \
+    -e AWS_PROFILE="${aws_profile}" \
     -e DCOS_ENTERPRISE="$DCOS_ENTERPRISE" \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
     -e DCOS_LOGIN_PASSWORD="$DCOS_LOGIN_PASSWORD" \
