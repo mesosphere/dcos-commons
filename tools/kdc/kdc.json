@@ -7,7 +7,7 @@
   "container": {
     "type": "MESOS",
     "docker": {
-      "image": "nvaziri/kdc:dev",
+      "image": "nvaziri/kdc:mesosphere",
       "forcePullImage": true
     }
   },
@@ -20,15 +20,7 @@
     {
       "port": 2500,
       "name": "kdc"
-    },
-    {
-      "port": 8000,
-      "name": "http"
     }
   ],
-  "requirePorts": true,
-  "env": {
-    "LOG_LEVEL": "LOG_DEBUG",
-    "ENC_TYPES": "aes256-cts des3-cbc-sha1 des-cbc-md5 des-cbc-crc"
-  }
+  "requirePorts": true
 }

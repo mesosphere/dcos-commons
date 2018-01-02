@@ -1,5 +1,6 @@
 import json
 import os
+import retrying
 import shakedown
 
 import sdk_auth
@@ -90,15 +91,16 @@ def get_active_name_node(service_name):
     raise Exception("Failed to determine active name node")
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
-    def get_status():
-        rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
-        if not rc:
-            return rc
+    rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
+    if not rc:
+        return rc
 
-        return output.strip()
-
-    return shakedown.wait_for(lambda: get_status(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+    return output.strip()
 
 
 def run_hdfs_command(service_name, command):

@@ -91,22 +91,7 @@ def _cqlsh(query, node_address, node_port):
     return 'cqlsh -e "{}" {} {}'.format(query, node_address, node_port)
 
 
-def get_delete_data_once_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
-    cql = ' '.join([
-        'DROP TABLE IF EXISTS testspace1.testtable1;',
-        'DROP TABLE IF EXISTS testspace2.testtable2;',
-        'DROP KEYSPACE IF EXISTS testspace1;',
-        'DROP KEYSPACE IF EXISTS testspace2;'])
-    return _get_test_job(
-        'delete-data-once',
-        [_cqlsh(cql, node_address, node_port)],
-        node_address,
-        node_port,
-        restart_policy='NEVER',
-        dcos_ca_bundle=dcos_ca_bundle)
-
-
-def get_delete_data_retry_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
+def get_delete_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
     cql = ' '.join([
         'DROP TABLE IF EXISTS testspace1.testtable1;',
         'DROP TABLE IF EXISTS testspace2.testtable2;',
@@ -165,10 +150,9 @@ def get_write_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE
 
 def get_all_jobs(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
     return [
-        get_delete_data_once_job(node_address),
         get_write_data_job(node_address),
         get_verify_data_job(node_address),
-        get_delete_data_retry_job(node_address),
+        get_delete_data_job(node_address),
         get_verify_deletion_job(node_address)]
 
 
@@ -178,17 +162,16 @@ def run_backup_and_restore(
         restore_plan,
         plan_parameters,
         job_node_address=DEFAULT_NODE_ADDRESS):
-    delete_data_once_job = get_delete_data_once_job(node_address=job_node_address)
     write_data_job = get_write_data_job(node_address=job_node_address)
     verify_data_job = get_verify_data_job(node_address=job_node_address)
-    delete_data_retry_job = get_delete_data_retry_job(node_address=job_node_address)
+    delete_data_job = get_delete_data_job(node_address=job_node_address)
     verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
 
     # Ensure the keyspaces we will use aren't present. In practice this should run once and fail
     # because the data isn't present. When the job is flagged as failed (due to restart=NEVER),
     # the run_job() call will throw.
     try:
-        sdk_jobs.run_job(delete_data_once_job)
+        sdk_jobs.run_job(delete_data_job)
     except:
         log.info("Error during delete (normal if no stale data)")
         log.info(traceback.format_exc())
@@ -203,7 +186,7 @@ def run_backup_and_restore(
     sdk_plan.wait_for_completed_plan(service_name, backup_plan)
 
     # Delete all keyspaces and tables with a metronome job
-    sdk_jobs.run_job(delete_data_retry_job)
+    sdk_jobs.run_job(delete_data_job)
 
     # Verify that the keyspaces and tables were deleted
     sdk_jobs.run_job(verify_deletion_job)
@@ -216,5 +199,5 @@ def run_backup_and_restore(
     sdk_jobs.run_job(verify_data_job)
 
     # Delete data in preparation for any other backup tests
-    sdk_jobs.run_job(delete_data_retry_job)
+    sdk_jobs.run_job(delete_data_job)
     sdk_jobs.run_job(verify_deletion_job)

@@ -5,7 +5,6 @@ import sdk_install
 import sdk_jobs
 import sdk_networks
 import sdk_plan
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -67,7 +66,7 @@ def test_functionality():
                 config.get_verify_data_job()
             ],
             after_jobs=[
-                config.get_delete_data_retry_job(),
+                config.get_delete_data_job(),
                 config.get_verify_deletion_job()
             ]):
 

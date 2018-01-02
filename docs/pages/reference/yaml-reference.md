@@ -228,7 +228,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `essential`
 
-      Marks this task as either "Essential", where task failure results in relaunching all tasks in the pod as a unit, or "Non-essential", where task failure results in only relaunching this task and leaving other tasks in the pod unaffected. By default this value is `true`, such that the failure of the task will result in relaunching all tasks in the pod. This is only a factor in cases where a given pod has multiple `RUNNING` tasks defined.
+      Marks this task as either "Essential", where task failure results in relaunching all tasks in the pod as a unit, or "Non-essential", where task failure results in only relaunching this task and leaving other tasks in the pod unaffected. By default this value is `true`, such that the failure of the task will result in relaunching all tasks in the pod. This is only applicable in cases where a given pod has multiple tasks with a goal state of `RUNNING` defined.
 
     * `cmd`
 

@@ -172,7 +172,7 @@ class KerberosEnvironment:
         This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
         """
         self.temp_working_dir = _create_temp_working_dir()
-        kdc_app_def_path = "{current_file_dir}/../tools/kdc.json".format(
+        kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
             current_file_dir=os.path.dirname(os.path.realpath(__file__)))
         with open(kdc_app_def_path) as f:
             kdc_app_def = json.load(f)

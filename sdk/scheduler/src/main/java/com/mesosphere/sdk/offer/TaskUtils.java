@@ -386,6 +386,14 @@ public class TaskUtils {
             return Collections.emptyList();
         }
 
+        // Log failed pod map
+        for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+            List<String> taskNames = entry.getValue().stream()
+                    .map(taskSpec -> taskSpec.getName())
+                    .collect(Collectors.toList());
+            LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
+        }
+
         Set<String> allLaunchedTaskNames = allLaunchedTasks.stream()
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toSet());
@@ -411,6 +419,11 @@ public class TaskUtils {
                     .filter(taskSpec -> taskSpec.getGoal() == GoalState.RUNNING &&
                             allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
                     .collect(Collectors.toList());
+
+            if (taskSpecsToLaunch.isEmpty()) {
+                LOGGER.info("No tasks to recover for pod: {}", entry.getKey().getName());
+                continue;
+            }
 
             LOGGER.info("Tasks to relaunch in pod {}: {}", entry.getKey().getName(), taskSpecsToLaunch.stream()
                     .map(taskSpec -> String.format(

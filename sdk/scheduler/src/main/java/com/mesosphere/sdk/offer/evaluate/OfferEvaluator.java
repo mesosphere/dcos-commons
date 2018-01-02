@@ -3,6 +3,8 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.history.OfferOutcome;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -29,6 +31,7 @@ public class OfferEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
 
     private final StateStore stateStore;
+    private final OfferOutcomeTracker offerOutcomeTracker;
     private final String serviceName;
     private final UUID targetConfigId;
     private final SchedulerConfig schedulerConfig;
@@ -36,11 +39,13 @@ public class OfferEvaluator {
 
     public OfferEvaluator(
             StateStore stateStore,
+            OfferOutcomeTracker offerOutcomeTracker,
             String serviceName,
             UUID targetConfigId,
             SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
         this.stateStore = stateStore;
+        this.offerOutcomeTracker = offerOutcomeTracker;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
         this.schedulerConfig = schedulerConfig;
@@ -82,6 +87,7 @@ public class OfferEvaluator {
                     getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
+
             MesosResourcePool resourcePool = new MesosResourcePool(
                     offer,
                     OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
@@ -132,6 +138,12 @@ public class OfferEvaluator {
                         failedOutcomeCount,
                         evaluationStages.size(),
                         outcomeDetails.toString());
+
+                offerOutcomeTracker.track(new OfferOutcome(
+                        podInstanceRequirement.getName(),
+                        false,
+                        offer,
+                        outcomeDetails.toString()));
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
@@ -139,6 +151,13 @@ public class OfferEvaluator {
                         .collect(Collectors.toList());
                 logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
                         i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
+
+                offerOutcomeTracker.track(new OfferOutcome(
+                        podInstanceRequirement.getName(),
+                        true,
+                        offer,
+                        outcomeDetails.toString()));
+
                 return recommendations;
             }
         }

@@ -285,6 +285,7 @@ pods:
             type: KEYSTORE
         {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       zkfc:
+        essential: false
         goal: RUNNING
         cmd: >
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;

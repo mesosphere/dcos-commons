@@ -1,13 +1,10 @@
-import logging
-import pytest
-import subprocess
-import uuid
 import json
-import time
-import shakedown
+import logging
+import uuid
+
+import pytest
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_tasks
@@ -19,7 +16,13 @@ from tests import auth
 from tests import topics
 from tests import test_utils
 
+
 log = logging.getLogger(__name__)
+
+
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                reason='Feature only supported in DC/OS EE')
+
 
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
