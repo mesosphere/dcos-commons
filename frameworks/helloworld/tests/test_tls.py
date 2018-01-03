@@ -260,8 +260,6 @@ def test_changing_discovery_replaces_certificate_sans():
 
     task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
     _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
     log.info('second server.crt: {}'.format(stdout))
 
