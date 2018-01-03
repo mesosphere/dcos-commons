@@ -99,6 +99,7 @@ fi
 sdk/bootstrap/build.sh # produces sdk/bootstrap/bootstrap.zip
 sdk/cli/build.sh # produces sdk/cli/[dcos-service-cli-linux, dcos-service-cli-darwin, dcos-service-cli.exe]
 ./gradlew :executor:distZip # produces sdk/executor/build/distributions/executor.zip
+tools/pip/build.sh $SDK_VERSION # produces tools/pip/[testing|tools]-[SDK_VERSION]-py3-none-any.whl
 
 # Upload artifacts to S3
 
@@ -117,3 +118,6 @@ aws s3 cp --acl public-read sdk/executor/build/distributions/executor.zip $S3_DI
 aws s3 cp --acl public-read sdk/cli/dcos-service-cli-linux $S3_DIR/dcos-service-cli-linux 1>&2
 aws s3 cp --acl public-read sdk/cli/dcos-service-cli-darwin $S3_DIR/dcos-service-cli-darwin 1>&2
 aws s3 cp --acl public-read sdk/cli/dcos-service-cli.exe $S3_DIR/dcos-service-cli.exe 1>&2
+# note: pip will refuse to install files without the extra info in the filename, so we keep it despite its redundancy:
+aws s3 cp --acl public-read tools/pip/testing-$SDK_VERSION-py3-none-any.whl $S3_DIR/testing-$SDK_VERSION-py3-none-any.whl 1>&2
+aws s3 cp --acl public-read tools/pip/tools-$SDK_VERSION-py3-none-any.whl $S3_DIR/tools-$SDK_VERSION-py3-none-any.whl 1>&2
