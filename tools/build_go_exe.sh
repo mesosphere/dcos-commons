@@ -4,10 +4,8 @@
 set -e
 
 syntax() {
-    echo "Syntax: $0 <repo-relative/path/to/dir/> <exe-name> [platform platform ...]"
-    echo "Platforms:"
-    echo "- 'linux', 'darwin', and/or 'windows'. Defaults to all three."
-    echo "- If only multiple platforms are specified, output exe-names will include -linux/-darwin/.exe suffixes."
+    echo "Syntax: $0 <repo-relative/path/to/dir/> <exe-name> <platform> [platform2 platform3 ...]"
+    echo "Platforms: 'linux', 'darwin', and/or 'windows'. Must specify at least one."
     echo "Required envvars:"
     echo "- REPO_ROOT_DIR: Path to root of repository"
     echo "- REPO_NAME: Name of repository"
@@ -26,12 +24,9 @@ shift
 EXE_BASE_NAME=$1
 shift
 PLATFORMS=$@
-if [ -z "$RELATIVE_EXE_DIR" -o -z "$EXE_BASE_NAME" ]; then
+if [ -z "$RELATIVE_EXE_DIR" -o -z "$EXE_BASE_NAME" -o -z "$PLATFORMS" ]; then
     syntax
     exit 1
-fi
-if [ -z "$PLATFORMS" ]; then
-    PLATFORMS="linux darwin windows"
 fi
 echo "Building $EXE_BASE_NAME for [$PLATFORMS] in $RELATIVE_EXE_DIR"
 

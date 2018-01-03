@@ -22,7 +22,7 @@ if [ x"${GO_TESTS:-true}" == x"true" ]; then
     rm -f vendor
     ln -s ../govendor vendor
 
-    # Only run 'go test' in subdirectories containing *_test.go:
+    # Only run 'go test' in subdirectories that actually contain *_test.go:
     TEST_DIRS=$(find . -type f -name '*_test.go' | sed -r 's|/[^/]+$||' | sort | uniq)
     for TEST_DIR in $TEST_DIRS; do
         cd $CLI_LIB_DIR_IN_GOPATH/$TEST_DIR
@@ -33,4 +33,4 @@ fi
 
 cd $SDK_CLI_DIR
 
-$REPO_ROOT_DIR/tools/build_go_exe.sh sdk/cli/ dcos-service-cli
+$REPO_ROOT_DIR/tools/build_go_exe.sh sdk/cli/ dcos-service-cli linux darwin windows
