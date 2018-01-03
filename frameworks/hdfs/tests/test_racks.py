@@ -1,6 +1,7 @@
 import pytest
 import sdk_fault_domain
 import sdk_install
+import sdk_utils
 from tests import config
 
 
@@ -31,7 +32,8 @@ def pre_test_setup():
 
 
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.11')
 def test_detect_racks():
     print_topology_cmd = "./bin/hdfs dfsadmin -printTopology"
     _, output = config.run_hdfs_command(config.SERVICE_NAME, print_topology_cmd)
