@@ -145,8 +145,6 @@ else
         fi
     fi
 
-    echo $NATIVE_SHA1SUM > $NATIVE_SHA1SUM_FILENAME
-
     for PLATFORM in $PLATFORMS; do
         set_platform_filename $PLATFORM
 
@@ -164,4 +162,7 @@ else
             echo "Skipping UPX compression of $PLATFORM_FILENAME"
         fi
     done
+
+    # avoid mistakenly marking old builds as good: update sha1sum AFTER successfully building binaries
+    echo $NATIVE_SHA1SUM > $NATIVE_SHA1SUM_FILENAME
 fi

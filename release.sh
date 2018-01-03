@@ -94,22 +94,24 @@ else
     fi
 fi
 
-# Build bootstrap.zip, executor.zip, and CLIs before attempting to upload anything:
+# Perform all builds before attempting to upload anything
+
 sdk/bootstrap/build.sh # produces sdk/bootstrap/bootstrap.zip
 sdk/cli/build.sh # produces sdk/cli/[dcos-service-cli-linux, dcos-service-cli-darwin, dcos-service-cli.exe]
 ./gradlew :executor:distZip # produces sdk/executor/build/distributions/executor.zip
 
+# Upload artifacts to S3
+
+S3_DIR=s3://downloads.mesosphere.io/dcos-commons/artifacts/$SDK_VERSION
 if [ "x$FLAG_DRY_RUN" != "xfalse" ]; then
-    echo "Dry run: Exiting without uploading artifacts"
+    echo "Dry run: Exiting without uploading artifacts to $S3_DIR"
     exit 0
 fi
 
-# Build and upload Java library to Maven repo (in prod S3):
+# Build+upload Java libraries to Maven repo (within S3, see build.gradle):
 ./gradlew publish
 
-# Upload built artifacts to directory in prod S3:
-S3_DIR=s3://downloads.mesosphere.io/dcos-commons/artifacts/$SDK_VERSION
-echo "Uploading bootstrap.zip, executor.zip, and CLIs to $S3_DIR"
+echo "Uploading executable artifacts to $S3_DIR"
 aws s3 cp --acl public-read sdk/bootstrap/bootstrap.zip $S3_DIR/bootstrap.zip 1>&2
 aws s3 cp --acl public-read sdk/executor/build/distributions/executor.zip $S3_DIR/executor.zip 1>&2
 aws s3 cp --acl public-read sdk/cli/dcos-service-cli-linux $S3_DIR/dcos-service-cli-linux 1>&2

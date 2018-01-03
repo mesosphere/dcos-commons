@@ -7,21 +7,15 @@ usage() {
     # This script (and test.sh) are executed by CI upon pull requests to the repository, or may be run locally by developers.
     echo "Syntax: build.sh [options]"
     echo "Options:"
-    echo "  -p         Set by pull requests (or set PULLREQUEST=true)"
-    echo "  -t <name>  Branch to merge before build (or set MERGE_FROM=<name>, default master), only used if -p is specified"
-    echo "  -b         Just build without tests (or set GO_TESTS=false and JAVA_TESTS=false)"
+    echo "  -b  Just build -- skip tests (or set GO_TESTS=false and JAVA_TESTS=false)"
+    echo "Env:"
+    echo "  BOOTSTRAP_DIR: Custom directory where bootstrap is located, or 'disable' to disable bootstrap build"
+    echo "  CLI_DIR: Custom directory where default CLI is located, or 'disable' to disable default CLI build"
+    echo "  EXECUTOR_DIR: Custom directory where executor is located, or 'disable' to disable executor build"
 }
 
-MERGE_FROM=${MERGE_FROM:=master}
-while getopts 'pt:b' opt; do
+while getopts 'b' opt; do
     case $opt in
-        p)
-            PULLREQUEST="true"
-            ;;
-        t)
-            # hack for testing
-            MERGE_FROM="$OPTARG"
-            ;;
         b)
             JAVA_TESTS="false"
             export GO_TESTS="false"
@@ -35,24 +29,14 @@ done
 shift $((OPTIND-1))
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 BOOTSTRAP_DIR=${BOOTSTRAP_DIR:=${REPO_ROOT_DIR}/sdk/bootstrap}
 CLI_DIR=${CLI_DIR:=${REPO_ROOT_DIR}/sdk/cli}
 EXECUTOR_DIR=${EXECUTOR_DIR:=${REPO_ROOT_DIR}/sdk/executor}
+
 DISABLED_VALUE="disable"
 
 cd $REPO_ROOT_DIR
-
-if [ x$PULLREQUEST = "xtrue" ]; then
-    # GitHub notifier: reset any statuses from prior builds for this commit
-    $REPO_ROOT_DIR/tools/github_update.py reset
-
-    echo "Creating fake user and merging changes from: $MERGE_FROM"
-    # git won't let you update files without knowing a name
-    git config user.email pullrequestbot@mesospherebot.com
-    git config user.name Infinity-tools-fake-user
-    # Update local branch to include github version of master.
-    git pull origin $MERGE_FROM --no-commit --ff
-fi
 
 ##
 # GO BUILD
