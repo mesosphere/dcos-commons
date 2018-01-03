@@ -13,7 +13,7 @@ cd $CUR_DIR
 # required env:
 export REPO_ROOT_DIR=$(dirname $(dirname $CUR_DIR))
 export REPO_NAME=$(basename $REPO_ROOT_DIR)
-$REPO_ROOT_DIR/tools/build_go_exe.sh sdk/bootstrap/ bootstrap linux
+$REPO_ROOT_DIR/tools/build_go_exe.sh sdk/bootstrap/ $EXE_FILENAME linux
 
 rm -f $PKG_FILENAME
 zip -q $PKG_FILENAME $EXE_FILENAME
