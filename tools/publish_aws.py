@@ -86,10 +86,6 @@ class AWSPublisher(object):
             if not os.path.isfile(artifact_path):
                 err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
                 raise Exception(err)
-            if artifact_path in self._artifact_paths:
-                err = 'Duplicate filename between "{}" and "{}". Artifact filenames must be unique.'.format(prior_path, artifact_path)
-                self._github_updater.update('error', err)
-                raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
 

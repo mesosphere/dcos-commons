@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.history;
 import org.apache.mesos.Protos;
 
 /**
- * Encapsulates the outcome of an offer evaluation in OfferEvaluator
+ * Encapsulates the outcome of an offer evaluation in OfferEvaluator.
  */
 public class OfferOutcome {
     private final long timestamp;
