@@ -112,13 +112,6 @@ allprojects {
             events 'passed', 'skipped', 'failed'
         }
     }
-
-    task copyExecutor(type: Copy) {
-        from('src/../../../sdk/executor/build/distributions/') {
-            include '**/*'
-        }
-        into('build/distributions')
-    }
 }
 
 ext {

@@ -117,8 +117,6 @@ find $PROJECT_PATH/$PROJECT_NAME -type f -name *.bak -exec rm -f {} \;
 sed -i.bak "s/compile project(\":scheduler\")/compile \"mesosphere:scheduler:$VERSION\"/g" $PROJECT_PATH/$PROJECT_NAME/build.gradle
 sed -i.bak "s/compile project(\":executor\")/compile \"mesosphere:executor:$VERSION\"/g" $PROJECT_PATH/$PROJECT_NAME/build.gradle
 sed -i.bak "s/testCompile project(\":testing\")/testCompile \"mesosphere:testing:$VERSION\"/g" $PROJECT_PATH/$PROJECT_NAME/build.gradle
-sed -i.bak '/distZip.dependsOn ":executor:distZip"/d' $PROJECT_PATH/$PROJECT_NAME/build.gradle
-sed -i.bak '/distZip.finalizedBy copyExecutor/d' $PROJECT_PATH/$PROJECT_NAME/build.gradle
 rm -f $PROJECT_PATH/$PROJECT_NAME/build.gradle.bak
 
 GRADLEW=$(pwd)/gradlew

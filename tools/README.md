@@ -6,15 +6,13 @@ Common tools which automate the process of uploading, testing, and releasing DC/
 
 Build/release tools:
 
-- **[publish_aws.py](#publish_awspy)**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package and uploads it along with the provided artifacts to a dev S3 bucket (ideally a directory with expiration configured to 7d or so).
-- **[publish_http.py](#publish_httppy)**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package and hosts it from a local HTTP server along with any provided artifacts.
+- **[build_package.sh](#build_packagesh)**: Given a universe template and a set of build artifacts to be uploaded, creates a 'stub universe' package, which is then optionally uploaded along with the provided artifacts to a dev S3 bucket (ideally a directory with expiration configured to 7d or so), or hosted in a local HTTP server.
 - **[release_builder.py](#release_builderpy)**: Given an uploaded stub universe URL and a version string, transfers the artifacts to a more permanent 'release' S3 bucket and creates a PR against [Universe](https://github.com/mesosphere/universe/).
 
 Misc utilities:
 
 - **[dcos_login.py](#dcos_loginpy)**: Log into a DC/OS cluster using default/test credentials.
 - **[print_package_tag.py](#print_package_tagpy)**: Return the Git repo SHA for the provided package on the cluster.
-- **[github_update.py](#github_updatepy)**: Update a GitHub PR status with the progress of a build. Used by the above scripts, and may be used in your own build scripts to provide a nicer CI experience in PRs.
 - **[universe_builder.py](#universe_builderpy)**: Underlying script which builds a `stub-universe.zip` given the necessary template data (package name, version, upload dir, ...). This is called by `publish_aws.py` and `publish_http.py` after autogenerating an upload directory.
 
 These utilities are designed to be used both in automated CI flows, as well as locally on developer workstations.
@@ -140,18 +138,18 @@ This is a fairly minimal detail, but it can't hurt to have some automation aroun
 
 What follows is a more detailed description of what each utility does and how it can be used:
 
-### publish_aws.py
+### build_package.sh
 
 Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and upload the whole set to S3. This is useful for quickly getting a local build up and available for installation in a DC/OS cluster. This tool relies on `universe_builder.py`, which is described below.
 
 The resulting uploaded stub universe URL is logged to stdout (while all other logging is to stderr).
 
-Note that this uses the `aws` CLI to perform the upload. You must have `aws` installed in your `PATH` to use this.
+Note that when using the `aws` publish method, the `aws` CLI must be present in the user's `PATH`.
 
 #### Usage
 
 ```
-$ ./publish_aws.py <package-name> <template-package-dir> [artifact files ...]
+$ ./build_package.sh <package-name> </abs/path/to/framework> [-a artifact1 -a artifact2 ...] [aws|local]
 ```
 
 Example:
@@ -161,15 +159,15 @@ $ AWS_ACCESS_KEY_ID=devKeyId \
 AWS_SECRET_ACCESS_KEY=devKeySecret \
 S3_BUCKET=devBucket \
 S3_DIR_PATH=dcosArtifacts/dev \
-./publish_aws.py \
+./build_package.sh \
     kafka \
-    dcos-kafka-service/universe \
-    dcos-kafka-service/scheduler.zip \
-    dcos-kafka-service/executor.zip \
-    dcos-kafka-service/cli/dcos-kafka.exe \
-    dcos-kafka-service/cli/dcos-kafka-dawin \
-    dcos-kafka-service/cli/dcos-kafka-linux
-
+    /path/to/dcos-commons/frameworks/kafka
+    -a dcos-kafka-service/scheduler.zip \
+    -a dcos-kafka-service/executor.zip \
+    -a dcos-kafka-service/cli/dcos-kafka.exe \
+    -a dcos-kafka-service/cli/dcos-kafka-dawin \
+    -a dcos-kafka-service/cli/dcos-kafka-linux
+    aws
 [...]
 ---
 Built and uploaded stub universe:
@@ -181,9 +179,16 @@ $ dcos package install kafka
 [... normal usage from here ...]
 ```
 
-For other examples of usage, take a look at `build.sh` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/build.sh) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/build.sh).
+For other examples of usage, take a look at `build.sh` for [Hello World](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.sh).
 
 #### Environment variables
+
+##### Common
+
+- `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
+- `CUSTOM_UNIVERSES_PATH`: Text file to write the stub universe URL into
+
+##### AWS Publish
 
 Required:
 - `AWS_ACCESS_KEY_ID`: AWS credential id (used by `aws`)
@@ -193,62 +198,13 @@ Optional:
 - `S3_BUCKET` (default: `infinity-artifacts`): Name of the S3 bucket to use as the upload destination.
 - `S3_DIR_PATH` (default: `autodelete7d`): Parent directory on the bucket to deposit the files within. A randomly generated subdirectory will be created within this path.
 - `AWS_UPLOAD_REGION`: manual region to use for the S3 upload
-- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
-- `CUSTOM_UNIVERSES_PATH`: Text file to write the stub universe URL into
-- `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
-- `DRY_RUN`: Refrain from actually uploading anything to S3.
 
-### publish_http.py
-
-Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and run an HTTP service against those artifacts after copying them into a temporary directory. This is useful for quickly getting a local build up and available for installation in a local DC/OS cluster (running in [dcos-docker](https://github.com/dcos/dcos-docker)). This tool relies on `universe_builder.py`, which is described below.
-
-The resulting uploaded stub universe URL is logged to stdout (while all other logging is to stderr). If a `dcos` CLI is available in the local path, this utility automatically adds the universe URL to that CLI. This reduces work needed to try out new builds on a local cluster.
-
-#### Usage
-
-```
-$ ./publish_http.py <package-name> <template-package-dir> [artifact files ...]
-```
-
-Example:
-
-```
-$ ./publish_http.py \
-    kafka \
-    dcos-kafka-service/universe \
-    dcos-kafka-service/scheduler.zip \
-    dcos-kafka-service/executor.zip \
-    dcos-kafka-service/cli/dcos-kafka.exe \
-    dcos-kafka-service/cli/dcos-kafka-dawin \
-    dcos-kafka-service/cli/dcos-kafka-linux
-
-[...]
----
-Built and copied stub universe:
-http://172.17.0.1:53416/stub-universe-kafka.zip
----
-Copying 5 artifacts into /tmp/dcos-http-kafka/:
-- /tmp/dcos-http-kafka/scheduler.zip
-- /tmp/dcos-http-kafka/executor.zip
-- /tmp/dcos-http-kafka/dcos-kafka.exe
-- /tmp/dcos-http-kafka/dcos-kafka-darwin
-- /tmp/dcos-http-kafka/dcos-kafka-linux
-[STATUS] upload:kafka success: Uploaded stub universe and 5 artifacts
-[STATUS] URL: http://172.17.0.1:53416/stub-universe-kafka.zip
-http://172.17.0.1:53416/stub-universe-kafka.zip
-Checking for duplicate repositories: kafka-local/http://172.17.0.1:53416/stub-universe-kafka.zip
-Adding repository: kafka-local http://172.17.0.1:53416/stub-universe-kafka.zip
-$ dcos package install kafka
-[... normal usage from here ...]
-```
-
-#### Environment variables
+##### Local HTTP Publish
 
 Optional:
 - `HTTP_DIR` (default: `/tmp/dcos-http-<pkgname>/`): Local path to be hosted by the HTTP daemon.
 - `HTTP_HOST` (default: `172.17.0.1`, the IP used in dcos-docker): Host endpoint to be used by HTTP daemon.
 - `HTTP_PORT` (default: `0` for an ephemeral port): Port to be used by HTTP daemon.
-- `WORKSPACE`: Set by Jenkins, used to determine if a `$WORKSPACE/stub-universe.properties` file should be created with `STUB_UNIVERSE_URL` and `STUB_UNIVERSE_S3_DIR` values.
 - `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
 
 ### release_builder.py
@@ -316,7 +272,7 @@ The following are optional:
 
 ### dcos_login.py
 
-Logs in the DC/OS CLI, effectively performing a complete `dcos auth login` handshake. OnDC/OS Enterprise this assumes the initial `bootstrapuser` is still available, while on DC/OS Open this assumes that no user has yet logged into the cluster (when an initial testing token is automatically removed).
+Logs in the DC/OS CLI, effectively performing a complete `dcos auth login` handshake. On DC/OS Enterprise this assumes the initial `bootstrapuser` is still available, while on DC/OS Open this assumes that no user has yet logged into the cluster (when an initial testing token is automatically removed).
 
 #### Usage
 
