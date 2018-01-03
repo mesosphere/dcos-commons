@@ -84,6 +84,7 @@ def test_backup_and_restore_to_s3():
     plan_parameters = {
         'AWS_ACCESS_KEY_ID': key_id,
         'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
+        'AWS_SESSION_TOKEN': os.getenv('AWS_SESSION_TOKEN'),
         'AWS_REGION': os.getenv('AWS_REGION', 'us-west-2'),
         'S3_BUCKET_NAME': os.getenv('AWS_BUCKET_NAME', 'infinity-framework-test'),
         'SNAPSHOT_NAME': str(uuid.uuid1()),
