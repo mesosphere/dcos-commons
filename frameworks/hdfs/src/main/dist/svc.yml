@@ -293,7 +293,8 @@ pods:
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
+          ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST &&
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
