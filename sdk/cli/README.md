@@ -1,6 +1,6 @@
 # Default CLI
 
-This directory contains the default CLI build, used by the majority of services who don't add custom commands to their service CLIs. The default CLI builds are uploaded with every SDK release as of early 2018.
+This directory contains the default CLI build, used by the majority of services who don't add custom commands to their service CLIs. As of Jan 2018, default CLI builds are uploaded with every SDK release, along with a SHA256SUMS file in the same directory.
 
 Dependencies:
 - Go 1.8+

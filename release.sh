@@ -102,7 +102,27 @@ sdk/cli/build.sh # produces sdk/cli/[dcos-service-cli-linux, dcos-service-cli-da
 rm -f tools/pip/*.whl
 tools/pip/build.sh $SDK_VERSION # produces tools/pip/[testing|tools]-[SDK_VERSION (with modifications)]-py3-none-any.whl
 
-# Upload artifacts to S3
+# Collect the other artifacts into a single directory, calculate a SHA256SUMS file, and then upload the lot.
+# The SHA256SUMS file is required for construction of packages that use default CLIs, and is a Good Idea in general.
+echo "Collecting artifacts in $(pwd)/$SDK_VERSION"
+rm -rf $SDK_VERSION
+mkdir $SDK_VERSION
+
+# Note about .whl files: pip is picky about version formatting, so the outputted filenames may not exactly match $SDK_VERSION due to some mangling.
+# For example, "1.2.3-SNAPSHOT" has to be converted to "1.2.3+snapshot".
+# Additionally, pip will refuse to install .whl files without the extra info in the filename, so we leave all that in.
+
+cp sdk/bootstrap/bootstrap.zip \
+   sdk/executor/build/distributions/executor.zip \
+   sdk/cli/dcos-service-cli* \
+   tools/pip/*.whl \
+   $SDK_VERSION/
+
+# Ensure that checksums do not contain relative dir path:
+cd $SDK_VERSION/
+sha256sum * | tee SHA256SUMS # print stdout+stderr, write stdout to file
+ls -l
+cd ..
 
 S3_DIR=s3://downloads.mesosphere.io/dcos-commons/artifacts/$SDK_VERSION
 if [ "x$FLAG_DRY_RUN" != "xfalse" ]; then
@@ -110,21 +130,13 @@ if [ "x$FLAG_DRY_RUN" != "xfalse" ]; then
     exit 0
 fi
 
+echo "Uploading artifacts to $S3_DIR"
+
 # Build+upload Java libraries to Maven repo (within S3, see build.gradle):
 ./gradlew publish
 
-echo "Uploading executable artifacts to $S3_DIR"
+# Upload contents of artifact dir:
+aws s3 sync --acl public-read $SDK_VERSION/ $S3_DIR 1>&2
 
-aws s3 cp --acl public-read sdk/bootstrap/bootstrap.zip $S3_DIR/bootstrap.zip 1>&2
-
-aws s3 cp --acl public-read sdk/executor/build/distributions/executor.zip $S3_DIR/executor.zip 1>&2
-
-for cli_exe in $(ls sdk/cli/dcos-service-cli*); do
-    aws s3 cp --acl public-read $cli_exe $S3_DIR/$(basename $cli_exe) 1>&2
-done
-
-# note: pip is picky about version formatting, so the outputted filenames may not exactly match $SDK_VERSION due to some mangling.
-# additionally, pip will refuse to handle files without the extra info in the filename, so we leave it in.
-for whl_file in $(ls tools/pip/*.whl); do
-    aws s3 cp --acl public-read $whl_file $S3_DIR/$(basename $whl_file) 1>&2
-done
+# Clean up
+rm -rf $SDK_VERSION
