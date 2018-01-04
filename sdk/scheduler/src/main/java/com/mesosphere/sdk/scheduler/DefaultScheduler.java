@@ -112,7 +112,10 @@ public class DefaultScheduler extends AbstractScheduler {
         this.resources.add(this.plansResource);
         this.healthResource = new HealthResource();
         this.resources.add(this.healthResource);
-        this.podResource = new PodResource(stateStore, serviceSpec.getName());
+        this.podResource = new PodResource(
+                stateStore,
+                serviceSpec.getName(),
+                new DefaultTaskFailureListener(stateStore, configStore));
         this.resources.add(this.podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
 
