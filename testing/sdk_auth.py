@@ -32,7 +32,6 @@ import sdk_security
 log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = "kdc"
-KERBEROS_IMAGE_NAME = "mesosphere/kdc"
 KERBEROS_KEYTAB_FILE_NAME = "keytab"
 DCOS_BASE64_PREFIX = "__dcos_base64__"
 LINUX_USER = "core"
@@ -189,32 +188,45 @@ class KerberosEnvironment:
         This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
         """
         self.temp_working_dir = _create_temp_working_dir()
-        kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
-            current_file_dir=os.path.dirname(os.path.realpath(__file__)))
-        with open(kdc_app_def_path) as f:
-            kdc_app_def = json.load(f)
 
-        kdc_app_def["id"] = KERBEROS_APP_ID
-        sdk_marathon.install_app(kdc_app_def)
-        self.kdc_port = int(kdc_app_def["portDefinitions"][0]["port"])
-        self.kdc_host = "{app_name}.{service_name}.{autoip_host_suffix}".format(
-                app_name=KERBEROS_APP_ID, service_name="marathon", autoip_host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+        self.app_id = KERBEROS_APP_ID
+        self.app_definition = self.load_kdc_app_definition()
+
+        kdc_task_info = self.install()
+
         self.kdc_realm = REALM
-        self.kdc_task = _get_kdc_task(KERBEROS_APP_ID)
-        self.framework_id = self.kdc_task["framework_id"]
-        self.task_id = self.kdc_task["id"]
-        self.kdc_host_id = self.kdc_task["slave_id"]
-        self.kdc_host_name = _get_host_name(self.kdc_host_id)
-        self.master_public_ip = _get_master_public_ip()
+        self.framework_id = kdc_task_info["framework_id"]
+        self.task_id = kdc_task_info["id"]
+        self.kdc_host_id = kdc_task_info["slave_id"]
+
         self.principals = []
         self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME
 
-        # For secret creation/deletion
-        cmd = "package install --yes --cli dcos-enterprise-cli"
-        try:
-            sdk_cmd.run_cli(cmd)
-        except dcos.errors.DCOSException as e:
-            raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
+    def load_kdc_app_definition(self) -> dict:
+        kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
+            current_file_dir=os.path.dirname(os.path.realpath(__file__)))
+        with open(kdc_app_def_path) as fd:
+            kdc_app_def = json.load(fd)
+
+        kdc_app_def["id"] = self.app_id
+
+        return kdc_app_def
+
+    def install(self) -> dict:
+
+        @retrying.retry(wait_exponential_multiplier=1000,
+                        wait_exponential_max=120 * 1000,
+                        retry_on_result=lambda result: not result)
+        def _install_marathon_app(app_definition):
+            success, _ = sdk_marathon.install_app(app_definition)
+            return success
+
+        _install_marathon_app(self.app_definition)
+        log.info("KDC app installed successfully")
+
+        kdc_task_info = _get_kdc_task(self.app_definition["id"])
+
+        return kdc_task_info
 
     def __run_kadmin(self, options: list, cmd: str, args: list):
         """
@@ -315,6 +327,7 @@ class KerberosEnvironment:
 
         self.keytab_secret_path = "{}_keytab".format(DCOS_BASE64_PREFIX)
 
+        sdk_security.install_enterprise_cli()
         # TODO: check if a keytab secret of same name already exists
         create_secret_cmd = "security secrets create {keytab_secret_path} --value-file {encoded_keytab_path}".format(
             keytab_secret_path=self.keytab_secret_path,
@@ -336,10 +349,10 @@ class KerberosEnvironment:
         self.__create_and_upload_secret(local_keytab_path)
 
     def get_host(self):
-        return self.kdc_host
+        return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
     def get_port(self):
-        return str(self.kdc_port)
+        return str(self.app_definition["portDefinitions"][0]["port"])
 
     def get_keytab_path(self):
         return self.keytab_secret_path
@@ -348,9 +361,11 @@ class KerberosEnvironment:
         return self.kdc_realm
 
     def get_kdc_address(self):
-        return "{host}:{port}".format(host=self.kdc_host, port=self.kdc_port)
+        return ":".join([self.get_host, self.get_port])
 
     def cleanup(self):
+        sdk_security.install_enterprise_cli()
+
         log.info("Removing the marathon KDC app")
         sdk_marathon.destroy_app(KERBEROS_APP_ID)
 
