@@ -177,12 +177,14 @@ if [ -z $interactive ]; then
     fi
     FRAMEWORK_ARGS="-e FRAMEWORK=$framework"
     DOCKER_COMMAND="bash test-runner.sh"
+    DOCKER_INTERACTIVE_FLAGS=""
 else
 # interactive mode
     FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
     FRAMEWORK_ARGS=""
     framework="NOT_SPECIFIED"
     DOCKER_COMMAND="bash"
+    DOCKER_INTERACTIVE_FLAGS="-i"
 fi
 
 if [ -n "$pytest_k" ]; then
@@ -217,6 +219,6 @@ docker run --rm \
     -v $ssh_path:/ssh/key \
     -w /build \
     -t \
-    -i \
+    $DOCKER_INTERACTIVE_FLAGS \
     mesosphere/dcos-commons:latest \
     $DOCKER_COMMAND
