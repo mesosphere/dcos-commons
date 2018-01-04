@@ -7,7 +7,8 @@ if [ $# -ne 1 ]; then
     echo "Syntax: $0 <version>"
     exit 1
 fi
-export VERSION=$1
+# convert snapshot releases from e.g. '1.2.3-SNAPSHOT' to '1.2.3+snapshot' to keep python happy. see also PEP-440.
+export VERSION=$(echo $1 | sed 's/-/+/g' | tr '[:upper:]' '[:lower:]')
 
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $THIS_DIR
