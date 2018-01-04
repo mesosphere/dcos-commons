@@ -5,12 +5,15 @@ import shakedown
 
 import sdk_auth
 import sdk_cmd
+import sdk_hosts
 import sdk_plan
-import sdk_utils
 import sdk_tasks
+import sdk_utils
 
 PACKAGE_NAME = 'beta-hdfs'
 SERVICE_NAME = 'hdfs'
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
+FOLDERED_DNS_NAME = sdk_hosts.get_foldered_dns_name(SERVICE_NAME)
 
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
