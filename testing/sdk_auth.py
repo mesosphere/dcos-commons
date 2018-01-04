@@ -13,14 +13,11 @@ SHOULD ALSO BE APPLIED TO sdk_auth IN ANY OTHER PARTNER REPOS
 import tempfile
 
 import base64
-import dcos
 import json
 import logging
 import os
 import requests
 import retrying
-
-import shakedown
 
 import sdk_cmd
 import sdk_hosts
@@ -72,7 +69,7 @@ def _get_host_name(host_id: str) -> str:
         nodes = json.loads(raw_nodes)
         for node in nodes:
             if "id" in node and node["id"] == host_id:
-                log.info("Host name is {host_name}".format(host_name=node["hostname"]))
+                log.info("Host name is %s", node["hostname"])
                 return node["hostname"]
 
     raise RuntimeError("Failed to get name of host running the KDC app: {nodes}")
@@ -83,7 +80,7 @@ def _get_master_public_ip() -> str:
     """
     :return (str): The public IP of the master node in the DC/OS cluster.
     """
-    dcos_url, headers = sdk_security.get_dcos_credentials()
+    dcos_url, _ = sdk_security.get_dcos_credentials()
     cluster_metadata_url = "{cluster_url}/metadata".format(cluster_url=dcos_url)
     response = sdk_cmd.request("GET", cluster_metadata_url, verify=False)
     if not response.ok:
@@ -109,7 +106,7 @@ def _create_temp_working_dir() -> tempfile.TemporaryDirectory:
     return tmp_dir
 
 
-#TODO: make this generic and put in sdk_utils.py
+# TODO: make this generic and put in sdk_utils.py
 def _copy_file_to_localhost(krb5: object, output_filename: str):
     """
     Copies the keytab that was generated inside the container running the KDC server to the localhost
@@ -119,15 +116,14 @@ def _copy_file_to_localhost(krb5: object, output_filename: str):
     """
     log.info("Downloading keytab %s to %s", krb5.keytab_file_name, output_filename)
 
-    keytab_absolute_path = "{mesos_agents_path}/{host_id}/frameworks/{framework_id}/executors/{task_id}/runs/latest/{keytab_file}".format(
-        mesos_agents_path="/var/lib/mesos/slave/slaves",
-        host_id=krb5.kdc_host_id,
-        framework_id=krb5.framework_id,
-        task_id=krb5.task_id,
-        keytab_file=krb5.keytab_file_name
-    )
+    dcos_url, headers = sdk_security.get_dcos_credentials()
+    del headers["Content-Type"]
+    keytab_absolute_path = os.path.join("/var/lib/mesos/slave/slaves", krb5.kdc_host_id,
+                                        "frameworks", krb5.framework_id,
+                                        "executors", krb5.task_id,
+                                        "runs/latest", krb5.keytab_file_name)
     keytab_url = "{cluster_url}/slave/{agent_id}/files/download?path={path}".format(
-        cluster_url=shakedown.dcos_url(),
+        cluster_url=dcos_url,
         agent_id=krb5.kdc_host_id,
         path=keytab_absolute_path
     )
@@ -138,9 +134,6 @@ def _copy_file_to_localhost(krb5: object, output_filename: str):
                     wrap_exception=True)
     def get_download_stream(url: str) -> requests.Response:
         """ Use a streaming call to GET to download the Keytab file """
-        headers = {
-            "Authorization": "token={}".format(shakedown.dcos_acs_token())
-        }
         response = requests.get(url, headers=headers, stream=True, verify=False)
         try:
             response.raise_for_status()
@@ -298,7 +291,7 @@ class KerberosEnvironment:
         kadmin_args = ["-k", self.keytab_file_name] + self.principals
         self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
 
-        local_keytab_filename = "{temp_working_dir}/{keytab_file}".format(temp_working_dir=self.temp_working_dir.name, keytab_file=self.keytab_file_name)
+        local_keytab_filename = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
 
         _copy_file_to_localhost(self, local_keytab_filename)
 
@@ -372,6 +365,6 @@ class KerberosEnvironment:
         log.info("Deleting temporary working directory")
         self.temp_working_dir.cleanup()
 
-        #TODO: separate secrets handling into another module
+        # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
         sdk_security.delete_secret(self.keytab_secret_path)
