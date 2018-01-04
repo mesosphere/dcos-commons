@@ -1,38 +1,29 @@
 package com.mesosphere.sdk.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
-
+import com.mesosphere.sdk.api.types.GroupedTasks;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
-import com.mesosphere.sdk.api.types.GroupedTasks;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
 import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
@@ -51,22 +42,20 @@ public class PodResource extends PrettyJsonResource {
 
     private final StateStore stateStore;
     private final String serviceName;
+    private final TaskFailureListener taskFailureListener;
 
     private TaskKiller taskKiller;
 
     /**
      * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
      */
-    public PodResource(StateStore stateStore, String serviceName) {
+    public PodResource(
+            StateStore stateStore,
+            String serviceName,
+            TaskFailureListener taskFailureListener) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
-    }
-
-    /**
-     * Configures the {@link TaskKiller} instance to be invoked when restart/replace operations are invoked.
-     */
-    public void setTaskKiller(TaskKiller taskKiller) {
-        this.taskKiller = taskKiller;
+        this.taskFailureListener = taskFailureListener;
     }
 
     /**
@@ -303,10 +292,19 @@ public class PodResource extends PrettyJsonResource {
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
         LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
                 recoveryType, podInstanceName, podTasks.get().size());
+
         if (taskKiller == null) {
             LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
         }
+
+        if (recoveryType.equals(RecoveryType.PERMANENT)) {
+            Collection<Protos.TaskID> taskIds = podTasks.get().stream()
+                    .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo().getTaskId())
+                    .collect(Collectors.toList());
+            taskFailureListener.tasksFailed(taskIds);
+        }
+
         return killTasks(taskKiller, podInstanceName, podTasks.get(), recoveryType);
     }
 
@@ -327,7 +325,7 @@ public class PodResource extends PrettyJsonResource {
                         taskInfo.getName(),
                         taskInfo.getTaskId().getValue());
             }
-            taskKiller.killTask(taskInfo.getTaskId(), recoveryType);
+            taskKiller.killTask(taskInfo.getTaskId());
         }
 
         JSONObject json = new JSONObject();
@@ -389,5 +387,12 @@ public class PodResource extends PrettyJsonResource {
             stateString = stateString.substring("TASK_".length());
         }
         return Optional.of(stateString);
+    }
+
+    /**
+     * Configures the {@link TaskKiller} instance to be invoked when restart/replace operations are invoked.
+     */
+    public void setTaskKiller(TaskKiller taskKiller) {
+        this.taskKiller = taskKiller;
     }
 }

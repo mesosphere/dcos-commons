@@ -4,7 +4,7 @@ import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -111,13 +112,14 @@ public class PodResourceTest {
 
     @Mock private TaskKiller mockTaskKiller;
     @Mock private StateStore mockStateStore;
+    @Mock private TaskFailureListener mockTaskFailureListener;
 
     private PodResource resource;
 
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new PodResource(mockStateStore, TestConstants.SERVICE_NAME);
+        resource = new PodResource(mockStateStore, TestConstants.SERVICE_NAME, mockTaskFailureListener);
         resource.setTaskKiller(mockTaskKiller);
     }
 
@@ -405,11 +407,13 @@ public class PodResourceTest {
         assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
         assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
+
+        verify(mockTaskFailureListener, never()).tasksFailed(any());
     }
 
     @Test
@@ -426,9 +430,11 @@ public class PodResourceTest {
         assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
         assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
+
+        verify(mockTaskFailureListener, never()).tasksFailed(any());
     }
 
     // replace
@@ -439,6 +445,8 @@ public class PodResourceTest {
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         Response response = resource.replacePod("aaa");
         assertEquals(404, response.getStatus());
+
+        verify(mockTaskFailureListener, never()).tasksFailed(any());
     }
 
     @Test
@@ -446,22 +454,30 @@ public class PodResourceTest {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
 
-        Response response = resource.replacePod("test-0");
+        String podInstanceName = "test-0";
+
+        Response response = resource.replacePod(podInstanceName);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(2, json.length());
-        assertEquals("test-0", json.getString("pod"));
+        assertEquals(podInstanceName, json.getString("pod"));
         assertEquals(4, json.getJSONArray("tasks").length());
-        assertEquals("test-0-a", json.getJSONArray("tasks").get(0));
-        assertEquals("test-0-b", json.getJSONArray("tasks").get(1));
-        assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
-        assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
+        assertEquals(podInstanceName + "-a", json.getJSONArray("tasks").get(0));
+        assertEquals(podInstanceName + "-b", json.getJSONArray("tasks").get(1));
+        assertEquals(podInstanceName + "-c", json.getJSONArray("tasks").get(2));
+        assertEquals(podInstanceName + "-d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
+
+        List<Protos.TaskID> expectedFailedTaskIds = TASK_INFOS.stream()
+                .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
+                .map(TaskInfo::getTaskId).collect(Collectors.toList());
+        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTaskIds);
+        verifyNoMoreInteractions(mockTaskFailureListener);
     }
 
     @Test
@@ -469,17 +485,25 @@ public class PodResourceTest {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
 
-        Response response = resource.replacePod("test-1");
+        String podInstanceName = "test-1";
+
+        Response response = resource.replacePod(podInstanceName);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(2, json.length());
-        assertEquals("test-1", json.getString("pod"));
+        assertEquals(podInstanceName, json.getString("pod"));
         assertEquals(2, json.getJSONArray("tasks").length());
-        assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
-        assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
+        assertEquals(podInstanceName + "-a", json.getJSONArray("tasks").get(0));
+        assertEquals(podInstanceName + "-b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
+
+        List<Protos.TaskID> expectedFailedTaskIds = TASK_INFOS.stream()
+                .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
+                .map(TaskInfo::getTaskId).collect(Collectors.toList());
+        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTaskIds);
+        verifyNoMoreInteractions(mockTaskFailureListener);
     }
 }
