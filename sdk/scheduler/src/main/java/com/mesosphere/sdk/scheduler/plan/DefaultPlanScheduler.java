@@ -166,7 +166,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
                 }
 
                 if (!TaskUtils.isTerminal(state)) {
-                    taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+                    taskKiller.killTask(taskInfo.getTaskId());
                 }
             }
         }

@@ -35,7 +35,7 @@ public class TriggerDecommissionStep extends UninstallStep {
         LOGGER.info("Marking task for decommissioning: {}", taskInfo.getName());
         setStatus(Status.IN_PROGRESS);
         stateStore.storeGoalOverrideStatus(taskInfo.getName(), DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+        taskKiller.killTask(taskInfo.getTaskId());
         setStatus(Status.COMPLETE);
         return getPodInstanceRequirement();
     }

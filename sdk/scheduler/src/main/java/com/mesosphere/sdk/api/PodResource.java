@@ -327,7 +327,7 @@ public class PodResource extends PrettyJsonResource {
                         taskInfo.getName(),
                         taskInfo.getTaskId().getValue());
             }
-            taskKiller.killTask(taskInfo.getTaskId(), recoveryType);
+            taskKiller.killTask(taskInfo.getTaskId());
         }
 
         JSONObject json = new JSONObject();

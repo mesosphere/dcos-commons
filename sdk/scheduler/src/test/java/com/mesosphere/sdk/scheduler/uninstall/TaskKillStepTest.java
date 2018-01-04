@@ -29,7 +29,7 @@ public class TaskKillStepTest {
         TaskKillStep step = createStep();
         Assert.assertEquals(Optional.empty(), step.start());
         Assert.assertEquals(Status.COMPLETE, step.getStatus());
-        Mockito.verify(mockTaskKiller, Mockito.only()).killTask(taskID, RecoveryType.TRANSIENT);
+        Mockito.verify(mockTaskKiller, Mockito.only()).killTask(taskID);
     }
 
     private TaskKillStep createStep() {

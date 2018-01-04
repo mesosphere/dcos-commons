@@ -28,7 +28,7 @@ public class TaskKillStep extends UninstallStep {
     @Override
     public Optional<PodInstanceRequirement> start() {
         setStatus(Status.IN_PROGRESS);
-        taskKiller.killTask(taskID, RecoveryType.TRANSIENT);
+        taskKiller.killTask(taskID);
         setStatus(Status.COMPLETE);
 
         return getPodInstanceRequirement();
