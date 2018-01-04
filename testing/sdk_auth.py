@@ -16,9 +16,9 @@ import base64
 import json
 import logging
 import os
+import uuid
 import requests
 import retrying
-import uuid
 
 import sdk_cmd
 import sdk_hosts
@@ -176,7 +176,8 @@ class KerberosEnvironment:
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
         This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
         """
-        self.temp_working_dir = _create_temp_working_dir()
+        self._working_dir = None
+        self._temp_working_dir = None
 
         self.app_id = KERBEROS_APP_ID
         self.app_definition = self.load_kdc_app_definition()
@@ -318,7 +319,7 @@ class KerberosEnvironment:
         Creates the keytab file that holds the info about all the principals that have been
         added to the KDC. It also fetches it locally so that later the keytab can be uploaded to the secret store.
         """
-        local_keytab_filename = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
+        local_keytab_filename = self.get_working_file_path(self.keytab_file_name)
         self.get_keytab_for_principals(self.principals, local_keytab_filename)
 
         return local_keytab_filename
@@ -367,6 +368,15 @@ class KerberosEnvironment:
         local_keytab_path = self.__create_and_fetch_keytab()
         self.__create_and_upload_secret(local_keytab_path)
 
+    def get_working_file_path(self, *args):
+        if not self._working_dir:
+            if not self._temp_working_dir:
+                self._temp_working_dir = _create_temp_working_dir()
+            self._working_dir = self._temp_working_dir.name
+
+        working_filepath = os.path.join(self._working_dir, *args)
+        return working_filepath
+
     def get_host(self):
         return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
@@ -388,8 +398,9 @@ class KerberosEnvironment:
         log.info("Removing the marathon KDC app")
         sdk_marathon.destroy_app(self.app_definition["id"])
 
-        log.info("Deleting temporary working directory")
-        self.temp_working_dir.cleanup()
+        if self._temp_working_dir and isinstance(self._temp_working_dir, tempfile.TemporaryDirectory):
+            log.info("Deleting temporary working directory")
+            self._temp_working_dir.cleanup()
 
         # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
