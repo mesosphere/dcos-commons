@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.api;
 
+import com.codahale.metrics.annotation.Metered;
+import com.codahale.metrics.annotation.Timed;
 import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
@@ -65,6 +67,7 @@ public class PlansResource extends PrettyJsonResource {
      */
     @GET
     @Path("/plans")
+    @Timed
     public Response listPlans() {
         return jsonOkResponse(new JSONArray(getPlanNames()));
     }
@@ -74,6 +77,7 @@ public class PlansResource extends PrettyJsonResource {
      */
     @GET
     @Path("/plans/{planName}")
+    @Timed
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
@@ -97,6 +101,7 @@ public class PlansResource extends PrettyJsonResource {
     @POST
     @Path("/plans/{planName}/start")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Timed
     public Response startPlan(@PathParam("planName") String planName, Map<String, String> parameters) {
         try {
             validate(parameters);
@@ -133,6 +138,7 @@ public class PlansResource extends PrettyJsonResource {
      */
     @POST
     @Path("/plans/{planName}/stop")
+    @Timed
     public Response stopPlan(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
@@ -146,6 +152,7 @@ public class PlansResource extends PrettyJsonResource {
 
     @POST
     @Path("/plans/{planName}/continue")
+    @Timed
     public Response continueCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase) {
@@ -199,6 +206,7 @@ public class PlansResource extends PrettyJsonResource {
      */
     @POST
     @Path("/plans/{planName}/interrupt")
+    @Timed
     public Response interruptCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase) {
@@ -237,6 +245,7 @@ public class PlansResource extends PrettyJsonResource {
 
     @POST
     @Path("/plans/{planName}/forceComplete")
+    @Timed
     public Response forceCompleteCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase,
@@ -260,6 +269,7 @@ public class PlansResource extends PrettyJsonResource {
 
     @POST
     @Path("/plans/{planName}/restart")
+    @Timed
     public Response restartCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase,

@@ -1,13 +1,6 @@
 package com.mesosphere.sdk.api;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
-
+import com.codahale.metrics.annotation.Timed;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
@@ -15,7 +8,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.state.StateStore;
-
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.apache.mesos.Protos;
@@ -27,6 +19,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
 import static com.mesosphere.sdk.api.ResponseUtils.plainOkResponse;
@@ -82,6 +81,7 @@ public class EndpointsResource {
      * Produces a listing of all endpoint names.
      */
     @GET
+    @Timed
     public Response getEndpoints() {
         try {
             Set<String> endpoints = new TreeSet<>();
@@ -101,6 +101,7 @@ public class EndpointsResource {
      */
     @Path("/{name}")
     @GET
+    @Timed
     public Response getEndpoint(@PathParam("name") String name) {
         try {
             // Check for custom value before emitting any default values:

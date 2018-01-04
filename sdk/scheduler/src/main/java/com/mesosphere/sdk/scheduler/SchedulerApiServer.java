@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListener;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -44,7 +45,8 @@ public class SchedulerApiServer {
 
         // Resources
         ResourceConfig resourceConfig = new ResourceConfig(MultiPartFeature.class)
-                .registerInstances(new HashSet<>(resources));
+                .registerInstances(new HashSet<>(resources))
+                .register(new InstrumentedResourceMethodApplicationListener(Metrics.getRegistry()));
         ServletHolder resourceHolder = new ServletHolder(new ServletContainer(resourceConfig));
         context.addServlet(resourceHolder, "/*");
 

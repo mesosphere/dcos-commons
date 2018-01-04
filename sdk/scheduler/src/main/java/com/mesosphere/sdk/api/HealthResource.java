@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.api;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import com.codahale.metrics.annotation.Timed;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
-
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * A read-only API for checking whether the service is healthy.
@@ -37,6 +38,7 @@ public class HealthResource {
      * <li>200 OK: All plans complete/no errors</li></ul>
      */
     @GET
+    @Timed
     public Response getHealth() {
         final boolean isAnyErrors;
         final boolean isAnyIncomplete;

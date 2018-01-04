@@ -1,21 +1,20 @@
 package com.mesosphere.sdk.api;
 
-import java.util.Arrays;
-import java.util.UUID;
+import com.codahale.metrics.annotation.Timed;
+import com.mesosphere.sdk.api.types.PrettyJsonResource;
+import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+import org.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
-
-import com.mesosphere.sdk.api.types.PrettyJsonResource;
-import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
-
-import org.json.JSONArray;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Arrays;
+import java.util.UUID;
 
 import static com.mesosphere.sdk.api.ResponseUtils.jsonOkResponse;
 import static com.mesosphere.sdk.api.ResponseUtils.jsonResponseBean;
@@ -40,6 +39,7 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      * Produces an ID listing of all stored configurations.
      */
     @GET
+    @Timed
     public Response getConfigurationIds() {
         try {
             return jsonOkResponse(new JSONArray(configStore.list()));
@@ -55,6 +55,7 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      */
     @Path("/{configurationId}")
     @GET
+    @Timed
     public Response getConfiguration(@PathParam("configurationId") String configurationId) {
         logger.info("Attempting to fetch config with id '{}'", configurationId);
         UUID uuid;
@@ -84,6 +85,7 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      */
     @Path("/targetId")
     @GET
+    @Timed
     public Response getTargetId() {
         try {
             // return a JSONArray to line up with getConfigurationIds()
@@ -105,6 +107,7 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      */
     @Path("/target")
     @GET
+    @Timed
     public Response getTarget() {
         UUID targetId;
         try {

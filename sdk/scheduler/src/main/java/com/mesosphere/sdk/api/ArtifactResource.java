@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.api;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -7,7 +8,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +63,7 @@ public class ArtifactResource {
      */
     @Path("/template/{configurationId}/{podType}/{taskName}/{configurationName}")
     @GET
+    @Timed
     public Response getTemplate(
             @PathParam("configurationId") String configurationId,
             @PathParam("podType") String podType,
