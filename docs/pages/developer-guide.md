@@ -1600,6 +1600,34 @@ pods:
 
 would result in all `hello-<index>-server` tasks being killed and their resources unreserved. **Note:** In order for the pod to be removed, it _must_ have specified `allow-decommission: true` before the removal. If you wish to decommission a pod which doesn't currently allow decommissioning, two configuration updates must be performed: one to add `allow-decommission: true` to the pod specification and another to remove the pod specification.
 
+### Non-essential tasks
+
+When multiple `goal: RUNNING` tasks are defined in a single pod and one of those tasks has exited, the default behavior is to relaunch _all_ of the `goal: RUNNING` tasks in the pod. To change this behavior, tasks may be marked "non-essential" by specifying `essential: false` in their `TaskSpec`. When a non-essential task exits, it will be automatically relaunched without disturbing other tasks in the pod. For an example, see the following `ServiceSpec`:
+
+ ```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    allow-decommission: true
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello"
+        cpus: 1.0
+        memory: 256
+      monitor:
+        goal: RUNNING
+        cmd: "echo monitor"
+        cpus: 1.0
+        memory: 256
+        essential: false
+```
+
+In this example, the `monitor` task is marked as non-essential, while the `server` task continues to be essential. If the `monitor` task exits, it will be automatically relaunched without disturbing the `server` task. However if the `server` task exits, then both the `server` task and the `monitor` task will both be relaunched.
+
+This option is only relevant for pods containing multiple `goal: RUNNING` tasks.
+
 ### Containers
 
 Each pod runs inside a single container. The `ServiceSpec` specifies the following:
