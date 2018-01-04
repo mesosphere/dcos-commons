@@ -19,6 +19,9 @@ import dcos
 import json
 import logging
 import os
+import requests
+import retrying
+
 import shakedown
 
 import sdk_cmd
@@ -135,18 +138,36 @@ def _copy_file_to_localhost(self):
     dest = "{temp_working_dir}/{keytab_file}".format(
         temp_working_dir=self.temp_working_dir.name, keytab_file=self.keytab_file_name)
 
-    curl_cmd = "curl -k --header '{auth}' {url} > {dest_file}".format(
-        auth="Authorization: token={token}".format(token=shakedown.dcos_acs_token()),
-        url=keytab_url,
-        dest_file=dest
-    )
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=120 * 1000,
+                    retry_on_exception=lambda e: isinstance(e, requests.exceptions.HTTPError),
+                    wrap_exception=True)
+    def get_keytab():
+        """ Use a streaming call to GET to download the Keytab file """
+        headers = {
+            "Authorization": "token={}".format(shakedown.dcos_acs_token())
+        }
+        response = requests.get(keytab_url, headers=headers, stream=True, verify=False)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            log.error("Error fetching keytab from %s", keytab_url)
+            log.error("response=%s exception=%s", response, repr(e))
+            raise e
+
+        return response
+
     try:
-        run([curl_cmd], shell=True)
-    except Exception as e:
+        keytab_response = get_keytab()
+        with open(dest, 'wb') as fd:
+            for chunk in keytab_response.iter_content(chunk_size=128):
+                fd.write(chunk)
+    except retrying.RetryError as e:
+        log.error("%s", e)
         raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
 
 
-def kinit(task_id: str, keytab: str, principal:str):
+def kinit(task_id: str, keytab: str, principal: str):
     """
     Performs a kinit command to authenticate the specified principal.
     :param task_id: The task in whose environment the kinit will run.
