@@ -125,8 +125,8 @@ var activeTableTab = "activeTableTab";
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html#taskFailed-TaskID-">taskFailed</a></span>(TaskID&nbsp;taskId)</code>
-<div class="block">Notifies that the task identified by the given <code>TaskID</code> has failed.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html#tasksFailed-java.util.Collection-">tasksFailed</a></span>(java.util.Collection&lt;TaskID&gt;&nbsp;taskIds)</code>
+<div class="block">Handles task failure notifications.</div>
 </td>
 </tr>
 </table>
@@ -144,17 +144,17 @@ var activeTableTab = "activeTableTab";
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="taskFailed-TaskID-">
+<a name="tasksFailed-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>taskFailed</h4>
-<pre>void&nbsp;taskFailed(TaskID&nbsp;taskId)</pre>
-<div class="block">Notifies that the task identified by the given <code>TaskID</code> has failed.</div>
+<h4>tasksFailed</h4>
+<pre>void&nbsp;tasksFailed(java.util.Collection&lt;TaskID&gt;&nbsp;taskIds)</pre>
+<div class="block">Handles task failure notifications.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>taskId</code> - The ID of the task to delete</dd>
+<dd><code>taskIds</code> - The IDs of the tasks which have failed</dd>
 </dl>
 </li>
 </ul>

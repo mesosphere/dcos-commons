@@ -133,8 +133,9 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">PodResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-           java.lang.String&nbsp;serviceName)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-">PodResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+           java.lang.String&nbsp;serviceName,
+           <a href="../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a>&nbsp;taskFailureListener)</code>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
@@ -205,8 +206,8 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>
-<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>
+<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
 </td>
 </tr>
 </table>
@@ -238,14 +239,15 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">
+<a name="PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>PodResource</h4>
 <pre>public&nbsp;PodResource(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                   java.lang.String&nbsp;serviceName)</pre>
+                   java.lang.String&nbsp;serviceName,
+                   <a href="../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html" title="interface in com.mesosphere.sdk.scheduler.recovery">TaskFailureListener</a>&nbsp;taskFailureListener)</pre>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </li>
 </ul>
@@ -257,16 +259,6 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setTaskKiller</h4>
-<pre>public&nbsp;void&nbsp;setTaskKiller(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</pre>
-<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="interface in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
-</li>
-</ul>
 <a name="getPods--">
 <!--   -->
 </a>
@@ -342,11 +334,21 @@ extends <a href="../../../../com/mesosphere/sdk/api/types/PrettyJsonResource.htm
 <a name="replacePod-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>replacePod</h4>
 <pre>public&nbsp;Response&nbsp;replacePod(java.lang.String&nbsp;name)</pre>
 <div class="block">Replaces a pod instance with a new instance on a different agent.</div>
+</li>
+</ul>
+<a name="setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>setTaskKiller</h4>
+<pre>public&nbsp;void&nbsp;setTaskKiller(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</pre>
+<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
 </li>
 </ul>
 </li>
