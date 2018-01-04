@@ -18,6 +18,7 @@ import logging
 import os
 import requests
 import retrying
+import uuid
 
 import sdk_cmd
 import sdk_hosts
@@ -107,26 +108,21 @@ def _create_temp_working_dir() -> tempfile.TemporaryDirectory:
 
 
 # TODO: make this generic and put in sdk_utils.py
-def _copy_file_to_localhost(krb5: object, output_filename: str):
+def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_filename: str):
     """
     Copies the keytab that was generated inside the container running the KDC server to the localhost
     so it can be uploaded to the secret store later.
-
-    The keytab will end up in path: <temp_working_dir>/<keytab_file>
     """
-    log.info("Downloading keytab %s to %s", krb5.keytab_file_name, output_filename)
-
     dcos_url, headers = sdk_security.get_dcos_credentials()
     del headers["Content-Type"]
-    keytab_absolute_path = os.path.join("/var/lib/mesos/slave/slaves", krb5.kdc_host_id,
-                                        "frameworks", krb5.framework_id,
-                                        "executors", krb5.task_id,
-                                        "runs/latest", krb5.keytab_file_name)
+
     keytab_url = "{cluster_url}/slave/{agent_id}/files/download?path={path}".format(
         cluster_url=dcos_url,
-        agent_id=krb5.kdc_host_id,
+        agent_id=host_id,
         path=keytab_absolute_path
     )
+
+    log.info("Downloading keytab %s to %s", keytab_url, output_filename)
 
     @retrying.retry(wait_exponential_multiplier=1000,
                     wait_exponential_max=120 * 1000,
@@ -280,20 +276,50 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
+    def create_remote_keytab(self, name: str, principals: list=[]) -> str:
+        """
+        Create a remote keytab for the specified list of principals
+        """
+        if not name:
+            name = "{}.keytab".format(str(uuid.uuid4()))
+
+        log.info("Creating keytab: %s", name)
+
+        if not principals:
+            log.info("Using predefined principals")
+            principals = self.principals
+
+        if not principals:
+            log.error("No principals specified not creating keytab")
+            return None
+
+        kadmin_options = ["-l"]
+        kadmin_cmd = "ext"
+        kadmin_args = ["-k", name]
+        kadmin_args.extend(principals)
+
+        self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
+
+        keytab_absolute_path = os.path.join("/var/lib/mesos/slave/slaves", self.kdc_host_id,
+                                            "frameworks", self.framework_id,
+                                            "executors", self.task_id,
+                                            "runs/latest", name)
+        return keytab_absolute_path
+
+    def get_keytab_for_principals(self, principals: list, output_filename: str):
+        """
+        Download a generated keytab for the specified list of principals
+        """
+        remote_keytab_path = self.create_remote_keytab(self.keytab_file_name, principals=principals)
+        _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, output_filename)
+
     def __create_and_fetch_keytab(self):
         """
         Creates the keytab file that holds the info about all the principals that have been
         added to the KDC. It also fetches it locally so that later the keytab can be uploaded to the secret store.
         """
-        log.info("Creating the keytab")
-        kadmin_options = ["-l"]
-        kadmin_cmd = "ext"
-        kadmin_args = ["-k", self.keytab_file_name] + self.principals
-        self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
-
         local_keytab_filename = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
-
-        _copy_file_to_localhost(self, local_keytab_filename)
+        self.get_keytab_for_principals(self.principals, local_keytab_filename)
 
         return local_keytab_filename
 
@@ -360,7 +386,7 @@ class KerberosEnvironment:
         sdk_security.install_enterprise_cli()
 
         log.info("Removing the marathon KDC app")
-        sdk_marathon.destroy_app(KERBEROS_APP_ID)
+        sdk_marathon.destroy_app(self.app_definition["id"])
 
         log.info("Deleting temporary working directory")
         self.temp_working_dir.cleanup()
