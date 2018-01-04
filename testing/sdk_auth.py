@@ -179,18 +179,22 @@ class KerberosEnvironment:
         self._working_dir = None
         self._temp_working_dir = None
 
+        # Application settings
         self.app_id = KERBEROS_APP_ID
         self.app_definition = self.load_kdc_app_definition()
 
+        # TODO: Ideally, we should not install this service in the constructor.
         kdc_task_info = self.install()
 
-        self.kdc_realm = REALM
+        # Running task information
         self.framework_id = kdc_task_info["framework_id"]
         self.task_id = kdc_task_info["id"]
         self.kdc_host_id = kdc_task_info["slave_id"]
 
+        # Kerberos-specific information
         self.principals = []
         self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME
+        self.kdc_realm = REALM
 
     def load_kdc_app_definition(self) -> dict:
         kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
