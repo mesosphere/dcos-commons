@@ -480,6 +480,7 @@
   <li><a href="#advanced-dcos-service-definition" id="markdown-toc-advanced-dcos-service-definition">Advanced DC/OS Service Definition</a>    <ul>
       <li><a href="#servicespec-yaml" id="markdown-toc-servicespec-yaml"><code class="highlighter-rouge">ServiceSpec</code> (YAML)</a>        <ul>
           <li><a href="#pods" id="markdown-toc-pods">Pods</a></li>
+          <li><a href="#non-essential-tasks" id="markdown-toc-non-essential-tasks">Non-essential tasks</a></li>
           <li><a href="#containers" id="markdown-toc-containers">Containers</a></li>
           <li><a href="#placement-rules" id="markdown-toc-placement-rules">Placement Rules</a></li>
           <li><a href="#resource-sets" id="markdown-toc-resource-sets">Resource Sets</a></li>
@@ -2224,6 +2225,34 @@ installed the
 </div>
 
 <p>would result in all <code class="highlighter-rouge">hello-&lt;index&gt;-server</code> tasks being killed and their resources unreserved. <strong>Note:</strong> In order for the pod to be removed, it <em>must</em> have specified <code class="highlighter-rouge">allow-decommission: true</code> before the removal. If you wish to decommission a pod which doesn’t currently allow decommissioning, two configuration updates must be performed: one to add <code class="highlighter-rouge">allow-decommission: true</code> to the pod specification and another to remove the pod specification.</p>
+
+<h3 id="non-essential-tasks">Non-essential tasks</h3>
+
+<p>When multiple <code class="highlighter-rouge">goal: RUNNING</code> tasks are defined in a single pod and one of those tasks has exited, the default behavior is to relaunch <em>all</em> of the <code class="highlighter-rouge">goal: RUNNING</code> tasks in the pod. To change this behavior, tasks may be marked “non-essential” by specifying <code class="highlighter-rouge">essential: false</code> in their <code class="highlighter-rouge">TaskSpec</code>. When a non-essential task exits, it will be automatically relaunched without disturbing other tasks in the pod. For an example, see the following <code class="highlighter-rouge">ServiceSpec</code>:</p>
+
+<div class="language-yaml highlighter-rouge"><pre class="highlight"><code><span class="s">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="s">pods</span><span class="pi">:</span>
+  <span class="s">hello</span><span class="pi">:</span>
+    <span class="s">count</span><span class="pi">:</span> <span class="s">1</span>
+    <span class="s">allow-decommission</span><span class="pi">:</span> <span class="s">true</span>
+    <span class="s">tasks</span><span class="pi">:</span>
+      <span class="s">server</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+      <span class="s">monitor</span><span class="pi">:</span>
+        <span class="s">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="s">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">monitor"</span>
+        <span class="s">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="s">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="s">essential</span><span class="pi">:</span> <span class="s">false</span>
+</code></pre>
+</div>
+
+<p>In this example, the <code class="highlighter-rouge">monitor</code> task is marked as non-essential, while the <code class="highlighter-rouge">server</code> task continues to be essential. If the <code class="highlighter-rouge">monitor</code> task exits, it will be automatically relaunched without disturbing the <code class="highlighter-rouge">server</code> task. However if the <code class="highlighter-rouge">server</code> task exits, then both the <code class="highlighter-rouge">server</code> task and the <code class="highlighter-rouge">monitor</code> task will both be relaunched.</p>
+
+<p>This option is only relevant for pods containing multiple <code class="highlighter-rouge">goal: RUNNING</code> tasks.</p>
 
 <h3 id="containers">Containers</h3>
 
