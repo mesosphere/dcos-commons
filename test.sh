@@ -203,9 +203,6 @@ fi
 docker run --rm \
     -v ${aws_credentials_path}:/root/.aws:ro \
     -e AWS_PROFILE="${aws_profile}" \
-    -e AWS_SESSION_TOKEN=$(AWS_PROFILE=$aws_profile aws configure get aws_session_token) \
-    -e AWS_ACCESS_KEY_ID=$(AWS_PROFILE=$aws_profile aws configure get aws_access_key_id) \
-    -e AWS_SECRET_ACCESS_KEY=$(AWS_PROFILE=$aws_profile aws configure get aws_secret_access_key) \
     -e DCOS_ENTERPRISE="$DCOS_ENTERPRISE" \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
     -e DCOS_LOGIN_PASSWORD="$DCOS_LOGIN_PASSWORD" \

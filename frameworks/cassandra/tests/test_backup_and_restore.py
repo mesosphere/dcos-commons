@@ -1,6 +1,7 @@
 import os
 import tempfile
 import uuid
+import subprocess
 
 import pytest
 import sdk_install
@@ -78,13 +79,13 @@ def test_backup_and_restore_to_azure():
 @pytest.mark.aws
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3():
-    key_id = os.getenv('AWS_ACCESS_KEY_ID')
+    key_id = retrieve_aws_property('aws_access_key_id')
     if not key_id:
         assert False, 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
     plan_parameters = {
         'AWS_ACCESS_KEY_ID': key_id,
-        'AWS_SECRET_ACCESS_KEY': os.getenv('AWS_SECRET_ACCESS_KEY'),
-        'AWS_SESSION_TOKEN': os.getenv('AWS_SESSION_TOKEN'),
+        'AWS_SECRET_ACCESS_KEY': retrieve_aws_property('aws_secret_access_key'),
+        'AWS_SESSION_TOKEN': retrieve_aws_property('aws_session_token'),
         'AWS_REGION': os.getenv('AWS_REGION', 'us-west-2'),
         'S3_BUCKET_NAME': os.getenv('AWS_BUCKET_NAME', 'infinity-framework-test'),
         'SNAPSHOT_NAME': str(uuid.uuid1()),
@@ -97,3 +98,12 @@ def test_backup_and_restore_to_s3():
         'restore-s3',
         plan_parameters,
         config.get_foldered_node_address())
+
+
+def retrieve_aws_property(property: str) -> str:
+    result = subprocess.run('aws configure get {}'.format(property), shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    if result.returncode is not 0:
+        raise Exception("Could not retrieve property {}: {}", property, result.stderr + result.stdout)
+
+    return result.stdout
