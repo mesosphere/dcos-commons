@@ -19,7 +19,6 @@ import string
 import sys
 import time
 
-import github_update
 import universe
 
 logger = logging.getLogger(__name__)
@@ -66,29 +65,19 @@ class AWSPublisher(object):
                 self._pkg_name,
                 dir_name))
 
-        self._github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
-
         if not os.path.isdir(input_dir_path):
-            err = 'Provided package path is not a directory: {}'.format(input_dir_path)
-            self._github_updater.update('error', err)
-            raise Exception(err)
+            raise Exception('Provided package path is not a directory: {}'.format(input_dir_path))
 
         # check if aws cli tools are installed
         cmd = "aws --version"
         ret = os.system(cmd)
         if not ret == 0:
-            err = 'Required AWS cli tools not installed.'
-            self._github_updater.update('error', err)
-            raise Exception(err)
+            raise Exception('Required AWS cli tools not installed.')
 
         self._artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
-                raise Exception(err)
-            if artifact_path in self._artifact_paths:
-                err = 'Duplicate filename between "{}" and "{}". Artifact filenames must be unique.'.format(prior_path, artifact_path)
-                self._github_updater.update('error', err)
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
@@ -110,9 +99,7 @@ class AWSPublisher(object):
             logger.info(cmd)
             ret = os.system(cmd)
         if not ret == 0:
-            err = 'Failed to upload {} to S3'.format(filename)
-            self._github_updater.update('error', err)
-            raise Exception(err)
+            raise Exception('Failed to upload {} to S3'.format(filename))
         return '{}/{}'.format(self._http_directory, filename)
 
 
@@ -132,15 +119,6 @@ class AWSPublisher(object):
             universe_url_file.write('{}\n'.format(universe_url))
             universe_url_file.flush()
             universe_url_file.close()
-        num_artifacts = len(self._artifact_paths)
-        if num_artifacts == 1:
-            suffix = ''
-        else:
-            suffix = 's'
-        self._github_updater.update(
-            'success',
-            'Uploaded stub universe and {} artifact{}'.format(num_artifacts, suffix),
-            universe_url)
 
     def upload(self):
         '''generates a unique directory, then uploads artifacts and a new stub universe to that directory'''
@@ -149,12 +127,7 @@ class AWSPublisher(object):
         builder = universe.UniversePackageBuilder(
             package_info, package_manager,
             self._input_dir_path, self._http_directory, self._artifact_paths)
-        try:
-            universe_path = builder.build_package()
-        except Exception as e:
-            err = 'Failed to create stub universe: {}'.format(str(e))
-            self._github_updater.update('error', err)
-            raise
+        universe_path = builder.build_package()
 
         # upload universe package definition first and get its URL
         universe_url = self._universe_url_prefix + self._upload_artifact(

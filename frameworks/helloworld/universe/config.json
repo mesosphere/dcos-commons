@@ -31,6 +31,11 @@
             "type": "boolean",
             "default": true
           },
+          "customize_plan" : {
+            "description": "A boolean value to test programmatic plan customization",
+            "type": "boolean",
+            "default": false
+          },
           "allow_region_awareness" : {
             "description": "Allow region awareness",
             "type": "boolean",
@@ -89,9 +94,9 @@
             "default": 1
           },
           "placement": {
-            "description": "Marathon-style placement constraint for Hello pods",
+            "description": "Placement constraints for Hello pods",
             "type": "string",
-            "default": "hostname:UNIQUE",
+            "default": "[[\"hostname\", \"UNIQUE\"]]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }
@@ -145,9 +150,9 @@
             "default": 2
           },
           "placement": {
-            "description": "Marathon-style placement constraint for World pods",
+            "description": "Placement constraints for World pods",
             "type": "string",
-            "default": "hostname:UNIQUE",
+            "default": "[[\"hostname\", \"UNIQUE\"]]",
             "media": {
               "type": "application/x-zone-constraints+json"
             }

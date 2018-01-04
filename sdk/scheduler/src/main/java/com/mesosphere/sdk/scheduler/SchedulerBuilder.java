@@ -1,23 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
-import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.specification.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
@@ -27,14 +9,14 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.DefaultPhaseFactory;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
-import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
-import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanFactory;
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -44,6 +26,11 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Creates a new {@link DefaultScheduler}.
@@ -61,12 +48,12 @@ public class SchedulerBuilder {
     private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
 
     // When these collections are empty, we don't do anything extra:
-    private final List<Plan> manualPlans = new ArrayList<>();
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
     private final Map<String, EndpointProducer> endpointProducers = new HashMap<>();
     private Collection<ConfigValidator<ServiceSpec>> customConfigValidators = new ArrayList<>();
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
+    private PlanCustomizer planCustomizer;
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -204,22 +191,17 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Sets the provided {@link Plan}s to this instance. This may be used when no {@link RawServiceSpec} is
-     * available, and overrides any calls to {@link #setPlansFrom(RawServiceSpec)}.
-     */
-    public SchedulerBuilder setPlans(Collection<Plan> plans) {
-        this.manualPlans.clear();
-        this.manualPlans.addAll(plans);
-        return this;
-    }
-
-    /**
      * Assigns a {@link RecoveryPlanOverriderFactory} to be used for generating the recovery plan manager.
      *
      * @param recoveryPlanOverriderFactory the factory which generates the custom recovery plan manager
      */
     public SchedulerBuilder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
+        return this;
+    }
+
+    public SchedulerBuilder setPlanCustomizer(PlanCustomizer planCustomizer) {
+        this.planCustomizer = planCustomizer;
         return this;
     }
 
@@ -270,7 +252,7 @@ public class SchedulerBuilder {
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
                 Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
-                        getPlans(stateStore, configStore, lastServiceSpec, manualPlans, yamlPlans));
+                        getPlans(stateStore, configStore, lastServiceSpec, yamlPlans));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
                     LOGGER.info("Marking deployment as having been previously completed");
                     StateStoreUtils.setDeploymentWasCompleted(stateStore);
@@ -306,16 +288,23 @@ public class SchedulerBuilder {
         }
 
         // Now that a ServiceSpec has been chosen, generate the plans.
-        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, manualPlans, yamlPlans);
+        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, yamlPlans);
         plans = selectDeployPlan(plans, hasCompletedDeployment);
         Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
         if (!deployPlan.isPresent()) {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
 
+        if (planCustomizer != null) {
+            plans = plans.stream()
+                    .map(plan -> planCustomizer.updatePlan(plan))
+                    .collect(Collectors.toList());
+        }
+
         List<String> errors = configUpdateResult.getErrors().stream()
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
+
         if (!errors.isEmpty()) {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
         }
@@ -365,18 +354,10 @@ public class SchedulerBuilder {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
-            List<Plan> manualPlans,
             Map<String, RawPlan> yamlPlans) {
         final String plansType;
         final Collection<Plan> plans;
-        if (!manualPlans.isEmpty()) {
-            if (!yamlPlans.isEmpty()) {
-                throw new IllegalArgumentException(String.format("Cannot use both manual plans and raw YAML plans. " +
-                        "Only one or the other may be provided: manual=%s yaml=%s", manualPlans, yamlPlans));
-            }
-            plansType = "manual";
-            plans = new ArrayList<>(manualPlans);
-        } else if (!yamlPlans.isEmpty()) {
+        if (!yamlPlans.isEmpty()) {
             plansType = "YAML";
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.

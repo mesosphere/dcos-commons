@@ -421,8 +421,6 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getPortRequirement(ports),
                 OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10001)));
 
-        // TODO(nickbp): we now produce two separate ports RESERVE operations instead of one combined operation.
-        //               does mesos allow this?
         Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
 
         Operation reserveOperation = recommendations.get(0).getOperation();
@@ -463,8 +461,6 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getPortRequirement(ports),
                 OfferTestUtils.getOffers(ResourceTestUtils.getUnreservedPorts(10000, 10001)));
 
-        // TODO(nickbp): we now produce two separate ports RESERVE operations instead of one combined operation.
-        //               does mesos allow this?
         Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
 
         Operation reserveOperation = recommendations.get(0).getOperation();

@@ -4,6 +4,7 @@ import dcos
 import dcos.config
 import dcos.http
 import pytest
+import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
@@ -17,30 +18,17 @@ import shakedown
 from tests import config, test_utils
 
 
-def install_kafka(use_v0=False):
-    mesos_api_version = "V0" if use_v0 else "V1"
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    if sdk_utils.dcos_version_less_than("1.9"):
-        # Last beta-kafka release (1.1.25-0.10.1.0-beta) excludes 1.8. Skip upgrade tests with 1.8 and just install
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options={"service": {"name": foldered_name, "mesos_api_version": mesos_api_version}})
-    else:
-        sdk_upgrade.test_upgrade(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options={"service": {"name": foldered_name, "mesos_api_version": mesos_api_version}, "brokers": {"cpus": 0.5}})
-
-
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        install_kafka()
+
+        sdk_upgrade.test_upgrade(
+            config.PACKAGE_NAME,
+            foldered_name,
+            config.DEFAULT_BROKER_COUNT,
+            additional_options={"service": {"name": foldered_name}, "brokers": {"cpus": 0.5}})
 
         # wait for brokers to finish registering before starting tests
         test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
@@ -61,21 +49,11 @@ def test_service_health():
 @pytest.mark.smoke
 @pytest.mark.mesos_v0
 def test_mesos_v0_api():
-    try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        # Install Hello World using the v0 api.
-        # Then, clean up afterwards.
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        install_kafka(use_v0=True)
-
-        sdk_tasks.check_running(foldered_name, config.DEFAULT_BROKER_COUNT)
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
-        install_kafka()
-        # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-                                      service_name=foldered_name)
+    service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
+    if prior_api_version is not "V0":
+        sdk_marathon.set_mesos_api_version(service_name, "V0")
+        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
 
 
 # --------- Endpoints -------------
@@ -85,14 +63,19 @@ def test_mesos_v0_api():
 @pytest.mark.sanity
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    def fun():
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=120*1000,
+        retry_on_result=lambda res: not res)
+    def wait():
         ret = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, foldered_name,
             'endpoints {}'.format(config.DEFAULT_TASK_NAME), json=True)
         if len(ret['address']) == config.DEFAULT_BROKER_COUNT:
             return ret
         return False
-    endpoints = shakedown.wait_for(fun)
+
+    endpoints = wait()
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == config.DEFAULT_BROKER_COUNT
@@ -184,119 +167,6 @@ def test_pod_replace():
     test_utils.replace_broker_pod(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
-# --------- Topics -------------
-
-
-@pytest.mark.smoke
-@pytest.mark.sanity
-def test_topic_create():
-    test_utils.create_topic(config.EPHEMERAL_TOPIC_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
-
-
-@pytest.mark.smoke
-@pytest.mark.sanity
-def test_topic_delete():
-    test_utils.delete_topic(config.EPHEMERAL_TOPIC_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME))
-
-
-@pytest.mark.sanity
-def test_topic_partition_count():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
-        'topic create {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    topic_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
-        'topic describe {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
-
-
-@pytest.mark.sanity
-def test_topic_offsets_increase_with_writes():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    offset_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
-        'topic offsets --time="-1" {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert len(offset_info) == config.DEFAULT_PARTITION_COUNT
-
-    offsets = {}
-    for o in offset_info:
-        assert len(o) == config.DEFAULT_REPLICATION_FACTOR
-        offsets.update(o)
-
-    assert len(offsets) == config.DEFAULT_PARTITION_COUNT
-
-    num_messages = 10
-    write_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
-        'topic producer_test {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
-    assert len(write_info) == 1
-    assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
-
-    offset_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name,
-        'topic offsets --time="-1" {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert len(offset_info) == config.DEFAULT_PARTITION_COUNT
-
-    post_write_offsets = {}
-    for offsets in offset_info:
-        assert len(o) == config.DEFAULT_REPLICATION_FACTOR
-        post_write_offsets.update(o)
-
-    assert not offsets == post_write_offsets
-
-
-@pytest.mark.sanity
-def test_decreasing_topic_partitions_fails():
-    partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1), json=True)
-
-    assert len(partition_info) == 1
-    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
-
-
-@pytest.mark.sanity
-def test_setting_topic_partitions_to_same_value_fails():
-    partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT), json=True)
-
-    assert len(partition_info) == 1
-    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
-
-
-@pytest.mark.sanity
-def test_increasing_topic_partitions_succeeds():
-    partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1), json=True)
-
-    assert len(partition_info) == 1
-    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert ('The number of partitions for a topic can only be increased' not in partition_info['message'])
-
-
-@pytest.mark.sanity
-def test_no_under_replicated_topics_exist():
-    partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'topic under_replicated_partitions', json=True)
-
-    assert len(partition_info) == 1
-    assert partition_info['message'] == ''
-
-
-@pytest.mark.sanity
-def test_no_unavailable_partitions_exist():
-    partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        'topic unavailable_partitions', json=True)
-
-
-
 # --------- CLI -------------
 
 
@@ -375,4 +245,3 @@ def test_metrics():
         config.DEFAULT_KAFKA_TIMEOUT,
         expected_metrics_exist
     )
-

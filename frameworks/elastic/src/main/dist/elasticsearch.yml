@@ -19,10 +19,12 @@ bootstrap.memory_lock: false
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
 
-{{#DETECT_ZONES}}
+{{#PLACEMENT_REFERENCED_ZONE}}
+{{#ZONE}}
 node.attr.zone: {{ZONE}}
 cluster.routing.allocation.awareness.attributes: zone
-{{/DETECT_ZONES}}
+{{/ZONE}}
+{{/PLACEMENT_REFERENCED_ZONE}}
 
 {{#MASTER_ENABLED}}
 gateway.expected_master_nodes: 3
@@ -38,7 +40,7 @@ node.master: false
 node.data: {{DATA_ENABLED}}
 node.ingest: {{INGEST_ENABLED}}
 
-{{#ELASTIC_ENABLE_TLS}}
+{{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 # https://www.elastic.co/guide/en/elasticsearch/reference/5.5/security-settings.html#ssl-tls-settings
 xpack.security.enabled: true
 xpack.ssl.key: {{MESOS_SANDBOX}}/node.key
@@ -50,7 +52,7 @@ xpack.security.transport.ssl.enabled: true
 # Client encryption
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
-{{/ELASTIC_ENABLE_TLS}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
 {{#SCRIPT_ALLOWED_CONTEXTS}}
 script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}

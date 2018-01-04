@@ -1,23 +1,22 @@
+import json
 import logging
+import retrying
 
 import sdk_cmd
+import sdk_hosts
 import sdk_tasks
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: not res)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
-    def fun():
-        try:
-            if len(sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)) == count:
-                return True
-        except:
-            pass
-        return False
-
-    shakedown.wait_for(fun)
+    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)
+    return len(brokers) == count
 
 
 def restart_broker_pods(service_name=config.SERVICE_NAME):
@@ -41,6 +40,25 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
     sdk_tasks.check_running(service_name, config.DEFAULT_BROKER_COUNT)
     # wait till all brokers register
     broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=service_name)
+
+
+def wait_for_broker_dns(package_name: str, service_name: str):
+    brokers = sdk_cmd.svc_cli(package_name, service_name, "endpoint broker", json=True)
+    broker_dns = list(map(lambda x: x.split(':')[0], brokers["dns"]))
+
+    def get_scheduler_task_id(service_name: str) -> str:
+        raw_tasks = sdk_cmd.run_cli("task --json", )
+        if raw_tasks:
+            tasks = json.loads(raw_tasks)
+            for task in tasks:
+                if task["name"] == service_name:
+                    return task["id"]
+
+    scheduler_task_id = get_scheduler_task_id(service_name)
+    log.info("Scheduler task ID: %s", scheduler_task_id)
+    log.info("Waiting for brokers: %s", broker_dns)
+
+    assert sdk_hosts.resolve_hosts(scheduler_task_id, broker_dns)
 
 
 def create_topic(topic_name, service_name=config.SERVICE_NAME):
@@ -72,6 +90,20 @@ def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'topic describe {}'.format(topic_name), json=True)
     assert len(topic_info) == 1
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
+
+
+def wait_for_topic(package_name: str, service_name: str, topic_name: str):
+    """
+    Execute `dcos kafka topic describe` to wait for topic creation.
+    """
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=60 * 1000)
+    def describe(topic):
+        sdk_cmd.svc_cli(package_name, service_name,
+                        "topic describe {}".format(topic),
+                        json=True)
+
+    describe(topic_name)
 
 
 def assert_topic_lists_are_equal_without_automatic_topics(expected, actual):

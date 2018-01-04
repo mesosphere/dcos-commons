@@ -1,0 +1,26 @@
+{
+  "id": "/kdc",
+  "instances": 1,
+  "cpus": 1,
+  "mem": 512,
+  "user": "nobody",
+  "container": {
+    "type": "MESOS",
+    "docker": {
+      "image": "nvaziri/kdc:mesosphere",
+      "forcePullImage": true
+    }
+  },
+  "networks": [
+    {
+      "mode": "host"
+    }
+  ],
+  "portDefinitions": [
+    {
+      "port": 2500,
+      "name": "kdc"
+    }
+  ],
+  "requirePorts": true
+}

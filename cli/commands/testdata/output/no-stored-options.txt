@@ -1,2 +1,0 @@
-Package configuration is not available for service hello-world.
-dcos hello-world describe is only available for packages installed with Enterprise DC/OS 1.10 or newer.

@@ -1,0 +1,31 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    volume:
+      path: "shared-volume"
+      type: ROOT
+      size: 1024
+    tasks:
+      # 1. each task writes a distinct file to a shared volume.
+      #    the file presence is checked in tests to verify both tasks can see the same volume.
+      # 2. each task includes a hardcoded "essential" or "nonessential" in its cmd.
+      #    this allows tests to differentiate between the two tasks in 'ps' on the agent.
+      essential:
+        goal: RUNNING
+        cmd: "touch shared-volume/essential && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      nonessential:
+        goal: RUNNING
+        essential: false
+        cmd: "touch shared-volume/nonessential && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

@@ -1,6 +1,7 @@
 target/
 *.pyc
 .cache/
+.gopath/
 
 # dcos-docker artifacts
 dcos-docker/
@@ -23,6 +24,7 @@ tools/elastic
 tools/helloworld
 tools/template
 /test_*.json
+/logs/
 *.log
 *.pem
 

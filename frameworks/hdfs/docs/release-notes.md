@@ -4,6 +4,19 @@ menu_order: 120
 enterprise: 'no'
 ---
 
+## Verion 3.0.0-2.6.0-cdh5.11.0-beta
+
+## NOTICE
+
+This is a beta release of the DC/OS HDFS framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### New features
+- Support for the automated provisioning of TLS artifacts to secure HDFS communication.
+- Support for Kerberos authorization and authentication.
+
+### Updates
+- Major improvements to the stability and performance of service orchestration.
+
 ## Version 2.0.3-2.6.0-cdh5.11.0
 
 ### Bug Fixes

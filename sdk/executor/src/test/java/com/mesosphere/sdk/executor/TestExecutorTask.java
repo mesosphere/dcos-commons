@@ -5,31 +5,19 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.util.concurrent.Future;
-
 public class TestExecutorTask implements ExecutorTask {
-    private Logger LOGGER = LoggerFactory.getLogger(getClass());
-    private Duration sleepDuration;
-    private Protos.TaskStatus taskStatus;
-    private ExecutorDriver driver;
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestExecutorTask.class);
+    private static final long SLEEP_MILLIS = 100;
 
-    public TestExecutorTask(
-            Duration sleepDuration,
-            Protos.TaskStatus taskStatus,
-            ExecutorDriver driver) {
-        this.sleepDuration = sleepDuration;
-        this.taskStatus = taskStatus;
-        this.driver = driver;
-    }
+    private final Protos.TaskStatus taskStatus;
+    private final ExecutorDriver driver;
 
     public TestExecutorTask(Protos.TaskInfo taskInfo, ExecutorDriver driver) {
         this.taskStatus = Protos.TaskStatus.newBuilder()
                 .setTaskId(Protos.TaskID.newBuilder().setValue("test-task-id"))
                 .setState(Protos.TaskState.TASK_FINISHED)
                 .build();
-
-        this.sleepDuration = Duration.ofMillis(100);
+        this.driver = driver;
     }
 
     @Override
@@ -37,7 +25,7 @@ public class TestExecutorTask implements ExecutorTask {
         LOGGER.info("Doing some work");
 
         try {
-            Thread.sleep(sleepDuration.toMillis());
+            Thread.sleep(SLEEP_MILLIS);
         } catch (InterruptedException e) {
             LOGGER.error("Sleep failed with exception: ", e);
         }
@@ -47,7 +35,7 @@ public class TestExecutorTask implements ExecutorTask {
     }
 
     @Override
-    public void stop(Future<?> future) {
+    public void stop() {
 
     }
 }

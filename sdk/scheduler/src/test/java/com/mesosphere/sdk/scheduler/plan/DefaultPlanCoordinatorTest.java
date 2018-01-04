@@ -2,13 +2,13 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
@@ -105,6 +105,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 new OfferAccepter(Arrays.asList()),
                 new OfferEvaluator(
                         stateStore,
+                        new OfferOutcomeTracker(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),

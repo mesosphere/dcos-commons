@@ -18,7 +18,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `web-url`
 
-  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Proxylite](developer-guide.html#proxy) in your service so that the scheduler API endpoints are still available.
+  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](developer-guide.html#proxy-fallback) in your service so that the scheduler API endpoints are still available.
 
 * `scheduler`
 
@@ -60,31 +60,23 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     Whether to allow this pod's `count` to be decreased by an operator in a configuration update. For safety reasons this defaults to `false`, but the service developer may set this field to `true` to explicitly allow scale-down on a per-pod basis.
 
-  * `container`
+  * `image`
 
-    This section contains additional options relating to the container environment to be used by the pod type.
+    The docker image to use for launching the pod, of the form `user/img:version`. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been [configured in the DC/OS cluster](https://github.com/dcos/examples/tree/master/1.8/registry) to work. To ensure a lack of flakiness, docker images are only executed by Mesos' [Universal Container Runtime](https://docs.mesosphere.com/1.9/deploying-services/containerizers/), never `dockerd`. If this is unspecified, then a sandboxed directory on the system root is used instead.
 
-    * `image-name`
+    You do not have to specify an image if the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
 
-      The docker image to use for launching the pod, of the form `user/img:version`. The image may either be in public Docker Hub, or in a custom Docker Registry. Any custom Docker Registry must have been [configured in the DC/OS cluster](https://github.com/dcos/examples/tree/master/1.8/registry) to work. To ensure a lack of flakiness, docker images are only executed by Mesos' [Universal Container Runtime](https://docs.mesosphere.com/1.9/deploying-services/containerizers/), never `dockerd`. If this is unspecified, then a sandboxed directory on the system root is used instead.
+  * `rlimits`
 
-      `image-name` may be left empty when the service uses static binaries or an environment like the JVM to handle any runtime dependencies, but if your application requires a custom environment and/or filesystem isolation then you should probably specify an image here.
+    This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
 
-    * `rlimits`
-
-      This section may be used to specify [rlimits](https://linux.die.net/man/2/setrlimit) that need to be configured (by Mesos) before the container is brought up. One or more rlimit values may be specified as follows:
-
-      ```
-      rlimits:
-        RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
-        RLIMIT_NOFILE:
-          soft: 128000
-          hard: 128000
-      ```
-
-  * `image`/`networks`/`rlimits`
-
-    These values are respectively equivalent to `image-name`, `networks`, and `rlimits` under `container`. In each case, only one of the two may be specified at a time. See above. (TODO(nickbp) remove one of the two duplicates?)
+    ```
+    rlimits:
+      RLIMIT_AS: // unlimited when 'soft' and 'hard' are both unset
+      RLIMIT_NOFILE:
+        soft: 128000
+        hard: 128000
+    ```
 
   * `secrets`
 
@@ -126,7 +118,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     A list of uris to be downloaded (and automatically unpacked) into the `$MESOS_SANDBOX` directory before launching instances of this pod. It is strongly recommended that all URIs be templated out and provided as scheduler environment variables. This allows field replacement in the case of running an offline cluster without internet connectivity.
 
-    If you're using a Docker image (specified in the `image-name` field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.
+    If you're using a Docker image (specified in the `image` field), these bits should ideally be already pre-included in that image, but separate downloads can regardless be useful in some situations.
 
     If you wish to use `configs` in your tasks, this needs to include a URI to download the `bootstrap` executable.
 
@@ -148,11 +140,95 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `goal`
 
-      The goal state of the task. Must be either `RUNNING` or `FINISHED`:
-      <div class="noyaml"><ul>
-      <li><code>RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically.</li>
-      <li><code>FINISHED</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod.</li>
-      </ul></div>
+      The goal state of the task. Must be either `RUNNING`, `FINISH` or `ONCE`:
+      * `RUNNING`: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically. To demonstrate, let's assume a running instance the `hello-world` service on your DC/OS cluster. We'll be updating the configuration of the `hello-0` pod and verifying that the `hello-0-server` task with goal state `RUNNING` is restarted and stays running. First, we verify that the deploy plan has completed:
+        ```
+        $ dcos hello-world plan show deploy
+        deploy (COMPLETE)
+        ├─ hello (COMPLETE)
+        │  └─ hello-0:[server] (COMPLETE)
+        ...
+        ```
+        Now we take note of the ID of the `hello-0-server` task:
+        ```
+        $ dcos task
+        NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+        hello-0-server  10.0.3.117  nobody    R    hello-0-server__46cf0925-9287-486b-83d7-7ffc43523671  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+        ...
+        ```
+        Next, we update the amount of CPU being used by the `server` task in the `hello` pod type:
+        ```
+        $ echo '{"hello": {"cpus": 0.2}}' > options.json
+        $ dcos hello-world update start --options=options.json
+        ```
+        After waiting for the update to complete and all tasks to be relaunched, we check the list of running tasks once again to verify that the `hello-0-server` step is complete, that the task was restarted (which we'll determine by verifying that it has a different task ID) and that it's still running:
+        ```
+        $ dcos hello-world plan show deploy
+        deploy (COMPLETE)
+        ├─ hello (COMPLETE)
+        │  └─ hello-0:[server] (COMPLETE)
+        ...
+        $ dcos task
+        NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+        hello-0-server  10.0.3.117  nobody    R    hello-0-server__3007283c-837d-48e1-aa0b-d60baead6f4e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+        ```
+      * `FINISH`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it is rerun. To demonstrate, let's assume that we've now launched hello-world with the `finish_state.yml` specfile, like so:
+        ```
+        $ echo '{"service": {"spec_file": "examples/finish_state.yml"}}' > options.json
+        $ dcos package install --yes hello-world --options=options.json
+        ```
+        Once again, we wait for the deploy plan to complete, as above, and take note of the ID of the `world-0-finish` task (this time using the `--completed` flag, since the task has run to completion):
+        ```
+        $ dcos task --completed
+        NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+        ...
+        world-0-finish  10.0.0.232  nobody    F    world-0-server__955a28c2-d5bc-4ce4-a4e9-b9603784382e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S3  us-west-2  us-west-2c
+        ...
+        ```
+        Now we update the amount of CPU being used by the `finish` task in the `world` pod type:
+        ```
+        $ echo '{"world": {"cpus": 0.2}}' > options.json
+        $ dcos hello-world update start --options=options.json
+        ```
+        After waiting for the update to complete, we check the task list again and this time see two completed entries for `world-0-finish`, showing that the configuration update has caused it to run to completion again:
+        ```
+        $ dcos task --completed
+        NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+        ...
+        world-0-finish  10.0.0.232  nobody    F    world-0-finish__955a28c2-d5bc-4ce4-a4e9-b9603784382e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S3  us-west-2  us-west-2c
+        world-0-finish  10.0.3.117  nobody    F    world-0-finish__bd03efc2-26a0-4e36-a332-38159492557e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+        ...
+        ```
+      * `ONCE`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it will not be rerun. To demonstrate, let's assume that this time we've launched hello-world with the `discovery.yml` specfile, like so:</li>
+        ```
+        $ echo '{"service": {"spec_file": "examples/discovery.yml"}}' > options.json
+        $ dcos package install --yes hello-world --options=options.json
+        ```
+        Again we wait for the deploy plan to complete and take note of the ID of the `hello-0-once` task, using the `--completed` flag since that task has run to completion:
+        ```
+        $ dcos task --completed
+        NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+        ...
+        hello-0-once  10.0.3.117  nobody    F    hello-0-once__8f167b23-48c8-4ea9-8559-4cf95a3703ae  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+        ...
+        ```
+        Now we update the amount of CPU being used by both tasks in the `hello` pod type:
+        ```
+        $ echo '{"hello": {"cpus": 0.2}}' > options.json
+        $ dcos hello-world update start --options=options.json
+        ```
+        After waiting for deployment to complete, we check the task list and find that `hello-0-once` only appears one time, indicating that the configuration update did not cause it to rerun:
+        ```
+        $ dcos task --completed
+        NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
+        ...
+        hello-0-once  10.0.3.117  nobody    F    hello-0-once__8f167b23-48c8-4ea9-8559-4cf95a3703ae  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
+        ...
+        ```
+
+    * `essential`
+
+      Marks this task as either "Essential", where task failure results in relaunching all tasks in the pod as a unit, or "Non-essential", where task failure results in only relaunching this task and leaving other tasks in the pod unaffected. By default this value is `true`, such that the failure of the task will result in relaunching all tasks in the pod. This is only applicable in cases where a given pod has multiple tasks with a goal state of `RUNNING` defined.
 
     * `cmd`
 

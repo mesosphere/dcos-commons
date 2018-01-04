@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.api;
 
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.state.StateStoreUtilsTest;
 import com.mesosphere.sdk.storage.*;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
@@ -10,6 +13,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -228,6 +232,75 @@ public class StateResourceTest {
 
         Response response = resource.putFile(inputStream, formDataContentDisposition);
         assertEquals(500, response.getStatus());
+    }
+
+    @Test
+    public void testGettingTasksZones() {
+        TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
+        when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
+        when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
+        Response response = resource.getTaskNamesToZones();
+
+        Map<String, String> expectedTaskNameToZone = new HashMap<>();
+        expectedTaskNameToZone.put(TestConstants.TASK_NAME,  TestConstants.ZONE);
+        assertEquals(
+                response.getEntity(),
+                ResponseUtils.jsonOkResponse(new JSONObject(expectedTaskNameToZone)).getEntity()
+        );
+    }
+
+    @Test
+    public void testGettingSpecificTaskZone() {
+        TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
+        when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
+        when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
+        Response response = resource.getTaskNameToZone(TestConstants.TASK_NAME);
+        assertEquals(response.getEntity(), TestConstants.ZONE);
+    }
+
+    @Test
+    public void testGettingSpecificTaskZoneWithIP() {
+        TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
+        TaskStatus taskStatus = createTaskStatusWithIP(taskInfo, TestConstants.IP_ADDRESS);
+
+        when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
+        when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
+        when(mockStateStore.fetchStatus(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskStatus));
+        Response response = resource.getTaskIPsToZones(
+                TestConstants.TASK_NAME.substring(0, 4), // simulates the pod-type prefix of a task name
+                TestConstants.IP_ADDRESS
+        );
+        assertEquals(response.getEntity(), TestConstants.ZONE);
+    }
+
+    private static TaskStatus createTaskStatusWithIP(TaskInfo taskInfo, String ipAddress) {
+        final TaskStatus taskStatus = StateStoreUtilsTest.newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
+        return TaskStatus.newBuilder(taskStatus)
+                .setContainerStatus(ContainerStatus.newBuilder()
+                        .addNetworkInfos(
+                                NetworkInfo.newBuilder().addIpAddresses(
+                                        NetworkInfo.IPAddress.newBuilder()
+                                                .setIpAddress(ipAddress)
+                                        .build()
+                                ).build()
+                        )
+                ).build();
+    }
+
+    private static TaskInfo createTaskInfoWithZone(String taskName, String zone) {
+        return TaskInfo.newBuilder(StateStoreUtilsTest.createTask(taskName))
+                .setCommand(
+                        CommandInfo.newBuilder()
+                        .setEnvironment(
+                                Environment.newBuilder()
+                                .addVariables(
+                                        Environment.Variable.newBuilder()
+                                        .setName(EnvConstants.ZONE_TASKENV)
+                                        .setValue(zone)
+                                        .build()
+                                ).build()
+                        ).build()
+                ).build();
     }
 
     private static void validateCommandResult(Response response, String commandName) {

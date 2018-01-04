@@ -22,12 +22,8 @@ ext {
 
 dependencies {
     compile project(":scheduler")
-    compile project(":executor")
     testCompile project(":testing")
 }
-
-distZip.dependsOn ":executor:distZip"
-distZip.finalizedBy copyExecutor
 
 distributions {
     main {

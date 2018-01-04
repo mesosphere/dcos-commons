@@ -5,19 +5,19 @@ scheduler:
 pods:
   node:
     count: {{NODES}}
-    placement: "{{PLACEMENT_CONSTRAINT}}"
+    placement: '{{{PLACEMENT_CONSTRAINT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    image: {{CASSANDRA_DOCKER_IMAGE}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
       size: {{CASSANDRA_DISK_MB}}
     uris:
       - {{CASSANDRA_JAVA_URI}}
+      - {{CASSANDRA_PYTHON_URI}}
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
@@ -47,10 +47,11 @@ pods:
       server:
         goal: RUNNING
         resource-set: server-resources
-        cmd: >
-                ./bootstrap
+        cmd: |
+                set -e
 
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                ./bootstrap
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -77,35 +78,37 @@ pods:
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-                export TASK_IP=$(./bootstrap --get-task-ip) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                export TASK_IP=$(./bootstrap --get-task-ip) &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
           delay: 0
           timeout: 60
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: KEYSTORE
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
-        goal: FINISHED
+        goal: ONCE
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       cleanup:
-        goal: FINISHED
+        goal: ONCE
         cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       backup-schema:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 mkdir container-path/snapshot ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
           cqlshrc:
             template: cqlshrc
@@ -113,9 +116,9 @@ pods:
         transport-encryption:
           - name: cqlsh
             type: TLS
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       snapshot:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
@@ -130,33 +133,38 @@ pods:
                 done
         resource-set: sidecar-resources
       upload-s3:
-        goal: FINISHED
-        cmd: aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
+        goal: ONCE
+        cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
       upload-azure:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 (cd container-path && tar cvhzf snapshot.tar.gz snapshot/) ;
                 az storage blob upload -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz
         resource-set: sidecar-resources
       cleanup-snapshot:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
       fetch-s3:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 mkdir container-path/snapshot ;
                 aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
         resource-set: sidecar-resources
       fetch-azure:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ;
@@ -165,16 +173,17 @@ pods:
                 rm container-path/snapshot.tar.gz
         resource-set: sidecar-resources
       restore-schema:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
         resource-set: sidecar-resources
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
           cqlshrc:
             template: cqlshrc
@@ -182,23 +191,23 @@ pods:
         transport-encryption:
           - name: cqlsh
             type: TLS
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       restore-snapshot:
-        goal: FINISHED
+        goal: ONCE
         cmd: >
                 ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
-                {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                             --keystore node.keystore \
                             --keystore-password notsecure \
                             --truststore node.truststore \
                             --truststore-password notsecure \
                             --ssl-protocol TLSv1.2 \
                             --ssl-ciphers TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA \
-                {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+                {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
                             -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
@@ -217,11 +226,36 @@ pods:
           cassandra:
             template: cassandra.yaml
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
-        {{#TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
             type: KEYSTORE
-        {{/TASKCFG_ALL_CASSANDRA_ENABLE_TLS}}
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+      init_system_keyspaces:
+        goal: ONCE
+        cmd: >
+                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                echo Using $(python --version 2>&1) in $(which python) ;
+                {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+                export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
+                {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+                ./bootstrap --resolve=false &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} --cqlversion=3.4.0 -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+        resource-set: sidecar-resources
+        configs:
+          cassandra:
+            template: cassandra.yaml
+            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml
+          cqlshrc:
+            template: cqlshrc
+            dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+        transport-encryption:
+          - name: cqlsh
+            type: TLS
+        {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 plans:
   deploy:
     strategy: serial
@@ -230,6 +264,7 @@ plans:
         strategy: serial
         pod: node
         steps:
+          - 0: [[server], [init_system_keyspaces]]
           - default: [[server]]
   replace:
     strategy: serial

@@ -4,6 +4,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -16,7 +17,6 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testing.TestPodFactory;
 import com.mesosphere.sdk.testutils.*;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.mesos.Protos;
@@ -128,6 +128,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 offerAccepter,
                 new OfferEvaluator(
                         stateStore,
+                        new OfferOutcomeTracker(),
                         serviceSpec.getName(),
                         configTarget,
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),

@@ -56,21 +56,19 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
 
-    {{#service.tls}}
-    "TASKCFG_ALL_ELASTIC_ENABLE_TLS": "{{service.tls}}",
+    {{#service.security.transport_encryption.enabled}}
+    "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
     "ELASTICSEARCH_HEALTH_PROTOCOL": "https",
-    {{/service.tls}}
-    {{^service.tls}}
+    {{/service.security.transport_encryption.enabled}}
+    {{^service.security.transport_encryption.enabled}}
     "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
-    {{/service.tls}}
-
-    "TASKCFG_ALL_DETECT_ZONES": "{{service.detect_zones}}",
+    {{/service.security.transport_encryption.enabled}}
 
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "UPDATE_STRATEGY": "{{service.update_strategy}}",
     "MASTER_NODE_CPUS": "{{master_nodes.cpus}}",
     "MASTER_NODE_MEM": "{{master_nodes.mem}}",
-    "MASTER_NODE_PLACEMENT": "{{master_nodes.placement}}",
+    "MASTER_NODE_PLACEMENT": "{{{master_nodes.placement}}}",
     "MASTER_NODE_HEAP_MB": "{{master_nodes.heap.size}}",
     "MASTER_NODE_DISK": "{{master_nodes.disk}}",
     "MASTER_NODE_DISK_TYPE": "{{master_nodes.disk_type}}",
@@ -78,21 +76,21 @@
     "DATA_NODE_COUNT": "{{data_nodes.count}}",
     "DATA_NODE_CPUS": "{{data_nodes.cpus}}",
     "DATA_NODE_MEM": "{{data_nodes.mem}}",
-    "DATA_NODE_PLACEMENT": "{{data_nodes.placement}}",
+    "DATA_NODE_PLACEMENT": "{{{data_nodes.placement}}}",
     "DATA_NODE_HEAP_MB": "{{data_nodes.heap.size}}",
     "DATA_NODE_DISK": "{{data_nodes.disk}}",
     "DATA_NODE_DISK_TYPE": "{{data_nodes.disk_type}}",
     "INGEST_NODE_COUNT": "{{ingest_nodes.count}}",
     "INGEST_NODE_CPUS": "{{ingest_nodes.cpus}}",
     "INGEST_NODE_MEM": "{{ingest_nodes.mem}}",
-    "INGEST_NODE_PLACEMENT": "{{ingest_nodes.placement}}",
+    "INGEST_NODE_PLACEMENT": "{{{ingest_nodes.placement}}}",
     "INGEST_NODE_HEAP_MB": "{{ingest_nodes.heap.size}}",
     "INGEST_NODE_DISK": "{{ingest_nodes.disk}}",
     "INGEST_NODE_DISK_TYPE": "{{ingest_nodes.disk_type}}",
     "COORDINATOR_NODE_COUNT": "{{coordinator_nodes.count}}",
     "COORDINATOR_NODE_CPUS": "{{coordinator_nodes.cpus}}",
     "COORDINATOR_NODE_MEM": "{{coordinator_nodes.mem}}",
-    "COORDINATOR_NODE_PLACEMENT": "{{coordinator_nodes.placement}}",
+    "COORDINATOR_NODE_PLACEMENT": "{{{coordinator_nodes.placement}}}",
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
@@ -119,7 +117,7 @@
     {{#elasticsearch.network_tcp_receive_buffer_size}}
     "TASKCFG_ALL_NETWORK_TCP_RECEIVE_BUFFER_SIZE": "{{elasticsearch.network_tcp_receive_buffer_size}}",
     {{/elasticsearch.network_tcp_receive_buffer_size}}
-    "TASKCFG_ALL_TRANSPORT_TCP_CONNECT_TIMEOUT": "{{elasticsearch.transport_tcp_connect_timeout}}", 
+    "TASKCFG_ALL_TRANSPORT_TCP_CONNECT_TIMEOUT": "{{elasticsearch.transport_tcp_connect_timeout}}",
     "TASKCFG_ALL_TRANSPORT_TCP_COMPRESS": "{{elasticsearch.transport_tcp_compress}}",
     "TASKCFG_ALL_TRANSPORT_PING_SCHEDULE": "{{elasticsearch.transport_ping_schedule}}",
     "TASKCFG_ALL_HTTP_ENABLED": "{{elasticsearch.http_enabled}}",
@@ -237,7 +235,7 @@
     {{/elasticsearch.search_remote_connect}}
     {{#elasticsearch.indices_query_bool_max_clause_count}}
     "TASKCFG_ALL_INDICES_QUERY_BOOL_MAX_CLAUSE_COUNT": "{{elasticsearch.indices_query_bool_max_clause_count}}",
-    {{/elasticsearch.indices_query_bool_max_clause_count}} 
+    {{/elasticsearch.indices_query_bool_max_clause_count}}
     {{#elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}
     "TASKCFG_ALL_DISCOVERY_ZEN_PING_UNICAST_HOSTS_RESOLVE_TIMEOUT": "{{elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}",
     {{/elasticsearch.discovery_zen_ping_unicast_hosts_resolve_timeout}}
@@ -322,7 +320,7 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
+    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
   },
   "uris": [
     "{{resource.assets.uris.bootstrap-zip}}",
@@ -336,17 +334,8 @@
   },
   "healthChecks": [
     {
-      "protocol": "HTTP",
-      "path": "/v1/plans/deploy",
-      "gracePeriodSeconds": 900,
-      "intervalSeconds": 30,
-      "portIndex": 0,
-      "timeoutSeconds": 30,
-      "maxConsecutiveFailures": 0
-    },
-    {
-      "protocol": "HTTP",
-      "path": "/v1/plans/recovery",
+      "protocol": "MESOS_HTTP",
+      "path": "/v1/health",
       "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,

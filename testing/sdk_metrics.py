@@ -10,15 +10,74 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 
+import retrying
 import shakedown
 
+import sdk_api
 import sdk_cmd
 
 log = logging.getLogger(__name__)
 
 
+def get_scheduler_metrics(service_name, timeout_seconds=15*60):
+    """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
+    Returned data will match the content of /service/<svc_name>/v1/metrics.
+    """
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def fn():
+        output = sdk_api.get(service_name, '/v1/metrics')
+        output.raise_for_status()
+        return output.json()
+    return fn()
+
+
+def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
+    """Waits for and returns the specified counter value from the scheduler"""
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def check_for_value():
+        try:
+            sched_metrics = get_scheduler_metrics(service_name)
+            if 'counters' not in sched_metrics:
+                log.info("No counters present for service {}. Types were: {}".format(
+                    service_name, sched_metrics.keys()))
+                return None
+            sched_counters = sched_metrics['counters']
+            if counter_name not in sched_counters:
+                log.info("No counter named '{}' was found for service {}. Counters were: {}".format(
+                    counter_name, service_name, sched_counters.keys()))
+                return None
+            value = sched_counters[counter_name]['count']
+            log.info("{} metric counter: {}={}".format(service_name, counter_name, value))
+            return value
+        except Exception as e:
+            log.error("Caught exception trying to get metrics: {}".format(e))
+            return None
+
+    return check_for_value()
+
+
+def wait_for_scheduler_counter_value(service_name, counter_name, min_value, timeout_seconds=15*60):
+    """Waits for the specified counter value to be reached by the scheduler
+    For example, check that `offers.processed` is equal or greater to 1."""
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def check_for_value():
+        value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
+        return value >= min_value
+
+    return check_for_value()
+
+
 def get_metrics(package_name, service_name, task_name):
-    """Return a list of metrics datapoints.
+    """Return a list of DC/OS metrics datapoints.
 
     Keyword arguments:
     package_name -- the name of the package the service is using
@@ -97,7 +156,7 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
 
 
 def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics_exist):
-    """Checks that the service is emitting the expected metrics.
+    """Checks that the service is emitting the expected values into DC/OS Metrics.
     The assumption is that if the expected metrics are being emitted then so
     are the rest of the metrics.
 
@@ -107,6 +166,10 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     task_name -- the name of the task whose agent to run metrics commands from
     expected_metrics_exist -- serivce-specific callback that checks for service-specific metrics
     """
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout*1000,
+        retry_on_result=lambda res: not res)
     def check_for_service_metrics():
         try:
             log.info("verifying metrics exist for {}".format(service_name))
@@ -118,4 +181,4 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
             log.error("Caught exception trying to get metrics: {}".format(e))
             return False
 
-    shakedown.wait_for(check_for_service_metrics, timeout)
+    check_for_service_metrics()

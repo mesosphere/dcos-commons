@@ -1,3 +1,4 @@
+import logging
 import time
 
 import pytest
@@ -34,6 +35,7 @@ KEYSTORE_APP_CONFIG_NAME = 'integration-test.yml'
 # udpates.
 DISCOVERY_TASK_PREFIX = 'discovery-prefix'
 
+log = logging.getLogger(__name__)
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -231,7 +233,12 @@ def test_changing_discovery_replaces_certificate_sans():
 
     # Load end-entity certificate from PEM encoded file
     _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
-    end_entity_cert = x509.load_pem_x509_certificate(stdout.encode('ascii'), DEFAULT_BACKEND)
+    log.info('first server.crt: {}'.format(stdout))
+
+    ascii_cert = stdout.encode('ascii')
+    log.info('first server.crt ascii encoded: {}'.format(ascii_cert))
+
+    end_entity_cert = x509.load_pem_x509_certificate(ascii_cert, DEFAULT_BACKEND)
 
     san_extension = end_entity_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
@@ -249,13 +256,16 @@ def test_changing_discovery_replaces_certificate_sans():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['DISCOVERY_TASK_PREFIX'] = DISCOVERY_TASK_PREFIX + '-new'
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'discovery', original_tasks)
-    sdk_tasks.check_running(config.SERVICE_NAME, 4)
-    new_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
-    assert task_id != new_task_id
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    _, stdout, _ = sdk_tasks.task_exec(new_task_id, 'cat server.crt')
-    new_cert = x509.load_pem_x509_certificate(stdout.encode('ascii'), DEFAULT_BACKEND)
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
+
+    _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
+    log.info('second server.crt: {}'.format(stdout))
+
+    ascii_cert = stdout.encode('ascii')
+    log.info('second server.crt ascii encoded: {}'.format(ascii_cert))
+    new_cert = x509.load_pem_x509_certificate(ascii_cert, DEFAULT_BACKEND)
 
     san_extension = new_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -10,6 +11,7 @@ import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
@@ -319,6 +321,11 @@ public class TaskUtils {
         }
     }
 
+    public static Optional<TaskSpec> getTaskSpec(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
+            throws TaskException {
+        return getTaskSpec(getPodInstance(configStore, taskInfo), taskInfo.getName());
+    }
+
     public static Optional<TaskSpec> getTaskSpec(PodInstance podInstance, String taskName) {
         return podInstance.getPod().getTasks().stream()
                 .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskName))
@@ -339,57 +346,110 @@ public class TaskUtils {
         return Optional.empty();
     }
 
-
+    /**
+     * Given a list of all tasks and failed tasks, returns a list of tasks (via returned
+     * {@link PodInstanceRequirement#getTasksToLaunch()}) that should be relaunched.
+     *
+     * @param failedTasks tasks marked as needing recovery
+     * @param allLaunchedTasks all launched tasks in the service
+     * @return list of pods, each with contained named tasks to be relaunched
+     */
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
             Collection<TaskInfo> failedTasks,
-            Collection<TaskInfo> allTasks) throws TaskException {
+            Collection<TaskInfo> allLaunchedTasks) {
 
-        Set<PodInstance> pods = new HashSet<>();
-
+        // Mapping of pods, to failed tasks within those pods.
+        // Arbitrary consistent ordering: by pod instance name (e.g. "otherpodtype-0","podtype-0","podtype-1")
+        Map<PodInstance, Collection<TaskSpec>> podsToFailedTasks =
+                new TreeMap<>(Comparator.comparing(PodInstance::getName));
         for (TaskInfo taskInfo : failedTasks) {
             try {
-                pods.add(getPodInstance(configStore, taskInfo));
+                PodInstance podInstance = getPodInstance(configStore, taskInfo);
+                Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo.getName());
+                if (!taskSpec.isPresent()) {
+                    LOGGER.error("No TaskSpec found for failed task: {}", taskInfo.getName());
+                    continue;
+                }
+                Collection<TaskSpec> failedTaskSpecs = podsToFailedTasks.get(podInstance);
+                if (failedTaskSpecs == null) {
+                    failedTaskSpecs = new ArrayList<>();
+                    podsToFailedTasks.put(podInstance, failedTaskSpecs);
+                }
+                failedTaskSpecs.add(taskSpec.get());
             } catch (TaskException e) {
-                LOGGER.error("Failed to get pod instance for TaskInfo: {} with exception: {}", taskInfo, e);
+                LOGGER.error(String.format("Failed to get pod instance for task: %s", taskInfo.getName()), e);
             }
         }
+        if (podsToFailedTasks.isEmpty()) {
+            // short circuit
+            return Collections.emptyList();
+        }
 
-        List<String> allTaskNames = allTasks.stream()
+        // Log failed pod map
+        for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+            List<String> taskNames = entry.getValue().stream()
+                    .map(taskSpec -> taskSpec.getName())
+                    .collect(Collectors.toList());
+            LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
+        }
+
+        Set<String> allLaunchedTaskNames = allLaunchedTasks.stream()
                 .map(taskInfo -> taskInfo.getName())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
-
-        for (PodInstance podInstance : pods) {
-            List<String> tasksToLaunch = new ArrayList<>();
-            for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
-                String fullTaskName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
-                if (taskSpec.getGoal() == GoalState.RUNNING && allTaskNames.contains(fullTaskName)) {
-                    tasksToLaunch.add(taskSpec.getName());
-                }
+        for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+            boolean anyFailedTasksAreEssential = entry.getValue().stream().anyMatch(taskSpec -> taskSpec.isEssential());
+            Collection<TaskSpec> taskSpecsToLaunch;
+            if (anyFailedTasksAreEssential) {
+                // One or more of the failed tasks in this pod are marked as 'essential'.
+                // Relaunch all applicable tasks in the pod.
+                taskSpecsToLaunch = entry.getKey().getPod().getTasks();
+            } else {
+                // None of the failed tasks in this pod are 'essential'.
+                // Only recover the failed task(s), leave others in the pod as-is.
+                taskSpecsToLaunch = entry.getValue();
             }
 
-            podInstanceRequirements.add(PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build());
+            // Additional filtering:
+            // - Only relaunch tasks that have a RUNNING goal state. Don't worry about FINISHED tasks.
+            // - Don't relaunch tasks that haven't been launched yet (as indicated by presence in allLaunchedTasks)
+            taskSpecsToLaunch = taskSpecsToLaunch.stream()
+                    .filter(taskSpec -> taskSpec.getGoal() == GoalState.RUNNING &&
+                            allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
+                    .collect(Collectors.toList());
+
+            if (taskSpecsToLaunch.isEmpty()) {
+                LOGGER.info("No tasks to recover for pod: {}", entry.getKey().getName());
+                continue;
+            }
+
+            LOGGER.info("Tasks to relaunch in pod {}: {}", entry.getKey().getName(), taskSpecsToLaunch.stream()
+                    .map(taskSpec -> String.format(
+                            "%s=%s", taskSpec.getName(), taskSpec.isEssential() ? "essential" : "nonessential"))
+                    .collect(Collectors.toList()));
+            podInstanceRequirements.add(PodInstanceRequirement.newBuilder(
+                    entry.getKey(),
+                    taskSpecsToLaunch.stream()
+                            .map(taskSpec -> taskSpec.getName())
+                            .collect(Collectors.toList()))
+                    .build());
         }
 
         return podInstanceRequirements;
     }
 
-    public static PodInstance getPodInstance(
-            ConfigStore<ServiceSpec> configStore,
-            TaskInfo taskInfo) throws TaskException {
-
-        PodSpec podSpec = getPodSpec(configStore, taskInfo);
-        int index = new TaskLabelReader(taskInfo).getIndex();
-
-        return new DefaultPodInstance(podSpec, index);
+    public static PodInstance getPodInstance(ConfigStore<ServiceSpec> configStore, TaskInfo taskInfo)
+            throws TaskException {
+        return getPodInstance(getPodSpec(configStore, taskInfo), taskInfo);
     }
 
-    private static PodSpec getPodSpec(
-            ConfigStore<ServiceSpec> configStore,
-            TaskInfo taskInfo) throws TaskException {
+    public static PodInstance getPodInstance(PodSpec podSpec, TaskInfo taskInfo) throws TaskException {
+        return new DefaultPodInstance(podSpec, new TaskLabelReader(taskInfo).getIndex());
+    }
 
+    private static PodSpec getPodSpec(ConfigStore<ServiceSpec> configStore, TaskInfo taskInfo) throws TaskException {
         UUID configId = new TaskLabelReader(taskInfo).getTargetConfiguration();
         ServiceSpec serviceSpec;
 
@@ -401,7 +461,7 @@ public class TaskUtils {
                     configId, taskInfo.getName()), e);
         }
 
-        Optional<PodSpec> podSpecOptional = TaskUtils.getPodSpec(serviceSpec, taskInfo);
+        Optional<PodSpec> podSpecOptional = getPodSpec(serviceSpec, taskInfo);
         if (!podSpecOptional.isPresent()) {
             throw new TaskException(String.format(
                     "No TaskSpecification found for TaskInfo[%s]", taskInfo.getName()));
@@ -471,7 +531,7 @@ public class TaskUtils {
         // Tasks with a goal state of finished should never leave the purview of their original
         // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
         // which reached their goal state of RUNNING and then later failed.
-        if (taskSpec.getGoal() == GoalState.FINISHED) {
+        if (taskSpec.getGoal().equals(GoalState.ONCE) || taskSpec.getGoal().equals(GoalState.FINISH)) {
             return false;
         } else {
             return isRecoveryNeeded(taskStatus);
@@ -521,5 +581,39 @@ public class TaskUtils {
                     .build());
         }
         return clearedResources;
+    }
+
+    /**
+     * Determines if a task is launched in any zones.
+     * @param taskInfo The {@link TaskInfo} to get zone information from.
+     * @return A boolean indicating whether the task is in a zone.
+     */
+    public static boolean taskHasZone(TaskInfo taskInfo) {
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+                .anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
+    }
+
+    /**
+     * Gets the zone of a task.
+     * @param taskInfo The {@link TaskInfo} to get zone information from.
+     * @return A string indicating the zone the task is in.
+     */
+    public static String getTaskZone(TaskInfo taskInfo) {
+        return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+            .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
+    }
+
+    /**
+     * Gets the IP address associated with the task.
+     * @param taskStatus the {@link TaskStatus} to get the IP address from.
+     * @return A String indicating the IP address associated with the task.
+     */
+    public static String getTaskIPAddress(TaskStatus taskStatus) throws IllegalStateException {
+        List<Protos.NetworkInfo> networkInfo = taskStatus.getContainerStatus().getNetworkInfosList();
+        if (networkInfo.isEmpty()) {
+            throw new IllegalStateException(
+                    String.format("No network info can be found for the task info: %s", taskStatus.toString()));
+        }
+        return networkInfo.stream().findFirst().get().getIpAddresses(0).getIpAddress();
     }
 }

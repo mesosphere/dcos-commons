@@ -157,21 +157,21 @@ pods:
 
 * **Pods**: A pod is simply a set of tasks.
 
-* **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
+    * **hello-world-pod**: This is the name of a type of a pod. You can choose any name for a pod type  In this example, we have one kind of pod defined and its name is `hello-world-pod`.
 
-* **count**: The number of instances of the pod.
+        * **count**: The number of instances of the pod.
 
-* **tasks**: The list of tasks in the pod.
+        * **tasks**: The list of tasks in the pod.
 
-* **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
+        * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are two possible goal states: `RUNNING` and `FINISHED`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISHED` indicates that if a task finishes successfully it does not need to be restarted.
+* **goal**: Every task must have a goal state. There are three possible goal states: `RUNNING`, `FINISH` and `ONCE`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISH` indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. `ONCE` indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod's lifetime.
 
-* **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
+            * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
-* **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
+            * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
 
-* **memory**: This entry defines how much memory will be allocated to the task’s container.
+            * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
 For a full listing of available fields and what they mean, see the [YAML Reference](reference/yaml-reference.html).
 
@@ -322,7 +322,7 @@ pods:
           type: ROOT
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         cmd: "./init"
         resource-set: hello-resources
       main:
@@ -388,6 +388,97 @@ This plan would result in steps generating the following tasks:
 1. `hello-0-init`
 1. `hello-0-main`
 1. `hello-1-main`
+
+#### Removal From Deployment Plans
+
+If your custom deployment plan is later updated to no longer reference pods or tasks which are still listed in your pod spec, the affected tasks will be killed but their resources will not be returned to the cluster. **Note:** If you instead wish to kill tasks _and_ release their resources back to the cluster, you may do so through the [pod decommission](#pods) process.
+
+For example, updating a `ServiceSpec` from:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    [...]
+  world:
+    [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+      world-phase:
+        strategy: serial
+        pod: world
+```
+
+to:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    [...]
+  world:
+    [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+```
+
+would result in all tasks in the `world-<index>` pod instances being killed, but their resources would not be returned to the cluster. To unreserve resources associated with the `world` pod instances, a [decommission operation](#pods) would need to be performed.
+
+This behavior can also function at per-task granularity when custom `steps` are being specified. For example, updating a `ServiceSpec` from:
+
+```yaml
+pods:
+  hello:
+    [...]
+    tasks:
+      monitor:
+        [...]
+      main:
+        [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[monitor, main]]
+```
+
+to:
+
+```yaml
+pods:
+  hello:
+    [...]
+    tasks:
+      monitor:
+        [...]
+      main:
+        [...]
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-phase:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[main]]
+```
+
+would result in all `hello-<index>-monitor` tasks being killed without their resources being returned to the cluster, while the `hello-<index>-main` tasks would continue running. To unreserve resources associated with the `monitor` tasks, a [decommission operation](#pods) would need to be performed.
 
 ### Custom Update Plans
 
@@ -691,7 +782,7 @@ In the update case, a scheduler goes from one target configuration to the next. 
 
 This example updates the target configuration we defined in the install above. The new target configuration below increases the amount of CPU consumed by the server task.
 
-In the marathon.json.mustache template we defined an environment variable named HELLO_CPUS. Below, we update this value in Marathon from 0.1 to 0.2.
+In the `marathon.json.mustache` template we defined an environment variable named `HELLO_CPUS`. Below, we update this value in Marathon from `0.1` to `0.2`.
 
 ```
 {
@@ -706,7 +797,7 @@ In the marathon.json.mustache template we defined an environment variable named 
 }
 ```
 
-This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below. Note that the value of `cpus` has changed to 0.2.
+This will result in restarting the scheduler and re-rendering the `ServiceSpec` template. The new template is shown below, with the value of `cpus` changed to `0.2`.
 
 ```yaml
 name: "hello-world"
@@ -725,7 +816,7 @@ pods:
           size: 50
 ```
 
-A new plan is then generated and execution begins:
+This generates the following `deploy` Plan:
 
 ```
 {
@@ -745,11 +836,11 @@ A new plan is then generated and execution begins:
 }
 ```
 
-In this case, we have changed the resources consumed for a running task. In order for it to consume new resources, the task must be killed and restarted consuming more resources. When in the PREPARED state, the task has been killed and will be restarted as soon as appropriate resources are available.
+In this case, we have changed the resources consumed for a running task. The task must be killed and then restarted with an updated resource reservation. When the Step for a task is in the `PREPARED` state, the task has been killed and will be restarted as soon as the appropriate resources are available. Once the task is successfully relaunched with the increased resource allocation to reflect the new target configuration, the `deploy` Plan will be in a `COMPLETE` state.
 
 #### Horizontal Scale Example
 
-In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below changes HELLO_COUNT to 2, adding an additional instance of the hello pod.
+In the previous example, the change in target configuration affected currently running tasks, so they had to be restarted. In this example, we are changing the number of pod instances to be launched, which should have no effect on currently running pods and therefore will not trigger a restart. The example below increases `HELLO_COUNT` to `2`, adding an additional instance of the hello pod.
 
 ```
 {
@@ -764,7 +855,7 @@ In the previous example, the change in target configuration affected currently r
 }
 ```
 
-This generates the following Plan:
+This generates the following `deploy` Plan:
 
 ```
 {
@@ -789,7 +880,7 @@ This generates the following Plan:
 }
 ```
 
-The step associated with instance 0 of the hello pod is never restarted and its step is initialized as COMPLETE.  Another step has been generated for instance 1. Once it has completed, the service will have transitioned from its previous configuration to the new target configuration.
+Because instance 0 of the hello pod is unaffected by the increase in pod count, we see that `hello-0` is never restarted and its step is initialized as `COMPLETE`. Another step named `hello-1` has been generated for instance 1. Once `hello-1` has been deployed, the service will have transitioned from its previous configuration to the new target configuration, and the above `deploy` Plan will be in a `COMPLETE` state. **Note:** By default, pods can be scaled up but not scaled down. Decreasing the number of pods will result in a validation error when the Scheduler is restarted. As a safety measure, if you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod.
 
 ### Rollback
 
@@ -889,7 +980,7 @@ pods:
           size: 50
     tasks:
       init:
-        goal: FINISHED
+        goal: ONCE
         resource-set: pod-resources
         cmd: "echo init >> hello-container-path/output && sleep 1000"
         discovery:
@@ -1174,7 +1265,7 @@ SDK-based example service using DC/OS secrets.
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
-For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-serv/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
+For the example given above, the secret with path `secret-svc/Secret_Path1` can only be accessed by a services with ID `/secret-svc` or any service with  ID under `/secret-svc/`. Servicess with IDs `/secret-svc/dev1` and `/secret-svc/instance2/dev2` all have access to this secret, because they are under `/secret-svc/`.
 
 On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cannot be accessed by a service with ID `/secret-svc` because it is not _under_ this secret's namespace, which is `/secret-svc/instance1`. `secret-svc/instance1/Secret_Path2` can be accessed by a service with ID `/secret-svc/instance1` or any service with ID under `/secret-svc/instance1/`, for example `/secret-svc/instance1/dev3` and `/secret-svc/instance1/someDir/dev4`.
 
@@ -1197,7 +1288,7 @@ On the other hand, the secret with path `secret-svc/instance1/Secret_Path2` cann
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
 
-Below is a valid secret definition with a Docker `image-name`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
+Below is a valid secret definition with a Docker `image`. The `$MESOS_SANDBOX/etc/keys` and `$MESOS_SANDBOX/data/keys/keyset` directories will be created if they do not exist.
   * Supported: `etc/keys/Secret_FilePath1`
   * Not supported: `/etc/keys/Secret_FilePath1`
 
@@ -1206,8 +1297,7 @@ name: secret-svc/instance2
 pods:
   pod-with-image:
     count: {{COUNT}}
-    container:
-      image-name: ubuntu:14.04
+    image: ubuntu:14.04
     user: nobody
     secrets:
       secret_name4:
@@ -1230,16 +1320,20 @@ REGION: us-west-2
 ZONE: us-west-2a
 ```
 
-Services may choose to use this information to enable rack awareness. When doing so, they should use placement rules to ensure that their pods are appropriately placed withing regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
+Services may choose to use this information to enable rack awareness. Users may then configure [placement rules](#placement-rules) to ensure that their pods are appropriately placed within specific regions and zones, or distributed across those regions and zones. Apply placement constraints against regions and zones by referencing `@region` and `@zone` keys.  For example:
 
 ```
-@zone:GROUP_BY:2
+[["@zone", "GROUP_BY", "2"]]
 ```
 
-The placement rule above would apply the `GROUP_BY` operator to zones. The SDK allows region-aware scheduling as a beta feature.  It may be enabled by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
+The placement rule above would apply the `GROUP_BY` operator to zones.
+
+## Regions (beta)
+
+The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
 
 ```
-@region:IS:us-west-2
+[["@region", "IS", "us-west-2"]]
 ```
 
 Any placement rules that do *not* reference the `@region` key require placement in the local region.
@@ -1448,6 +1542,92 @@ $ py.test frameworks/helloworld/
 
 The most basic set of features present in the YAML representation of the `ServiceSpec` are [presented above](#service-spec). The remaining features are introduced below.
 
+### Pods
+
+You may specify the number of pod instances to be run for every pod. As a safety measure, after initial install, users can increase but not decrease this value. If you wish to allow scale-in of your pods, you must specify `allow-decommission: true` for each applicable pod:
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 3
+    allow-decommission: true
+    ...
+```
+
+You should only enable this option if it is safe for the pod's tasks be destroyed without needing to perform additional rebalancing or drain operations beforehand.
+
+Pods removed from a service specification entirely will be decommissioned.  All instances of undefined pods will have their tasks killed and all their resources released back to the cluster.  **Note:** If you instead wish to kill tasks _without_ releasing their resources back to the cluster, you may do this using a [custom deployment plan](#custom-deployment-plan).
+
+For example, updating a `ServiceSpec` from:
+
+ ```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    allow-decommission: true
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello"
+        cpus: 1.0
+        memory: 256
+  world:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world"
+        cpus: 1.0
+        memory: 256
+```
+
+to:
+
+```yaml
+name: "hello-world"
+pods:
+  world:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo world"
+        cpus: 1.0
+        memory: 256
+```
+
+would result in all `hello-<index>-server` tasks being killed and their resources unreserved. **Note:** In order for the pod to be removed, it _must_ have specified `allow-decommission: true` before the removal. If you wish to decommission a pod which doesn't currently allow decommissioning, two configuration updates must be performed: one to add `allow-decommission: true` to the pod specification and another to remove the pod specification.
+
+### Non-essential tasks
+
+When multiple `goal: RUNNING` tasks are defined in a single pod and one of those tasks has exited, the default behavior is to relaunch _all_ of the `goal: RUNNING` tasks in the pod. To change this behavior, tasks may be marked "non-essential" by specifying `essential: false` in their `TaskSpec`. When a non-essential task exits, it will be automatically relaunched without disturbing other tasks in the pod. For an example, see the following `ServiceSpec`:
+
+ ```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    allow-decommission: true
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello"
+        cpus: 1.0
+        memory: 256
+      monitor:
+        goal: RUNNING
+        cmd: "echo monitor"
+        cpus: 1.0
+        memory: 256
+        essential: false
+```
+
+In this example, the `monitor` task is marked as non-essential, while the `server` task continues to be essential. If the `monitor` task exits, it will be automatically relaunched without disturbing the `server` task. However if the `server` task exits, then both the `server` task and the `monitor` task will both be relaunched.
+
+This option is only relevant for pods containing multiple `goal: RUNNING` tasks.
+
 ### Containers
 
 Each pod runs inside a single container. The `ServiceSpec` specifies the following:
@@ -1499,7 +1679,7 @@ name: "hello-world"
 pods:
   hello:
     count: 3
-    placement: {{HELLO_PLACEMENT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
     tasks:
       server:
         goal: RUNNING
@@ -1594,7 +1774,7 @@ pods:
           size: 50
     tasks:
       initialize:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo initialize >> hello-container-path/output"
         resource-set: hello-resources
       server:
@@ -1627,7 +1807,7 @@ pods:
           size: 50
     tasks:
       initialize:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo initialize >> hello-container-path/output"
         resource-set: hello-resources
       server:
@@ -1671,7 +1851,7 @@ pods:
         env:
           SLEEP_DURATION: 1000
       sidecar:
-        goal: FINISHED
+        goal: ONCE
         cmd: "echo $PLAN_PARAMETER1 $PLAN_PARAMETER2 >> output"
         resource-set: sidecar-resources
 plans:
@@ -1798,14 +1978,45 @@ To be clear, the config templating provided by the `bootstrap` tool may be appli
 
 ### Task Environment
 
-While some environment variables are included by default in each task as a convenience, you may also specify custom environment variables yourself.  For example, a typical task would include the following key/value pairs in its environment:
+Task configuration is generally exposed using environment variables. A number of environment variables that describe the task and/or cluster environment are provided automatically, while the developer can manually specify others.
 
-```
-REGION: us-west-2
-ZONE: us-west-2a
-POD_INSTANCE_INDEX: 0
-TASK_NAME: hello-0-server
-```
+#### Included Values
+
+The following environment values are automatically injected into all tasks as a convenience. These typically provide some additional context about the container.
+
+* `TASK_NAME=hello-3-server`
+
+The name of the task, such as `hello-3-server`.
+
+* `<task-name>=true`
+
+The name of the task as the environment variable, with a value of `true`. Useful in mustache templating.
+
+* `POD_INSTANCE_INDEX=3`
+
+The index of the pod instance, starting at zero. For example a task named `hello-3-server` would have a `POD_INSTANCE_INDEX` of `3`.
+
+* `REGION=us-west-2` / `ZONE=us-west-2a`
+
+The Region and Zone of the machine running the task. For more information about these values, see [Regions and Zones](#regions-and-zones).
+
+* `FRAMEWORK_NAME=/folder/servicename`
+
+The name of the service as configured by the user. May contain slashes if the service is in a folder.
+
+* `FRAMEWORK_HOST=folderservicename.autoip.thisdcos.directory`
+
+The TLD for accessing tasks within the service. To address a given task, one could construct a hostname as `<taskname>.FRAMEWORK_HOST`. This varies according to the service name as configured by the user.
+
+* `FRAMEWORK_VIP_HOST=folderservicename.l4lb.thisdcos.directory`
+
+The TLD for VIPs advertised by the service. To address a given VIP, one could construct a hostname as `<vipname>.FRAMEWORK_VIP_HOST`. This varies according to the service name as configured by the user.
+
+* `SCHEDULER_API_HOSTNAME=api.folderservicename.marathon.l4lb.thisdcos.directory`
+
+The hostname where the Scheduler can be reached. Useful when tasks need to make API calls to a custom endpoint that's being run by the Scheduler.
+
+#### Specifying Values
 
 You can define the environment of a task in a few different ways. In the YML `ServiceSpec`, it can be defined in the following way.
 
@@ -1979,6 +2190,7 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+<a name="proxy-fallback"></a>
 ### Proxy Fallback
 
 Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).

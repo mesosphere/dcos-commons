@@ -1,3 +1,9 @@
+---
+post_title: Kerberos
+menu_order: 22
+enterprise: 'yes'
+---
+
 # Setting up Apache Kafka with Kerberos
 
 ## Create principals
@@ -8,7 +14,7 @@ kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 ```
-(assuming a default service name of `kafka`)
+(assuming a service name of `kafka`)
 
 ## Create the keytab secret
 
@@ -30,8 +36,10 @@ Create the following `kerberos-options.json` file:
         "security": {
             "kerberos": {
                 "enabled": true,
-                "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
-                "kdc_host_port": 2500,
+                "kdc": {
+                    "hostname": "kdc.marathon.autoip.dcos.thisdcos.directory",
+                    "port": 2500
+                },
                 "keytab_secret": "__dcos_base64__keytab"
             }
         }
@@ -78,19 +86,20 @@ Create a `kerberos-zookeeper-options.json` file with the following contents:
             "kerberos": {
                 "enabled": true,
                 "enabled_for_zookeeper": true,
-                "kdc_host_name": "kdc.marathon.autoip.dcos.thisdcos.directory",
-                "kdc_host_port": 2500,
+                "kdc": {
+                    "hostname": "kdc.marathon.autoip.dcos.thisdcos.directory",
+                    "port": 2500
+                },
                 "keytab_secret": "__dcos_base64__keytab"
             }
         }
-
     },
     "kafka": {
         "kafka_zookeeper_uri": "zookeeper-0-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140,zookeeper-1-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140,zookeeper-2-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140"
     }
 }
 ```
-Note that `service.security.enabled_for_zookeeper` is now set to true and that `kafka.kafka_zookeeper_uri` is set to the `"dns"` output of the `dcos kafka-zookeeper endpoint clientport` command.
+Note that `service.security.kerberos.enabled_for_zookeeper` is now set to true and that `kafka.kafka_zookeeper_uri` is set to the `"dns"` output of the `dcos kafka-zookeeper endpoint clientport` command.
 
 Kerberized Kafka can then be deployed as follows:
 ```bash

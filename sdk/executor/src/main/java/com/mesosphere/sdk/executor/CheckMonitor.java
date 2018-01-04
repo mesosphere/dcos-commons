@@ -49,7 +49,7 @@ public class CheckMonitor implements Callable<Optional<CheckStats>> {
         }
 
         if (this.healthCheck.getConsecutiveFailures() > 0) {
-            launchedTask.getExecutorTask().stop(launchedTask.getFuture());
+            launchedTask.stop();
         }
         return healthCheckStats;
     }

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.testing;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
@@ -75,15 +76,22 @@ public interface Expect extends SimulationTick {
                 MockitoAnnotations.initMocks(this);
                 verify(mockDriver, atLeastOnce())
                         .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
-                Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
+                Protos.OfferID lastAcceptedOfferId = offerIdsCaptor.getValue().iterator().next();
+                Assert.assertEquals(String.format(
+                            "Expected last offer with ID %s to be accepted, but last accepted offer was %s",
+                            state.getLastOffer().getId().getValue(), lastAcceptedOfferId.getValue()),
+                        state.getLastOffer().getId(), lastAcceptedOfferId);
                 Collection<String> launchedTaskNames = new ArrayList<>();
+                // A single acceptOffers() call may contain multiple LAUNCH/LAUNCH_GROUP operations.
+                // We want to ensure they're all counted as a unit when tallying the pod.
+                Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
                 for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
                     if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
                         // Old-style launch with custom executor
                         launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
-                        state.addLaunchedPod(operation.getLaunch().getTaskInfosList().stream()
+                        launchedTaskInfos.addAll(operation.getLaunch().getTaskInfosList().stream()
                                 .map(task -> TaskPackingUtils.unpack(task))
                                 .collect(Collectors.toList()));
                     } else if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH_GROUP)) {
@@ -91,8 +99,11 @@ public interface Expect extends SimulationTick {
                         launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
-                        state.addLaunchedPod(operation.getLaunchGroup().getTaskGroup().getTasksList());
+                        launchedTaskInfos.addAll(operation.getLaunchGroup().getTaskGroup().getTasksList());
                     }
+                }
+                if (!launchedTaskInfos.isEmpty()) {
+                    state.addLaunchedPod(launchedTaskInfos);
                 }
                 Assert.assertTrue(
                         String.format("Expected launched tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
@@ -101,7 +112,7 @@ public interface Expect extends SimulationTick {
 
             @Override
             public String getDescription() {
-                return String.format("Tasks were launched in a new pod: %s", taskNames);
+                return String.format("Tasks were launched into a pod: %s", taskNames);
             }
         };
     }
@@ -164,7 +175,7 @@ public interface Expect extends SimulationTick {
     /**
      * Verifies that the specified task was killed.
      */
-    public static Expect killedTask(String taskName) {
+    public static Expect taskKilled(String taskName) {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
@@ -176,6 +187,23 @@ public interface Expect extends SimulationTick {
             @Override
             public String getDescription() {
                 return String.format("Task named %s was killed", taskName);
+            }
+        };
+    }
+
+    /**
+     * Verifies that the specified task was not killed. Note that this applies to the whole simulation as of this point.
+     */
+    public static Expect taskNotKilled(String taskName) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                verify(mockDriver, never()).killTask(state.getTaskId(taskName));
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Task named %s was not killed", taskName);
             }
         };
     }

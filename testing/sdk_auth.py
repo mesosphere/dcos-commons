@@ -72,7 +72,7 @@ def _get_host_name(host_id: str) -> str:
     if raw_nodes:
         nodes = json.loads(raw_nodes)
         for node in nodes:
-            if node["id"] == host_id:
+            if "id" in node and node["id"] == host_id:
                 log.info("Host name is {host_name}".format(host_name=node["hostname"]))
                 return node["hostname"]
 
@@ -153,8 +153,16 @@ def kinit(task_id: str, keytab: str, principal:str):
     :param keytab: The keytab used by kinit to authenticate.
     :param principal: The name of the principal the user wants to authenticate as.
     """
-    kinit_cmd = "kinit -k -t {keytab} {principal}".format(keytab=keytab, principal=principal)
+    kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     sdk_tasks.task_exec(task_id, kinit_cmd)
+
+
+def kdestroy(task_id: str):
+    """
+    Performs a kdestroy command to erase an auth session for a principal.
+    :param task_id: The task in whose environment the kinit will run.
+    """
+    sdk_tasks.task_exec(task_id, "kdestroy")
 
 
 class KerberosEnvironment:
@@ -164,7 +172,7 @@ class KerberosEnvironment:
         This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
         """
         self.temp_working_dir = _create_temp_working_dir()
-        kdc_app_def_path = "{current_file_dir}/../tools/kdc.json".format(
+        kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
             current_file_dir=os.path.dirname(os.path.realpath(__file__)))
         with open(kdc_app_def_path) as f:
             kdc_app_def = json.load(f)

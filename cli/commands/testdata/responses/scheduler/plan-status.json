@@ -23,7 +23,8 @@
           "message": "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[broker] [994b5ff2-ed1d-4fb2-b2a7-327e8e159ad9]' has status: 'PENDING'."
         }
       ],
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS",
+      "strategy": "serial"
     },
     {
       "id": "e0c28f36-1a62-47b9-ae3b-a0889afe4dda",
@@ -48,9 +49,11 @@
           "message": "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'kafka-2:[reindex] [994b5ff2-ed1d-4fb2-b2a7-327e8e159ad9]' has status: 'PENDING'."
         }
       ],
-      "status": "PENDING"
+      "status": "PENDING",
+      "strategy": "parallel"
     }
   ],
   "errors": [],
-  "status": "IN_PROGRESS"
+  "status": "IN_PROGRESS",
+  "strategy": "serial"
 }

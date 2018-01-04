@@ -1,19 +1,23 @@
-import os
 import sdk_install
+import sdk_utils
 
-PACKAGE_NAME = 'beta-kafka'
-SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or 'kafka'
+
+# allow overriding these names via envvars, for confluent tests:
+PACKAGE_NAME = sdk_utils.get_package_name("beta-kafka")
+SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
+
 DEFAULT_BROKER_COUNT = 3
 DEFAULT_PARTITION_COUNT = 1
 DEFAULT_REPLICATION_FACTOR = 1
-DEFAULT_PLAN_NAME = 'deploy'
-DEFAULT_PHASE_NAME = 'Deployment'
-DEFAULT_POD_TYPE = 'kafka'
-DEFAULT_TASK_NAME = 'broker'
+DEFAULT_PLAN_NAME = "deploy"
+DEFAULT_PHASE_NAME = "Deployment"
+DEFAULT_POD_TYPE = "kafka"
+DEFAULT_TASK_NAME = "broker"
 DEFAULT_KAFKA_TIMEOUT = 10 * 60
-DEFAULT_TOPIC_NAME = 'topic1'
+DEFAULT_TOPIC_NAME = "topic1"
 
-EPHEMERAL_TOPIC_NAME = 'topic_2'
+EPHEMERAL_TOPIC_NAME = "topic_2"
+
 
 def install(
         package_name,
@@ -23,7 +27,8 @@ def install(
         package_version=None,
         timeout_seconds=25*60,
         wait_for_deployment=True):
-    test_options={
+
+    test_options = {
         "brokers": {
             "cpus": 0.5
         }

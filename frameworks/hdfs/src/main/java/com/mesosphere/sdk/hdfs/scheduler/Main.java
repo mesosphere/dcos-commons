@@ -5,6 +5,7 @@ import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -22,16 +23,19 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Main entry point for the Scheduler.
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    private static final String AUTH_TO_LOCAL = "AUTH_TO_LOCAL";
+    private static final String DECODED_AUTH_TO_LOCAL = "DECODED_" + AUTH_TO_LOCAL;
+    private static final String TASKCFG_ALL_AUTH_TO_LOCAL = TaskEnvRouter.TASKCFG_GLOBAL_ENV_PREFIX + AUTH_TO_LOCAL;
+    private static final String JOURNAL_POD_TYPE = "journal";
+    private static final String NAME_POD_TYPE = "name";
+    private static final String DATA_POD_TYPE = "data";
 
     static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
     static final String HDFS_SITE_XML = "hdfs-site.xml";
@@ -53,17 +57,21 @@ public class Main {
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
+                .setAllPodsEnv(DECODED_AUTH_TO_LOCAL,
+                                getHDFSUserAuthMappings(System.getenv(), TASKCFG_ALL_AUTH_TO_LOCAL))
                 .build();
+
         return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec)
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
                         renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())));
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())))
+                .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()));
     }
 
-    private static String renderTemplate(File configFile, String serviceName) {
+    private static String renderTemplate(File configFile, String serviceName) throws Exception {
         byte[] bytes;
         try {
             bytes = Files.readAllBytes(configFile.toPath());
@@ -80,26 +88,16 @@ public class Main {
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
+        env.put(DECODED_AUTH_TO_LOCAL, getHDFSUserAuthMappings(env, AUTH_TO_LOCAL));
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
         return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
     }
 
     private static ServiceSpec setPlacementRules(DefaultServiceSpec serviceSpec) throws Exception {
-        // Journal nodes avoid themselves and Name nodes.
-        PodSpec journal = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "journal"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("journal"), TaskTypeRule.avoid("name")))
-                .build();
-
-        // Name nodes avoid themselves and journal nodes.
-        PodSpec name = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "name"))
-                .placementRule(new AndRule(TaskTypeRule.avoid("name"), TaskTypeRule.avoid("journal")))
-                .build();
-
-        // Data nodes avoid themselves.
-        PodSpec data = DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, "data"))
-                .placementRule(TaskTypeRule.avoid("data"))
-                .build();
+        PodSpec journal = getJournalPodSpec(serviceSpec);
+        PodSpec name = getNamePodSpec(serviceSpec);
+        PodSpec data = getDataPodSpec(serviceSpec);
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
                 .pods(Arrays.asList(journal, name, data))
@@ -115,5 +113,49 @@ public class Main {
                     "Missing required pod named '%s' in service spec", podName));
         }
         return match.get();
+    }
+
+    private static String getHDFSUserAuthMappings(Map<String, String> env, String envVarKeyName) throws Exception {
+        Base64.Decoder decoder = Base64.getDecoder();
+        String base64Mappings = env.get(envVarKeyName);
+        byte[] hdfsUserAuthMappingsBytes = decoder.decode(base64Mappings);
+        String authMappings = new String(hdfsUserAuthMappingsBytes, "UTF-8");
+        return authMappings;
+    }
+
+    private static PodSpec getJournalPodSpec(ServiceSpec serviceSpec) {
+        // Journal nodes avoid themselves and Name nodes.
+        PlacementRule placementRule = new AndRule(
+                TaskTypeRule.avoid(JOURNAL_POD_TYPE), TaskTypeRule.avoid(NAME_POD_TYPE));
+        return getPodPlacementRule(serviceSpec, JOURNAL_POD_TYPE, placementRule);
+    }
+
+    private static PodSpec getNamePodSpec(ServiceSpec serviceSpec) {
+        // Name nodes avoid themselves and journal nodes.
+        PlacementRule placementRule = new AndRule(
+                TaskTypeRule.avoid(NAME_POD_TYPE),
+                TaskTypeRule.avoid(JOURNAL_POD_TYPE)
+        );
+        return getPodPlacementRule(serviceSpec, NAME_POD_TYPE, placementRule);
+    }
+
+    private static PodSpec getDataPodSpec(ServiceSpec serviceSpec) {
+        // Data nodes avoid themselves.
+        PlacementRule placementRule = TaskTypeRule.avoid(DATA_POD_TYPE);
+        return getPodPlacementRule(serviceSpec, DATA_POD_TYPE, placementRule);
+    }
+
+    private static PodSpec getPodPlacementRule(ServiceSpec serviceSpec, String podType, PlacementRule placementRule) {
+        if (getPodSpec(serviceSpec, podType).getPlacementRule().isPresent()) {
+            placementRule = new AndRule(
+                    placementRule,
+                    getPodSpec(serviceSpec, podType).getPlacementRule().get()
+            );
+        }
+
+        return DefaultPodSpec.newBuilder(getPodSpec(serviceSpec, podType))
+                .placementRule(placementRule)
+                .build();
+
     }
 }

@@ -225,7 +225,7 @@ public class DefaultPodSpec implements PodSpec {
         private Boolean allowDecommission = false;
         private String image;
         private PlacementRule placementRule;
-        public String preReservedRole = Constants.ANY_ROLE;
+        private String preReservedRole = Constants.ANY_ROLE;
         private Collection<NetworkSpec> networks = new ArrayList<>();
         private Collection<RLimitSpec> rlimits =  new ArrayList<>();
         private Collection<URI> uris = new ArrayList<>();
@@ -354,7 +354,6 @@ public class DefaultPodSpec implements PodSpec {
             this.uris.add(uri);
             return this;
         }
-
 
         /**
          * Sets the {@code tasks} and returns a reference to this Builder so that the methods can be chained together.

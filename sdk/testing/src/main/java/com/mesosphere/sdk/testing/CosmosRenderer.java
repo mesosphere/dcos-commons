@@ -127,7 +127,9 @@ public class CosmosRenderer {
      */
     private static void flattenPropertyTree(String path, JSONObject node, Map<String, String> config) {
         if (node.has("default")) {
-            config.put(path, node.get("default").toString());
+            // So... this is a fun little hack that fixes the fact that we remove too many escapes
+            // when parsing escaped strings.
+            config.put(path, node.get("default").toString().replaceAll("\"", "\\\\\""));
         }
         if (node.has("type") && node.getString("type").equals("object") && node.has("properties")) {
             JSONObject props = node.getJSONObject("properties");
