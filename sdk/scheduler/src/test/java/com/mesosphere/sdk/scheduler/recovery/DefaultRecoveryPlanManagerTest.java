@@ -70,7 +70,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private PlanCoordinator planCoordinator;
     private DefaultPlanScheduler planScheduler;
     private PlanManager mockDeployManager;
-    private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
 
     private static List<Offer> getOffers() {
@@ -113,7 +112,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 .build();
 
         taskInfos = Collections.singletonList(taskInfo);
-        taskFailureListener = mock(TaskFailureListener.class);
         recoveryManager = spy(new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,

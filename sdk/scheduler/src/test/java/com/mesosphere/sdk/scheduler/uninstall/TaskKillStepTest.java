@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Before;
