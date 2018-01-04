@@ -1,7 +1,7 @@
 py==1.5.1
 git+https://github.com/dcos/dcos-cli.git@5fe1a854226702c61f36a332138f78765ca6f8c8#egg=dcoscli&subdirectory=cli
 git+https://github.com/dcos/dcos-cli.git@5fe1a854226702c61f36a332138f78765ca6f8c8
-dcos-shakedown==1.4.5
+dcos-shakedown==1.4.12
 git+https://github.com/dcos/dcos-test-utils.git@c431eb6414e003e31c865c534b2413969a6d9947
 git+https://github.com/dcos/dcos-launch.git@14ded071109ab241e70ff3ed8b22bab844f74513
 teamcity-messages
