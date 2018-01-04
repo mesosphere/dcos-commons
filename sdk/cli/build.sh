@@ -15,7 +15,7 @@ if [ x"${GO_TESTS:-true}" == x"true" ]; then
     # Manually run unit tests for the CLI libraries in dcos-commons/cli.
     # Reuse the GOPATH structure which was created by the build in <repo-root>/.gopath/
     export GOPATH=${REPO_ROOT_DIR}/.gopath
-    CLI_LIB_DIR_IN_GOPATH=$GOPATH/src/github.com/mesosphere/dcos-commons/cli
+    CLI_LIB_DIR_IN_GOPATH=$GOPATH/src/github.com/mesosphere/${REPO_NAME}/cli
     cd $CLI_LIB_DIR_IN_GOPATH
 
     # Create 'vendor' symlink in dcos-commons/cli which points to dcos-commons/govendor:

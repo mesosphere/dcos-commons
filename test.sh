@@ -207,6 +207,7 @@ docker run --rm \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
     -e DCOS_LOGIN_PASSWORD="$DCOS_LOGIN_PASSWORD" \
     -e CLUSTER_URL="$CLUSTER_URL" \
+    -e S3_BUCKET="$S3_BUCKET" \
     $azure_args \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
