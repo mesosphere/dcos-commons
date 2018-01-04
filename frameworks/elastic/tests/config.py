@@ -216,8 +216,8 @@ def verify_xpack_license(service_name=SERVICE_NAME):
     xpack_license = get_xpack_license(service_name)
     if not "license" in xpack_license:
         log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
-        return False
-    return xpack_license["license"]["status"] == "active"
+        return False # retry
+    assert xpack_license["license"]["status"] == "active"
 
 
 @as_json
