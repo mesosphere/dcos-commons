@@ -6,7 +6,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
@@ -70,7 +70,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private PlanCoordinator planCoordinator;
     private DefaultPlanScheduler planScheduler;
     private PlanManager mockDeployManager;
-    private TaskFailureListener taskFailureListener;
     private ServiceSpec serviceSpec;
 
     private static List<Offer> getOffers() {
@@ -113,7 +112,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 .build();
 
         taskInfos = Collections.singletonList(taskInfo);
-        taskFailureListener = mock(TaskFailureListener.class);
         recoveryManager = spy(new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
@@ -134,7 +132,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
                 stateStore,
-                new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver));
+                new TaskKiller(schedulerDriver));
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager));
     }
 

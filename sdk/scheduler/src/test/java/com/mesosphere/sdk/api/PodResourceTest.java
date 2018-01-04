@@ -4,7 +4,6 @@ import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -405,10 +404,10 @@ public class PodResourceTest {
         assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
         assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
     }
 
@@ -426,8 +425,8 @@ public class PodResourceTest {
         assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
         assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.TRANSIENT);
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.TRANSIENT);
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
     }
 
@@ -457,10 +456,10 @@ public class PodResourceTest {
         assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
         assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId());
+        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
     }
 
@@ -478,8 +477,8 @@ public class PodResourceTest {
         assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
         assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId(), RecoveryType.PERMANENT);
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId(), RecoveryType.PERMANENT);
+        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId());
+        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
     }
 }

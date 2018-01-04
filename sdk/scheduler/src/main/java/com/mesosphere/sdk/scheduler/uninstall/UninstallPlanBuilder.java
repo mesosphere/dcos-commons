@@ -19,9 +19,8 @@ import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -30,7 +29,6 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -47,12 +45,12 @@ class UninstallPlanBuilder {
     private static final String TLS_CLEANUP_PHASE = "tls-cleanup";
     private static final String DEREGISTER_PHASE = "deregister-service";
 
-    private final TaskKiller taskKiller;
-
     private final List<Step> taskKillSteps;
     private final List<Step> resourceSteps;
     private final Optional<DeregisterStep> deregisterStep;
     private final Plan plan;
+
+    private TaskKiller taskKiller;
 
     UninstallPlanBuilder(
             ServiceSpec serviceSpec,
@@ -60,7 +58,6 @@ class UninstallPlanBuilder {
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
-        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
         if (!stateStore.fetchFrameworkId().isPresent()) {
@@ -177,7 +174,8 @@ class UninstallPlanBuilder {
         if (deregisterStep.isPresent()) {
             deregisterStep.get().setSchedulerDriver(schedulerDriver);
         }
-        taskKiller.setSchedulerDriver(schedulerDriver);
+
+        this.taskKiller = new TaskKiller(schedulerDriver);
         for (Step taskKillStep : taskKillSteps) {
             ((TaskKillStep) taskKillStep).setTaskKiller(taskKiller);
         }
