@@ -8,12 +8,42 @@ import logging
 import os
 from typing import List, Tuple
 
+import retrying
 import requests
 import shakedown
 import sdk_cmd
 import sdk_utils
 
 log = logging.getLogger(__name__)
+
+
+def install_enterprise_cli(force=False):
+    """ Install the enterprise CLI if required """
+
+    log.info("Installing DC/OS enterprise CLI")
+    if not force:
+        cmd = "security --version"
+        _, stdout, _ = sdk_cmd.run_raw_cli(cmd, print_output=False)
+        if stdout:
+            log.info("DC/OS enterprise version %s CLI already installed", stdout.strip())
+            return
+
+    cmd = "package install --yes --cli dcos-enterprise-cli"
+
+    @retrying.retry(stop_max_attempt_number=3,
+                    wait_fixed=2000,
+                    retry_on_result=lambda result: result)
+    def _install_impl():
+        rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd)
+        if rc:
+            log.error("rc=%s stdout=%s stderr=%s", rc, stdout, stderr)
+
+        return rc
+
+    try:
+        _install_impl()
+    except Exception as e:
+        raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
 
 
 def grant(dcosurl: str, headers: dict, user: str, acl: str, description: str, action: str="create") -> None:

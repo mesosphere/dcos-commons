@@ -67,15 +67,23 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         (bool, str) tuple: Boolean indicates success of install attempt. String indicates
         error message if install attempt failed.
     """
-    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
-        cmd="marathon app add ", file_path=app_def_path
-    ))
-    if "Created deployment" not in output:
-        return 1, output
 
-    log.info("Waiting for app to be running...")
+    cmd = "marathon app add {}".format(app_def_path)
+    log.info("Running %s", cmd)
+    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd)
+
+    if rc or stderr:
+        log.error("returncode=%s stdout=%s stderr=%s", rc, stdout, stderr)
+        return False, stderr
+
+    if "Created deployment" not in stdout:
+        stderr = "'Created deployment' not in STDOUT"
+        log.error(stderr)
+        return False, stderr
+
+    log.info("Waiting for app %s to be running...", app_name)
     shakedown.wait_for_task("marathon", app_name)
-    return 0, ""
+    return True, ""
 
 
 def install_app(app_definition: dict) -> (bool, str):

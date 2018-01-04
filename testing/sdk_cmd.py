@@ -62,8 +62,10 @@ def run_raw_cli(cmd, print_output=True):
         stderr = result.stderr.decode('utf-8').strip()
 
     if print_output:
-        print(stdout)
-        print(stderr)
+        if stdout:
+            print("STDOUT:", stdout)
+        if stderr:
+            print("STDERR:", stderr)
 
     return result.returncode, stdout, stderr
 
