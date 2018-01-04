@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.api;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mesosphere.sdk.api.types.GroupedTasks;
 import com.mesosphere.sdk.api.types.PrettyJsonResource;
 import com.mesosphere.sdk.api.types.TaskInfoAndStatus;
@@ -62,6 +63,7 @@ public class PodResource extends PrettyJsonResource {
      * Produces a listing of all pod instance names.
      */
     @GET
+    @Timed
     public Response getPods() {
         try {
             Set<String> podNames = new TreeSet<>();
@@ -96,6 +98,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/status")
     @GET
+    @Timed
     public Response getPodStatuses() {
         try {
             // Group the tasks by pod:
@@ -140,6 +143,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/status")
     @GET
+    @Timed
     public Response getPodStatus(@PathParam("name") String podInstanceName) {
         try {
             Optional<Collection<TaskInfoAndStatus>> podTasks =
@@ -159,6 +163,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/info")
     @GET
+    @Timed
     public Response getPodInfo(@PathParam("name") String podInstanceName) {
         try {
             Optional<Collection<TaskInfoAndStatus>> podTasks =
@@ -178,6 +183,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/pause")
     @POST
+    @Timed
     public Response pausePod(@PathParam("name") String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
@@ -199,6 +205,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/resume")
     @POST
+    @Timed
     public Response resumePod(@PathParam("name") String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
@@ -257,6 +264,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/restart")
     @POST
+    @Timed
     public Response restartPod(@PathParam("name") String name) {
         try {
             return restartPod(name, RecoveryType.TRANSIENT);
@@ -271,6 +279,7 @@ public class PodResource extends PrettyJsonResource {
      */
     @Path("/{name}/replace")
     @POST
+    @Timed
     public Response replacePod(@PathParam("name") String name) {
         try {
             return restartPod(name, RecoveryType.PERMANENT);

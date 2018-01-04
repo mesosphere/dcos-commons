@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.api;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mesosphere.sdk.api.types.PropertyDeserializer;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
@@ -8,7 +9,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -73,6 +73,7 @@ public class StateResource {
      */
     @Path("/frameworkId")
     @GET
+    @Timed
     public Response getFrameworkId() {
         try {
             Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
@@ -92,6 +93,7 @@ public class StateResource {
 
     @Path("/properties")
     @GET
+    @Timed
     public Response getPropertyKeys() {
         try {
             JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
@@ -105,6 +107,7 @@ public class StateResource {
     @Path("/files")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
+    @Timed
     public Response getFiles() {
         try {
             logger.info("Getting all files");
@@ -119,6 +122,7 @@ public class StateResource {
     @Path("/files/{file}")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
+    @Timed
     public Response getFile(@PathParam("file") String fileName) {
         try {
             logger.info("Getting file {}", fileName);
@@ -144,6 +148,7 @@ public class StateResource {
     @Path("/files/{file}")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Timed
     public Response putFile(
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetails
@@ -173,6 +178,7 @@ public class StateResource {
      */
     @Path("/zone/tasks")
     @GET
+    @Timed
     public Response getTaskNamesToZones() {
         try {
             return ResponseUtils.jsonOkResponse(new JSONObject(getTasksZones(stateStore)));
@@ -187,6 +193,7 @@ public class StateResource {
      */
     @Path("/zone/tasks/{taskName}")
     @GET
+    @Timed
     public Response getTaskNameToZone(@PathParam("taskName") String taskName) {
         try {
             Map<String, String> tasksZones = getTasksZones(stateStore);
@@ -207,6 +214,7 @@ public class StateResource {
      */
     @Path("/zone/{podType}/{ip}")
     @GET
+    @Timed
     public Response getTaskIPsToZones(@PathParam("podType") String podType, @PathParam("ip") String ip) {
         try {
             String zone = getZoneFromTaskNameAndIP(stateStore, podType, ip);
@@ -227,6 +235,7 @@ public class StateResource {
      */
     @Path("/properties/{key}")
     @GET
+    @Timed
     public Response getProperty(@PathParam("key") String key) {
         try {
             if (propertyDeserializer == null) {
@@ -254,6 +263,7 @@ public class StateResource {
      */
     @Path("/refresh")
     @PUT
+    @Timed
     public Response refreshCache() {
         PersisterCache cache = getPersisterCache(stateStore);
         if (cache == null) {

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.api;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class OfferOutcomeResource {
      * @return HTML response of the table.
      */
     @GET
+    @Timed
     public Response getOfferOutcomes(@QueryParam("json") boolean json) {
         if (json) {
             return ResponseUtils.jsonOkResponse(offerOutcomeTracker.toJson());
