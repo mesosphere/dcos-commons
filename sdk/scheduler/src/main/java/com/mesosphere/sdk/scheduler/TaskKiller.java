@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TaskKiller {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private SchedulerDriver driver;
+    private final SchedulerDriver driver;
 
     public TaskKiller(SchedulerDriver driver) {
         this.driver = driver;

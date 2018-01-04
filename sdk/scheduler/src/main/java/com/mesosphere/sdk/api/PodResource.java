@@ -288,13 +288,6 @@ public class PodResource extends PrettyJsonResource {
             return ResponseUtils.elementNotFoundResponse();
         }
 
-        if (recoveryType.equals(RecoveryType.PERMANENT)) {
-            Collection<Protos.TaskID> taskIds = podTasks.get().stream()
-                    .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo().getTaskId())
-                    .collect(Collectors.toList());
-            taskFailureListener.tasksFailed(taskIds);
-        }
-
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
         LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
@@ -303,6 +296,13 @@ public class PodResource extends PrettyJsonResource {
         if (taskKiller == null) {
             LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+        }
+
+        if (recoveryType.equals(RecoveryType.PERMANENT)) {
+            Collection<Protos.TaskID> taskIds = podTasks.get().stream()
+                    .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo().getTaskId())
+                    .collect(Collectors.toList());
+            taskFailureListener.tasksFailed(taskIds);
         }
 
         return killTasks(taskKiller, podInstanceName, podTasks.get(), recoveryType);
@@ -389,6 +389,9 @@ public class PodResource extends PrettyJsonResource {
         return Optional.of(stateString);
     }
 
+    /**
+     * Configures the {@link TaskKiller} instance to be invoked when restart/replace operations are invoked.
+     */
     public void setTaskKiller(TaskKiller taskKiller) {
         this.taskKiller = taskKiller;
     }
