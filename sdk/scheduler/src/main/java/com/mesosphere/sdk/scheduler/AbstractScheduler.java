@@ -239,6 +239,7 @@ public abstract class AbstractScheduler {
         private ReviveManager reviveManager;
         private Reconciler reconciler;
         private PlanCoordinator planCoordinator;
+        private TaskCleaner taskCleaner;
 
         @Override
         public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
@@ -253,6 +254,7 @@ public abstract class AbstractScheduler {
             this.driver = driver;
             this.reviveManager = new ReviveManager(driver);
             this.reconciler = new DefaultReconciler(stateStore);
+            this.taskCleaner = new TaskCleaner(stateStore, new TaskKiller(driver), multithreaded);
 
             try {
                 this.planCoordinator = initialize(driver);
@@ -340,11 +342,14 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+
                 Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
+
+            taskCleaner.statusUpdate(status);
         }
 
         @Override

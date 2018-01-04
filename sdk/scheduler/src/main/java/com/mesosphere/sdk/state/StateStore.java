@@ -187,6 +187,14 @@ public class StateStore {
                             currentStatusOptional.get().getState(), taskName));
         }
 
+        if (!status.getState().equals(Protos.TaskState.TASK_STAGING) &&
+                currentStatusOptional.isPresent() &&
+                !currentStatusOptional.get().getTaskId().equals(status.getTaskId())) {
+            throw new StateStoreException(
+                    Reason.NOT_FOUND,
+                    String.format("Dropping TaskStatus with unknnown TaskID: %s", status));
+        }
+
         String path = getTaskStatusPath(taskName);
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
