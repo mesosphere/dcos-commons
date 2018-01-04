@@ -120,7 +120,7 @@ Steps:
 	 Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
            ```
-		   dcos:adminrouter:service:marathon full				
+		   dcos:adminrouter:service:marathon full
 		   dcos:service:marathon:marathon:services:/testing full
 		   dcos:adminrouter:ops:mesos full
 		   dcos:adminrouter:ops:slave full
@@ -143,8 +143,8 @@ Steps:
 
 # Zones
 
-Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
- 
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `[["@zone", "GROUP_BY", "3"]]`.
+
 <!--
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 -->
@@ -156,7 +156,7 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 
 ```
 {
-   ...
+  ...
   "count": 6,
   "constraints": [
     ["@zone", "GROUP_BY", "3"]
