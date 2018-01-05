@@ -11,9 +11,7 @@ import org.apache.mesos.SchedulerDriver;
  */
 public class SendTaskStatus implements Send {
 
-    private final String taskName;
-    private final Protos.TaskState taskState;
-    private final Optional<Integer> readinessCheckExitCode;
+    private final Builder builder;
 
     /**
      * Builder for {@link SendTaskStatus}.
@@ -22,6 +20,7 @@ public class SendTaskStatus implements Send {
         private final String taskName;
         private final Protos.TaskState taskState;
         private Optional<Integer> readinessCheckExitCode;
+        private String taskId;
 
         Builder(String taskName, Protos.TaskState taskState) {
             this.taskName = taskName;
@@ -34,31 +33,41 @@ public class SendTaskStatus implements Send {
             return this;
         }
 
+        public Builder setTaskId(String id) {
+            this.taskId = id;
+            return this;
+        }
+
         public Send build() {
-            return new SendTaskStatus(taskName, taskState, readinessCheckExitCode);
+            return new SendTaskStatus(this);
         }
     }
 
-    private SendTaskStatus(String taskName, Protos.TaskState taskState, Optional<Integer> readinessCheckExitCode) {
-        this.taskName = taskName;
-        this.taskState = taskState;
-        this.readinessCheckExitCode = readinessCheckExitCode;
+    private SendTaskStatus(Builder builder) {
+        this.builder = builder;
     }
 
     @Override
     public String getDescription() {
-        return String.format("TaskStatus[state=%s,readinessExitCode=%s] for name=%s",
-                taskState, readinessCheckExitCode, taskName);
+        return String.format("TaskStatus[state=%s,readinessExitCode=%s] for name=%s and id=%s",
+                builder.taskState, builder.readinessCheckExitCode, builder.taskName, builder.taskId);
     }
 
     @Override
     public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
+        Protos.TaskID taskId = builder.taskId == null ?
+                state.getTaskId(builder.taskName) :
+                Protos.TaskID.newBuilder().setValue(builder.taskId).build();
         Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
-                .setTaskId(state.getTaskId(taskName))
-                .setState(taskState)
+                .setTaskId(taskId)
+                .setState(builder.taskState)
                 .setMessage("This is a test status");
-        if (readinessCheckExitCode.isPresent()) {
-            taskStatusBuilder.getCheckStatusBuilder().getCommandBuilder().setExitCode(readinessCheckExitCode.get());
+
+        if (builder.readinessCheckExitCode.isPresent()) {
+            taskStatusBuilder
+                    .getCheckStatusBuilder()
+                    .getCommandBuilder()
+                    .setExitCode(builder.readinessCheckExitCode.get());
         }
         scheduler.statusUpdate(mockDriver, taskStatusBuilder.build());
     }

@@ -115,13 +115,13 @@ func cliConfigValue(name string) (string, error) {
 	// dcos-cli allows providing a custom envvar for the config path, we honor that here:
 	configDir, err := configDir()
 	if err != nil {
-		PrintVerbose("Falling back to querying CLI: %s", err.Error())
+		PrintVerbose("Falling back to querying CLI for %s: %s", name, err.Error())
 	} else {
 		diskConfig, err := cliDiskConfig(configDir)
 		if err == nil {
 			return cliDiskConfigValue(diskConfig, name)
 		} else {
-			PrintVerbose("No cluster config found, falling back to querying CLI: %s", err.Error())
+			PrintVerbose("No cluster config found, falling back to querying CLI for %s: %s", name, err.Error())
 		}
 	}
 

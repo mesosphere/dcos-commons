@@ -175,7 +175,7 @@ public interface Expect extends SimulationTick {
     /**
      * Verifies that the specified task was killed.
      */
-    public static Expect taskKilled(String taskName) {
+    public static Expect taskNameKilled(String taskName) {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
@@ -191,10 +191,26 @@ public interface Expect extends SimulationTick {
         };
     }
 
+    public static Expect taskIdKilled(String taskId) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                ArgumentCaptor<Protos.TaskID> taskIdCaptor = ArgumentCaptor.forClass(Protos.TaskID.class);
+                verify(mockDriver, atLeastOnce()).killTask(taskIdCaptor.capture());
+                Assert.assertEquals(taskId, taskIdCaptor.getValue().getValue());
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Task with ID %s was killed", taskId);
+            }
+        };
+    }
+
     /**
      * Verifies that the specified task was not killed. Note that this applies to the whole simulation as of this point.
      */
-    public static Expect taskNotKilled(String taskName) {
+    public static Expect taskNameNotKilled(String taskName) {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {

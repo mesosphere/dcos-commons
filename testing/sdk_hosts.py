@@ -77,7 +77,7 @@ def resolve_hosts(task_id: str, hosts: list) -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
-    bootstrap_cmd = ['bootstrap',
+    bootstrap_cmd = ['./bootstrap',
                      '-print-env=false',
                      '-template=false',
                      '-install-certs=false',

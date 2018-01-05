@@ -110,6 +110,9 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
     result = _get_elasticsearch_cluster_health(curl_api)
     if result is None:
         return False
+    if not "number_of_nodes" in result:
+        log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
+        return False
     node_count = result["number_of_nodes"]
     log.info('Waiting for {} healthy nodes, got {}'.format(task_count, node_count))
     return node_count == task_count
@@ -205,9 +208,17 @@ def update_app(service_name, options, expected_task_count):
     sdk_tasks.check_running(service_name, expected_task_count)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: not res)
 def verify_xpack_license(service_name=SERVICE_NAME):
     xpack_license = get_xpack_license(service_name)
+    if not "license" in xpack_license:
+        log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
+        return False # retry
     assert xpack_license["license"]["status"] == "active"
+    return True # done
 
 
 @as_json
