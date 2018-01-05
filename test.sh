@@ -19,7 +19,7 @@ pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
-aws_credentials_path="${HOME}/.aws"
+aws_credentials_file="${HOME}/.aws/credentials"
 aws_profile="default"
 DCOS_ENTERPRISE=true
 interactive=
@@ -37,8 +37,8 @@ function usage()
     echo "--interactive start a docker container in interactive mode"
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
-    echo "--aws|a PATH where aws credentials file can be found [default ${aws_credentials_path}]"
-    echo "        (AWS credentials must exist in this file)"
+    echo "--aws|a PATH to an AWS credentials file [default ${aws_credentials_file}]"
+    echo "        (AWS credentials must be present in this file)"
     echo "Azure tests will run if these variables are set:"
     echo "      \$AZURE_CLIENT_ID"
     echo "      \$AZURE_CLIENT_SECRET"
@@ -102,7 +102,7 @@ case $key in
     interactive="true"
     ;;
     -a|--aws)
-    aws_credentials_path="$2"
+    aws_credentials_file="$2"
     shift # past argument
     ;;
     --aws-profile)
@@ -127,15 +127,14 @@ if [ ! -f "$ssh_path" ]; then
 fi
 
 
-if [ ! -f "${aws_credentials_path}/credentials" ]; then
-    echo "The required AWS credentials file ${aws_credentials_path}/credentials was not found"
+if [ ! -f "${aws_credentials_file}" ]; then
+    echo "The required AWS credentials file ${aws_credentials_file} was not found"
     echo "Try running 'maws' to log in"
     exit 1
 else
-    CREDENTIALS_FILE=${aws_credentials_path}/credentials
-    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
+    PROFILES=$( grep -oE "^\[\S+\]" $aws_credentials_file )
     if [ $( echo "$PROFILES" | grep [${aws_profile}]) != "[${aws_profile}]" ]; then
-        echo "The specified profile (${aws_profile}) was not found in the file $CREDENTIALS_FILE"
+        echo "The specified profile (${aws_profile}) was not found in the file $aws_credentials_file"
 
         if [ $( echo "$PROFILES" | wc -l ) == "1" ]; then
             PROFILES="${PROFILES/#[/}"
@@ -203,7 +202,7 @@ fi
 
 
 docker run --rm \
-    -v ${aws_credentials_path}:/root/.aws:ro \
+    -v ${aws_credentials_file}:/root/.aws/credentials:ro \
     -e AWS_PROFILE="${aws_profile}" \
     -e DCOS_ENTERPRISE="$DCOS_ENTERPRISE" \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
