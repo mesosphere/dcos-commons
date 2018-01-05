@@ -51,7 +51,6 @@ def kafka_client():
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
