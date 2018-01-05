@@ -56,12 +56,12 @@ def as_json(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
         try:
-            return json.loads(fn(*args, **kwargs))
-        except (TypeError, json.JSONDecodeError) as e:
-            print("Failed to parse value returned by {} as JSON".format(fn.__name__))
-            raise e
-        except ValueError as e:
-            raise e
+            value = fn(*args, **kwargs)
+            return json.loads(value)
+        except (TypeError, json.JSONDecodeError, ValueError):
+            log.info("Failed to parse value returned by \"{}\" as JSON, returning None".format(fn.__name__))
+            log.info("Value: {}".format(value))
+            return None
 
     return wrapper
 
@@ -182,8 +182,9 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     if is_enabled:
         assert response["failures"] == []
     else:
-        # The _graph endpoint doesn't even exist without X-Pack installed
-        assert response["status"] == 400
+        # The graph endpoint doesn't exist without X-Pack installed. In that case Elasticsearch returns a plain text
+        # response (non-JSON) which when parsed by our @as_json decorator turns into a None.
+        assert response == None
 
 
 def enable_xpack(service_name=SERVICE_NAME):
@@ -258,7 +259,7 @@ def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
 @as_json
 def graph_api(index_name, query, service_name=SERVICE_NAME):
     exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/_graph/explore' -d '{}'".format(_curl_api(service_name, "POST"), index_name, json.dumps(query)))
+        "{}/{}/_xpack/_graph/_explore' -d '{}'".format(_curl_api(service_name, "POST"), index_name, json.dumps(query)))
     return output
 
 
@@ -301,7 +302,7 @@ def _curl_api(service_name, method, role="master", https=False):
     protocol = 'https://' if https else 'http://'
     host = protocol + sdk_hosts.autoip_host(
         service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("/opt/mesosphere/bin/curl -X{} -s -u elastic:changeme '" + host).format(method)
+    return ("/opt/mesosphere/bin/curl -X{} -u elastic:changeme -H 'Content-type: application/json' '" + host).format(method)
 
 
 def _master_zero_http_port(service_name):
