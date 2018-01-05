@@ -25,4 +25,5 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_install():
+    assert(False)
     pass # package installed and appeared healthy!
