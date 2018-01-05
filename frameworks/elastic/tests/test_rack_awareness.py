@@ -3,7 +3,7 @@ import logging
 import pytest
 import sdk_fault_domain
 import sdk_install
-from sdk_utils import get_in
+import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.11')
+@sdk_utils.dcos_ee_only
 def test_zones_not_referenced_in_placement_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -20,17 +21,18 @@ def test_zones_not_referenced_in_placement_constraints():
         service_name=config.SERVICE_NAME)
 
     for node_uid, node in nodes_info["nodes"].items():
-        assert None == get_in([
+        assert None == sdk_utils.get_in([
             "settings", "cluster", "routing", "allocation", "awareness",
             "attributes"
         ], node)
-        assert None == get_in(["attributes", "zone"], node)
+        assert None == sdk_utils.get_in(["attributes", "zone"], node)
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.11')
+@sdk_utils.dcos_ee_only
 def test_zones_referenced_in_placement_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(
@@ -56,11 +58,11 @@ def test_zones_referenced_in_placement_constraints():
         service_name=config.SERVICE_NAME)
 
     for node_uid, node in nodes_info["nodes"].items():
-        assert "zone" == get_in([
+        assert "zone" == sdk_utils.get_in([
             "settings", "cluster", "routing", "allocation", "awareness",
             "attributes"
         ], node)
         assert sdk_fault_domain.is_valid_zone(
-            get_in(["attributes", "zone"], node))
+            sdk_utils.get_in(["attributes", "zone"], node))
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
