@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.apache.mesos.Protos.TaskID;
-
+import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

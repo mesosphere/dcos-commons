@@ -55,7 +55,6 @@ public class DefaultScheduler extends AbstractScheduler {
     private TaskKiller taskKiller;
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
-    private TaskKiller taskKiller;
 
     private final OfferOutcomeTracker offerOutcomeTracker;
 

@@ -47,8 +47,6 @@ class UninstallPlanBuilder {
 
     private final Plan plan;
 
-    private TaskKiller taskKiller;
-
     UninstallPlanBuilder(
             ServiceSpec serviceSpec,
             StateStore stateStore,
@@ -68,7 +66,7 @@ class UninstallPlanBuilder {
         List<Phase> phases = new ArrayList<>();
 
         // First, we kill all the tasks, so that we may release their reserved resources.
-        TaskKiller taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore), driver);
+        TaskKiller taskKiller = new TaskKiller(driver);
         List<Step> taskKillSteps = stateStore.fetchTasks().stream()
                 .map(Protos.TaskInfo::getTaskId)
                 .map(taskID -> new TaskKillStep(taskID, taskKiller))
