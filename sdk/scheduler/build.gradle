@@ -117,6 +117,7 @@ dependencies {
     compile "io.dropwizard.metrics:metrics-core:${dropWizardMetricsVer}"
     compile "io.dropwizard.metrics:metrics-servlet:${dropWizardMetricsVer}"
     compile "io.dropwizard.metrics:metrics-servlets:${dropWizardMetricsVer}"
+    compile group: 'com.codahale.metrics', name: 'metrics-jetty9', version: '3.0.2'
     compile "io.prometheus:simpleclient_dropwizard:0.0.26"
     compile "io.prometheus:simpleclient_servlet:0.0.26"
     compile "com.readytalk:metrics3-statsd:4.2.0"
