@@ -42,7 +42,10 @@ class AWSPublisher(object):
         self._universe_url_prefix = os.environ.get(
             'UNIVERSE_URL_PREFIX',
             'https://universe-converter.mesosphere.com/transform?url=')
-        s3_bucket = os.environ.get('S3_BUCKET') if os.environ.get('S3_BUCKET') else 'infinity-artifacts'
+        s3_bucket = os.environ.get('S3_BUCKET')
+        if not s3_bucket:
+            s3_bucket = 'infinity-artifacts'
+        logger.info('Using artifact bucket: {}'.format(s3_bucket))
         s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
         dir_name = '{}-{}'.format(
             time.strftime("%Y%m%d-%H%M%S"),
