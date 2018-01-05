@@ -250,7 +250,6 @@ def fail_placement(options):
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_hostname_unique():
     options = _escape_placement_for_1_9({
         "service": {
@@ -271,13 +270,14 @@ def test_hostname_unique():
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
     sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_max_per_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
@@ -300,7 +300,6 @@ def test_max_per_hostname():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_rr_by_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
@@ -323,7 +322,6 @@ def test_rr_by_hostname():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     some_agent = shakedown.get_private_agents().pop()
@@ -387,7 +385,6 @@ def ensure_max_count_per_agent(hello_count, world_count):
     assert_max_count(world_agent_counts, world_count)
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_not_applied_with_other_changes():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
@@ -406,7 +403,6 @@ def test_updated_placement_constraints_not_applied_with_other_changes():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_no_task_change():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
@@ -416,7 +412,6 @@ def test_updated_placement_constraints_no_task_change():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_restarted_tasks_dont_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
@@ -428,7 +423,6 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_replaced_tasks_do_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
