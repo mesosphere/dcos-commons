@@ -203,7 +203,7 @@ def get_task_files_for_id(task_id: str) -> dict:
         ret = {}
         for line in ls_lines:
             # example elems: ['drwxr-xr-x', '6', 'nobody', 'nobody', '4096', 'Jul 21 22:07', 'jre1.8.0_144']
-            elems = [s.strip() for s in filter(None, s.split('  '))]
+            elems = [s.strip() for s in filter(None, line.split('  '))]
             # get timestamp: 'Jul 21 22:07' => '0721_2207'
             timestamp = time.strftime('%m%d_%H%M', time.strptime(elems[-2], '%b %d %H:%M'))
             ret[elems[-1]] = timestamp # 'jre1.8.0_144' => '0721_2207'
