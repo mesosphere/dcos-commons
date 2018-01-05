@@ -7,6 +7,7 @@ E.G. py.test frameworks/<your-frameworks>/tests
 import logging
 import os
 import os.path
+import re
 import shutil
 import subprocess
 import sys
@@ -40,6 +41,20 @@ for noise_source in [
     logging.getLogger(noise_source).setLevel('WARNING')
 
 log = logging.getLogger(__name__)
+
+# Regex pattern which parses the output of "dcos task log ls --long", in order to extract the filename and timestamp.
+# Example inputs:
+#   drwxr-xr-x  6  nobody  nobody      4096  Jul 21 22:07                             jre1.8.0_144
+#   drwxr-xr-x  3  nobody  nobody      4096  Jun 28 12:50                          libmesos-bundle
+#   -rw-r--r--  1  nobody  nobody  32539549  Jan 04 16:31  libmesos-bundle-1.10-1.4-63e0814.tar.gz
+# Example output:
+#   match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144"
+# Notes:
+# - Should also support spaces in filenames.
+# - Doesn't make any assumptions about the contents of the tokens before the timestamp/filename,
+#   just assumes that there are 5 of them.
+#                             TOKENS        MONTH     DAY    HH:MM    FILENAME
+task_ls_pattern = re.compile('^([^ ]+ +){5}([a-zA-z]+ [0-9]+ [0-9:]+) +(.*)$')
 
 # An arbitrary limit on the number of tasks that we fetch logs from following a failed test:
 #     100 (task id limit)
@@ -195,18 +210,19 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
 
 def get_task_files_for_id(task_id: str) -> dict:
     try:
-        # Example output:
-        # drwxr-xr-x  6  nobody  nobody      4096  Jul 21 22:07                             jre1.8.0_144
-        # drwxr-xr-x  3  nobody  nobody      4096  Jun 28 12:50                          libmesos-bundle
-        # -rw-r--r--  1  nobody  nobody  32539549  Jan 04 16:31  libmesos-bundle-1.10-1.4-63e0814.tar.gz
-        ls_lines = subprocess.check_output(['dcos', 'task', 'ls', task_id, '--long', '--all']).decode().split('\n')
+        command = ['dcos', 'task', 'ls', task_id, '--long', '--all']
+        ls_lines = subprocess.check_output(command).decode().split('\n')
         ret = {}
         for line in ls_lines:
-            # example elems: ['drwxr-xr-x', '6', 'nobody', 'nobody', '4096', 'Jul 21 22:07', 'jre1.8.0_144']
-            elems = [s.strip() for s in filter(None, line.split('  '))]
-            # get timestamp: 'Jul 21 22:07' => '0721_2207'
-            timestamp = time.strftime('%m%d_%H%M', time.strptime(elems[-2], '%b %d %H:%M'))
-            ret[elems[-1]] = timestamp # 'jre1.8.0_144' => '0721_2207'
+            match = task_ls_pattern.match(line)
+            if not match:
+                log.warning('Unable to parse line from "{}": {}'.format(' '.join(command), line))
+                continue
+            # match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144"
+            filename = match.group(3)
+            # build timestamp for use in output filename: 'Jul 21 22:07' => '0721_2207'
+            timestamp = time.strftime('%m%d_%H%M', time.strptime(match.group(2), '%b %d %H:%M'))
+            ret[filename] = timestamp
         return ret
     except:
         log.exception('Failed to get list of files for task: {}'.format(task_id))
