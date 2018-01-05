@@ -10,6 +10,7 @@ import os.path
 import shutil
 import subprocess
 import sys
+import time
 
 import pytest
 import requests
@@ -192,12 +193,25 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
     return os.path.join(output_dir, artifact_name)
 
 
-def get_task_files_for_id(task_id: str) -> set:
+def get_task_files_for_id(task_id: str) -> dict:
     try:
-        return set(subprocess.check_output(['dcos', 'task', 'ls', task_id, '--all']).decode().split())
+        # Example output:
+        # drwxr-xr-x  6  nobody  nobody      4096  Jul 21 22:07                             jre1.8.0_144
+        # drwxr-xr-x  3  nobody  nobody      4096  Jun 28 12:50                          libmesos-bundle
+        # -rw-r--r--  1  nobody  nobody  32539549  Jan 04 16:31  libmesos-bundle-1.10-1.4-63e0814.tar.gz
+        ls_lines = subprocess.check_output(['dcos', 'task', 'ls', task_id, '--long', '--all']).decode().split('\n')
+        ret = {}
+        for line in ls_lines:
+            # example elems: ['drwxr-xr-x', '6', 'nobody', 'nobody', '4096', 'Jul 21 22:07', 'jre1.8.0_144']
+            elems = [s.strip() for s in filter(None, s.split('  '))]
+            # get timestamp: 'Jul 21 22:07' => '0721_2207'
+            timeobj = time.strptime(elems[-2], '%b %d %H:%M')
+            timestamp = '{:02d}{:02d}_{:02d}{:02d}'.format(timeobj.tm_mon, timeobj.tm_mday, timeobj.tm_hour, timeobj.tm_min)
+            ret[elems[-1]] = timestamp # 'jre1.8.0_144' => '0721_2207'
+        return ret
     except:
         log.exception('Failed to get list of files for task: {}'.format(task_id))
-        return set()
+        return {}
 
 
 def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000) -> str:
@@ -215,26 +229,27 @@ def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=10000
     return result.stdout.decode()
 
 
-def get_rotating_task_logs(task_id: str, known_task_files: set, task_file: str):
+def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: str):
     rotated_filenames = [task_file, ]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
     for filename in rotated_filenames:
-        if not filename in known_task_files:
+        if not filename in task_file_timestamps:
             return # Reached a log index that doesn't exist, exit early
         content = get_task_log_for_id(task_id, filename)
         if not content:
             log.error('Unable to fetch content of {} from task {}, giving up'.format(filename, task_id))
             return
-        yield filename, content
+        yield filename, task_file_timestamps[filename], content
 
 
 def dump_task_logs(item: pytest.Item, task_ids: list):
     for task_id in task_ids:
         # Get list of available files:
-        known_task_files = get_task_files_for_id(task_id)
+        task_file_timestamps = get_task_files_for_id(task_id)
         for task_file in ('stdout', 'stderr'):
-            for log_filename, log_content in get_rotating_task_logs(task_id, known_task_files, task_file):
-                out_path = setup_artifact_path(item, '{}.{}'.format(task_id, log_filename))
+            for log_filename, log_timestamp, log_content in get_rotating_task_logs(task_id, task_file_timestamps, task_file):
+                # output filename (sort by time): '0104_1709.hello-world.0fe39302-f18b-11e7-a6f9-ae11b3b25138.stdout'
+                out_path = setup_artifact_path(item, '{}.{}.{}'.format(log_timestamp, task_id, log_filename))
                 log.info('=> Writing {} ({} bytes)'.format(out_path, len(log_content)))
                 with open(out_path, 'w') as f:
                     f.write(log_content)
