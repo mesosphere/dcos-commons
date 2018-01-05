@@ -134,7 +134,7 @@ if [ ! -f "${aws_credentials_path}/credentials" ]; then
 else
     CREDENTIALS_FILE=${aws_credentials_path}/credentials
     PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
-    if [ $( echo "$PROFILES" | grep [${aws_profile}]) != "[${aws_profile}]" ]; then
+    if [ "$( echo "$PROFILES" | grep "\[${aws_profile}\]" )" != "[${aws_profile}]" ]; then
         echo "The specified profile (${aws_profile}) was not found in the file $CREDENTIALS_FILE"
 
         if [ $( echo "$PROFILES" | wc -l ) == "1" ]; then
