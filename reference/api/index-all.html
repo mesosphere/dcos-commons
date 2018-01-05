@@ -1433,6 +1433,13 @@
 <dd>
 <div class="block">TLD for navstar-based DNS.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">DomainCapabilityValidator</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
+<dd>
+<div class="block">This validator enforces that zones and regions are only referenced by placement rules when the cluster can
+ provide this information in <code>org.apache.mesos.Protos.DomainInfo</code>s.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html#DomainCapabilityValidator--">DomainCapabilityValidator()</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html" title="class in com.mesosphere.sdk.config.validate">DomainCapabilityValidator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html#DRIVER_EXITED">DRIVER_EXITED</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#DuplicateKeyConstraintViolation-java.lang.String-">DuplicateKeyConstraintViolation(String)</a></span> - Constructor for class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
@@ -6926,6 +6933,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#supportsDefaultExecutor--">supportsDefaultExecutor()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#supportsDomains--">supportsDomains()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#supportsEnvBasedSecretsDirectiveLabel--">supportsEnvBasedSecretsDirectiveLabel()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#supportsEnvBasedSecretsProtobuf--">supportsEnvBasedSecretsProtobuf()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
@@ -7846,6 +7855,8 @@
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html" title="class in com.mesosphere.sdk.config.validate">DomainCapabilityValidator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/PodSpecsCannotChangeNetworkRegime.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/PodSpecsCannotChangeNetworkRegime.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotChangeNetworkRegime</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/PodSpecsCannotShrink.html" title="class in com.mesosphere.sdk.config.validate">PodSpecsCannotShrink</a></dt>
@@ -8177,7 +8188,7 @@ the order they are declared.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">ZoneValidator</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
 <dd>
-<div class="block">This class validates that the DETECT_ZONES envvar can only support the following transitions.</div>
+<div class="block">This class validates that referencing Zones in placement constraints can only support the following transitions.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html#ZoneValidator--">ZoneValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html" title="class in com.mesosphere.sdk.specification.validation">ZoneValidator</a></dt>
 <dd>&nbsp;</dd>
