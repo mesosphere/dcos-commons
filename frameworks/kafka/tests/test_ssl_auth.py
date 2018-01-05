@@ -35,7 +35,21 @@ def service_account(configure_security):
     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
-    yield name
+
+    service_account_options = {
+            "service": {
+                "service_account": service_account,
+                "service_account_secret": service_account,
+                "security": {
+                    "transport_encryption": {
+                        "enabled": True
+                    }
+                }
+            }
+        }
+
+    yield service_account_options
+
     sdk_security.delete_service_account(
         service_account_name=name, service_account_secret=name)
 
@@ -84,16 +98,16 @@ def kafka_client():
 def setup_principals(kafka_client):
     client_id = kafka_client["id"]
 
-    create_tls_artifacts(
+    auth.create_tls_artifacts(
         cn="kafka-tester",
         task=client_id)
-    create_tls_artifacts(
+    auth.create_tls_artifacts(
         cn="authorized",
         task=client_id)
-    create_tls_artifacts(
+    auth.create_tls_artifacts(
         cn="unauthorized",
         task=client_id)
-    create_tls_artifacts(
+    auth.create_tls_artifacts(
         cn="super",
         task=client_id)
 
@@ -320,78 +334,6 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
         assert super_message in read_result and unauthorized_message not in read_result
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-def create_tls_artifacts(cn: str, task: str) -> str:
-    pub_path = "{}_pub.crt".format(cn)
-    priv_path = "{}_priv.key".format(cn)
-    log.info("Generating certificate. cn={}, task={}".format(cn, task))
-
-    output = sdk_tasks.task_exec(task,
-        'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr \
-        -subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
-    log.info(output)
-    assert output[0] is 0
-
-    raw_csr = sdk_tasks.task_exec(task, 'cat request.csr')
-    assert raw_csr[0] is 0
-    request = {
-        "certificate_request": raw_csr[1] # The actual content is second in the array
-    }
-
-    token = sdk_cmd.run_cli("config show core.dcos_acs_token")
-
-    output = sdk_tasks.task_exec(task,
-        "curl -L -X POST \
-        -H 'Authorization: token={}' \
-        leader.mesos/ca/api/v2/sign \
-        -d '{}'".format(token, json.dumps(request)))
-    log.info(output)
-    assert output[0] is 0
-
-    # Write the public cert to the client
-    certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_tasks.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
-    log.info(output)
-    assert output[0] is 0
-
-    create_keystore_truststore(cn, task)
-    return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
-
-def create_keystore_truststore(cn: str, task: str):
-    pub_path = "{}_pub.crt".format(cn)
-    priv_path = "{}_priv.key".format(cn)
-    keystore_path = "{}_keystore.jks".format(cn)
-    truststore_path = "{}_truststore.jks".format(cn)
-
-    log.info("Generating keystore and truststore, task:{}".format(task))
-    output = sdk_tasks.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
-
-    # Convert to a PKCS12 key
-    output = sdk_tasks.task_exec(task,
-        'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && \
-        openssl pkcs12 -export -in {} -inkey {} \
-        -out keypair.p12 -name keypair -passout pass:export \
-        -CAfile dcos-ca.crt -caname root"'.format(pub_path, priv_path))
-    log.info(output)
-    assert output[0] is 0
-
-    log.info("Generating certificate: importing into keystore and truststore")
-    # Import into the keystore and truststore
-    output = sdk_tasks.task_exec(task,
-        "keytool -importkeystore \
-        -deststorepass changeit -destkeypass changeit -destkeystore {} \
-        -srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export \
-        -alias keypair".format(keystore_path))
-    log.info(output)
-    assert output[0] is 0
-
-    output = sdk_tasks.task_exec(task,
-        "keytool -import -trustcacerts -noprompt \
-        -file dcos-ca.crt -storepass changeit \
-        -keystore {}".format(truststore_path))
-    log.info(output)
-    assert output[0] is 0
 
 
 def write_client_properties(cn: str, task: str) -> str:

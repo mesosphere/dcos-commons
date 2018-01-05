@@ -25,6 +25,7 @@ def service_account():
     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
     sdk_cmd.run_cli(
         "security org groups add_user superusers {name}".format(name=name))
+
     yield name
     sdk_security.delete_service_account(
         service_account_name=name, service_account_secret=name)
