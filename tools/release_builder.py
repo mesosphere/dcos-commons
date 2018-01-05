@@ -201,15 +201,15 @@ Artifact output: {}
 
     def _download_unpack_stub_universe(self, scratchdir):
         '''Returns the path to the package directory in the stub universe.'''
-        stub_universe_file = urllib.request.urlopen(self._stub_universe_url)
-
         _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
         if stub_universe_extension == '.zip':
             # stub universe zip package (universe 2.x only)
-            return self._unpack_stub_universe_zip(scratchdir, stub_universe_file)
+            with urllib.request.urlopen(self._stub_universe_url) as stub_universe_file:
+                return self._unpack_stub_universe_zip(scratchdir, stub_universe_file)
         elif stub_universe_extension == '.json':
             # stub universe json file (universe 3.x+ only)
-            return self._unpack_stub_universe_json(scratchdir, stub_universe_file)
+            with urllib.request.urlopen(self._stub_universe_url) as stub_universe_file:
+                return self._unpack_stub_universe_json(scratchdir, stub_universe_file)
         else:
             raise Exception('Expected .zip or .json extension for stub universe: {}'.format(
                 self._stub_universe_url))
