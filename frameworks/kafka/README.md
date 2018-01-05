@@ -160,11 +160,11 @@ Using `MOUNT` volumes requires [additional configuration on each DC/OS agent sys
 
 Placement constraints allow you to customize where the service is deployed in the DC/OS cluster.
 
-Placement constraints support all [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
+Placement constraints support all [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html).
 
 A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:
 ```
-hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
 ```
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service without that system.
@@ -252,7 +252,7 @@ Placement constraints can be updated after initial deployment using the followin
 
 Let's say we have the following deployment of our brokers:
 
-- Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
+- Placement constraint of: `[["hostname", "LIKE", "10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84"]]`
 - Tasks:
 ```
 10.0.10.3: kafka-0
@@ -267,7 +267,7 @@ Let's say we have the following deployment of our brokers:
 1. Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `PLACEMENT_CONSTRAINT`:
 
 	```
-	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+	[["hostname", "LIKE", "10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123"]]
 	```
 1. Redeploy `kafka-1` from the decommissioned broker to somewhere within the new whitelist: `dcos kafka pod replace kafka-1`.
 1. Wait for `kafka-1` to be up and healthy before continuing with any other replacement operations.
