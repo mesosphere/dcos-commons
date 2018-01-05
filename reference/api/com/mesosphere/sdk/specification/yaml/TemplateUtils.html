@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9,"i1":9,"i2":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -168,6 +168,14 @@ extends java.lang.Object</pre>
  weren't found in the map.</div>
 </td>
 </tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.html#validateMissingValues-java.lang.String-java.util.Map-java.util.Collection-">validateMissingValues</a></span>(java.lang.String&nbsp;templateName,
+                     java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;values,
+                     java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingValue</a>&gt;&nbsp;missingValues)</code>
+<div class="block">Throws a descriptive exception if <code>missingValues</code> is non-empty.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -216,7 +224,7 @@ extends java.lang.Object</pre>
 <a name="renderMustacheThrowIfMissing-java.lang.String-java.lang.String-java.util.Map-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>renderMustacheThrowIfMissing</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;renderMustacheThrowIfMissing(java.lang.String&nbsp;templateName,
@@ -233,6 +241,24 @@ extends java.lang.Object</pre>
 <dd>Rendered Mustache template String</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>MustacheException</code> - if parameters in the <code>templateContent</code> weren't provided in the <code>values</code></dd>
+</dl>
+</li>
+</ul>
+<a name="validateMissingValues-java.lang.String-java.util.Map-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>validateMissingValues</h4>
+<pre>public static&nbsp;void&nbsp;validateMissingValues(java.lang.String&nbsp;templateName,
+                                         java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;values,
+                                         java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingValue</a>&gt;&nbsp;missingValues)
+                                  throws MustacheException</pre>
+<div class="block">Throws a descriptive exception if <code>missingValues</code> is non-empty. Exposed as a utility function to allow
+ custom filtering of missing values before the validation occurs.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>MustacheException</code></dd>
 </dl>
 </li>
 </ul>

@@ -6627,6 +6627,8 @@
 <dd>
 <div class="block">Sets a <code>Label</code> indicating the target configuration.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html#setTaskId-java.lang.String-">setTaskId(String)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller(TaskKiller)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
 <dd>
 <div class="block">Configures the <a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
@@ -6793,6 +6795,8 @@
 <dd>
 <div class="block">Executor for handling TaskStatus updates in <code>Scheduler#statusUpdate(SchedulerDriver, Protos.TaskStatus)</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskCleaner.html#statusUpdate-Protos.TaskStatus-">statusUpdate(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler">TaskCleaner</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Step</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
 <div class="block">Defines the interface for a Step of a <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>.</div>
@@ -6994,6 +6998,12 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/TaskEnvRouter.html#TASKCFG_GLOBAL_ENV_PREFIX">TASKCFG_GLOBAL_ENV_PREFIX</a></span> - Static variable in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TaskCleaner</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">This class kills unexpected Tasks which are not in a terminal state.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskCleaner.html#TaskCleaner-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.TaskKiller-boolean-">TaskCleaner(StateStore, TaskKiller, boolean)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler">TaskCleaner</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html#TaskConfig-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">TaskConfig(String, String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult.TaskConfig</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/validate/TaskEnvCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">TaskEnvCannotChange</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
@@ -7046,14 +7056,12 @@
 <dd>
 <div class="block">Determines if a task is launched in any zones.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskIdKilled-java.lang.String-">taskIdKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">TaskInfoAndStatus</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
 <dd>
 <div class="block">Basic container which holds a <code>TaskInfo</code> and optionally a corresponding <code>TaskStatus</code> if any is
  available.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskKilled-java.lang.String-">taskKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
-<dd>
-<div class="block">Verifies that the specified task was killed.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TaskKiller</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
@@ -7088,7 +7096,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#TaskLabelWriter-TaskInfo.Builder-">TaskLabelWriter(TaskInfo.Builder)</a></span> - Constructor for class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskNotKilled-java.lang.String-">taskNotKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskNameKilled-java.lang.String-">taskNameKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the specified task was killed.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskNameNotKilled-java.lang.String-">taskNameNotKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
 <div class="block">Verifies that the specified task was not killed.</div>
 </dd>
@@ -7856,6 +7868,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String-java.lang.String-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec, String, String)</a></span> - Static method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html" title="class in com.mesosphere.sdk.specification.validation">ZoneValidator</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html#validateMissingValues-java.lang.String-java.util.Map-java.util.Collection-">validateMissingValues(String, Map&lt;String, String&gt;, Collection&lt;TemplateUtils.MissingValue&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils</a></dt>
+<dd>
+<div class="block">Throws a descriptive exception if <code>missingValues</code> is non-empty.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html#validateTransition-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">validateTransition(String, String, String, String)</a></span> - Static method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html" title="class in com.mesosphere.sdk.specification.validation">ZoneValidator</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">ValidationUtils</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
