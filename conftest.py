@@ -205,8 +205,7 @@ def get_task_files_for_id(task_id: str) -> dict:
             # example elems: ['drwxr-xr-x', '6', 'nobody', 'nobody', '4096', 'Jul 21 22:07', 'jre1.8.0_144']
             elems = [s.strip() for s in filter(None, s.split('  '))]
             # get timestamp: 'Jul 21 22:07' => '0721_2207'
-            timeobj = time.strptime(elems[-2], '%b %d %H:%M')
-            timestamp = '{:02d}{:02d}_{:02d}{:02d}'.format(timeobj.tm_mon, timeobj.tm_mday, timeobj.tm_hour, timeobj.tm_min)
+            timestamp = time.strftime('%m%d_%H%M', time.strptime(elems[-2], '%b %d %H:%M'))
             ret[elems[-1]] = timestamp # 'jre1.8.0_144' => '0721_2207'
         return ret
     except:
