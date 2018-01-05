@@ -410,6 +410,12 @@ HTTP/api.hdfs.marathon.l4lb.thisdcos.directory@LOCAL
 </code></pre>
 </div>
 
+<p>Also note that if the service name is foldered, such as <code class="highlighter-rouge">myfolder/hdfs</code>, then the FQDN in the instance of the principal
+becomes <code class="highlighter-rouge">myfolderhdfs</code>. For example:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>hdfs/name-0-node.myfolderhdfs.autoip.dcos.thisdcos.directory@LOCAL
+</code></pre>
+</div>
+
 <h2 id="create-the-keytab-secret">Create the keytab secret</h2>
 
 <p>Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for <strong>all</strong> the HDFS principals has been created as a file <code class="highlighter-rouge">keytab</code>, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the <code class="highlighter-rouge">security</code> command):</p>
