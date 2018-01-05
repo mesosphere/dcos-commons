@@ -8,6 +8,7 @@ import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
@@ -329,7 +330,7 @@ public class SchedulerBuilder {
      * @return The updated {@link PodSpec}
      */
     static PodSpec updatePodPlacement(PodSpec podSpec) {
-        if (PlacementUtils.placementRuleReferencesRegion(podSpec)) {
+        if (!Capabilities.getInstance().supportsDomains() || PlacementUtils.placementRuleReferencesRegion(podSpec)) {
             return podSpec;
         }
 
