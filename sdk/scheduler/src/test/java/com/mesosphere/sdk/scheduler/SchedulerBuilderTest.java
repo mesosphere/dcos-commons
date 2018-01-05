@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -7,6 +8,9 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * This class tests the {@link SchedulerBuilder}.
@@ -24,6 +28,10 @@ public class SchedulerBuilderTest {
 
     @Test
     public void setLocalRegionRule() {
+        Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsDomains()).thenReturn(true);
+        Capabilities.overrideCapabilities(capabilities);
+
         PodSpec originalPodSpec = getPodSpec();
         PodSpec updatedPodSpec = SchedulerBuilder.updatePodPlacement(originalPodSpec);
 
@@ -33,6 +41,10 @@ public class SchedulerBuilderTest {
 
     @Test
     public void addLocalRegionRule() {
+        Capabilities capabilities = mock(Capabilities.class);
+        when(capabilities.supportsDomains()).thenReturn(true);
+        Capabilities.overrideCapabilities(capabilities);
+
         PodSpec originalPodSpec = DefaultPodSpec.newBuilder(getPodSpec())
                 .placementRule(ZoneRuleFactory.getInstance().require(ExactMatcher.create(TestConstants.ZONE)))
                 .build();
