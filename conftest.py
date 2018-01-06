@@ -142,6 +142,10 @@ def pytest_runtest_makereport(item, call):
             dump_mesos_state(item)
         except Exception:
             log.exception('Mesos state collection failed!')
+        try:
+            get_diagnostics_bundle(item)
+        except Exception:
+            log.exception("Diagnostics bundle creation failed")
 
 
 def pytest_runtest_teardown(item):
@@ -273,3 +277,34 @@ def dump_mesos_state(item: pytest.Item):
                 name = name[:-len('.json')] # avoid duplicate '.json'
             with open(setup_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:
                 f.write(r.text)
+
+
+def get_diagnostics_bundle(item: pytest.Item):
+    result = subprocess.run(
+        ['dcos', 'node', 'diagnostics', 'create', 'all'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    if result.returncode:
+        errmessage = result.stderr.decode()
+        log.error("Couldn't create diagnostics bundle: {}".format(errmessage))
+
+    bundle_file = None
+    while bundle_file is None:
+        status = subprocess.run(
+            ['dcos', 'node', 'diagnostics', '--status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        progress = [
+            l.strip() for l in status.stdout.decode().split('\n') if 'job_progress_percentage' in l
+        ][0]
+
+        if progress.endswith('100'):
+            bundle_file = [
+                l.strip().split('/')[-1] for l in status.stdout.decode().split('\n')
+                if 'last_bundle_dir' in l
+            ][0]
+
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(setup_artifact_path(item, '').rstrip('/'))
+        subprocess.run(['dcos', 'node', 'diagnostics', 'download', bundle_file])
+    finally:
+        os.chdir(original_cwd)
