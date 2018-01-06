@@ -52,20 +52,6 @@ DEFAULT_SETTINGS_MAPPINGS = {
                 "role": {"type": "keyword"}}}}}
 
 
-def as_json(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        try:
-            value = fn(*args, **kwargs)
-            return json.loads(value)
-        except (TypeError, json.JSONDecodeError, ValueError):
-            log.info("Failed to parse value returned by \"{}\" as JSON, returning None".format(fn.__name__))
-            log.info("Value: {}".format(value))
-            return None
-
-    return wrapper
-
-
 @retrying.retry(
     wait_fixed=1000,
     stop_max_delay=DEFAULT_KIBANA_TIMEOUT*1000,
@@ -150,33 +136,29 @@ def get_elasticsearch_master(service_name=SERVICE_NAME):
     return False
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: not res)
 def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     query = {
-        "query": {
-            "match": {
-                "name": "*"
-            }
-        },
-        "vertices": [
-            {
-                "field": "name"
-            }
-        ],
-        "connections": {
-            "vertices": [
-                {
-                    "field": "role"
-                }
-            ]
-        }
+        "query": { "match": { "name": "*" } },
+        "vertices": [ { "field": "name" } ],
+        "connections": { "vertices": [ { "field": "role" } ] }
     }
-    response = graph_api(DEFAULT_INDEX_NAME, query, service_name=service_name)
+
+    # The graph endpoint doesn't exist without X-Pack installed.
+    # In that case Elasticsearch returns a plain text error:
+    # "No handler found for uri [/INDEX_NAME/_xpack/graph/explore] and method [POST]"
+    response = _curl_query(
+        service_name, "POST",
+        "{}/_xpack/graph/_explore".format(DEFAULT_INDEX_NAME),
+        json_data=query,
+        return_json=is_enabled)
     if is_enabled:
         assert response["failures"] == []
     else:
-        # The graph endpoint doesn't exist without X-Pack installed. In that case Elasticsearch returns a plain text
-        # response (non-JSON) which when parsed by our @as_json decorator turns into a None.
-        assert response == None
+        assert "No handler found" in response
 
 
 def set_xpack(is_enabled, service_name=SERVICE_NAME):
@@ -198,7 +180,7 @@ def update_app(service_name, options, expected_task_count):
     stop_max_delay=120*1000,
     retry_on_result=lambda res: not res)
 def verify_xpack_license(service_name=SERVICE_NAME):
-    xpack_license = get_xpack_license(service_name)
+    xpack_license = _curl_query(service_name, "GET", '_xpack/license')
     if not "license" in xpack_license:
         log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
         return False # retry
@@ -212,14 +194,6 @@ def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
 
 def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
     return _curl_query(service_name, "PUT", index_name, json_data=params, https=https)
-
-
-def graph_api(index_name, query, service_name=SERVICE_NAME):
-    return _curl_query(service_name, "POST", "{}/_xpack/graph/_explore".format(index_name), json_data=query)
-
-
-def get_xpack_license(service_name=SERVICE_NAME):
-    return _curl_query(service_name, "GET", '_xpack/license')
 
 
 def delete_index(index_name, service_name=SERVICE_NAME, https=False):
