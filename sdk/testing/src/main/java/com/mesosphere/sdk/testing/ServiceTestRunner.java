@@ -277,6 +277,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
+        Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         Map<String, String> schedulerEnvironment =

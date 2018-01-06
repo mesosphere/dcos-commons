@@ -24,6 +24,7 @@ public class DefaultConfigValidators {
                 new PodSpecsCannotChangeNetworkRegime(),
                 new PreReservationCannotChange(),
                 new UserCannotChange(),
-                new TLSRequiresServiceAccount(schedulerConfig));
+                new TLSRequiresServiceAccount(schedulerConfig),
+                new DomainCapabilityValidator());
     }
 }

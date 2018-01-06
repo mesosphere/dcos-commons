@@ -9,12 +9,12 @@ import os
 import os.path
 import re
 import shutil
-import subprocess
 import sys
 import time
 
 import pytest
 import requests
+import sdk_cmd
 import sdk_security
 import sdk_utils
 import teamcity
@@ -48,7 +48,7 @@ log = logging.getLogger(__name__)
 #   drwxr-xr-x  3  nobody  nobody      4096  Jun 28 12:50                          libmesos-bundle
 #   -rw-r--r--  1  nobody  nobody  32539549  Jan 04 16:31  libmesos-bundle-1.10-1.4-63e0814.tar.gz
 # Example output:
-#   match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144"
+#   match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144  "
 # Notes:
 # - Should also support spaces in filenames.
 # - Doesn't make any assumptions about the contents of the tokens before the timestamp/filename,
@@ -97,7 +97,7 @@ def get_task_ids():
     """ This function uses dcos task WITHOUT the JSON options because
     that can return the wrong user for schedulers
     """
-    tasks = subprocess.check_output(['dcos', 'task', '--all']).decode().split('\n')
+    tasks = sdk_cmd.run_cli('task --all', print_output=False).split('\n')
     for task_str in tasks[1:]:  # First line is the header line
         task = task_str.split()
         if len(task) < 5:
@@ -210,16 +210,15 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
 
 def get_task_files_for_id(task_id: str) -> dict:
     try:
-        command = ['dcos', 'task', 'ls', task_id, '--long', '--all']
-        ls_lines = subprocess.check_output(command).decode().split('\n')
+        ls_lines = sdk_cmd.run_cli('task ls --long --all {}'.format(task_id)).split('\n')
         ret = {}
         for line in ls_lines:
             match = task_ls_pattern.match(line)
             if not match:
-                log.warning('Unable to parse line from "{}": {}'.format(' '.join(command), line))
+                log.warning('Unable to parse line: {}'.format(line))
                 continue
-            # match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144"
-            filename = match.group(3)
+            # match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144  "
+            filename = match.group(3).strip()
             # build timestamp for use in output filename: 'Jul 21 22:07' => '0721_2207'
             timestamp = time.strftime('%m%d_%H%M', time.strptime(match.group(2), '%b %d %H:%M'))
             ret[filename] = timestamp
@@ -231,17 +230,12 @@ def get_task_files_for_id(task_id: str) -> dict:
 
 def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000) -> str:
     log.info('Fetching {} from {}'.format(task_file, task_id))
-    result = subprocess.run(
-        ['dcos', 'task', 'log', task_id, '--all', '--lines', str(lines), task_file],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    if result.returncode:
-        errmessage = result.stderr.decode()
-        if not errmessage.startswith('No files exist. Exiting.'):
-            log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, errmessage))
+    rc, stdout, stderr = sdk_cmd.run_raw_cli('task log {} --all --lines {} {}'.format(task_id, lines, task_file), print_output=False)
+    if rc != 0:
+        if not stderr.startswith('No files exist. Exiting.'):
+            log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, stderr))
         return ''
-    return result.stdout.decode()
+    return stdout
 
 
 def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: str):

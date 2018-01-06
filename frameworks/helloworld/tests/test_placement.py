@@ -46,6 +46,7 @@ def _escape_placement_for_1_9(options: dict) -> dict:
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_region_zone_injection():
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
     assert fault_domain_vars_are_present('hello-0')
@@ -66,6 +67,7 @@ def fault_domain_vars_are_present(pod_instance):
 @pytest.mark.dcos_min_version('1.9')
 @pytest.mark.smoke
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_rack_not_found():
     options = _escape_placement_for_1_9({
         "service": {
@@ -114,6 +116,7 @@ def test_rack_not_found():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_unique_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
@@ -132,6 +135,7 @@ def test_unique_zone_fails():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_max_per_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
@@ -150,6 +154,7 @@ def test_max_per_zone_fails():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_max_per_zone_succeeds():
     options = _escape_placement_for_1_9({
         "service": {
@@ -168,6 +173,7 @@ def test_max_per_zone_succeeds():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_group_by_zone_succeeds():
     options = _escape_placement_for_1_9({
         "service": {
@@ -185,6 +191,7 @@ def test_group_by_zone_succeeds():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_group_by_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
@@ -251,6 +258,7 @@ def fail_placement(options):
 
 @pytest.mark.sanity
 def test_hostname_unique():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
