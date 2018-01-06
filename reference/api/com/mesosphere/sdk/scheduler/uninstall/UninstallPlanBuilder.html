@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -128,10 +128,11 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html#UninstallPlanBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">UninstallPlanBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html#UninstallPlanBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-SchedulerDriver-java.util.Optional-">UninstallPlanBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                     <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                     <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                     <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
+                    SchedulerDriver&nbsp;driver,
                     java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a>&gt;&nbsp;customSecretsClientForTests)</code>&nbsp;</td>
 </tr>
 </table>
@@ -151,20 +152,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>(package private) <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html#getPlan--">getPlan</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html#build--">build</a></span>()</code>
 <div class="block">Returns the plan to be used for uninstalling the service.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>(package private) java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html#getResourceSteps--">getResourceSteps</a></span>()</code>
-<div class="block">Returns the resource unreservation steps for all tasks in the service.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>(package private) void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html#registered-SchedulerDriver-">registered</a></span>(SchedulerDriver&nbsp;schedulerDriver)</code>
-<div class="block">Passes the provided <code>SchedulerDriver</code> to underlying plan elements.</div>
 </td>
 </tr>
 </table>
@@ -189,7 +178,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="UninstallPlanBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">
+<a name="UninstallPlanBuilder-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-SchedulerDriver-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -199,6 +188,7 @@ extends java.lang.Object</pre>
                      <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                      <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                      <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
+                     SchedulerDriver&nbsp;driver,
                      java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a>&gt;&nbsp;customSecretsClientForTests)</pre>
 </li>
 </ul>
@@ -210,36 +200,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getPlan--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getPlan</h4>
-<pre><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;getPlan()</pre>
-<div class="block">Returns the plan to be used for uninstalling the service.</div>
-</li>
-</ul>
-<a name="getResourceSteps--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getResourceSteps</h4>
-<pre>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getResourceSteps()</pre>
-<div class="block">Returns the resource unreservation steps for all tasks in the service. Some steps may be already marked as
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#COMPLETE"><code>Status.COMPLETE</code></a> when unreservation has already been performed. An empty list may be returned if no known
- resources need to be unreserved.</div>
-</li>
-</ul>
-<a name="registered-SchedulerDriver-">
+<a name="build--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>registered</h4>
-<pre>void&nbsp;registered(SchedulerDriver&nbsp;schedulerDriver)</pre>
-<div class="block">Passes the provided <code>SchedulerDriver</code> to underlying plan elements.</div>
+<h4>build</h4>
+<pre><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;build()</pre>
+<div class="block">Returns the plan to be used for uninstalling the service.</div>
 </li>
 </ul>
 </li>

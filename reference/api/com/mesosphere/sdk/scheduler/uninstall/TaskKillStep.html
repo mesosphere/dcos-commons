@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -157,7 +157,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html#TaskKillStep-Protos.TaskID-">TaskKillStep</a></span>(Protos.TaskID&nbsp;taskID)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html#TaskKillStep-Protos.TaskID-com.mesosphere.sdk.scheduler.TaskKiller-">TaskKillStep</a></span>(Protos.TaskID&nbsp;taskID,
+            <a href="../../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -175,10 +176,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>&nbsp;</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
@@ -234,13 +231,14 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="TaskKillStep-Protos.TaskID-">
+<a name="TaskKillStep-Protos.TaskID-com.mesosphere.sdk.scheduler.TaskKiller-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>TaskKillStep</h4>
-<pre>public&nbsp;TaskKillStep(Protos.TaskID&nbsp;taskID)</pre>
+<pre>public&nbsp;TaskKillStep(Protos.TaskID&nbsp;taskID,
+                    <a href="../../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</pre>
 </li>
 </ul>
 </li>
@@ -251,15 +249,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setTaskKiller</h4>
-<pre>public&nbsp;void&nbsp;setTaskKiller(<a href="../../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</pre>
-</li>
-</ul>
 <a name="start--">
 <!--   -->
 </a>
