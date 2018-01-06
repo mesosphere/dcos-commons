@@ -51,12 +51,16 @@ fi
 echo "Building with $THREADS threads..."
 make -j${THREADS}
 
+LIBCRYPTO_FILE=$(ls libcrypto.so.*)
+
 cd ..
 
 # create directory to be packaged, containing only libcrypto.so
 rm -rf $DIR_PREFIX/
 mkdir -p $DIR_PREFIX/
-cp ${OPENSSL_DIR}/libcrypto.so* $DIR_PREFIX/
+cp ${OPENSSL_DIR}/${LIBCRYPTO_FILE} $DIR_PREFIX/
+strip $DIR_PREFIX/${LIBCRYPTO_FILE}
+ln -s ${LIBCRYPTO_FILE} ${DIR_PREFIX}/libcrypto.so
 
 rm -f $OUTPUT_TGZ_FILE
 tar czvf $OUTPUT_TGZ_FILE $DIR_PREFIX
