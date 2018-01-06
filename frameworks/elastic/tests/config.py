@@ -71,11 +71,10 @@ def as_json(fn):
     stop_max_delay=DEFAULT_KIBANA_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_kibana_adminrouter_integration(path):
-    dcos_token = shakedown.dcos_acs_token()
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
-        dcos_token, shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
-    exit_status, output = shakedown.run_command_on_master(curl_cmd)
-    return output and "HTTP/1.1 200" in output
+        shakedown.dcos_acs_token(), shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
+    exit_ok, output = shakedown.run_command_on_master(curl_cmd)
+    return exit_ok and output and "HTTP/1.1 200" in output
 
 
 @retrying.retry(
@@ -83,8 +82,7 @@ def check_kibana_adminrouter_integration(path):
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
-    result = _get_elasticsearch_index_health(curl_api, index_name)
+    result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
     return result and result["status"] == color
 
 
@@ -93,12 +91,13 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
+    result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
+    if not result:
+        return False
     expected_setting = 3
-    result = _get_elasticsearch_cluster_settings(curl_api)
     setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
     log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
-    return result and expected_setting == int(setting)
+    return expected_setting == int(setting)
 
 
 @retrying.retry(
@@ -106,11 +105,8 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
-    curl_api = _curl_api(service_name, "GET")
-    result = _get_elasticsearch_cluster_health(curl_api)
-    if result is None:
-        return False
-    if not "number_of_nodes" in result:
+    result = _curl_query(service_name, "GET", "_cluster/health")
+    if not result or not "number_of_nodes" in result:
         log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
         return False
     node_count = result["number_of_nodes"]
@@ -123,8 +119,7 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
-    result = _get_hosts_with_plugin(curl_api, plugin_name)
+    result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and len(result) == DEFAULT_TASK_COUNT
 
 
@@ -133,17 +128,15 @@ def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
-    curl_api = _curl_api(service_name, "GET")
-    result = _get_hosts_with_plugin(curl_api, plugin_name)
+    result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and result == []
 
 
-def _get_hosts_with_plugin(curl_api, plugin_name):
-    exit_status, output = shakedown.run_command_on_master("{}/_cat/plugins'".format(curl_api))
-    if exit_status:
-        return [host for host in output.split("\n") if plugin_name in host]
-    else:
+def _get_hosts_with_plugin(service_name, plugin_name):
+    output = _curl_query(service_name, "GET", "_cat/plugins", return_json=False)
+    if output is None:
         return None
+    return [host for host in output.split("\n") if plugin_name in host]
 
 
 @retrying.retry(
@@ -151,9 +144,8 @@ def _get_hosts_with_plugin(curl_api, plugin_name):
     stop_max_delay=120*1000,
     retry_on_result=lambda res: not res)
 def get_elasticsearch_master(service_name=SERVICE_NAME):
-    # just in case, re-fetch the _curl_api in case the elasticsearch master is moved:
-    exit_status, output = shakedown.run_command_on_master("{}/_cat/master'".format(_curl_api(service_name, "GET")))
-    if exit_status and len(output.split()) > 0:
+    output = _curl_query(service_name, "GET", "_cat/master", return_json=False)
+    if output is not None and len(output.split()) > 0:
         return output.split()[-1]
     return False
 
@@ -187,17 +179,9 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
         assert response == None
 
 
-def enable_xpack(service_name=SERVICE_NAME):
-    _set_xpack(service_name, "true")
-
-
-def disable_xpack(service_name=SERVICE_NAME):
-    _set_xpack(service_name, "false")
-
-
-def _set_xpack(service_name, is_enabled):
+def set_xpack(is_enabled, service_name=SERVICE_NAME):
     # Toggling X-Pack requires full cluster restart, not a rolling restart
-    options = {'TASKCFG_ALL_XPACK_ENABLED': is_enabled, 'UPDATE_STRATEGY': 'parallel'}
+    options = {'TASKCFG_ALL_XPACK_ENABLED': str(is_enabled).lower(), 'UPDATE_STRATEGY': 'parallel'}
     update_app(service_name, options, DEFAULT_TASK_COUNT)
 
 
@@ -222,87 +206,66 @@ def verify_xpack_license(service_name=SERVICE_NAME):
     return True # done
 
 
-@as_json
-def _get_elasticsearch_index_health(curl_api, index_name):
-    exit_status, output = shakedown.run_command_on_master("{}/_cluster/health/{}'".format(curl_api, index_name))
-    return output
-
-
-@as_json
-def _get_elasticsearch_cluster_health(curl_api):
-    exit_status, output = shakedown.run_command_on_master("{}/_cluster/health'".format(curl_api))
-    return output
-
-
-@as_json
-def _get_elasticsearch_cluster_settings(curl_api):
-    curl_cluster_settings = "{}/_cluster/settings?include_defaults=true'".format(curl_api)
-    exit_status, output = shakedown.run_command_on_master(curl_cluster_settings)
-    return output
-
-
-@as_json
 def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/_stats'".format(_curl_api(service_name, "GET"), index_name))
-    return output
+    return _curl_query(service_name, "GET", "{}/_stats".format(index_name))
 
 
-@as_json
 def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/{}' -d '{}'".format(
-            _curl_api(service_name, "PUT", https=https), index_name, json.dumps(params)))
-    return output
+    return _curl_query(service_name, "PUT", index_name, json_data=params, https=https)
 
 
-@as_json
 def graph_api(index_name, query, service_name=SERVICE_NAME):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/_xpack/_graph/_explore' -d '{}'".format(_curl_api(service_name, "POST"), index_name, json.dumps(query)))
-    return output
+    return _curl_query(service_name, "POST", "{}/_xpack/_graph/_explore".format(index_name), json_data=query)
 
 
-@as_json
 def get_xpack_license(service_name=SERVICE_NAME):
-    exit_status, output = shakedown.run_command_on_master("{}/_xpack/license'".format(_curl_api(service_name, "GET")))
-    return output
+    return _curl_query(service_name, "GET", '_xpack/license')
 
 
-@as_json
 def delete_index(index_name, service_name=SERVICE_NAME, https=False):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/{}'".format(_curl_api(service_name, "DELETE", https=https), index_name))
-    return output
+    return _curl_query(service_name, "DELETE", index_name, https=https)
 
 
-@as_json
 def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/{}/{}?refresh=wait_for' -d '{}'".format(
-            _curl_api(service_name, "PUT", https=https), index_name, index_type, doc_id, json.dumps(params)))
-    return output
+    return _curl_query(
+        service_name, "PUT",
+        "{}/{}/{}?refresh=wait_for".format(index_name, index_type, doc_id),
+        json_data=params,
+        https=https)
 
 
-@as_json
 def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False):
-    exit_status, output = shakedown.run_command_on_master(
-        "{}/{}/{}/{}'".format(
-            _curl_api(service_name, "GET", https=https), index_name, index_type, doc_id))
-    return output
+    return _curl_query(
+        service_name, "GET", "{}/{}/{}".format(index_name, index_type, doc_id), https=https)
 
 
-@as_json
 def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
-    exit_status, output = shakedown.run_command_on_master("{}/_nodes'".format(_curl_api(service_name, "GET")))
-    return output
+    return _curl_query(service_name, "GET", "_nodes")
 
 
-def _curl_api(service_name, method, role="master", https=False):
-    protocol = 'https://' if https else 'http://'
-    host = protocol + sdk_hosts.autoip_host(
-        service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    return ("/opt/mesosphere/bin/curl -X{} -u elastic:changeme -H 'Content-type: application/json' '" + host).format(method)
+# Here we only retry if the command itself failed, or if the data couldn't be parsed as JSON when return_json=True.
+# Upstream callers may want to have their own retry loop against the content of the returned data (e.g. expected field is missing).
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: res is None)
+def _curl_query(service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True):
+    protocol = 'https' if https else 'http'
+    host = sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    curl_cmd = ("/opt/mesosphere/bin/curl -u elastic:changeme -X{} '{}://{}/{}'").format(method, protocol, host, endpoint)
+    if json_data:
+        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
+    exit_ok, output = shakedown.run_command_on_master(curl_cmd)
+    if not exit_ok:
+        log.warning("Failed to run command on master, retrying or giving up.\nCommand:\n{}".format(curl_cmd))
+        return None
+    if not return_json:
+        return output
+    try:
+        return json.loads(output)
+    except:
+        log.warning("Failed to parse HTTP response as JSON, retrying or giving up.\nCommand:\n{}\nResponse:\n{}".format(curl_cmd, output))
+        return None
 
 
 def _master_zero_http_port(service_name):
