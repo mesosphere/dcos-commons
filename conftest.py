@@ -286,7 +286,9 @@ def dump_mesos_state(item: pytest.Item):
 
 
 def get_diagnostics_bundle(item: pytest.Item):
-    result = subprocess.run(['dcos', 'node', 'diagnostics', 'create', 'all'])
+    result = subprocess.run(
+        ['dcos', 'node', 'diagnostics', 'create', 'all'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     if result.returncode:
         errmessage = result.stderr.decode()
         log.error("Couldn't create diagnostics bundle: {}".format(errmessage))
