@@ -156,9 +156,9 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
         json_data=query,
         return_json=is_enabled)
     if is_enabled:
-        assert response["failures"] == []
+        return response["failures"] == []
     else:
-        assert "No handler found" in response
+        return "No handler found" in response
 
 
 def set_xpack(is_enabled, service_name=SERVICE_NAME):
@@ -226,7 +226,7 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
 def _curl_query(service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True):
     protocol = 'https' if https else 'http'
     host = sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    curl_cmd = ("/opt/mesosphere/bin/curl -u elastic:changeme -X{} '{}://{}/{}'").format(method, protocol, host, endpoint)
+    curl_cmd = ("/opt/mesosphere/bin/curl -sS -u elastic:changeme -X{} '{}://{}/{}'").format(method, protocol, host, endpoint)
     if json_data:
         curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
     task_name = "master-0-node"
