@@ -70,7 +70,7 @@ def _get_test_job(name, commands, node_address, node_port, restart_policy='ON_FA
         'id': 'test.cassandra.' + name,
         'run': {
             'cmd': ' && '.join(commands),
-            'docker': {'image': 'cassandra:3.0.13', 'forcePullImage': False},
+            'docker': {'image': 'cassandra:3.0.13'},
             'cpus': 1,
             'mem': 512,
             'user': 'nobody',
