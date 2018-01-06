@@ -40,10 +40,10 @@ public abstract class AbstractScheduler {
     protected final ConfigStore<ServiceSpec> configStore;
     protected final SchedulerConfig schedulerConfig;
 
-    private SchedulerApiServer apiServer;
     // Tracks whether apiServer has entered a started state. We avoid launching tasks until after the API server has
     // started, because when tasks launch they typically require access to ArtifactResource for config templates.
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded = true;
@@ -82,21 +82,8 @@ public abstract class AbstractScheduler {
      * @return this
      */
     public AbstractScheduler start() {
-        if (apiServer != null) {
+        if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("start() can only be called once");
-        }
-
-        // Trigger launch of the API server. We start processing offers only once the API server has launched.
-        if (apiServerStarted.get()) {
-            LOGGER.info("Skipping API server setup");
-        } else {
-            this.apiServer = new SchedulerApiServer(schedulerConfig, getResources());
-            this.apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                @Override
-                public void lifeCycleStarted(LifeCycle event) {
-                    apiServerStarted.set(true);
-                }
-            });
         }
 
         if (multithreaded) {
@@ -261,6 +248,19 @@ public abstract class AbstractScheduler {
             } catch (Exception e) {
                 LOGGER.error("Initialization failed with exception: ", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+            }
+
+            // Trigger launch of the API server. We start processing offers only once the API server has launched.
+            if (apiServerStarted.get()) {
+                LOGGER.info("Skipping API server setup");
+            } else {
+                SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, getResources());
+                apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                    @Override
+                    public void lifeCycleStarted(LifeCycle event) {
+                        apiServerStarted.set(true);
+                    }
+                });
             }
 
             try {

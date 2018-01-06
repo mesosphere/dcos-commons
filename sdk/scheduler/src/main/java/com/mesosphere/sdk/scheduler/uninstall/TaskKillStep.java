@@ -12,16 +12,13 @@ import java.util.Optional;
  */
 public class TaskKillStep extends UninstallStep {
 
-    private TaskKiller taskKiller;
-    private Protos.TaskID taskID;
+    private final TaskKiller taskKiller;
+    private final Protos.TaskID taskID;
 
-    public TaskKillStep(Protos.TaskID taskID) {
+    public TaskKillStep(Protos.TaskID taskID, TaskKiller taskKiller) {
         super("kill-task-" + taskID.getValue(), Status.PENDING);
-        this.taskID = taskID;
-    }
-
-    public void setTaskKiller(TaskKiller taskKiller) {
         this.taskKiller = taskKiller;
+        this.taskID = taskID;
     }
 
     @Override

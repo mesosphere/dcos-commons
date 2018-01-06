@@ -32,8 +32,7 @@ public class TaskKillStepTest {
     }
 
     private TaskKillStep createStep() {
-        TaskKillStep step = new TaskKillStep(taskID);
-        step.setTaskKiller(mockTaskKiller);
+        TaskKillStep step = new TaskKillStep(taskID, mockTaskKiller);
         return step;
     }
 }
