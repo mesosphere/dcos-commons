@@ -4,6 +4,7 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import functools
 import json
 import logging
 import re
@@ -200,12 +201,32 @@ def _upgrade_or_downgrade(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
+# Retry the decorated function several times in the event of exception_class. Raise the exception
+# normally if the number of retries is exceeded.
+def _retry(retries=3, exception_class=Exception):
+    def decorator(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            exception = None
+            for i in range(retries):
+                try:
+                    result = fn(*args, **kwargs)
+                except exception_class as e:
+                    exception = e
+                    continue
 
+                return result
+
+            raise exception
+        return wrapper
+
+    return decorator
+
+@_retry(exception_class=AttributeError)
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
         sdk_cmd.run_cli('package describe {}'.format(package_name), print_output=False)).group(1)
-
 
 # Default repo is the one at index=0.
 def _add_repo(repo_name, repo_url, prev_version, index, default_repo_package_name):
