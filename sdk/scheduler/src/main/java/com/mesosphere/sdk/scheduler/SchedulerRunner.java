@@ -161,6 +161,8 @@ public class SchedulerRunner implements Runnable {
             PlansResource emptyPlanResource = new PlansResource();
             emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
 
+            schedulerBuilder.getStateStore().clearAllData();
+
             SchedulerApiServer apiServer = new SchedulerApiServer(
                     schedulerConfig,
                     Arrays.asList(
