@@ -163,8 +163,6 @@ def kinit(task_id: str, keytab: str, principal: str):
     kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
     rc, stdout, stderr = sdk_tasks.task_exec(task_id, kinit_cmd)
-    log.info("stdout: %s", stdout)
-    log.info("stderr: %s", stderr)
     if rc != 0:
         raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\nstdout: {}\nstderr: {}".format(rc, keytab, principal, stdout, stderr))
 
@@ -176,8 +174,6 @@ def kdestroy(task_id: str):
     """
     log.info("Erasing auth session:")
     rc, stdout, stderr = sdk_tasks.task_exec(task_id, "kdestroy")
-    log.info("stdout: %s", stdout)
-    log.info("stderr: %s", stderr)
     if rc != 0:
         raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
@@ -186,7 +182,7 @@ class KerberosEnvironment:
     def __init__(self):
         """
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
-        This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
+        This just passes a dictionary to be rendered as a JSON app definition to marathon.
         """
         self._working_dir = None
         self._temp_working_dir = None
@@ -250,8 +246,6 @@ class KerberosEnvironment:
         )
         log.info("Running kadmin: {}".format(kadmin_cmd))
         rc, stdout, stderr = sdk_tasks.task_exec(self.task_id, kadmin_cmd)
-        log.info("stdout: %s", stdout)
-        log.info("stderr: %s", stderr)
         if rc != 0:
             raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
 
@@ -357,7 +351,7 @@ class KerberosEnvironment:
             with open(base64_encoded_keytab_path, "w") as f:
                 f.write(base64_encoding)
 
-            log.info("Finished base64-encoding secret content (%d bytes): %s".format(len(base64_encoding), base64_encoding))
+            log.info("Finished base64-encoding secret content (%d bytes): %s", len(base64_encoding), base64_encoding)
 
         except Exception as e:
             raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
@@ -365,15 +359,14 @@ class KerberosEnvironment:
         self.keytab_secret_path = "{}_keytab".format(DCOS_BASE64_PREFIX)
 
         sdk_security.install_enterprise_cli()
-        # TODO: check if a keytab secret of same name already exists
+        # try to delete any preexisting secret data:
+        sdk_security.delete_secret(self.keytab_secret_path)
+        # create new secret:
         create_secret_cmd = "security secrets create {keytab_secret_path} --value-file {encoded_keytab_path}".format(
             keytab_secret_path=self.keytab_secret_path,
-            encoded_keytab_path=base64_encoded_keytab_path
-        )
+            encoded_keytab_path=base64_encoded_keytab_path)
         log.info("Creating secret named %s from file %s: %s", self.keytab_secret_path, base64_encoded_keytab_path, create_secret_cmd)
         rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
-        log.info("stdout: %s", stdout)
-        log.info("stderr: %s", stderr)
         if rc != 0:
             raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(rc, create_secret_cmd, stdout, stderr))
 
