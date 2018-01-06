@@ -21,7 +21,7 @@ DIR_PREFIX="openssl-dist" # NOTE: also referenced in `svc.yml`
 OPENSSL_DIR="openssl-${VERSION}"
 OPENSSL_TGZ_FILE="${OPENSSL_DIR}.tar.gz"
 TGZ_URL="https://www.openssl.org/source/${OPENSSL_TGZ_FILE}"
-OUTPUT_TGZ_FILE="openssl-${VERSION}-libcrypto.tar.gz"
+OUTPUT_TGZ_FILE="openssl-${VERSION}-libs.tar.gz"
 
 if [ "$(uname)" != "Linux" ]; then
     # Built artifacts need to be runnable within a Linux container.
@@ -52,15 +52,17 @@ echo "Building with $THREADS threads..."
 make -j${THREADS}
 
 LIBCRYPTO_FILE=$(ls libcrypto.so.*)
+LIBSSL_FILE=$(ls libssl.so.*)
 
 cd ..
 
 # create directory to be packaged, containing only libcrypto.so
 rm -rf $DIR_PREFIX/
 mkdir -p $DIR_PREFIX/
-cp ${OPENSSL_DIR}/${LIBCRYPTO_FILE} $DIR_PREFIX/
-strip $DIR_PREFIX/${LIBCRYPTO_FILE}
+cp ${OPENSSL_DIR}/${LIBCRYPTO_FILE} ${OPENSSL_DIR}/${LIBSSL_FILE} $DIR_PREFIX/
+strip $DIR_PREFIX/${LIBCRYPTO_FILE} $DIR_PREFIX/${LIBSSL_FILE}
 ln -s ${LIBCRYPTO_FILE} ${DIR_PREFIX}/libcrypto.so
+ln -s ${LIBSSL_FILE} ${DIR_PREFIX}/libssl.so
 
 rm -f $OUTPUT_TGZ_FILE
 tar czvf $OUTPUT_TGZ_FILE $DIR_PREFIX
