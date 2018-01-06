@@ -215,7 +215,7 @@ def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
 
 
 def graph_api(index_name, query, service_name=SERVICE_NAME):
-    return _curl_query(service_name, "POST", "{}/_xpack/_graph/_explore".format(index_name), json_data=query)
+    return _curl_query(service_name, "POST", "{}/_xpack/graph/_explore".format(index_name), json_data=query)
 
 
 def get_xpack_license(service_name=SERVICE_NAME):
@@ -255,16 +255,23 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
     curl_cmd = ("/opt/mesosphere/bin/curl -u elastic:changeme -X{} '{}://{}/{}'").format(method, protocol, host, endpoint)
     if json_data:
         curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
-    exit_ok, output = shakedown.run_command_on_master(curl_cmd)
-    if not exit_ok:
-        log.warning("Failed to run command on master, retrying or giving up.\nCommand:\n{}".format(curl_cmd))
+    task_name = "master-0-node"
+    exit_code, stdout, stderr = sdk_tasks.task_exec(task_name, curl_cmd)
+
+    def build_errmsg(msg):
+        return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)
+
+    if exit_code:
+        log.warning(build_errmsg("Failed to run command on {}, retrying or giving up.".format(task_name)))
         return None
+
     if not return_json:
-        return output
+        return stdout
+
     try:
-        return json.loads(output)
+        return json.loads(stdout)
     except:
-        log.warning("Failed to parse HTTP response as JSON, retrying or giving up.\nCommand:\n{}\nResponse:\n{}".format(curl_cmd, output))
+        log.warning(build_errmsg("Failed to parse stdout as JSON, retrying or giving up."))
         return None
 
 
