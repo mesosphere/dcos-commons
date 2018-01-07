@@ -16,7 +16,8 @@ pods:
           path: hello-container-path
           type: DOCKER
           docker_volume_driver: pxd
-          docker_volume_name: helloVolume
+          docker_volume_name: {{HELLO_DOCKER_VOLUME_NAME}}
+          docker_driver_options: {{{HELLO_DOCKER_DRIVER_OPTIONS}}}
           size: {{HELLO_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}

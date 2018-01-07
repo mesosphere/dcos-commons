@@ -13,7 +13,7 @@
         "user": {
           "description": "The user that the service will run as.",
           "type": "string",
-          "default": "nobody"
+          "default": "root"
         },
         "service_account": {
           "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of the Mesos framework.",
@@ -132,6 +132,16 @@
           "description": "Hello pod persistent disk requirements (in MB)",
           "type": "integer",
           "default": 25
+        },
+        "portworx_volume_name": {
+          "description": "Portworx volume name",
+          "type": "string",
+          "default": "helloVolume"
+        },
+        "portworx_volume_options": {
+          "description": "Portworx volume options. Comma separated key=value pairs",
+          "type": "string",
+          "default": ""
         },
         "count": {
           "description": "Number of Hello pods to run",
