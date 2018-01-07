@@ -152,7 +152,7 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     # "No handler found for uri [/INDEX_NAME/_xpack/graph/explore] and method [POST]"
     response = _curl_query(
         service_name, "POST",
-        "{}/_xpack/graph/_explore".format(DEFAULT_INDEX_NAME),
+        "{}/_xpack/_graph/_explore".format(DEFAULT_INDEX_NAME),
         json_data=query,
         return_json=is_enabled)
     if is_enabled:
