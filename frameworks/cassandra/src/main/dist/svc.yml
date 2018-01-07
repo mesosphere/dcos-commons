@@ -18,7 +18,7 @@ pods:
     uris:
       - {{CASSANDRA_JAVA_URI}}
       - {{CASSANDRA_PYTHON_URI}}
-      - {{CASSANDRA_LIBCRYPTO_URI}}
+      - {{CASSANDRA_OPENSSL_URI}}
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
