@@ -171,6 +171,14 @@ You must include spare capacity in this list, so that if one of the whitelisted 
 
 For an example of updating placement constraints, see [Managing](#managing), below.
 
+#### Regions and Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
+```
+[["@zone", "GROUP_BY", "3"]]
+```
+
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
 <a name="uninstalling"></a>
 # Uninstalling
@@ -360,5 +368,3 @@ Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the versio
 ### Upgrades/downgrades
 
 The package supports upgrade and rollback between adjacent versions only. For example, to upgrade from version 2 to version 4, you must first complete an upgrade to version 3, followed by an upgrade to version 4.
-
-
