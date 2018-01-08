@@ -185,10 +185,10 @@ def test_authz_acls_required(kafka_client, kafka_server):
     assert write_to_topic("super", client_id, topic_name, message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(auth.read_from_topic("authorized", client_id, topic_name, 1))
+    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1))
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    assert message in auth.read_from_topic("super", client_id, topic_name, 1)
+    assert message in read_from_topic("super", client_id, topic_name, 1)
 
     zookeeper_endpoint = sdk_cmd.svc_cli(
         kafka_server["package_name"],
@@ -207,12 +207,12 @@ def test_authz_acls_required(kafka_client, kafka_server):
     assert write_to_topic("super", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    topic_output = auth.read_from_topic("authorized", client_id, topic_name, 3)
+    topic_output = read_from_topic("authorized", client_id, topic_name, 3)
     assert message in topic_output
     assert second_message in topic_output
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    topic_output = auth.read_from_topic("super", client_id, topic_name, 3)
+    topic_output = read_from_topic("super", client_id, topic_name, 3)
     assert message in topic_output
     assert second_message in topic_output
 
@@ -221,11 +221,18 @@ def test_authz_acls_required(kafka_client, kafka_server):
     assert not write_to_topic("unauthorized", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(auth.read_from_topic("unauthorized", client_id, topic_name, 1))
+    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1))
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
+def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                auth.get_kerberos_client_properties(ssl_enabled=False),
                                auth.setup_env(cn, task))
+
+
+def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
+
+    return auth.read_from_topic(cn, task, topic, messages,
+                                auth.get_kerberos_client_properties(ssl_enabled=False),
+                                auth.setup_env(cn, task))

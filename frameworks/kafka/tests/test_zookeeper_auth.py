@@ -246,11 +246,18 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     assert write_to_topic("client", client_id, topic_name, message)
 
-    assert message in auth.read_from_topic("client", client_id, topic_name, 1)
+    assert message in read_from_topic("client", client_id, topic_name, 1)
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
+def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                auth.get_kerberos_client_properties(ssl_enabled=False),
                                auth.setup_env(cn, task))
+
+
+def read_from_topic(cn: str, task: str, topic: str, message: str) -> str:
+
+    return auth.read_from_topic(cn, task, topic, message,
+                                auth.get_kerberos_client_properties(ssl_enabled=False),
+                                auth.setup_env(cn, task))

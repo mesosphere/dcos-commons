@@ -211,12 +211,12 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 def get_client_properties(cn: str) -> str:
     client_properties_lines = []
     client_properties_lines.extend(auth.get_kerberos_client_properties(ssl_enabled=True))
-    client_properties_lines.extend(auth.get_ssl_client_properties(cn))
+    client_properties_lines.extend(auth.get_ssl_client_properties(cn, True))
 
     return client_properties_lines
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
+def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                get_client_properties(cn),
@@ -224,46 +224,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
-    if not cmd:
-        env_str = auth.setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
-        timeout_ms = 60000
-        read_cmd = "bash -c \"{} && kafka-console-consumer \
-            --topic {} \
-            --consumer.config {} \
-            --bootstrap-server \$KAFKA_BROKER_LIST \
-            --from-beginning --max-messages {} \
-            --timeout-ms {} \
-            \"".format(env_str, topic, client_properties, messages, timeout_ms)
-    else:
-        read_cmd = cmd
 
-    def read_failed(output) -> bool:
-        LOG.info("Checking read output: %s", output)
-        rc = output[0]
-        stderr = output[2]
-
-        if rc:
-            LOG.error("Read failed with non-zero return code")
-            return True
-        if "kafka.consumer.ConsumerTimeoutException" in stderr:
-            return True
-
-        LOG.info("Output check passed")
-
-        return False
-
-    @retrying.retry(wait_exponential_multiplier=1000,
-                    wait_exponential_max=60 * 1000,
-                    retry_on_result=read_failed)
-    def read_wrapper():
-        LOG.info("Running: %s", read_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, read_cmd)
-        LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
-
-        return rc, stdout, stderr
-
-    output = read_wrapper()
-
-    assert output[0] is 0
-    return " ".join(str(o) for o in output)
+    return auth.read_from_topic(cn, task, topic, messages,
+                                get_client_properties(cn),
+                                environment=auth.setup_env(cn, task))

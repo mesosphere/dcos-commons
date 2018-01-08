@@ -36,11 +36,19 @@ def get_kerberos_client_properties(ssl_enabled: bool) -> list:
             'sasl.kerberos.service.name=kafka', ]
 
 
-def get_ssl_client_properties(cn: str) -> list:
-    return ["ssl.truststore.location = {cn}_truststore.jks",format(cn=cn),
-            "ssl.truststore.password = changeit",
-            "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
-            "ssl.keystore.password = changeit", ]
+def get_ssl_client_properties(cn: str, has_kerberos: bool) -> list:
+
+    if has_kerberos:
+        client_properties = []
+    else:
+        client_properties = ["security.protocol=SSL", ]
+
+    client_properties.extend(["ssl.truststore.location = {cn}_truststore.jks", format(cn=cn),
+                              "ssl.truststore.password = changeit",
+                              "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
+                              "ssl.keystore.password = changeit", ])
+
+    return client_properties
 
 
 def write_kafka_client_properties(primary: str, task: str) -> str:
@@ -120,7 +128,7 @@ def get_bash_command(cmd: str, environment: str) -> str:
 
 
 def write_to_topic(cn: str, task: str, topic: str, message: str,
-                   client_properties: list=[], environment: str=None) -> str:
+                   client_properties: list=[], environment: str=None) -> bool:
 
     client_properties_file = write_client_properties(cn, task, client_properties)
 
@@ -171,20 +179,23 @@ def write_to_topic(cn: str, task: str, topic: str, message: str,
     return rc_success and stdout_success and stderr_success
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
-    if not cmd:
-        env_str = setup_env(cn, task)
-        client_properties = write_kafka_client_properties(cn, task)
-        timeout_ms = 60000
-        read_cmd = "bash -c \"{} && kafka-console-consumer \
-            --topic {} \
-            --consumer.config {} \
+def read_from_topic(cn: str, task: str, topic: str, messages: int,
+                    client_properties: list=[], environment: str=None) -> str:
+
+    client_properties_file = write_client_properties(cn, task, client_properties)
+
+    cmd = "kafka-console-consumer \
+            --topic {topic} \
+            --consumer.config {client_properties_file} \
             --bootstrap-server \$KAFKA_BROKER_LIST \
-            --from-beginning --max-messages {} \
-            --timeout-ms {} \
-            \"".format(env_str, topic, client_properties, messages, timeout_ms)
-    else:
-        read_cmd = cmd
+            --from-beginning --max-messages {messages} \
+            --timeout-ms {timeout_ms} \
+            \"".format(topic=topic,
+                       client_properties_file=client_properties_file,
+                       messages=messages,
+                       timeout_ms=60000)
+
+    read_cmd = get_bash_command(cmd, environment)
 
     def read_failed(output) -> bool:
         LOG.info("Checking read output: %s", output)

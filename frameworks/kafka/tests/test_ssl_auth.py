@@ -322,35 +322,15 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def write_client_properties(cn: str, task: str) -> str:
-    sdk_tasks.task_exec(task,
-    """bash -c \"cat >{cn}-client.properties << EOL
-security.protocol = SSL
-ssl.truststore.location = {cn}_truststore.jks
-ssl.truststore.password = changeit
-ssl.keystore.location = {cn}_keystore.jks
-ssl.keystore.password = changeit
-EOL\"""".format(cn=cn))
-
-    return "{}-client.properties".format(cn)
-
-
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
+def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
-                               auth.get_ssl_client_properties(cn),
+                               auth.get_ssl_client_properties(cn, False),
                                environment=None)
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
-    client_properties = write_client_properties(cn, task)
-    timeout_ms = 60000
-    cmd = "bash -c \"kafka-console-consumer \
-            --topic {} \
-            --consumer.config {} \
-            --bootstrap-server \$KAFKA_BROKER_LIST \
-            --from-beginning --max-messages {} \
-            --timeout-ms {} \
-            \"".format(topic, client_properties, messages, timeout_ms)
 
-    return auth.read_from_topic(cn, task, topic, messages, cmd)
+    return auth.read_from_topic(cn, task, topic, messages,
+                                auth.get_ssl_client_properties(cn, False),
+                                environment=None)
