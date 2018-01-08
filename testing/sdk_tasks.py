@@ -224,6 +224,10 @@ def get_task_info(task_name: str) -> dict:
         tasks = json.loads(raw_tasks)
         for task in tasks:
             if task["name"] == task_name:
+                log.info("Matched on 'name'")
+                return task
+            if task.get("id", None) == task_name:
+                log.info("Matched on 'id'")
                 return task
 
     log.error("Task %s not found.\nFound: %s", task_name, raw_tasks)
