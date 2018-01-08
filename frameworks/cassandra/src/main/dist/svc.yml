@@ -18,6 +18,7 @@ pods:
     uris:
       - {{CASSANDRA_JAVA_URI}}
       - {{CASSANDRA_PYTHON_URI}}
+      - {{CASSANDRA_OPENSSL_URI}}
       - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
@@ -100,6 +101,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
@@ -136,12 +138,14 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
       upload-azure:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 (cd container-path && tar cvhzf snapshot.tar.gz snapshot/) ;
@@ -158,6 +162,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 mkdir container-path/snapshot ;
                 aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
         resource-set: sidecar-resources
@@ -165,6 +170,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ;
@@ -176,6 +182,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
@@ -235,6 +242,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 echo Using $(python --version 2>&1) in $(which python) ;
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
