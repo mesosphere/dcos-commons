@@ -68,6 +68,7 @@ def _retried_install_impl(
 def install(
         package_name,
         expected_running_tasks,
+        service_name=None,
         additional_options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS,
@@ -75,7 +76,8 @@ def install(
         insert_strict_options=True):
     start = time.time()
 
-    service_name = package_name
+    if not service_name:
+        service_name = package_name
 
     if insert_strict_options and sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
@@ -116,11 +118,11 @@ def install(
 
 @retry(stop_max_attempt_number=5, wait_fixed=5000, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
 def uninstall(
-        package_name,
+        service_name,
+        package_name=None,
         role=None,
         service_account=None,
         zk=None):
-    service_name = package_name
     _uninstall(
         package_name,
         service_name,
@@ -223,3 +225,21 @@ def merge_dictionaries(dict1, dict2):
         else:
             ret[k] = dict2[k]
     return ret
+
+
+def get_package_options(additional_options={}):
+    # expected SECURITY values: 'permissive', 'strict', 'disabled'
+    if sdk_utils.is_strict_mode():
+        # strict mode requires correct principal and secret to perform install.
+        # see also: sdk_security.py
+        return merge_dictionaries({
+            'service': {
+                'service_account': 'service-acct',
+                'principal': 'service-acct',
+                'service_account_secret': 'secret',
+                'secret_name': 'secret',
+                'mesos_api_version': 'V0'
+            }
+        }, additional_options)
+    else:
+        return additional_options
