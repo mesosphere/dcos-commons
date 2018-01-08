@@ -40,10 +40,10 @@ public abstract class AbstractScheduler {
     protected final ConfigStore<ServiceSpec> configStore;
     protected final SchedulerConfig schedulerConfig;
 
-    private SchedulerApiServer apiServer;
     // Tracks whether apiServer has entered a started state. We avoid launching tasks until after the API server has
     // started, because when tasks launch they typically require access to ArtifactResource for config templates.
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded = true;
@@ -82,21 +82,8 @@ public abstract class AbstractScheduler {
      * @return this
      */
     public AbstractScheduler start() {
-        if (apiServer != null) {
+        if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("start() can only be called once");
-        }
-
-        // Trigger launch of the API server. We start processing offers only once the API server has launched.
-        if (apiServerStarted.get()) {
-            LOGGER.info("Skipping API server setup");
-        } else {
-            this.apiServer = new SchedulerApiServer(schedulerConfig, getResources());
-            this.apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                @Override
-                public void lifeCycleStarted(LifeCycle event) {
-                    apiServerStarted.set(true);
-                }
-            });
         }
 
         if (multithreaded) {
@@ -239,6 +226,7 @@ public abstract class AbstractScheduler {
         private ReviveManager reviveManager;
         private Reconciler reconciler;
         private PlanCoordinator planCoordinator;
+        private TaskCleaner taskCleaner;
 
         @Override
         public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
@@ -253,12 +241,26 @@ public abstract class AbstractScheduler {
             this.driver = driver;
             this.reviveManager = new ReviveManager(driver);
             this.reconciler = new DefaultReconciler(stateStore);
+            this.taskCleaner = new TaskCleaner(stateStore, new TaskKiller(driver), multithreaded);
 
             try {
                 this.planCoordinator = initialize(driver);
             } catch (Exception e) {
                 LOGGER.error("Initialization failed with exception: ", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+            }
+
+            // Trigger launch of the API server. We start processing offers only once the API server has launched.
+            if (apiServerStarted.get()) {
+                LOGGER.info("Skipping API server setup");
+            } else {
+                SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, getResources());
+                apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                    @Override
+                    public void lifeCycleStarted(LifeCycle event) {
+                        apiServerStarted.set(true);
+                    }
+                });
             }
 
             try {
@@ -340,11 +342,14 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+
                 Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
+
+            taskCleaner.statusUpdate(status);
         }
 
         @Override
@@ -392,67 +397,69 @@ public abstract class AbstractScheduler {
         private void processQueuedOffers() {
             LOGGER.info("Waiting for queued offers...");
             List<Protos.Offer> offers = offerQueue.takeAll();
-            if (offers.isEmpty() && !isInitialized.get()) {
-                // The scheduler hasn't finished registration yet, so many members haven't been initialized yet either.
-                // Avoid hitting NPE for planCoordinator, driver, etc.
-                LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
-                return;
-            }
-
-            // Task Reconciliation:
-            // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-            // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-            // http://mesos.apache.org/documentation/latest/reconciliation/
-            reconciler.reconcile(driver);
-            if (!reconciler.isReconciled()) {
-                LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
-                        offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineShort(driver, offers);
-                return;
-            }
-
-            // Get the current work
-            Collection<Step> steps = planCoordinator.getCandidates();
-
-            // Revive previously suspended offers, if necessary
-            Collection<Step> activeWorkSet = new HashSet<>(steps);
-            Collection<Step> inProgressSteps = getInProgressSteps(planCoordinator);
-            LOGGER.info(
-                    "InProgress Steps: {}",
-                    inProgressSteps.stream()
-                            .map(step -> step.getMessage())
-                            .collect(Collectors.toList()));
-            activeWorkSet.addAll(inProgressSteps);
-            reviveManager.revive(activeWorkSet);
-
-            LOGGER.info("Processing {} offer{} against {} step{}:",
-                    offers.size(), offers.size() == 1 ? "" : "s",
-                    steps.size(), steps.size() == 1 ? "" : "s");
-            for (int i = 0; i < offers.size(); ++i) {
-                LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-            }
-
-            // Match offers with work (call into implementation)
-            final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
-                processOffers(driver, offers, steps);
-            } finally {
-                context.stop();
-            }
-            Metrics.incrementProcessedOffers(offers.size());
+                if (offers.isEmpty() && !isInitialized.get()) {
+                    // The scheduler hasn't finished registration yet, so many members haven't been initialized either.
+                    // Avoid hitting NPE for planCoordinator, driver, etc.
+                    LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
+                    return;
+                }
 
+                // Task Reconciliation:
+                // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+                // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+                // http://mesos.apache.org/documentation/latest/reconciliation/
+                reconciler.reconcile(driver);
+                if (!reconciler.isReconciled()) {
+                    LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
+                            offers.size(), offers.size() == 1 ? "" : "s");
+                    OfferUtils.declineShort(driver, offers);
+                    return;
+                }
 
-            synchronized (inProgressLock) {
-                offersInProgress.removeAll(
-                        offers.stream()
-                                .map(offer -> offer.getId())
+                // Get the current work
+                Collection<Step> steps = planCoordinator.getCandidates();
+
+                // Revive previously suspended offers, if necessary
+                Collection<Step> activeWorkSet = new HashSet<>(steps);
+                Collection<Step> inProgressSteps = getInProgressSteps(planCoordinator);
+                LOGGER.info(
+                        "InProgress Steps: {}",
+                        inProgressSteps.stream()
+                                .map(step -> step.getMessage())
                                 .collect(Collectors.toList()));
-                LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",
-                        offers.size(),
-                        offers.size() == 1 ? "" : "s",
-                        offersInProgress.size(),
-                        offersInProgress.size() == 1 ? "offer remains" : "offers remain",
-                        offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+                activeWorkSet.addAll(inProgressSteps);
+                reviveManager.revive(activeWorkSet);
+
+                LOGGER.info("Processing {} offer{} against {} step{}:",
+                        offers.size(), offers.size() == 1 ? "" : "s",
+                        steps.size(), steps.size() == 1 ? "" : "s");
+                for (int i = 0; i < offers.size(); ++i) {
+                    LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+                }
+
+                // Match offers with work (call into implementation)
+                final Timer.Context context = Metrics.getProcessOffersDurationTimer();
+                try {
+                    processOffers(driver, offers, steps);
+                } finally {
+                    context.stop();
+                }
+            } finally {
+                Metrics.incrementProcessedOffers(offers.size());
+
+                synchronized (inProgressLock) {
+                    offersInProgress.removeAll(
+                            offers.stream()
+                                    .map(offer -> offer.getId())
+                                    .collect(Collectors.toList()));
+                    LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",
+                            offers.size(),
+                            offers.size() == 1 ? "" : "s",
+                            offersInProgress.size(),
+                            offersInProgress.size() == 1 ? "offer remains" : "offers remain",
+                            offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+                }
             }
         }
 

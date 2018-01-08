@@ -62,8 +62,10 @@ def run_raw_cli(cmd, print_output=True):
         stderr = result.stderr.decode('utf-8').strip()
 
     if print_output:
-        print(stdout)
-        print(stderr)
+        if stdout:
+            log.info("STDOUT:\n{}".format(stdout))
+        if stderr:
+            log.info("STDERR:\n{}".format(stderr))
 
     return result.returncode, stdout, stderr
 
@@ -82,13 +84,12 @@ def get_json_output(cmd, print_output=True):
     _, stdout, stderr = run_raw_cli(cmd, print_output)
 
     if stderr:
-        log.warn("stderr for command '%s' is non-empty: %s", cmd, stderr)
+        log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
 
     try:
         json_stdout = jsonlib.loads(stdout)
     except Exception as e:
-        log.error("Error converting stdout=%s to json", stdout)
-        log.error(e)
+        log.warning("Error converting stdout to json:\n%s", stdout)
         raise e
 
     return json_stdout

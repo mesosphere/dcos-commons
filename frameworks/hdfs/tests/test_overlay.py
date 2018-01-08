@@ -1,6 +1,7 @@
 from xml.etree import ElementTree
 
 import pytest
+import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
@@ -105,13 +106,14 @@ def test_integrity_on_name_node_failure():
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
 def wait_for_failover_to_complete(namenode):
     """
     Inspects the name node logs to make sure ZK signals a complete failover.
     The given namenode is the one to become active after the failover is complete.
     """
-    def failover_detection():
-        status = config.get_name_node_status(config.SERVICE_NAME, namenode)
-        return status == "active"
-
-    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=config.DEFAULT_HDFS_TIMEOUT)
+    status = config.get_name_node_status(config.SERVICE_NAME, namenode)
+    return status == "active"

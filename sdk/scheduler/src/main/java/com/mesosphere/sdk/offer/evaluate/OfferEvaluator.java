@@ -3,6 +3,8 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.history.OfferOutcome;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -11,7 +13,6 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class OfferEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
 
     private final StateStore stateStore;
+    private final OfferOutcomeTracker offerOutcomeTracker;
     private final String serviceName;
     private final UUID targetConfigId;
     private final SchedulerConfig schedulerConfig;
@@ -37,11 +39,13 @@ public class OfferEvaluator {
 
     public OfferEvaluator(
             StateStore stateStore,
+            OfferOutcomeTracker offerOutcomeTracker,
             String serviceName,
             UUID targetConfigId,
             SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
         this.stateStore = stateStore;
+        this.offerOutcomeTracker = offerOutcomeTracker;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
         this.schedulerConfig = schedulerConfig;
@@ -83,6 +87,7 @@ public class OfferEvaluator {
                     getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
 
             Protos.Offer offer = offers.get(i);
+
             MesosResourcePool resourcePool = new MesosResourcePool(
                     offer,
                     OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
@@ -133,6 +138,12 @@ public class OfferEvaluator {
                         failedOutcomeCount,
                         evaluationStages.size(),
                         outcomeDetails.toString());
+
+                offerOutcomeTracker.track(new OfferOutcome(
+                        podInstanceRequirement.getName(),
+                        false,
+                        offer,
+                        outcomeDetails.toString()));
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
@@ -140,6 +151,13 @@ public class OfferEvaluator {
                         .collect(Collectors.toList());
                 logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
                         i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
+
+                offerOutcomeTracker.track(new OfferOutcome(
+                        podInstanceRequirement.getName(),
+                        true,
+                        offer,
+                        outcomeDetails.toString()));
+
                 return recommendations;
             }
         }
@@ -152,6 +170,7 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Map<String, Protos.TaskInfo> thisPodTasks,
             Optional<Protos.ExecutorInfo> executorInfo) throws IOException {
+
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
                 .map(resource -> ResourceUtils.getResourceId(resource))
@@ -160,9 +179,12 @@ public class OfferEvaluator {
                 .filter(resourceId -> !resourceId.isEmpty())
                 .count() == 0;
 
+        boolean allTasksFailed = thisPodTasks.values().stream()
+                .allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
+
         final String description;
         final boolean shouldGetNewRequirement;
-        if (isPermanentlyFailed(podInstanceRequirement)) {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT) || allTasksFailed) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noLaunchedTasksExist) {
@@ -186,10 +208,11 @@ public class OfferEvaluator {
                 : Optional.empty();
 
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
-        evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
         if (shouldGetNewRequirement) {
+            evaluationPipeline.add(new ExecutorEvaluationStage(Optional.empty()));
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
         } else {
+            evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
             evaluationPipeline.addAll(getExistingEvaluationPipeline(
                     podInstanceRequirement, thisPodTasks, allTasks, executorInfo.get(), tlsStageBuilder));
         }
@@ -197,32 +220,32 @@ public class OfferEvaluator {
         return evaluationPipeline;
     }
 
-    /**
-     * Returns whether the pod has permanently failed in its previous run, in which case it should be relaunched from
-     * scratch.
-     */
-    private boolean isPermanentlyFailed(PodInstanceRequirement podInstanceRequirement) {
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-            return true;
-        }
-
-        Collection<Protos.TaskInfo> taskInfos =
-                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance());
-        // If there are no taskinfos, then label the pod as "new" rather than "failed" in logs:
-        return !taskInfos.isEmpty() &&
-                taskInfos.stream().allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
-    }
-
     private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
         for (Protos.TaskInfo taskInfo : taskInfos) {
-            Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
-            if (taskStatus.isPresent() && taskStatus.get().getState().equals(Protos.TaskState.TASK_RUNNING)) {
+            if (taskHasReusableExecutor(taskInfo)) {
                 logger.info("Using existing executor: {}", taskInfo.getExecutor().getExecutorId().getValue());
                 return Optional.of(taskInfo.getExecutor());
             }
         }
 
         return Optional.empty();
+    }
+
+    private boolean taskHasReusableExecutor(Protos.TaskInfo taskInfo) {
+        Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
+        if (!taskStatus.isPresent() || FailureUtils.isPermanentlyFailed(taskInfo)) {
+            return false;
+        }
+
+        Protos.TaskState state = taskStatus.get().getState();
+        switch (state) {
+            case TASK_STAGING:
+            case TASK_STARTING:
+            case TASK_RUNNING:
+                return true;
+            default:
+                return false;
+        }
     }
 
     static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {

@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+import retrying
 import sdk_install
 import sdk_marathon
 import shakedown
@@ -13,9 +14,13 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = sdk_install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
         # don't wait for install to complete successfully:
-        shakedown.install_package(config.PACKAGE_NAME, options_json=options)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            0,
+            { "service": { "spec_file": "examples/taskcfg.yml" } },
+            wait_for_deployment=False)
 
         yield # let the test session execute
     finally:
@@ -31,7 +36,12 @@ def test_deploy():
 
     # we can get brief blips of TASK_RUNNING but they shouldnt last more than 2-3s:
     consecutive_task_running = 0
-    def fn():
+
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=1000*wait_time,
+        retry_on_result=lambda res: not res)
+    def wait():
         nonlocal consecutive_task_running
         svc_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
         states = [t['state'] for t in svc_tasks]
@@ -44,8 +54,8 @@ def test_deploy():
         return False
 
     try:
-        shakedown.wait_for(lambda: fn(), timeout_seconds=wait_time)
-    except shakedown.TimeoutExpired:
+        wait()
+    except retrying.RetryError:
         log.info('Timeout reached as expected')
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:

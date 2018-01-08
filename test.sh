@@ -19,12 +19,14 @@ pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
+aws_credentials_file="${HOME}/.aws/credentials"
+aws_profile="default"
 DCOS_ENTERPRISE=true
 interactive=
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] all|<framework-name> [-i|--interactive]"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
@@ -34,9 +36,9 @@ function usage()
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "--interactive start a docker container in interactive mode"
     echo "Cluster must be created and \$CLUSTER_URL set"
-    echo "AWS credentials must exist in the variables:"
-    echo "      \$AWS_ACCESS_KEY_ID"
-    echo "      \$AWS_SECRET_ACCESS_KEY"
+    echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
+    echo "--aws|a PATH to an AWS credentials file [default ${aws_credentials_file}]"
+    echo "        (AWS credentials must be present in this file)"
     echo "Azure tests will run if these variables are set:"
     echo "      \$AZURE_CLIENT_ID"
     echo "      \$AZURE_CLIENT_SECRET"
@@ -55,32 +57,6 @@ function usage()
 if [ "$#" -eq "0" -o x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     usage
     exit 1
-fi
-
-
-if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
-    CREDENTIALS_FILE="$HOME/.aws/credentials"
-
-    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
-    if [ $( echo "$PROFILES" | wc -l ) != "1" ]; then
-        echo "Only single profile credentials files are supported"
-        echo "Found:"
-        echo "$PROFILES"
-        exit 1
-    fi
-
-    if  [ -f "$CREDENTIALS_FILE" ]; then
-        echo "Checking $CREDENTIALS_FILE"
-        SED_ARGS='s/^.*=\s*//g'
-        AWS_ACCESS_KEY_ID=$( grep -oE "^aws_access_key_id\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
-        AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID// /}
-        AWS_SECRET_ACCESS_KEY=$( grep -oE "^aws_secret_access_key\s*=\s*\S+" $CREDENTIALS_FILE | sed $SED_ARGS )
-        AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY// /}
-    fi
-    if [ -z "$AWS_ACCESS_KEY_ID" -o -z "$AWS_SECRET_ACCESS_KEY" ]; then
-        echo "AWS credentials not found (\$AWS_ACCESS_KEY_ID and \$AWS_SECRET_ACCESS_KEY)."
-        exit 1
-    fi
 fi
 
 
@@ -125,6 +101,14 @@ case $key in
     -i|--interactive)
     interactive="true"
     ;;
+    -a|--aws)
+    aws_credentials_file="$2"
+    shift # past argument
+    ;;
+    --aws-profile)
+    aws_profile="$2"
+    shift
+    ;;
     -*)
     usage
     exit 1
@@ -140,6 +124,30 @@ done
 if [ ! -f "$ssh_path" ]; then
     echo "The specified CCM key ($ssh_path) does not exist or is not a file"
     exit 1
+fi
+
+
+if [ ! -f "${aws_credentials_file}" ]; then
+    echo "The required AWS credentials file ${aws_credentials_file} was not found"
+    echo "Try running 'maws' to log in"
+    exit 1
+else
+    PROFILES=$( grep -oE "^\[\S+\]" $aws_credentials_file )
+    if [ "$( echo "$PROFILES" | grep "\[${aws_profile}\]" )" != "[${aws_profile}]" ]; then
+        echo "The specified profile (${aws_profile}) was not found in the file $aws_credentials_file"
+
+        if [ $( echo "$PROFILES" | wc -l ) == "1" ]; then
+            PROFILES="${PROFILES/#[/}"
+            aws_profile="${PROFILES/%]/}"
+            echo "Using single profile: ${aws_profile}"
+        else
+            echo "Found:"
+            echo "$PROFILES"
+            echo ""
+            echo "Specify the correct profile using the --aws-profile command line option"
+            exit 1
+        fi
+    fi
 fi
 
 echo "interactive=$interactive"
@@ -168,12 +176,14 @@ if [ -z $interactive ]; then
     fi
     FRAMEWORK_ARGS="-e FRAMEWORK=$framework"
     DOCKER_COMMAND="bash test-runner.sh"
+    DOCKER_INTERACTIVE_FLAGS=""
 else
 # interactive mode
     FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
     FRAMEWORK_ARGS=""
     framework="NOT_SPECIFIED"
     DOCKER_COMMAND="bash"
+    DOCKER_INTERACTIVE_FLAGS="-i"
 fi
 
 if [ -n "$pytest_k" ]; then
@@ -192,12 +202,13 @@ fi
 
 
 docker run --rm \
-    -e AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
-    -e AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+    -v ${aws_credentials_file}:/root/.aws/credentials:ro \
+    -e AWS_PROFILE="${aws_profile}" \
     -e DCOS_ENTERPRISE="$DCOS_ENTERPRISE" \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
     -e DCOS_LOGIN_PASSWORD="$DCOS_LOGIN_PASSWORD" \
     -e CLUSTER_URL="$CLUSTER_URL" \
+    -e S3_BUCKET="$S3_BUCKET" \
     $azure_args \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
@@ -207,6 +218,6 @@ docker run --rm \
     -v $ssh_path:/ssh/key \
     -w /build \
     -t \
-    -i \
+    $DOCKER_INTERACTIVE_FLAGS \
     mesosphere/dcos-commons:latest \
     $DOCKER_COMMAND

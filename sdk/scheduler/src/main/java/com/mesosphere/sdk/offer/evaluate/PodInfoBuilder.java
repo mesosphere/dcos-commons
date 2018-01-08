@@ -243,15 +243,15 @@ public class PodInfoBuilder {
             setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
 
+            // Always add the bootstrap URI as the paused command depends on it
+            if (override.equals(GoalStateOverride.PAUSED)) {
+                commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
+            }
+
             if (useDefaultExecutor) {
                 // Any URIs defined in PodSpec itself.
                 for (URI uri : podSpec.getUris()) {
                     commandBuilder.addUrisBuilder().setValue(uri.toString());
-                }
-
-                // Always add the bootstrap URI as the paused command depends on it
-                if (override.equals(GoalStateOverride.PAUSED)) {
-                    commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
                 }
 
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
@@ -335,6 +335,7 @@ public class PodInfoBuilder {
             // Required URIs from the scheduler environment:
             executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getLibmesosURI());
             executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getJavaURI());
+            executorCommandBuilder.addUrisBuilder().setValue(schedulerConfig.getBootstrapURI());
 
             // Any URIs defined in PodSpec itself.
             for (URI uri : podSpec.getUris()) {

@@ -82,6 +82,11 @@ public class MarathonConstraintParserTest {
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['rack-id', 'GROUP_BY', '3']")).toString());
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "rack-id:GROUP_BY:3").toString());
 
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['zone', 'GROUP_BY', '3']]")).toString();
+        assertEquals("RoundRobinByAttributeRule{attribute=zone, attribute-count=Optional[3], task-filter=RegexMatcher{pattern='hello-.*'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['zone', 'GROUP_BY', '3']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "zone:GROUP_BY:3").toString());
+
         constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['hostname', 'GROUP_BY']]")).toString();
         assertEquals("RoundRobinByHostnameRule{agent-count=Optional.empty, task-filter=RegexMatcher{pattern='hello-.*'}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['hostname', 'GROUP_BY']")).toString());

@@ -1,11 +1,20 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.api.HealthResource;
+import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
@@ -14,6 +23,8 @@ import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +123,57 @@ public class SchedulerRunner implements Runnable {
                     schedulerBuilder.getServiceSpec(),
                     schedulerBuilder.getSchedulerConfig(),
                     schedulerBuilder.getStateStore());
+        } else {
+            /**
+             * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
+             * and provide an empty COMPLETE deploy plan so it may complete its UNINSTALL.
+             *
+             * See {@link UninstallScheduler#getMesosScheduler()}.
+             */
+            Plan emptyDeployPlan = new Plan() {
+                @Override
+                public List<Phase> getChildren() {
+                    return Collections.emptyList();
+                }
+
+                @Override
+                public Strategy<Phase> getStrategy() {
+                    return new SerialStrategy<>();
+                }
+
+                @Override
+                public UUID getId() {
+                    return UUID.randomUUID();
+                }
+
+                @Override
+                public String getName() {
+                    return Constants.DEPLOY_PLAN_NAME;
+                }
+
+                @Override
+                public List<String> getErrors() {
+                    return Collections.emptyList();
+                }
+            };
+
+            PlanManager emptyPlanManager = DefaultPlanManager.createProceeding(emptyDeployPlan);
+            PlansResource emptyPlanResource = new PlansResource();
+            emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
+
+            schedulerBuilder.getStateStore().clearAllData();
+
+            SchedulerApiServer apiServer = new SchedulerApiServer(
+                    schedulerConfig,
+                    Arrays.asList(
+                            emptyPlanResource,
+                            new HealthResource()));
+            apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                @Override
+                public void lifeCycleStarted(LifeCycle event) {
+                    LOGGER.info("Started trivially healthy API server.");
+                }
+            });
         }
     }
 

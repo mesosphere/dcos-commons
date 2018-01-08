@@ -1,15 +1,7 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
@@ -84,8 +76,8 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
         // Neither task should be killed: server should be unaffected, and agent is already in a terminal state
-        ticks.add(Expect.taskNotKilled("hello-0-nonessential"));
-        ticks.add(Expect.taskNotKilled("hello-0-essential"));
+        ticks.add(Expect.taskNameNotKilled("hello-0-nonessential"));
+        ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
 
         // Send the matching offer to relaunch ONLY the agent against:
         ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
@@ -133,8 +125,8 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
         // Only the agent task is killed: server is already in a terminal state
-        ticks.add(Expect.taskKilled("hello-0-nonessential"));
-        ticks.add(Expect.taskNotKilled("hello-0-essential"));
+        ticks.add(Expect.taskNameKilled("hello-0-nonessential"));
+        ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
 
         // Send the matching offer to relaunch both the server and agent:
         ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
@@ -149,6 +141,34 @@ public class ServiceTest {
         ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
 
         new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
+    }
+
+    /**
+     * Checks that unexpected Tasks are killed.
+     */
+    @Test
+    public void testZombieTaskKilling() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        String taskId = UUID.randomUUID().toString();
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING)
+                .setTaskId(taskId)
+                .build());
+
+        ticks.add(Expect.taskIdKilled(taskId));
+        ticks.add(Expect.taskNameNotKilled("hello-0-server"));
+
+        new ServiceTestRunner("examples/simple.yml").run(ticks);
     }
 
     /**
@@ -262,7 +282,7 @@ public class ServiceTest {
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 5, 0, 1), new StepCount("world-0", 6, 0, 0))));
-        ticks.add(Expect.taskKilled("world-1-server"));
+        ticks.add(Expect.taskNameKilled("world-1-server"));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
@@ -289,7 +309,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 1, 0, 5))));
-        ticks.add(Expect.taskKilled("world-0-server"));
+        ticks.add(Expect.taskNameKilled("world-0-server"));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
         // Turn the crank once again to erase the world-0 stub:

@@ -10,7 +10,7 @@ redirect_from: "/ops-guide"
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This operations guide describes how to manage stateful DC/OS services that are based on the DC/OS SDK. Consult the [Developer Guide](developer-guide.html) to learn how to build DC/OS SDK services.
+This operations guide describes how to manage stateful DC/OS services that are based on the DC/OS SDK. The SDK, while referenced throughout this document, is not yet generally available.
 
 This guide is structured into four major sections:
 - Overview of [component architecture](#dcos-sdk-service-overview).
@@ -357,7 +357,10 @@ You must include spare capacity in this list, so that if one of the whitelisted 
 
 ### Regions and Zones
 
-Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `@zone:GROUP_BY:3`.
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
+```
+[["@zone", "GROUP_BY", "3"]]
+```
 
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
@@ -797,7 +800,7 @@ If you are running DC/OS 1.9 or older, or a version of the service that is older
 
 1. Stop the service. From the DC/OS CLI, enter `dcos package uninstall --app-id=<instancename> <packagename>`.
    For example, `dcos package uninstall --app-id=kafka-dev confluent-kafka`.
-1. Clean up remaining reserved resources with the framework cleaner script, `janitor.py`. See [DC/OS documentation](https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner) for more information about the framework cleaner script.
+1. Clean up remaining reserved resources with the `janitor.py` script. See [DC/OS documentation](https://docs.mesosphere.com/1.10/deploying-services/uninstall/#framework-cleaner) for more information about the cleaner script.
 
 For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
 

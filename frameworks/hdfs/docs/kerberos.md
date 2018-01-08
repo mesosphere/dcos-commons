@@ -32,7 +32,7 @@ hdfs/data-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 HTTP/data-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
 HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/hdfs.marathon.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/api.hdfs.marathon.l4lb.thisdcos.directory@LOCAL
 ```
 This cluster has 3 data nodes, though the correct number of principals should be added up to N data nodes.
 (assuming a default service name of `hdfs`)
@@ -44,6 +44,12 @@ hdfs/<pod-type>-<pod-index>-<task-type>.<service-name>.autoip.dcos.thisdcos.dire
 Given a service name of `hdfs-demo`, the principal for a name node becomes:
 ```
 hdfs/name-0-node.hdfs-demo.autoip.dcos.thisdcos.directory@LOCAL
+```
+
+Also note that if the service name is foldered, such as `myfolder/hdfs`, then the FQDN in the instance of the principal
+becomes `myfolderhdfs`. For example:
+```
+hdfs/name-0-node.myfolderhdfs.autoip.dcos.thisdcos.directory@LOCAL
 ```
 
 ## Create the keytab secret

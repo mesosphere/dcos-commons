@@ -2,8 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -77,7 +77,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     private DefaultServiceSpec serviceSpecificationB;
     private StateStore stateStore;
     private DefaultPlanScheduler planScheduler;
-    private TaskFailureListener taskFailureListener;
     private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
@@ -86,7 +85,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        taskFailureListener = mock(TaskFailureListener.class);
         schedulerDriver = mock(SchedulerDriver.class);
         serviceSpecification = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
@@ -104,12 +102,13 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 new OfferAccepter(Arrays.asList()),
                 new OfferEvaluator(
                         stateStore,
+                        new OfferOutcomeTracker(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
                 stateStore,
-                new DefaultTaskKiller(taskFailureListener).setSchedulerDriver(schedulerDriver));
+                new TaskKiller(schedulerDriver));
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)

@@ -31,8 +31,8 @@ task copyKeystoreApp(type: Copy) {
     into('build/distributions')
 }
 
-distZip.dependsOn ":executor:distZip", ":keystore-app:integrationTestZip"
-distZip.finalizedBy copyExecutor, copyKeystoreApp
+distZip.dependsOn ":keystore-app:integrationTestZip"
+distZip.finalizedBy copyKeystoreApp
 
 distributions {
     main {

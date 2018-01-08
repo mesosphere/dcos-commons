@@ -1,13 +1,10 @@
-import logging
-import pytest
-import subprocess
-import uuid
 import json
-import time
-import shakedown
+import logging
+import uuid
+
+import pytest
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_tasks
@@ -19,7 +16,13 @@ from tests import auth
 from tests import topics
 from tests import test_utils
 
+
 log = logging.getLogger(__name__)
+
+
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                reason='Feature only supported in DC/OS EE')
+
 
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
@@ -48,7 +51,6 @@ def kafka_client():
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -338,13 +340,8 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     token = sdk_cmd.run_cli("config show core.dcos_acs_token")
 
-    cmd = "curl -X POST \
-        -H 'Authorization: token={}' \
-        leader.mesos/ca/api/v2/sign \
-        -d '{}'".format(token, json.dumps(request))
-
     output = sdk_tasks.task_exec(task,
-        "curl -X POST \
+        "curl -L -X POST \
         -H 'Authorization: token={}' \
         leader.mesos/ca/api/v2/sign \
         -d '{}'".format(token, json.dumps(request)))
@@ -367,7 +364,7 @@ def create_keystore_truststore(cn: str, task: str):
     truststore_path = "{}_truststore.jks".format(cn)
 
     log.info("Generating keystore and truststore, task:{}".format(task))
-    output = sdk_tasks.task_exec(task, "curl -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
+    output = sdk_tasks.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
 
     # Convert to a PKCS12 key
     output = sdk_tasks.task_exec(task,

@@ -33,6 +33,7 @@ ext {
     elVer = "2.2.4"
     jwtVer = "3.2.0"
     bouncyCastleVer = "1.57"
+    j2htmlVer = "1.2.0"
     dropWizardMetricsVer = "3.2.5"
 }
 
@@ -112,9 +113,11 @@ dependencies {
     }
     compile "org.bouncycastle:bcprov-jdk15on:${bouncyCastleVer}"
     compile "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVer}"
+    compile "com.j2html:j2html:${j2htmlVer}"
     compile "io.dropwizard.metrics:metrics-core:${dropWizardMetricsVer}"
     compile "io.dropwizard.metrics:metrics-servlet:${dropWizardMetricsVer}"
     compile "io.dropwizard.metrics:metrics-servlets:${dropWizardMetricsVer}"
+    compile group: 'com.codahale.metrics', name: 'metrics-jetty9', version: '3.0.2'
     compile "io.prometheus:simpleclient_dropwizard:0.0.26"
     compile "io.prometheus:simpleclient_servlet:0.0.26"
     compile "com.readytalk:metrics3-statsd:4.2.0"

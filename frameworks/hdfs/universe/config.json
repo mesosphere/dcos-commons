@@ -1742,31 +1742,6 @@
           "description": "Address (host:port) of the SOCKS server to be used by the SocksSocketFactory.",
           "default": ""
         },
-        "net_topology_node_switch_mapping_impl": {
-          "type": "string",
-          "description": "The default implementation of the DNSToSwitchMapping. It invokes a script specified in net.topology.script.file.name to resolve node names. If the value for net.topology.script.file.name is not set, the default value of DEFAULT_RACK is returned for all node names.",
-          "default": "org.apache.hadoop.net.ScriptBasedMapping"
-        },
-        "net_topology_impl": {
-          "type": "string",
-          "description": "The default implementation of NetworkTopology which is classic three layer one.",
-          "default": "org.apache.hadoop.net.NetworkTopology"
-        },
-        "net_topology_script_file_name": {
-          "type": "string",
-          "description": "The script name that should be invoked to resolve DNS names to NetworkTopology names. Example: the script would take host.foo.bar as an argument, and return /rack1 as the output.",
-          "default": ""
-        },
-        "net_topology_script_number_args": {
-          "type": "string",
-          "description": "The max number of args that the script configured with net.topology.script.file.name should be run with. Each arg is an IP address.",
-          "default": "100"
-        },
-        "net_topology_table_file_name": {
-          "type": "string",
-          "description": "The file name for a topology file, which is used when the net.topology.node.switch.mapping.impl property is set to org.apache.hadoop.net.TableMapping. The file format is a two column text file, with columns separated by whitespace. The first column is a DNS or IP address and the second column specifies the rack where the address maps. If no entry corresponding to a host in the cluster is found, then /default-rack is assumed.",
-          "default": ""
-        },
         "file_stream-buffer-size": {
           "type": "string",
           "description": "The size of buffer to stream files. The size of this buffer should probably be a multiple of hardware page size (4096 on Intel x86), and it determines how much data is buffered during read and write operations.",
@@ -2161,9 +2136,6 @@
         "ipc_client_connect_timeout",
         "ipc_client_connect_max_retries_on_timeouts",
         "hadoop_rpc_socket_factory_class_default",
-        "net_topology_node_switch_mapping_impl",
-        "net_topology_impl",
-        "net_topology_script_number_args",
         "file_stream-buffer-size",
         "file_bytes-per-checksum",
         "file_client-write-packet-size",

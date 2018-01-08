@@ -10,19 +10,39 @@ import json
 import os
 import tempfile
 
+import retrying
 import shakedown
 
 import sdk_cmd
 import sdk_metrics
 
+TIMEOUT_SECONDS = 15 * 60
+
 log = logging.getLogger(__name__)
 
 
-def get_config(app_name):
+def _get_config_once(app_name):
+    return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
+
+
+def app_exists(app_name):
+    try:
+        _get_config_once(app_name)
+        return True
+    except:
+        return False
+
+
+def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
-    def fn():
-        return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
-    config = shakedown.wait_for(lambda: fn()).json()['app']
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout*1000,
+        retry_on_result=lambda res: not res)
+    def wait_for_response():
+        return _get_config_once(app_name)
+
+    config = wait_for_response().json()['app']
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
@@ -47,15 +67,23 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         (bool, str) tuple: Boolean indicates success of install attempt. String indicates
         error message if install attempt failed.
     """
-    output = sdk_cmd.run_cli("{cmd} {file_path}".format(
-        cmd="marathon app add ", file_path=app_def_path
-    ))
-    if "Created deployment" not in output:
-        return 1, output
 
-    log.info("Waiting for app to be running...")
+    cmd = "marathon app add {}".format(app_def_path)
+    log.info("Running %s", cmd)
+    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd)
+
+    if rc or stderr:
+        log.error("returncode=%s stdout=%s stderr=%s", rc, stdout, stderr)
+        return False, stderr
+
+    if "Created deployment" not in stdout:
+        stderr = "'Created deployment' not in STDOUT"
+        log.error(stderr)
+        return False, stderr
+
+    log.info("Waiting for app %s to be running...", app_name)
     shakedown.wait_for_task("marathon", app_name)
-    return 0, ""
+    return True, ""
 
 
 def install_app(app_definition: dict) -> (bool, str):
@@ -84,7 +112,7 @@ def install_app(app_definition: dict) -> (bool, str):
         return install_app_from_file(app_name, app_def_path)
 
 
-def update_app(app_name, config, timeout=600, wait_for_completed_deployment=True):
+def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True):
     if "env" in config:
         log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):

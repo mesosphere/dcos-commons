@@ -5,7 +5,6 @@ import sdk_install
 import sdk_jobs
 import sdk_networks
 import sdk_plan
-import sdk_utils
 import shakedown
 from tests import config
 

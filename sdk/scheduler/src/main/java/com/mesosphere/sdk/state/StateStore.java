@@ -2,7 +2,6 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
@@ -188,6 +187,14 @@ public class StateStore {
                             currentStatusOptional.get().getState(), taskName));
         }
 
+        if (!status.getState().equals(Protos.TaskState.TASK_STAGING) &&
+                currentStatusOptional.isPresent() &&
+                !currentStatusOptional.get().getTaskId().equals(status.getTaskId())) {
+            throw new StateStoreException(
+                    Reason.NOT_FOUND,
+                    String.format("Dropping TaskStatus with unknnown TaskID: %s", status));
+        }
+
         String path = getTaskStatusPath(taskName);
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
@@ -277,10 +284,7 @@ public class StateStore {
         try {
             byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
-                // TODO(nick): This unpack operation is no longer needed, but it doesn't hurt anything to leave it in
-                // place to support reading older data. Remove this unpack call after services have had time to stop
-                // storing packed TaskInfos in zk (after June 2017 or so?).
-                return Optional.of(TaskPackingUtils.unpack(Protos.TaskInfo.parseFrom(bytes)));
+                return Optional.of(Protos.TaskInfo.parseFrom(bytes));
             } else {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Empty TaskInfo for TaskName: %s", taskName));

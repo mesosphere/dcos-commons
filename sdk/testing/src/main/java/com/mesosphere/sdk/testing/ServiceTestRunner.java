@@ -264,6 +264,7 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
         Mockito.when(mockSchedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
         Mockito.when(mockSchedulerConfig.getJavaURI()).thenReturn("test-java-uri");
+        Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
 
@@ -276,6 +277,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
+        Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         Map<String, String> schedulerEnvironment =

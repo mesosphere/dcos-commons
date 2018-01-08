@@ -2,10 +2,8 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.SlaveID;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterUtils;
@@ -84,7 +82,7 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchTask() throws Exception {
-        Protos.TaskInfo testTask = createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo testTask = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
         assertEquals(testTask, store.fetchTask(TestConstants.TASK_NAME).get());
         Collection<Protos.TaskInfo> outTasks = store.fetchTasks();
@@ -180,7 +178,7 @@ public class StateStoreTest {
         assertTrue(store.fetchTasks().isEmpty());
         assertTrue(store.fetchStatuses().isEmpty());
 
-        Protos.TaskInfo taskInfoA = createTask("a");
+        Protos.TaskInfo taskInfoA = StateStoreUtilsTest.createTask("a");
         store.storeTasks(Arrays.asList(taskInfoA));
 
         assertEquals(taskInfoA, store.fetchTask("a").get());
@@ -189,7 +187,7 @@ public class StateStoreTest {
         assertEquals(taskInfoA, store.fetchTasks().iterator().next());
         assertTrue(store.fetchStatuses().isEmpty());
 
-        Protos.TaskInfo taskInfoB = createTask("b");
+        Protos.TaskInfo taskInfoB = StateStoreUtilsTest.createTask("b");
         store.storeTasks(Arrays.asList(taskInfoB));
 
         assertEquals(taskInfoB, store.fetchTask("b").get());
@@ -212,29 +210,11 @@ public class StateStoreTest {
         assertTrue(store.fetchStatuses().isEmpty());
     }
 
-    // TODO(nickbp): Remove this test once CuratorStateStore no longer speculatively unpacks all stored TaskInfos
-    @Test
-    public void testStorePackedTask() throws Exception {
-        Protos.TaskInfo.Builder origInfoBuilder = createTask("foo").toBuilder();
-        origInfoBuilder.getExecutorBuilder().getExecutorIdBuilder().setValue("hi");
-        Protos.TaskInfo origInfo = origInfoBuilder.build();
-
-        Protos.TaskInfo packedInfo = TaskPackingUtils.pack(origInfo);
-        assertFalse(packedInfo.hasCommand());
-        assertTrue(packedInfo.hasExecutor());
-        assertTrue(packedInfo.hasData());
-        store.storeTasks(Arrays.asList(packedInfo));
-
-        // result shold be unpacked automatically:
-        Protos.TaskInfo retrievedInfo = store.fetchTask("foo").get();
-        assertEquals(origInfo, retrievedInfo);
-    }
-
     // status
 
     @Test
     public void testStoreFetchStatusExactMatch() throws Exception {
-        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo task = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
 
         // taskstatus id must exactly match taskinfo id:
@@ -258,7 +238,7 @@ public class StateStoreTest {
 
     @Test
     public void testRepeatedStoreStatus() throws Exception {
-        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo task = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
 
         // taskstatus id must exactly match taskinfo id:
@@ -282,8 +262,8 @@ public class StateStoreTest {
         assertTrue(store.fetchStatuses().isEmpty());
 
         // must have TaskInfos first:
-        Protos.TaskInfo taskA = createTask("a");
-        Protos.TaskInfo taskB = createTask("b");
+        Protos.TaskInfo taskA = StateStoreUtilsTest.createTask("a");
+        Protos.TaskInfo taskB = StateStoreUtilsTest.createTask("b");
         store.storeTasks(Arrays.asList(taskA, taskB));
 
         assertEquals(Arrays.asList("a", "b"), store.fetchTaskNames());
@@ -322,13 +302,13 @@ public class StateStoreTest {
 
     @Test
     public void testStoreStatusSucceedsOnUUIDChangeWithTaskInfoUpdate() throws Exception {
-        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo task = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
         store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
         assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
 
         // change the taskinfo id:
-        Protos.TaskInfo taskNewId = createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo taskNewId = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(taskNewId));
         store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
         assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
@@ -336,7 +316,7 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchTaskAndStatus() throws Exception {
-        Protos.TaskInfo testTask = createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo testTask = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
         Collection<Protos.TaskInfo> outTasks = store.fetchTasks();
         assertEquals(1, outTasks.size());
@@ -352,7 +332,7 @@ public class StateStoreTest {
         assertTrue(store.fetchTasks().isEmpty());
         assertTrue(store.fetchStatuses().isEmpty());
 
-        Protos.TaskInfo taskInfoA = createTask("a");
+        Protos.TaskInfo taskInfoA = StateStoreUtilsTest.createTask("a");
         store.storeTasks(Arrays.asList(taskInfoA));
 
         assertEquals(taskInfoA, store.fetchTask("a").get());
@@ -517,19 +497,39 @@ public class StateStoreTest {
         assertEquals(taskInfo, store.fetchTasks().stream().findAny().get());
     }
 
+    @Test(expected = StateStoreException.class)
+    public void testStoreUnknownStatus() {
+        // Store initial status as RUNNING
+        store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+
+        // Create status with unknown TaskID but the same task name
+        Protos.TaskStatus status = TestConstants.TASK_STATUS.toBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .build();
+
+        store.storeStatus(TestConstants.TASK_NAME, status);
+    }
+
+    @Test
+    public void testStoreNewStagingStatus() {
+        // Store initial status as RUNNING
+        store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+
+        // Store new task with same name as STAGING
+        Protos.TaskStatus status = TestConstants.TASK_STATUS.toBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setState(Protos.TaskState.TASK_STAGING)
+                .build();
+
+        store.storeStatus(TestConstants.TASK_NAME, status);
+    }
+
     private static Collection<Protos.TaskInfo> createTasks(String... taskNames) {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : taskNames) {
-            taskInfos.add(createTask(taskName));
+            taskInfos.add(StateStoreUtilsTest.createTask(taskName));
         }
         return taskInfos;
     }
 
-    private static Protos.TaskInfo createTask(String taskName) {
-        return Protos.TaskInfo.newBuilder()
-                .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName))
-                .setSlaveId(SlaveID.newBuilder().setValue("ignored")) // proto field required
-                .build();
-    }
 }
