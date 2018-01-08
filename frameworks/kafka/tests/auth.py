@@ -135,9 +135,9 @@ def write_to_topic(cn: str, task: str, topic: str, message: str,
     cmd = "echo {message} | kafka-console-producer \
             --topic {topic} \
             --producer.config {client_properties_file} \
-            --broker-list \$KAFKA_BROKER_LIST\"".format(message=message,
-                                                        topic=topic,
-                                                        client_properties_file=client_properties_file)
+            --broker-list \$KAFKA_BROKER_LIST".format(message=message,
+                                                      topic=topic,
+                                                      client_properties_file=client_properties_file)
 
     write_cmd = get_bash_command(cmd, environment)
 
@@ -189,11 +189,10 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int,
             --consumer.config {client_properties_file} \
             --bootstrap-server \$KAFKA_BROKER_LIST \
             --from-beginning --max-messages {messages} \
-            --timeout-ms {timeout_ms} \
-            \"".format(topic=topic,
-                       client_properties_file=client_properties_file,
-                       messages=messages,
-                       timeout_ms=60000)
+            --timeout-ms {timeout_ms}".format(topic=topic,
+                                              client_properties_file=client_properties_file,
+                                              messages=messages,
+                                              timeout_ms=60000)
 
     read_cmd = get_bash_command(cmd, environment)
 
