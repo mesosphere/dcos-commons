@@ -113,7 +113,6 @@ def kafka_client(kerberos, kafka_server):
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {

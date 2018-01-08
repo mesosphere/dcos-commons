@@ -7,12 +7,14 @@ E.G. py.test frameworks/<your-frameworks>/tests
 import logging
 import os
 import os.path
+import re
 import shutil
-import subprocess
 import sys
+import time
 
 import pytest
 import requests
+import sdk_cmd
 import sdk_security
 import sdk_utils
 import teamcity
@@ -39,6 +41,20 @@ for noise_source in [
     logging.getLogger(noise_source).setLevel('WARNING')
 
 log = logging.getLogger(__name__)
+
+# Regex pattern which parses the output of "dcos task log ls --long", in order to extract the filename and timestamp.
+# Example inputs:
+#   drwxr-xr-x  6  nobody  nobody      4096  Jul 21 22:07                             jre1.8.0_144
+#   drwxr-xr-x  3  nobody  nobody      4096  Jun 28 12:50                          libmesos-bundle
+#   -rw-r--r--  1  nobody  nobody  32539549  Jan 04 16:31  libmesos-bundle-1.10-1.4-63e0814.tar.gz
+# Example output:
+#   match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144  "
+# Notes:
+# - Should also support spaces in filenames.
+# - Doesn't make any assumptions about the contents of the tokens before the timestamp/filename,
+#   just assumes that there are 5 of them.
+#                             TOKENS        MONTH     DAY    HH:MM    FILENAME
+task_ls_pattern = re.compile('^([^ ]+ +){5}([a-zA-z]+ [0-9]+ [0-9:]+) +(.*)$')
 
 # An arbitrary limit on the number of tasks that we fetch logs from following a failed test:
 #     100 (task id limit)
@@ -81,7 +97,7 @@ def get_task_ids():
     """ This function uses dcos task WITHOUT the JSON options because
     that can return the wrong user for schedulers
     """
-    tasks = subprocess.check_output(['dcos', 'task', '--all']).decode().split('\n')
+    tasks = sdk_cmd.run_cli('task --all', print_output=False).split('\n')
     for task_str in tasks[1:]:  # First line is the header line
         task = task_str.split()
         if len(task) < 5:
@@ -126,6 +142,10 @@ def pytest_runtest_makereport(item, call):
             dump_mesos_state(item)
         except Exception:
             log.exception('Mesos state collection failed!')
+        try:
+            get_diagnostics_bundle(item)
+        except Exception:
+            log.exception("Diagnostics bundle creation failed")
 
 
 def pytest_runtest_teardown(item):
@@ -192,49 +212,57 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
     return os.path.join(output_dir, artifact_name)
 
 
-def get_task_files_for_id(task_id: str) -> set:
+def get_task_files_for_id(task_id: str) -> dict:
     try:
-        return set(subprocess.check_output(['dcos', 'task', 'ls', task_id, '--all']).decode().split())
+        ls_lines = sdk_cmd.run_cli('task ls --long --all {}'.format(task_id)).split('\n')
+        ret = {}
+        for line in ls_lines:
+            match = task_ls_pattern.match(line)
+            if not match:
+                log.warning('Unable to parse line: {}'.format(line))
+                continue
+            # match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144  "
+            filename = match.group(3).strip()
+            # build timestamp for use in output filename: 'Jul 21 22:07' => '0721_2207'
+            timestamp = time.strftime('%m%d_%H%M', time.strptime(match.group(2), '%b %d %H:%M'))
+            ret[filename] = timestamp
+        return ret
     except:
         log.exception('Failed to get list of files for task: {}'.format(task_id))
-        return set()
+        return {}
 
 
 def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000) -> str:
     log.info('Fetching {} from {}'.format(task_file, task_id))
-    result = subprocess.run(
-        ['dcos', 'task', 'log', task_id, '--all', '--lines', str(lines), task_file],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    if result.returncode:
-        errmessage = result.stderr.decode()
-        if not errmessage.startswith('No files exist. Exiting.'):
-            log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, errmessage))
+    rc, stdout, stderr = sdk_cmd.run_raw_cli('task log {} --all --lines {} {}'.format(task_id, lines, task_file), print_output=False)
+    if rc != 0:
+        if not stderr.startswith('No files exist. Exiting.'):
+            log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, stderr))
         return ''
-    return result.stdout.decode()
+    return stdout
 
 
-def get_rotating_task_logs(task_id: str, known_task_files: set, task_file: str):
+def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: str):
     rotated_filenames = [task_file, ]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
     for filename in rotated_filenames:
-        if not filename in known_task_files:
+        if not filename in task_file_timestamps:
             return # Reached a log index that doesn't exist, exit early
         content = get_task_log_for_id(task_id, filename)
         if not content:
             log.error('Unable to fetch content of {} from task {}, giving up'.format(filename, task_id))
             return
-        yield filename, content
+        yield filename, task_file_timestamps[filename], content
 
 
 def dump_task_logs(item: pytest.Item, task_ids: list):
     for task_id in task_ids:
         # Get list of available files:
-        known_task_files = get_task_files_for_id(task_id)
+        task_file_timestamps = get_task_files_for_id(task_id)
         for task_file in ('stdout', 'stderr'):
-            for log_filename, log_content in get_rotating_task_logs(task_id, known_task_files, task_file):
-                out_path = setup_artifact_path(item, '{}.{}'.format(task_id, log_filename))
+            for log_filename, log_timestamp, log_content in get_rotating_task_logs(task_id, task_file_timestamps, task_file):
+                # output filename (sort by time): '0104_1709.hello-world.0fe39302-f18b-11e7-a6f9-ae11b3b25138.stdout'
+                out_path = setup_artifact_path(item, '{}.{}.{}'.format(log_timestamp, task_id, log_filename))
                 log.info('=> Writing {} ({} bytes)'.format(out_path, len(log_content)))
                 with open(out_path, 'w') as f:
                     f.write(log_content)
@@ -249,3 +277,34 @@ def dump_mesos_state(item: pytest.Item):
                 name = name[:-len('.json')] # avoid duplicate '.json'
             with open(setup_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:
                 f.write(r.text)
+
+
+def get_diagnostics_bundle(item: pytest.Item):
+    result = subprocess.run(
+        ['dcos', 'node', 'diagnostics', 'create', 'all'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
+    if result.returncode:
+        errmessage = result.stderr.decode()
+        log.error("Couldn't create diagnostics bundle: {}".format(errmessage))
+
+    bundle_file = None
+    while bundle_file is None:
+        status = subprocess.run(
+            ['dcos', 'node', 'diagnostics', '--status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        progress = [
+            l.strip() for l in status.stdout.decode().split('\n') if 'job_progress_percentage' in l
+        ][0]
+
+        if progress.endswith('100'):
+            bundle_file = [
+                l.strip().split('/')[-1] for l in status.stdout.decode().split('\n')
+                if 'last_bundle_dir' in l
+            ][0]
+
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(setup_artifact_path(item, '').rstrip('/'))
+        subprocess.run(['dcos', 'node', 'diagnostics', 'download', bundle_file])
+    finally:
+        os.chdir(original_cwd)

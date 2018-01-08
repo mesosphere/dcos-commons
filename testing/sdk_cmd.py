@@ -63,9 +63,9 @@ def run_raw_cli(cmd, print_output=True):
 
     if print_output:
         if stdout:
-            print("STDOUT:", stdout)
+            log.info("STDOUT:\n{}".format(stdout))
         if stderr:
-            print("STDERR:", stderr)
+            log.info("STDERR:\n{}".format(stderr))
 
     return result.returncode, stdout, stderr
 

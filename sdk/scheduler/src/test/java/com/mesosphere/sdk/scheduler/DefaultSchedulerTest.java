@@ -177,6 +177,11 @@ public class DefaultSchedulerTest {
             public boolean supportsGpuResource() {
                 return DEFAULT_GPU_POLICY;
             }
+
+            @Override
+            public boolean supportsDomains() {
+                return true;
+            }
         };
     }
 

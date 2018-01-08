@@ -11,6 +11,7 @@ import os.path
 import re
 import tempfile
 import time
+import urllib.request
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -87,6 +88,19 @@ class UniversePackageBuilder(object):
                 continue
             yield package_filename, open(package_filepath).read()
 
+    def _fetch_sha256_from_manifest(self, manifest_url, filename):
+        with urllib.request.urlopen(manifest_url) as manifest_file:
+            manifest_content = manifest_file.read(10240).decode('utf-8').strip()
+        for manifest_row in manifest_content.split('\n'):
+            cols = manifest_row.split()
+            if len(cols) != 2:
+                logger.warning('Expected manifest entry to have 2 columns: {} => {}'.format(manifest_row, cols))
+                continue
+            # filenames may have a '*' prefix to indicate a binary:
+            if cols[1] == filename or cols[1] == '*{}'.format(filename):
+                return cols[0]
+        raise Exception('No entry found for {} in manifest at {}:\n{}'.format(filename, manifest_url, manifest_content))
+
     def _calculate_sha256(self, filepath):
         BLOCKSIZE = 65536
         hasher = hashlib.sha256()
@@ -143,26 +157,33 @@ class UniversePackageBuilder(object):
             'libmesos-bundle-url': _libmesos_bundle_url
         }
 
-        # look for any 'sha256:filename' template params, and get shas for those.
-        # this avoids calculating shas unless they're requested by the template.
-        for shafilename in re.findall('{{sha256:(.+?)}}', orig_content):
-            # somefile.txt => sha256:somefile.txt
-            shafilepath = self._artifact_file_paths.get(shafilename, '')
-            if not shafilepath:
-                raise Exception(
-                    'Missing path for artifact file named \'{}\' (to calculate sha256). '.
-                    format(shafilename) +
-                    'Please provide the full path to this artifact (known artifacts: {})'.
-                    format(self._artifact_file_paths))
-            template_mapping['sha256:{}'.format(
-                shafilename)] = self._calculate_sha256(shafilepath)
+        # look for any 'sha256:filename' or 'sha256:filename@url' template params, and get shas for those.
+        # - "sha256:filename": generate SHA256 of local file which was specified as an artifact
+        # - "sha256:filename@manifesturl": download checksum manifest at URL, and use sha listed in there for filename
+        url_matcher = re.compile('^(.+?)@(.+?)$') # filename@url
+        for sha_param in re.findall('{{sha256:(.+?)}}', orig_content):
+            url_match = url_matcher.match(sha_param)
+            if url_match:
+                # fetch remote manifest at URL, get sha256 from manifest
+                target_filename = url_match.group(1)
+                manifest_url = url_match.group(2)
+                sha_value = self._fetch_sha256_from_manifest(manifest_url, target_filename)
+            else:
+                # find local file with specified name, get sha256 for that file
+                target_file_path = self._artifact_file_paths.get(sha_param, '')
+                if not target_file_path:
+                    raise Exception(
+                        'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(sha_param) +
+                        'Please provide the full path to this artifact (known artifacts: {}), '.format(self._artifact_file_paths) +
+                        'or specify a manifest URL (SHA256SUMS) with \'{}@<manifestURL>\''.format(sha_param))
+                sha_value = self._calculate_sha256(target_file_path)
+            template_mapping['sha256:{}'.format(sha_param)] = sha_value
 
-        # import any custom TEMPLATE_SOME_PARAM environment variables:
+        # import any custom "TEMPLATE_SOME_PARAM" environment variables as "some-param":
         for env_key, env_val in os.environ.items():
             if env_key.startswith('TEMPLATE_'):
                 # 'TEMPLATE_SOME_KEY' => 'some-key'
-                template_mapping[env_key[len('TEMPLATE_'):].lower().replace(
-                    '_', '-')] = env_val
+                template_mapping[env_key[len('TEMPLATE_'):].lower().replace('_', '-')] = env_val
 
         return template_mapping
 

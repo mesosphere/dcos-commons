@@ -52,9 +52,9 @@ public class DefaultScheduler extends AbstractScheduler {
     private final PlansResource plansResource;
     private final PodResource podResource;
 
+    private TaskKiller taskKiller;
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
-    private TaskKiller taskKiller;
 
     private final OfferOutcomeTracker offerOutcomeTracker;
 
