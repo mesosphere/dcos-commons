@@ -219,7 +219,7 @@ def get_task_info(task_name: str) -> dict:
     :return (dict): Get the task information for the specified task
     """
     log.info("Getting task information")
-    raw_tasks = sdk_cmd.run_cli("task {task_name} --json".format(task_name))
+    raw_tasks = sdk_cmd.run_cli("task {task_name} --json".format(task_name=task_name))
     if raw_tasks:
         tasks = json.loads(raw_tasks)
         for task in tasks:
