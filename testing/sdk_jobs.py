@@ -7,17 +7,20 @@ SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
 '''
 import json
 import logging
-import os
-import re
 import tempfile
 import traceback
 
-import shakedown
 import retrying
 
 import sdk_cmd
+import shakedown
 
 log = logging.getLogger(__name__)
+
+CREATE_JOB_ENDPOINT = '/v1/jobs'
+DELETE_JOB_ENDPOINT_TEMPLATE = '/v1/jobs/{}'
+START_JOB_ENDPOINT_TEMPLATE = '/v1/jobs/{}/runs'
+GET_JOB_RUN_ENDPOINT_TEMPLATE = '/v1/jobs/{}/runs/{}'
 
 
 # --- Install/uninstall jobs to the cluster
@@ -25,27 +28,29 @@ log = logging.getLogger(__name__)
 
 def install_job(job_dict, tmp_dir=None):
     job_name = job_dict['id']
+    log.info('Adding job {}:\n{}'.format(job_name, json.dumps(job_dict)))
 
-    if not tmp_dir:
-        tmp_dir = tempfile.mkdtemp(prefix='sdk-test')
-    out_filename = os.path.join(tmp_dir, '{}.json'.format(job_name))
-    job_str = json.dumps(job_dict)
-    log.info('Writing job file for {} to: {}\n{}'.format(job_name, out_filename, job_str))
-    with open(out_filename, 'w') as f:
-        f.write(job_str)
+    # attempt to delete current job, if any:
+    _remove_job_by_name(job_name, retry=False)
 
-    _remove_job_by_name(job_name)
-    sdk_cmd.run_cli('job add {}'.format(out_filename))
+    sdk_cmd.request(
+        'POST',
+        '{}{}'.format(shakedown.dcos_service_url('metronome'), CREATE_JOB_ENDPOINT),
+        json=job_dict)
 
 
 def remove_job(job_dict):
-    _remove_job_by_name(job_dict['id'])
+    _remove_job_by_name(job_dict['id'], retry=True)
 
 
-def _remove_job_by_name(job_name):
+def _remove_job_by_name(job_name, retry):
     try:
-        # --stop-current-job-runs ensures that fail-looping jobs (with restart.policy=ON_FAILURE) are consistently removed.
-        sdk_cmd.run_cli('job remove {} --stop-current-job-runs'.format(job_name), print_output=False)
+        sdk_cmd.request(
+            'DELETE',
+            '{}{}'.format(
+                shakedown.dcos_service_url('metronome'),
+                DELETE_JOB_ENDPOINT_TEMPLATE.format(job_name)),
+            retry=retry)
     except:
         log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
             job_name, traceback.format_exc()))
@@ -74,7 +79,11 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
     # start job run, get run ID to be polled against:
-    run_id = json.loads(sdk_cmd.run_cli('job run {} --json'.format(job_name)))['id']
+    run_id = sdk_cmd.request(
+        'POST',
+        '{}{}'.format(
+            shakedown.dcos_service_url('metronome'),
+            START_JOB_ENDPOINT_TEMPLATE.format(job_name)))['id']
 
     # wait for run to succeed, throw if run fails:
     @retrying.retry(
@@ -83,25 +92,24 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
         retry_on_result=lambda res: not res,
         retry_on_exception=lambda ex: False)
     def wait():
-        # catch errors from CLI: ensure that the only error raised is our own:
+        # disregard metronome 404 errors, just try again
         try:
-            successful_runs = json.loads(sdk_cmd.run_cli(
-                'job history --json {}'.format(job_name), print_output=False))
-            failed_runs = json.loads(sdk_cmd.run_cli(
-                'job history --failures --json {}'.format(job_name), print_output=False))
+            run_status = sdk_cmd.request(
+                'GET',
+                '{}{}'.format(
+                    shakedown.dcos_service_url('metronome'),
+                    GET_JOB_RUN_ENDPOINT_TEMPLATE.format(job_name, run_id)),
+                retry=False)['status']
         except:
             log.info(traceback.format_exc())
             return False
 
-        successful_ids = [r['id'] for r in successful_runs]
-        failed_ids = [r['id'] for r in failed_runs]
+        log.info('Job {} run {} status: {}'.format(job_name, run_id, run_status))
 
-        log.info('Job {} run history (waiting for successful {}): successful={} failed={}'.format(
-            job_name, run_id, successful_ids, failed_ids))
-        # note: if a job has restart.policy=ON_FAILURE, it won't show up in failed_ids if it fails
-        if raise_on_failure and run_id in failed_ids:
+        # note: if a job has restart.policy=ON_FAILURE, it may just go back to CREATING
+        if raise_on_failure and run_status in ['FAILED', 'KILLED']:
             raise Exception('Job {} with id {} has failed, exiting early'.format(job_name, run_id))
-        return run_id in successful_ids
+        return run_status == 'FINISHED'
 
     wait()
 

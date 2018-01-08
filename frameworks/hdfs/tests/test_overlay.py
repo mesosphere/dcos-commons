@@ -6,8 +6,6 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
-import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -75,8 +73,8 @@ def test_integrity_on_data_node_failure():
     # An HDFS write will only successfully return when the data replication has taken place
     config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
 
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-0-node'))
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-1-node'))
+    sdk_cmd.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-0-node'))
+    sdk_cmd.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-1-node'))
 
     config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
 
@@ -92,7 +90,7 @@ def test_integrity_on_name_node_failure():
     so as to verify a failover sustains expected functionality.
     """
     active_name_node = config.get_active_name_node(config.SERVICE_NAME)
-    sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
+    sdk_cmd.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
 
     predicted_active_name_node = "name-1-node"
     if active_name_node == "name-1-node":

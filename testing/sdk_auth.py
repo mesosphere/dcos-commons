@@ -162,7 +162,7 @@ def kinit(task_id: str, keytab: str, principal: str):
     """
     kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
-    rc, stdout, stderr = sdk_tasks.task_exec(task_id, kinit_cmd)
+    rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
     if rc != 0:
         raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\nstdout: {}\nstderr: {}".format(rc, keytab, principal, stdout, stderr))
 
@@ -173,7 +173,7 @@ def kdestroy(task_id: str):
     :param task_id: The task in whose environment the kinit will run.
     """
     log.info("Erasing auth session:")
-    rc, stdout, stderr = sdk_tasks.task_exec(task_id, "kdestroy")
+    rc, stdout, stderr = sdk_cmd.task_exec(task_id, "kdestroy")
     if rc != 0:
         raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
@@ -245,7 +245,7 @@ class KerberosEnvironment:
             args=' '.join(args)
         )
         log.info("Running kadmin: {}".format(kadmin_cmd))
-        rc, stdout, stderr = sdk_tasks.task_exec(self.task_id, kadmin_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
             raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
 

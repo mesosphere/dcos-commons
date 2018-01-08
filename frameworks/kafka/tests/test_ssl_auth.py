@@ -7,7 +7,6 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
-import sdk_tasks
 import sdk_utils
 import sdk_security
 
@@ -326,13 +325,13 @@ def create_tls_artifacts(cn: str, task: str) -> str:
     priv_path = "{}_priv.key".format(cn)
     log.info("Generating certificate. cn={}, task={}".format(cn, task))
 
-    output = sdk_tasks.task_exec(task,
+    output = sdk_cmd.task_exec(task,
         'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr \
         -subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
     log.info(output)
     assert output[0] is 0
 
-    raw_csr = sdk_tasks.task_exec(task, 'cat request.csr')
+    raw_csr = sdk_cmd.task_exec(task, 'cat request.csr')
     assert raw_csr[0] is 0
     request = {
         "certificate_request": raw_csr[1] # The actual content is second in the array
@@ -340,7 +339,7 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     token = sdk_cmd.run_cli("config show core.dcos_acs_token")
 
-    output = sdk_tasks.task_exec(task,
+    output = sdk_cmd.task_exec(task,
         "curl -L -X POST \
         -H 'Authorization: token={}' \
         leader.mesos/ca/api/v2/sign \
@@ -350,7 +349,7 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_tasks.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    output = sdk_cmd.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
     log.info(output)
     assert output[0] is 0
 
@@ -364,10 +363,10 @@ def create_keystore_truststore(cn: str, task: str):
     truststore_path = "{}_truststore.jks".format(cn)
 
     log.info("Generating keystore and truststore, task:{}".format(task))
-    output = sdk_tasks.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
+    output = sdk_cmd.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
 
     # Convert to a PKCS12 key
-    output = sdk_tasks.task_exec(task,
+    output = sdk_cmd.task_exec(task,
         'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && \
         openssl pkcs12 -export -in {} -inkey {} \
         -out keypair.p12 -name keypair -passout pass:export \
@@ -377,7 +376,7 @@ def create_keystore_truststore(cn: str, task: str):
 
     log.info("Generating certificate: importing into keystore and truststore")
     # Import into the keystore and truststore
-    output = sdk_tasks.task_exec(task,
+    output = sdk_cmd.task_exec(task,
         "keytool -importkeystore \
         -deststorepass changeit -destkeypass changeit -destkeystore {} \
         -srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export \
@@ -385,7 +384,7 @@ def create_keystore_truststore(cn: str, task: str):
     log.info(output)
     assert output[0] is 0
 
-    output = sdk_tasks.task_exec(task,
+    output = sdk_cmd.task_exec(task,
         "keytool -import -trustcacerts -noprompt \
         -file dcos-ca.crt -storepass changeit \
         -keystore {}".format(truststore_path))
@@ -394,7 +393,7 @@ def create_keystore_truststore(cn: str, task: str):
 
 
 def write_client_properties(cn: str, task: str) -> str:
-    sdk_tasks.task_exec(task,
+    sdk_cmd.task_exec(task,
     """bash -c \"cat >{cn}-client.properties << EOL
 security.protocol = SSL
 ssl.truststore.location = {cn}_truststore.jks

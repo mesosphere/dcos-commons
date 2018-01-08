@@ -113,7 +113,7 @@ def test_java_truststore():
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
             config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
-    _, output, _ = sdk_tasks.task_exec(task_id, command)
+    _, output, _ = sdk_cmd.task_exec(task_id, command)
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
     # expected output.
@@ -129,7 +129,7 @@ def test_tls_basic_artifacts():
     assert task_id
 
     # Load end-entity certificate from keystore and root CA cert from truststore
-    stdout = sdk_tasks.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
+    stdout = sdk_cmd.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
     end_entity_cert = x509.load_pem_x509_certificate(stdout, DEFAULT_BACKEND)
 
     root_ca_cert_in_truststore = _export_cert_from_task_keystore(
@@ -174,7 +174,7 @@ def test_java_keystore():
             config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
-    _, output = sdk_tasks.task_exec(task_id, curl, return_stderr_in_stdout=True)
+    _, output = sdk_cmd.task_exec(task_id, curl, return_stderr_in_stdout=True)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
@@ -208,7 +208,7 @@ def test_tls_nginx():
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
             config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
-    _, output, _ = sdk_tasks.task_exec(task_id, command)
+    _, output, _ = sdk_cmd.task_exec(task_id, command)
 
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
@@ -232,7 +232,7 @@ def test_changing_discovery_replaces_certificate_sans():
     assert task_id
 
     # Load end-entity certificate from PEM encoded file
-    _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
+    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat server.crt')
     log.info('first server.crt: {}'.format(stdout))
 
     ascii_cert = stdout.encode('ascii')
@@ -260,7 +260,7 @@ def test_changing_discovery_replaces_certificate_sans():
 
     task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
 
-    _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
+    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat server.crt')
     log.info('second server.crt: {}'.format(stdout))
 
     ascii_cert = stdout.encode('ascii')
@@ -302,7 +302,7 @@ def _export_cert_from_task_keystore(
 
     args_str = ' '.join(args)
 
-    cert_bytes = sdk_tasks.task_exec(
+    cert_bytes = sdk_cmd.task_exec(
         task, _keystore_export_command(keystore_path, alias, args_str)
     )[1].encode('ascii')
 

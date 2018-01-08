@@ -105,7 +105,7 @@ def test_kill_journal_node():
     name_ids = sdk_tasks.get_task_ids(foldered_name, 'name')
     data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
 
-    sdk_tasks.kill_task_with_pattern('journalnode', sdk_hosts.system_host(foldered_name, 'journal-0-node'))
+    sdk_cmd.kill_task_with_pattern('journalnode', sdk_hosts.system_host(foldered_name, 'journal-0-node'))
     config.expect_recovery(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
@@ -120,7 +120,7 @@ def test_kill_name_node():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
     data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
 
-    sdk_tasks.kill_task_with_pattern('namenode', sdk_hosts.system_host(foldered_name, 'name-0-node'))
+    sdk_cmd.kill_task_with_pattern('namenode', sdk_hosts.system_host(foldered_name, 'name-0-node'))
     config.expect_recovery(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'journal', journal_ids)
@@ -135,7 +135,7 @@ def test_kill_data_node():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
     name_ids = sdk_tasks.get_task_ids(foldered_name, 'name')
 
-    sdk_tasks.kill_task_with_pattern('datanode', sdk_hosts.system_host(foldered_name, 'data-0-node'))
+    sdk_cmd.kill_task_with_pattern('datanode', sdk_hosts.system_host(foldered_name, 'data-0-node'))
     config.expect_recovery(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, 'data', data_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'journal', journal_ids)
@@ -145,7 +145,7 @@ def test_kill_data_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
-    sdk_tasks.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
+    sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 

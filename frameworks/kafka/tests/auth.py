@@ -2,7 +2,7 @@ import logging
 import retrying
 import uuid
 
-import sdk_tasks
+import sdk_cmd
 
 LOG = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def wait_for_brokers(client: str, brokers: list):
                      '-template=false',
                      '-install-certs=false',
                      '-resolve-hosts', ','.join(brokers)]
-    bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
+    bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
     assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
 
@@ -36,7 +36,7 @@ sasl.mechanism=GSSAPI
 sasl.kerberos.service.name=kafka
 EOL\"""".format(output_file=output_file, primary=primary)
     LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    output = sdk_cmd.task_exec(task, output_cmd)
     LOG.info(output)
 
     return output_file
@@ -61,7 +61,7 @@ client=true;
 }};
 EOL\"""".format(output_file=output_file, primary=primary)
     LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    output = sdk_cmd.task_exec(task, output_cmd)
     LOG.info(output)
 
     return output_file
@@ -83,7 +83,7 @@ default_realm = LOCAL
   }}
 EOL\"""".format(output_file=output_file)
     LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    output = sdk_cmd.task_exec(task, output_cmd)
     LOG.info(output)
 
     return output_file
@@ -137,7 +137,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
                     retry_on_result=write_failed)
     def write_wrapper():
         LOG.info("Running: %s", write_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, write_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(task, write_cmd)
         LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
 
         return rc, stdout, stderr
@@ -186,7 +186,7 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None
                     retry_on_result=read_failed)
     def read_wrapper():
         LOG.info("Running: %s", read_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, read_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(task, read_cmd)
         LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
 
         return rc, stdout, stderr

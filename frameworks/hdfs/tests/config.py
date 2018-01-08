@@ -116,8 +116,14 @@ def run_hdfs_command(service_name, command):
         cmd=command
     )
 
-    rc, output = shakedown.run_command_on_master(full_command)
-    return rc, output
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+        retry_on_result=lambda res: not res)
+    def fn():
+        rc, output = shakedown.run_command_on_master(full_command)
+        return rc, output
+    return fn()
 
 
 def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):

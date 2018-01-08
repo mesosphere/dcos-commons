@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 '''
 import json as jsonlib
 import logging
+import retrying
 import subprocess
 
 import dcos.http
@@ -78,6 +79,68 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
         return stdout + "\n" + stderr
 
     return stdout
+
+
+def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def fn():
+        command = (
+            "sudo kill -9 "
+            "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
+            "cut -d ' ' -f 1)".format(pattern))
+        if agent_host is None:
+            exit_status, _ = shakedown.run_command_on_master(command)
+        else:
+            exit_status, _ = shakedown.run_command_on_agent(agent_host, command)
+
+        return exit_status
+
+    # might not be able to connect to the agent on first try so we repeat until we can
+    fn()
+
+
+def shutdown_agent(agent_ip):
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
+    def fn():
+        status, stdout = shakedown.run_command_on_agent(agent_ip, 'sudo shutdown -h +1')
+        log.info('Shutdown agent {}: [{}] {}'.format(agent_ip, status, stdout))
+        return status
+    # might not be able to connect to the agent on first try so we repeat until we can
+    fn()
+
+    log.info('Waiting for agent {} to appear unresponsive'.format(agent_ip))
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=300*1000, # 5 minutes
+        retry_on_result=lambda res: res)
+    def wait_for_unresponsive_agent():
+        status, stdout = shakedown.run_command_on_agent(agent_ip, 'ls')
+        log.info('ls stdout: {}'.format(stdout))
+        return status
+
+    wait_for_unresponsive_agent()
+
+
+def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+    """
+    Invokes the given command on the task via `dcos task exec`.
+    :param task_name: Name of task to run command on.
+    :param cmd: The command to execute.
+    :return: a tuple consisting of the task exec's return code, stdout, and stderr
+    """
+    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
+    rc, stdout, stderr = run_raw_cli(exec_cmd)
+
+    if return_stderr_in_stdout:
+        return rc, stdout + "\n" + stderr
+
+    return rc, stdout, stderr
 
 
 def get_json_output(cmd, print_output=True):
