@@ -185,7 +185,7 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     """
 
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
-        cmd = os.path.join(get_task_sandbox, cmd)
+        cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
 
     exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
     rc, stdout, stderr = sdk_cmd.run_raw_cli(exec_cmd)
@@ -196,7 +196,7 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     return rc, stdout, stderr
 
 
-def get_task_sandbox(task_name: str):
+def get_task_sandbox_path(task_name: str) -> str:
     task_info = get_task_info(task_name)
 
     if task_info:
