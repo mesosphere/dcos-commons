@@ -13,9 +13,9 @@
     }
   },
   "images": {
-    "icon-small": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-small.png?raw=true",
-    "icon-medium": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-medium.png?raw=true",
-    "icon-large": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-large.png?raw=true"
+    "icon-small": "https://s3-us-west-1.amazonaws.com/px-dcos/portworx-couchdb/img/couchdb-small.png",
+    "icon-medium": "https://s3-us-west-1.amazonaws.com/px-dcos/portworx-couchdb/img/couchdb-medium.png",
+    "icon-large": "https://s3-us-west-1.amazonaws.com/px-dcos/portworx-couchdb/img/couchdb-large.png"
   },
   "cli":{
     "binaries":{
