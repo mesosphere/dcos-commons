@@ -179,10 +179,10 @@ def test_authz_acls_required(kafka_client, kafka_server):
     message = str(uuid.uuid4())
 
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not auth.write_to_topic("authorized", client_id, topic_name, message)
+    assert not write_to_topic("authorized", client_id, topic_name, message)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert auth.write_to_topic("super", client_id, topic_name, message)
+    assert write_to_topic("super", client_id, topic_name, message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     assert auth.is_not_authorized(auth.read_from_topic("authorized", client_id, topic_name, 1))
@@ -201,10 +201,10 @@ def test_authz_acls_required(kafka_client, kafka_server):
     # Send a second message which should not be authorized
     second_message = str(uuid.uuid4())
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert auth.write_to_topic("authorized", client_id, topic_name, second_message)
+    assert write_to_topic("authorized", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert auth.write_to_topic("super", client_id, topic_name, second_message)
+    assert write_to_topic("super", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     topic_output = auth.read_from_topic("authorized", client_id, topic_name, 3)
@@ -218,7 +218,14 @@ def test_authz_acls_required(kafka_client, kafka_server):
 
     # Check that the unauthorized client can still not read or write from the topic.
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not auth.write_to_topic("unauthorized", client_id, topic_name, second_message)
+    assert not write_to_topic("unauthorized", client_id, topic_name, second_message)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
     assert auth.is_not_authorized(auth.read_from_topic("unauthorized", client_id, topic_name, 1))
+
+
+def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
+
+    return auth.write_to_topic(cn, task, topic, message,
+                               auth.get_kerberos_client_properties(ssl_enabled=False),
+                               auth.setup_env(cn, task))

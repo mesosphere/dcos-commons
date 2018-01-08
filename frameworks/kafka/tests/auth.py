@@ -27,11 +27,25 @@ def is_not_authorized(output: str) -> bool:
     return "AuthorizationException: Not authorized to access" in output
 
 
+def get_kerberos_client_properties(ssl_enabled: bool) -> list:
+
+    protocol = "SASL_SSL" if ssl_enabled else "SASL_PLAINTEXT"
+
+    return ['security.protocol={protocol}'.format(protocol=protocol),
+            'sasl.mechanism=GSSAPI',
+            'sasl.kerberos.service.name=kafka', ]
+
+
+def get_ssl_client_properties(cn: str) -> list:
+    return ["ssl.truststore.location = {cn}_truststore.jks",format(cn=cn),
+            "ssl.truststore.password = changeit",
+            "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
+            "ssl.keystore.password = changeit", ]
+
+
 def write_kafka_client_properties(primary: str, task: str) -> str:
 
-    file_contents = ['security.protocol=SASL_PLAINTEXT',
-                     'sasl.mechanism=GSSAPI',
-                     'sasl.kerberos.service.name=kafka', ]
+    file_contents = get_kerberos_client_properties(ssl_enabled=False)
 
     return write_client_properties(primary, task, file_contents)
 
@@ -99,20 +113,25 @@ def setup_env(primary: str, task: str) -> str:
     return env_setup_string
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) -> str:
-    if not cmd:
-        env_str = setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
+def get_bash_command(cmd: str, environment: str) -> str:
+    env_str = "{} && ".format(environment) if environment else ""
 
-        write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
-            --topic {} \
-            --producer.config {} \
-            --broker-list \$KAFKA_BROKER_LIST\"".format(env_str,
-                                                        message,
-                                                        topic,
-                                                        client_properties)
-    else:
-        write_cmd = cmd
+    return "bash -c \"{}{}\"".format(env_str, cmd)
+
+
+def write_to_topic(cn: str, task: str, topic: str, message: str,
+                   client_properties: list=[], environment: str=None) -> str:
+
+    client_properties_file = write_client_properties(cn, task, client_properties)
+
+    cmd = "echo {message} | kafka-console-producer \
+            --topic {topic} \
+            --producer.config {client_properties_file} \
+            --broker-list \$KAFKA_BROKER_LIST\"".format(message=message,
+                                                        topic=topic,
+                                                        client_properties_file=client_properties_file)
+
+    write_cmd = get_bash_command(cmd, environment)
 
     def write_failed(output) -> bool:
         LOG.info("Checking write output: %s", output)
@@ -155,7 +174,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
 def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
     if not cmd:
         env_str = setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
+        client_properties = write_kafka_client_properties(cn, task)
         timeout_ms = 60000
         read_cmd = "bash -c \"{} && kafka-console-consumer \
             --topic {} \

@@ -336,15 +336,10 @@ EOL\"""".format(cn=cn))
 
 
 def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
-    client_properties = write_client_properties(cn, task)
-    cmd = "bash -c \"echo {} | kafka-console-producer \
-            --topic {} \
-            --producer.config {} \
-            --broker-list \$KAFKA_BROKER_LIST\"".format(message,
-                                                        topic,
-                                                        client_properties)
 
-    return auth.write_to_topic(cn, task, topic, message, cmd=cmd)
+    return auth.write_to_topic(cn, task, topic, message,
+                               auth.get_ssl_client_properties(cn),
+                               environment=None)
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:

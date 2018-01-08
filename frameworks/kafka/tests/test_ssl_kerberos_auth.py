@@ -208,71 +208,19 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
     assert message in read_from_topic("client", client_id, topic_name, 1)
 
 
-def write_client_properties(cn: str, task: str) -> str:
-    sdk_tasks.task_exec(task, """bash -c \"cat >{cn}-client.properties << EOL
-security.protocol=SASL_SSL
-sasl.mechanism=GSSAPI
-sasl.kerberos.service.name=kafka
-ssl.truststore.location = {cn}_truststore.jks
-ssl.truststore.password = changeit
-ssl.keystore.location = {cn}_keystore.jks
-ssl.keystore.password = changeit
-EOL\"""".format(cn=cn))
+def get_client_properties(cn: str) -> str:
+    client_properties_lines = []
+    client_properties_lines.extend(auth.get_kerberos_client_properties(ssl_enabled=True))
+    client_properties_lines.extend(auth.get_ssl_client_properties(cn))
 
-    return "{}-client.properties".format(cn)
+    return client_properties_lines
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) -> str:
-    if not cmd:
-        env_str = auth.setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
+def write_to_topic(cn: str, task: str, topic: str, message: str) -> str:
 
-        write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
-            --topic {} \
-            --producer.config {} \
-            --broker-list \$KAFKA_BROKER_LIST\"".format(env_str,
-                                                        message,
-                                                        topic,
-                                                        client_properties)
-    else:
-        write_cmd = cmd
-
-    def write_failed(output) -> bool:
-        LOG.info("Checking write output: %s", output)
-        rc = output[0]
-        stderr = output[2]
-
-        if rc:
-            LOG.error("Write failed with non-zero return code")
-            return True
-        if "UNKNOWN_TOPIC_OR_PARTITION" in stderr:
-            LOG.error("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
-            return True
-        if "LEADER_NOT_AVAILABLE" in stderr and "ERROR Error when sending message" in stderr:
-            LOG.error("Write failed due to stderr: LEADER_NOT_AVAILABLE")
-            return True
-
-        LOG.info("Output check passed")
-
-        return False
-
-    @retrying.retry(wait_exponential_multiplier=1000,
-                    wait_exponential_max=60 * 1000,
-                    retry_on_result=write_failed)
-    def write_wrapper():
-        LOG.info("Running: %s", write_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, write_cmd)
-        LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
-
-        return rc, stdout, stderr
-
-    rc, stdout, stderr = write_wrapper()
-
-    rc_success = rc is 0
-    stdout_success = ">>" in stdout
-    stderr_success = not auth.is_not_authorized(stderr)
-
-    return rc_success and stdout_success and stderr_success
+    return auth.write_to_topic(cn, task, topic, message,
+                               get_client_properties(cn),
+                               environment=auth.setup_env(cn, task))
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
