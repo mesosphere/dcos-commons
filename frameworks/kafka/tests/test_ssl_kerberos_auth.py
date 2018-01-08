@@ -1,7 +1,6 @@
 import logging
 import uuid
 import pytest
-import retrying
 
 import sdk_auth
 import sdk_cmd
@@ -9,7 +8,6 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_security
-import sdk_tasks
 import sdk_utils
 
 from tests import auth
@@ -18,7 +16,7 @@ from tests import test_utils
 
 
 log = logging.getLogger(__name__)
-LOG = log
+
 
 pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
                                 reason='Feature only supported in DC/OS EE')
