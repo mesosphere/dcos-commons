@@ -15,9 +15,9 @@ pods:
       - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
-      {{#XPACK_ENABLED}}
+      {{#TASKCFG_ALL_XPACK_ENABLED}}
       - {{XPACK_URI}}
-      {{/XPACK_ENABLED}}
+      {{/TASKCFG_ALL_XPACK_ENABLED}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
     rlimits:
@@ -84,9 +84,9 @@ pods:
       - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
-      {{#XPACK_ENABLED}}
+      {{#TASKCFG_ALL_XPACK_ENABLED}}
       - {{XPACK_URI}}
-      {{/XPACK_ENABLED}}
+      {{/TASKCFG_ALL_XPACK_ENABLED}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
     rlimits:
@@ -151,9 +151,9 @@ pods:
       - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
-      {{#XPACK_ENABLED}}
+      {{#TASKCFG_ALL_XPACK_ENABLED}}
       - {{XPACK_URI}}
-      {{/XPACK_ENABLED}}
+      {{/TASKCFG_ALL_XPACK_ENABLED}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
     rlimits:
@@ -218,9 +218,9 @@ pods:
       - {{ELASTICSEARCH_JAVA_URI}}
       - {{SCHEDULER_URI}}
       - {{ELASTICSEARCH_URI}}
-      {{#XPACK_ENABLED}}
+      {{#TASKCFG_ALL_XPACK_ENABLED}}
       - {{XPACK_URI}}
-      {{/XPACK_ENABLED}}
+      {{/TASKCFG_ALL_XPACK_ENABLED}}
       - {{DIAGNOSTICS_URI}}
       - {{STATSD_URI}}
     rlimits:
