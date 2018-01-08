@@ -51,13 +51,6 @@ def get_ssl_client_properties(cn: str, has_kerberos: bool) -> list:
     return client_properties
 
 
-def write_kafka_client_properties(primary: str, task: str) -> str:
-
-    file_contents = get_kerberos_client_properties(ssl_enabled=False)
-
-    return write_client_properties(primary, task, file_contents)
-
-
 def write_client_properties(id: str, task: str, lines: list) -> str:
     """Write a client properties file containing the specified lines"""
 
@@ -103,9 +96,9 @@ def write_krb5_config_file(task: str) -> str:
                           'default_realm = LOCAL',
                           '',
                           '[realms]',
-                          '  LOCAL = {{',
+                          '  LOCAL = {',
                           '    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500',
-                          '  }}', ]
+                          '  }', ]
     output = sdk_tasks.create_text_file(task, output_file, krb5_file_contents)
     LOG.info(output)
 
