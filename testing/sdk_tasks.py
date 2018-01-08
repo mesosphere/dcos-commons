@@ -5,13 +5,19 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import json
 import logging
+import os
+
+import shakedown
 
 import dcos.errors
 import retrying
+
 import sdk_cmd
 import sdk_plan
-import shakedown
+import sdk_utils
+
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
@@ -73,7 +79,7 @@ def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOU
         try:
             task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == task_name])
         except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids for service {}'.format(service_name))
+            log.info('Failed to get task ids. task_name=%s', task_name)
             task_ids = set([])
 
         return len(task_ids) > 0 and (old_task_id not in task_ids or len(task_ids) > 1)
@@ -177,6 +183,10 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
+
+    if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
+        cmd = os.path.join(get_task_sandbox, cmd)
+
     exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
     rc, stdout, stderr = sdk_cmd.run_raw_cli(exec_cmd)
 
@@ -184,3 +194,37 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
         return rc, stdout + "\n" + stderr
 
     return rc, stdout, stderr
+
+
+def get_task_sandbox(task_name: str):
+    task_info = get_task_info(task_name)
+
+    if task_info:
+
+        executor_path = task_info["executor_id"]
+        if not executor_path:
+            executor_path = task_info["id"]
+        # Assume the latest run:
+        return os.path.join("/var/lib/mesos/slave/slaves", task_info["slave_id"],
+                            "frameworks", task_info["framework_id"],
+                            "executors", executor_path,
+                            "runs/latest")
+
+    return ""
+
+
+@retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
+def get_task_info(task_name: str) -> dict:
+    """
+    :return (dict): Get the task information for the specified task
+    """
+    log.info("Getting task information")
+    raw_tasks = sdk_cmd.run_cli("task {task_name} --json".format(task_name))
+    if raw_tasks:
+        tasks = json.loads(raw_tasks)
+        for task in tasks:
+            if task["name"] == task_name:
+                return task
+
+    log.error("Task %s not found.\nFound: %s", task_name, raw_tasks)
+    return {}
