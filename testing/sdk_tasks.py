@@ -184,3 +184,13 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
         return rc, stdout + "\n" + stderr
 
     return rc, stdout, stderr
+
+
+def create_text_file(task_name: str, filename: str, lines: list) -> tuple:
+    output_cmd = """bash -c \"cat >{output_file} << EOL
+{content}
+EOL\"""".format(output_file=filename, content="\n".join(lines))
+    log.info("Running: %s", output_cmd)
+    output = task_exec(task_name, output_cmd)
+
+    return output

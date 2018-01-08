@@ -27,17 +27,22 @@ def is_not_authorized(output: str) -> bool:
     return "AuthorizationException: Not authorized to access" in output
 
 
-def write_client_properties(primary: str, task: str) -> str:
-    output_file = "{primary}-client.properties".format(primary=primary)
-    LOG.info("Generating %s", output_file)
+def write_kafka_client_properties(primary: str, task: str) -> str:
 
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-security.protocol=SASL_PLAINTEXT
-sasl.mechanism=GSSAPI
-sasl.kerberos.service.name=kafka
-EOL\"""".format(output_file=output_file, primary=primary)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    file_contents = ['security.protocol=SASL_PLAINTEXT',
+                     'sasl.mechanism=GSSAPI',
+                     'sasl.kerberos.service.name=kafka', ]
+
+    return write_client_properties(primary, task, file_contents)
+
+
+def write_client_properties(id: str, task: str, lines: list) -> str:
+    """Write a client properties file containing the specified lines"""
+
+    output_file = "{id}-client.properties".format(id=id)
+
+    LOG.info("Generating %s", output_file)
+    output = sdk_tasks.create_text_file(task, output_file, lines)
     LOG.info(output)
 
     return output_file
@@ -49,20 +54,18 @@ def write_jaas_config_file(primary: str, task: str) -> str:
     LOG.info("Generating %s", output_file)
 
     # TODO: use kafka_client keytab path
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-KafkaClient {{
-    com.sun.security.auth.module.Krb5LoginModule required
-    doNotPrompt=true
-    useTicketCache=true
-    principal=\\"{primary}@LOCAL\\"
-    useKeyTab=true
-    serviceName=\\"kafka\\"
-    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"
-client=true;
-}};
-EOL\"""".format(output_file=output_file, primary=primary)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    jaas_file_contents = ['KafkaClient {',
+                          '    com.sun.security.auth.module.Krb5LoginModule required',
+                          '    doNotPrompt=true',
+                          '    useTicketCache=true',
+                          '    principal=\\"{primary}@LOCAL\\"'.format(primary=primary),
+                          '    useKeyTab=true',
+                          '    serviceName=\\"kafka\\"',
+                          '    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"',
+                          '    client=true;',
+                          '};', ]
+
+    output = sdk_tasks.create_text_file(task, output_file, jaas_file_contents)
     LOG.info(output)
 
     return output_file
@@ -74,17 +77,14 @@ def write_krb5_config_file(task: str) -> str:
     LOG.info("Generating %s", output_file)
 
     # TODO: Set realm and kdc properties
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-[libdefaults]
-default_realm = LOCAL
-
-[realms]
-  LOCAL = {{
-    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500
-  }}
-EOL\"""".format(output_file=output_file)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    krb5_file_contents = ['[libdefaults]',
+                          'default_realm = LOCAL',
+                          '',
+                          '[realms]',
+                          '  LOCAL = {{',
+                          '    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500',
+                          '  }}', ]
+    output = sdk_tasks.create_text_file(task, output_file, krb5_file_contents)
     LOG.info(output)
 
     return output_file
