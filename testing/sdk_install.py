@@ -123,6 +123,9 @@ def uninstall(
         role=None,
         service_account=None,
         zk=None):
+    if not package_name:
+        package_name = service_name
+
     _uninstall(
         package_name,
         service_name,
