@@ -9,6 +9,7 @@ import os
 import os.path
 import re
 import shutil
+import subprocess
 import sys
 import time
 
@@ -246,8 +247,8 @@ def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: 
     rotated_filenames = [task_file, ]
     rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
     for filename in rotated_filenames:
-        if not filename in task_file_timestamps:
-            return # Reached a log index that doesn't exist, exit early
+        if filename not in task_file_timestamps:
+            return  # Reached a log index that doesn't exist, exit early
         content = get_task_log_for_id(task_id, filename)
         if not content:
             log.error('Unable to fetch content of {} from task {}, giving up'.format(filename, task_id))
