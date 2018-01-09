@@ -76,16 +76,9 @@ pods:
                     TimeoutStartSec=0
                     Restart=always
                     ExecStartPre=`which ping` -c 1 master.mesos
-                    ExecStartPre=-/opt/pwx/bin/runc delete %n
+                    ExecStartPre=-/opt/pwx/bin/runc delete -f %n
                     ExecStart=/opt/pwx/bin/px-runc run \
                           -v /run/docker/plugins:/run/docker/plugins     \
-                          -v /var/lib/osd:/var/lib/osd:shared            \
-                          -v /dev:/dev                                   \
-                          -v /etc/pwx:/etc/pwx                           \
-                          -v /opt/pwx/bin:/export_bin:shared             \
-                          -v /var/run/docker.sock:/var/run/docker.sock   \
-                          -v /var/cores:/var/cores                       \
-                          -v /lib/modules:/lib/modules                   \
                           $USR_SRC_MOUNT                                 \
                           {{#NODE_CONTAINER_PARAMETERS}}
                           {{{NODE_CONTAINER_PARAMETERS}}}                  \
