@@ -1,4 +1,4 @@
----
+broker---
 post_title: Managing
 menu_order: 60
 enterprise: 'no'
@@ -176,6 +176,109 @@ A graceful (or clean) shutdown takes longer than an ungraceful shutdown, but the
 
 The grace period must also be respected when a broker is shut down before replacement. While it is not ideal that a broker must respect the grace period even if it is going to lose persistent state, this behavior will be improved in future versions of the SDK. Broker replacement generally requires complex and time-consuming reconciliation activities at startup if there was not a graceful shutdown, so the respect of the grace kill period still provides value in most situations. We recommend setting the kill grace period only sufficiently long enough to allow graceful shutdown. Monitor the Kafka broker clean shutdown times in the broker logs to keep this value tuned to the scale of data flowing through the Kafka service.
 
+# broker Info
+
+Comprehensive information is available about every broker.  To list all brokers:
+
+```bash
+dcos beta-kafka --name=<service-name> pod list
+```
+
+To view information about a broker, run the following command from the CLI.
+```bash
+$ dcos beta-kafka --name=<service-name> pod info <broker-id>
+```
+
+For example:
+```bash
+$ dcos beta-kafka --name=<service-name> pod info master-0
+```
+
+# broker Status
+Similarly, the status for any broker may also be queried.
+
+```bash
+$ dcos beta-kafka --name=<service-name> pod info <broker-id>
+```
+
+For example:
+
+```bash
+$ dcos beta-kafka pod info data-0
+```
+
+# Pause a broker
+
+Pausing a broker relaunches it in an idle command state. This allows the operator to debug the contents of the broker, possibly making changes to fix problems. While these problems are often fixed by just replacing the broker, there may be cases where an in-place repair or other operation is needed.
+
+For example:
+- A broker which crashes immediately upon starting may need additional work to be performed.
+- Some services may _require_ that certain repair operations be performed manually when the task itself isn't running.
+Being able to put the broker in an offline but accessible state makes it easier to resolve these situations.
+
+After the broker has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.
+
+Here is an example session where an `index-1` broker is crash looping due to some corrupted data in a persistent volume. The operator pauses the `index-1` broker, then uses `task exec` to repair the index. Following this, the operator starts the broker and it resumes normal operation:
+
+```bash
+$ dcos beta-kafka debug pod pause index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+
+$ dcos beta-kafka pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (COMPLETE)
+│  │  └─ index-0-broker (COMPLETE)
+│  └─ index-1
+│     ├─ index-1-agent (PAUSING)
+│     └─ index-1-broker (PAUSING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-broker (COMPLETE)
+   └─ data-1
+      └─ data-1-broker (COMPLETE)
+
+... repeat "pod status" until index-1 tasks are PAUSED ...
+
+$ dcos task exec --interactive --tty index-1-broker /bin/bash
+index-1-broker$ ./repair-index && exit
+
+$ dcos beta-kafka debug pod resume index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-broker"
+  ]
+}
+
+$ dcos beta-kafka pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (RUNNING)
+│  │  └─ index-0-broker (RUNNING)
+│  └─ index-1
+│     ├─ index-1-agent (STARTING)
+│     └─ index-1-broker (STARTING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-broker (RUNNING)
+   └─ data-1
+      └─ data-1-broker (RUNNING)
+
+... repeat "pod status" until index-1 tasks are RUNNING ...
+```
+
+In the above example, all tasks in the broker were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a broker. For example, `dcos beta-kafka debug pod pause index-1 -t agent` will pause only the `agent` task within the `index-1` broker.
+
 # Upgrading Service Version
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
@@ -256,7 +359,7 @@ You will receive an error message if you attempt to `resume` a plan that is alre
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
 ```bash
-$ dcos beta-kafka update force-complete service-phase service-0:[node]
+$ dcos beta-kafka update force-complete service-phase service-0:[broker]
 ```
 
 ## Force Restart
