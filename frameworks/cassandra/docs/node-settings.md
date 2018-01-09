@@ -90,6 +90,15 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 *   **In DC/OS CLI options.json**: `placement_constraint`: string (default: `""`)
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
 
+## Regions and Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
+```
+[["@zone", "GROUP_BY", "3"]]
+```
+
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+
 ## Rack-Aware Placement
 
 Cassandra's "rack"-based fault domain support may be enabled by specifying a placement constraint that uses the `@zone` key. For example, one could spread Cassandra nodes across a minimum of three different zones/racks by specifying the constraint `@zone:GROUP_BY:3`. When a placement constraint specifying `@zone` is used, Cassandra nodes will be automatically configured with `rack`s that match the names of the zones. If no placement constraint referencing `@zone` is configured, all nodes will be configured with a default rack of `rack1`.
