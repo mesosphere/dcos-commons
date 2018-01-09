@@ -22,11 +22,12 @@ ssh_path="${HOME}/.ssh/ccm.pem"
 aws_credentials_file="${HOME}/.aws/credentials"
 aws_profile="default"
 DCOS_ENTERPRISE=true
-interactive=
+interactive=false
+headless=false
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--headless] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
@@ -35,6 +36,7 @@ function usage()
     echo "-p PATH to cluster SSH key [default ${ssh_path}]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "--interactive start a docker container in interactive mode"
+    echo "--headless leave STDIN available (mutually exclusive with --interactive)"
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
     echo "--aws|a PATH to an AWS credentials file [default ${aws_credentials_file}]"
@@ -101,6 +103,9 @@ case $key in
     -i|--interactive)
     interactive="true"
     ;;
+    --headless)
+    headless="true"
+    ;;
     -a|--aws)
     aws_credentials_file="$2"
     shift # past argument
@@ -151,8 +156,23 @@ else
 fi
 
 echo "interactive=$interactive"
+echo "headless=$headless"
 echo "security=$security"
-if [ -z $interactive ]; then
+
+# Some automation contexts (e.g. Jenkins) will be unhappy
+# if STDIN is not available. The --headless command accomodates
+# such contexts.
+if [ "$headless" = true ]; then
+    if [ "$interactive" = true ]; then
+        echo "Both --headless and -i|--interactive cannot be used at the same time."
+        exit 1
+    fi
+    DOCKER_INTERACTIVE_FLAGS=""
+else
+    DOCKER_INTERACTIVE_FLAGS="-i"
+fi
+
+if [ "$interactive" = false ]; then
     if [ -z "$CLUSTER_URL" ]; then
         echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
         exit 1
@@ -176,14 +196,12 @@ if [ -z $interactive ]; then
     fi
     FRAMEWORK_ARGS="-e FRAMEWORK=$framework"
     DOCKER_COMMAND="bash test-runner.sh"
-    DOCKER_INTERACTIVE_FLAGS=""
 else
 # interactive mode
     FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
     FRAMEWORK_ARGS=""
     framework="NOT_SPECIFIED"
     DOCKER_COMMAND="bash"
-    DOCKER_INTERACTIVE_FLAGS="-i"
 fi
 
 if [ -n "$pytest_k" ]; then
