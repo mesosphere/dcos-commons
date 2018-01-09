@@ -121,7 +121,7 @@ To see a full listing of available options, run `dcos package describe --config 
 # Add a Data/Ingest/Coordinator Node
 Increase the `DATA_NODE_COUNT`/`INGEST_NODE_COUNT`/`COORDINATOR_NODE_COUNT` value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.
 
-## Node Info
+# Node Info
 
 Comprehensive information is available about every node.  To list all nodes:
 
@@ -139,7 +139,7 @@ For example:
 $ dcos beta-elastic --name=<service-name> pod info master-0
 ```
 
-## Node Status
+# Node Status
 Similarly, the status for any node may also be queried.
 
 ```bash
@@ -151,6 +151,78 @@ For example:
 ```bash
 $ dcos beta-elastic pod info data-0
 ```
+
+# Pause a Node
+
+Pausing a node relaunches it in an idle command state. This allows the operator to debug the contents of the node, possibly making changes to fix problems. While these problems are often fixed by just replacing the node, there may be cases where an in-place repair or other operation is needed.
+
+For example:
+- A node which crashes immediately upon starting may need additional work to be performed.
+- Some services may _require_ that certain repair operations be performed manually when the task itself isn't running.
+Being able to put the node in an offline but accessible state makes it easier to resolve these situations.
+
+After the node has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.
+
+Here is an example session where an `index-1` node is crash looping due to some corrupted data in a persistent volume. The operator pauses the `index-1` node, then uses `task exec` to repair the index. Following this, the operator starts the node and it resumes normal operation:
+
+```bash
+$ dcos beta-elastic debug pod pause index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+
+$ dcos beta-elastic pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (COMPLETE)
+│  │  └─ index-0-node (COMPLETE)
+│  └─ index-1
+│     ├─ index-1-agent (PAUSING)
+│     └─ index-1-node (PAUSING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-node (COMPLETE)
+   └─ data-1
+      └─ data-1-node (COMPLETE)
+
+... repeat "pod status" until index-1 tasks are PAUSED ...
+
+$ dcos task exec --interactive --tty index-1-node /bin/bash
+index-1-node$ ./repair-index && exit
+
+$ dcos beta-elastic debug pod resume index-1
+{
+  "pod": "index-1",
+  "tasks": [
+    "index-1-agent",
+    "index-1-node"
+  ]
+}
+
+$ dcos beta-elastic pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent (RUNNING)
+│  │  └─ index-0-node (RUNNING)
+│  └─ index-1
+│     ├─ index-1-agent (STARTING)
+│     └─ index-1-node (STARTING)
+└─ data
+   ├─ data-0
+   │  └─ data-0-node (RUNNING)
+   └─ data-1
+      └─ data-1-node (RUNNING)
+
+... repeat "pod status" until index-1 tasks are RUNNING ...
+```
+
+In the above example, all tasks in the node were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a node. For example, `dcos beta-elastic debug pod pause index-1 -t agent` will pause only the `agent` task within the `index-1` node.
 
 # Upgrading Service Version
 
